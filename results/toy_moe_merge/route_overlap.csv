@@ -23,6 +23,8 @@ base,matched_router_weight_search_average,general,0,toy_router,400,0.98500001430
 base,matched_router_weight_search_average,code,0,toy_router,400,0.9424999952316284,0.97
 base,matched_router_hessian_average,general,0,toy_router,400,0.9549999833106995,0.9766666666666667
 base,matched_router_hessian_average,code,0,toy_router,400,0.9449999928474426,0.9683333333333333
+base,matched_router_kd_average,general,0,toy_router,400,0.9100000262260437,0.9016666666666667
+base,matched_router_kd_average,code,0,toy_router,400,0.9100000262260437,0.9383333333333332
 base,matched_router_calibrated_average,general,0,toy_router,400,0.8799999952316284,0.89
 base,matched_router_calibrated_average,code,0,toy_router,400,0.8374999761581421,0.8275
 base,matched_router_topk_calibrated_average,general,0,toy_router,400,0.7799999713897705,0.8633333333333333

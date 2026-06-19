@@ -263,6 +263,86 @@ def calibrate_router_dispatch_aware_state(
     return cpu_state(model)
 
 
+def calibrate_router_kd_state(
+    template: TinyMoEClassifier,
+    initial_state: dict[str, Tensor],
+    reference_router: TinyMoEClassifier,
+    teacher_loaders: list[tuple[str, TinyMoEClassifier, DataLoader, float]],
+    *,
+    epochs: int,
+    lr: float,
+    temperature: float,
+    router_kl_coef: float,
+    aux_coef: float,
+    device: torch.device,
+    desc: str,
+) -> tuple[dict[str, Tensor], pd.DataFrame]:
+    model = deepcopy(template)
+    model.load_state_dict(initial_state)
+    model.to(device)
+    reference_router.to(device)
+    reference_router.eval()
+    teachers = []
+    for source_name, teacher, loader, source_weight in teacher_loaders:
+        teacher.to(device)
+        teacher.eval()
+        teachers.append((source_name, teacher, loader, source_weight))
+    for parameter in model.parameters():
+        parameter.requires_grad = False
+    for parameter in model.router.parameters():
+        parameter.requires_grad = True
+    optimizer = torch.optim.AdamW(model.router.parameters(), lr=lr, weight_decay=0.0)
+    rows: list[dict[str, Any]] = []
+    for epoch in tqdm(range(epochs), desc=desc, leave=False):
+        model.train()
+        source_totals = {
+            source_name: {"examples": 0, "kd_loss": 0.0, "router_kl": 0.0, "aux_loss": 0.0}
+            for source_name, _teacher, _loader, _weight in teachers
+        }
+        for source_name, teacher, loader, source_weight in teachers:
+            for x, _ in loader:
+                x = x.to(device)
+                optimizer.zero_grad(set_to_none=True)
+                student_logits = model.forward_dispatch(x, "soft_all")
+                with torch.no_grad():
+                    teacher_logits = teacher.forward_dispatch(x, "soft_all")
+                    reference_probs = reference_router.router_probs(x)
+                kd_loss = F.kl_div(
+                    F.log_softmax(student_logits / temperature, dim=-1),
+                    F.softmax(teacher_logits / temperature, dim=-1),
+                    reduction="batchmean",
+                ) * (temperature**2)
+                router_probs = model.router_probs(x)
+                router_kl = F.kl_div(torch.log(router_probs.clamp_min(1e-12)), reference_probs, reduction="batchmean")
+                aux_loss = load_balance_loss(model, x)
+                loss = float(source_weight) * kd_loss + router_kl_coef * router_kl + aux_coef * aux_loss
+                loss.backward()
+                optimizer.step()
+                n = int(x.shape[0])
+                source_totals[source_name]["examples"] += n
+                source_totals[source_name]["kd_loss"] += float(kd_loss.detach().cpu()) * n
+                source_totals[source_name]["router_kl"] += float(router_kl.detach().cpu()) * n
+                source_totals[source_name]["aux_loss"] += float(aux_loss.detach().cpu()) * n
+        for source_name, totals in source_totals.items():
+            examples = max(1, int(totals["examples"]))
+            rows.append(
+                {
+                    "epoch": epoch,
+                    "source": source_name,
+                    "examples": int(totals["examples"]),
+                    "temperature": float(temperature),
+                    "source_weight": float(
+                        next(weight for name, _teacher, _loader, weight in teachers if name == source_name)
+                    ),
+                    "kd_loss": totals["kd_loss"] / examples,
+                    "router_kl": totals["router_kl"] / examples,
+                    "aux_loss": totals["aux_loss"] / examples,
+                    "same_shape_action": "router_only_label_free_kd",
+                }
+            )
+    return cpu_state(model), pd.DataFrame(rows)
+
+
 @torch.no_grad()
 def evaluate(
     model: TinyMoEClassifier,
@@ -1432,6 +1512,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
     expert_ties_dare = method_metrics[method_metrics["method"] == "expert_matched_ties_dare_average"].iloc[0]
     router_weight_search = method_metrics[method_metrics["method"] == "matched_router_weight_search_average"].iloc[0]
     router_hessian = method_metrics[method_metrics["method"] == "matched_router_hessian_average"].iloc[0]
+    router_kd = method_metrics[method_metrics["method"] == "matched_router_kd_average"].iloc[0]
     calibrated = method_metrics[method_metrics["method"] == "matched_router_calibrated_average"].iloc[0]
     topk_calibrated = method_metrics[method_metrics["method"] == "matched_router_topk_calibrated_average"].iloc[0]
     sweep_selected = method_metrics[method_metrics["method"] == "matched_router_sweep_selected_average"].iloc[0]
@@ -1461,6 +1542,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
         f"- Expert-matched TIES+DARE average worst accuracy: `{expert_ties_dare['worst_acc']:.3f}`.",
         f"- Matched + router-weight-search average worst accuracy: `{router_weight_search['worst_acc']:.3f}`.",
         f"- Matched + Hessian-router average worst accuracy: `{router_hessian['worst_acc']:.3f}`.",
+        f"- Matched + Router-KD average worst accuracy: `{router_kd['worst_acc']:.3f}`.",
         f"- Matched + router-calibrated average worst accuracy: `{calibrated['worst_acc']:.3f}`.",
         f"- Matched + router-topk-calibrated average worst accuracy: `{topk_calibrated['worst_acc']:.3f}`.",
         f"- Matched + router-sweep-selected average worst accuracy: `{sweep_selected['worst_acc']:.3f}`.",
@@ -1473,6 +1555,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
         f"- Matched + router-calibrated hard top-1 worst accuracy: `{dispatch['matched_router_calibrated_hard_top1_worst_acc']:.3f}`.",
         f"- Matched + router-calibrated hard top-2 worst accuracy: `{dispatch['matched_router_calibrated_hard_top2_worst_acc']:.3f}`.",
         f"- Matched + Hessian-router hard top-2 worst accuracy: `{dispatch['matched_router_hessian_hard_top2_worst_acc']:.3f}`.",
+        f"- Matched + Router-KD hard top-2 worst accuracy: `{dispatch['matched_router_kd_hard_top2_worst_acc']:.3f}`.",
         f"- Matched + router-topk-calibrated hard top-2 worst accuracy: `{dispatch['matched_router_topk_calibrated_hard_top2_worst_acc']:.3f}`.",
         f"- Top-k router calibration delta vs soft router calibration under hard top-2: `{dispatch['topk_calibrated_minus_soft_calibrated_hard_top2_worst_acc']:.3f}`.",
         f"- Recovered expert matching mean cosine: `{summary['expert_match_mean_cosine']:.3f}`.",
@@ -1500,6 +1583,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
             "- `expert_matched_ties_average` / `expert_matched_dare_average` / `expert_matched_ties_dare_average` 把 Dense sparse task-vector merging 迁移到 MoE expert 子网；router 不参与稀疏合并。",
             "- `matched_router_weight_search_average` 不做梯度训练，只对 router tensor 的 general/code task-vector 系数做 guarded search；这是 checkpoint-only 的 MoE router probe。",
             "- `matched_router_hessian_average` 只解 router：用 source router softmax Hessian 和输入协方差做二阶加权最小二乘，检验 routing breakdown 是否来自线性 router averaging 的非线性 mismatch。",
+            "- `matched_router_kd_average` 不用标签，只让 router 蒸馏 general/code source logits；这对应 Router KD 的轻量 router-expert mismatch 修复假设。",
             "- `matched_router_calibrated_average` 冻结 matched experts，只用小校准集更新 router，并用 base-router KL 约束防止 dispatch 漂移。",
             "- `matched_router_topk_calibrated_average` 在 router-only calibration 里显式加入 hard top-2 dispatch loss，用来检验 soft-router 优化是否能迁移到真实 sparse dispatch。",
             "- `matched_router_sweep_selected_average` 对 router calibration 的 KL 系数做 sweep，先过 route-overlap guard，再按 calibration worst-loss 选择候选；它把 router overlap/load 和任务精度放到同一个 probe 里。",
@@ -1527,6 +1611,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
             "- `expert_weight_search_trace.csv`",
             "- `router_weight_search.csv`",
             "- `router_hessian_average.csv`",
+            "- `router_kd_trace.csv`",
             "- `router_calibration_sweep.csv`",
             "- `toy_moe_merge.png`",
             "- `summary.json`",
@@ -1559,6 +1644,10 @@ def main() -> None:
     parser.add_argument("--dispatch-router-calibration-soft-loss-coef", type=float, default=0.5)
     parser.add_argument("--dispatch-router-calibration-kl-coef", type=float, default=0.25)
     parser.add_argument("--router-hessian-ridge", type=float, default=1e-4)
+    parser.add_argument("--router-kd-epochs", type=int, default=8)
+    parser.add_argument("--router-kd-lr", type=float, default=5e-3)
+    parser.add_argument("--router-kd-temperature", type=float, default=2.0)
+    parser.add_argument("--router-kd-kl-coef", type=float, default=0.10)
     parser.add_argument("--router-weight-search-grid", default="0,0.25,0.5,0.75,1.0")
     parser.add_argument("--router-weight-search-max-delta-sum", type=float, default=1.0)
     parser.add_argument("--router-weight-search-min-topk-jaccard", type=float, default=0.80)
@@ -1755,6 +1844,22 @@ def main() -> None:
         ridge=args.router_hessian_ridge,
         device=device,
     )
+    matched_router_kd, router_kd_trace = calibrate_router_kd_state(
+        template,
+        matched_router_frozen,
+        base,
+        [
+            ("general_source", general_model, loaders["general_calib"], 0.5),
+            ("matched_code_source", matched_code, loaders["code_calib"], 0.5),
+        ],
+        epochs=args.router_kd_epochs,
+        lr=args.router_kd_lr,
+        temperature=args.router_kd_temperature,
+        router_kl_coef=args.router_kd_kl_coef,
+        aux_coef=args.aux_coef,
+        device=device,
+        desc="distill matched router from source logits",
+    )
     matched_router_calibrated = calibrate_router_only_state(
         template,
         matched_router_frozen,
@@ -1853,6 +1958,11 @@ def main() -> None:
             "align code experts and solve a Hessian-aware router average from source router distributions",
         ),
         MethodState(
+            "matched_router_kd_average",
+            matched_router_kd,
+            "align code experts and distill only the router from source model logits on unlabeled calibration inputs",
+        ),
+        MethodState(
             "matched_router_calibrated_average",
             matched_router_calibrated,
             "align code experts, freeze non-router tensors, and calibrate only the router",
@@ -1914,6 +2024,13 @@ def main() -> None:
             general_state,
             matched_code_state,
             matched_router_hessian,
+            "candidate_two_segment",
+        ),
+        ConnectivityPath(
+            "via_matched_router_kd",
+            general_state,
+            matched_code_state,
+            matched_router_kd,
             "candidate_two_segment",
         ),
         ConnectivityPath(
@@ -2004,6 +2121,7 @@ def main() -> None:
     expert_search_trace.to_csv(args.output_dir / "expert_weight_search_trace.csv", index=False)
     router_weight_search.to_csv(args.output_dir / "router_weight_search.csv", index=False)
     router_hessian_average.to_csv(args.output_dir / "router_hessian_average.csv", index=False)
+    router_kd_trace.to_csv(args.output_dir / "router_kd_trace.csv", index=False)
     router_calibration_sweep.to_csv(args.output_dir / "router_calibration_sweep.csv", index=False)
     plot_results(method_metrics, router_summary, args.output_dir / "toy_moe_merge.png")
     plot_connectivity_paths(connectivity_path_metrics, args.output_dir / "connectivity_paths.png")
@@ -2037,6 +2155,7 @@ def main() -> None:
         method_metrics["method"] == "matched_router_weight_search_average"
     ].iloc[0]
     matched_router_hessian_row = method_metrics[method_metrics["method"] == "matched_router_hessian_average"].iloc[0]
+    matched_router_kd_row = method_metrics[method_metrics["method"] == "matched_router_kd_average"].iloc[0]
     matched_router_calibrated_row = method_metrics[method_metrics["method"] == "matched_router_calibrated_average"].iloc[0]
     matched_router_topk_calibrated_row = method_metrics[
         method_metrics["method"] == "matched_router_topk_calibrated_average"
@@ -2104,6 +2223,16 @@ def main() -> None:
                 dispatch_index.loc[("matched_router_hessian_average", "hard_top2"), "worst_acc"]
             )
             if ("matched_router_hessian_average", "hard_top2") in dispatch_index_keys
+            else None,
+            "matched_router_kd_hard_top1_worst_acc": float(
+                dispatch_index.loc[("matched_router_kd_average", "hard_top1"), "worst_acc"]
+            )
+            if ("matched_router_kd_average", "hard_top1") in dispatch_index_keys
+            else None,
+            "matched_router_kd_hard_top2_worst_acc": float(
+                dispatch_index.loc[("matched_router_kd_average", "hard_top2"), "worst_acc"]
+            )
+            if ("matched_router_kd_average", "hard_top2") in dispatch_index_keys
             else None,
             "matched_router_calibrated_soft_to_hard_top1_worst_acc_delta": float(
                 dispatch_index.loc[("matched_router_calibrated_average", "hard_top1"), "worst_acc"]
@@ -2234,6 +2363,21 @@ def main() -> None:
                 router_hessian_average[router_hessian_average["source"] == "solved_router"].iloc[0]["ridge_value"]
             ),
         },
+        "matched_router_kd_worst_acc": float(matched_router_kd_row["worst_acc"]),
+        "matched_router_kd_minus_expert_matched_worst_acc": float(
+            matched_router_kd_row["worst_acc"] - expert_matched_row["worst_acc"]
+        ),
+        "matched_router_kd_minus_matched_calibrated_worst_acc": float(
+            matched_router_kd_row["worst_acc"] - matched_router_calibrated_row["worst_acc"]
+        ),
+        "router_kd": {
+            "epochs": args.router_kd_epochs,
+            "lr": args.router_kd_lr,
+            "temperature": args.router_kd_temperature,
+            "router_kl_coef": args.router_kd_kl_coef,
+            "rows": int(len(router_kd_trace)),
+            "final_mean_kd_loss": float(router_kd_trace[router_kd_trace["epoch"] == router_kd_trace["epoch"].max()]["kd_loss"].mean()),
+        },
         "router_calibration": {
             "epochs": args.router_calibration_epochs,
             "lr": args.router_calibration_lr,
@@ -2299,6 +2443,7 @@ def main() -> None:
             "expert_weight_search_trace": "expert_weight_search_trace.csv",
             "router_weight_search": "router_weight_search.csv",
             "router_hessian_average": "router_hessian_average.csv",
+            "router_kd_trace": "router_kd_trace.csv",
             "router_calibration_sweep": "router_calibration_sweep.csv",
             "figure": "toy_moe_merge.png",
             "connectivity_path_metrics": "connectivity_path_metrics.csv",

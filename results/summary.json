@@ -2664,7 +2664,7 @@
       "source_tensor_aliases": "results/toy_moe_expert_remap_plan/source_tensor_aliases.txt",
       "summary": {
         "alias_rule_count": 4,
-        "generated_at": "2026-06-19T10:52:49.355840+00:00",
+        "generated_at": "2026-06-19T11:01:24.375626+00:00",
         "manual_review_count": 0,
         "mean_output_cosine": 0.9773149192333221,
         "min_cosine_threshold": 0.9,
@@ -2768,7 +2768,7 @@
         "direct_matched_barrier_worst_loss": 0.0,
         "direct_unmatched_barrier_worst_loss": 0.03273778915405279,
         "matched_minus_unmatched_barrier_worst_loss": -0.03273778915405279,
-        "path_count": 8,
+        "path_count": 9,
         "steps": 21
       },
       "connectivity_best": {
@@ -2786,9 +2786,9 @@
       "connectivity_figure": "results/toy_moe_merge/connectivity_paths.png",
       "connectivity_path_metrics": "results/toy_moe_merge/connectivity_path_metrics.csv",
       "connectivity_summary": "results/toy_moe_merge/connectivity_summary.csv",
-      "connectivity_summary_rows": 8,
+      "connectivity_summary_rows": 9,
       "dispatch_mode_metrics": "results/toy_moe_merge/dispatch_mode_metrics.csv",
-      "dispatch_mode_rows": 57,
+      "dispatch_mode_rows": 60,
       "dispatch_robustness": {
         "best_by_mode": {
           "hard_top1": {
@@ -2816,6 +2816,8 @@
         "matched_router_calibrated_soft_to_hard_top2_worst_acc_delta": -0.13750000000000007,
         "matched_router_hessian_hard_top1_worst_acc": 0.5675,
         "matched_router_hessian_hard_top2_worst_acc": 0.675,
+        "matched_router_kd_hard_top1_worst_acc": 0.55,
+        "matched_router_kd_hard_top2_worst_acc": 0.685,
         "matched_router_topk_calibrated_hard_top1_worst_acc": 0.57,
         "matched_router_topk_calibrated_hard_top2_worst_acc": 0.7,
         "modes": [
@@ -2823,7 +2825,7 @@
           "hard_top1",
           "hard_top2"
         ],
-        "row_count": 57,
+        "row_count": 60,
         "topk_calibrated_minus_soft_calibrated_hard_top1_worst_acc": 0.0024999999999999467,
         "topk_calibrated_minus_soft_calibrated_hard_top2_worst_acc": 0.0
       },
@@ -2970,6 +2972,20 @@
       },
       "matched_router_hessian_minus_expert_matched_worst_acc": 0.007499999999999951,
       "matched_router_hessian_minus_matched_calibrated_worst_acc": -0.030000000000000027,
+      "matched_router_kd_average": {
+        "avg_acc": 0.81125,
+        "avg_loss": 0.6173015689849853,
+        "code_acc": 0.8025,
+        "code_loss": 0.6307939147949219,
+        "description": "align code experts and distill only the router from source model logits on unlabeled calibration inputs",
+        "general_acc": 0.82,
+        "general_loss": 0.6038092231750488,
+        "method": "matched_router_kd_average",
+        "worst_acc": 0.8025,
+        "worst_loss": 0.6307939147949219
+      },
+      "matched_router_kd_minus_expert_matched_worst_acc": 0.0024999999999999467,
+      "matched_router_kd_minus_matched_calibrated_worst_acc": -0.03500000000000003,
       "matched_router_sweep_selected_average": {
         "avg_acc": 0.83875,
         "avg_loss": 0.5999638271331788,
@@ -3054,7 +3070,9 @@
       },
       "router_hessian_average": "results/toy_moe_merge/router_hessian_average.csv",
       "router_hessian_rows": 3,
-      "router_rows": 38,
+      "router_kd_rows": 16,
+      "router_kd_trace": "results/toy_moe_merge/router_kd_trace.csv",
+      "router_rows": 40,
       "router_summary": "results/toy_moe_merge/router_summary.csv",
       "router_weight_search": "results/toy_moe_merge/router_weight_search.csv",
       "router_weight_search_eligible_count": 15,
@@ -3102,7 +3120,7 @@
           "direct_matched_barrier_worst_loss": 0.0,
           "direct_unmatched_barrier_worst_loss": 0.03273778915405279,
           "matched_minus_unmatched_barrier_worst_loss": -0.03273778915405279,
-          "path_count": 8,
+          "path_count": 9,
           "steps": 21
         },
         "dispatch_robustness": {
@@ -3132,6 +3150,8 @@
           "matched_router_calibrated_soft_to_hard_top2_worst_acc_delta": -0.13750000000000007,
           "matched_router_hessian_hard_top1_worst_acc": 0.5675,
           "matched_router_hessian_hard_top2_worst_acc": 0.675,
+          "matched_router_kd_hard_top1_worst_acc": 0.55,
+          "matched_router_kd_hard_top2_worst_acc": 0.685,
           "matched_router_topk_calibrated_hard_top1_worst_acc": 0.57,
           "matched_router_topk_calibrated_hard_top2_worst_acc": 0.7,
           "modes": [
@@ -3139,7 +3159,7 @@
             "hard_top1",
             "hard_top2"
           ],
-          "row_count": 57,
+          "row_count": 60,
           "topk_calibrated_minus_soft_calibrated_hard_top1_worst_acc": 0.0024999999999999467,
           "topk_calibrated_minus_soft_calibrated_hard_top2_worst_acc": 0.0
         },
@@ -3197,6 +3217,9 @@
         "matched_router_hessian_minus_expert_matched_worst_acc": 0.007499999999999951,
         "matched_router_hessian_minus_matched_calibrated_worst_acc": -0.030000000000000027,
         "matched_router_hessian_worst_acc": 0.8075,
+        "matched_router_kd_minus_expert_matched_worst_acc": 0.0024999999999999467,
+        "matched_router_kd_minus_matched_calibrated_worst_acc": -0.03500000000000003,
+        "matched_router_kd_worst_acc": 0.8025,
         "matched_router_sweep_selected_worst_acc": 0.8375,
         "matched_router_topk_calibrated_minus_matched_calibrated_worst_acc": -0.022500000000000075,
         "matched_router_topk_calibrated_worst_acc": 0.815,
@@ -3221,6 +3244,7 @@
           "route_weights_by_expert": "route_weights_by_expert.csv",
           "router_calibration_sweep": "router_calibration_sweep.csv",
           "router_hessian_average": "router_hessian_average.csv",
+          "router_kd_trace": "router_kd_trace.csv",
           "router_summary": "router_summary.csv",
           "router_weight_search": "router_weight_search.csv"
         },
@@ -3253,6 +3277,14 @@
           "ridge": 0.0001,
           "ridge_value": 0.007008890317873619,
           "rows": 3
+        },
+        "router_kd": {
+          "epochs": 8,
+          "final_mean_kd_loss": 0.000623056530021131,
+          "lr": 0.005,
+          "router_kl_coef": 0.1,
+          "rows": 16,
+          "temperature": 2.0
         },
         "router_weight_search": {
           "candidate_pair_count": 15,
@@ -3313,7 +3345,7 @@
       "report": "results/toy_moe_method_selection/report.md",
       "summary": {
         "base_worst_acc": 0.775,
-        "generated_at": "2026-06-19T10:52:49.324879+00:00",
+        "generated_at": "2026-06-19T11:01:24.257969+00:00",
         "inputs": {
           "method_metrics": "results/toy_moe_merge/method_metrics.csv",
           "router_readiness": "results/toy_moe_routing_readiness/router_readiness.csv"
@@ -3339,18 +3371,18 @@
       },
       "category_specialization": "results/toy_moe_routing_readiness/category_specialization.csv",
       "expert_load_risks": "results/toy_moe_routing_readiness/expert_load_risks.csv",
-      "expert_rows": 152,
+      "expert_rows": 160,
       "readiness_status": "high_risk_calibrate_router_before_merge",
       "report": "results/toy_moe_routing_readiness/report.md",
       "router_readiness": "results/toy_moe_routing_readiness/router_readiness.csv",
-      "router_rows": 38,
-      "specialization_rows": 76,
+      "router_rows": 40,
+      "specialization_rows": 80,
       "summary": {
         "expert_action_counts": {
-          "low_lambda_or_route_frequency_average": 152
+          "low_lambda_or_route_frequency_average": 160
         },
-        "expert_rows": 152,
-        "generated_at": "2026-06-19T10:52:43.663751+00:00",
+        "expert_rows": 160,
+        "generated_at": "2026-06-19T11:01:17.448879+00:00",
         "outputs": {
           "category_specialization": "results/toy_moe_routing_readiness/category_specialization.csv",
           "expert_load_risks": "results/toy_moe_routing_readiness/expert_load_risks.csv",
@@ -3361,19 +3393,19 @@
         "readiness_status": "high_risk_calibrate_router_before_merge",
         "router_action_counts": {
           "calibrate_router_before_average": 3,
-          "freeze_router_and_check_load_balance": 20,
-          "router_probe_passed_for_small_lambda": 15
+          "freeze_router_and_check_load_balance": 21,
+          "router_probe_passed_for_small_lambda": 16
         },
         "router_dirs": [
           "results/toy_moe_merge"
         ],
-        "router_rows": 38,
+        "router_rows": 40,
         "same_shape_constraint": "Readiness actions preserve router shape, expert count, hidden size, tokenizer, and model class.",
         "specialization_action_counts": {
-          "category_specialized_route_weight": 20,
-          "shared_or_mixed_expert": 56
+          "category_specialized_route_weight": 21,
+          "shared_or_mixed_expert": 59
         },
-        "specialization_rows": 76,
+        "specialization_rows": 80,
         "thresholds": {
           "collapse_threshold": 0.5,
           "low_margin_threshold": 0.05,
@@ -3430,7 +3462,7 @@
       "tasks": "gsm8k,mmlu,safety,humaneval_compile"
     }
   },
-  "generated_at": "2026-06-19T10:52:53.956344+00:00",
+  "generated_at": "2026-06-19T11:01:28.662902+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [

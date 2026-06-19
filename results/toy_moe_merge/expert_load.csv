@@ -103,6 +103,14 @@ matched_router_hessian_average,matched_router_hessian_average,code,0,toy_router,
 matched_router_hessian_average,matched_router_hessian_average,code,0,toy_router,1,209,0.5225,227,0.28375
 matched_router_hessian_average,matched_router_hessian_average,code,0,toy_router,2,162,0.405,220,0.275
 matched_router_hessian_average,matched_router_hessian_average,code,0,toy_router,3,27,0.0675,274,0.3425
+matched_router_kd_average,matched_router_kd_average,general,0,toy_router,0,222,0.555,273,0.34125
+matched_router_kd_average,matched_router_kd_average,general,0,toy_router,1,26,0.065,154,0.1925
+matched_router_kd_average,matched_router_kd_average,general,0,toy_router,2,54,0.135,148,0.185
+matched_router_kd_average,matched_router_kd_average,general,0,toy_router,3,98,0.245,225,0.28125
+matched_router_kd_average,matched_router_kd_average,code,0,toy_router,0,9,0.0225,92,0.115
+matched_router_kd_average,matched_router_kd_average,code,0,toy_router,1,194,0.485,221,0.27625
+matched_router_kd_average,matched_router_kd_average,code,0,toy_router,2,157,0.3925,211,0.26375
+matched_router_kd_average,matched_router_kd_average,code,0,toy_router,3,40,0.1,276,0.345
 matched_router_calibrated_average,matched_router_calibrated_average,general,0,toy_router,0,264,0.66,298,0.3725
 matched_router_calibrated_average,matched_router_calibrated_average,general,0,toy_router,1,0,0.0,131,0.16375
 matched_router_calibrated_average,matched_router_calibrated_average,general,0,toy_router,2,51,0.1275,138,0.1725

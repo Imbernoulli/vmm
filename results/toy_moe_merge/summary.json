@@ -14,7 +14,7 @@
     "direct_matched_barrier_worst_loss": 0.0,
     "direct_unmatched_barrier_worst_loss": 0.03273778915405279,
     "matched_minus_unmatched_barrier_worst_loss": -0.03273778915405279,
-    "path_count": 8,
+    "path_count": 9,
     "steps": 21
   },
   "dispatch_robustness": {
@@ -44,6 +44,8 @@
     "matched_router_calibrated_soft_to_hard_top2_worst_acc_delta": -0.13750000000000007,
     "matched_router_hessian_hard_top1_worst_acc": 0.5675,
     "matched_router_hessian_hard_top2_worst_acc": 0.675,
+    "matched_router_kd_hard_top1_worst_acc": 0.55,
+    "matched_router_kd_hard_top2_worst_acc": 0.685,
     "matched_router_topk_calibrated_hard_top1_worst_acc": 0.57,
     "matched_router_topk_calibrated_hard_top2_worst_acc": 0.7,
     "modes": [
@@ -51,7 +53,7 @@
       "hard_top1",
       "hard_top2"
     ],
-    "row_count": 57,
+    "row_count": 60,
     "topk_calibrated_minus_soft_calibrated_hard_top1_worst_acc": 0.0024999999999999467,
     "topk_calibrated_minus_soft_calibrated_hard_top2_worst_acc": 0.0
   },
@@ -109,6 +111,9 @@
   "matched_router_hessian_minus_expert_matched_worst_acc": 0.007499999999999951,
   "matched_router_hessian_minus_matched_calibrated_worst_acc": -0.030000000000000027,
   "matched_router_hessian_worst_acc": 0.8075,
+  "matched_router_kd_minus_expert_matched_worst_acc": 0.0024999999999999467,
+  "matched_router_kd_minus_matched_calibrated_worst_acc": -0.03500000000000003,
+  "matched_router_kd_worst_acc": 0.8025,
   "matched_router_sweep_selected_worst_acc": 0.8375,
   "matched_router_topk_calibrated_minus_matched_calibrated_worst_acc": -0.022500000000000075,
   "matched_router_topk_calibrated_worst_acc": 0.815,
@@ -133,6 +138,7 @@
     "route_weights_by_expert": "route_weights_by_expert.csv",
     "router_calibration_sweep": "router_calibration_sweep.csv",
     "router_hessian_average": "router_hessian_average.csv",
+    "router_kd_trace": "router_kd_trace.csv",
     "router_summary": "router_summary.csv",
     "router_weight_search": "router_weight_search.csv"
   },
@@ -165,6 +171,14 @@
     "ridge": 0.0001,
     "ridge_value": 0.007008890317873619,
     "rows": 3
+  },
+  "router_kd": {
+    "epochs": 8,
+    "final_mean_kd_loss": 0.000623056530021131,
+    "lr": 0.005,
+    "router_kl_coef": 0.1,
+    "rows": 16,
+    "temperature": 2.0
   },
   "router_weight_search": {
     "candidate_pair_count": 15,

@@ -15,8 +15,9 @@
 | expert_weight_search_router_calibrated_average | merge_candidate | 0.828 | 0.831 | 0 | 0.8308 | `candidate_with_router_guard` |
 | matched_router_topk_calibrated_average | merge_candidate | 0.815 | 0.825 | 0 | 0.8633 | `candidate_with_router_guard` |
 | matched_router_weight_search_average | merge_candidate | 0.818 | 0.819 | 0 | 0.97 | `candidate_with_router_guard` |
-| expert_weight_search_average | merge_candidate | 0.802 | 0.806 | 0 | 1 | `candidate_with_router_guard` |
 | matched_router_hessian_average | merge_candidate | 0.807 | 0.812 | 0 | 0.9683 | `candidate_with_router_guard` |
+| expert_weight_search_average | merge_candidate | 0.802 | 0.806 | 0 | 1 | `candidate_with_router_guard` |
+| matched_router_kd_average | merge_candidate | 0.802 | 0.811 | 0 | 0.9017 | `candidate_with_router_guard` |
 | expert_matched_average | merge_candidate | 0.800 | 0.809 | 0 | 0.98 | `candidate_with_router_guard` |
 | expert_matched_regmean_average | merge_candidate | 0.792 | 0.807 | 0 | 1 | `candidate_with_router_guard` |
 | route_aware_expert_average | merge_candidate | 0.790 | 0.799 | 0 | 1 | `candidate_with_router_guard` |
