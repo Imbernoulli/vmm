@@ -631,6 +631,9 @@ def summarize_moe_router_delta_calibration_smoke() -> dict[str, Any]:
         "mean_initial_top1_agreement": float(summary.get("mean_initial_top1_agreement", 0.0)),
         "mean_final_top1_agreement": float(summary.get("mean_final_top1_agreement", 0.0)),
         "max_final_relative_delta_norm": float(summary.get("max_final_relative_delta_norm", 0.0)),
+        "selection_policy": summary.get("selection_policy"),
+        "mean_selected_epoch": float(summary.get("mean_selected_epoch", 0.0)),
+        "mean_selection_score": float(summary.get("mean_selection_score", 0.0)),
         "max_initial_top1_capacity_overflow_fraction": float(
             summary.get("max_initial_top1_capacity_overflow_fraction", 0.0)
         ),
@@ -4474,6 +4477,12 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(moe_router_delta_calibration_smoke['mean_initial_top1_agreement'], 4)}-"
                 f"{fmt(moe_router_delta_calibration_smoke['mean_final_top1_agreement'], 4)} / "
                 f"{fmt(moe_router_delta_calibration_smoke['max_final_relative_delta_norm'], 4)} |"
+            ),
+            (
+                "| MoE router delta calibration smoke | selection policy / mean selected epoch / score | "
+                f"{moe_router_delta_calibration_smoke['selection_policy']} / "
+                f"{fmt(moe_router_delta_calibration_smoke['mean_selected_epoch'], 2)} / "
+                f"{fmt(moe_router_delta_calibration_smoke['mean_selection_score'], 4)} |"
             ),
             (
                 "| MoE router delta calibration smoke | hard top1/top-k overflow initial-final / increase | "

@@ -199,6 +199,11 @@ def read_training_state(delta_dir: str | Path) -> dict[str, Any]:
         "mean_initial_top1_agreement": maybe_float(summary.get("mean_initial_top1_agreement")),
         "mean_final_top1_agreement": maybe_float(summary.get("mean_final_top1_agreement")),
         "max_final_relative_delta_norm": maybe_float(summary.get("max_final_relative_delta_norm")),
+        "selection_policy": summary.get("selection_policy"),
+        "mean_selected_epoch": maybe_float(summary.get("mean_selected_epoch")),
+        "min_selected_epoch": maybe_int(summary.get("min_selected_epoch")),
+        "max_selected_epoch": maybe_int(summary.get("max_selected_epoch")),
+        "mean_selection_score": maybe_float(summary.get("mean_selection_score")),
         "mean_initial_capacity_overflow_fraction": maybe_float(summary.get("mean_initial_capacity_overflow_fraction")),
         "max_initial_capacity_overflow_fraction": maybe_float(summary.get("max_initial_capacity_overflow_fraction")),
         "mean_final_capacity_overflow_fraction": maybe_float(summary.get("mean_final_capacity_overflow_fraction")),
@@ -725,8 +730,8 @@ def build_report(
         "",
         "## Candidate Gate",
         "",
-        "| cap | method | decision | avg delta | worst delta | worst task delta | router max rel | top1/top-k overflow | top1/top-k increase | load pass | router-only | cap pass | score | reason |",
-        "| ---: | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | ---: | --- |",
+        "| cap | method | selected epoch | decision | avg delta | worst delta | worst task delta | router max rel | top1/top-k overflow | top1/top-k increase | load pass | router-only | cap pass | score | reason |",
+        "| ---: | --- | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | ---: | --- |",
     ]
     for _, row in table.iterrows():
         overflow_text = (
@@ -738,7 +743,8 @@ def build_report(
             f"{fmt(row.get('max_router_topk_capacity_overflow_increase'))}"
         )
         lines.append(
-            f"| {fmt(row['router_max_relative_norm'])} | `{row['method']}` | `{row['decision']}` | "
+            f"| {fmt(row['router_max_relative_norm'])} | `{row['method']}` | "
+            f"{fmt(row.get('mean_selected_epoch'), 1)} | `{row['decision']}` | "
             f"{fmt(row.get('delta_vs_baseline_avg_primary_score'))} | "
             f"{fmt(row.get('delta_vs_baseline_worst_primary_score'))} | "
             f"{fmt(row.get('worst_task_delta_vs_baseline'))} | "
@@ -933,6 +939,11 @@ def write_training_dir(
         "mean_initial_top1_agreement": 0.70,
         "mean_final_top1_agreement": min(0.95, 0.70 + cap * 2),
         "max_final_relative_delta_norm": cap,
+        "selection_policy": "capacity_aware",
+        "mean_selected_epoch": 10.0,
+        "min_selected_epoch": 10,
+        "max_selected_epoch": 10,
+        "mean_selection_score": max(0.0, 0.12 - cap),
         "mean_initial_capacity_overflow_fraction": initial_topk_overflow / 2.0,
         "max_initial_capacity_overflow_fraction": initial_topk_overflow,
         "mean_final_capacity_overflow_fraction": final_topk_overflow / 2.0,

@@ -232,6 +232,47 @@ def project_relative_norm(delta: torch.Tensor, base: torch.Tensor, max_relative_
         delta.data.mul_(max_norm / delta_norm)
 
 
+def selection_metrics(
+    *,
+    logits: torch.Tensor,
+    teacher_logits: torch.Tensor,
+    base_weight: torch.Tensor,
+    delta_weight: torch.Tensor,
+    top_k: int,
+    capacity_factor: float,
+) -> dict[str, float]:
+    teacher_probs = F.softmax(teacher_logits, dim=-1)
+    route_kl = F.kl_div(F.log_softmax(logits, dim=-1), teacher_probs, reduction="batchmean")
+    top1_agreement = (logits.argmax(dim=-1) == teacher_logits.argmax(dim=-1)).to(torch.float32).mean()
+    delta_norm = torch.linalg.vector_norm(delta_weight).item()
+    base_norm = torch.linalg.vector_norm(base_weight.to(torch.float32)).item()
+    return {
+        "route_kl": float(route_kl.item()),
+        "top1_agreement": float(top1_agreement.item()),
+        "relative_delta_norm": float(delta_norm / max(1e-12, base_norm)),
+        **route_load_stats(logits, top_k=top_k, capacity_factor=capacity_factor),
+    }
+
+
+def router_selection_score(
+    candidate: dict[str, float],
+    initial: dict[str, float],
+    args: argparse.Namespace,
+) -> float:
+    top1_overflow = float(candidate["top1_capacity_overflow_fraction"])
+    topk_overflow = float(candidate["topk_capacity_overflow_fraction"])
+    top1_increase = max(0.0, top1_overflow - float(initial["top1_capacity_overflow_fraction"]))
+    topk_increase = max(0.0, topk_overflow - float(initial["topk_capacity_overflow_fraction"]))
+    top1_regression = max(0.0, float(initial["top1_agreement"]) - float(candidate["top1_agreement"]))
+    return (
+        float(candidate["route_kl"])
+        + args.capacity_overflow_score_penalty * (top1_overflow + 2.0 * topk_overflow)
+        + args.capacity_increase_score_penalty * (top1_increase + 2.0 * topk_increase)
+        + args.top1_regression_score_penalty * top1_regression
+        + args.relative_norm_score_penalty * float(candidate["relative_delta_norm"])
+    )
+
+
 def train_one_router(
     record: dict[str, Any],
     base_values: dict[str, torch.Tensor],
@@ -260,6 +301,19 @@ def train_one_router(
     teacher_top1 = teacher_logits.argmax(dim=-1)
     trace_rows: list[dict[str, Any]] = []
     initial_logits = router_logits(hidden, base_weight, orientation, base_bias)
+    initial_selection = selection_metrics(
+        logits=initial_logits,
+        teacher_logits=teacher_logits,
+        base_weight=base_weight,
+        delta_weight=delta_weight.detach(),
+        top_k=args.top_k,
+        capacity_factor=args.capacity_factor,
+    )
+    best_epoch = 0
+    best_score = router_selection_score(initial_selection, initial_selection, args)
+    best_weight = delta_weight.detach().clone()
+    best_bias = None if delta_bias is None else delta_bias.detach().clone()
+    best_selection = dict(initial_selection)
     metric_rows = [
         metric_row(
             tensor_name=tensor_name,
@@ -302,14 +356,30 @@ def train_one_router(
         project_relative_norm(delta_weight, base_weight, args.max_relative_norm)
         if delta_bias is not None and base_bias is not None:
             project_relative_norm(delta_bias, base_bias, args.max_relative_norm)
+        with torch.no_grad():
+            eval_logits = router_logits(
+                hidden,
+                base_weight + delta_weight,
+                orientation,
+                None if base_bias is None else base_bias + delta_bias,
+            )
+            current_selection = selection_metrics(
+                logits=eval_logits,
+                teacher_logits=teacher_logits,
+                base_weight=base_weight,
+                delta_weight=delta_weight.detach(),
+                top_k=args.top_k,
+                capacity_factor=args.capacity_factor,
+            )
+            current_score = router_selection_score(current_selection, initial_selection, args)
+            if args.selection_policy == "final" or current_score < best_score:
+                best_epoch = epoch + 1
+                best_score = current_score
+                best_weight = delta_weight.detach().clone()
+                best_bias = None if delta_bias is None else delta_bias.detach().clone()
+                best_selection = dict(current_selection)
         if epoch == 0 or epoch == args.epochs - 1 or (epoch + 1) % max(1, args.trace_every) == 0:
             with torch.no_grad():
-                eval_logits = router_logits(
-                    hidden,
-                    base_weight + delta_weight,
-                    orientation,
-                    None if base_bias is None else base_bias + delta_bias,
-                )
                 load_stats = route_load_stats(eval_logits, top_k=args.top_k, capacity_factor=args.capacity_factor)
                 trace_rows.append(
                     {
@@ -329,6 +399,9 @@ def train_one_router(
                 )
 
     with torch.no_grad():
+        delta_weight.data.copy_(best_weight)
+        if delta_bias is not None and best_bias is not None:
+            delta_bias.data.copy_(best_bias)
         final_logits = router_logits(
             hidden,
             base_weight + delta_weight,
@@ -347,6 +420,11 @@ def train_one_router(
                 capacity_factor=args.capacity_factor,
             )
         )
+        metric_rows[-1]["selected_epoch"] = best_epoch
+        metric_rows[-1]["selection_score"] = best_score
+        metric_rows[-1]["selection_policy"] = args.selection_policy
+        metric_rows[-1]["selected_route_kl"] = best_selection["route_kl"]
+        metric_rows[-1]["selected_top1_agreement"] = best_selection["top1_agreement"]
     delta_tensors = {tensor_name: delta_weight.detach().cpu()}
     if delta_bias is not None and bias_tensor:
         delta_tensors[str(bias_tensor)] = delta_bias.detach().cpu()
@@ -370,6 +448,8 @@ def build_report(summary: dict[str, Any], metric_df: pd.DataFrame) -> str:
         f"- Max final hard top-k capacity overflow: `{summary['max_final_topk_capacity_overflow_fraction']:.6f}`",
         f"- Max router hard top-1 overflow increase: `{summary['max_router_top1_capacity_overflow_increase']:.6f}`",
         f"- Max router hard top-k overflow increase: `{summary['max_router_topk_capacity_overflow_increase']:.6f}`",
+        f"- Selection policy: `{summary['selection_policy']}`",
+        f"- Mean selected epoch: `{summary['mean_selected_epoch']:.2f}`",
         "",
         "## Writer",
         "",
@@ -379,14 +459,15 @@ def build_report(summary: dict[str, Any], metric_df: pd.DataFrame) -> str:
         "",
         "## Router Metrics",
         "",
-        "| tensor | initial KL | final KL | initial top1 | final top1 | final rel delta | top1 overflow initial-final | top-k overflow initial-final | top1 load initial-final | top-k load initial-final |",
-        "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
+        "| tensor | selected epoch | initial KL | final KL | initial top1 | final top1 | final rel delta | top1 overflow initial-final | top-k overflow initial-final | top1 load initial-final | top-k load initial-final |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for tensor, group in metric_df.groupby("tensor", sort=True):
         initial = group[group["stage"] == "initial"].iloc[0]
         final = group[group["stage"] == "final"].iloc[0]
         lines.append(
-            f"| `{tensor}` | {float(initial['route_kl']):.6f} | {float(final['route_kl']):.6f} | "
+            f"| `{tensor}` | {int(final.get('selected_epoch', summary['mean_selected_epoch']))} | "
+            f"{float(initial['route_kl']):.6f} | {float(final['route_kl']):.6f} | "
             f"{float(initial['top1_agreement']):.4f} | {float(final['top1_agreement']):.4f} | "
             f"{float(final['relative_delta_norm']):.4f} | "
             f"{float(initial['top1_capacity_overflow_fraction']):.4f}-{float(final['top1_capacity_overflow_fraction']):.4f} | "
@@ -485,6 +566,11 @@ def calibrate_from_cache(args: argparse.Namespace) -> dict[str, Any]:
         "mean_final_top1_agreement": float(final["top1_agreement"].mean()),
         "mean_final_relative_delta_norm": float(final["relative_delta_norm"].mean()),
         "max_final_relative_delta_norm": float(final["relative_delta_norm"].max()),
+        "selection_policy": args.selection_policy,
+        "mean_selected_epoch": float(final["selected_epoch"].mean()),
+        "min_selected_epoch": int(final["selected_epoch"].min()),
+        "max_selected_epoch": int(final["selected_epoch"].max()),
+        "mean_selection_score": float(final["selection_score"].mean()),
         "mean_initial_capacity_overflow_fraction": initial_mean("capacity_overflow_fraction"),
         "max_initial_capacity_overflow_fraction": initial_max("capacity_overflow_fraction"),
         "mean_final_capacity_overflow_fraction": final_mean("capacity_overflow_fraction"),
@@ -590,6 +676,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--capacity-loss-coef", type=float, default=0.1)
     parser.add_argument("--load-balance-coef", type=float, default=0.0)
     parser.add_argument("--trust-l2-coef", type=float, default=0.001)
+    parser.add_argument(
+        "--selection-policy",
+        choices=["capacity_aware", "final"],
+        default="capacity_aware",
+        help="Which trained router delta to write: capacity_aware selects the best epoch by mechanism score.",
+    )
+    parser.add_argument("--capacity-overflow-score-penalty", type=float, default=0.25)
+    parser.add_argument("--capacity-increase-score-penalty", type=float, default=2.0)
+    parser.add_argument("--top1-regression-score-penalty", type=float, default=1.0)
+    parser.add_argument("--relative-norm-score-penalty", type=float, default=0.0)
     parser.add_argument(
         "--max-relative-norm",
         type=float,

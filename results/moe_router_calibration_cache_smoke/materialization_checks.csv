@@ -1,3 +1,3 @@
 tensor,max_abs_error,expected_mean,actual_mean,passed
-blocks.0.router.weight,0.0,-0.07454276829957962,-0.07454276829957962,True
-blocks.1.router.weight,0.0,-0.037072520703077316,-0.037072520703077316,True
+blocks.0.router.weight,0.0,-0.07589707523584366,-0.07589707523584366,True
+blocks.1.router.weight,0.0,-0.03701246902346611,-0.03701246902346611,True
