@@ -1082,7 +1082,7 @@ def write_training_dir(
     )
 
 
-def write_smoke_inputs(output_dir: Path) -> Path:
+def write_smoke_inputs(output_dir: Path, *, row_validation_negative: bool = False) -> Path:
     job_dir = output_dir / "input_job"
     if job_dir.exists():
         shutil.rmtree(job_dir)
@@ -1127,13 +1127,14 @@ def write_smoke_inputs(output_dir: Path) -> Path:
         },
     )
 
+    smoke_split = "validation" if row_validation_negative else "group_validation"
     specs = [
         (
             "cap001",
             0.010,
             0.008,
             False,
-            "group_validation",
+            smoke_split,
             0.000,
             0.000,
             0.000,
@@ -1150,7 +1151,7 @@ def write_smoke_inputs(output_dir: Path) -> Path:
             0.025,
             0.022,
             False,
-            "group_validation",
+            smoke_split,
             0.010,
             0.015,
             0.005,
@@ -1167,7 +1168,7 @@ def write_smoke_inputs(output_dir: Path) -> Path:
             0.050,
             0.071,
             True,
-            "group_validation",
+            smoke_split,
             0.030,
             0.090,
             0.015,
@@ -1257,8 +1258,8 @@ def write_smoke_inputs(output_dir: Path) -> Path:
 def run_selection(args: argparse.Namespace) -> dict[str, Any]:
     output_dir = repo_path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    if args.smoke:
-        args.job_dir = write_smoke_inputs(output_dir)
+    if args.smoke or args.row_validation_negative_smoke:
+        args.job_dir = write_smoke_inputs(output_dir, row_validation_negative=args.row_validation_negative_smoke)
         args.baseline_eval_dir = args.job_dir / "eval_baseline"
         args.source_eval_dir = [args.job_dir / "eval_source_instruct", args.job_dir / "eval_source_coder"]
 
@@ -1286,7 +1287,8 @@ def run_selection(args: argparse.Namespace) -> dict[str, Any]:
     summary = {
         "schema_version": 1,
         "status": selection["status"],
-        "smoke": bool(args.smoke),
+        "smoke": bool(args.smoke or args.row_validation_negative_smoke),
+        "row_validation_negative_smoke": bool(args.row_validation_negative_smoke),
         "job_dir": rel(args.job_dir),
         "baseline_eval": baseline_eval,
         "baseline_audit_status": baseline_audit.get("status") if baseline_audit else "not_available",
@@ -1372,6 +1374,11 @@ def parse_args() -> argparse.Namespace:
         "--allow-row-validation",
         action="store_true",
         help="Debug escape hatch: allow row-level validation splits instead of requiring group-heldout prompt/batch splits.",
+    )
+    parser.add_argument(
+        "--row-validation-negative-smoke",
+        action="store_true",
+        help="Build a complete smoke job with row-level validation splits; default selection should reject it.",
     )
     parser.add_argument(
         "--allow-missing-source-eval",

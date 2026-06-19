@@ -1,0 +1,2 @@
+model,task_count,avg_primary_score,worst_primary_score,rank
+source_qwen3_30b_instruct,4,0.49,0.28,1

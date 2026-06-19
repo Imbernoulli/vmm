@@ -1,0 +1,27 @@
+{
+  "changed_tensors": 5,
+  "dtype_mismatch_count": 0,
+  "group_summary": [
+    {
+      "changed_tensors": 1,
+      "delta_norm": 1.0,
+      "group": "attention",
+      "max_abs_delta": 0.02,
+      "relative_delta_norm": 0.1,
+      "tensor_count": 1
+    },
+    {
+      "changed_tensors": 4,
+      "delta_norm": 0.71,
+      "group": "router",
+      "max_abs_delta": 0.01,
+      "relative_delta_norm": 0.071,
+      "tensor_count": 4
+    }
+  ],
+  "relative_delta_norm": 0.071,
+  "router_changed_tensors": 4,
+  "router_tensors": 4,
+  "shape_mismatch_count": 0,
+  "status": "needs_review"
+}

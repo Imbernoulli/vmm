@@ -1,0 +1,13 @@
+{
+  "best_avg_primary_model": "smoke_router_calibrated_cap001",
+  "model_summary": [
+    {
+      "avg_primary_score": 0.501,
+      "model": "smoke_router_calibrated_cap001",
+      "rank": 1,
+      "task_count": 4,
+      "worst_primary_score": 0.3
+    }
+  ],
+  "status": "complete"
+}

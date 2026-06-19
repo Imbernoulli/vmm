@@ -46,6 +46,7 @@
     "selection_table": "results/qwen3_moe_router_calibration_selection_smoke/selection_table.csv",
     "summary": "results/qwen3_moe_router_calibration_selection_smoke/summary.json"
   },
+  "row_validation_negative_smoke": false,
   "schema_version": 1,
   "smoke": true,
   "source_evals": [

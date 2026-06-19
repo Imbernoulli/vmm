@@ -1221,6 +1221,11 @@ def summarize_qwen3_moe_router_calibration_job() -> dict[str, Any]:
 
 def summarize_qwen3_moe_router_calibration_selection() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_router_calibration_selection")
+    return summarize_qwen3_moe_router_calibration_selection_dir(root)
+
+
+def summarize_qwen3_moe_router_calibration_selection_dir(root: str | Path) -> dict[str, Any]:
+    root = repo_path(root)
     summary = read_json(root / "summary.json")
     table = read_csv(root / "selection_table.csv")
     selection = summary.get("current_selection", {})
@@ -1247,6 +1252,12 @@ def summarize_qwen3_moe_router_calibration_selection() -> dict[str, Any]:
         "decision_rules": rel(root / "decision_rules.json"),
         "summary_path": rel(root / "summary.json"),
     }
+
+
+def summarize_qwen3_moe_router_calibration_row_validation_negative_smoke() -> dict[str, Any]:
+    return summarize_qwen3_moe_router_calibration_selection_dir(
+        "results/qwen3_moe_router_calibration_selection_row_validation_negative_smoke"
+    )
 
 
 def summarize_qwen3_moe_trust_region_cap_search() -> dict[str, Any]:
@@ -3052,6 +3063,9 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_router_move_gate": summarize_qwen3_moe_router_move_gate(),
         "qwen3_moe_router_calibration_job": summarize_qwen3_moe_router_calibration_job(),
         "qwen3_moe_router_calibration_selection": summarize_qwen3_moe_router_calibration_selection(),
+        "qwen3_moe_router_calibration_row_validation_negative_smoke": (
+            summarize_qwen3_moe_router_calibration_row_validation_negative_smoke()
+        ),
         "qwen3_moe_trust_region_cap_search": summarize_qwen3_moe_trust_region_cap_search(),
         "toy_moe_routing_readiness": summarize_toy_moe_routing_readiness(),
         "toy_moe_method_selection": summarize_toy_moe_method_selection(),
@@ -3179,6 +3193,7 @@ def build_summary() -> dict[str, Any]:
             "python scripts/build_qwen3_moe_router_calibration_job.py --output-dir results/qwen3_moe_router_calibration_job",
             "python scripts/select_qwen3_moe_router_calibration_result.py --output-dir results/qwen3_moe_router_calibration_selection",
             "python scripts/select_qwen3_moe_router_calibration_result.py --smoke --output-dir results/qwen3_moe_router_calibration_selection_smoke",
+            "python scripts/select_qwen3_moe_router_calibration_result.py --row-validation-negative-smoke --output-dir results/qwen3_moe_router_calibration_selection_row_validation_negative_smoke",
             "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
             "PYTHONPATH=src python scripts/collect_results.py",
         ],
@@ -3257,6 +3272,12 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_router_move_gate = exp["qwen3_moe_router_move_gate"]
     qwen3_moe_router_calibration_job = exp["qwen3_moe_router_calibration_job"]
     qwen3_moe_router_calibration_selection = exp["qwen3_moe_router_calibration_selection"]
+    qwen3_moe_router_calibration_row_validation_negative_smoke = exp[
+        "qwen3_moe_router_calibration_row_validation_negative_smoke"
+    ]
+    qwen3_moe_router_calibration_row_validation_negative_rows = (
+        qwen3_moe_router_calibration_row_validation_negative_smoke.get("candidate_rows") or [{}]
+    )
     qwen3_moe_trust_region_cap_search = exp["qwen3_moe_trust_region_cap_search"]
     selected_unified_capacity = toy_moe.get("unified_moe_capacity_sweep_selected") or {}
     selected_unified_output_projection_capacity = (
@@ -3808,6 +3829,17 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_router_calibration_selection['training_completed']} / "
                 f"{qwen3_moe_router_calibration_selection['capacity_metrics_completed']} / "
                 f"{qwen3_moe_router_calibration_selection['group_validation_completed']} |"
+            ),
+            (
+                "| Qwen3 MoE router row-validation negative smoke | status / eligible / group validation | "
+                f"{qwen3_moe_router_calibration_row_validation_negative_smoke['status']} / "
+                f"{qwen3_moe_router_calibration_row_validation_negative_smoke['eligible_candidate_count']}"
+                f"/{qwen3_moe_router_calibration_row_validation_negative_smoke['candidate_count']} / "
+                f"{qwen3_moe_router_calibration_row_validation_negative_smoke['group_validation_completed']} |"
+            ),
+            (
+                "| Qwen3 MoE router row-validation negative smoke | first decision reason | "
+                f"{qwen3_moe_router_calibration_row_validation_negative_rows[0].get('decision_reason')} |"
             ),
             (
                 "| Qwen3 MoE cap-law search | searched / frontier / expert groups | "
