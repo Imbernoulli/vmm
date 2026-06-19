@@ -1,0 +1,14 @@
+{
+  "seed_a": 101,
+  "seed_b": 202,
+  "hidden": 128,
+  "epochs": 120,
+  "steps": 41,
+  "device": "cpu",
+  "model_a_acc": 0.9666666666666667,
+  "model_b_acc": 0.9755555555555555,
+  "midpoint_before_acc": 0.9444444444444444,
+  "midpoint_after_acc": 0.9711111111111111,
+  "barrier_before": 0.06381950590345595,
+  "barrier_after": 0.006227662298414441
+}

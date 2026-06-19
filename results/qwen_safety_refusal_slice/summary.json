@@ -1,0 +1,20 @@
+{
+  "base": "/srv/home/bohanlyu/MLS-Bench/vendor/data/models/Qwen2.5-1.5B",
+  "expert": "/srv/home/bohanlyu/MLS-Bench/vendor/data/qwen2.5-1.5b-instruct",
+  "tokenizer": "/srv/home/bohanlyu/MLS-Bench/vendor/data/qwen2.5-1.5b-instruct",
+  "lambdas": [
+    0.0,
+    0.75,
+    1.0
+  ],
+  "safe_examples": 12,
+  "unsafe_examples": 12,
+  "seed": 47,
+  "split": "30k_test",
+  "device": "cuda:3",
+  "dtype": "bfloat16",
+  "best_lambda": 0.75,
+  "best_avg_safety_nll": 2.546370034363563,
+  "best_safe_response_nll": 1.783117326846255,
+  "best_unsafe_refusal_nll": 3.309622741880871
+}

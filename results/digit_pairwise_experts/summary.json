@@ -1,0 +1,14 @@
+{
+  "seed": 17,
+  "hidden": 128,
+  "base_epochs": 8,
+  "expert_epochs": 90,
+  "base_lr": 0.003,
+  "expert_lr": 0.003,
+  "weight_decay": 0.0001,
+  "ties_density": 0.5,
+  "dare_drop_rate": 0.5,
+  "device": "cpu",
+  "num_pairs": 45,
+  "num_parameters": 17610
+}

@@ -1,0 +1,4 @@
+expert,group,numel,delta_norm,relative_norm,mean_abs_delta
+same,lm_head.weight,155582464,0.0,0.0,0.0
+same,model.embed_tokens,155582464,0.0,0.0,0.0
+same,model.layers.0,14682368,0.0,0.0,0.0

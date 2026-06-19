@@ -1,0 +1,18 @@
+{
+  "base": "/srv/home/bohanlyu/MLS-Bench/vendor/data/models/Qwen2.5-1.5B",
+  "expert": "/srv/home/bohanlyu/MLS-Bench/vendor/data/qwen2.5-1.5b-instruct",
+  "tokenizer": "/srv/home/bohanlyu/MLS-Bench/vendor/data/qwen2.5-1.5b-instruct",
+  "lambdas": [
+    0.0,
+    0.75,
+    1.0
+  ],
+  "max_examples": 12,
+  "evaluated_examples": 12,
+  "seed": 31,
+  "device": "cuda:2",
+  "dtype": "bfloat16",
+  "best_lambda": 0.75,
+  "best_exact_match": 0.08333333333333333,
+  "best_loose_exact_match": 0.25
+}

@@ -1,0 +1,17 @@
+{
+  "pretrained_backbone": "torchvision ViT_B_16_Weights.IMAGENET1K_V1",
+  "frozen_backbone": true,
+  "feature_dim": 768,
+  "device": "cuda:3",
+  "train_per_class": 40,
+  "expert_train_per_class": 40,
+  "eval_per_class": 50,
+  "grid_size": 21,
+  "global_task_vector_cosine": -0.06836177585437238,
+  "tau_living_norm": 4.866488933563232,
+  "tau_object_norm": 4.015714168548584,
+  "best_method": "validation_grid_best",
+  "best_worst_acc": 0.7833333333333333,
+  "linear_worst_acc": 0.7633333333333333,
+  "base_worst_acc": 0.74
+}

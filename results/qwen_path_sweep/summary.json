@@ -1,0 +1,20 @@
+{
+  "base": "/srv/home/bohanlyu/MLS-Bench/vendor/data/models/Qwen2.5-1.5B",
+  "expert": "/srv/home/bohanlyu/MLS-Bench/vendor/data/qwen2.5-1.5b-instruct",
+  "tokenizer": "/srv/home/bohanlyu/MLS-Bench/vendor/data/qwen2.5-1.5b-instruct",
+  "lambdas": [
+    -0.25,
+    0.0,
+    0.25,
+    0.5,
+    0.75,
+    1.0,
+    1.25
+  ],
+  "device": "cuda:2",
+  "dtype": "bfloat16",
+  "general_examples": 4,
+  "instruction_examples": 5,
+  "best_avg_lambda": 0.75,
+  "best_worst_lambda": 1.25
+}

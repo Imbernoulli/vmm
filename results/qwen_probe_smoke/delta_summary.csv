@@ -1,0 +1,13 @@
+expert,tensor,group,numel,delta_norm,base_norm,relative_norm,mean_abs_delta
+same,lm_head.weight,lm_head.weight,155582464,0.0,357.5593566894531,0.0,0.0
+same,model.embed_tokens.weight,model.embed_tokens,155582464,0.0,357.5593566894531,0.0,0.0
+same,model.layers.0.input_layernorm.weight,model.layers.0,1024,0.0,6.096553802490234,0.0,0.0
+same,model.layers.0.mlp.down_proj.weight,model.layers.0,3145728,0.0,46.54250717163086,0.0,0.0
+same,model.layers.0.mlp.gate_proj.weight,model.layers.0,3145728,0.0,64.96942901611328,0.0,0.0
+same,model.layers.0.mlp.up_proj.weight,model.layers.0,3145728,0.0,45.85912322998047,0.0,0.0
+same,model.layers.0.post_attention_layernorm.weight,model.layers.0,1024,0.0,16.389406204223633,0.0,0.0
+same,model.layers.0.self_attn.k_norm.weight,model.layers.0,128,0.0,110.69197845458984,0.0,0.0
+same,model.layers.0.self_attn.k_proj.weight,model.layers.0,1048576,0.0,31.36880874633789,0.0,0.0
+same,model.layers.0.self_attn.o_proj.weight,model.layers.0,2097152,0.0,37.37168502807617,0.0,0.0
+same,model.layers.0.self_attn.q_norm.weight,model.layers.0,128,0.0,25.727304458618164,0.0,0.0
+same,model.layers.0.self_attn.q_proj.weight,model.layers.0,2097152,0.0,45.389015197753906,0.0,0.0

@@ -1,0 +1,24 @@
+{
+  "base": "/srv/home/bohanlyu/MLS-Bench/vendor/data/models/Qwen2.5-0.5B",
+  "experts": {
+    "instruct": "/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen2.5-0.5B-Instruct/snapshots/7ae557604adf67be50417f59c2c2f167def9a775",
+    "coder": "/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen2.5-Coder-0.5B-Instruct/snapshots/ea3f2471cf1b1f0db85067f1ef93848e38e88c25"
+  },
+  "tokenizer": "/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen2.5-0.5B-Instruct/snapshots/7ae557604adf67be50417f59c2c2f167def9a775",
+  "grid_values": [
+    0.0,
+    0.25,
+    0.5,
+    0.75,
+    1.0
+  ],
+  "device": "cuda:3",
+  "dtype": "bfloat16",
+  "general_examples": 3,
+  "instruction_examples": 3,
+  "code_examples": 3,
+  "best_avg_method": "instruct_expert",
+  "best_avg_nll": 3.008606659029143,
+  "best_worst_method": "instruct_expert",
+  "best_worst_nll": 7.541322446336933
+}

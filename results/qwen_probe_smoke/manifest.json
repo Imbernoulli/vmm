@@ -1,0 +1,9 @@
+{
+  "base": "/srv/home/bohanlyu/qixin/MLS-Bench/vendor/data/models/Qwen3-0.6B/model.safetensors",
+  "experts": [
+    "same=/srv/home/bohanlyu/qixin/MLS-Bench/vendor/data/models/Qwen3-0.6B/model.safetensors"
+  ],
+  "num_base_tensors": 12,
+  "num_experts": 1,
+  "max_tensors": 12
+}
