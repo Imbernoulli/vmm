@@ -7,10 +7,16 @@
       "sha256": "313cfe00a4f762c28f5fe1b881615f93e824f15a3f1ac2440b17d363819b3706"
     },
     {
-      "bytes": 20500,
+      "bytes": 18651,
+      "kind": "document",
+      "path": "QWEN_DENSE_MOE_EXPERIMENT_PLAN.md",
+      "sha256": "cc5d25005900d1e6cfebf48067fed7d83952b03f713574bb45fd683056aaa03f"
+    },
+    {
+      "bytes": 20657,
       "kind": "document",
       "path": "README.md",
-      "sha256": "a851d1cf591ecd24dd91cf98d17a604c60380c891fff42a73ce12bcf4358e5d2"
+      "sha256": "20a3cac3a67193d787af96b4d0d66947542d62ce62aded883f93d7bac036ed3b"
     },
     {
       "bytes": 33211,
@@ -820,13 +826,13 @@
       "bytes": 47615,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "54a5650c5a62b489785ffbaf5858dd83e9018edf9c4d93d015fb232f54495523"
+      "sha256": "5fedc9a0b3aeae335a2e52bbbf816c75c1a5e3fd2931f207b9d2de5a249ae3d1"
     },
     {
       "bytes": 3785,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "0561cb1c9209e030f324c4c8d0703ff85648e3ea820b51e98ea8f3bb0cec33e4"
+      "sha256": "d0eb617f86b9765e58d206b77cc3ba7b3c525ffff273aed7dc6b26737258aec2"
     },
     {
       "bytes": 13129,
@@ -841,10 +847,10 @@
       "sha256": "66a85c2fb4268b7d551593f659b58f730d3dee02ec1e203bf09cf32648b0afe0"
     },
     {
-      "bytes": 31872,
+      "bytes": 31929,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "2e709000adf70e4b6261cf43a2c20bf9614acdaa7f6d5e6fff1cfc05443ca17e"
+      "sha256": "58fe910c546330f110b2d2aa15d50279f8019b66a8ba9e6e9ee2a246842b5816"
     },
     {
       "bytes": 9487,
@@ -943,7 +949,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T02:58:07.122453+00:00",
+  "generated_at": "2026-06-19T03:12:15.785179+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"
