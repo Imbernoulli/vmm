@@ -479,6 +479,8 @@ routing readiness 是 route-weight recipes 的前置 gate：如果 `route_overla
 
 toy MoE 的作用是把这个逻辑先跑通：在保持同构的前提下，code source 被做了函数等价的 expert permutation。直接 all-weight average 的 worst accuracy 掉到 `0.620`，而 expert-output matching 后达到 `0.800`，route-frequency expert average 达到 `0.790`。这不是 Qwen3 结论，但它证明了后续 Qwen3 MoE 实验必须记录 expert index、router overlap、expert load 和 route mass。
 
+更进一步，[Toy MoE Routing Readiness](results/toy_moe_routing_readiness/report.md) 已经把同一个 readiness gate 应用到多方法 probe 上：`code_endpoint_permuted` 和 `all_weight_average` 被标出低 route overlap / 低 top-1 agreement，`expert_matched_average` 和 `route_aware_expert_average` 则保持接近 base 的 routing overlap。也就是说，readiness gate 不只是“等 Qwen 数据”的模板，它已经能解释 toy MoE 里的具体失败模式。
+
 第一批可以直接接 [Qwen Dense/MoE 下游微调模型合并实验方案](QWEN_DENSE_MOE_EXPERIMENT_PLAN.md) 里的 Dense 7B：
 
 ```text

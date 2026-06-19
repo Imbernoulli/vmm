@@ -555,6 +555,26 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
     }
 
 
+def summarize_toy_moe_routing_readiness() -> dict[str, Any]:
+    summary = read_json("results/toy_moe_routing_readiness/summary.json")
+    router_readiness = read_csv("results/toy_moe_routing_readiness/router_readiness.csv")
+    expert_risks = read_csv("results/toy_moe_routing_readiness/expert_load_risks.csv")
+    specialization = read_csv("results/toy_moe_routing_readiness/category_specialization.csv")
+    all_weight = router_readiness[router_readiness["method"] == "all_weight_average"]
+    return {
+        "summary": summary,
+        "readiness_status": summary.get("readiness_status"),
+        "router_rows": int(len(router_readiness)),
+        "expert_rows": int(len(expert_risks)),
+        "specialization_rows": int(len(specialization)),
+        "all_weight_router_actions": all_weight["recommended_action"].value_counts().to_dict(),
+        "report": rel("results/toy_moe_routing_readiness/report.md"),
+        "router_readiness": rel("results/toy_moe_routing_readiness/router_readiness.csv"),
+        "expert_load_risks": rel("results/toy_moe_routing_readiness/expert_load_risks.csv"),
+        "category_specialization": rel("results/toy_moe_routing_readiness/category_specialization.csv"),
+    }
+
+
 def coverage_checklist() -> list[dict[str, str]]:
     return [
         {
@@ -663,6 +683,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/toy_moe_merge/report.md runs a small same-shape MoE averaging experiment showing expert-index mismatch and route-aware/expert-matched fixes.",
         },
         {
+            "item": "Toy MoE multi-method routing readiness",
+            "status": "complete",
+            "evidence": "results/toy_moe_routing_readiness/report.md applies the generic readiness gate to toy MoE methods and flags all-weight routing drift separately from expert-matched/route-aware variants.",
+        },
+        {
             "item": "Interactive explainer UI",
             "status": "complete",
             "evidence": "Dashboard includes a draggable precomputed merge-plane explorer with task-pair, method, objective, raw/normalized plane, alpha/beta, and lambda controls.",
@@ -693,6 +718,7 @@ def build_summary() -> dict[str, Any]:
         "moe_route_weight_recipes": summarize_moe_route_weight_recipes(),
         "moe_routing_readiness": summarize_moe_routing_readiness(),
         "toy_moe_merge": summarize_toy_moe_merge(),
+        "toy_moe_routing_readiness": summarize_toy_moe_routing_readiness(),
     }
     coverage = coverage_checklist()
     counts = {
@@ -722,6 +748,7 @@ def build_summary() -> dict[str, Any]:
             "PYTHONPATH=src python scripts/run_qwen_safety_refusal_slice.py --output-dir results/qwen_safety_refusal_slice",
             "PYTHONPATH=src python scripts/run_qwen_multi_expert_merge.py --output-dir results/qwen_multi_expert_merge",
             "PYTHONPATH=src python scripts/run_toy_moe_merge.py --output-dir results/toy_moe_merge --device cpu",
+            "PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir results/toy_moe_merge --output-dir results/toy_moe_routing_readiness --topology-summary ''",
             "PYTHONPATH=src python scripts/build_average_decision_report.py",
             "PYTHONPATH=src python scripts/build_moe_average_plan.py",
             "python scripts/write_same_shape_average_checkpoint.py --base BASE --source expert=EXPERT --dry-run --output-dir results/same_shape_writer_smoke",
@@ -765,6 +792,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     route_weight_recipes = exp["moe_route_weight_recipes"]
     routing_readiness = exp["moe_routing_readiness"]
     toy_moe = exp["toy_moe_merge"]
+    toy_moe_readiness = exp["toy_moe_routing_readiness"]
     coverage_counts = summary["coverage_counts"]
     lines = [
         "# Result Summary",
@@ -910,6 +938,14 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| toy MoE route-aware merge | route-aware minus all-weight worst accuracy | "
                 f"{fmt(toy_moe['route_aware_minus_all_weight_worst_acc'])} |"
+            ),
+            (
+                "| toy MoE routing readiness | readiness status | "
+                f"{toy_moe_readiness['readiness_status']} |"
+            ),
+            (
+                "| toy MoE routing readiness | all-weight calibrate-router flags | "
+                f"{toy_moe_readiness['all_weight_router_actions'].get('calibrate_router_before_average', 0)} |"
             ),
             (
                 "| Average decision report | avoid uniform average decisions | "

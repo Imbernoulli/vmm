@@ -1,0 +1,41 @@
+{
+  "generated_at": "2026-06-19T04:39:10.686279+00:00",
+  "readiness_status": "high_risk_calibrate_router_before_merge",
+  "router_dirs": [
+    "results/toy_moe_merge"
+  ],
+  "router_rows": 14,
+  "expert_rows": 56,
+  "specialization_rows": 28,
+  "router_action_counts": {
+    "freeze_router_and_check_load_balance": 6,
+    "router_probe_passed_for_small_lambda": 5,
+    "calibrate_router_before_average": 3
+  },
+  "expert_action_counts": {
+    "low_lambda_or_route_frequency_average": 56
+  },
+  "specialization_action_counts": {
+    "shared_or_mixed_expert": 20,
+    "category_specialized_route_weight": 8
+  },
+  "thresholds": {
+    "collapse_threshold": 0.5,
+    "min_effective_fraction": 0.02,
+    "min_topk_jaccard": 0.5,
+    "min_top1_agreement": 0.5,
+    "low_margin_threshold": 0.05,
+    "overuse_ratio_threshold": 4.0,
+    "underuse_fraction_threshold": 0.0,
+    "specialization_threshold": 0.7
+  },
+  "topology": null,
+  "same_shape_constraint": "Readiness actions preserve router shape, expert count, hidden size, tokenizer, and model class.",
+  "outputs": {
+    "router_readiness": "results/toy_moe_routing_readiness/router_readiness.csv",
+    "expert_load_risks": "results/toy_moe_routing_readiness/expert_load_risks.csv",
+    "category_specialization": "results/toy_moe_routing_readiness/category_specialization.csv",
+    "summary": "results/toy_moe_routing_readiness/summary.json",
+    "report": "results/toy_moe_routing_readiness/report.md"
+  }
+}

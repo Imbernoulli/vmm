@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T04:35:46.266820+00:00`
+Generated at: `2026-06-19T04:40:31.293076+00:00`
 
 ## Coverage
 
-Complete: `22`; partial: `0`; missing: `0`.
+Complete: `23`; partial: `0`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -29,6 +29,7 @@ Complete: `22`; partial: `0`; missing: `0`.
 | MoE route-weight recipes | complete | results/moe_route_weight_recipes/report.md converts MoE routing/expert-load probes into tensor-rule files for same-shape checkpoint materialization; current recipe is waiting for real routing probe data. |
 | MoE routing readiness diagnostics | complete | results/moe_routing_readiness/report.md turns router_summary, route_overlap, and expert_load CSVs into router collapse, drift, boundary-fragility, and expert-load risk actions. |
 | Toy MoE route-aware merge | complete | results/toy_moe_merge/report.md runs a small same-shape MoE averaging experiment showing expert-index mismatch and route-aware/expert-matched fixes. |
+| Toy MoE multi-method routing readiness | complete | results/toy_moe_routing_readiness/report.md applies the generic readiness gate to toy MoE methods and flags all-weight routing drift separately from expert-matched/route-aware variants. |
 | Interactive explainer UI | complete | Dashboard includes a draggable precomputed merge-plane explorer with task-pair, method, objective, raw/normalized plane, alpha/beta, and lambda controls. |
 
 ## Key Metrics
@@ -65,6 +66,8 @@ Complete: `22`; partial: `0`; missing: `0`.
 | toy MoE route-aware merge | expert-matched average worst accuracy | 0.800 |
 | toy MoE route-aware merge | route-aware average worst accuracy | 0.790 |
 | toy MoE route-aware merge | route-aware minus all-weight worst accuracy | 0.170 |
+| toy MoE routing readiness | readiness status | high_risk_calibrate_router_before_merge |
+| toy MoE routing readiness | all-weight calibrate-router flags | 1 |
 | Average decision report | avoid uniform average decisions | 3 |
 | Average decision report | coefficient-search decisions | 2 |
 | MoE average plan | router plan rows | 0 |

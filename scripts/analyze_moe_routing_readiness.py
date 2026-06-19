@@ -15,6 +15,7 @@ import pandas as pd
 REPO_ROOT = Path(__file__).resolve().parents[1]
 ROUTER_COLUMNS = [
     "router_dir",
+    "method",
     "category",
     "prompt_idx",
     "router",
@@ -32,6 +33,7 @@ ROUTER_COLUMNS = [
 ]
 EXPERT_COLUMNS = [
     "router_dir",
+    "method",
     "category",
     "prompt_idx",
     "router",
@@ -47,6 +49,7 @@ EXPERT_COLUMNS = [
 ]
 SPECIALIZATION_COLUMNS = [
     "router_dir",
+    "method",
     "router",
     "expert_id",
     "total_topk_fraction",
@@ -103,7 +106,7 @@ def clean_value(value: Any) -> Any:
 
 
 def discover_moe_topology(summary_path: Path, model_name: str | None) -> dict[str, Any] | None:
-    if not summary_path.exists():
+    if not str(summary_path) or not summary_path.exists() or not summary_path.is_file():
         return None
     payload = json.loads(summary_path.read_text(encoding="utf-8"))
     for model in payload.get("models", []):
@@ -125,13 +128,25 @@ def discover_moe_topology(summary_path: Path, model_name: str | None) -> dict[st
 
 def merge_overlap(router_summary: pd.DataFrame, route_overlap: pd.DataFrame | None) -> pd.DataFrame:
     merged = router_summary.copy()
+    if "method" not in merged.columns:
+        if "model" in merged.columns:
+            merged["method"] = merged["model"].astype(str)
+        else:
+            merged["method"] = "probe_model"
     if route_overlap is None or route_overlap.empty:
         return merged
-    join_cols = [col for col in ("category", "prompt_idx", "router") if col in merged.columns and col in route_overlap.columns]
+    overlap = route_overlap.copy()
+    if "method" in merged.columns and "method" not in overlap.columns and "right_model" in overlap.columns:
+        overlap["method"] = overlap["right_model"].astype(str)
+    join_cols = [
+        col
+        for col in ("method", "category", "prompt_idx", "router")
+        if col in merged.columns and col in overlap.columns
+    ]
     if not join_cols:
         return merged
-    keep_cols = join_cols + [col for col in ("top1_agreement", "topk_jaccard") if col in route_overlap.columns]
-    return merged.merge(route_overlap[keep_cols], on=join_cols, how="left")
+    keep_cols = join_cols + [col for col in ("left_model", "right_model", "top1_agreement", "topk_jaccard") if col in overlap.columns]
+    return merged.merge(overlap[keep_cols], on=join_cols, how="left")
 
 
 def router_row_action(
@@ -208,6 +223,7 @@ def build_router_readiness(
             rows.append(
                 {
                     "router_dir": rel(router_dir),
+                    "method": item_dict.get("method"),
                     "category": item_dict.get("category"),
                     "prompt_idx": item_dict.get("prompt_idx"),
                     "router": item_dict.get("router"),
@@ -238,7 +254,12 @@ def build_expert_load_risks(
         expert_load = read_csv_if_exists(router_dir / "expert_load.csv")
         if expert_load is None or expert_load.empty:
             continue
-        group_cols = [col for col in ("category", "prompt_idx", "router") if col in expert_load.columns]
+        if "method" not in expert_load.columns:
+            if "model" in expert_load.columns:
+                expert_load["method"] = expert_load["model"].astype(str)
+            else:
+                expert_load["method"] = "probe_model"
+        group_cols = [col for col in ("method", "category", "prompt_idx", "router") if col in expert_load.columns]
         expert_load = expert_load.copy()
         if "num_experts" not in expert_load.columns:
             if group_cols:
@@ -270,6 +291,7 @@ def build_expert_load_risks(
             rows.append(
                 {
                     "router_dir": rel(router_dir),
+                    "method": item_dict.get("method"),
                     "category": item_dict.get("category"),
                     "prompt_idx": item_dict.get("prompt_idx"),
                     "router": item_dict.get("router"),
@@ -296,13 +318,20 @@ def build_category_specialization(router_dirs: list[Path], specialization_thresh
         required = {"category", "router", "expert_id", "topk_fraction"}
         if not required.issubset(set(expert_load.columns)):
             continue
-        masses: dict[tuple[str, Any], dict[str, float]] = defaultdict(lambda: defaultdict(float))
+        expert_load = expert_load.copy()
+        if "method" not in expert_load.columns:
+            if "model" in expert_load.columns:
+                expert_load["method"] = expert_load["model"].astype(str)
+            else:
+                expert_load["method"] = "probe_model"
+        masses: dict[tuple[str, str, Any], dict[str, float]] = defaultdict(lambda: defaultdict(float))
         for _, item in expert_load.iterrows():
+            method = str(item["method"])
             router = str(item["router"])
             expert_id = item["expert_id"]
             category = str(item["category"])
-            masses[(router, expert_id)][category] += maybe_float(item.get("topk_fraction"), 0.0) or 0.0
-        for (router, expert_id), category_mass in sorted(masses.items(), key=lambda value: (value[0][0], value[0][1])):
+            masses[(method, router, expert_id)][category] += maybe_float(item.get("topk_fraction"), 0.0) or 0.0
+        for (method, router, expert_id), category_mass in sorted(masses.items(), key=lambda value: (value[0][0], value[0][1], value[0][2])):
             total = sum(category_mass.values())
             if total <= 0:
                 continue
@@ -317,6 +346,7 @@ def build_category_specialization(router_dirs: list[Path], specialization_thresh
             rows.append(
                 {
                     "router_dir": rel(router_dir),
+                    "method": method,
                     "router": router,
                     "expert_id": expert_id,
                     "total_topk_fraction": total,
@@ -394,13 +424,13 @@ def build_report(
         lines.append("")
         lines.extend(
             [
-                "| router | category | max top1 | effective fraction | top-k Jaccard | risk flags | action |",
-                "| --- | --- | ---: | ---: | ---: | --- | --- |",
+                "| method | router | category | max top1 | effective fraction | top-k Jaccard | risk flags | action |",
+                "| --- | --- | --- | ---: | ---: | ---: | --- | --- |",
             ]
         )
         for _, row in router_readiness.sort_values(["risk_score"], ascending=False).head(20).iterrows():
             lines.append(
-                f"| {row['router']} | {row['category']} | {fmt_optional(row['max_top1_fraction'])} | "
+                f"| {row['method']} | {row['router']} | {row['category']} | {fmt_optional(row['max_top1_fraction'])} | "
                 f"{fmt_optional(row['effective_top1_fraction'])} | {fmt_optional(row['topk_jaccard'])} | "
                 f"{row['risk_flags'] or 'none'} | `{row['recommended_action']}` |"
             )
@@ -413,8 +443,8 @@ def build_report(
         lines.append("")
         lines.extend(
             [
-                "| router | category | expert | top-k over uniform | flags | action |",
-                "| --- | --- | ---: | ---: | --- | --- |",
+                "| method | router | category | expert | top-k over uniform | flags | action |",
+                "| --- | --- | --- | ---: | ---: | --- | --- |",
             ]
         )
         ranked = expert_risks.assign(abs_overuse=expert_risks["topk_over_uniform"].fillna(0.0)).sort_values(
@@ -422,7 +452,7 @@ def build_report(
         )
         for _, row in ranked.head(20).iterrows():
             lines.append(
-                f"| {row['router']} | {row['category']} | {row['expert_id']} | "
+                f"| {row['method']} | {row['router']} | {row['category']} | {row['expert_id']} | "
                 f"{fmt_optional(row['topk_over_uniform'])} | {row['risk_flags'] or 'none'} | `{row['recommended_action']}` |"
             )
 
@@ -434,13 +464,13 @@ def build_report(
         lines.append("")
         lines.extend(
             [
-                "| router | expert | dominant category | share | action |",
-                "| --- | ---: | --- | ---: | --- |",
+                "| method | router | expert | dominant category | share | action |",
+                "| --- | --- | ---: | --- | ---: | --- |",
             ]
         )
         for _, row in specialization.sort_values(["dominant_category_share"], ascending=False).head(20).iterrows():
             lines.append(
-                f"| {row['router']} | {row['expert_id']} | {row['dominant_category']} | "
+                f"| {row['method']} | {row['router']} | {row['expert_id']} | {row['dominant_category']} | "
                 f"{fmt_optional(row['dominant_category_share'])} | `{row['recommended_action']}` |"
             )
 

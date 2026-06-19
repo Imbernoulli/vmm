@@ -1,1 +1,1 @@
-router_dir,router,expert_id,total_topk_fraction,dominant_category,dominant_category_share,categories_observed,recommended_action,reason
+router_dir,method,router,expert_id,total_topk_fraction,dominant_category,dominant_category_share,categories_observed,recommended_action,reason

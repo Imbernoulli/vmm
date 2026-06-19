@@ -106,13 +106,18 @@
       "status": "complete"
     },
     {
+      "evidence": "results/toy_moe_routing_readiness/report.md applies the generic readiness gate to toy MoE methods and flags all-weight routing drift separately from expert-matched/route-aware variants.",
+      "item": "Toy MoE multi-method routing readiness",
+      "status": "complete"
+    },
+    {
       "evidence": "Dashboard includes a draggable precomputed merge-plane explorer with task-pair, method, objective, raw/normalized plane, alpha/beta, and lambda controls.",
       "item": "Interactive explainer UI",
       "status": "complete"
     }
   ],
   "coverage_counts": {
-    "complete": 22,
+    "complete": 23,
     "missing": 0,
     "partial": 0
   },
@@ -1523,7 +1528,7 @@
       "summary": {
         "expert_action_counts": {},
         "expert_rows": 0,
-        "generated_at": "2026-06-19T04:24:03.287202+00:00",
+        "generated_at": "2026-06-19T04:39:04.768419+00:00",
         "outputs": {
           "category_specialization": "results/moe_routing_readiness/category_specialization.csv",
           "expert_load_risks": "results/moe_routing_readiness/expert_load_risks.csv",
@@ -2436,9 +2441,64 @@
         "schema_version": 1,
         "seed": 17
       }
+    },
+    "toy_moe_routing_readiness": {
+      "all_weight_router_actions": {
+        "calibrate_router_before_average": 1,
+        "router_probe_passed_for_small_lambda": 1
+      },
+      "category_specialization": "results/toy_moe_routing_readiness/category_specialization.csv",
+      "expert_load_risks": "results/toy_moe_routing_readiness/expert_load_risks.csv",
+      "expert_rows": 56,
+      "readiness_status": "high_risk_calibrate_router_before_merge",
+      "report": "results/toy_moe_routing_readiness/report.md",
+      "router_readiness": "results/toy_moe_routing_readiness/router_readiness.csv",
+      "router_rows": 14,
+      "specialization_rows": 28,
+      "summary": {
+        "expert_action_counts": {
+          "low_lambda_or_route_frequency_average": 56
+        },
+        "expert_rows": 56,
+        "generated_at": "2026-06-19T04:39:10.686279+00:00",
+        "outputs": {
+          "category_specialization": "results/toy_moe_routing_readiness/category_specialization.csv",
+          "expert_load_risks": "results/toy_moe_routing_readiness/expert_load_risks.csv",
+          "report": "results/toy_moe_routing_readiness/report.md",
+          "router_readiness": "results/toy_moe_routing_readiness/router_readiness.csv",
+          "summary": "results/toy_moe_routing_readiness/summary.json"
+        },
+        "readiness_status": "high_risk_calibrate_router_before_merge",
+        "router_action_counts": {
+          "calibrate_router_before_average": 3,
+          "freeze_router_and_check_load_balance": 6,
+          "router_probe_passed_for_small_lambda": 5
+        },
+        "router_dirs": [
+          "results/toy_moe_merge"
+        ],
+        "router_rows": 14,
+        "same_shape_constraint": "Readiness actions preserve router shape, expert count, hidden size, tokenizer, and model class.",
+        "specialization_action_counts": {
+          "category_specialized_route_weight": 8,
+          "shared_or_mixed_expert": 20
+        },
+        "specialization_rows": 28,
+        "thresholds": {
+          "collapse_threshold": 0.5,
+          "low_margin_threshold": 0.05,
+          "min_effective_fraction": 0.02,
+          "min_top1_agreement": 0.5,
+          "min_topk_jaccard": 0.5,
+          "overuse_ratio_threshold": 4.0,
+          "specialization_threshold": 0.7,
+          "underuse_fraction_threshold": 0.0
+        },
+        "topology": null
+      }
     }
   },
-  "generated_at": "2026-06-19T04:35:46.266820+00:00",
+  "generated_at": "2026-06-19T04:40:31.293076+00:00",
   "overall_status": "complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -2455,6 +2515,7 @@
     "PYTHONPATH=src python scripts/run_qwen_safety_refusal_slice.py --output-dir results/qwen_safety_refusal_slice",
     "PYTHONPATH=src python scripts/run_qwen_multi_expert_merge.py --output-dir results/qwen_multi_expert_merge",
     "PYTHONPATH=src python scripts/run_toy_moe_merge.py --output-dir results/toy_moe_merge --device cpu",
+    "PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir results/toy_moe_merge --output-dir results/toy_moe_routing_readiness --topology-summary ''",
     "PYTHONPATH=src python scripts/build_average_decision_report.py",
     "PYTHONPATH=src python scripts/build_moe_average_plan.py",
     "python scripts/write_same_shape_average_checkpoint.py --base BASE --source expert=EXPERT --dry-run --output-dir results/same_shape_writer_smoke",

@@ -1,1 +1,1 @@
-router_dir,category,prompt_idx,router,num_experts,max_top1_fraction,effective_top1_experts,effective_top1_fraction,top1_margin_mean,top1_agreement,topk_jaccard,risk_score,risk_flags,recommended_action,reason
+router_dir,method,category,prompt_idx,router,num_experts,max_top1_fraction,effective_top1_experts,effective_top1_fraction,top1_margin_mean,top1_agreement,topk_jaccard,risk_score,risk_flags,recommended_action,reason
