@@ -1,0 +1,2 @@
+model,task_count,avg_primary_score,worst_primary_score,rank
+candidate_qwen_0_5b_probe_guided_bridge_a025_b100,4,0.203125,0.0,1

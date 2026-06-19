@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 34754,
+      "bytes": 36133,
       "kind": "document",
       "path": "README.md",
-      "sha256": "0cde32bf640247a98f11df7c9fb92e5db5d25891ad350cc86af093866d8b0976"
+      "sha256": "00ea86faa3cfa059ab91d89d1e3452ab3cbd9a668d6a930908756903c719ced9"
     },
     {
       "bytes": 33211,
@@ -955,6 +955,36 @@
       "sha256": "cc09abed22adb97cbe8418801d1284e1fe480ac3f1a4dc2c55a5752f8b197047"
     },
     {
+      "bytes": 4952,
+      "kind": "data",
+      "path": "results/probe_guided_dense_average_candidate/candidate_scores.csv",
+      "sha256": "ed27f7491c31de26925b1d99209b31b5c4bbd3b22616085e57cef9c44c6a14f9"
+    },
+    {
+      "bytes": 3586,
+      "kind": "document",
+      "path": "results/probe_guided_dense_average_candidate/report.md",
+      "sha256": "256f741d043b31af5cd86c0360b9b05416ee20ca44f7b7d8a37ff0bc32fa386a"
+    },
+    {
+      "bytes": 5013,
+      "kind": "data",
+      "path": "results/probe_guided_dense_average_candidate/summary.json",
+      "sha256": "4c7d9ccd5fac847d20c5971c419637a64a5f55b52465b20b90ad8a51311b58b6"
+    },
+    {
+      "bytes": 619,
+      "kind": "data",
+      "path": "results/probe_guided_dense_average_candidate/vllm_commands.json",
+      "sha256": "2321a18ea28a5eae8231c393e483c635669d3a78493aefe78e56bcf06217c646"
+    },
+    {
+      "bytes": 540,
+      "kind": "data",
+      "path": "results/probe_guided_dense_average_candidate/writer_command.txt",
+      "sha256": "0b627d0c4076494b141e0611769731059c4f308a3f85500750e69f079b1bc948"
+    },
+    {
       "bytes": 66758,
       "kind": "figure",
       "path": "results/qwen_gsm8k_slice/gsm8k_exact_match.png",
@@ -1201,16 +1231,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 235697,
+      "bytes": 253126,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "42204b11eeeea8d16a1d7287aacc9879bbbb05f6059143d7bd946af50b8cfdcc"
+      "sha256": "3f89d6d5c789d494c6ce3061ba3e8843feb59fdb8fc5f3b534fcdb0a9c232d84"
     },
     {
-      "bytes": 18639,
+      "bytes": 19097,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "7778bd03bac599efcdd889a0e76b0045677a5b04400e85d42d9c7a6f14d94701"
+      "sha256": "949ef65061c0d0292c5cc1e5fd1b97ce0ef92f267bb4826bec146759047854bb"
     },
     {
       "bytes": 556,
@@ -1537,6 +1567,48 @@
       "sha256": "fa4b3867ef4378e628f9e27d844dd0c5e8416e534afa42e37221a7f5f83c7e57"
     },
     {
+      "bytes": 218,
+      "kind": "data",
+      "path": "results/vllm_checkpoint_eval/qwen_0_5b_probe_guided_bridge_a025_b100/endpoint_probe.csv",
+      "sha256": "0cd1c2b511fdd160dffc20ec952e1051fb05d6d11b1af0e1c2fc61ae089a6770"
+    },
+    {
+      "bytes": 124,
+      "kind": "data",
+      "path": "results/vllm_checkpoint_eval/qwen_0_5b_probe_guided_bridge_a025_b100/eval_plan.csv",
+      "sha256": "d9d5798435c841b322609ca85fe00d086330db2e7a41690d6d113ccedc7a0a89"
+    },
+    {
+      "bytes": 506,
+      "kind": "data",
+      "path": "results/vllm_checkpoint_eval/qwen_0_5b_probe_guided_bridge_a025_b100/metrics.csv",
+      "sha256": "723eca01f6d03a3db5885b230586855f3628ab48921b4f28aa7f04e21fbfca96"
+    },
+    {
+      "bytes": 146004,
+      "kind": "figure",
+      "path": "results/vllm_checkpoint_eval/qwen_0_5b_probe_guided_bridge_a025_b100/metrics.png",
+      "sha256": "7ba0071edda25177293b007c1e714f73bf0899f0f4b170486ca51b2be3d19b30"
+    },
+    {
+      "bytes": 127,
+      "kind": "data",
+      "path": "results/vllm_checkpoint_eval/qwen_0_5b_probe_guided_bridge_a025_b100/model_summary.csv",
+      "sha256": "d47d8e41ab7b0cf7e0c7528fe9c2f094eebb37f6df37e9bf06247be6e1304dc8"
+    },
+    {
+      "bytes": 1079,
+      "kind": "document",
+      "path": "results/vllm_checkpoint_eval/qwen_0_5b_probe_guided_bridge_a025_b100/report.md",
+      "sha256": "044bab405e1043d44641c54d0e7d83eebf88087893712fe252ad8062998e20dd"
+    },
+    {
+      "bytes": 3976,
+      "kind": "data",
+      "path": "results/vllm_checkpoint_eval/qwen_0_5b_probe_guided_bridge_a025_b100/summary.json",
+      "sha256": "949a940866089fa5e53d19343b0427e83693d10a8c18ea98f20251922cd25474"
+    },
+    {
       "bytes": 96,
       "kind": "data",
       "path": "results/vllm_checkpoint_eval/source_qwen_0_5b_base/eval_plan.csv",
@@ -1831,6 +1903,12 @@
       "sha256": "ad01d594be71d23b5241f6e23ac3a4fc68a91cd2c3a14fdaf081c2fbc74f2653"
     },
     {
+      "bytes": 16919,
+      "kind": "code",
+      "path": "scripts/build_probe_guided_dense_average_candidate.py",
+      "sha256": "c65e79a92e1748744ea10a3fb786a1b1ae7dea2b7033f62732e18a3a02735785"
+    },
+    {
       "bytes": 39783,
       "kind": "code",
       "path": "scripts/build_qwen_target_model_registry.py",
@@ -1849,10 +1927,10 @@
       "sha256": "0b0e4be7ec51f0afb74dfdee6e3d8b217da9aac4d965a170bea36c89f1b46abb"
     },
     {
-      "bytes": 115762,
+      "bytes": 118877,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "4b9ef74aa813ba3cd087221a74f721fbbf77216ec05298dd30fffc95e2cab79e"
+      "sha256": "15abc72b77e7e08ce87fe9755dcd17257f69ca655d5be61ec9a3f62aaf98c6fe"
     },
     {
       "bytes": 17809,
@@ -2005,7 +2083,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T14:00:28.640301+00:00",
+  "generated_at": "2026-06-19T14:12:31.886734+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

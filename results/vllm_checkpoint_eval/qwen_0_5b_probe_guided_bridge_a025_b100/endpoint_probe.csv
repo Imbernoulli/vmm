@@ -1,0 +1,2 @@
+status,base_url,model,latency_sec,error_type,error
+unavailable,http://127.0.0.1:8100/v1,candidate_qwen_0_5b_probe_guided_bridge_a025_b100,0.007378816604614258,URLError,<urlopen error [Errno 1] Operation not permitted>

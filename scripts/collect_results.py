@@ -1072,6 +1072,34 @@ def summarize_vllm_source_merge_comparison() -> dict[str, Any]:
     }
 
 
+def summarize_probe_guided_dense_average_candidate() -> dict[str, Any]:
+    summary = read_json("results/probe_guided_dense_average_candidate/summary.json")
+    candidate_scores = read_csv("results/probe_guided_dense_average_candidate/candidate_scores.csv")
+    eval_summary = summary.get("vllm_eval") or {}
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "candidate_id": summary.get("candidate_id"),
+        "alpha": maybe_float(summary.get("alpha")),
+        "beta": maybe_float(summary.get("beta")),
+        "avg_nll": maybe_float(summary.get("avg_nll")),
+        "worst_nll": maybe_float(summary.get("worst_nll")),
+        "uniform_avg_gain": maybe_float(summary.get("uniform_avg_gain")),
+        "uniform_worst_gain": maybe_float(summary.get("uniform_worst_gain")),
+        "vllm_eval_status": eval_summary.get("status"),
+        "vllm_avg_primary_score": maybe_float(eval_summary.get("avg_primary_score")) if eval_summary else None,
+        "vllm_worst_primary_score": maybe_float(eval_summary.get("worst_primary_score")) if eval_summary else None,
+        "delta_vs_uniform_avg_primary": maybe_float(eval_summary.get("delta_vs_uniform_avg_primary")) if eval_summary else None,
+        "delta_vs_best_source_avg_primary": maybe_float(eval_summary.get("delta_vs_best_source_avg_primary")) if eval_summary else None,
+        "task_metrics": eval_summary.get("task_metrics", []),
+        "top_candidates": [clean_row(row) for _, row in candidate_scores.head(8).iterrows()],
+        "report": rel("results/probe_guided_dense_average_candidate/report.md"),
+        "candidate_scores_path": rel("results/probe_guided_dense_average_candidate/candidate_scores.csv"),
+        "writer_command": rel("results/probe_guided_dense_average_candidate/writer_command.txt"),
+        "vllm_eval_report": eval_summary.get("report"),
+    }
+
+
 def summarize_checkpoint_materialization_readiness() -> dict[str, Any]:
     summary = read_json("results/checkpoint_materialization_readiness/summary.json")
     readiness = read_csv("results/checkpoint_materialization_readiness/candidate_readiness.csv")
@@ -1244,6 +1272,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/vllm_source_merge_comparison/report.md compares Qwen2.5-0.5B base/instruct/coder source endpoints against the materialized uniform-average checkpoint under the same vLLM downstream tasks.",
         },
         {
+            "item": "Probe-guided dense average candidate vLLM eval",
+            "status": "complete",
+            "evidence": "results/probe_guided_dense_average_candidate/report.md selects a non-uniform Qwen instruct/coder bridge from the NLL grid, materializes the same-shape checkpoint locally, and records its real vLLM downstream eval.",
+        },
+        {
             "item": "vLLM downstream eval contract smoke",
             "status": "complete",
             "evidence": "results/vllm_downstream_eval_smoke/smoke_report.md validates the OpenAI-compatible HTTP request, answer parsing, scoring, model ranking, and artifact writing path using a local mock endpoint.",
@@ -1393,6 +1426,7 @@ def build_summary() -> dict[str, Any]:
         "vllm_checkpoint_eval_plan": summarize_vllm_checkpoint_eval_plan(),
         "vllm_checkpoint_eval_results": summarize_vllm_checkpoint_eval_results(),
         "vllm_source_merge_comparison": summarize_vllm_source_merge_comparison(),
+        "probe_guided_dense_average_candidate": summarize_probe_guided_dense_average_candidate(),
         "checkpoint_materialization_readiness": summarize_checkpoint_materialization_readiness(),
     }
     coverage = coverage_checklist()
@@ -1438,6 +1472,7 @@ def build_summary() -> dict[str, Any]:
             "python scripts/smoke_vllm_downstream_eval_contract.py --output-dir results/vllm_downstream_eval_smoke",
             "PYTHONPATH=src python scripts/build_vllm_checkpoint_eval_plan.py --output-dir results/vllm_checkpoint_eval_plan",
             "PYTHONPATH=src python scripts/build_vllm_source_merge_comparison.py --output-dir results/vllm_source_merge_comparison",
+            "PYTHONPATH=src python scripts/build_probe_guided_dense_average_candidate.py --output-dir results/probe_guided_dense_average_candidate",
             "PYTHONPATH=src python scripts/build_checkpoint_materialization_readiness.py --output-dir results/checkpoint_materialization_readiness",
             "PYTHONPATH=src python scripts/build_average_decision_report.py",
             "python scripts/build_qwen_target_model_registry.py",
@@ -1503,6 +1538,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     vllm_checkpoint_eval_results = exp["vllm_checkpoint_eval_results"]
     vllm_checkpoint_best = vllm_checkpoint_eval_results.get("best_result") or {}
     vllm_source_merge = exp["vllm_source_merge_comparison"]
+    probe_guided_dense = exp["probe_guided_dense_average_candidate"]
     materialization_readiness = exp["checkpoint_materialization_readiness"]
     coverage_counts = summary["coverage_counts"]
     lines = [
@@ -2022,6 +2058,16 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 "| vLLM source-vs-merge comparison | merge rank / source endpoints better | "
                 f"{vllm_source_merge['merge_rank_by_avg_primary']} / "
                 f"{vllm_source_merge['source_models_better_than_merge_count']} |"
+            ),
+            (
+                "| probe-guided dense average | selected alpha / beta | "
+                f"{fmt(probe_guided_dense['alpha'])} / {fmt(probe_guided_dense['beta'])} |"
+            ),
+            (
+                "| probe-guided dense average | vLLM avg / delta vs uniform / delta vs best source | "
+                f"{fmt(probe_guided_dense['vllm_avg_primary_score'])} / "
+                f"{fmt(probe_guided_dense['delta_vs_uniform_avg_primary'])} / "
+                f"{fmt(probe_guided_dense['delta_vs_best_source_avg_primary'])} |"
             ),
             (
                 "| checkpoint materialization readiness | status | "

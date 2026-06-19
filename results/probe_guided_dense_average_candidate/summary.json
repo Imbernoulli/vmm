@@ -1,0 +1,100 @@
+{
+  "alpha": 0.25,
+  "artifacts": {
+    "candidate_scores": "results/probe_guided_dense_average_candidate/candidate_scores.csv",
+    "report": "results/probe_guided_dense_average_candidate/report.md",
+    "vllm_commands": "results/probe_guided_dense_average_candidate/vllm_commands.json",
+    "writer_command": "results/probe_guided_dense_average_candidate/writer_command.txt"
+  },
+  "avg_nll": 3.040333503698025,
+  "beta": 1.0,
+  "candidate_id": "qwen_0_5b_probe_guided_bridge_a025_b100",
+  "checkpoint_output_dir": "results/checkpoints/qwen_0_5b_probe_guided_bridge_a025_b100",
+  "code_nll": 0.5863980540522823,
+  "general_nll": 7.632229374904258,
+  "hypothesis": "A coder-anchored bridge with a small instruct delta should avoid the high-NLL midpoint ridge better than uniform averaging.",
+  "instruction_nll": 0.9023730821375336,
+  "same_shape_constraint": "The candidate uses the existing base config/tokenizer and writes source deltas into the same tensor names and shapes.",
+  "schema_version": 1,
+  "selection_diagnostics": {
+    "candidate_rows": 21,
+    "eligible_rows": 12,
+    "min_uniform_avg_gain": 1.0,
+    "min_uniform_worst_gain": 1.0,
+    "uniform_alpha": 0.5,
+    "uniform_avg_nll": 5.591174572035292,
+    "uniform_beta": 0.5,
+    "uniform_worst_nll": 9.553208295036764
+  },
+  "selection_status": "eligible",
+  "served_model": "candidate_qwen_0_5b_probe_guided_bridge_a025_b100",
+  "status": "evaluated_complete",
+  "uniform_avg_gain": 2.5508410683372666,
+  "uniform_avg_nll": 5.591174572035292,
+  "uniform_worst_gain": 1.920978920132507,
+  "uniform_worst_nll": 9.553208295036764,
+  "vllm_commands": {
+    "eval": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8100/v1 --models candidate_qwen_0_5b_probe_guided_bridge_a025_b100 --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen_0_5b_probe_guided_bridge_a025_b100",
+    "serve": "CUDA_VISIBLE_DEVICES=1 /srv/home/bohanlyu/miniconda3/envs/cogdoc/bin/vllm serve results/checkpoints/qwen_0_5b_probe_guided_bridge_a025_b100 --served-model-name candidate_qwen_0_5b_probe_guided_bridge_a025_b100 --host 127.0.0.1 --port 8100 --dtype bfloat16 --tensor-parallel-size 1"
+  },
+  "vllm_eval": {
+    "avg_primary_score": 0.203125,
+    "best_source_avg_primary_score": 0.375,
+    "best_source_display_name": "Qwen2.5-0.5B Base",
+    "best_source_model": "source_qwen_0_5b_base",
+    "best_source_worst_primary_score": 0.09375,
+    "delta_vs_best_source_avg_primary": -0.171875,
+    "delta_vs_best_source_worst_primary": -0.09375,
+    "delta_vs_uniform_avg_primary": 0.0234375,
+    "delta_vs_uniform_worst_primary": 0.0,
+    "eval_dir": "results/vllm_checkpoint_eval/qwen_0_5b_probe_guided_bridge_a025_b100",
+    "metrics": "results/vllm_checkpoint_eval/qwen_0_5b_probe_guided_bridge_a025_b100/metrics.csv",
+    "model_summary": "results/vllm_checkpoint_eval/qwen_0_5b_probe_guided_bridge_a025_b100/model_summary.csv",
+    "report": "results/vllm_checkpoint_eval/qwen_0_5b_probe_guided_bridge_a025_b100/report.md",
+    "status": "complete",
+    "task_metrics": [
+      {
+        "delta_vs_uniform": 0.0625,
+        "primary_metric": "strict_exact",
+        "primary_score": 0.0625,
+        "safe_non_refusal_rate": null,
+        "task": "gsm8k",
+        "uniform_primary_score": 0.0,
+        "unsafe_refusal_rate": null
+      },
+      {
+        "delta_vs_uniform": 0.03125,
+        "primary_metric": "accuracy",
+        "primary_score": 0.25,
+        "safe_non_refusal_rate": null,
+        "task": "mmlu",
+        "uniform_primary_score": 0.21875,
+        "unsafe_refusal_rate": null
+      },
+      {
+        "delta_vs_uniform": 0.0,
+        "primary_metric": "policy_accuracy",
+        "primary_score": 0.5,
+        "safe_non_refusal_rate": 0.5,
+        "task": "safety",
+        "uniform_primary_score": 0.5,
+        "unsafe_refusal_rate": 0.5
+      },
+      {
+        "delta_vs_uniform": 0.0,
+        "primary_metric": "compile_rate",
+        "primary_score": 0.0,
+        "safe_non_refusal_rate": null,
+        "task": "humaneval_compile",
+        "uniform_primary_score": 0.0,
+        "unsafe_refusal_rate": null
+      }
+    ],
+    "uniform_avg_primary_score": 0.1796875,
+    "uniform_worst_primary_score": 0.0,
+    "worst_primary_score": 0.0
+  },
+  "vllm_eval_output_dir": "results/vllm_checkpoint_eval/qwen_0_5b_probe_guided_bridge_a025_b100",
+  "worst_nll": 7.632229374904258,
+  "writer_command": "python scripts/write_same_shape_average_checkpoint.py --base /srv/home/bohanlyu/MLS-Bench/vendor/data/models/Qwen2.5-0.5B --source instruct=/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen2.5-0.5B-Instruct/snapshots/7ae557604adf67be50417f59c2c2f167def9a775 --source coder=/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen2.5-Coder-0.5B-Instruct/snapshots/ea3f2471cf1b1f0db85067f1ef93848e38e88c25 --source-weight instruct=0.25 --source-weight coder=1.0 --output-dir results/checkpoints/qwen_0_5b_probe_guided_bridge_a025_b100"
+}
