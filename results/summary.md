@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-19T11:01:28.662902+00:00`
+Generated at: `2026-06-19T11:08:09.673452+00:00`
 
 ## Coverage
 
@@ -88,6 +88,7 @@ Complete: `31`; partial: `1`; missing: `0`.
 | toy MoE route-aware merge | matched + router-weight-search worst accuracy | 0.818 |
 | toy MoE route-aware merge | matched + Hessian-router average worst accuracy | 0.807 |
 | toy MoE route-aware merge | matched + Router-KD average worst accuracy | 0.802 |
+| toy MoE route-aware merge | matched + route-KD average worst accuracy | 0.815 |
 | toy MoE route-aware merge | matched + router-calibrated worst accuracy | 0.838 |
 | toy MoE route-aware merge | matched + router-topk-calibrated worst accuracy | 0.815 |
 | toy MoE hard dispatch | matched + router-calibrated hard top-1 worst accuracy | 0.568 |
@@ -95,6 +96,9 @@ Complete: `31`; partial: `1`; missing: `0`.
 | toy MoE hard dispatch | matched + router-topk-calibrated hard top-2 worst accuracy | 0.700 |
 | toy MoE hard dispatch | matched + Hessian-router hard top-2 worst accuracy | 0.675 |
 | toy MoE hard dispatch | matched + Router-KD hard top-2 worst accuracy | 0.685 |
+| toy MoE hard dispatch | matched + route-KD hard top-2 worst accuracy | 0.730 |
+| toy MoE hard dispatch | route-KD hard top-2 delta vs router-calibrated | 0.030 |
+| toy MoE hard dispatch | route-KD hard top-2 delta vs output-KD | 0.045 |
 | toy MoE hard dispatch | soft to hard top-1 delta | -0.270 |
 | toy MoE hard dispatch | top-k vs soft-calibrated hard top-2 delta | 0.000 |
 | toy MoE route-aware merge | guarded router-sweep selected KL | 0.25 |
@@ -110,6 +114,8 @@ Complete: `31`; partial: `1`; missing: `0`.
 | toy MoE route-aware merge | Hessian-router delta vs router-calibrated | -0.030 |
 | toy MoE route-aware merge | Router-KD delta vs expert-matched | 0.002 |
 | toy MoE route-aware merge | Router-KD delta vs router-calibrated | -0.035 |
+| toy MoE route-aware merge | route-KD delta vs Router-KD | 0.012 |
+| toy MoE route-aware merge | route-KD delta vs router-calibrated | -0.023 |
 | toy MoE route-aware merge | top-k router calibration delta vs soft calibration | -0.023 |
 | toy MoE route-aware merge | expert search router-calibrated delta vs matched-calibrated | -0.010 |
 | toy MoE route-aware merge | route-aware minus all-weight worst accuracy | 0.170 |

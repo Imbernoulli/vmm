@@ -14,7 +14,7 @@
     "direct_matched_barrier_worst_loss": 0.0,
     "direct_unmatched_barrier_worst_loss": 0.03273778915405279,
     "matched_minus_unmatched_barrier_worst_loss": -0.03273778915405279,
-    "path_count": 9,
+    "path_count": 10,
     "steps": 21
   },
   "dispatch_robustness": {
@@ -26,10 +26,10 @@
         "worst_loss": 0.683913459777832
       },
       "hard_top2": {
-        "avg_acc": 0.7625,
-        "method": "matched_router_calibrated_average",
-        "worst_acc": 0.7,
-        "worst_loss": 0.619939136505127
+        "avg_acc": 0.76875,
+        "method": "matched_router_route_kd_average",
+        "worst_acc": 0.73,
+        "worst_loss": 0.6275356483459472
       },
       "soft_all": {
         "avg_acc": 0.83875,
@@ -46,6 +46,8 @@
     "matched_router_hessian_hard_top2_worst_acc": 0.675,
     "matched_router_kd_hard_top1_worst_acc": 0.55,
     "matched_router_kd_hard_top2_worst_acc": 0.685,
+    "matched_router_route_kd_hard_top1_worst_acc": 0.58,
+    "matched_router_route_kd_hard_top2_worst_acc": 0.73,
     "matched_router_topk_calibrated_hard_top1_worst_acc": 0.57,
     "matched_router_topk_calibrated_hard_top2_worst_acc": 0.7,
     "modes": [
@@ -53,7 +55,9 @@
       "hard_top1",
       "hard_top2"
     ],
-    "row_count": 60,
+    "route_kd_minus_calibrated_hard_top2_worst_acc": 0.030000000000000027,
+    "route_kd_minus_output_kd_hard_top2_worst_acc": 0.04499999999999993,
+    "row_count": 63,
     "topk_calibrated_minus_soft_calibrated_hard_top1_worst_acc": 0.0024999999999999467,
     "topk_calibrated_minus_soft_calibrated_hard_top2_worst_acc": 0.0
   },
@@ -114,6 +118,10 @@
   "matched_router_kd_minus_expert_matched_worst_acc": 0.0024999999999999467,
   "matched_router_kd_minus_matched_calibrated_worst_acc": -0.03500000000000003,
   "matched_router_kd_worst_acc": 0.8025,
+  "matched_router_route_kd_minus_expert_matched_worst_acc": 0.014999999999999902,
+  "matched_router_route_kd_minus_matched_calibrated_worst_acc": -0.022500000000000075,
+  "matched_router_route_kd_minus_router_kd_worst_acc": 0.012499999999999956,
+  "matched_router_route_kd_worst_acc": 0.815,
   "matched_router_sweep_selected_worst_acc": 0.8375,
   "matched_router_topk_calibrated_minus_matched_calibrated_worst_acc": -0.022500000000000075,
   "matched_router_topk_calibrated_worst_acc": 0.815,
@@ -139,6 +147,7 @@
     "router_calibration_sweep": "router_calibration_sweep.csv",
     "router_hessian_average": "router_hessian_average.csv",
     "router_kd_trace": "router_kd_trace.csv",
+    "router_route_kd_trace": "router_route_kd_trace.csv",
     "router_summary": "router_summary.csv",
     "router_weight_search": "router_weight_search.csv"
   },
@@ -179,6 +188,15 @@
     "router_kl_coef": 0.1,
     "rows": 16,
     "temperature": 2.0
+  },
+  "router_route_kd": {
+    "epochs": 8,
+    "final_mean_route_kl": 0.009616427466273308,
+    "final_mean_top1_ce": 0.8789528396129608,
+    "lr": 0.005,
+    "rows": 16,
+    "temperature": 1.0,
+    "top1_loss_coef": 0.25
   },
   "router_weight_search": {
     "candidate_pair_count": 15,

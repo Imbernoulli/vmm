@@ -578,6 +578,7 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
     router_weight_search = read_csv("results/toy_moe_merge/router_weight_search.csv")
     router_hessian_average = read_csv("results/toy_moe_merge/router_hessian_average.csv")
     router_kd_trace = read_csv("results/toy_moe_merge/router_kd_trace.csv")
+    router_route_kd_trace = read_csv("results/toy_moe_merge/router_route_kd_trace.csv")
     selected_router_weight = router_weight_search[
         router_weight_search["selected_by_guarded_calib_worst_loss"].astype(bool)
     ]
@@ -605,6 +606,7 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
         "matched_router_weight_search_average": find_method(methods, "matched_router_weight_search_average"),
         "matched_router_hessian_average": find_method(methods, "matched_router_hessian_average"),
         "matched_router_kd_average": find_method(methods, "matched_router_kd_average"),
+        "matched_router_route_kd_average": find_method(methods, "matched_router_route_kd_average"),
         "matched_router_calibrated_average": find_method(methods, "matched_router_calibrated_average"),
         "matched_router_topk_calibrated_average": find_method(
             methods, "matched_router_topk_calibrated_average"
@@ -661,6 +663,16 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
         "matched_router_kd_minus_matched_calibrated_worst_acc": float(
             summary.get("matched_router_kd_minus_matched_calibrated_worst_acc", 0.0)
         ),
+        "router_route_kd_rows": int(len(router_route_kd_trace)),
+        "matched_router_route_kd_minus_expert_matched_worst_acc": float(
+            summary.get("matched_router_route_kd_minus_expert_matched_worst_acc", 0.0)
+        ),
+        "matched_router_route_kd_minus_matched_calibrated_worst_acc": float(
+            summary.get("matched_router_route_kd_minus_matched_calibrated_worst_acc", 0.0)
+        ),
+        "matched_router_route_kd_minus_router_kd_worst_acc": float(
+            summary.get("matched_router_route_kd_minus_router_kd_worst_acc", 0.0)
+        ),
         "router_calibration_sweep_rows": int(len(router_calibration_sweep)),
         "router_calibration_sweep_eligible_count": int(router_calibration_sweep["eligible_by_route_guard"].sum()),
         "router_calibration_sweep_selected": clean_row(selected_router_calibration.iloc[0])
@@ -694,6 +706,7 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
         "router_weight_search": rel("results/toy_moe_merge/router_weight_search.csv"),
         "router_hessian_average": rel("results/toy_moe_merge/router_hessian_average.csv"),
         "router_kd_trace": rel("results/toy_moe_merge/router_kd_trace.csv"),
+        "router_route_kd_trace": rel("results/toy_moe_merge/router_route_kd_trace.csv"),
         "router_calibration_sweep": rel("results/toy_moe_merge/router_calibration_sweep.csv"),
         "figure": rel("results/toy_moe_merge/toy_moe_merge.png"),
     }
@@ -1357,6 +1370,10 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(toy_moe['matched_router_kd_average']['worst_acc'])} |"
             ),
             (
+                "| toy MoE route-aware merge | matched + route-KD average worst accuracy | "
+                f"{fmt(toy_moe['matched_router_route_kd_average']['worst_acc'])} |"
+            ),
+            (
                 "| toy MoE route-aware merge | matched + router-calibrated worst accuracy | "
                 f"{fmt(toy_moe['matched_router_calibrated_average']['worst_acc'])} |"
             ),
@@ -1383,6 +1400,18 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| toy MoE hard dispatch | matched + Router-KD hard top-2 worst accuracy | "
                 f"{fmt(toy_moe['dispatch_robustness']['matched_router_kd_hard_top2_worst_acc'])} |"
+            ),
+            (
+                "| toy MoE hard dispatch | matched + route-KD hard top-2 worst accuracy | "
+                f"{fmt(toy_moe['dispatch_robustness']['matched_router_route_kd_hard_top2_worst_acc'])} |"
+            ),
+            (
+                "| toy MoE hard dispatch | route-KD hard top-2 delta vs router-calibrated | "
+                f"{fmt(toy_moe['dispatch_robustness']['route_kd_minus_calibrated_hard_top2_worst_acc'])} |"
+            ),
+            (
+                "| toy MoE hard dispatch | route-KD hard top-2 delta vs output-KD | "
+                f"{fmt(toy_moe['dispatch_robustness']['route_kd_minus_output_kd_hard_top2_worst_acc'])} |"
             ),
             (
                 "| toy MoE hard dispatch | soft to hard top-1 delta | "
@@ -1443,6 +1472,14 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| toy MoE route-aware merge | Router-KD delta vs router-calibrated | "
                 f"{fmt(toy_moe['matched_router_kd_minus_matched_calibrated_worst_acc'])} |"
+            ),
+            (
+                "| toy MoE route-aware merge | route-KD delta vs Router-KD | "
+                f"{fmt(toy_moe['matched_router_route_kd_minus_router_kd_worst_acc'])} |"
+            ),
+            (
+                "| toy MoE route-aware merge | route-KD delta vs router-calibrated | "
+                f"{fmt(toy_moe['matched_router_route_kd_minus_matched_calibrated_worst_acc'])} |"
             ),
             (
                 "| toy MoE route-aware merge | top-k router calibration delta vs soft calibration | "
