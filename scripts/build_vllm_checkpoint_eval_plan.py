@@ -161,6 +161,15 @@ def default_candidates() -> list[dict[str, Any]]:
             "notes": "Qwen3-30B route-guarded candidate with MoE trust-region caps from route load, category specialization, router fragility, and materialized delta audit probes. Dry-run is validated; materialize before vLLM eval.",
         },
         {
+            "candidate_source": "results/qwen3_moe_expert_only_trust_region_candidate/writer_command.txt",
+            "method": "qwen3_moe_expert_only_trust_region_candidate",
+            "checkpoint_path": "results/checkpoints/qwen3_moe_expert_only_trust_region_candidate",
+            "tensor_parallel_size": 4,
+            "gpu": "0,1,2,3",
+            "materialization_status": "checkpoint_missing_until_expert_only_ablation_materialized",
+            "notes": "Ablation of the trust-region candidate that freezes shared attention while keeping routed expert trust-region rules. Use it to test whether Coder attention deltas help or hurt under the same vLLM tasks.",
+        },
+        {
             "candidate_source": "local_materialized_dense_baseline",
             "method": "qwen_0_5b_instruct_coder_uniform_average",
             "checkpoint_path": "results/checkpoints/qwen_0_5b_instruct_coder_uniform_average",

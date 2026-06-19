@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-19T19:53:45.616635+00:00`
+Generated at: `2026-06-19T20:16:52.219310+00:00`
 
 ## Coverage
 
@@ -142,6 +142,12 @@ Complete: `60`; partial: `1`; missing: `0`.
 | Qwen3 MoE trust-region delta audit | max routed rel-delta / routed tensors >1.0 / >0.75 | 0.750 / 0 / 14 |
 | Qwen3 MoE trust-region delta validation | status / max abs pred error / p99 pred error | passed / 0.000 / 0.000 |
 | Qwen3 MoE trust-region delta validation | tensors above tolerance / actual >0.75 / rounding slop | 0 / 14 / 14 |
+| Qwen3 MoE expert-only ablation | status / attention rule / dry-run router hits | attention_ablation_rules_ready / freeze_shared_attention / 48 |
+| Qwen3 MoE expert-only ablation | materialized / shards / dry-run router hits | True / 16 / 48 |
+| Qwen3 MoE expert-only ablation | estimated rel-norm / reduction / attention energy frac | 0.246 / 0.003 / 0.021 |
+| Qwen3 MoE expert-only ablation | frozen tensors / expert / attention hits | 3891 / 15729 / 288 |
+| Qwen3 MoE expert-only delta audit | status / total relative norm / router changed | passed / 0.246 / 0/48 |
+| Qwen3 MoE expert-only delta audit | max routed rel-delta / routed tensors >1.0 / >0.75 | 0.750 / 0 / 14 |
 | real MoE gauge self-merge | baseline / same-name / aligned NLL | 4.168 / 9.659 / 4.168 |
 | real MoE gauge self-merge | same-name degradation vs baseline | 5.491 |
 | real MoE gauge self-merge | recovered expert permutations | 16 / 16 |
@@ -254,7 +260,7 @@ Complete: `60`; partial: `1`; missing: `0`.
 | vLLM downstream eval smoke | status | passed |
 | vLLM downstream eval smoke | good / bad avg primary | 1.000 / 0.000 |
 | vLLM checkpoint eval plan | status | hosted_eval_complete |
-| vLLM checkpoint eval plan | ready / missing / not-loadable | 6 / 2 / 1 |
+| vLLM checkpoint eval plan | ready / missing / not-loadable | 7 / 2 / 1 |
 | vLLM hosted eval results | completed eval dirs | 10 |
 | vLLM hosted eval results | best eval avg / worst primary | source_qwen_0_5b_base / 0.375 / 0.094 |
 | vLLM source-vs-merge comparison | status | merge_underperforms_all_sources |
@@ -269,7 +275,7 @@ Complete: `60`; partial: `1`; missing: `0`.
 | Qwen dense broad sparse-method candidate | selected tensors / applied sparse rules / vLLM avg / delta vs global | 99 / 99 / 0.156 / -0.047 |
 | Qwen dense attention sparse-method candidate | selected tensors / applied sparse rules / vLLM avg / delta vs global | 49 / 49 / 0.203 / 0.000 |
 | checkpoint materialization readiness | status | hosted_eval_complete |
-| checkpoint materialization readiness | materialized / blocked / ready / completed | 4 / 4 / 3 / 1 |
+| checkpoint materialization readiness | materialized / blocked / ready / completed | 5 / 4 / 4 / 1 |
 | MoE materialization pipeline | status | waiting_for_real_moe_probe_or_paths |
 | MoE materialization pipeline | current blocking stage | exact_moe_topology |
 | MoE materialization pipeline | ready / waiting gates | 3 / 6 |

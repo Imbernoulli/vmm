@@ -869,6 +869,10 @@ def summarize_qwen3_moe_trust_region_delta_audit() -> dict[str, Any]:
     return summarize_materialized_delta_audit_dir("results/qwen3_moe_trust_region_delta_audit")
 
 
+def summarize_qwen3_moe_expert_only_delta_audit() -> dict[str, Any]:
+    return summarize_materialized_delta_audit_dir("results/qwen3_moe_expert_only_delta_audit")
+
+
 def summarize_qwen3_moe_trust_region_delta_validation() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_trust_region_delta_validation")
     summary = read_json(root / "summary.json")
@@ -983,6 +987,53 @@ def summarize_qwen3_moe_trust_region_candidate() -> dict[str, Any]:
         "writer_command": rel(root / "writer_command.txt"),
         "dry_run_command": rel(root / "dry_run_command.txt"),
         "dry_run_manifest": rel(root / "dry_run" / "merge_manifest.json"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
+def summarize_qwen3_moe_expert_only_trust_region_candidate() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_expert_only_trust_region_candidate")
+    summary = read_json(root / "summary.json")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "expert_rule_count": int(summary.get("expert_rule_count", 0)),
+        "attention_rule": summary.get("attention_rule"),
+        "current_trust_region_relative_delta_norm": maybe_float(
+            summary.get("current_trust_region_relative_delta_norm")
+        ),
+        "estimated_expert_only_relative_delta_norm": maybe_float(
+            summary.get("estimated_expert_only_relative_delta_norm")
+        ),
+        "estimated_relative_delta_norm_reduction": maybe_float(
+            summary.get("estimated_relative_delta_norm_reduction")
+        ),
+        "attention_delta_energy_fraction": maybe_float(summary.get("attention_delta_energy_fraction")),
+        "attention_relative_delta_norm": maybe_float(summary.get("attention_relative_delta_norm")),
+        "attention_changed_tensors_removed": int(summary.get("attention_changed_tensors_removed", 0)),
+        "writer_dry_run_validated": bool(summary.get("writer_dry_run_validated", False)),
+        "writer_dry_run_floating_tensors": int(summary.get("writer_dry_run_floating_tensors", 0)),
+        "writer_dry_run_frozen_tensors": int(summary.get("writer_dry_run_frozen_tensors", 0)),
+        "writer_dry_run_expert_tensor_rule_hits": int(
+            summary.get("writer_dry_run_expert_tensor_rule_hits", 0)
+        ),
+        "writer_dry_run_shared_attention_hits": int(
+            summary.get("writer_dry_run_shared_attention_hits", 0)
+        ),
+        "writer_dry_run_freeze_router_hits": int(summary.get("writer_dry_run_freeze_router_hits", 0)),
+        "writer_dry_run_shards": int(summary.get("writer_dry_run_shards", 0)),
+        "writer_checkpoint_materialized": bool(summary.get("writer_checkpoint_materialized", False)),
+        "writer_materialized_floating_tensors": int(summary.get("writer_materialized_floating_tensors", 0)),
+        "writer_materialized_frozen_tensors": int(summary.get("writer_materialized_frozen_tensors", 0)),
+        "writer_materialized_shards": int(summary.get("writer_materialized_shards", 0)),
+        "report": rel(root / "report.md"),
+        "attention_kind_summary": rel(root / "attention_kind_summary.csv"),
+        "attention_layer_summary": rel(root / "attention_layer_summary.csv"),
+        "tensor_rules": rel(root / "tensor_rules.txt"),
+        "writer_command": rel(root / "writer_command.txt"),
+        "dry_run_command": rel(root / "dry_run_command.txt"),
+        "dry_run_manifest": rel(root / "dry_run" / "merge_manifest.json"),
+        "materialized_manifest": rel(repo_path("results/checkpoints/qwen3_moe_expert_only_trust_region_candidate/merge_manifest.json")),
         "summary_path": rel(root / "summary.json"),
     }
 
@@ -2530,6 +2581,10 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_trust_region_candidate": summarize_qwen3_moe_trust_region_candidate(),
         "qwen3_moe_trust_region_delta_audit": summarize_qwen3_moe_trust_region_delta_audit(),
         "qwen3_moe_trust_region_delta_validation": summarize_qwen3_moe_trust_region_delta_validation(),
+        "qwen3_moe_expert_only_trust_region_candidate": (
+            summarize_qwen3_moe_expert_only_trust_region_candidate()
+        ),
+        "qwen3_moe_expert_only_delta_audit": summarize_qwen3_moe_expert_only_delta_audit(),
         "toy_moe_routing_readiness": summarize_toy_moe_routing_readiness(),
         "toy_moe_method_selection": summarize_toy_moe_method_selection(),
         "toy_moe_expert_remap_plan": summarize_toy_moe_expert_remap_plan(),
@@ -2643,6 +2698,8 @@ def build_summary() -> dict[str, Any]:
             "python scripts/build_qwen3_moe_trust_region_candidate.py --output-dir results/qwen3_moe_trust_region_candidate",
             "python scripts/audit_materialized_checkpoint_delta.py --base BASE --candidate TRUST_REGION_CANDIDATE --output-dir results/qwen3_moe_trust_region_delta_audit",
             "python scripts/validate_qwen3_moe_trust_region_delta.py --output-dir results/qwen3_moe_trust_region_delta_validation",
+            "python scripts/build_qwen3_moe_expert_only_trust_region_candidate.py --output-dir results/qwen3_moe_expert_only_trust_region_candidate",
+            "python scripts/audit_materialized_checkpoint_delta.py --base BASE --candidate EXPERT_ONLY_CANDIDATE --output-dir results/qwen3_moe_expert_only_delta_audit",
             "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
             "PYTHONPATH=src python scripts/collect_results.py",
         ],
@@ -2709,6 +2766,8 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_trust_region_candidate = exp["qwen3_moe_trust_region_candidate"]
     qwen3_moe_trust_region_delta_audit = exp["qwen3_moe_trust_region_delta_audit"]
     qwen3_moe_trust_region_delta_validation = exp["qwen3_moe_trust_region_delta_validation"]
+    qwen3_moe_expert_only_trust_region_candidate = exp["qwen3_moe_expert_only_trust_region_candidate"]
+    qwen3_moe_expert_only_delta_audit = exp["qwen3_moe_expert_only_delta_audit"]
     selected_unified_capacity = toy_moe.get("unified_moe_capacity_sweep_selected") or {}
     selected_unified_output_projection_capacity = (
         toy_moe.get("unified_output_projection_moe_capacity_sweep_selected") or {}
@@ -3080,6 +3139,43 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_trust_region_delta_validation['tensors_above_relative_tolerance']} / "
                 f"{qwen3_moe_trust_region_delta_validation['routed_actual_relative_delta_gt_075']} / "
                 f"{qwen3_moe_trust_region_delta_validation['routed_above_075_rounding_slop']} |"
+            ),
+            (
+                "| Qwen3 MoE expert-only ablation | status / attention rule / dry-run router hits | "
+                f"{qwen3_moe_expert_only_trust_region_candidate['status']} / "
+                f"{qwen3_moe_expert_only_trust_region_candidate['attention_rule']} / "
+                f"{qwen3_moe_expert_only_trust_region_candidate['writer_dry_run_freeze_router_hits']} |"
+            ),
+            (
+                "| Qwen3 MoE expert-only ablation | materialized / shards / dry-run router hits | "
+                f"{qwen3_moe_expert_only_trust_region_candidate['writer_checkpoint_materialized']} / "
+                f"{qwen3_moe_expert_only_trust_region_candidate['writer_materialized_shards']} / "
+                f"{qwen3_moe_expert_only_trust_region_candidate['writer_dry_run_freeze_router_hits']} |"
+            ),
+            (
+                "| Qwen3 MoE expert-only ablation | estimated rel-norm / reduction / attention energy frac | "
+                f"{fmt(qwen3_moe_expert_only_trust_region_candidate['estimated_expert_only_relative_delta_norm'])} / "
+                f"{fmt(qwen3_moe_expert_only_trust_region_candidate['estimated_relative_delta_norm_reduction'])} / "
+                f"{fmt(qwen3_moe_expert_only_trust_region_candidate['attention_delta_energy_fraction'])} |"
+            ),
+            (
+                "| Qwen3 MoE expert-only ablation | frozen tensors / expert / attention hits | "
+                f"{qwen3_moe_expert_only_trust_region_candidate['writer_dry_run_frozen_tensors']} / "
+                f"{qwen3_moe_expert_only_trust_region_candidate['writer_dry_run_expert_tensor_rule_hits']} / "
+                f"{qwen3_moe_expert_only_trust_region_candidate['writer_dry_run_shared_attention_hits']} |"
+            ),
+            (
+                "| Qwen3 MoE expert-only delta audit | status / total relative norm / router changed | "
+                f"{qwen3_moe_expert_only_delta_audit['status']} / "
+                f"{fmt(qwen3_moe_expert_only_delta_audit['relative_delta_norm'])} / "
+                f"{qwen3_moe_expert_only_delta_audit['router_changed_tensors']}"
+                f"/{qwen3_moe_expert_only_delta_audit['router_tensors']} |"
+            ),
+            (
+                "| Qwen3 MoE expert-only delta audit | max routed rel-delta / routed tensors >1.0 / >0.75 | "
+                f"{fmt(qwen3_moe_expert_only_delta_audit['max_routed_tensor_relative_delta'])} / "
+                f"{qwen3_moe_expert_only_delta_audit['routed_tensors_relative_delta_gt_1']} / "
+                f"{qwen3_moe_expert_only_delta_audit['routed_tensors_relative_delta_gt_075']} |"
             ),
             (
                 "| real MoE gauge self-merge | baseline / same-name / aligned NLL | "

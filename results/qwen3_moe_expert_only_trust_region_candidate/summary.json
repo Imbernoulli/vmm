@@ -1,0 +1,46 @@
+{
+  "attention_changed_tensors_removed": 288,
+  "attention_delta_energy_fraction": 0.02102178723903867,
+  "attention_delta_norm": 149.05645237684138,
+  "attention_relative_delta_norm": 0.188546444938151,
+  "attention_rule": "freeze_shared_attention",
+  "base": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe",
+  "current_trust_region_relative_delta_norm": 0.2486605810368496,
+  "estimated_expert_only_relative_delta_norm": 0.24603305394882166,
+  "estimated_relative_delta_norm_reduction": 0.0026275270880279367,
+  "expert_rule_count": 5243,
+  "outputs": {
+    "attention_kind_summary": "results/qwen3_moe_expert_only_trust_region_candidate/attention_kind_summary.csv",
+    "attention_layer_summary": "results/qwen3_moe_expert_only_trust_region_candidate/attention_layer_summary.csv",
+    "dry_run_command": "results/qwen3_moe_expert_only_trust_region_candidate/dry_run_command.txt",
+    "dry_run_manifest": "results/qwen3_moe_expert_only_trust_region_candidate/dry_run/merge_manifest.json",
+    "materialized_manifest": "results/checkpoints/qwen3_moe_expert_only_trust_region_candidate/merge_manifest.json",
+    "report": "results/qwen3_moe_expert_only_trust_region_candidate/report.md",
+    "summary": "results/qwen3_moe_expert_only_trust_region_candidate/summary.json",
+    "tensor_rules": "results/qwen3_moe_expert_only_trust_region_candidate/tensor_rules.txt",
+    "writer_command": "results/qwen3_moe_expert_only_trust_region_candidate/writer_command.txt"
+  },
+  "schema_version": 1,
+  "source_names": [
+    "coder",
+    "instruct"
+  ],
+  "source_paths": {
+    "coder": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-Coder-30B-A3B-Instruct/snapshots/b2cff646eb4bb1d68355c01b18ae02e7cf42d120",
+    "instruct": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe"
+  },
+  "status": "attention_ablation_rules_ready",
+  "writer_checkpoint_materialized": true,
+  "writer_dry_run_expert_tensor_rule_hits": 15729,
+  "writer_dry_run_floating_tensors": 18867,
+  "writer_dry_run_freeze_router_hits": 48,
+  "writer_dry_run_frozen_tensors": 3891,
+  "writer_dry_run_manifest": "results/qwen3_moe_expert_only_trust_region_candidate/dry_run/merge_manifest.json",
+  "writer_dry_run_shards": 16,
+  "writer_dry_run_shared_attention_hits": 288,
+  "writer_dry_run_validated": true,
+  "writer_materialized_floating_tensors": 18867,
+  "writer_materialized_frozen_tensors": 3891,
+  "writer_materialized_manifest": "results/checkpoints/qwen3_moe_expert_only_trust_region_candidate/merge_manifest.json",
+  "writer_materialized_shards": 16
+}

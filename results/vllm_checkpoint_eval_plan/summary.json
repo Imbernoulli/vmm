@@ -1,5 +1,5 @@
 {
-  "candidate_count": 9,
+  "candidate_count": 10,
   "completed_eval_count": 1,
   "example_source": "datasets",
   "missing_checkpoint_count": 2,
@@ -10,7 +10,7 @@
     "shell_script": "results/vllm_checkpoint_eval_plan/serve_and_eval_commands.sh",
     "summary": "results/vllm_checkpoint_eval_plan/summary.json"
   },
-  "ready_to_host_count": 6,
+  "ready_to_host_count": 7,
   "same_shape_constraint": "The plan evaluates one materialized checkpoint at a time through vLLM; it does not use ensembles or change model structure.",
   "schema_version": 1,
   "status": "hosted_eval_complete",
