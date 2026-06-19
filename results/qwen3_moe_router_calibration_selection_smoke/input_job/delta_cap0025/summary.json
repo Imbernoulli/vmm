@@ -28,12 +28,16 @@
   "mean_initial_topk_capacity_overflow_fraction": 0.0025,
   "mean_initial_topk_load_entropy": 0.975,
   "mean_selected_epoch": 10.0,
+  "mean_selection_samples": 32.0,
   "mean_selection_score": 0.095,
+  "mean_train_samples": 128.0,
+  "mean_validation_fraction": 0.2,
   "min_selected_epoch": 10,
   "outputs": {
     "router_delta_safetensors": "results/qwen3_moe_router_calibration_selection_smoke/input_job/delta_cap0025/router_delta.safetensors"
   },
   "schema_version": 2,
   "selection_policy": "capacity_aware",
+  "selection_split": "validation",
   "status": "passed"
 }

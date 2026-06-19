@@ -632,6 +632,10 @@ def summarize_moe_router_delta_calibration_smoke() -> dict[str, Any]:
         "mean_final_top1_agreement": float(summary.get("mean_final_top1_agreement", 0.0)),
         "max_final_relative_delta_norm": float(summary.get("max_final_relative_delta_norm", 0.0)),
         "selection_policy": summary.get("selection_policy"),
+        "selection_split": summary.get("selection_split"),
+        "mean_train_samples": float(summary.get("mean_train_samples", 0.0)),
+        "mean_selection_samples": float(summary.get("mean_selection_samples", 0.0)),
+        "mean_validation_fraction": float(summary.get("mean_validation_fraction", 0.0)),
         "mean_selected_epoch": float(summary.get("mean_selected_epoch", 0.0)),
         "mean_selection_score": float(summary.get("mean_selection_score", 0.0)),
         "max_initial_top1_capacity_overflow_fraction": float(
@@ -4479,10 +4483,17 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(moe_router_delta_calibration_smoke['max_final_relative_delta_norm'], 4)} |"
             ),
             (
-                "| MoE router delta calibration smoke | selection policy / mean selected epoch / score | "
-                f"{moe_router_delta_calibration_smoke['selection_policy']} / "
+                "| MoE router delta calibration smoke | selection policy-split / selected epoch / score | "
+                f"{moe_router_delta_calibration_smoke['selection_policy']}-"
+                f"{moe_router_delta_calibration_smoke['selection_split']} / "
                 f"{fmt(moe_router_delta_calibration_smoke['mean_selected_epoch'], 2)} / "
                 f"{fmt(moe_router_delta_calibration_smoke['mean_selection_score'], 4)} |"
+            ),
+            (
+                "| MoE router delta calibration smoke | train/selection samples / validation fraction | "
+                f"{fmt(moe_router_delta_calibration_smoke['mean_train_samples'], 1)}/"
+                f"{fmt(moe_router_delta_calibration_smoke['mean_selection_samples'], 1)} / "
+                f"{fmt(moe_router_delta_calibration_smoke['mean_validation_fraction'], 3)} |"
             ),
             (
                 "| MoE router delta calibration smoke | hard top1/top-k overflow initial-final / increase | "

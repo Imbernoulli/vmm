@@ -1,7 +1,7 @@
 {
   "additive_delta_tensors": 0,
   "additive_delta_values": 0,
-  "base": "/tmp/moe_router_delta_calibration_cache_aw90tom6/base",
+  "base": "/tmp/moe_router_delta_calibration_cache_2oi58a61/base",
   "copied_metadata": [],
   "copied_nonfloating_tensors": 0,
   "default_weights": {
@@ -44,13 +44,13 @@
       "dtype_mismatches": 0,
       "extra_tensors": 0,
       "missing_tensors": 0,
-      "root": "/tmp/moe_router_delta_calibration_cache_aw90tom6/base",
+      "root": "/tmp/moe_router_delta_calibration_cache_2oi58a61/base",
       "shape_mismatches": 0,
       "tensors": 2
     }
   },
   "sources": {
-    "same": "/tmp/moe_router_delta_calibration_cache_aw90tom6/base"
+    "same": "/tmp/moe_router_delta_calibration_cache_2oi58a61/base"
   },
   "tensor_add_csv": [],
   "tensor_add_delta_summary": {

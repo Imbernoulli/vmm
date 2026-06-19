@@ -199,6 +199,10 @@ def metric_row(
     delta_weight: torch.Tensor,
     top_k: int,
     capacity_factor: float,
+    selection_split: str,
+    train_samples: int,
+    selection_samples: int,
+    validation_fraction: float,
 ) -> dict[str, Any]:
     teacher_probs = F.softmax(teacher_logits, dim=-1)
     route_kl = F.kl_div(F.log_softmax(logits, dim=-1), teacher_probs, reduction="batchmean")
@@ -210,6 +214,10 @@ def metric_row(
     return {
         "tensor": tensor_name,
         "stage": stage,
+        "selection_split": selection_split,
+        "train_samples": int(train_samples),
+        "selection_samples": int(selection_samples),
+        "validation_fraction": float(validation_fraction),
         "route_kl": float(route_kl.item()),
         "top1_agreement": float((student_top1 == teacher_top1).to(torch.float32).mean().item()),
         "topk_jaccard": topk_jaccard(logits, teacher_logits, top_k=top_k),
@@ -273,6 +281,49 @@ def router_selection_score(
     )
 
 
+def stable_name_seed(name: str) -> int:
+    return sum((idx + 1) * ord(char) for idx, char in enumerate(name)) % 1_000_003
+
+
+def split_router_cache(
+    *,
+    hidden: torch.Tensor,
+    teacher_logits: torch.Tensor,
+    tensor_name: str,
+    validation_fraction: float,
+    split_seed: int,
+) -> dict[str, Any]:
+    sample_count = int(hidden.shape[0])
+    if sample_count < 2 or validation_fraction <= 0:
+        return {
+            "train_hidden": hidden,
+            "train_teacher_logits": teacher_logits,
+            "selection_hidden": hidden,
+            "selection_teacher_logits": teacher_logits,
+            "train_samples": sample_count,
+            "selection_samples": sample_count,
+            "selection_split": "train",
+            "validation_fraction": 0.0,
+        }
+
+    validation_count = int(round(sample_count * float(validation_fraction)))
+    validation_count = min(sample_count - 1, max(1, validation_count))
+    generator = torch.Generator().manual_seed(int(split_seed) + stable_name_seed(tensor_name))
+    permutation = torch.randperm(sample_count, generator=generator)
+    validation_idx = permutation[:validation_count]
+    train_idx = permutation[validation_count:]
+    return {
+        "train_hidden": hidden.index_select(0, train_idx),
+        "train_teacher_logits": teacher_logits.index_select(0, train_idx),
+        "selection_hidden": hidden.index_select(0, validation_idx),
+        "selection_teacher_logits": teacher_logits.index_select(0, validation_idx),
+        "train_samples": int(train_idx.numel()),
+        "selection_samples": int(validation_idx.numel()),
+        "selection_split": "validation",
+        "validation_fraction": float(validation_count / sample_count),
+    }
+
+
 def train_one_router(
     record: dict[str, Any],
     base_values: dict[str, torch.Tensor],
@@ -281,6 +332,17 @@ def train_one_router(
     tensor_name = record["tensor"]
     hidden = record["hidden"]
     teacher_logits = record["teacher_logits"]
+    split = split_router_cache(
+        hidden=hidden,
+        teacher_logits=teacher_logits,
+        tensor_name=tensor_name,
+        validation_fraction=args.validation_fraction,
+        split_seed=args.split_seed,
+    )
+    train_hidden = split["train_hidden"]
+    train_teacher_logits = split["train_teacher_logits"]
+    selection_hidden = split["selection_hidden"]
+    selection_teacher_logits = split["selection_teacher_logits"]
     base_weight = base_values[tensor_name].to(torch.float32)
     orientation = orientation_for(base_weight, hidden.shape[-1], teacher_logits.shape[-1], tensor_name)
     bias_tensor = record.get("bias_tensor")
@@ -297,13 +359,14 @@ def train_one_router(
     if delta_bias is not None:
         parameters.append(delta_bias)
     optimizer = torch.optim.AdamW(parameters, lr=args.lr, weight_decay=0.0)
-    teacher_probs = F.softmax(teacher_logits / args.temperature, dim=-1)
-    teacher_top1 = teacher_logits.argmax(dim=-1)
+    teacher_probs = F.softmax(train_teacher_logits / args.temperature, dim=-1)
+    teacher_top1 = train_teacher_logits.argmax(dim=-1)
+    selection_teacher_top1 = selection_teacher_logits.argmax(dim=-1)
     trace_rows: list[dict[str, Any]] = []
-    initial_logits = router_logits(hidden, base_weight, orientation, base_bias)
+    initial_logits = router_logits(selection_hidden, base_weight, orientation, base_bias)
     initial_selection = selection_metrics(
         logits=initial_logits,
-        teacher_logits=teacher_logits,
+        teacher_logits=selection_teacher_logits,
         base_weight=base_weight,
         delta_weight=delta_weight.detach(),
         top_k=args.top_k,
@@ -319,17 +382,21 @@ def train_one_router(
             tensor_name=tensor_name,
             stage="initial",
             logits=initial_logits,
-            teacher_logits=teacher_logits,
+            teacher_logits=selection_teacher_logits,
             base_weight=base_weight,
             delta_weight=delta_weight.detach(),
             top_k=args.top_k,
             capacity_factor=args.capacity_factor,
+            selection_split=split["selection_split"],
+            train_samples=split["train_samples"],
+            selection_samples=split["selection_samples"],
+            validation_fraction=split["validation_fraction"],
         )
     ]
     for epoch in range(args.epochs):
         optimizer.zero_grad(set_to_none=True)
         bias = None if base_bias is None else base_bias + delta_bias
-        logits = router_logits(hidden, base_weight + delta_weight, orientation, bias)
+        logits = router_logits(train_hidden, base_weight + delta_weight, orientation, bias)
         route_kl = F.kl_div(
             F.log_softmax(logits / args.temperature, dim=-1),
             teacher_probs,
@@ -358,14 +425,14 @@ def train_one_router(
             project_relative_norm(delta_bias, base_bias, args.max_relative_norm)
         with torch.no_grad():
             eval_logits = router_logits(
-                hidden,
+                selection_hidden,
                 base_weight + delta_weight,
                 orientation,
                 None if base_bias is None else base_bias + delta_bias,
             )
             current_selection = selection_metrics(
                 logits=eval_logits,
-                teacher_logits=teacher_logits,
+                teacher_logits=selection_teacher_logits,
                 base_weight=base_weight,
                 delta_weight=delta_weight.detach(),
                 top_k=args.top_k,
@@ -391,9 +458,13 @@ def train_one_router(
                         "load_balance": float(load_balance.item()),
                         "capacity_loss": float(capacity_loss.item()),
                         "trust_l2": float(trust_loss.item()),
-                        "top1_agreement": float((eval_logits.argmax(dim=-1) == teacher_top1).float().mean().item()),
-                        "topk_jaccard": topk_jaccard(eval_logits, teacher_logits, top_k=args.top_k),
+                        "top1_agreement": float((eval_logits.argmax(dim=-1) == selection_teacher_top1).float().mean().item()),
+                        "topk_jaccard": topk_jaccard(eval_logits, selection_teacher_logits, top_k=args.top_k),
                         "capacity_overflow_fraction": capacity_overflow_fraction(eval_logits, args.capacity_factor),
+                        "selection_split": split["selection_split"],
+                        "selection_score": current_score,
+                        "selection_route_kl": current_selection["route_kl"],
+                        "selection_top1_agreement": current_selection["top1_agreement"],
                         **load_stats,
                     }
                 )
@@ -403,7 +474,7 @@ def train_one_router(
         if delta_bias is not None and best_bias is not None:
             delta_bias.data.copy_(best_bias)
         final_logits = router_logits(
-            hidden,
+            selection_hidden,
             base_weight + delta_weight,
             orientation,
             None if base_bias is None else base_bias + delta_bias,
@@ -413,11 +484,15 @@ def train_one_router(
                 tensor_name=tensor_name,
                 stage="final",
                 logits=final_logits,
-                teacher_logits=teacher_logits,
+                teacher_logits=selection_teacher_logits,
                 base_weight=base_weight,
                 delta_weight=delta_weight.detach(),
                 top_k=args.top_k,
                 capacity_factor=args.capacity_factor,
+                selection_split=split["selection_split"],
+                train_samples=split["train_samples"],
+                selection_samples=split["selection_samples"],
+                validation_fraction=split["validation_fraction"],
             )
         )
         metric_rows[-1]["selected_epoch"] = best_epoch
@@ -449,7 +524,9 @@ def build_report(summary: dict[str, Any], metric_df: pd.DataFrame) -> str:
         f"- Max router hard top-1 overflow increase: `{summary['max_router_top1_capacity_overflow_increase']:.6f}`",
         f"- Max router hard top-k overflow increase: `{summary['max_router_topk_capacity_overflow_increase']:.6f}`",
         f"- Selection policy: `{summary['selection_policy']}`",
+        f"- Selection split: `{summary['selection_split']}`",
         f"- Mean selected epoch: `{summary['mean_selected_epoch']:.2f}`",
+        f"- Mean train/selection samples: `{summary['mean_train_samples']:.1f}` / `{summary['mean_selection_samples']:.1f}`",
         "",
         "## Writer",
         "",
@@ -567,6 +644,10 @@ def calibrate_from_cache(args: argparse.Namespace) -> dict[str, Any]:
         "mean_final_relative_delta_norm": float(final["relative_delta_norm"].mean()),
         "max_final_relative_delta_norm": float(final["relative_delta_norm"].max()),
         "selection_policy": args.selection_policy,
+        "selection_split": ",".join(sorted(str(item) for item in final["selection_split"].dropna().unique())),
+        "mean_train_samples": float(final["train_samples"].mean()),
+        "mean_selection_samples": float(final["selection_samples"].mean()),
+        "mean_validation_fraction": float(final["validation_fraction"].mean()),
         "mean_selected_epoch": float(final["selected_epoch"].mean()),
         "min_selected_epoch": int(final["selected_epoch"].min()),
         "max_selected_epoch": int(final["selected_epoch"].max()),
@@ -686,6 +767,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--capacity-increase-score-penalty", type=float, default=2.0)
     parser.add_argument("--top1-regression-score-penalty", type=float, default=1.0)
     parser.add_argument("--relative-norm-score-penalty", type=float, default=0.0)
+    parser.add_argument(
+        "--validation-fraction",
+        type=float,
+        default=0.2,
+        help="Held-out fraction of each router cache used for epoch selection metrics. Use 0 to select on train.",
+    )
+    parser.add_argument("--split-seed", type=int, default=97)
     parser.add_argument(
         "--max-relative-norm",
         type=float,

@@ -594,6 +594,8 @@ def run_smoke(args: argparse.Namespace) -> dict[str, Any]:
         capacity_increase_score_penalty=2.0,
         top1_regression_score_penalty=1.0,
         relative_norm_score_penalty=0.0,
+        validation_fraction=0.2,
+        split_seed=97,
         max_relative_norm=0.5,
         trace_every=10,
         seed=args.seed,

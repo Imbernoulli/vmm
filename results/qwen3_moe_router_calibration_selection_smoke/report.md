@@ -22,11 +22,11 @@
 
 ## Candidate Gate
 
-| cap | method | selected epoch | decision | avg delta | worst delta | worst task delta | router max rel | top1/top-k overflow | top1/top-k increase | load pass | router-only | cap pass | score | reason |
-| ---: | --- | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | ---: | --- |
-| 0.0100 | `smoke_router_calibrated_cap001` | 10.0 | `reject_or_wait` | 0.0010 | 0.0000 | -0.0010 | 0.0080 | 0.0000/0.0000 | 0.0000/0.0000 | `True` | `True` | `True` | 0.0012 | `no_downstream_gain` |
-| 0.0250 | `smoke_router_calibrated_cap0025` | 10.0 | `candidate_eligible` | 0.0150 | 0.0100 | 0.0000 | 0.0220 | 0.0150/0.0200 | 0.0050/0.0150 | `True` | `True` | `True` | 0.0085 | `passes_all_gates` |
-| 0.0500 | `smoke_router_calibrated_cap005` | 10.0 | `reject_or_wait` | 0.0250 | 0.0150 | 0.0000 | 0.0710 | 0.0900/0.0400 | 0.0600/0.0250 | `False` | `False` | `False` | -0.0025 | `top1_capacity_overflow_increase,audit_not_router_only,router_delta_cap_violation` |
+| cap | method | split | selected epoch | decision | avg delta | worst delta | worst task delta | router max rel | top1/top-k overflow | top1/top-k increase | load pass | router-only | cap pass | score | reason |
+| ---: | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | ---: | --- |
+| 0.0100 | `smoke_router_calibrated_cap001` | `validation` | 10.0 | `reject_or_wait` | 0.0010 | 0.0000 | -0.0010 | 0.0080 | 0.0000/0.0000 | 0.0000/0.0000 | `True` | `True` | `True` | 0.0012 | `no_downstream_gain` |
+| 0.0250 | `smoke_router_calibrated_cap0025` | `validation` | 10.0 | `candidate_eligible` | 0.0150 | 0.0100 | 0.0000 | 0.0220 | 0.0150/0.0200 | 0.0050/0.0150 | `True` | `True` | `True` | 0.0085 | `passes_all_gates` |
+| 0.0500 | `smoke_router_calibrated_cap005` | `validation` | 10.0 | `reject_or_wait` | 0.0250 | 0.0150 | 0.0000 | 0.0710 | 0.0900/0.0400 | 0.0600/0.0250 | `False` | `False` | `False` | -0.0025 | `top1_capacity_overflow_increase,audit_not_router_only,router_delta_cap_violation` |
 
 ## Source Controls
 
