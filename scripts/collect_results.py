@@ -782,12 +782,14 @@ def summarize_qwen3_moe_route_guarded_candidate() -> dict[str, Any]:
     loaded_inputs = [
         row for row in summary.get("input_summaries", []) if row.get("expert_load_file") in {"expert_load.csv", "compare_expert_load.csv"}
     ]
-    dry_run_path = repo_path("results/checkpoints/qwen3_moe_unified_route_guarded_candidate/merge_manifest.json")
-    dry_run = read_json(dry_run_path) if dry_run_path.exists() else {}
-    rule_counts = dry_run.get("rule_counts", {})
+    manifest_path = repo_path("results/checkpoints/qwen3_moe_unified_route_guarded_candidate/merge_manifest.json")
+    manifest = read_json(manifest_path) if manifest_path.exists() else {}
+    rule_counts = manifest.get("rule_counts", {})
     expert_tensor_rule_hits = sum(
         int(count) for key, count in rule_counts.items() if str(key).startswith("tensor_rule:.*layers\\.")
     )
+    manifest_exists = bool(manifest)
+    checkpoint_materialized = manifest_exists and not bool(manifest.get("dry_run", True))
     return {
         "summary": summary,
         "recipe_status": summary.get("recipe_status"),
@@ -800,9 +802,13 @@ def summarize_qwen3_moe_route_guarded_candidate() -> dict[str, Any]:
         "freeze_router": bool(summary.get("freeze_router")),
         "shared_attention_coder_delta": maybe_float((summary.get("shared_attention_weights") or {}).get("coder")),
         "packed_expert_rules_enabled": bool(summary.get("packed_expert_rules_enabled")),
-        "writer_dry_run_passed": bool(dry_run.get("dry_run", False)),
-        "writer_dry_run_floating_tensors": int(dry_run.get("floating_tensors", 0)),
-        "writer_dry_run_frozen_tensors": int(dry_run.get("frozen_tensors", 0)),
+        "writer_manifest_exists": manifest_exists,
+        "writer_checkpoint_materialized": checkpoint_materialized,
+        "writer_manifest_floating_tensors": int(manifest.get("floating_tensors", 0)),
+        "writer_manifest_frozen_tensors": int(manifest.get("frozen_tensors", 0)),
+        "writer_dry_run_passed": manifest_exists,
+        "writer_dry_run_floating_tensors": int(manifest.get("floating_tensors", 0)),
+        "writer_dry_run_frozen_tensors": int(manifest.get("frozen_tensors", 0)),
         "writer_dry_run_freeze_router_hits": int(rule_counts.get("freeze_router", 0)),
         "writer_dry_run_shared_attention_hits": int(rule_counts.get("tensor_rule:.*self_attn.*", 0)),
         "writer_dry_run_expert_tensor_rule_hits": expert_tensor_rule_hits,
@@ -813,6 +819,34 @@ def summarize_qwen3_moe_route_guarded_candidate() -> dict[str, Any]:
         "source_weights": rel(root / "source_weights_by_expert.csv"),
         "tensor_rules": rel(root / "tensor_rules.txt"),
         "writer_command": rel(root / "writer_command.txt"),
+        "manifest": rel(manifest_path) if manifest_path.exists() else None,
+    }
+
+
+def summarize_qwen3_moe_materialized_delta_audit() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_materialized_delta_audit")
+    summary = read_json(root / "summary.json")
+    groups = read_csv(root / "group_delta_summary.csv")
+    layers = read_csv(root / "layer_delta_summary.csv")
+    top_layers = layers.sort_values("delta_norm", ascending=False).head(8)
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "tensor_count": int(summary.get("tensor_count", 0)),
+        "changed_tensors": int(summary.get("changed_tensors", 0)),
+        "changed_numel_fraction": float(summary.get("changed_numel", 0)) / max(1, int(summary.get("total_numel", 1))),
+        "relative_delta_norm": maybe_float(summary.get("relative_delta_norm")),
+        "max_abs_delta": maybe_float(summary.get("max_abs_delta")),
+        "router_tensors": int(summary.get("router_tensors", 0)),
+        "router_changed_tensors": int(summary.get("router_changed_tensors", 0)),
+        "group_rows": [clean_row(row) for _, row in groups.iterrows()],
+        "top_layer_rows": [clean_row(row) for _, row in top_layers.iterrows()],
+        "top_changed_tensors": summary.get("top_changed_tensors", []),
+        "report": rel(root / "report.md"),
+        "tensor_delta_audit": rel(root / "tensor_delta_audit.csv"),
+        "group_delta_summary": rel(root / "group_delta_summary.csv"),
+        "layer_delta_summary": rel(root / "layer_delta_summary.csv"),
+        "summary_path": rel(root / "summary.json"),
     }
 
 
@@ -2353,6 +2387,7 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_routing_probe": summarize_qwen3_moe_routing_probe(),
         "qwen3_moe_routing_readiness": summarize_qwen3_moe_routing_readiness(),
         "qwen3_moe_route_guarded_candidate": summarize_qwen3_moe_route_guarded_candidate(),
+        "qwen3_moe_materialized_delta_audit": summarize_qwen3_moe_materialized_delta_audit(),
         "toy_moe_routing_readiness": summarize_toy_moe_routing_readiness(),
         "toy_moe_method_selection": summarize_toy_moe_method_selection(),
         "toy_moe_expert_remap_plan": summarize_toy_moe_expert_remap_plan(),
@@ -2460,6 +2495,7 @@ def build_summary() -> dict[str, Any]:
             "PYTHONPATH=src python scripts/build_checkpoint_materialization_readiness.py --output-dir results/checkpoint_materialization_readiness",
             "PYTHONPATH=src python scripts/build_moe_materialization_pipeline_plan.py --output-dir results/moe_materialization_pipeline_plan",
             "PYTHONPATH=src python scripts/build_probe_gated_unified_average_plan.py --output-dir results/probe_gated_unified_average_plan",
+            "python scripts/audit_materialized_checkpoint_delta.py --base BASE --candidate CANDIDATE --output-dir results/qwen3_moe_materialized_delta_audit",
             "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
             "PYTHONPATH=src python scripts/collect_results.py",
         ],
@@ -2520,6 +2556,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_routing_probe = exp["qwen3_moe_routing_probe"]
     qwen3_moe_routing_readiness = exp["qwen3_moe_routing_readiness"]
     qwen3_moe_route_guarded_candidate = exp["qwen3_moe_route_guarded_candidate"]
+    qwen3_moe_materialized_delta_audit = exp["qwen3_moe_materialized_delta_audit"]
     selected_unified_capacity = toy_moe.get("unified_moe_capacity_sweep_selected") or {}
     selected_unified_output_projection_capacity = (
         toy_moe.get("unified_output_projection_moe_capacity_sweep_selected") or {}
@@ -2805,10 +2842,23 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_route_guarded_candidate['source_route_conditioned_skipped_rows']} |"
             ),
             (
-                "| Qwen3 MoE route-guarded candidate | dry-run expert / attention / router hits | "
+                "| Qwen3 MoE route-guarded candidate | manifest expert / attention / router hits | "
                 f"{qwen3_moe_route_guarded_candidate['writer_dry_run_expert_tensor_rule_hits']} / "
                 f"{qwen3_moe_route_guarded_candidate['writer_dry_run_shared_attention_hits']} / "
                 f"{qwen3_moe_route_guarded_candidate['writer_dry_run_freeze_router_hits']} |"
+            ),
+            (
+                "| Qwen3 MoE materialized delta audit | status / changed tensors / router changed | "
+                f"{qwen3_moe_materialized_delta_audit['status']} / "
+                f"{qwen3_moe_materialized_delta_audit['changed_tensors']} / "
+                f"{qwen3_moe_materialized_delta_audit['router_changed_tensors']}"
+                f"/{qwen3_moe_materialized_delta_audit['router_tensors']} |"
+            ),
+            (
+                "| Qwen3 MoE materialized delta audit | changed numel frac / relative delta norm / max abs delta | "
+                f"{fmt(qwen3_moe_materialized_delta_audit['changed_numel_fraction'])} / "
+                f"{fmt(qwen3_moe_materialized_delta_audit['relative_delta_norm'])} / "
+                f"{fmt(qwen3_moe_materialized_delta_audit['max_abs_delta'])} |"
             ),
             (
                 "| real MoE gauge self-merge | baseline / same-name / aligned NLL | "

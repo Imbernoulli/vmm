@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 57246,
+      "bytes": 58236,
       "kind": "document",
       "path": "README.md",
-      "sha256": "30a795d40c821e80b3b7a170c9807e41f9c6db042ec26f9869bf8285620cf4bc"
+      "sha256": "db7c63407b2c048d957675f391610e2770a80726e4e95551c3fe0904467f88ba"
     },
     {
       "bytes": 33211,
@@ -1579,6 +1579,36 @@
       "sha256": "0b627d0c4076494b141e0611769731059c4f308a3f85500750e69f079b1bc948"
     },
     {
+      "bytes": 560,
+      "kind": "data",
+      "path": "results/qwen3_moe_materialized_delta_audit/group_delta_summary.csv",
+      "sha256": "1933b7132cbf3dadf6d994eb1732e9f9c44d2e74331db0b5ffeac10e70295886"
+    },
+    {
+      "bytes": 5869,
+      "kind": "data",
+      "path": "results/qwen3_moe_materialized_delta_audit/layer_delta_summary.csv",
+      "sha256": "c30b07359a918a15ce875f9e0d5ba9346b1e91c5ef363e12256cd1171dd9eec1"
+    },
+    {
+      "bytes": 6014,
+      "kind": "document",
+      "path": "results/qwen3_moe_materialized_delta_audit/report.md",
+      "sha256": "3f09aff9d04ce2557c8b7079c859418581546b66cc6d90dd66e35275f6a33147"
+    },
+    {
+      "bytes": 8656,
+      "kind": "data",
+      "path": "results/qwen3_moe_materialized_delta_audit/summary.json",
+      "sha256": "be1ddf0e4df8be350a514d8ca1e8c8af5ae5dd5ad3f5ffa822da94143e935c4c"
+    },
+    {
+      "bytes": 4702937,
+      "kind": "data",
+      "path": "results/qwen3_moe_materialized_delta_audit/tensor_delta_audit.csv",
+      "sha256": "2a4f03150d84ba01f23eca13cdd96d62c616d7b4efb2df87074cf74fbfaf7449"
+    },
+    {
       "bytes": 268,
       "kind": "data",
       "path": "results/qwen3_moe_unified_route_guarded_candidate/category_source_plan.csv",
@@ -2125,16 +2155,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 576146,
+      "bytes": 599393,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "efdf05ee57bb17583f37ed194b09e0f7531520e876b71a05bc37eaedaa89742c"
+      "sha256": "6aa7dba105295f045365a73997a0cfe5ea651686b6085b08bbb48ce8f7366ee3"
     },
     {
-      "bytes": 31745,
+      "bytes": 31975,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "e6e49800fb1e6316276cbce3254a04d450b3fd57bac93b726c0538bd4dda0550"
+      "sha256": "fbfb79edaed0eec73624418dad92ec8a7145d6ba6b299cd6e2387b014f1acc9b"
     },
     {
       "bytes": 288,
@@ -3097,6 +3127,12 @@
       "sha256": "bbc62bccc12e36bcf2302539fa82ef2a2476cbbadd540efa70d284e9b69fba60"
     },
     {
+      "bytes": 15160,
+      "kind": "code",
+      "path": "scripts/audit_materialized_checkpoint_delta.py",
+      "sha256": "b3ebd77cc5f9e6f02b4a4e6928ff4414875d91aeaa5f53d99a4dabf318481d68"
+    },
+    {
       "bytes": 13129,
       "kind": "code",
       "path": "scripts/build_3d_figures.py",
@@ -3223,10 +3259,10 @@
       "sha256": "0b0e4be7ec51f0afb74dfdee6e3d8b217da9aac4d965a170bea36c89f1b46abb"
     },
     {
-      "bytes": 199987,
+      "bytes": 203168,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "910b120b2f9a79cf67385b0960e21894f2fd22e48dd0ceb517241c67cf75ba75"
+      "sha256": "eea951fbea1d2a156ea06b07a6325aa382cab44a73395e9cb462854b5d1114fe"
     },
     {
       "bytes": 16101,
@@ -3439,7 +3475,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T18:51:11.040946+00:00",
+  "generated_at": "2026-06-19T19:02:03.770435+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

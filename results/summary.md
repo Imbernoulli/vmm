@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-19T18:51:11.006773+00:00`
+Generated at: `2026-06-19T19:02:03.763019+00:00`
 
 ## Coverage
 
@@ -128,7 +128,9 @@ Complete: `60`; partial: `1`; missing: `0`.
 | Qwen3 MoE routing readiness | calibrate / small-lambda / passed / freeze rows | 493 / 46 / 31 / 6 |
 | Qwen3 MoE route-guarded candidate | status / frozen router | route_weight_rules_ready / True |
 | Qwen3 MoE route-guarded candidate | expert rules / route rows used / skipped | 5243 / 35432 / 73728 |
-| Qwen3 MoE route-guarded candidate | dry-run expert / attention / router hits | 15729 / 288 / 48 |
+| Qwen3 MoE route-guarded candidate | manifest expert / attention / router hits | 15729 / 288 / 48 |
+| Qwen3 MoE materialized delta audit | status / changed tensors / router changed | passed / 10641 / 0/48 |
+| Qwen3 MoE materialized delta audit | changed numel frac / relative delta norm / max abs delta | 0.563 / 0.286 / 1.688 |
 | real MoE gauge self-merge | baseline / same-name / aligned NLL | 4.168 / 9.659 / 4.168 |
 | real MoE gauge self-merge | same-name degradation vs baseline | 5.491 |
 | real MoE gauge self-merge | recovered expert permutations | 16 / 16 |
