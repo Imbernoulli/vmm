@@ -636,6 +636,8 @@ def summarize_moe_router_delta_calibration_smoke() -> dict[str, Any]:
         "mean_train_samples": float(summary.get("mean_train_samples", 0.0)),
         "mean_selection_samples": float(summary.get("mean_selection_samples", 0.0)),
         "mean_validation_fraction": float(summary.get("mean_validation_fraction", 0.0)),
+        "mean_train_group_count": float(summary.get("mean_train_group_count", 0.0)),
+        "mean_validation_group_count": float(summary.get("mean_validation_group_count", 0.0)),
         "mean_selected_epoch": float(summary.get("mean_selected_epoch", 0.0)),
         "mean_selection_score": float(summary.get("mean_selection_score", 0.0)),
         "mean_train_final_route_kl": float(summary.get("mean_train_final_route_kl", 0.0)),
@@ -694,6 +696,15 @@ def summarize_moe_router_calibration_cache_smoke() -> dict[str, Any]:
         "calibration_mean_final_route_kl": float(calibration.get("mean_final_route_kl", 0.0)),
         "calibration_mean_initial_top1_agreement": float(calibration.get("mean_initial_top1_agreement", 0.0)),
         "calibration_mean_final_top1_agreement": float(calibration.get("mean_final_top1_agreement", 0.0)),
+        "calibration_selection_policy": calibration.get("selection_policy"),
+        "calibration_selection_split": calibration.get("selection_split"),
+        "calibration_mean_selected_epoch": float(calibration.get("mean_selected_epoch", 0.0)),
+        "calibration_mean_selection_score": float(calibration.get("mean_selection_score", 0.0)),
+        "calibration_mean_train_samples": float(calibration.get("mean_train_samples", 0.0)),
+        "calibration_mean_selection_samples": float(calibration.get("mean_selection_samples", 0.0)),
+        "calibration_mean_validation_fraction": float(calibration.get("mean_validation_fraction", 0.0)),
+        "calibration_mean_train_group_count": float(calibration.get("mean_train_group_count", 0.0)),
+        "calibration_mean_validation_group_count": float(calibration.get("mean_validation_group_count", 0.0)),
         "materialization_status": summary.get("materialization_status"),
         "materialization_checked_tensors": int(summary.get("materialization_checked_tensors") or 0),
         "materialization_failed_tensors": int(summary.get("materialization_failed_tensors") or 0),
@@ -4500,6 +4511,11 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(moe_router_delta_calibration_smoke['mean_validation_fraction'], 3)} |"
             ),
             (
+                "| MoE router delta calibration smoke | train/validation groups | "
+                f"{fmt(moe_router_delta_calibration_smoke['mean_train_group_count'], 1)}/"
+                f"{fmt(moe_router_delta_calibration_smoke['mean_validation_group_count'], 1)} |"
+            ),
+            (
                 "| MoE router delta calibration smoke | train-validation KL / top1 gap | "
                 f"{fmt(moe_router_delta_calibration_smoke['mean_train_final_route_kl'], 4)}-"
                 f"{fmt(moe_router_delta_calibration_smoke['mean_final_route_kl'], 4)} / "
@@ -4544,6 +4560,15 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(moe_router_calibration_cache_smoke['calibration_mean_final_route_kl'], 4)} / "
                 f"{fmt(moe_router_calibration_cache_smoke['calibration_mean_initial_top1_agreement'], 4)}-"
                 f"{fmt(moe_router_calibration_cache_smoke['calibration_mean_final_top1_agreement'], 4)} |"
+            ),
+            (
+                "| MoE router calibration cache smoke | selection split / samples / groups | "
+                f"{moe_router_calibration_cache_smoke['calibration_selection_policy']}-"
+                f"{moe_router_calibration_cache_smoke['calibration_selection_split']} / "
+                f"{fmt(moe_router_calibration_cache_smoke['calibration_mean_train_samples'], 1)}/"
+                f"{fmt(moe_router_calibration_cache_smoke['calibration_mean_selection_samples'], 1)} / "
+                f"{fmt(moe_router_calibration_cache_smoke['calibration_mean_train_group_count'], 1)}/"
+                f"{fmt(moe_router_calibration_cache_smoke['calibration_mean_validation_group_count'], 1)} |"
             ),
             (
                 "| MoE combined writer smoke | status | "

@@ -32,6 +32,7 @@ class RouterCalibrationCapture:
     bias_tensor_name: str | None
     hidden: list[torch.Tensor] = field(default_factory=list)
     logits: list[torch.Tensor] = field(default_factory=list)
+    row_groups: list[torch.Tensor] = field(default_factory=list)
 
 
 class TinyRouterBlock(nn.Module):
@@ -175,9 +176,13 @@ def collect_captures(
     )
     try:
         model.eval()
-        for batch in tqdm(batches, desc=desc):
+        for batch_idx, batch in enumerate(tqdm(batches, desc=desc)):
+            hidden_counts = {name: len(capture.hidden) for name, capture in captures.items()}
             moved = {key: value.to(device) for key, value in batch.items()}
             _ = model(**moved)
+            for name, capture in captures.items():
+                for hidden in capture.hidden[hidden_counts[name] :]:
+                    capture.row_groups.append(torch.full((hidden.shape[0],), batch_idx, dtype=torch.long))
     finally:
         for handle in handles:
             handle.remove()
@@ -188,6 +193,12 @@ def cat_or_empty(items: list[torch.Tensor]) -> torch.Tensor:
     if not items:
         return torch.empty((0, 0), dtype=torch.float32)
     return torch.cat(items, dim=0)
+
+
+def cat_groups_or_empty(items: list[torch.Tensor]) -> torch.Tensor:
+    if not items:
+        return torch.empty((0,), dtype=torch.long)
+    return torch.cat(items, dim=0).to(torch.long)
 
 
 def topk_jaccard(left_logits: torch.Tensor, right_logits: torch.Tensor, top_k: int) -> float:
@@ -231,7 +242,10 @@ def build_cache_payload(
         hidden = cat_or_empty(student.hidden)
         student_logits = cat_or_empty(student.logits)
         teacher_logits = cat_or_empty(teacher.logits)
+        row_groups = cat_groups_or_empty(student.row_groups)
         available_rows = min(hidden.shape[0], student_logits.shape[0], teacher_logits.shape[0])
+        if row_groups.numel():
+            available_rows = min(available_rows, row_groups.shape[0])
         usable = (
             available_rows > 0
             and hidden.shape[-1] > 0
@@ -242,19 +256,24 @@ def build_cache_payload(
             hidden_out = hidden[:available_rows][indices]
             student_out = student_logits[:available_rows][indices]
             teacher_out = teacher_logits[:available_rows][indices]
+            groups_out = row_groups[:available_rows][indices] if row_groups.numel() else torch.empty((0,), dtype=torch.long)
             teacher_probs = F.softmax(teacher_out, dim=-1)
             route_kl = F.kl_div(F.log_softmax(student_out, dim=-1), teacher_probs, reduction="batchmean")
             top1_agreement = float((student_out.argmax(dim=-1) == teacher_out.argmax(dim=-1)).float().mean().item())
             topk_overlap = topk_jaccard(student_out, teacher_out, args.top_k)
             student_overflow = capacity_overflow_fraction(student_out, args.capacity_factor)
             teacher_overflow = capacity_overflow_fraction(teacher_out, args.capacity_factor)
-            routers[student.tensor_name] = {
+            router_record = {
                 "hidden": hidden_out,
                 "teacher_logits": teacher_out,
                 "bias_tensor": student.bias_tensor_name,
             }
+            if groups_out.numel():
+                router_record["sample_groups"] = groups_out
+            routers[student.tensor_name] = router_record
         else:
             hidden_out = torch.empty((0, 0), dtype=torch.float32)
+            groups_out = torch.empty((0,), dtype=torch.long)
             route_kl = math.nan
             top1_agreement = math.nan
             topk_overlap = math.nan
@@ -268,6 +287,8 @@ def build_cache_payload(
                 "student_hidden_rows": int(hidden.shape[0]),
                 "student_logit_rows": int(student_logits.shape[0]),
                 "teacher_logit_rows": int(teacher_logits.shape[0]),
+                "group_rows": int(row_groups.shape[0]),
+                "used_groups": int(groups_out.unique().numel()) if groups_out.numel() else 0,
                 "used_rows": int(hidden_out.shape[0]),
                 "hidden_dim": int(hidden.shape[-1]) if hidden.ndim == 2 else 0,
                 "num_experts": int(teacher_logits.shape[-1]) if teacher_logits.ndim == 2 else 0,
@@ -320,12 +341,13 @@ def build_report(summary: dict[str, Any], cache_summary: pd.DataFrame) -> str:
         "",
         "## Router Rows",
         "",
-        "| tensor | rows | hidden | experts | KL | top1 | top-k |",
-        "|---|---:|---:|---:|---:|---:|---:|",
+        "| tensor | rows | groups | hidden | experts | KL | top1 | top-k |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for _, row in cache_summary[cache_summary["cache_ready"].astype(bool)].head(12).iterrows():
         lines.append(
-            f"| `{row['tensor']}` | {int(row['used_rows'])} | {int(row['hidden_dim'])} | "
+            f"| `{row['tensor']}` | {int(row['used_rows'])} | {int(row.get('used_groups', 0))} | "
+            f"{int(row['hidden_dim'])} | "
             f"{int(row['num_experts'])} | {float(row['route_kl_student_to_teacher']):.6f} | "
             f"{float(row['top1_agreement_student_to_teacher']):.4f} | "
             f"{float(row['topk_jaccard_student_to_teacher']):.4f} |"

@@ -45,8 +45,10 @@
   "mean_top1_generalization_drop": -0.007233798503875732,
   "mean_train_final_route_kl": 0.05189386010169983,
   "mean_train_final_top1_agreement": 0.7719869613647461,
+  "mean_train_group_count": 0.0,
   "mean_train_samples": 307.0,
   "mean_validation_fraction": 0.20052083333333334,
+  "mean_validation_group_count": 0.0,
   "min_selected_epoch": 2,
   "outputs": {
     "report": "results/moe_router_delta_calibration_smoke/report.md",

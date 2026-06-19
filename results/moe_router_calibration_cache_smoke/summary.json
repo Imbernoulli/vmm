@@ -1,6 +1,6 @@
 {
   "cache_ready_router_count": 2,
-  "calibration_mean_final_route_kl": 0.02386732865124941,
+  "calibration_mean_final_route_kl": 0.0333990310318768,
   "calibration_status": "passed",
   "common_router_count": 2,
   "materialization_checked_tensors": 2,

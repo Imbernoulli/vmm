@@ -77,12 +77,22 @@ def parse_cache(cache_path: Path) -> list[dict[str, Any]]:
                 f"Router record for {tensor_name!r} has hidden rows {hidden.shape[0]} "
                 f"but teacher rows {teacher_logits.shape[0]}."
             )
+        sample_groups = record.get("sample_groups")
+        if sample_groups is not None:
+            if not torch.is_tensor(sample_groups):
+                sample_groups = torch.as_tensor(sample_groups)
+            if sample_groups.ndim != 1 or sample_groups.shape[0] != hidden.shape[0]:
+                raise ValueError(
+                    f"Router record for {tensor_name!r} has sample_groups shape {tuple(sample_groups.shape)} "
+                    f"but hidden rows {hidden.shape[0]}."
+                )
         records.append(
             {
                 "tensor": str(tensor_name),
                 "bias_tensor": record.get("bias_tensor"),
                 "hidden": hidden.to(torch.float32),
                 "teacher_logits": teacher_logits.to(torch.float32),
+                "sample_groups": None if sample_groups is None else sample_groups.to(torch.long),
             }
         )
     if not records:
@@ -203,6 +213,8 @@ def metric_row(
     train_samples: int,
     selection_samples: int,
     validation_fraction: float,
+    train_group_count: int,
+    validation_group_count: int,
 ) -> dict[str, Any]:
     teacher_probs = F.softmax(teacher_logits, dim=-1)
     route_kl = F.kl_div(F.log_softmax(logits, dim=-1), teacher_probs, reduction="batchmean")
@@ -218,6 +230,8 @@ def metric_row(
         "train_samples": int(train_samples),
         "selection_samples": int(selection_samples),
         "validation_fraction": float(validation_fraction),
+        "train_group_count": int(train_group_count),
+        "validation_group_count": int(validation_group_count),
         "route_kl": float(route_kl.item()),
         "top1_agreement": float((student_top1 == teacher_top1).to(torch.float32).mean().item()),
         "topk_jaccard": topk_jaccard(logits, teacher_logits, top_k=top_k),
@@ -289,6 +303,7 @@ def split_router_cache(
     *,
     hidden: torch.Tensor,
     teacher_logits: torch.Tensor,
+    sample_groups: torch.Tensor | None,
     tensor_name: str,
     validation_fraction: float,
     split_seed: int,
@@ -304,14 +319,34 @@ def split_router_cache(
             "selection_samples": sample_count,
             "selection_split": "train",
             "validation_fraction": 0.0,
+            "validation_group_count": 0,
+            "train_group_count": 0,
         }
 
-    validation_count = int(round(sample_count * float(validation_fraction)))
-    validation_count = min(sample_count - 1, max(1, validation_count))
     generator = torch.Generator().manual_seed(int(split_seed) + stable_name_seed(tensor_name))
-    permutation = torch.randperm(sample_count, generator=generator)
-    validation_idx = permutation[:validation_count]
-    train_idx = permutation[validation_count:]
+    if sample_groups is not None and sample_groups.numel() == sample_count and sample_groups.unique().numel() > 1:
+        unique_groups = sample_groups.unique(sorted=True)
+        validation_group_count = int(round(unique_groups.numel() * float(validation_fraction)))
+        validation_group_count = min(int(unique_groups.numel()) - 1, max(1, validation_group_count))
+        group_permutation = torch.randperm(int(unique_groups.numel()), generator=generator)
+        validation_groups = unique_groups[group_permutation[:validation_group_count]]
+        validation_mask = torch.isin(sample_groups, validation_groups)
+        train_mask = ~validation_mask
+        validation_idx = torch.nonzero(validation_mask, as_tuple=False).flatten()
+        train_idx = torch.nonzero(train_mask, as_tuple=False).flatten()
+        selection_split = "group_validation"
+        effective_fraction = float(validation_idx.numel() / sample_count)
+        train_group_count = int(sample_groups[train_idx].unique().numel())
+    else:
+        validation_count = int(round(sample_count * float(validation_fraction)))
+        validation_count = min(sample_count - 1, max(1, validation_count))
+        permutation = torch.randperm(sample_count, generator=generator)
+        validation_idx = permutation[:validation_count]
+        train_idx = permutation[validation_count:]
+        selection_split = "validation"
+        effective_fraction = float(validation_count / sample_count)
+        validation_group_count = 0
+        train_group_count = 0
     return {
         "train_hidden": hidden.index_select(0, train_idx),
         "train_teacher_logits": teacher_logits.index_select(0, train_idx),
@@ -319,8 +354,10 @@ def split_router_cache(
         "selection_teacher_logits": teacher_logits.index_select(0, validation_idx),
         "train_samples": int(train_idx.numel()),
         "selection_samples": int(validation_idx.numel()),
-        "selection_split": "validation",
-        "validation_fraction": float(validation_count / sample_count),
+        "selection_split": selection_split,
+        "validation_fraction": effective_fraction,
+        "validation_group_count": validation_group_count,
+        "train_group_count": train_group_count,
     }
 
 
@@ -335,6 +372,7 @@ def train_one_router(
     split = split_router_cache(
         hidden=hidden,
         teacher_logits=teacher_logits,
+        sample_groups=record.get("sample_groups"),
         tensor_name=tensor_name,
         validation_fraction=args.validation_fraction,
         split_seed=args.split_seed,
@@ -391,6 +429,8 @@ def train_one_router(
             train_samples=split["train_samples"],
             selection_samples=split["selection_samples"],
             validation_fraction=split["validation_fraction"],
+            train_group_count=split["train_group_count"],
+            validation_group_count=split["validation_group_count"],
         )
     ]
     for epoch in range(args.epochs):
@@ -507,6 +547,8 @@ def train_one_router(
                 train_samples=split["train_samples"],
                 selection_samples=split["selection_samples"],
                 validation_fraction=split["validation_fraction"],
+                train_group_count=split["train_group_count"],
+                validation_group_count=split["validation_group_count"],
             )
         )
         metric_rows[-1]["selected_epoch"] = best_epoch
@@ -551,6 +593,7 @@ def build_report(summary: dict[str, Any], metric_df: pd.DataFrame) -> str:
         f"- Selection split: `{summary['selection_split']}`",
         f"- Mean selected epoch: `{summary['mean_selected_epoch']:.2f}`",
         f"- Mean train/selection samples: `{summary['mean_train_samples']:.1f}` / `{summary['mean_selection_samples']:.1f}`",
+        f"- Mean train/validation groups: `{summary['mean_train_group_count']:.1f}` / `{summary['mean_validation_group_count']:.1f}`",
         f"- Mean train/final validation KL: `{summary['mean_train_final_route_kl']:.6f}` / `{summary['mean_final_route_kl']:.6f}`",
         f"- Max validation KL gap: `{summary['max_route_kl_generalization_gap']:.6f}`",
         f"- Max validation top-1 drop: `{summary['max_top1_generalization_drop']:.6f}`",
@@ -675,6 +718,8 @@ def calibrate_from_cache(args: argparse.Namespace) -> dict[str, Any]:
         "mean_train_samples": float(final["train_samples"].mean()),
         "mean_selection_samples": float(final["selection_samples"].mean()),
         "mean_validation_fraction": float(final["validation_fraction"].mean()),
+        "mean_train_group_count": float(final["train_group_count"].mean()),
+        "mean_validation_group_count": float(final["validation_group_count"].mean()),
         "mean_selected_epoch": float(final["selected_epoch"].mean()),
         "min_selected_epoch": int(final["selected_epoch"].min()),
         "max_selected_epoch": int(final["selected_epoch"].max()),

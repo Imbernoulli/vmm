@@ -1,3 +1,3 @@
-module,tensor,bias_tensor,student_hidden_rows,student_logit_rows,teacher_logit_rows,used_rows,hidden_dim,num_experts,route_kl_student_to_teacher,top1_agreement_student_to_teacher,topk_jaccard_student_to_teacher,student_capacity_overflow_fraction,teacher_capacity_overflow_fraction,cache_ready
-blocks.0.router,blocks.0.router.weight,,96,96,96,96,6,4,0.08391448855400085,0.71875,0.6875,0.0,0.0,True
-blocks.1.router,blocks.1.router.weight,,96,96,96,96,6,4,0.04086630418896675,0.6875,0.8194444444444445,0.0,0.0,True
+module,tensor,bias_tensor,student_hidden_rows,student_logit_rows,teacher_logit_rows,group_rows,used_groups,used_rows,hidden_dim,num_experts,route_kl_student_to_teacher,top1_agreement_student_to_teacher,topk_jaccard_student_to_teacher,student_capacity_overflow_fraction,teacher_capacity_overflow_fraction,cache_ready
+blocks.0.router,blocks.0.router.weight,,96,96,96,96,4,96,6,4,0.08391448855400085,0.71875,0.6875,0.0,0.0,True
+blocks.1.router,blocks.1.router.weight,,96,96,96,96,4,96,6,4,0.04086630418896675,0.6875,0.8194444444444445,0.0,0.0,True

@@ -20,10 +20,10 @@ python scripts/write_same_shape_average_checkpoint.py --base STUDENT_BASE_CHECKP
 
 ## Router Rows
 
-| tensor | rows | hidden | experts | KL | top1 | top-k |
-|---|---:|---:|---:|---:|---:|---:|
-| `blocks.0.router.weight` | 96 | 6 | 4 | 0.083914 | 0.7188 | 0.6875 |
-| `blocks.1.router.weight` | 96 | 6 | 4 | 0.040866 | 0.6875 | 0.8194 |
+| tensor | rows | groups | hidden | experts | KL | top1 | top-k |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `blocks.0.router.weight` | 96 | 4 | 6 | 4 | 0.083914 | 0.7188 | 0.6875 |
+| `blocks.1.router.weight` | 96 | 4 | 6 | 4 | 0.040866 | 0.6875 | 0.8194 |
 
 ## Files
 

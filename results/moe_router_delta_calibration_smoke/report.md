@@ -17,6 +17,7 @@
 - Selection split: `validation`
 - Mean selected epoch: `2.00`
 - Mean train/selection samples: `307.0` / `77.0`
+- Mean train/validation groups: `0.0` / `0.0`
 - Mean train/final validation KL: `0.051894` / `0.055732`
 - Max validation KL gap: `0.003838`
 - Max validation top-1 drop: `-0.007234`

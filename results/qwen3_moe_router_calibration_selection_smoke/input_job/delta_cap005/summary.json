@@ -36,8 +36,10 @@
   "mean_top1_generalization_drop": 0.01,
   "mean_train_final_route_kl": 0.05,
   "mean_train_final_top1_agreement": 0.82,
+  "mean_train_group_count": 8.0,
   "mean_train_samples": 128.0,
   "mean_validation_fraction": 0.2,
+  "mean_validation_group_count": 2.0,
   "min_selected_epoch": 10,
   "outputs": {
     "router_delta_safetensors": "results/qwen3_moe_router_calibration_selection_smoke/input_job/delta_cap005/router_delta.safetensors"
