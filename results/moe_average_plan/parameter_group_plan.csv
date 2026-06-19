@@ -1,0 +1,7 @@
+parameter_group,same_shape_action,weight_source,reason
+embedding / lm_head,anchor_or_fisher_weighted_average,general_retention_and_token_nll,这些张量控制全局 token 分布；只有 general retention 不下降时才平均。
+shared attention / norms,coefficient_search_or_layerwise_average,validation_grid_or_layerwise_coefficients,现有 Dense/Qwen probe 显示均匀平均可能穿过高 loss 区域。
+shared dense MLP,conflict_aware_coordinate_average,weighted_sign_conflict + Fisher/activation statistics,MLP delta 往往包含专长冲突；冲突高时用 TIES/DELLA/Fisher 风格的 coordinate weighting。
+MoE router,router_frozen_until_probe,router_entropy + load_balance + route_overlap,没有传入 MoE routing probe。
+MoE experts,expert_matched_route_frequency_average,expert output similarity + route frequency + NLL sensitivity,保持 expert 数和 tensor shape 不变；如果 expert index 语义不确定，先匹配再平均。
+LoRA / adapters,adapter_delta_average_or_distill_back,rank overlap + adapter output similarity,mixture 可作上界，但最终 artifact 应压回一个同构 adapter/checkpoint。

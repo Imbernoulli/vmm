@@ -1,6 +1,6 @@
 # Average Decision Report
 
-Generated at: `2026-06-19T03:34:02.823616+00:00`
+Generated at: `2026-06-19T03:42:12.633098+00:00`
 
 这个报告把已有 merge plane、method table、delta conflict 和可选 MoE routing probe 汇总成同构 Average 决策。这里的同构指：最终 checkpoint 的 config、tokenizer、layer 数、hidden size、router shape 和 expert 数量不变；改变的是参数来自哪些 source checkpoint 以及每组参数的平均权重。
 

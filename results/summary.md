@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T03:34:02.806316+00:00`
+Generated at: `2026-06-19T03:42:12.593585+00:00`
 
 ## Coverage
 
-Complete: `15`; partial: `0`; missing: `0`.
+Complete: `16`; partial: `0`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -22,6 +22,7 @@ Complete: `15`; partial: `0`; missing: `0`.
 | Multi-expert LLM merge | complete | Qwen2.5-0.5B base, Qwen2.5-0.5B-Instruct, and Qwen2.5-Coder-0.5B-Instruct are evaluated in a two-expert merge plane. |
 | Formal LLM benchmark slices | complete | Representative Qwen2.5-1.5B benchmark slices cover MMLU, GSM8K, HumanEval canonical-solution NLL, and BeaverTails safety/refusal NLL. |
 | Probe-guided Average decision report | complete | results/average_decision_report/report.md converts merge grids, conflict probes, and optional MoE routing probes into same-shape average decisions. |
+| MoE same-shape averaging plan | complete | results/moe_average_plan/report.md maps router/expert probes into same-shape router, shared-module, expert, and adapter averaging actions. |
 | Interactive explainer UI | complete | Dashboard includes a draggable precomputed merge-plane explorer with task-pair, method, objective, raw/normalized plane, alpha/beta, and lambda controls. |
 
 ## Key Metrics
@@ -56,3 +57,5 @@ Complete: `15`; partial: `0`; missing: `0`.
 | Qwen multi-expert | instruct/coder weighted conflict | 0.386 |
 | Average decision report | avoid uniform average decisions | 3 |
 | Average decision report | coefficient-search decisions | 2 |
+| MoE average plan | router plan rows | 0 |
+| MoE average plan | expert plan rows | 0 |

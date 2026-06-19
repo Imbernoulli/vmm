@@ -223,6 +223,7 @@ Qwen2.5-7B dense merged assistant
 - 每个方法的 `avg_score`、`worst_score`、`held-in_retention`、`general_retention`。
 - delta/probe 报告：layer norm、cosine、sign conflict、NLL barrier。
 - Average decision report：把 grid、method、delta conflict、routing probe 汇总成同构 checkpoint 的平均权重建议；输出 `uniform_average_ok`、`coefficient_search`、`structured_average` 或 `avoid_uniform_average`。
+- MoE same-shape average plan：把 router entropy/load/overlap 和 expert route frequency 转成 router/shared/expert/adapter 的参数组平均策略；最终仍输出同 expert 数、同 router shape 的 MoE checkpoint。
 
 ### 推荐的第二轮 MoE 实验
 

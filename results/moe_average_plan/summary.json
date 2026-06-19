@@ -1,0 +1,57 @@
+{
+  "generated_at": "2026-06-19T03:42:12.435598+00:00",
+  "same_shape_constraint": "Do not change router shape, expert count, hidden size, layer count, tokenizer, or model class.",
+  "decision_summary": {
+    "global_verdict": "avoid_uniform_average",
+    "default_weight_source": "validation_grid_or_layerwise_coefficients",
+    "avoid_uniform_count": 3,
+    "coefficient_search_count": 2
+  },
+  "router_dirs": [],
+  "router_summaries": [],
+  "parameter_plan": [
+    {
+      "parameter_group": "embedding / lm_head",
+      "same_shape_action": "anchor_or_fisher_weighted_average",
+      "weight_source": "general_retention_and_token_nll",
+      "reason": "这些张量控制全局 token 分布；只有 general retention 不下降时才平均。"
+    },
+    {
+      "parameter_group": "shared attention / norms",
+      "same_shape_action": "coefficient_search_or_layerwise_average",
+      "weight_source": "validation_grid_or_layerwise_coefficients",
+      "reason": "现有 Dense/Qwen probe 显示均匀平均可能穿过高 loss 区域。"
+    },
+    {
+      "parameter_group": "shared dense MLP",
+      "same_shape_action": "conflict_aware_coordinate_average",
+      "weight_source": "weighted_sign_conflict + Fisher/activation statistics",
+      "reason": "MLP delta 往往包含专长冲突；冲突高时用 TIES/DELLA/Fisher 风格的 coordinate weighting。"
+    },
+    {
+      "parameter_group": "MoE router",
+      "same_shape_action": "router_frozen_until_probe",
+      "weight_source": "router_entropy + load_balance + route_overlap",
+      "reason": "没有传入 MoE routing probe。"
+    },
+    {
+      "parameter_group": "MoE experts",
+      "same_shape_action": "expert_matched_route_frequency_average",
+      "weight_source": "expert output similarity + route frequency + NLL sensitivity",
+      "reason": "保持 expert 数和 tensor shape 不变；如果 expert index 语义不确定，先匹配再平均。"
+    },
+    {
+      "parameter_group": "LoRA / adapters",
+      "same_shape_action": "adapter_delta_average_or_distill_back",
+      "weight_source": "rank overlap + adapter output similarity",
+      "reason": "mixture 可作上界，但最终 artifact 应压回一个同构 adapter/checkpoint。"
+    }
+  ],
+  "router_plan_rows": 0,
+  "expert_plan_rows": 0,
+  "thresholds": {
+    "collapse_threshold": 0.5,
+    "overlap_threshold": 0.5,
+    "high_frequency_threshold": 0.1
+  }
+}
