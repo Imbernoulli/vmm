@@ -65,6 +65,12 @@ def maybe_float(value: Any) -> float | None:
     return float(value)
 
 
+def maybe_int(value: Any) -> int | None:
+    if value is None:
+        return None
+    return int(value)
+
+
 def sha256_file(path: Path) -> str | None:
     if path.stat().st_size > HASH_LIMIT_BYTES:
         return None
@@ -520,10 +526,24 @@ def summarize_moe_combined_writer_smoke() -> dict[str, Any]:
 def summarize_checkpoint_topology() -> dict[str, Any]:
     summary = read_json("results/checkpoint_topology_inspect/summary.json")
     models = summary.get("models", [])
+    primary = models[0] if models else {}
+    primary_config = primary.get("config", {})
+    primary_headers = primary.get("headers", {})
+    groups = primary_headers.get("groups", {})
     return {
         "summary": summary,
         "models": models,
         "comparisons": summary.get("comparisons", []),
+        "primary_model": primary.get("name"),
+        "primary_model_type": primary_config.get("model_type"),
+        "primary_weights_available": bool(primary_headers.get("weights_available", False)),
+        "primary_num_experts": maybe_int(primary_config.get("num_experts")),
+        "primary_num_experts_per_tok": maybe_int(primary_config.get("num_experts_per_tok")),
+        "primary_num_experts_with_weights": maybe_int(primary_headers.get("num_experts_with_weights")),
+        "primary_packed_expert_tensor_count": maybe_int(primary_headers.get("packed_expert_tensor_count")),
+        "primary_routed_expert_bytes": maybe_int((groups.get("routed_expert") or {}).get("bytes")),
+        "primary_router_tensor_count": maybe_int((groups.get("router") or {}).get("tensors")),
+        "primary_total_bytes": maybe_int(primary_headers.get("total_bytes")),
         "report": rel("results/checkpoint_topology_inspect/report.md"),
         "compatibility": rel("results/checkpoint_topology_inspect/compatibility.csv"),
     }
@@ -2737,6 +2757,16 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| checkpoint topology | inspected MoE configs | "
                 f"{len(moe_models)} |"
+            ),
+            (
+                "| checkpoint topology | primary real MoE source | "
+                f"{topology['primary_model']} / weights={topology['primary_weights_available']} |"
+            ),
+            (
+                "| checkpoint topology | experts config / packed weights / routed expert bytes | "
+                f"{topology['primary_num_experts']} / "
+                f"{topology['primary_num_experts_with_weights']} / "
+                f"{topology['primary_routed_expert_bytes']} |"
             ),
             (
                 "| average candidate recipes | endpoint-only skips | "

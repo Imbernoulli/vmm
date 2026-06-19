@@ -30,6 +30,7 @@ SAFETENSORS_DTYPE_MAP = {
 }
 LAYER_RE = re.compile(r"(?:^|\.)layers\.(\d+)(?:\.|$)")
 EXPERT_RE = re.compile(r"(?:^|\.)(?:experts|local_experts)\.(\d+)(?:\.|$)")
+PACKED_EXPERT_RE = re.compile(r"(?:^|\.)mlp\.experts\.(?:gate_up_proj|down_proj)(?:\.|$)")
 
 
 @dataclass(frozen=True)
@@ -209,14 +210,14 @@ def tensor_group(name: str) -> str:
         return "router"
     if "shared_expert" in lowered:
         return "shared_expert"
-    if EXPERT_RE.search(name):
+    if EXPERT_RE.search(name) or PACKED_EXPERT_RE.search(name):
         return "routed_expert"
-    if "self_attn" in lowered or "attention" in lowered or "linear_attn" in lowered:
+    if "norm" in lowered:
+        return "norm"
+    if "self_attn" in lowered or ".attn." in lowered or "attention" in lowered or "linear_attn" in lowered:
         return "attention"
     if "mlp" in lowered or "ffn" in lowered or "feed_forward" in lowered:
         return "dense_mlp"
-    if "norm" in lowered:
-        return "norm"
     return "other"
 
 
@@ -230,6 +231,12 @@ def expert_id(name: str) -> int | None:
     return int(match.group(1)) if match else None
 
 
+def packed_expert_count(name: str, shape: tuple[int, ...]) -> int | None:
+    if not PACKED_EXPERT_RE.search(name) or not shape:
+        return None
+    return int(shape[0])
+
+
 def summarize_headers(headers: list[TensorHeader]) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[str, Any]]:
     rows = []
     for header in headers:
@@ -239,6 +246,7 @@ def summarize_headers(headers: list[TensorHeader]) -> tuple[pd.DataFrame, pd.Dat
                 "group": tensor_group(header.name),
                 "layer": layer_id(header.name),
                 "expert": expert_id(header.name),
+                "packed_expert_count": packed_expert_count(header.name, header.shape),
                 "shape": "x".join(str(dim) for dim in header.shape),
                 "dtype": str(header.dtype).replace("torch.", ""),
                 "numel": header.numel,
@@ -260,14 +268,36 @@ def summarize_headers(headers: list[TensorHeader]) -> tuple[pd.DataFrame, pd.Dat
         .agg(tensors=("tensor", "count"), numel=("numel", "sum"), bytes=("bytes", "sum"))
         .sort_values(["layer", "group"])
     )
-    expert_rows = tensors[tensors["expert"].notna()]
-    expert_summary = (
-        expert_rows.groupby(["layer", "expert"], dropna=False, as_index=False)
-        .agg(tensors=("tensor", "count"), numel=("numel", "sum"), bytes=("bytes", "sum"))
-        .sort_values(["layer", "expert"])
-        if not expert_rows.empty
-        else pd.DataFrame(columns=["layer", "expert", "tensors", "numel", "bytes"])
-    )
+    routed_rows = tensors[tensors["group"] == "routed_expert"].copy()
+    if routed_rows.empty:
+        expert_summary = pd.DataFrame(columns=["layer", "expert", "packed_expert_count", "tensors", "numel", "bytes"])
+    elif routed_rows["expert"].notna().any():
+        expert_summary = (
+            routed_rows.groupby(["layer", "expert"], dropna=False, as_index=False)
+            .agg(
+                packed_expert_count=("packed_expert_count", "max"),
+                tensors=("tensor", "count"),
+                numel=("numel", "sum"),
+                bytes=("bytes", "sum"),
+            )
+            .sort_values(["layer", "expert"])
+        )
+    else:
+        expert_summary = (
+            routed_rows.groupby(["layer"], dropna=False, as_index=False)
+            .agg(
+                packed_expert_count=("packed_expert_count", "max"),
+                tensors=("tensor", "count"),
+                numel=("numel", "sum"),
+                bytes=("bytes", "sum"),
+            )
+            .sort_values(["layer"])
+        )
+        expert_summary["expert"] = "packed"
+        expert_summary = expert_summary[["layer", "expert", "packed_expert_count", "tensors", "numel", "bytes"]]
+    explicit_experts = tensors["expert"].dropna().nunique() if "expert" in tensors else 0
+    packed_experts = tensors["packed_expert_count"].dropna().max() if "packed_expert_count" in tensors else None
+    num_experts_with_weights = int(explicit_experts) if explicit_experts else (int(packed_experts) if pd.notna(packed_experts) else 0)
     compact = {
         "weights_available": True,
         "total_tensors": int(len(tensors)),
@@ -282,7 +312,8 @@ def summarize_headers(headers: list[TensorHeader]) -> tuple[pd.DataFrame, pd.Dat
             for _, row in group_summary.iterrows()
         },
         "num_layers_with_weights": int(tensors["layer"].dropna().nunique()) if "layer" in tensors else 0,
-        "num_experts_with_weights": int(tensors["expert"].dropna().nunique()) if "expert" in tensors else 0,
+        "num_experts_with_weights": num_experts_with_weights,
+        "packed_expert_tensor_count": int(tensors["packed_expert_count"].notna().sum()) if "packed_expert_count" in tensors else 0,
     }
     return tensors, group_summary, expert_summary, compact
 

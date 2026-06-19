@@ -2,15 +2,15 @@
 
 这个报告把 MoE routing probe 的原始 CSV 转成合并前的风险诊断。它回答的不是“该不该做 MoE”，而是更具体的四个问题：router 是否会 collapse，两个 source 的路由是否漂移，top-k 边界是否脆弱，以及哪些 experts 需要 route/category-aware 权重。
 
-- Readiness status: `waiting_for_routing_probe`
-- Router dirs: `none`
+- Readiness status: `missing_router_summary`
+- Router dirs: `results/moe_routing_probe/qwen3_30b_general_vs_code`
 - Router rows: `0`；expert rows: `0`；specialization rows: `0`
 
 ## 拓扑线索
 
-- MoE model: `qwen3_5_35b_a3b` / `qwen3_5_moe`
+- MoE model: `qwen3_6_35b_a3b` / `qwen3_5_moe`
 - Experts: `256`；active per token: `8`；active fraction: `0.03125`
-- Local weights available: `False`
+- Local weights available: `True`
 
 ## Router Readiness
 

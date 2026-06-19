@@ -2,7 +2,7 @@
   "dense_bridge_avg_primary_delta_vs_uniform": 0.0234375,
   "dense_default_action": "probe_guided_global_bridge_only",
   "dense_module_guard_delta_vs_bridge": -0.04296875,
-  "generated_at": "2026-06-19T15:59:26.758013+00:00",
+  "generated_at": "2026-06-19T16:12:16.257490+00:00",
   "moe_capacity_topk_overflow_delta": -0.028749999999999998,
   "moe_default_action": "expert_identity_plus_confidence_blended_expert_weights_plus_guarded_router_plus_capacity_gate",
   "moe_expert_identity_soft_worst_acc_gain": 0.20499999999999996,

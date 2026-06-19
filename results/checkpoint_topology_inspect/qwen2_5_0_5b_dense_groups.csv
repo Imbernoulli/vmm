@@ -1,0 +1,5 @@
+group,tensors,numel,bytes
+dense_mlp,72,313786368,627572736
+embedding,1,136134656,272269312
+attention,168,44067840,88135680
+norm,49,43904,87808

@@ -79,6 +79,9 @@ def topology_gate(topology: dict[str, Any], registry: dict[str, Any]) -> dict[st
     if len(weights_available) >= len(target_models) and target_models:
         status = "complete"
         next_action = "run routing probes on all exact p0 MoE sources"
+    elif len(weights_available) >= 1:
+        status = "partial_one_real_source_header"
+        next_action = "inspect at least one compatible Qwen MoE source or downstream checkpoint with matching packed expert topology"
     elif moe_models:
         status = "partial_config_only"
         next_action = "inspect exact Qwen3-30B-A3B source checkpoints with safetensors headers"
@@ -336,6 +339,7 @@ def main() -> None:
         vllm_gate(vllm),
     ]
     waiting_statuses = {"missing", "missing_plan", "waiting_for_routing_probe", "blocked_by_real_source_paths", "waiting_for_materialized_moe_checkpoint", "partial_config_only", "ready_to_run"}
+    waiting_statuses.add("partial_one_real_source_header")
     current_blocker = next((row["stage"] for row in gates if row["status"] in waiting_statuses), "")
     ready_statuses = {"complete", "template_validated", "ready_or_materialized"}
     summary = {

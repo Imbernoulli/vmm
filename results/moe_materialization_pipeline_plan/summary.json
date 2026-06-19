@@ -16,5 +16,5 @@
   "same_shape_constraint": "The pipeline never changes router shape, expert count, hidden size, tokenizer, or model class.",
   "schema_version": 1,
   "status": "waiting_for_real_moe_probe_or_paths",
-  "waiting_or_blocked_count": 7
+  "waiting_or_blocked_count": 6
 }

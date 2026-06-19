@@ -899,10 +899,10 @@
     "checkpoint_topology_inspect": {
       "comparisons": [
         {
-          "left": "qwen3_5_35b_a3b",
-          "left_weights_available": false,
-          "mismatched_fields": "model_type,hidden_size,num_hidden_layers,num_key_value_heads,moe_intermediate_size,shared_expert_intermediate_size,num_experts,num_experts_per_tok,vocab_size",
-          "right": "qwen3_0_6b_dense",
+          "left": "qwen3_6_35b_a3b",
+          "left_weights_available": true,
+          "mismatched_fields": "model_type,hidden_size,num_hidden_layers,num_attention_heads,moe_intermediate_size,shared_expert_intermediate_size,num_experts,num_experts_per_tok,vocab_size",
+          "right": "qwen2_5_0_5b_dense",
           "right_weights_available": true,
           "same_config_for_average": false
         }
@@ -911,9 +911,9 @@
       "models": [
         {
           "artifacts": {
-            "experts_csv": null,
-            "groups_csv": null,
-            "tensors_csv": null
+            "experts_csv": "results/checkpoint_topology_inspect/qwen3_6_35b_a3b_experts.csv",
+            "groups_csv": "results/checkpoint_topology_inspect/qwen3_6_35b_a3b_groups.csv",
+            "tensors_csv": "results/checkpoint_topology_inspect/qwen3_6_35b_a3b_tensors.csv"
           },
           "config": {
             "active_expert_fraction_per_token": 0.03125,
@@ -939,92 +939,151 @@
             "shared_expert_intermediate_size": 512,
             "vocab_size": 248320
           },
-          "config_path": "/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3.5-35B-A3B/snapshots/59d61f3ce65a6d9863b86d2e96597125219dc754/config.json",
-          "has_safetensors_index": false,
+          "config_path": "/srv/home/bohanlyu/sesl/models/Qwen3.6-35B-A3B/config.json",
+          "has_safetensors_index": true,
           "headers": {
-            "weights_available": false
+            "groups": {
+              "attention": {
+                "bytes": 2909788928,
+                "numel": 1454894464,
+                "tensors": 392
+              },
+              "dense_mlp": {
+                "bytes": 535781088,
+                "numel": 267890544,
+                "tensors": 108
+              },
+              "embedding": {
+                "bytes": 1017118720,
+                "numel": 508559360,
+                "tensors": 1
+              },
+              "lm_head": {
+                "bytes": 1017118720,
+                "numel": 508559360,
+                "tensors": 1
+              },
+              "norm": {
+                "bytes": 624640,
+                "numel": 312320,
+                "tensors": 248
+              },
+              "other": {
+                "bytes": 86981888,
+                "numel": 43490944,
+                "tensors": 8
+              },
+              "routed_expert": {
+                "bytes": 66035122176,
+                "numel": 33017561088,
+                "tensors": 82
+              },
+              "router": {
+                "bytes": 42991616,
+                "numel": 21495808,
+                "tensors": 41
+              },
+              "shared_expert": {
+                "bytes": 258117632,
+                "numel": 129058816,
+                "tensors": 164
+              }
+            },
+            "num_experts_with_weights": 256,
+            "num_layers_with_weights": 40,
+            "packed_expert_tensor_count": 82,
+            "total_bytes": 71903645408,
+            "total_numel": 35951822704,
+            "total_tensors": 1045,
+            "weights_available": true
           },
-          "name": "qwen3_5_35b_a3b",
-          "path": "/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3.5-35B-A3B/snapshots/59d61f3ce65a6d9863b86d2e96597125219dc754",
-          "weights_root": null
+          "name": "qwen3_6_35b_a3b",
+          "path": "/srv/home/bohanlyu/sesl/models/Qwen3.6-35B-A3B",
+          "weights_root": "/srv/home/bohanlyu/sesl/models/Qwen3.6-35B-A3B"
         },
         {
           "artifacts": {
             "experts_csv": null,
-            "groups_csv": "results/checkpoint_topology_inspect/qwen3_0_6b_dense_groups.csv",
-            "tensors_csv": "results/checkpoint_topology_inspect/qwen3_0_6b_dense_tensors.csv"
+            "groups_csv": "results/checkpoint_topology_inspect/qwen2_5_0_5b_dense_groups.csv",
+            "tensors_csv": "results/checkpoint_topology_inspect/qwen2_5_0_5b_dense_tensors.csv"
           },
           "config": {
             "active_expert_fraction_per_token": null,
             "architectures": [
-              "Qwen3ForCausalLM"
+              "Qwen2ForCausalLM"
             ],
-            "hidden_size": 1024,
-            "intermediate_size": 3072,
+            "hidden_size": 896,
+            "intermediate_size": 4864,
             "is_moe_config": false,
             "layer_type_counts": {},
-            "max_position_embeddings": 40960,
-            "model_type": "qwen3",
+            "max_position_embeddings": 32768,
+            "model_type": "qwen2",
             "moe_intermediate_size": null,
-            "num_attention_heads": 16,
+            "num_attention_heads": 14,
             "num_experts": null,
             "num_experts_per_tok": null,
-            "num_hidden_layers": 28,
-            "num_key_value_heads": 8,
+            "num_hidden_layers": 24,
+            "num_key_value_heads": 2,
             "router_aux_loss_coef": null,
             "shared_expert_intermediate_size": null,
             "vocab_size": 151936
           },
-          "config_path": "/srv/home/bohanlyu/MLS-Bench/vendor/data/models/Qwen3-0.6B/config.json",
+          "config_path": "/srv/home/bohanlyu/MLS-Bench/vendor/data/models/Qwen2.5-0.5B/config.json",
           "has_safetensors_index": false,
           "headers": {
             "groups": {
               "attention": {
-                "bytes": 352393216,
-                "numel": 176196608,
-                "tensors": 196
+                "bytes": 88135680,
+                "numel": 44067840,
+                "tensors": 168
               },
               "dense_mlp": {
-                "bytes": 528482304,
-                "numel": 264241152,
-                "tensors": 84
+                "bytes": 627572736,
+                "numel": 313786368,
+                "tensors": 72
               },
               "embedding": {
-                "bytes": 311164928,
-                "numel": 155582464,
-                "tensors": 1
-              },
-              "lm_head": {
-                "bytes": 311164928,
-                "numel": 155582464,
+                "bytes": 272269312,
+                "numel": 136134656,
                 "tensors": 1
               },
               "norm": {
-                "bytes": 59392,
-                "numel": 29696,
-                "tensors": 29
+                "bytes": 87808,
+                "numel": 43904,
+                "tensors": 49
               }
             },
             "num_experts_with_weights": 0,
-            "num_layers_with_weights": 28,
-            "total_bytes": 1503264768,
-            "total_numel": 751632384,
-            "total_tensors": 311,
+            "num_layers_with_weights": 24,
+            "packed_expert_tensor_count": 0,
+            "total_bytes": 988065536,
+            "total_numel": 494032768,
+            "total_tensors": 290,
             "weights_available": true
           },
-          "name": "qwen3_0_6b_dense",
-          "path": "/srv/home/bohanlyu/MLS-Bench/vendor/data/models/Qwen3-0.6B",
-          "weights_root": "/srv/home/bohanlyu/MLS-Bench/vendor/data/models/Qwen3-0.6B"
+          "name": "qwen2_5_0_5b_dense",
+          "path": "/srv/home/bohanlyu/MLS-Bench/vendor/data/models/Qwen2.5-0.5B",
+          "weights_root": "/srv/home/bohanlyu/MLS-Bench/vendor/data/models/Qwen2.5-0.5B"
         }
       ],
+      "primary_model": "qwen3_6_35b_a3b",
+      "primary_model_type": "qwen3_5_moe",
+      "primary_num_experts": 256,
+      "primary_num_experts_per_tok": 8,
+      "primary_num_experts_with_weights": 256,
+      "primary_packed_expert_tensor_count": 82,
+      "primary_routed_expert_bytes": 66035122176,
+      "primary_router_tensor_count": 41,
+      "primary_total_bytes": 71903645408,
+      "primary_weights_available": true,
       "report": "results/checkpoint_topology_inspect/report.md",
       "summary": {
         "comparisons": [
           {
-            "left": "qwen3_5_35b_a3b",
-            "left_weights_available": false,
-            "mismatched_fields": "model_type,hidden_size,num_hidden_layers,num_key_value_heads,moe_intermediate_size,shared_expert_intermediate_size,num_experts,num_experts_per_tok,vocab_size",
-            "right": "qwen3_0_6b_dense",
+            "left": "qwen3_6_35b_a3b",
+            "left_weights_available": true,
+            "mismatched_fields": "model_type,hidden_size,num_hidden_layers,num_attention_heads,moe_intermediate_size,shared_expert_intermediate_size,num_experts,num_experts_per_tok,vocab_size",
+            "right": "qwen2_5_0_5b_dense",
             "right_weights_available": true,
             "same_config_for_average": false
           }
@@ -1032,9 +1091,9 @@
         "models": [
           {
             "artifacts": {
-              "experts_csv": null,
-              "groups_csv": null,
-              "tensors_csv": null
+              "experts_csv": "results/checkpoint_topology_inspect/qwen3_6_35b_a3b_experts.csv",
+              "groups_csv": "results/checkpoint_topology_inspect/qwen3_6_35b_a3b_groups.csv",
+              "tensors_csv": "results/checkpoint_topology_inspect/qwen3_6_35b_a3b_tensors.csv"
             },
             "config": {
               "active_expert_fraction_per_token": 0.03125,
@@ -1060,82 +1119,131 @@
               "shared_expert_intermediate_size": 512,
               "vocab_size": 248320
             },
-            "config_path": "/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3.5-35B-A3B/snapshots/59d61f3ce65a6d9863b86d2e96597125219dc754/config.json",
-            "has_safetensors_index": false,
+            "config_path": "/srv/home/bohanlyu/sesl/models/Qwen3.6-35B-A3B/config.json",
+            "has_safetensors_index": true,
             "headers": {
-              "weights_available": false
+              "groups": {
+                "attention": {
+                  "bytes": 2909788928,
+                  "numel": 1454894464,
+                  "tensors": 392
+                },
+                "dense_mlp": {
+                  "bytes": 535781088,
+                  "numel": 267890544,
+                  "tensors": 108
+                },
+                "embedding": {
+                  "bytes": 1017118720,
+                  "numel": 508559360,
+                  "tensors": 1
+                },
+                "lm_head": {
+                  "bytes": 1017118720,
+                  "numel": 508559360,
+                  "tensors": 1
+                },
+                "norm": {
+                  "bytes": 624640,
+                  "numel": 312320,
+                  "tensors": 248
+                },
+                "other": {
+                  "bytes": 86981888,
+                  "numel": 43490944,
+                  "tensors": 8
+                },
+                "routed_expert": {
+                  "bytes": 66035122176,
+                  "numel": 33017561088,
+                  "tensors": 82
+                },
+                "router": {
+                  "bytes": 42991616,
+                  "numel": 21495808,
+                  "tensors": 41
+                },
+                "shared_expert": {
+                  "bytes": 258117632,
+                  "numel": 129058816,
+                  "tensors": 164
+                }
+              },
+              "num_experts_with_weights": 256,
+              "num_layers_with_weights": 40,
+              "packed_expert_tensor_count": 82,
+              "total_bytes": 71903645408,
+              "total_numel": 35951822704,
+              "total_tensors": 1045,
+              "weights_available": true
             },
-            "name": "qwen3_5_35b_a3b",
-            "path": "/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3.5-35B-A3B/snapshots/59d61f3ce65a6d9863b86d2e96597125219dc754",
-            "weights_root": null
+            "name": "qwen3_6_35b_a3b",
+            "path": "/srv/home/bohanlyu/sesl/models/Qwen3.6-35B-A3B",
+            "weights_root": "/srv/home/bohanlyu/sesl/models/Qwen3.6-35B-A3B"
           },
           {
             "artifacts": {
               "experts_csv": null,
-              "groups_csv": "results/checkpoint_topology_inspect/qwen3_0_6b_dense_groups.csv",
-              "tensors_csv": "results/checkpoint_topology_inspect/qwen3_0_6b_dense_tensors.csv"
+              "groups_csv": "results/checkpoint_topology_inspect/qwen2_5_0_5b_dense_groups.csv",
+              "tensors_csv": "results/checkpoint_topology_inspect/qwen2_5_0_5b_dense_tensors.csv"
             },
             "config": {
               "active_expert_fraction_per_token": null,
               "architectures": [
-                "Qwen3ForCausalLM"
+                "Qwen2ForCausalLM"
               ],
-              "hidden_size": 1024,
-              "intermediate_size": 3072,
+              "hidden_size": 896,
+              "intermediate_size": 4864,
               "is_moe_config": false,
               "layer_type_counts": {},
-              "max_position_embeddings": 40960,
-              "model_type": "qwen3",
+              "max_position_embeddings": 32768,
+              "model_type": "qwen2",
               "moe_intermediate_size": null,
-              "num_attention_heads": 16,
+              "num_attention_heads": 14,
               "num_experts": null,
               "num_experts_per_tok": null,
-              "num_hidden_layers": 28,
-              "num_key_value_heads": 8,
+              "num_hidden_layers": 24,
+              "num_key_value_heads": 2,
               "router_aux_loss_coef": null,
               "shared_expert_intermediate_size": null,
               "vocab_size": 151936
             },
-            "config_path": "/srv/home/bohanlyu/MLS-Bench/vendor/data/models/Qwen3-0.6B/config.json",
+            "config_path": "/srv/home/bohanlyu/MLS-Bench/vendor/data/models/Qwen2.5-0.5B/config.json",
             "has_safetensors_index": false,
             "headers": {
               "groups": {
                 "attention": {
-                  "bytes": 352393216,
-                  "numel": 176196608,
-                  "tensors": 196
+                  "bytes": 88135680,
+                  "numel": 44067840,
+                  "tensors": 168
                 },
                 "dense_mlp": {
-                  "bytes": 528482304,
-                  "numel": 264241152,
-                  "tensors": 84
+                  "bytes": 627572736,
+                  "numel": 313786368,
+                  "tensors": 72
                 },
                 "embedding": {
-                  "bytes": 311164928,
-                  "numel": 155582464,
-                  "tensors": 1
-                },
-                "lm_head": {
-                  "bytes": 311164928,
-                  "numel": 155582464,
+                  "bytes": 272269312,
+                  "numel": 136134656,
                   "tensors": 1
                 },
                 "norm": {
-                  "bytes": 59392,
-                  "numel": 29696,
-                  "tensors": 29
+                  "bytes": 87808,
+                  "numel": 43904,
+                  "tensors": 49
                 }
               },
               "num_experts_with_weights": 0,
-              "num_layers_with_weights": 28,
-              "total_bytes": 1503264768,
-              "total_numel": 751632384,
-              "total_tensors": 311,
+              "num_layers_with_weights": 24,
+              "packed_expert_tensor_count": 0,
+              "total_bytes": 988065536,
+              "total_numel": 494032768,
+              "total_tensors": 290,
               "weights_available": true
             },
-            "name": "qwen3_0_6b_dense",
-            "path": "/srv/home/bohanlyu/MLS-Bench/vendor/data/models/Qwen3-0.6B",
-            "weights_root": "/srv/home/bohanlyu/MLS-Bench/vendor/data/models/Qwen3-0.6B"
+            "name": "qwen2_5_0_5b_dense",
+            "path": "/srv/home/bohanlyu/MLS-Bench/vendor/data/models/Qwen2.5-0.5B",
+            "weights_root": "/srv/home/bohanlyu/MLS-Bench/vendor/data/models/Qwen2.5-0.5B"
           }
         ]
       }
@@ -1974,10 +2082,10 @@
         {
           "artifact": "results/checkpoint_topology_inspect/report.md",
           "command": "python scripts/inspect_checkpoint_topology.py --model NAME=MODEL_PATH --output-dir results/checkpoint_topology_inspect",
-          "evidence": "inspected_moe_configs=1, weights_available=0, target_p0_moe=3",
-          "next_action": "inspect exact Qwen3-30B-A3B source checkpoints with safetensors headers",
+          "evidence": "inspected_moe_configs=1, weights_available=1, target_p0_moe=3",
+          "next_action": "inspect at least one compatible Qwen MoE source or downstream checkpoint with matching packed expert topology",
           "stage": "exact_moe_topology",
-          "status": "partial_config_only"
+          "status": "partial_one_real_source_header"
         },
         {
           "artifact": "results/moe_route_weight_recipes/routing_probe_plan.csv",
@@ -1991,14 +2099,14 @@
           "artifact": "results/moe_routing_readiness/report.md",
           "command": "PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code",
           "evidence": "router_rows=0, expert_rows=0, specialization_rows=0",
-          "next_action": "run routing probe, then rerun readiness analysis on its output",
+          "next_action": "review router/expert actions before enabling any router or expert averaging",
           "stage": "routing_readiness_gate",
-          "status": "waiting_for_routing_probe"
+          "status": "missing_router_summary"
         },
         {
           "artifact": "results/moe_route_weight_recipes/report.md",
           "command": "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code --source general --source code --category-source agentic_code=code --category-source code=code --category-source finance=general --category-source general=general --category-source legal=general --category-source long_context=general --category-source math=general --category-source safety=general",
-          "evidence": "expert_rules=0, tensor_rules=1, router_dirs=0",
+          "evidence": "expert_rules=0, tensor_rules=1, router_dirs=1",
           "next_action": "run routing probe first; route weights require real expert_load.csv",
           "stage": "route_weight_tensor_rules",
           "status": "waiting_for_routing_probe"
@@ -2072,9 +2180,9 @@
         "same_shape_constraint": "The pipeline never changes router shape, expert count, hidden size, tokenizer, or model class.",
         "schema_version": 1,
         "status": "waiting_for_real_moe_probe_or_paths",
-        "waiting_or_blocked_count": 7
+        "waiting_or_blocked_count": 6
       },
-      "waiting_or_blocked_count": 7
+      "waiting_or_blocked_count": 6
     },
     "moe_route_weight_recipes": {
       "category_source_plan": "results/moe_route_weight_recipes/category_source_plan.csv",
@@ -2096,59 +2204,75 @@
           {
             "category": "agentic_code",
             "mapped_source": "code",
-            "mapping_kind": "category_heuristic",
+            "mapping_kind": "explicit",
             "prompt_count": 1
           },
           {
             "category": "code",
             "mapped_source": "code",
-            "mapping_kind": "source_name_match",
+            "mapping_kind": "explicit",
             "prompt_count": 2
           },
           {
             "category": "finance",
             "mapped_source": "general",
-            "mapping_kind": "fallback",
+            "mapping_kind": "explicit",
             "prompt_count": 1
           },
           {
             "category": "general",
             "mapped_source": "general",
-            "mapping_kind": "source_name_match",
+            "mapping_kind": "explicit",
             "prompt_count": 2
           },
           {
             "category": "legal",
             "mapped_source": "general",
-            "mapping_kind": "fallback",
+            "mapping_kind": "explicit",
             "prompt_count": 1
           },
           {
             "category": "long_context",
             "mapped_source": "general",
-            "mapping_kind": "fallback",
+            "mapping_kind": "explicit",
             "prompt_count": 1
           },
           {
             "category": "math",
             "mapped_source": "general",
-            "mapping_kind": "fallback",
+            "mapping_kind": "explicit",
             "prompt_count": 2
           },
           {
             "category": "safety",
             "mapped_source": "general",
-            "mapping_kind": "fallback",
+            "mapping_kind": "explicit",
             "prompt_count": 2
           }
         ],
         "category_source_plan_rows": 8,
-        "category_sources": {},
+        "category_sources": {
+          "agentic_code": "code",
+          "code": "code",
+          "finance": "general",
+          "general": "general",
+          "legal": "general",
+          "long_context": "general",
+          "math": "general",
+          "safety": "general"
+        },
         "expert_rule_count": 0,
+        "expert_weight_category": null,
         "expert_weight_csvs": [],
         "fallback_source": "general",
         "freeze_router": true,
-        "input_summaries": [],
+        "input_summaries": [
+          {
+            "expert_load_rows": 0,
+            "router_dir": "results/moe_routing_probe/qwen3_30b_general_vs_code",
+            "status": "missing_or_empty"
+          }
+        ],
         "low_route_threshold": 0.005,
         "min_source_weight": 0.05,
         "outputs": {
@@ -2164,7 +2288,9 @@
         "prompt_pack": "prompts/qwen_moe_route_probe_prompts.jsonl",
         "recipe_kind": "route_frequency",
         "recipe_status": "waiting_for_routing_probe",
-        "router_dirs": [],
+        "router_dirs": [
+          "results/moe_routing_probe/qwen3_30b_general_vs_code"
+        ],
         "routing_probe_plan": [
           {
             "category_count": 8,
@@ -2200,11 +2326,11 @@
         "topology": {
           "active_expert_fraction_per_token": 0.03125,
           "model_type": "qwen3_5_moe",
-          "name": "qwen3_5_35b_a3b",
+          "name": "qwen3_6_35b_a3b",
           "num_experts": 256,
           "num_experts_per_tok": 8,
           "num_hidden_layers": 40,
-          "weights_available": false
+          "weights_available": true
         }
       },
       "tensor_rule_count": 1,
@@ -2335,7 +2461,7 @@
       "category_specialization": "results/moe_routing_readiness/category_specialization.csv",
       "expert_load_risks": "results/moe_routing_readiness/expert_load_risks.csv",
       "expert_rows": 0,
-      "readiness_status": "waiting_for_routing_probe",
+      "readiness_status": "missing_router_summary",
       "report": "results/moe_routing_readiness/report.md",
       "router_readiness": "results/moe_routing_readiness/router_readiness.csv",
       "router_rows": 0,
@@ -2343,7 +2469,7 @@
       "summary": {
         "expert_action_counts": {},
         "expert_rows": 0,
-        "generated_at": "2026-06-19T04:39:04.768419+00:00",
+        "generated_at": "2026-06-19T16:12:03.844563+00:00",
         "outputs": {
           "category_specialization": "results/moe_routing_readiness/category_specialization.csv",
           "expert_load_risks": "results/moe_routing_readiness/expert_load_risks.csv",
@@ -2351,9 +2477,11 @@
           "router_readiness": "results/moe_routing_readiness/router_readiness.csv",
           "summary": "results/moe_routing_readiness/summary.json"
         },
-        "readiness_status": "waiting_for_routing_probe",
+        "readiness_status": "missing_router_summary",
         "router_action_counts": {},
-        "router_dirs": [],
+        "router_dirs": [
+          "results/moe_routing_probe/qwen3_30b_general_vs_code"
+        ],
         "router_rows": 0,
         "same_shape_constraint": "Readiness actions preserve router shape, expert count, hidden size, tokenizer, and model class.",
         "specialization_action_counts": {},
@@ -2371,11 +2499,11 @@
         "topology": {
           "active_expert_fraction_per_token": 0.03125,
           "model_type": "qwen3_5_moe",
-          "name": "qwen3_5_35b_a3b",
+          "name": "qwen3_6_35b_a3b",
           "num_experts": 256,
           "num_experts_per_tok": 8,
           "num_hidden_layers": 40,
-          "weights_available": false
+          "weights_available": true
         }
       }
     },
@@ -2745,7 +2873,7 @@
         "dense_bridge_avg_primary_delta_vs_uniform": 0.0234375,
         "dense_default_action": "probe_guided_global_bridge_only",
         "dense_module_guard_delta_vs_bridge": -0.04296875,
-        "generated_at": "2026-06-19T15:59:26.758013+00:00",
+        "generated_at": "2026-06-19T16:12:16.257490+00:00",
         "moe_capacity_topk_overflow_delta": -0.028749999999999998,
         "moe_default_action": "expert_identity_plus_confidence_blended_expert_weights_plus_guarded_router_plus_capacity_gate",
         "moe_expert_identity_soft_worst_acc_gain": 0.20499999999999996,
@@ -8469,7 +8597,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-19T16:01:56.235801+00:00",
+  "generated_at": "2026-06-19T16:12:38.945416+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [

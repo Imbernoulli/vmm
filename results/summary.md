@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-19T16:01:56.235801+00:00`
+Generated at: `2026-06-19T16:12:38.945416+00:00`
 
 ## Coverage
 
@@ -211,7 +211,7 @@ Complete: `47`; partial: `1`; missing: `0`.
 | checkpoint materialization readiness | materialized / blocked / ready / completed | 1 / 4 / 0 / 1 |
 | MoE materialization pipeline | status | waiting_for_real_moe_probe_or_paths |
 | MoE materialization pipeline | current blocking stage | exact_moe_topology |
-| MoE materialization pipeline | ready / waiting gates | 3 / 7 |
+| MoE materialization pipeline | ready / waiting gates | 3 / 6 |
 | probe-gated unified average | dense default action | probe_guided_global_bridge_only |
 | probe-gated unified average | dense bridge delta / module-guard delta | 0.023 / -0.043 |
 | probe-gated unified average | MoE default action | expert_identity_plus_confidence_blended_expert_weights_plus_guarded_router_plus_capacity_gate |
@@ -236,6 +236,8 @@ Complete: `47`; partial: `1`; missing: `0`.
 | MoE combined writer smoke | checked / failed tensors | 7 / 0 |
 | MoE combined writer smoke | alias rules / aliased tensors / additive values | 2 / 2 / 2 |
 | checkpoint topology | inspected MoE configs | 1 |
+| checkpoint topology | primary real MoE source | qwen3_6_35b_a3b / weights=True |
+| checkpoint topology | experts config / packed weights / routed expert bytes | 256 / 256 / 66035122176 |
 | average candidate recipes | endpoint-only skips | 1 |
 | average candidate recipes | MoE templates awaiting routing probe | 1 |
 | MoE route-weight recipes | recipe status | waiting_for_routing_probe |
@@ -252,5 +254,5 @@ Complete: `47`; partial: `1`; missing: `0`.
 | MoE confidence-blended expert-weight recipes | expert tensor rules | 4 |
 | MoE confidence-blended combined recipe | status | combined_writer_command_ready |
 | MoE confidence-blended combined recipe | tensor / alias / bias-delta rules | 5 / 4 / 4 |
-| MoE routing readiness | readiness status | waiting_for_routing_probe |
+| MoE routing readiness | readiness status | missing_router_summary |
 | MoE routing readiness | router / expert risk rows | 0 / 0 |

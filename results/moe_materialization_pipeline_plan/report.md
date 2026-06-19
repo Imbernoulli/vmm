@@ -6,15 +6,15 @@
 - Current blocking stage: `exact_moe_topology`
 - Gates: `10`
 - Ready/complete gates: `3`
-- Waiting/blocked gates: `7`
+- Waiting/blocked gates: `6`
 
 | stage | status | evidence | next action |
 | --- | --- | --- | --- |
 | `target_model_selection` | `complete` | 3 recommended p0 MoE models: Qwen/Qwen3-30B-A3B-Base, Qwen/Qwen3-30B-A3B, Qwen/Qwen3-Coder-30B-A3B-Instruct | inspect exact topology/header for every selected source model |
-| `exact_moe_topology` | `partial_config_only` | inspected_moe_configs=1, weights_available=0, target_p0_moe=3 | inspect exact Qwen3-30B-A3B source checkpoints with safetensors headers |
+| `exact_moe_topology` | `partial_one_real_source_header` | inspected_moe_configs=1, weights_available=1, target_p0_moe=3 | inspect at least one compatible Qwen MoE source or downstream checkpoint with matching packed expert topology |
 | `real_moe_routing_probe` | `ready_to_run` | 1 routing probe command planned; expected output results/moe_routing_probe/qwen3_30b_general_vs_code | run the planned Qwen3 MoE routing probe before materialization |
-| `routing_readiness_gate` | `waiting_for_routing_probe` | router_rows=0, expert_rows=0, specialization_rows=0 | run routing probe, then rerun readiness analysis on its output |
-| `route_weight_tensor_rules` | `waiting_for_routing_probe` | expert_rules=0, tensor_rules=1, router_dirs=0 | run routing probe first; route weights require real expert_load.csv |
+| `routing_readiness_gate` | `missing_router_summary` | router_rows=0, expert_rows=0, specialization_rows=0 | review router/expert actions before enabling any router or expert averaging |
+| `route_weight_tensor_rules` | `waiting_for_routing_probe` | expert_rules=0, tensor_rules=1, router_dirs=1 | run routing probe first; route weights require real expert_load.csv |
 | `layerwise_expert_remap` | `template_validated` | layer_aware_rules=3, manual_review_rows=1 in smoke | run layer-wise expert-output matching on real Qwen3 MoE sources, then build source tensor aliases |
 | `router_bias_capacity_delta` | `waiting_for_routing_probe` | expert_load_exists=False at results/moe_routing_probe/qwen3_30b_general_vs_code/expert_load.csv | convert real top-k load imbalance into same-shape router-bias deltas |
 | `combined_same_shape_writer_recipe` | `template_validated` | tensor_rules=5, alias_rules=4, bias_delta_rows=4 | replace toy/template inputs with real route-weight rules, layer-wise aliases, and router-bias deltas |

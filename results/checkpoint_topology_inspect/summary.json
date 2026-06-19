@@ -1,11 +1,11 @@
 {
   "models": [
     {
-      "name": "qwen3_5_35b_a3b",
-      "path": "/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3.5-35B-A3B/snapshots/59d61f3ce65a6d9863b86d2e96597125219dc754",
-      "config_path": "/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3.5-35B-A3B/snapshots/59d61f3ce65a6d9863b86d2e96597125219dc754/config.json",
-      "weights_root": null,
-      "has_safetensors_index": false,
+      "name": "qwen3_6_35b_a3b",
+      "path": "/srv/home/bohanlyu/sesl/models/Qwen3.6-35B-A3B",
+      "config_path": "/srv/home/bohanlyu/sesl/models/Qwen3.6-35B-A3B/config.json",
+      "weights_root": "/srv/home/bohanlyu/sesl/models/Qwen3.6-35B-A3B",
+      "has_safetensors_index": true,
       "config": {
         "model_type": "qwen3_5_moe",
         "architectures": [
@@ -31,30 +31,83 @@
         "is_moe_config": true
       },
       "headers": {
-        "weights_available": false
+        "weights_available": true,
+        "total_tensors": 1045,
+        "total_numel": 35951822704,
+        "total_bytes": 71903645408,
+        "groups": {
+          "routed_expert": {
+            "tensors": 82,
+            "numel": 33017561088,
+            "bytes": 66035122176
+          },
+          "attention": {
+            "tensors": 392,
+            "numel": 1454894464,
+            "bytes": 2909788928
+          },
+          "embedding": {
+            "tensors": 1,
+            "numel": 508559360,
+            "bytes": 1017118720
+          },
+          "lm_head": {
+            "tensors": 1,
+            "numel": 508559360,
+            "bytes": 1017118720
+          },
+          "dense_mlp": {
+            "tensors": 108,
+            "numel": 267890544,
+            "bytes": 535781088
+          },
+          "shared_expert": {
+            "tensors": 164,
+            "numel": 129058816,
+            "bytes": 258117632
+          },
+          "other": {
+            "tensors": 8,
+            "numel": 43490944,
+            "bytes": 86981888
+          },
+          "router": {
+            "tensors": 41,
+            "numel": 21495808,
+            "bytes": 42991616
+          },
+          "norm": {
+            "tensors": 248,
+            "numel": 312320,
+            "bytes": 624640
+          }
+        },
+        "num_layers_with_weights": 40,
+        "num_experts_with_weights": 256,
+        "packed_expert_tensor_count": 82
       },
       "artifacts": {
-        "tensors_csv": null,
-        "groups_csv": null,
-        "experts_csv": null
+        "tensors_csv": "results/checkpoint_topology_inspect/qwen3_6_35b_a3b_tensors.csv",
+        "groups_csv": "results/checkpoint_topology_inspect/qwen3_6_35b_a3b_groups.csv",
+        "experts_csv": "results/checkpoint_topology_inspect/qwen3_6_35b_a3b_experts.csv"
       }
     },
     {
-      "name": "qwen3_0_6b_dense",
-      "path": "/srv/home/bohanlyu/MLS-Bench/vendor/data/models/Qwen3-0.6B",
-      "config_path": "/srv/home/bohanlyu/MLS-Bench/vendor/data/models/Qwen3-0.6B/config.json",
-      "weights_root": "/srv/home/bohanlyu/MLS-Bench/vendor/data/models/Qwen3-0.6B",
+      "name": "qwen2_5_0_5b_dense",
+      "path": "/srv/home/bohanlyu/MLS-Bench/vendor/data/models/Qwen2.5-0.5B",
+      "config_path": "/srv/home/bohanlyu/MLS-Bench/vendor/data/models/Qwen2.5-0.5B/config.json",
+      "weights_root": "/srv/home/bohanlyu/MLS-Bench/vendor/data/models/Qwen2.5-0.5B",
       "has_safetensors_index": false,
       "config": {
-        "model_type": "qwen3",
+        "model_type": "qwen2",
         "architectures": [
-          "Qwen3ForCausalLM"
+          "Qwen2ForCausalLM"
         ],
-        "hidden_size": 1024,
-        "num_hidden_layers": 28,
-        "num_attention_heads": 16,
-        "num_key_value_heads": 8,
-        "intermediate_size": 3072,
+        "hidden_size": 896,
+        "num_hidden_layers": 24,
+        "num_attention_heads": 14,
+        "num_key_value_heads": 2,
+        "intermediate_size": 4864,
         "moe_intermediate_size": null,
         "shared_expert_intermediate_size": null,
         "num_experts": null,
@@ -62,59 +115,55 @@
         "active_expert_fraction_per_token": null,
         "router_aux_loss_coef": null,
         "vocab_size": 151936,
-        "max_position_embeddings": 40960,
+        "max_position_embeddings": 32768,
         "layer_type_counts": {},
         "is_moe_config": false
       },
       "headers": {
         "weights_available": true,
-        "total_tensors": 311,
-        "total_numel": 751632384,
-        "total_bytes": 1503264768,
+        "total_tensors": 290,
+        "total_numel": 494032768,
+        "total_bytes": 988065536,
         "groups": {
           "dense_mlp": {
-            "tensors": 84,
-            "numel": 264241152,
-            "bytes": 528482304
-          },
-          "attention": {
-            "tensors": 196,
-            "numel": 176196608,
-            "bytes": 352393216
+            "tensors": 72,
+            "numel": 313786368,
+            "bytes": 627572736
           },
           "embedding": {
             "tensors": 1,
-            "numel": 155582464,
-            "bytes": 311164928
+            "numel": 136134656,
+            "bytes": 272269312
           },
-          "lm_head": {
-            "tensors": 1,
-            "numel": 155582464,
-            "bytes": 311164928
+          "attention": {
+            "tensors": 168,
+            "numel": 44067840,
+            "bytes": 88135680
           },
           "norm": {
-            "tensors": 29,
-            "numel": 29696,
-            "bytes": 59392
+            "tensors": 49,
+            "numel": 43904,
+            "bytes": 87808
           }
         },
-        "num_layers_with_weights": 28,
-        "num_experts_with_weights": 0
+        "num_layers_with_weights": 24,
+        "num_experts_with_weights": 0,
+        "packed_expert_tensor_count": 0
       },
       "artifacts": {
-        "tensors_csv": "results/checkpoint_topology_inspect/qwen3_0_6b_dense_tensors.csv",
-        "groups_csv": "results/checkpoint_topology_inspect/qwen3_0_6b_dense_groups.csv",
+        "tensors_csv": "results/checkpoint_topology_inspect/qwen2_5_0_5b_dense_tensors.csv",
+        "groups_csv": "results/checkpoint_topology_inspect/qwen2_5_0_5b_dense_groups.csv",
         "experts_csv": null
       }
     }
   ],
   "comparisons": [
     {
-      "left": "qwen3_5_35b_a3b",
-      "right": "qwen3_0_6b_dense",
+      "left": "qwen3_6_35b_a3b",
+      "right": "qwen2_5_0_5b_dense",
       "same_config_for_average": false,
-      "mismatched_fields": "model_type,hidden_size,num_hidden_layers,num_key_value_heads,moe_intermediate_size,shared_expert_intermediate_size,num_experts,num_experts_per_tok,vocab_size",
-      "left_weights_available": false,
+      "mismatched_fields": "model_type,hidden_size,num_hidden_layers,num_attention_heads,moe_intermediate_size,shared_expert_intermediate_size,num_experts,num_experts_per_tok,vocab_size",
+      "left_weights_available": true,
       "right_weights_available": true
     }
   ]

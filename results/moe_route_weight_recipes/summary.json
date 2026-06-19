@@ -5,11 +5,29 @@
     "general",
     "code"
   ],
-  "category_sources": {},
+  "category_sources": {
+    "agentic_code": "code",
+    "code": "code",
+    "finance": "general",
+    "general": "general",
+    "legal": "general",
+    "long_context": "general",
+    "math": "general",
+    "safety": "general"
+  },
   "fallback_source": "general",
-  "router_dirs": [],
+  "router_dirs": [
+    "results/moe_routing_probe/qwen3_30b_general_vs_code"
+  ],
   "expert_weight_csvs": [],
-  "input_summaries": [],
+  "expert_weight_category": null,
+  "input_summaries": [
+    {
+      "router_dir": "results/moe_routing_probe/qwen3_30b_general_vs_code",
+      "expert_load_rows": 0,
+      "status": "missing_or_empty"
+    }
+  ],
   "routing_probe_plan_rows": 1,
   "routing_probe_plan": [
     {
@@ -37,49 +55,49 @@
       "category": "agentic_code",
       "prompt_count": 1,
       "mapped_source": "code",
-      "mapping_kind": "category_heuristic"
+      "mapping_kind": "explicit"
     },
     {
       "category": "code",
       "prompt_count": 2,
       "mapped_source": "code",
-      "mapping_kind": "source_name_match"
+      "mapping_kind": "explicit"
     },
     {
       "category": "finance",
       "prompt_count": 1,
       "mapped_source": "general",
-      "mapping_kind": "fallback"
+      "mapping_kind": "explicit"
     },
     {
       "category": "general",
       "prompt_count": 2,
       "mapped_source": "general",
-      "mapping_kind": "source_name_match"
+      "mapping_kind": "explicit"
     },
     {
       "category": "legal",
       "prompt_count": 1,
       "mapped_source": "general",
-      "mapping_kind": "fallback"
+      "mapping_kind": "explicit"
     },
     {
       "category": "long_context",
       "prompt_count": 1,
       "mapped_source": "general",
-      "mapping_kind": "fallback"
+      "mapping_kind": "explicit"
     },
     {
       "category": "math",
       "prompt_count": 2,
       "mapped_source": "general",
-      "mapping_kind": "fallback"
+      "mapping_kind": "explicit"
     },
     {
       "category": "safety",
       "prompt_count": 2,
       "mapped_source": "general",
-      "mapping_kind": "fallback"
+      "mapping_kind": "explicit"
     }
   ],
   "prompt_pack": "prompts/qwen_moe_route_probe_prompts.jsonl",
@@ -95,13 +113,13 @@
   "expert_rule_count": 0,
   "tensor_rule_count": 1,
   "topology": {
-    "name": "qwen3_5_35b_a3b",
+    "name": "qwen3_6_35b_a3b",
     "model_type": "qwen3_5_moe",
     "num_hidden_layers": 40,
     "num_experts": 256,
     "num_experts_per_tok": 8,
     "active_expert_fraction_per_token": 0.03125,
-    "weights_available": false
+    "weights_available": true
   },
   "same_shape_constraint": "Tensor rules only change weights inside the existing model structure; expert count, router shape, tokenizer, and layer count stay fixed.",
   "outputs": {

@@ -5,8 +5,9 @@
 - Recipe status: `waiting_for_routing_probe`
 - Recipe kind: `route_frequency`
 - Sources: `general, code`
-- Router dirs: `none`
+- Router dirs: `results/moe_routing_probe/qwen3_30b_general_vs_code`
 - Expert weight CSVs: `none`
+- Expert weight category filter: `none`
 - Expert tensor rules: `0`
 - Tensor rule file: `results/moe_route_weight_recipes/tensor_rules.txt`
 
@@ -23,9 +24,9 @@ writer_weight[source, layer, expert] = (1 - anchor_floor) * normalize(route_mass
 
 ## 拓扑线索
 
-- MoE model: `qwen3_5_35b_a3b` / `qwen3_5_moe`
+- MoE model: `qwen3_6_35b_a3b` / `qwen3_5_moe`
 - Experts: `256`；active per token: `8`；active fraction: `0.03125`
-- Local weights available: `False`
+- Local weights available: `True`
 
 ## 当前专家权重摘要
 
@@ -35,14 +36,14 @@ writer_weight[source, layer, expert] = (1 - anchor_floor) * normalize(route_mass
 
 | category | prompts | mapped source | mapping |
 | --- | ---: | --- | --- |
-| agentic_code | 1 | code | category_heuristic |
-| code | 2 | code | source_name_match |
-| finance | 1 | general | fallback |
-| general | 2 | general | source_name_match |
-| legal | 1 | general | fallback |
-| long_context | 1 | general | fallback |
-| math | 2 | general | fallback |
-| safety | 2 | general | fallback |
+| agentic_code | 1 | code | explicit |
+| code | 2 | code | explicit |
+| finance | 1 | general | explicit |
+| general | 2 | general | explicit |
+| legal | 1 | general | explicit |
+| long_context | 1 | general | explicit |
+| math | 2 | general | explicit |
+| safety | 2 | general | explicit |
 
 ## Routing Probe Plan
 

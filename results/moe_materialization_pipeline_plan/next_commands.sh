@@ -4,13 +4,13 @@ set -euo pipefail
 # target_model_selection [complete]
 python scripts/build_qwen_target_model_registry.py
 
-# exact_moe_topology [partial_config_only]
+# exact_moe_topology [partial_one_real_source_header]
 python scripts/inspect_checkpoint_topology.py --model NAME=MODEL_PATH --output-dir results/checkpoint_topology_inspect
 
 # real_moe_routing_probe [ready_to_run]
 python scripts/probe_moe_routing.py --model Qwen/Qwen3-30B-A3B --compare-model Qwen/Qwen3-Coder-30B-A3B-Instruct --prompts prompts/qwen_moe_route_probe_prompts.jsonl --device-map auto --dtype bfloat16 --max-length 768 --use-chat-template --output-dir results/moe_routing_probe/qwen3_30b_general_vs_code
 
-# routing_readiness_gate [waiting_for_routing_probe]
+# routing_readiness_gate [missing_router_summary]
 PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code
 
 # route_weight_tensor_rules [waiting_for_routing_probe]

@@ -1,9 +1,9 @@
 category,prompt_count,mapped_source,mapping_kind
-agentic_code,1,code,category_heuristic
-code,2,code,source_name_match
-finance,1,general,fallback
-general,2,general,source_name_match
-legal,1,general,fallback
-long_context,1,general,fallback
-math,2,general,fallback
-safety,2,general,fallback
+agentic_code,1,code,explicit
+code,2,code,explicit
+finance,1,general,explicit
+general,2,general,explicit
+legal,1,general,explicit
+long_context,1,general,explicit
+math,2,general,explicit
+safety,2,general,explicit

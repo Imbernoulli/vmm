@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 42709,
+      "bytes": 43029,
       "kind": "document",
       "path": "README.md",
-      "sha256": "897fd5b83fc2b7c53ff283f394da127db7e23719c33a8bc6091ab1a8f3c0aacb"
+      "sha256": "7888be9c61a5245c3fa286ce8d4397a0dc31c98f68bb3e9f92557b3c35bfb6b5"
     },
     {
       "bytes": 33211,
@@ -127,40 +127,58 @@
       "sha256": "31a76fd7607f1f87c4b956073446d0fee2824cfc0bb1d0330622297ea0b943d5"
     },
     {
-      "bytes": 310,
+      "bytes": 311,
       "kind": "data",
       "path": "results/checkpoint_topology_inspect/compatibility.csv",
-      "sha256": "c995599c67c4a106a09721956795fd0b774291b48e72e685463b907eec19b973"
+      "sha256": "375b8b555b6f493c5a64491bc0b44c0b1f38654d9d7a2abb188b704775109ea9"
     },
     {
-      "bytes": 33,
+      "bytes": 53,
       "kind": "data",
-      "path": "results/checkpoint_topology_inspect/qwen3_0_6b_dense_experts.csv",
-      "sha256": "005edaab80c3276003c48d99ce1e7ce04bc57aca920e9906a815f474ed9e7de7"
+      "path": "results/checkpoint_topology_inspect/qwen2_5_0_5b_dense_experts.csv",
+      "sha256": "427b99e2e2b5c39e45438de5ca232b1bfcc25b79a95a82199fcb370c44dd792f"
     },
     {
-      "bytes": 175,
+      "bytes": 143,
       "kind": "data",
-      "path": "results/checkpoint_topology_inspect/qwen3_0_6b_dense_groups.csv",
-      "sha256": "cd58d434314767ba131a30f8738982598adc935305bf6fa4ab68255b6e859fa2"
+      "path": "results/checkpoint_topology_inspect/qwen2_5_0_5b_dense_groups.csv",
+      "sha256": "e5e420903e8e1d589b90078e8f9740aee44e1a6f607ea04cd6658a40cf2d03ed"
     },
     {
-      "bytes": 32004,
+      "bytes": 29183,
       "kind": "data",
-      "path": "results/checkpoint_topology_inspect/qwen3_0_6b_dense_tensors.csv",
-      "sha256": "10bb2493bc152b6eb147e761c53112c04eb46d4baca49964258346792caca0dc"
+      "path": "results/checkpoint_topology_inspect/qwen2_5_0_5b_dense_tensors.csv",
+      "sha256": "8b002def07b85744624e7335e4f19b7f49ce81ed7716ac42538f77ead6f994d1"
     },
     {
-      "bytes": 1753,
+      "bytes": 1684,
+      "kind": "data",
+      "path": "results/checkpoint_topology_inspect/qwen3_6_35b_a3b_experts.csv",
+      "sha256": "3f89160c0cad55b3d5c6aa0ffdd76f523bb3f07a7d8164c64fc18d5ea4b7f087"
+    },
+    {
+      "bytes": 316,
+      "kind": "data",
+      "path": "results/checkpoint_topology_inspect/qwen3_6_35b_a3b_groups.csv",
+      "sha256": "64f04d41b170116565f8af0849bed9c0018394714f95a9a94f3f84631064c43b"
+    },
+    {
+      "bytes": 135380,
+      "kind": "data",
+      "path": "results/checkpoint_topology_inspect/qwen3_6_35b_a3b_tensors.csv",
+      "sha256": "535af4c04a054e5a4ea90e38b76b55fdb3973989a3fce16eb8686046d95a1086"
+    },
+    {
+      "bytes": 1975,
       "kind": "document",
       "path": "results/checkpoint_topology_inspect/report.md",
-      "sha256": "fcb69d62d34d3dc9256b2fdab5918e60c5280dc9462ec17ea942541745077d6c"
+      "sha256": "f9b0fdccd1cbde8a5c28691ccdfd6bc19e88199611d3b48a59eec390d18c4e35"
     },
     {
-      "bytes": 3914,
+      "bytes": 5319,
       "kind": "data",
       "path": "results/checkpoint_topology_inspect/summary.json",
-      "sha256": "422822ac08c929f677835230ba0ea0a021addd117eb71f49661d4756f929b57b"
+      "sha256": "39d5fbc9413679d36760b24dcc87e62efaf484dfd5d5720041f82c6555b7f85a"
     },
     {
       "bytes": 262391,
@@ -811,34 +829,34 @@
       "sha256": "12aa1e52b9d9bae40f18ee77f515827e89f73506f4c1edb7ca9f546e9977abc0"
     },
     {
-      "bytes": 5179,
+      "bytes": 5238,
       "kind": "document",
       "path": "results/moe_materialization_pipeline_plan/report.md",
-      "sha256": "b6e1ab6162e0bd1d4bf78da3ddfcb5a0ae77c0e29051c0d6541aac9579f7c44a"
+      "sha256": "c4edfae155861321693a5105d37ee956be9d98a52497c188301ddeb5bc606927"
     },
     {
-      "bytes": 4592,
+      "bytes": 4649,
       "kind": "data",
       "path": "results/moe_materialization_pipeline_plan/stage_gates.csv",
-      "sha256": "294541e637e88bae204b5c9e68c564d8c8b473dd9f4af5bd057a6c73ee4cf76c"
+      "sha256": "174369491463340b0157012428382df3f082c104909a538b788e6c2bc1660c5e"
     },
     {
       "bytes": 799,
       "kind": "data",
       "path": "results/moe_materialization_pipeline_plan/summary.json",
-      "sha256": "3a51c0815470538ef9dde4b48c8243d7ddb5c3b45d3b0ce496054d1379ec8120"
+      "sha256": "a3542def94a483271ae3fc92045bd35cabeec6ee1507bf68eebc0b2fae646b92"
     },
     {
-      "bytes": 288,
+      "bytes": 260,
       "kind": "data",
       "path": "results/moe_route_weight_recipes/category_source_plan.csv",
-      "sha256": "01d13ac75a6d33e19d9eac4c36f66b63daab0d044636f52fa806c13b51e0b914"
+      "sha256": "b6e7b16789b0920550c46a554f4d586ebf0c04f50b1410810ecb34d2ac5aef0c"
     },
     {
-      "bytes": 3801,
+      "bytes": 3859,
       "kind": "document",
       "path": "results/moe_route_weight_recipes/report.md",
-      "sha256": "a28dc680de6f23e7a7e665271883f89fc288fc302a369569046c180ba2fae693"
+      "sha256": "07e2211a69de3599f54530ead871b2a9d1e2a3427c7f0dad1c9c6c16e8a83cf4"
     },
     {
       "bytes": 1298,
@@ -859,10 +877,10 @@
       "sha256": "8d7d0b96684546dc5021bdccc43cc95f23d1c4be1df36db09d481c4b6295eb55"
     },
     {
-      "bytes": 4373,
+      "bytes": 4798,
       "kind": "data",
       "path": "results/moe_route_weight_recipes/summary.json",
-      "sha256": "6f1049c896f4220d3a08978230d7fd80e26c67f3ba54881e85b8058cef4a3ef2"
+      "sha256": "58dbddc74bcdd4d29fa642faf150bf84b640a272fe4f08c10f782ca02af23d0f"
     },
     {
       "bytes": 196,
@@ -973,10 +991,10 @@
       "sha256": "92905e2f04bcf8692ea6356a1a6db41774fc8347d93962a25965af8eb2c9f49b"
     },
     {
-      "bytes": 2708,
+      "bytes": 2751,
       "kind": "document",
       "path": "results/moe_routing_readiness/report.md",
-      "sha256": "91932dd3a82833da3176f3feca34cde4973810e9218bd7b560d5e3865aacf3c0"
+      "sha256": "3ebd5f0da2433d1b1ad903778fb50327090990d60e32760c563d95660849ed66"
     },
     {
       "bytes": 215,
@@ -985,10 +1003,10 @@
       "sha256": "ae36e0f85f634b2230dd5dc0a51f0301856b8a9edb4faaf1019999218755b665"
     },
     {
-      "bytes": 1352,
+      "bytes": 1409,
       "kind": "data",
       "path": "results/moe_routing_readiness/summary.json",
-      "sha256": "588a01b897f2ab96c9ca62cbc5679e16894ea2424b9b4f56d8c330895bbd2702"
+      "sha256": "3416459a58ba68aaba7766a431ef5aee30c9b4ff672a162734d66ad697b3559c"
     },
     {
       "bytes": 2170,
@@ -1102,7 +1120,7 @@
       "bytes": 1192,
       "kind": "data",
       "path": "results/probe_gated_unified_average_plan/summary.json",
-      "sha256": "200597da3794944d190cf5a4da20c0ba2573773bb77e6d0f5c0a130163087ab0"
+      "sha256": "4f4bbaf75c1bd45496876d864ac3f330a4412442e93ed081072b4678648a3af3"
     },
     {
       "bytes": 4952,
@@ -1507,16 +1525,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 386899,
+      "bytes": 391285,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "72481afea21e17220769fcf4692d6802da7928e0ca579d5c256814d1470f0fc0"
+      "sha256": "fbb2c3d62c4ce7151f605391d5880e3ce257ea259dce05018c6d01d9f8713bca"
     },
     {
-      "bytes": 24884,
+      "bytes": 25070,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "227ffc6c19e16325163b62431334b6164179b81c55a11559db866f1ffd4e0f89"
+      "sha256": "a15d1eb0272af6e8c1e5d0d9bd662b1ff0b8f30fbeeb05919ae35c653d633b12"
     },
     {
       "bytes": 288,
@@ -2449,10 +2467,10 @@
       "sha256": "9c2a30e0309c2d8bb0bd36e7224f2ab67737d31c3c1a3b903c2104eca545e206"
     },
     {
-      "bytes": 16783,
+      "bytes": 17064,
       "kind": "code",
       "path": "scripts/build_moe_materialization_pipeline_plan.py",
-      "sha256": "07d46e51430cb5c95ab4afef6b0340e6eaf7291adf1b913750d7045b1d95ddba"
+      "sha256": "3dfe98e8a62c92eceeaba15e423ea88a99a8f0d570b8587b4071828c98077505"
     },
     {
       "bytes": 36398,
@@ -2503,16 +2521,16 @@
       "sha256": "0b0e4be7ec51f0afb74dfdee6e3d8b217da9aac4d965a170bea36c89f1b46abb"
     },
     {
-      "bytes": 154929,
+      "bytes": 156591,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "73ac4a6e2b7ec3f00e3b564b181ad306427914f5b04cefb22331bc287c5edb98"
+      "sha256": "b0d2e068af9ac8dcd706610d8cf05be34e829dbf92facbd92bd217c1b492ca29"
     },
     {
-      "bytes": 17809,
+      "bytes": 19422,
       "kind": "code",
       "path": "scripts/inspect_checkpoint_topology.py",
-      "sha256": "dc99287f52592e28c0d1427a120bf0e74c5322202b3eb716b206a24ceed5e169"
+      "sha256": "0c439772685d64f1707671b0d906058d7e350c172e2c9d30942253e558c34ebc"
     },
     {
       "bytes": 23794,
@@ -2671,7 +2689,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T16:01:56.283817+00:00",
+  "generated_at": "2026-06-19T16:12:38.986450+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"
