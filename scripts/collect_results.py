@@ -107,6 +107,12 @@ def collect_artifacts() -> list[dict[str, Any]]:
         REPO_ROOT / "results",
     ]
     suffixes = {".py", ".md", ".csv", ".json", ".jsonl", ".txt", ".png", ".html"}
+    excluded_files = {
+        "scripts/fp_moe_real_probe.py",  # incomplete: current OLMoE run did not identify MoE layers
+    }
+    excluded_prefixes = {
+        "results/fp_moe_real_probe/",
+    }
     files: list[Path] = []
     for root in roots:
         if not root.exists():
@@ -120,6 +126,8 @@ def collect_artifacts() -> list[dict[str, Any]]:
     artifacts = []
     for path in sorted(set(files)):
         relative = rel(path)
+        if relative in excluded_files or any(relative.startswith(prefix) for prefix in excluded_prefixes):
+            continue
         if "/checkpoints/" in relative or relative.endswith(".pt"):
             continue
         if relative.endswith("/predictions.csv"):
@@ -430,6 +438,27 @@ def summarize_qwen_multi_expert() -> dict[str, Any]:
             rel("results/qwen_multi_expert_merge/figures/diagonal_path.png"),
             rel("results/qwen_multi_expert_merge/figures/pairwise_conflict.png"),
         ],
+    }
+
+
+def summarize_fp_curvature_law() -> dict[str, Any]:
+    root = repo_path("results/fp_curvature_law")
+    summary = read_json(root / "summary.json")
+    law = summary.get("curvature_law", {})
+    merges = summary.get("merges", {})
+    best_merge_name = min(merges, key=lambda k: merges[k]["worst"]) if merges else None
+    return {
+        "summary": summary,
+        "geometry": summary.get("geometry", {}),
+        "curvature_law": law,
+        "best_merge_name": best_merge_name,
+        "best_merge": merges.get(best_merge_name, {}) if best_merge_name else {},
+        "uniform": merges.get("uniform", {}),
+        "fisher": merges.get("fisher", {}),
+        "top_interference_tensor": (summary.get("top_interference_tensors") or [{}])[0],
+        "report": rel(root / "report.md"),
+        "figure": rel(root / "curvature_law.png"),
+        "summary_path": rel(root / "summary.json"),
     }
 
 
@@ -1154,6 +1183,43 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
     }
 
 
+def summarize_fp_moe_mechanism() -> dict[str, Any]:
+    root = repo_path("results/fp_moe_mechanism")
+    summary = read_json(root / "summary.json")
+    methods = read_csv(root / "method_metrics.csv")
+    mechanisms = read_csv(root / "mechanism_deltas.csv")
+
+    mechanism_by_name = {
+        str(row["mechanism"]): clean_row(row) for _, row in mechanisms.iterrows()
+    }
+    return {
+        "summary": summary,
+        "best_merge_method": summary.get("best_merge_method"),
+        "best_overall_method": summary.get("best_overall_method"),
+        "gauge_perm_applied_to_B": summary.get("gauge_perm_applied_to_B"),
+        "gauge_equivalence_mse": maybe_float(summary.get("gauge_equivalence_mse")),
+        "hungarian_perm": summary.get("hungarian_perm"),
+        "router_agreement_raw": maybe_float(summary.get("router_agreement_raw")),
+        "router_agreement_aligned": maybe_float(summary.get("router_agreement_aligned")),
+        "uniform_same_name": find_method(methods, "uniform_same_name"),
+        "uniform_same_name_routercal": find_method(methods, "uniform_same_name_routercal"),
+        "uniform_aligned": find_method(methods, "uniform_aligned"),
+        "uniform_aligned_routercal": find_method(methods, "uniform_aligned_routercal"),
+        "fisher_aligned": find_method(methods, "fisher_aligned"),
+        "fisher_aligned_routercal": find_method(methods, "fisher_aligned_routercal"),
+        "base": find_method(methods, "base"),
+        "expert_identity_alignment": mechanism_by_name.get("expert_identity_alignment", {}),
+        "router_calibration_after_alignment": mechanism_by_name.get("router_calibration_after_alignment", {}),
+        "route_conditioned_fisher": mechanism_by_name.get("route_conditioned_fisher", {}),
+        "router_cannot_fix_misaligned_experts": mechanism_by_name.get("router_cannot_fix_misaligned_experts", {}),
+        "mechanism_rows": [clean_row(row) for _, row in mechanisms.iterrows()],
+        "report": rel(root / "report.md"),
+        "method_metrics": rel(root / "method_metrics.csv"),
+        "mechanism_deltas": rel(root / "mechanism_deltas.csv"),
+        "figure": rel(root / "moe_mechanism.png"),
+    }
+
+
 def summarize_toy_moe_routing_readiness() -> dict[str, Any]:
     summary = read_json("results/toy_moe_routing_readiness/summary.json")
     router_readiness = read_csv("results/toy_moe_routing_readiness/router_readiness.csv")
@@ -1729,6 +1795,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "Qwen2.5-0.5B base, Qwen2.5-0.5B-Instruct, and Qwen2.5-Coder-0.5B-Instruct are evaluated in a two-expert merge plane.",
         },
         {
+            "item": "Dense curvature-displacement mechanism probe",
+            "status": "complete",
+            "evidence": "results/fp_curvature_law/report.md compares diagonal-Fisher second-order midpoint predictions against real Qwen instruct/coder interpolation loss.",
+        },
+        {
             "item": "Formal LLM benchmark slices",
             "status": "complete",
             "evidence": "Representative Qwen2.5-1.5B benchmark slices cover MMLU, GSM8K, HumanEval canonical-solution NLL, and BeaverTails safety/refusal NLL.",
@@ -1909,6 +1980,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/toy_moe_merge/report.md runs a small same-shape MoE averaging experiment showing expert-index mismatch and expert-matched/router-calibrated fixes.",
         },
         {
+            "item": "First-principles MoE mechanism probe",
+            "status": "complete",
+            "evidence": "results/fp_moe_mechanism/report.md isolates function-preserving expert permutation, expert alignment, router calibration, and Fisher ablations with real forward/backward passes.",
+        },
+        {
             "item": "Toy MoE multi-method routing readiness",
             "status": "complete",
             "evidence": "results/toy_moe_routing_readiness/report.md applies the generic readiness gate to toy MoE methods and flags all-weight routing drift separately from expert-matched/route-aware variants.",
@@ -1945,6 +2021,7 @@ def build_summary() -> dict[str, Any]:
         "qwen_humaneval_nll_slice": summarize_qwen_humaneval(),
         "qwen_safety_refusal_slice": summarize_qwen_safety(),
         "qwen_multi_expert_merge": summarize_qwen_multi_expert(),
+        "fp_curvature_law": summarize_fp_curvature_law(),
         "qwen_probe_smoke": summarize_qwen_probe_smoke(),
         "average_decision_report": summarize_average_decision_report(),
         "model_averaging_literature_review": summarize_model_averaging_literature_review(),
@@ -1968,6 +2045,7 @@ def build_summary() -> dict[str, Any]:
         "moe_confidence_blended_combined_recipe": summarize_moe_confidence_blended_combined_recipe(),
         "moe_routing_readiness": summarize_moe_routing_readiness(),
         "toy_moe_merge": summarize_toy_moe_merge(),
+        "fp_moe_mechanism": summarize_fp_moe_mechanism(),
         "toy_moe_routing_readiness": summarize_toy_moe_routing_readiness(),
         "toy_moe_method_selection": summarize_toy_moe_method_selection(),
         "toy_moe_expert_remap_plan": summarize_toy_moe_expert_remap_plan(),
@@ -2024,6 +2102,8 @@ def build_summary() -> dict[str, Any]:
             "PYTHONPATH=src python scripts/run_qwen_humaneval_nll_slice.py --output-dir results/qwen_humaneval_nll_slice",
             "PYTHONPATH=src python scripts/run_qwen_safety_refusal_slice.py --output-dir results/qwen_safety_refusal_slice",
             "PYTHONPATH=src python scripts/run_qwen_multi_expert_merge.py --output-dir results/qwen_multi_expert_merge",
+            "python scripts/fp_curvature_law.py --out results/fp_curvature_law",
+            "python scripts/fp_moe_mechanism.py --out results/fp_moe_mechanism --base-steps 700 --ft-steps 500",
             "PYTHONPATH=src python scripts/run_toy_moe_merge.py --output-dir results/toy_moe_merge --device cpu",
             "PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir results/toy_moe_merge --output-dir results/toy_moe_routing_readiness --topology-summary ''",
             "PYTHONPATH=src python scripts/select_moe_merge_method.py",
@@ -2096,6 +2176,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     safety = exp["qwen_safety_refusal_slice"]
     qwen_multi = exp["qwen_multi_expert_merge"]
     qwen_multi_conflict = qwen_multi["instruct_coder_conflict"] or {}
+    fp_curvature = exp["fp_curvature_law"]
     average_decision = exp["average_decision_report"]
     literature_review = exp["model_averaging_literature_review"]
     qwen_registry = exp["qwen_target_model_registry"]
@@ -2119,6 +2200,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     confidence_blended_combined_recipe = exp["moe_confidence_blended_combined_recipe"]
     routing_readiness = exp["moe_routing_readiness"]
     toy_moe = exp["toy_moe_merge"]
+    fp_moe = exp["fp_moe_mechanism"]
     selected_unified_capacity = toy_moe.get("unified_moe_capacity_sweep_selected") or {}
     selected_unified_output_projection_capacity = (
         toy_moe.get("unified_output_projection_moe_capacity_sweep_selected") or {}
@@ -2277,6 +2359,42 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| Qwen multi-expert | instruct/coder weighted conflict | "
                 f"{fmt(qwen_multi_conflict.get('weighted_conflict'))} |"
+            ),
+            (
+                "| dense curvature law | general actual / predicted degradation | "
+                f"{fmt(fp_curvature['curvature_law'].get('ratio_general'))} |"
+            ),
+            (
+                "| dense curvature law | code actual / predicted degradation | "
+                f"{fmt(fp_curvature['curvature_law'].get('ratio_code'))} |"
+            ),
+            (
+                "| dense curvature law | uniform / Fisher worst NLL | "
+                f"{fmt(fp_curvature['uniform'].get('worst'))} / {fmt(fp_curvature['fisher'].get('worst'))} |"
+            ),
+            (
+                "| dense curvature law | top interference tensor | "
+                f"{fp_curvature['top_interference_tensor'].get('name')} |"
+            ),
+            (
+                "| first-principles MoE mechanism | gauge-equivalent B MSE | "
+                f"{fp_moe['gauge_equivalence_mse']:.2e} |"
+            ),
+            (
+                "| first-principles MoE mechanism | router agreement raw to aligned | "
+                f"{fmt(fp_moe['router_agreement_raw'])} to {fmt(fp_moe['router_agreement_aligned'])} |"
+            ),
+            (
+                "| first-principles MoE mechanism | same-name to aligned worst loss | "
+                f"{fmt(fp_moe['uniform_same_name']['worst'])} to {fmt(fp_moe['uniform_aligned']['worst'])} |"
+            ),
+            (
+                "| first-principles MoE mechanism | aligned + router-calibrated worst loss | "
+                f"{fmt(fp_moe['uniform_aligned_routercal']['worst'])} |"
+            ),
+            (
+                "| first-principles MoE mechanism | Fisher worst-loss reduction after alignment | "
+                f"{fmt(fp_moe['route_conditioned_fisher'].get('worst_loss_reduction'))} |"
             ),
             (
                 "| toy MoE route-aware merge | all-weight average worst accuracy | "

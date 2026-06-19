@@ -1,0 +1,6 @@
+mechanism,baseline,intervention,worst_loss_reduction,interpretation
+expert_identity_alignment,uniform_same_name,uniform_aligned,0.38530339300632477,same tensor name is not a stable expert identity after a legal MoE gauge permutation
+router_calibration_after_alignment,uniform_aligned,uniform_aligned_routercal,0.015671946108341217,"after experts move, the top-k router boundary must be re-fit to the merged experts"
+route_conditioned_fisher,uniform_aligned,fisher_aligned,-0.026747390627861023,curvature weighting is not automatically safe; it must pass a held-out gate
+router_calibration_after_fisher,fisher_aligned,fisher_aligned_routercal,0.006827712059020996,router calibration can repair some dispatch drift even when expert weighting is imperfect
+router_cannot_fix_misaligned_experts,uniform_same_name,uniform_same_name_routercal,0.1811862289905548,router-only fitting is limited if the averaged experts themselves mix unrelated functions

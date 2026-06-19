@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T16:59:04.089426+00:00`
+Generated at: `2026-06-19T17:20:25.496468+00:00`
 
 ## Coverage
 
-Complete: `51`; partial: `1`; missing: `0`.
+Complete: `53`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -20,6 +20,7 @@ Complete: `51`; partial: `1`; missing: `0`.
 | Qwen-compatible LLM probe | complete | Safetensors probe and same-file smoke test. |
 | Real Qwen LLM path sweep | complete | Qwen2.5-1.5B base-to-instruct path is evaluated with fixed NLL prompts plus GSM8K, MMLU, and HumanEval benchmark slices. |
 | Multi-expert LLM merge | complete | Qwen2.5-0.5B base, Qwen2.5-0.5B-Instruct, and Qwen2.5-Coder-0.5B-Instruct are evaluated in a two-expert merge plane. |
+| Dense curvature-displacement mechanism probe | complete | results/fp_curvature_law/report.md compares diagonal-Fisher second-order midpoint predictions against real Qwen instruct/coder interpolation loss. |
 | Formal LLM benchmark slices | complete | Representative Qwen2.5-1.5B benchmark slices cover MMLU, GSM8K, HumanEval canonical-solution NLL, and BeaverTails safety/refusal NLL. |
 | vLLM hosted downstream evaluation | partial | scripts/run_vllm_downstream_eval.py can build a served-model eval plan from the Qwen target registry; the generic registry run remains endpoint_unavailable, while checkpoint-specific hosted eval is tracked separately. |
 | Materialized checkpoint vLLM hosted eval | complete | results/vllm_checkpoint_eval/qwen_0_5b_instruct_coder_uniform_average/report.md contains a real vLLM-hosted GSM8K/MMLU/safety/HumanEval compile eval for the materialized Qwen2.5-0.5B uniform-average checkpoint. |
@@ -56,6 +57,7 @@ Complete: `51`; partial: `1`; missing: `0`.
 | MoE routing probe CLI | complete | scripts/probe_moe_routing.py captures MoE router hooks and writes router_summary.csv, expert_load.csv, optional route_overlap.csv, summary.json, and report.md; results/moe_routing_probe_smoke/report.md validates the contract on a tiny local MoE. |
 | MoE routing probe smoke | complete | results/moe_routing_probe_smoke/report.md proves the routing probe captures two tiny MoE gates and produces router, expert-load, token-route, comparison, and route-overlap CSVs. |
 | Toy MoE route-aware merge | complete | results/toy_moe_merge/report.md runs a small same-shape MoE averaging experiment showing expert-index mismatch and expert-matched/router-calibrated fixes. |
+| First-principles MoE mechanism probe | complete | results/fp_moe_mechanism/report.md isolates function-preserving expert permutation, expert alignment, router calibration, and Fisher ablations with real forward/backward passes. |
 | Toy MoE multi-method routing readiness | complete | results/toy_moe_routing_readiness/report.md applies the generic readiness gate to toy MoE methods and flags all-weight routing drift separately from expert-matched/route-aware variants. |
 | Toy MoE merge method selection | complete | results/toy_moe_method_selection/report.md combines method metrics, routing readiness, and sparse capacity overflow into materialization gates plus a hard-top2/overflow Pareto frontier. |
 | Toy MoE expert remap plan | complete | results/toy_moe_expert_remap_plan/report.md turns expert-output matching into source tensor alias rules for same-shape checkpoint materialization. |
@@ -91,6 +93,15 @@ Complete: `51`; partial: `1`; missing: `0`.
 | Qwen multi-expert | best average-NLL method | instruct_expert (3.009) |
 | Qwen multi-expert | linear-average avg / worst NLL | 5.591 / 9.553 |
 | Qwen multi-expert | instruct/coder weighted conflict | 0.386 |
+| dense curvature law | general actual / predicted degradation | 42.860 |
+| dense curvature law | code actual / predicted degradation | 26.658 |
+| dense curvature law | uniform / Fisher worst NLL | 5.911 / 5.249 |
+| dense curvature law | top interference tensor | model.embed_tokens.weight |
+| first-principles MoE mechanism | gauge-equivalent B MSE | 7.66e-16 |
+| first-principles MoE mechanism | router agreement raw to aligned | 0.035 to 0.795 |
+| first-principles MoE mechanism | same-name to aligned worst loss | 0.511 to 0.125 |
+| first-principles MoE mechanism | aligned + router-calibrated worst loss | 0.110 |
+| first-principles MoE mechanism | Fisher worst-loss reduction after alignment | -0.027 |
 | toy MoE route-aware merge | all-weight average worst accuracy | 0.545 |
 | toy MoE route-aware merge | expert-matched average worst accuracy | 0.750 |
 | toy MoE connectivity | best path / barrier | direct_matched_general_to_code / 0.000 |

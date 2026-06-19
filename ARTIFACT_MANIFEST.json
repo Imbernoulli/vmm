@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 45566,
+      "bytes": 47337,
       "kind": "document",
       "path": "README.md",
-      "sha256": "dbf982cb1d38baedeef844e4b314433759eb05bc4ea89099724843b6752763bb"
+      "sha256": "962df636ca55c8dc689f66028a04073ffe9f10dc5ca844b35e25785f8028f554"
     },
     {
       "bytes": 33211,
@@ -683,6 +683,84 @@
       "kind": "figure",
       "path": "results/figures_3d/qwen_multi_worst_nll_surface.png",
       "sha256": "c9b9cd4e8dcec38c119502d6e2bd10830a6d164c9c27d786baeba0fe4e6843dd"
+    },
+    {
+      "bytes": 105188,
+      "kind": "figure",
+      "path": "results/fp_curvature_law/curvature_law.png",
+      "sha256": "1a2e90b48a15694e9f324b6c31c65151b675ea0785902a7be847dce040e94050"
+    },
+    {
+      "bytes": 1691,
+      "kind": "document",
+      "path": "results/fp_curvature_law/report.md",
+      "sha256": "ceaa9edd9201f21ddd7ff28546da3cd51e4f63f18f58cd16b20e30730e9204ed"
+    },
+    {
+      "bytes": 7497,
+      "kind": "data",
+      "path": "results/fp_curvature_law/summary.json",
+      "sha256": "924f541a6c81b3faa952372417bb50bcc71e6b0f367afadc94582f3d69a53fda"
+    },
+    {
+      "bytes": 945,
+      "kind": "data",
+      "path": "results/fp_moe_mechanism/mechanism_deltas.csv",
+      "sha256": "354ab8cfeaa8179c4ff02d7e6b7c048eb266f4117f613e7fb6d6d4c1541ae8ca"
+    },
+    {
+      "bytes": 1274,
+      "kind": "data",
+      "path": "results/fp_moe_mechanism/method_metrics.csv",
+      "sha256": "ff74551f92c46f5ceca9c530d31b754b5175ed1dc7f7f444ebb6c9d9cc27eca9"
+    },
+    {
+      "bytes": 109788,
+      "kind": "figure",
+      "path": "results/fp_moe_mechanism/moe_mechanism.png",
+      "sha256": "0dc498e8d57a0c053000d860e662ed868081f68744d456e7c7bc855b08bc846f"
+    },
+    {
+      "bytes": 2336,
+      "kind": "document",
+      "path": "results/fp_moe_mechanism/report.md",
+      "sha256": "5842e6db1c32092b8e1bc282346ac67e7daaeccf1f6966af29a39e5d14415fb0"
+    },
+    {
+      "bytes": 5136,
+      "kind": "data",
+      "path": "results/fp_moe_mechanism/summary.json",
+      "sha256": "d1191622d3fc583602430ce9111867693478ccc7de708e2200ad4a8c342c5c1b"
+    },
+    {
+      "bytes": 933,
+      "kind": "data",
+      "path": "results/fp_moe_mechanism_identity/mechanism_deltas.csv",
+      "sha256": "0aae9c60c2ea3ffb5032fcbcc28d257ee9d3239263c67effc05f41edd6591411"
+    },
+    {
+      "bytes": 1303,
+      "kind": "data",
+      "path": "results/fp_moe_mechanism_identity/method_metrics.csv",
+      "sha256": "ee93dcc4cd9e2b687be8aff06327b3d911e03d43965d89fa4830997a0a447fe1"
+    },
+    {
+      "bytes": 116953,
+      "kind": "figure",
+      "path": "results/fp_moe_mechanism_identity/moe_mechanism.png",
+      "sha256": "8f673820b63769ef3f492054bb967aa55b69a75ab754bcce7fca3b4b26dfb6f5"
+    },
+    {
+      "bytes": 2347,
+      "kind": "document",
+      "path": "results/fp_moe_mechanism_identity/report.md",
+      "sha256": "25b90b988b48e235bc77fd3bf6f7b9d6e28ef2114d48c5dff8ce5d1430d92ab5"
+    },
+    {
+      "bytes": 5160,
+      "kind": "data",
+      "path": "results/fp_moe_mechanism_identity/summary.json",
+      "sha256": "bb456f2bcb942b1c330296036f3aba8981360f124003e8e7dd3c1a0a06d4754c"
     },
     {
       "bytes": 3046,
@@ -1759,16 +1837,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 457612,
+      "bytes": 481235,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "2a3f3eea49d9f82c00ab84ef2e4eee470b7f90d143b80f8e89e04497f0c0c2ff"
+      "sha256": "41b478ab4b867f5b5c6fd6ece6ae73fc3d5e4edafb3dd7e6e8b1026e9273385f"
     },
     {
-      "bytes": 26785,
+      "bytes": 27935,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "77a9342593630f52099ca59f33d4417abc519a082d6347174a5a835d380ed7ec"
+      "sha256": "1e1e88f6b1f560f0d93de508680a8226859653e57cf6428d7da1ecf0633358c6"
     },
     {
       "bytes": 288,
@@ -2845,10 +2923,22 @@
       "sha256": "0b0e4be7ec51f0afb74dfdee6e3d8b217da9aac4d965a170bea36c89f1b46abb"
     },
     {
-      "bytes": 168935,
+      "bytes": 175126,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "d53b0855ad5107eb5e4446212373b90bf662ed0186de771500b2e103f46b9318"
+      "sha256": "5ab3cb1843d37594fcf258d2bbc3ad52e77b1711c01103cfd0f876e7363e0790"
+    },
+    {
+      "bytes": 16101,
+      "kind": "code",
+      "path": "scripts/fp_curvature_law.py",
+      "sha256": "b9baeca376c1a6fce6a3458990ecbae7164c25c9016f26c53e222b18d566e737"
+    },
+    {
+      "bytes": 27740,
+      "kind": "code",
+      "path": "scripts/fp_moe_mechanism.py",
+      "sha256": "e5da6ff9510167816ea27857dd64a70623413c4284c83e95cf9c710021b0e5e2"
     },
     {
       "bytes": 19422,
@@ -3025,7 +3115,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T16:59:04.141598+00:00",
+  "generated_at": "2026-06-19T17:20:25.532743+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

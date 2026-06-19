@@ -1,0 +1,188 @@
+{
+  "args": {
+    "out": "results/fp_moe_mechanism_identity",
+    "E": 4,
+    "K": 4,
+    "topk": 1,
+    "base_steps": 1500,
+    "ft_steps": 800,
+    "gauge_perm": "identity",
+    "seed": 0
+  },
+  "natural_hungarian_perm_before_gauge": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "natural_identity_optimal_before_gauge": true,
+  "gauge_perm_applied_to_B": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "gauge_equivalence_mse": 0.0,
+  "expert_correspondence_matrix": [
+    [
+      0.7189740538597107,
+      -0.034042149782180786,
+      0.0035715457051992416,
+      0.38441890478134155
+    ],
+    [
+      0.014559974893927574,
+      0.8314362168312073,
+      0.0022276821546256542,
+      -0.31411123275756836
+    ],
+    [
+      -0.14369402825832367,
+      -0.03781067579984665,
+      0.9663883447647095,
+      0.09476044774055481
+    ],
+    [
+      0.23767399787902832,
+      -0.06650318950414658,
+      0.1139024943113327,
+      0.8558068871498108
+    ]
+  ],
+  "hungarian_perm": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "identity_optimal": true,
+  "corr_diag_sum": 3.372605323791504,
+  "corr_perm_sum": 3.372605323791504,
+  "router_agreement_raw": 0.8427734375,
+  "router_agreement_aligned": 0.8427734375,
+  "route_load_A": [
+    0.3037109375,
+    0.23828125,
+    0.328125,
+    0.1298828125
+  ],
+  "route_load_B_observed": [
+    0.376953125,
+    0.28125,
+    0.271484375,
+    0.0703125
+  ],
+  "best_merge_method": "uniform_aligned_routercal",
+  "best_overall_method": "uniform_aligned_routercal",
+  "mechanism_deltas": [
+    {
+      "mechanism": "expert_identity_alignment",
+      "baseline": "uniform_same_name",
+      "intervention": "uniform_aligned",
+      "worst_loss_reduction": 0.0,
+      "interpretation": "same tensor name is not a stable expert identity after a legal MoE gauge permutation"
+    },
+    {
+      "mechanism": "router_calibration_after_alignment",
+      "baseline": "uniform_aligned",
+      "intervention": "uniform_aligned_routercal",
+      "worst_loss_reduction": 0.0016140155494213104,
+      "interpretation": "after experts move, the top-k router boundary must be re-fit to the merged experts"
+    },
+    {
+      "mechanism": "route_conditioned_fisher",
+      "baseline": "uniform_aligned",
+      "intervention": "fisher_aligned",
+      "worst_loss_reduction": -0.018299710005521774,
+      "interpretation": "curvature weighting is not automatically safe; it must pass a held-out gate"
+    },
+    {
+      "mechanism": "router_calibration_after_fisher",
+      "baseline": "fisher_aligned",
+      "intervention": "fisher_aligned_routercal",
+      "worst_loss_reduction": 0.005851082503795624,
+      "interpretation": "router calibration can repair some dispatch drift even when expert weighting is imperfect"
+    },
+    {
+      "mechanism": "router_cannot_fix_misaligned_experts",
+      "baseline": "uniform_same_name",
+      "intervention": "uniform_same_name_routercal",
+      "worst_loss_reduction": 0.0016140155494213104,
+      "interpretation": "router-only fitting is limited if the averaged experts themselves mix unrelated functions"
+    }
+  ],
+  "results": {
+    "base": {
+      "0": 0.0454120934009552,
+      "1": 0.06196586787700653,
+      "2": 0.05291483923792839,
+      "3": 0.03654644638299942,
+      "worst": 0.06196586787700653,
+      "avg": 0.049209811724722385
+    },
+    "expert_A": {
+      "0": 0.021082689985632896,
+      "1": 0.02288038097321987,
+      "2": 0.17977066338062286,
+      "3": 0.11951158940792084,
+      "worst": 0.17977066338062286,
+      "avg": 0.08581133093684912
+    },
+    "expert_B": {
+      "0": 0.1310376226902008,
+      "1": 0.1467285454273224,
+      "2": 0.011123918928205967,
+      "3": 0.011040947400033474,
+      "worst": 0.1467285454273224,
+      "avg": 0.07498275861144066
+    },
+    "uniform_same_name": {
+      "0": 0.028675222769379616,
+      "1": 0.052425507456064224,
+      "2": 0.052356719970703125,
+      "3": 0.042937278747558594,
+      "worst": 0.052425507456064224,
+      "avg": 0.04409868223592639
+    },
+    "uniform_aligned": {
+      "0": 0.028675222769379616,
+      "1": 0.052425507456064224,
+      "2": 0.052356719970703125,
+      "3": 0.042937278747558594,
+      "worst": 0.052425507456064224,
+      "avg": 0.04409868223592639
+    },
+    "uniform_aligned_routercal": {
+      "0": 0.040656134486198425,
+      "1": 0.050811491906642914,
+      "2": 0.046828947961330414,
+      "3": 0.032778654247522354,
+      "worst": 0.050811491906642914,
+      "avg": 0.04276880715042353
+    },
+    "fisher_aligned": {
+      "0": 0.023825407028198242,
+      "1": 0.06722064316272736,
+      "2": 0.070725217461586,
+      "3": 0.04401487857103348,
+      "worst": 0.070725217461586,
+      "avg": 0.05144653655588627
+    },
+    "fisher_aligned_routercal": {
+      "0": 0.03312236815690994,
+      "1": 0.06442577391862869,
+      "2": 0.06487413495779037,
+      "3": 0.031288452446460724,
+      "worst": 0.06487413495779037,
+      "avg": 0.048427682369947433
+    },
+    "uniform_same_name_routercal": {
+      "0": 0.040656134486198425,
+      "1": 0.050811491906642914,
+      "2": 0.046828947961330414,
+      "3": 0.032778654247522354,
+      "worst": 0.050811491906642914,
+      "avg": 0.04276880715042353
+    }
+  }
+}
