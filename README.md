@@ -8,6 +8,8 @@
 
 最新 MoE 机制结果：toy MoE 上，失败主因不是“平均”这个动作本身，而是 expert 语义 index 和 router dispatch 一起漂移。当前统一方法 `unified_moe_average` 先用 per-expert source weight search 处理 expert 语义/重要性，再在同构 checkpoint 内只校准 router，并把 soft task loss、hard top-2 dispatch loss、route/output KD、base-router KL、load-balance 和 differentiable capacity-overflow surrogate 放进同一个 objective。它把 soft worst accuracy 做到 `0.8275`，高于 route-KD 的 `0.815`；hard top-2 worst accuracy 做到 `0.735`，高于 route-KD 的 `0.730`。max top-k overflow 从上一版 unified 的 `0.080` 降到 `0.075`，但仍略高于 route-KD 的 `0.0725`；capacity-aware score `hard_top2_worst_acc - overflow` 为 `0.660`，高于 route-KD 的 `0.6575`，所以当前把 `unified_moe_average` 作为 sparse/capacity-aware 首选，同时保留 route-KD 在 Pareto frontier 里。
 
+同时新增了一个 output-space projection probe：它按 base router 的 route probability 给 expert 输出残差加权，解每个 expert 的 source-delta 系数。该 probe 的 mean captured fraction 是 `0.616`，`expert_output_projection_router_calibrated_average` worst accuracy 是 `0.825`，低于 `expert_weight_search_router_calibrated_average` 的 `0.8275` 和 `matched_router_calibrated_average` 的 `0.8375`。这说明输出空间残差能解释一部分 expert 合并，但单独不足以替代 task loss / router dispatch / capacity-aware 目标。
+
 ## 一屏版结论
 
 如果只想先看结果，可以先读这几条：

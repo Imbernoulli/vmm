@@ -587,6 +587,7 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
     expert_regmean_layers = read_csv("results/toy_moe_merge/expert_regmean_layers.csv")
     expert_regmean_covariances = read_csv("results/toy_moe_merge/expert_regmean_covariances.csv")
     expert_sparse_task_vectors = read_csv("results/toy_moe_merge/expert_sparse_task_vectors.csv")
+    expert_output_projection_weights = read_csv("results/toy_moe_merge/expert_output_projection_weights_by_expert.csv")
     router_weight_search = read_csv("results/toy_moe_merge/router_weight_search.csv")
     router_hessian_average = read_csv("results/toy_moe_merge/router_hessian_average.csv")
     router_kd_trace = read_csv("results/toy_moe_merge/router_kd_trace.csv")
@@ -631,6 +632,10 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
         "expert_weight_search_average": find_method(methods, "expert_weight_search_average"),
         "expert_weight_search_router_calibrated_average": find_method(
             methods, "expert_weight_search_router_calibrated_average"
+        ),
+        "expert_output_projection_average": find_method(methods, "expert_output_projection_average"),
+        "expert_output_projection_router_calibrated_average": find_method(
+            methods, "expert_output_projection_router_calibrated_average"
         ),
         "unified_moe_average": find_method(methods, "unified_moe_average"),
         "route_aware_expert_average": find_method(methods, "route_aware_expert_average"),
@@ -701,6 +706,14 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
         "expert_weight_search_router_calibrated_minus_matched_calibrated_worst_acc": float(
             summary.get("expert_weight_search_router_calibrated_minus_matched_calibrated_worst_acc", 0.0)
         ),
+        "expert_output_projection_rows": int(len(expert_output_projection_weights)),
+        "expert_output_projection": summary.get("expert_output_projection", {}),
+        "expert_output_projection_router_calibrated_minus_all_weight_worst_acc": float(
+            summary.get("expert_output_projection_router_calibrated_minus_all_weight_worst_acc", 0.0)
+        ),
+        "expert_output_projection_router_calibrated_minus_matched_calibrated_worst_acc": float(
+            summary.get("expert_output_projection_router_calibrated_minus_matched_calibrated_worst_acc", 0.0)
+        ),
         "unified_moe_trace_rows": int(len(unified_moe_trace)),
         "unified_moe_minus_expert_search_worst_acc": float(
             summary.get("unified_moe_minus_expert_search_worst_acc", 0.0)
@@ -729,6 +742,7 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
         "expert_sparse_task_vectors": rel("results/toy_moe_merge/expert_sparse_task_vectors.csv"),
         "expert_search_weights": rel("results/toy_moe_merge/expert_search_weights_by_expert.csv"),
         "expert_weight_search_trace": rel("results/toy_moe_merge/expert_weight_search_trace.csv"),
+        "expert_output_projection_weights": rel("results/toy_moe_merge/expert_output_projection_weights_by_expert.csv"),
         "router_weight_search": rel("results/toy_moe_merge/router_weight_search.csv"),
         "router_hessian_average": rel("results/toy_moe_merge/router_hessian_average.csv"),
         "router_kd_trace": rel("results/toy_moe_merge/router_kd_trace.csv"),
@@ -1543,6 +1557,22 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| toy MoE route-aware merge | expert-weight search + router-calibrated worst accuracy | "
                 f"{fmt(toy_moe['expert_weight_search_router_calibrated_average']['worst_acc'])} |"
+            ),
+            (
+                "| toy MoE output projection | expert output-projection worst accuracy | "
+                f"{fmt(toy_moe['expert_output_projection_average']['worst_acc'])} |"
+            ),
+            (
+                "| toy MoE output projection | output-projection + router-calibrated worst accuracy | "
+                f"{fmt(toy_moe['expert_output_projection_router_calibrated_average']['worst_acc'])} |"
+            ),
+            (
+                "| toy MoE output projection | mean captured output residual fraction | "
+                f"{fmt(toy_moe['expert_output_projection'].get('mean_captured_fraction'))} |"
+            ),
+            (
+                "| toy MoE output projection | delta vs matched-calibrated | "
+                f"{fmt(toy_moe['expert_output_projection_router_calibrated_minus_matched_calibrated_worst_acc'])} |"
             ),
             (
                 "| toy MoE unified objective | worst accuracy | "

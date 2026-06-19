@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-19T12:00:05.754346+00:00`
+Generated at: `2026-06-19T12:09:27.262022+00:00`
 
 ## Coverage
 
@@ -114,6 +114,10 @@ Complete: `31`; partial: `1`; missing: `0`.
 | toy MoE route-aware merge | matched + router-sweep-selected worst accuracy | 0.838 |
 | toy MoE route-aware merge | expert-weight search worst accuracy | 0.802 |
 | toy MoE route-aware merge | expert-weight search + router-calibrated worst accuracy | 0.828 |
+| toy MoE output projection | expert output-projection worst accuracy | 0.807 |
+| toy MoE output projection | output-projection + router-calibrated worst accuracy | 0.825 |
+| toy MoE output projection | mean captured output residual fraction | 0.616 |
+| toy MoE output projection | delta vs matched-calibrated | -0.013 |
 | toy MoE unified objective | worst accuracy | 0.828 |
 | toy MoE unified objective | delta vs expert-search router-calibrated | 0.000 |
 | toy MoE unified objective | delta vs route-KD | 0.013 |

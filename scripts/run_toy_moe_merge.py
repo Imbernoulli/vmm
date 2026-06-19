@@ -840,6 +840,134 @@ def expert_coeff_state(
     return out
 
 
+def project_two_source_weights(solution: Tensor, max_delta_sum: float) -> tuple[float, float]:
+    x0 = float(solution[0].item())
+    x1 = float(solution[1].item())
+    if x0 >= 0.0 and x1 >= 0.0 and x0 + x1 <= max_delta_sum:
+        return x0, x1
+    clipped0 = max(0.0, x0)
+    clipped1 = max(0.0, x1)
+    if clipped0 + clipped1 <= max_delta_sum:
+        return clipped0, clipped1
+    projected0 = 0.5 * (max_delta_sum + x0 - x1)
+    projected0 = min(max(projected0, 0.0), max_delta_sum)
+    return projected0, max_delta_sum - projected0
+
+
+@torch.no_grad()
+def output_space_expert_weight_state(
+    base_model: TinyMoEClassifier,
+    general_model: TinyMoEClassifier,
+    code_model: TinyMoEClassifier,
+    base: dict[str, Tensor],
+    general: dict[str, Tensor],
+    code: dict[str, Tensor],
+    loaders: dict[str, DataLoader],
+    *,
+    n_experts: int,
+    shared_weights: tuple[float, float],
+    dispatch_mode: str,
+    ridge: float,
+    max_delta_sum: float,
+    device: torch.device,
+) -> tuple[dict[str, Tensor], pd.DataFrame]:
+    source_specs = [
+        ("general", general_model, loaders["general_calib"], 0.5),
+        ("code", code_model, loaders["code_calib"], 0.5),
+    ]
+    models = [base_model, general_model, code_model]
+    for model in models:
+        model.to(device)
+        model.eval()
+    weights: dict[int, tuple[float, float]] = {}
+    rows: list[dict[str, Any]] = []
+    for expert_id in range(n_experts):
+        ata = torch.zeros((2, 2), dtype=torch.float64)
+        atb = torch.zeros(2, dtype=torch.float64)
+        btb = torch.tensor(0.0, dtype=torch.float64)
+        route_mass = 0.0
+        tokens = 0
+        for category, target_model, loader, source_weight in source_specs:
+            category_ata = torch.zeros((2, 2), dtype=torch.float64)
+            category_atb = torch.zeros(2, dtype=torch.float64)
+            category_btb = torch.tensor(0.0, dtype=torch.float64)
+            category_route_mass = 0.0
+            category_tokens = 0
+            for x, _y in loader:
+                x = x.to(device)
+                base_logits = base_model.expert_logits(x)[:, expert_id, :]
+                general_logits = general_model.expert_logits(x)[:, expert_id, :]
+                code_logits = code_model.expert_logits(x)[:, expert_id, :]
+                target_logits = target_model.expert_logits(x)[:, expert_id, :]
+                route_probs = base_model.dispatch_probs(x, dispatch_mode)[:, expert_id].detach()
+                sample_weight = (float(source_weight) * route_probs).clamp_min(0.0)
+                design = torch.stack(
+                    [
+                        general_logits - base_logits,
+                        code_logits - base_logits,
+                    ],
+                    dim=-1,
+                ).detach().to(torch.float64)
+                target = (target_logits - base_logits).detach().to(torch.float64)
+                weighted_design = design * sample_weight.to(torch.float64).view(-1, 1, 1)
+                category_ata = category_ata + torch.einsum("nci,ncj->ij", weighted_design, design)
+                category_atb = category_atb + torch.einsum("nci,nc->i", weighted_design, target)
+                category_btb = category_btb + (target.pow(2) * sample_weight.to(torch.float64).view(-1, 1)).sum()
+                category_route_mass += float(route_probs.sum().item())
+                category_tokens += int(x.shape[0])
+            ata = ata + category_ata
+            atb = atb + category_atb
+            btb = btb + category_btb
+            route_mass += category_route_mass
+            tokens += category_tokens
+            rows.append(
+                {
+                    "expert_id": expert_id,
+                    "category": category,
+                    "tokens": category_tokens,
+                    "route_mass": category_route_mass,
+                    "target_delta_energy": float(category_btb.item()),
+                    "same_shape_action": "route_conditioned_output_space_probe",
+                }
+            )
+        ridge_value = max(float(ridge), float(ridge) * float(torch.trace(ata).item()) / max(1, ata.shape[0]))
+        solution = torch.linalg.solve(ata + torch.eye(2, dtype=torch.float64) * ridge_value, atb)
+        general_weight, code_weight = project_two_source_weights(solution, max_delta_sum)
+        weight_vector = torch.tensor([general_weight, code_weight], dtype=torch.float64)
+        residual_energy = float((btb - 2.0 * (weight_vector @ atb) + weight_vector @ ata @ weight_vector).clamp_min(0.0).item())
+        target_energy = float(btb.item())
+        captured_fraction = 1.0 - residual_energy / max(1e-12, target_energy)
+        weights[expert_id] = (general_weight, code_weight)
+        rows.append(
+            {
+                "expert_id": expert_id,
+                "category": "combined",
+                "tokens": tokens,
+                "route_mass": route_mass,
+                "target_delta_energy": target_energy,
+                "residual_energy": residual_energy,
+                "captured_fraction": captured_fraction,
+                "unconstrained_weight_general": float(solution[0].item()),
+                "unconstrained_weight_code": float(solution[1].item()),
+                "weight_general": general_weight,
+                "weight_code": code_weight,
+                "anchor_weight": 1.0 - general_weight - code_weight,
+                "ridge_value": ridge_value,
+                "dispatch_mode": dispatch_mode,
+                "same_shape_action": "route_conditioned_output_space_expert_delta",
+            }
+        )
+    state = expert_coeff_state(
+        base,
+        general,
+        code,
+        n_experts=n_experts,
+        expert_weights=weights,
+        shared_weights=shared_weights,
+    )
+    return state, pd.DataFrame(rows)
+
+
 @torch.no_grad()
 def collect_linear_covariances(
     model: nn.Module,
@@ -1816,6 +1944,10 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
     expert_search_calibrated = method_metrics[
         method_metrics["method"] == "expert_weight_search_router_calibrated_average"
     ].iloc[0]
+    expert_output_projection = method_metrics[method_metrics["method"] == "expert_output_projection_average"].iloc[0]
+    expert_output_projection_calibrated = method_metrics[
+        method_metrics["method"] == "expert_output_projection_router_calibrated_average"
+    ].iloc[0]
     unified_moe = method_metrics[method_metrics["method"] == "unified_moe_average"].iloc[0]
     route_aware = method_metrics[method_metrics["method"] == "route_aware_expert_average"].iloc[0]
     connectivity = summary["connectivity"]
@@ -1847,6 +1979,8 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
         f"- Matched + router-sweep-selected average worst accuracy: `{sweep_selected['worst_acc']:.3f}`.",
         f"- Expert-weight search average worst accuracy: `{expert_search['worst_acc']:.3f}`.",
         f"- Expert-weight search + router-calibrated worst accuracy: `{expert_search_calibrated['worst_acc']:.3f}`.",
+        f"- Expert output-projection average worst accuracy: `{expert_output_projection['worst_acc']:.3f}`.",
+        f"- Expert output-projection + router-calibrated worst accuracy: `{expert_output_projection_calibrated['worst_acc']:.3f}`.",
         f"- Unified expert/router objective worst accuracy: `{unified_moe['worst_acc']:.3f}`.",
         f"- Route-aware expert average worst accuracy: `{route_aware['worst_acc']:.3f}`.",
         f"- Lowest MoE connectivity barrier: `{connectivity['best_path']}` = `{connectivity['best_barrier_worst_loss']:.4f}` worst-loss barrier.",
@@ -1893,6 +2027,8 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
             "- `matched_router_sweep_selected_average` 对 router calibration 的 KL 系数做 sweep，先过 route-overlap guard，再按 calibration worst-loss 选择候选；它把 router overlap/load 和任务精度放到同一个 probe 里。",
             "- `expert_weight_search_average` 在同一个 expert 数和 tensor shape 内，对每个 expert 的 general/code delta 系数做校准集 min-max 坐标搜索；router 仍固定为 base。",
             "- `expert_weight_search_router_calibrated_average` 在 per-expert 系数搜索后，只开放 router 做 guarded calibration。",
+            "- `expert_output_projection_average` 不用标签分数搜索，而是用 route-conditioned expert output residual 解每个 expert 的 source-delta 权重；它检验 output-space projection 是否能解释 expert merging。",
+            "- `expert_output_projection_router_calibrated_average` 在 output-space expert 权重后只校准 router，用来区分 expert 输出拟合和 router dispatch 校准的贡献。",
             "- `unified_moe_average` 先用 per-expert source weight search 处理 expert 语义和重要性，再只更新 router；目标同时包含 soft/hard task loss、source route KD、source output KD、base-router KL、load-balance 和 differentiable capacity-overflow surrogate，用来检验这些 probe 能否合成一个统一方法。",
             "- `route_aware_expert_average` 冻结 base router，并按 base router 在 general/code prompt 上的 route mass 给每个 expert 设置 source delta 权重；这对应 route-weight recipes 的 toy 版本。",
             "- 这个实验不是 Qwen3 结果，但它把 MoE merging 的特质从报告落成了可跑的 probe：expert index、router overlap、expert load 和 category route mass 都会影响 average 是否安全。",
@@ -1915,6 +2051,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
             "- `expert_sparse_task_vectors.csv`",
             "- `expert_search_weights_by_expert.csv`",
             "- `expert_weight_search_trace.csv`",
+            "- `expert_output_projection_weights_by_expert.csv`",
             "- `router_weight_search.csv`",
             "- `router_hessian_average.csv`",
             "- `router_kd_trace.csv`",
@@ -1988,6 +2125,11 @@ def main() -> None:
     parser.add_argument("--expert-search-max-delta-sum", type=float, default=1.0)
     parser.add_argument("--expert-search-shared-general-weight", type=float, default=0.5)
     parser.add_argument("--expert-search-shared-code-weight", type=float, default=0.5)
+    parser.add_argument("--output-projection-ridge", type=float, default=1e-4)
+    parser.add_argument("--output-projection-max-delta-sum", type=float, default=1.0)
+    parser.add_argument("--output-projection-dispatch-mode", choices=["soft_all", "hard_top1", "hard_top2"], default="hard_top2")
+    parser.add_argument("--output-projection-shared-general-weight", type=float, default=0.5)
+    parser.add_argument("--output-projection-shared-code-weight", type=float, default=0.5)
     parser.add_argument("--weight-decay", type=float, default=1e-4)
     parser.add_argument("--aux-coef", type=float, default=0.02)
     parser.add_argument("--anchor-floor", type=float, default=0.15)
@@ -2074,6 +2216,21 @@ def main() -> None:
         prior_penalty=args.expert_search_prior_penalty,
         shared_weights=(args.expert_search_shared_general_weight, args.expert_search_shared_code_weight),
         objective=args.expert_search_objective,
+        device=device,
+    )
+    expert_output_projection, expert_output_projection_weights = output_space_expert_weight_state(
+        base,
+        general_model,
+        matched_code,
+        base_state,
+        general_state,
+        matched_code_state,
+        loaders,
+        n_experts=args.experts,
+        shared_weights=(args.output_projection_shared_general_weight, args.output_projection_shared_code_weight),
+        dispatch_mode=args.output_projection_dispatch_mode,
+        ridge=args.output_projection_ridge,
+        max_delta_sum=args.output_projection_max_delta_sum,
         device=device,
     )
 
@@ -2254,6 +2411,18 @@ def main() -> None:
         device=device,
         desc="calibrate searched expert router",
     )
+    expert_output_projection_router_calibrated = calibrate_router_only_state(
+        template,
+        expert_output_projection,
+        base,
+        loaders["mixed_calib"],
+        epochs=args.router_calibration_epochs,
+        lr=args.router_calibration_lr,
+        kl_coef=args.router_calibration_kl_coef,
+        aux_coef=args.aux_coef,
+        device=device,
+        desc="calibrate output-projected expert router",
+    )
     unified_moe_average, unified_moe_trace = calibrate_unified_moe_router_state(
         template,
         expert_search,
@@ -2357,6 +2526,16 @@ def main() -> None:
             "search per-expert source delta weights, then calibrate only the router",
         ),
         MethodState(
+            "expert_output_projection_average",
+            expert_output_projection,
+            "solve per-expert source delta weights from route-conditioned output-space residuals with the base router fixed",
+        ),
+        MethodState(
+            "expert_output_projection_router_calibrated_average",
+            expert_output_projection_router_calibrated,
+            "solve per-expert output-space source delta weights, then calibrate only the router",
+        ),
+        MethodState(
             "unified_moe_average",
             unified_moe_average,
             "search expert source weights, then learn one router objective combining task loss, hard top-k dispatch, route KD, output KD, base-router KL, load balance, and capacity overflow",
@@ -2436,6 +2615,13 @@ def main() -> None:
             "candidate_two_segment",
         ),
         ConnectivityPath(
+            "via_expert_output_projection_router_calibrated",
+            general_state,
+            matched_code_state,
+            expert_output_projection_router_calibrated,
+            "candidate_two_segment",
+        ),
+        ConnectivityPath(
             "via_unified_moe_average",
             general_state,
             matched_code_state,
@@ -2509,6 +2695,7 @@ def main() -> None:
     expert_sparse_task_vectors.to_csv(args.output_dir / "expert_sparse_task_vectors.csv", index=False)
     expert_search_weights.to_csv(args.output_dir / "expert_search_weights_by_expert.csv", index=False)
     expert_search_trace.to_csv(args.output_dir / "expert_weight_search_trace.csv", index=False)
+    expert_output_projection_weights.to_csv(args.output_dir / "expert_output_projection_weights_by_expert.csv", index=False)
     router_weight_search.to_csv(args.output_dir / "router_weight_search.csv", index=False)
     router_hessian_average.to_csv(args.output_dir / "router_hessian_average.csv", index=False)
     router_kd_trace.to_csv(args.output_dir / "router_kd_trace.csv", index=False)
@@ -2559,6 +2746,10 @@ def main() -> None:
     expert_search_row = method_metrics[method_metrics["method"] == "expert_weight_search_average"].iloc[0]
     expert_search_router_calibrated_row = method_metrics[
         method_metrics["method"] == "expert_weight_search_router_calibrated_average"
+    ].iloc[0]
+    expert_output_projection_row = method_metrics[method_metrics["method"] == "expert_output_projection_average"].iloc[0]
+    expert_output_projection_router_calibrated_row = method_metrics[
+        method_metrics["method"] == "expert_output_projection_router_calibrated_average"
     ].iloc[0]
     unified_moe_row = method_metrics[method_metrics["method"] == "unified_moe_average"].iloc[0]
     route_aware_row = method_metrics[method_metrics["method"] == "route_aware_expert_average"].iloc[0]
@@ -2919,6 +3110,36 @@ def main() -> None:
         "expert_weight_search_router_calibrated_minus_matched_calibrated_worst_acc": float(
             expert_search_router_calibrated_row["worst_acc"] - matched_router_calibrated_row["worst_acc"]
         ),
+        "expert_output_projection_worst_acc": float(expert_output_projection_row["worst_acc"]),
+        "expert_output_projection_router_calibrated_worst_acc": float(
+            expert_output_projection_router_calibrated_row["worst_acc"]
+        ),
+        "expert_output_projection_router_calibrated_minus_all_weight_worst_acc": float(
+            expert_output_projection_router_calibrated_row["worst_acc"] - all_avg["worst_acc"]
+        ),
+        "expert_output_projection_router_calibrated_minus_matched_calibrated_worst_acc": float(
+            expert_output_projection_router_calibrated_row["worst_acc"] - matched_router_calibrated_row["worst_acc"]
+        ),
+        "expert_output_projection": {
+            "ridge": args.output_projection_ridge,
+            "max_delta_sum": args.output_projection_max_delta_sum,
+            "dispatch_mode": args.output_projection_dispatch_mode,
+            "shared_weights": {
+                "general": args.output_projection_shared_general_weight,
+                "code": args.output_projection_shared_code_weight,
+            },
+            "rows": int(len(expert_output_projection_weights)),
+            "mean_captured_fraction": float(
+                expert_output_projection_weights[expert_output_projection_weights["category"] == "combined"][
+                    "captured_fraction"
+                ].mean()
+            ),
+            "mean_residual_energy": float(
+                expert_output_projection_weights[expert_output_projection_weights["category"] == "combined"][
+                    "residual_energy"
+                ].mean()
+            ),
+        },
         "unified_moe_worst_acc": float(unified_moe_row["worst_acc"]),
         "unified_moe_minus_expert_search_worst_acc": float(
             unified_moe_row["worst_acc"] - expert_search_row["worst_acc"]
@@ -2999,6 +3220,7 @@ def main() -> None:
             "expert_sparse_task_vectors": "expert_sparse_task_vectors.csv",
             "expert_search_weights_by_expert": "expert_search_weights_by_expert.csv",
             "expert_weight_search_trace": "expert_weight_search_trace.csv",
+            "expert_output_projection_weights_by_expert": "expert_output_projection_weights_by_expert.csv",
             "router_weight_search": "router_weight_search.csv",
             "router_hessian_average": "router_hessian_average.csv",
             "router_kd_trace": "router_kd_trace.csv",

@@ -13,13 +13,15 @@
 
 | method | kind | soft worst acc | hard top-2 worst acc | top-k overflow | avg acc | calibrate flags | min top-k Jaccard | decision |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
-| matched_router_sweep_selected_average | merge_candidate | 0.838 | 0.700 | 0.0600 | 0.839 | 0 | 0.8275 | `candidate_with_router_guard` |
 | matched_router_calibrated_average | merge_candidate | 0.838 | 0.700 | 0.0600 | 0.839 | 0 | 0.8275 | `candidate_with_router_guard` |
+| matched_router_sweep_selected_average | merge_candidate | 0.838 | 0.700 | 0.0600 | 0.839 | 0 | 0.8275 | `candidate_with_router_guard` |
 | expert_weight_search_router_calibrated_average | merge_candidate | 0.828 | 0.688 | 0.0612 | 0.831 | 0 | 0.8308 | `candidate_with_router_guard` |
-| unified_moe_average | merge_candidate | 0.828 | 0.735 | 0.0750 | 0.833 | 0 | 0.8333 | `candidate_with_router_guard` |
+| unified_moe_average | merge_candidate | 0.828 | 0.735 | 0.0750 | 0.833 | 0 | 0.8417 | `candidate_with_router_guard` |
+| expert_output_projection_router_calibrated_average | merge_candidate | 0.825 | 0.675 | 0.0612 | 0.835 | 0 | 0.8333 | `candidate_with_router_guard` |
 | matched_router_topk_calibrated_average | merge_candidate | 0.815 | 0.700 | 0.0700 | 0.825 | 0 | 0.8633 | `candidate_with_router_guard` |
 | matched_router_weight_search_average | merge_candidate | 0.818 | 0.675 | 0.0725 | 0.819 | 0 | 0.97 | `candidate_with_router_guard` |
 | matched_router_route_kd_average | merge_candidate | 0.815 | 0.730 | 0.0725 | 0.821 | 0 | 0.8383 | `candidate_with_router_guard` |
+| expert_output_projection_average | merge_candidate | 0.807 | 0.640 | 0.0688 | 0.812 | 0 | 1 | `candidate_with_router_guard` |
 | matched_router_hessian_average | merge_candidate | 0.807 | 0.675 | 0.0675 | 0.812 | 0 | 0.9683 | `candidate_with_router_guard` |
 | expert_weight_search_average | merge_candidate | 0.802 | 0.660 | 0.0688 | 0.806 | 0 | 1 | `candidate_with_router_guard` |
 | matched_router_kd_average | merge_candidate | 0.802 | 0.685 | 0.0325 | 0.811 | 0 | 0.9017 | `candidate_with_router_guard` |

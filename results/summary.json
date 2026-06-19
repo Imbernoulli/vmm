@@ -2851,7 +2851,7 @@
         "direct_matched_barrier_worst_loss": 0.0,
         "direct_unmatched_barrier_worst_loss": 0.03273778915405279,
         "matched_minus_unmatched_barrier_worst_loss": -0.03273778915405279,
-        "path_count": 11,
+        "path_count": 12,
         "steps": 21
       },
       "connectivity_best": {
@@ -2869,9 +2869,9 @@
       "connectivity_figure": "results/toy_moe_merge/connectivity_paths.png",
       "connectivity_path_metrics": "results/toy_moe_merge/connectivity_path_metrics.csv",
       "connectivity_summary": "results/toy_moe_merge/connectivity_summary.csv",
-      "connectivity_summary_rows": 11,
+      "connectivity_summary_rows": 12,
       "dispatch_mode_metrics": "results/toy_moe_merge/dispatch_mode_metrics.csv",
-      "dispatch_mode_rows": 66,
+      "dispatch_mode_rows": 72,
       "dispatch_robustness": {
         "best_by_mode": {
           "hard_top1": {
@@ -2912,7 +2912,7 @@
         ],
         "route_kd_minus_calibrated_hard_top2_worst_acc": 0.030000000000000027,
         "route_kd_minus_output_kd_hard_top2_worst_acc": 0.04499999999999993,
-        "row_count": 66,
+        "row_count": 72,
         "topk_calibrated_minus_soft_calibrated_hard_top1_worst_acc": 0.0024999999999999467,
         "topk_calibrated_minus_soft_calibrated_hard_top2_worst_acc": 0.0,
         "unified_moe_hard_top1_worst_acc": 0.595,
@@ -2987,6 +2987,46 @@
       },
       "expert_matched_ties_dare_minus_matched_average_worst_acc": -0.022500000000000075,
       "expert_matched_ties_minus_matched_average_worst_acc": -0.025000000000000022,
+      "expert_output_projection": {
+        "dispatch_mode": "hard_top2",
+        "max_delta_sum": 1.0,
+        "mean_captured_fraction": 0.6164101996956941,
+        "mean_residual_energy": 0.6658490891045572,
+        "ridge": 0.0001,
+        "rows": 12,
+        "shared_weights": {
+          "code": 0.5,
+          "general": 0.5
+        }
+      },
+      "expert_output_projection_average": {
+        "avg_acc": 0.8125,
+        "avg_loss": 0.618736982345581,
+        "code_acc": 0.8175,
+        "code_loss": 0.6337861824035644,
+        "description": "solve per-expert source delta weights from route-conditioned output-space residuals with the base router fixed",
+        "general_acc": 0.8075,
+        "general_loss": 0.6036877822875977,
+        "method": "expert_output_projection_average",
+        "worst_acc": 0.8075,
+        "worst_loss": 0.6337861824035644
+      },
+      "expert_output_projection_router_calibrated_average": {
+        "avg_acc": 0.835,
+        "avg_loss": 0.6006716918945312,
+        "code_acc": 0.845,
+        "code_loss": 0.6147234344482422,
+        "description": "solve per-expert output-space source delta weights, then calibrate only the router",
+        "general_acc": 0.825,
+        "general_loss": 0.5866199493408203,
+        "method": "expert_output_projection_router_calibrated_average",
+        "worst_acc": 0.825,
+        "worst_loss": 0.6147234344482422
+      },
+      "expert_output_projection_router_calibrated_minus_all_weight_worst_acc": 0.20499999999999996,
+      "expert_output_projection_router_calibrated_minus_matched_calibrated_worst_acc": -0.012500000000000067,
+      "expert_output_projection_rows": 12,
+      "expert_output_projection_weights": "results/toy_moe_merge/expert_output_projection_weights_by_expert.csv",
       "expert_regmean_covariance_rows": 16,
       "expert_regmean_covariances": "results/toy_moe_merge/expert_regmean_covariances.csv",
       "expert_regmean_layers": 8,
@@ -3181,21 +3221,21 @@
         "max_top1_overflow_fraction": 0.41,
         "max_topk_overflow_fraction": 0.115,
         "route_kd_minus_calibrated_max_topk_overflow_fraction": 0.012499999999999997,
-        "row_count": 44,
+        "row_count": 48,
         "unified_moe_max_topk_overflow_fraction": 0.075,
         "unified_moe_minus_route_kd_max_topk_overflow_fraction": 0.0025000000000000022,
         "worst_topk_overflow_category": "code",
         "worst_topk_overflow_method": "all_weight_average"
       },
       "router_capacity_metrics": "results/toy_moe_merge/router_capacity_metrics.csv",
-      "router_capacity_rows": 44,
+      "router_capacity_rows": 48,
       "router_hessian_average": "results/toy_moe_merge/router_hessian_average.csv",
       "router_hessian_rows": 3,
       "router_kd_rows": 16,
       "router_kd_trace": "results/toy_moe_merge/router_kd_trace.csv",
       "router_route_kd_rows": 16,
       "router_route_kd_trace": "results/toy_moe_merge/router_route_kd_trace.csv",
-      "router_rows": 44,
+      "router_rows": 48,
       "router_summary": "results/toy_moe_merge/router_summary.csv",
       "router_weight_search": "results/toy_moe_merge/router_weight_search.csv",
       "router_weight_search_eligible_count": 15,
@@ -3243,7 +3283,7 @@
           "direct_matched_barrier_worst_loss": 0.0,
           "direct_unmatched_barrier_worst_loss": 0.03273778915405279,
           "matched_minus_unmatched_barrier_worst_loss": -0.03273778915405279,
-          "path_count": 11,
+          "path_count": 12,
           "steps": 21
         },
         "dispatch_robustness": {
@@ -3286,7 +3326,7 @@
           ],
           "route_kd_minus_calibrated_hard_top2_worst_acc": 0.030000000000000027,
           "route_kd_minus_output_kd_hard_top2_worst_acc": 0.04499999999999993,
-          "row_count": 66,
+          "row_count": 72,
           "topk_calibrated_minus_soft_calibrated_hard_top1_worst_acc": 0.0024999999999999467,
           "topk_calibrated_minus_soft_calibrated_hard_top2_worst_acc": 0.0,
           "unified_moe_hard_top1_worst_acc": 0.595,
@@ -3303,6 +3343,22 @@
         "expert_matched_ties_dare_worst_acc": 0.7775,
         "expert_matched_ties_minus_matched_average_worst_acc": -0.025000000000000022,
         "expert_matched_ties_worst_acc": 0.775,
+        "expert_output_projection": {
+          "dispatch_mode": "hard_top2",
+          "max_delta_sum": 1.0,
+          "mean_captured_fraction": 0.6164101996956941,
+          "mean_residual_energy": 0.6658490891045572,
+          "ridge": 0.0001,
+          "rows": 12,
+          "shared_weights": {
+            "code": 0.5,
+            "general": 0.5
+          }
+        },
+        "expert_output_projection_router_calibrated_minus_all_weight_worst_acc": 0.20499999999999996,
+        "expert_output_projection_router_calibrated_minus_matched_calibrated_worst_acc": -0.012500000000000067,
+        "expert_output_projection_router_calibrated_worst_acc": 0.825,
+        "expert_output_projection_worst_acc": 0.8075,
         "expert_regmean": {
           "batches": 4,
           "covariance_rows": 16,
@@ -3367,6 +3423,7 @@
           "dispatch_mode_metrics": "dispatch_mode_metrics.csv",
           "expert_load": "expert_load.csv",
           "expert_match": "expert_match.csv",
+          "expert_output_projection_weights_by_expert": "expert_output_projection_weights_by_expert.csv",
           "expert_regmean_covariances": "expert_regmean_covariances.csv",
           "expert_regmean_layers": "expert_regmean_layers.csv",
           "expert_search_weights_by_expert": "expert_search_weights_by_expert.csv",
@@ -3417,7 +3474,7 @@
           "max_top1_overflow_fraction": 0.41,
           "max_topk_overflow_fraction": 0.115,
           "route_kd_minus_calibrated_max_topk_overflow_fraction": 0.012499999999999997,
-          "row_count": 44,
+          "row_count": 48,
           "unified_moe_max_topk_overflow_fraction": 0.075,
           "unified_moe_minus_route_kd_max_topk_overflow_fraction": 0.0025000000000000022,
           "worst_topk_overflow_category": "code",
@@ -3584,11 +3641,11 @@
         "low_top1_agreement_count": 0,
         "max_risk_score": 1,
         "mean_risk_score": 0.5,
-        "mean_topk_jaccard": 0.8408333333333333,
+        "mean_topk_jaccard": 0.85,
         "method": "unified_moe_average",
         "method_kind": "merge_candidate",
         "min_top1_agreement": 0.9100000262260436,
-        "min_topk_jaccard": 0.8333333333333333,
+        "min_topk_jaccard": 0.8416666666666667,
         "router_rows": 2,
         "selection_score": 0.8225,
         "worst_acc": 0.8275,
@@ -3627,11 +3684,11 @@
         "low_top1_agreement_count": 0,
         "max_risk_score": 1,
         "mean_risk_score": 0.5,
-        "mean_topk_jaccard": 0.8408333333333333,
+        "mean_topk_jaccard": 0.85,
         "method": "unified_moe_average",
         "method_kind": "merge_candidate",
         "min_top1_agreement": 0.9100000262260436,
-        "min_topk_jaccard": 0.8333333333333333,
+        "min_topk_jaccard": 0.8416666666666667,
         "router_rows": 2,
         "selection_score": 0.8225,
         "worst_acc": 0.8275,
@@ -3650,7 +3707,7 @@
       "sparse_pareto_frontier_rows": 5,
       "summary": {
         "base_worst_acc": 0.775,
-        "generated_at": "2026-06-19T11:58:25.437506+00:00",
+        "generated_at": "2026-06-19T12:08:37.151486+00:00",
         "inputs": {
           "capacity_metrics": "results/toy_moe_merge/router_capacity_metrics.csv",
           "dispatch_metrics": "results/toy_moe_merge/dispatch_mode_metrics.csv",
@@ -3698,18 +3755,18 @@
       },
       "category_specialization": "results/toy_moe_routing_readiness/category_specialization.csv",
       "expert_load_risks": "results/toy_moe_routing_readiness/expert_load_risks.csv",
-      "expert_rows": 176,
+      "expert_rows": 192,
       "readiness_status": "high_risk_calibrate_router_before_merge",
       "report": "results/toy_moe_routing_readiness/report.md",
       "router_readiness": "results/toy_moe_routing_readiness/router_readiness.csv",
-      "router_rows": 44,
-      "specialization_rows": 88,
+      "router_rows": 48,
+      "specialization_rows": 96,
       "summary": {
         "expert_action_counts": {
-          "low_lambda_or_route_frequency_average": 176
+          "low_lambda_or_route_frequency_average": 192
         },
-        "expert_rows": 176,
-        "generated_at": "2026-06-19T11:58:25.395469+00:00",
+        "expert_rows": 192,
+        "generated_at": "2026-06-19T12:08:36.980955+00:00",
         "outputs": {
           "category_specialization": "results/toy_moe_routing_readiness/category_specialization.csv",
           "expert_load_risks": "results/toy_moe_routing_readiness/expert_load_risks.csv",
@@ -3720,19 +3777,19 @@
         "readiness_status": "high_risk_calibrate_router_before_merge",
         "router_action_counts": {
           "calibrate_router_before_average": 3,
-          "freeze_router_and_check_load_balance": 24,
-          "router_probe_passed_for_small_lambda": 17
+          "freeze_router_and_check_load_balance": 26,
+          "router_probe_passed_for_small_lambda": 19
         },
         "router_dirs": [
           "results/toy_moe_merge"
         ],
-        "router_rows": 44,
+        "router_rows": 48,
         "same_shape_constraint": "Readiness actions preserve router shape, expert count, hidden size, tokenizer, and model class.",
         "specialization_action_counts": {
-          "category_specialized_route_weight": 25,
-          "shared_or_mixed_expert": 63
+          "category_specialized_route_weight": 27,
+          "shared_or_mixed_expert": 69
         },
-        "specialization_rows": 88,
+        "specialization_rows": 96,
         "thresholds": {
           "collapse_threshold": 0.5,
           "low_margin_threshold": 0.05,
@@ -3992,7 +4049,7 @@
       "tasks": "gsm8k,mmlu,safety,humaneval_compile"
     }
   },
-  "generated_at": "2026-06-19T12:00:05.754346+00:00",
+  "generated_at": "2026-06-19T12:09:27.262022+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [

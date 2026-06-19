@@ -23,6 +23,8 @@
 - Matched + router-sweep-selected average worst accuracy: `0.838`.
 - Expert-weight search average worst accuracy: `0.802`.
 - Expert-weight search + router-calibrated worst accuracy: `0.828`.
+- Expert output-projection average worst accuracy: `0.807`.
+- Expert output-projection + router-calibrated worst accuracy: `0.825`.
 - Unified expert/router objective worst accuracy: `0.828`.
 - Route-aware expert average worst accuracy: `0.790`.
 - Lowest MoE connectivity barrier: `direct_matched_general_to_code` = `0.0000` worst-loss barrier.
@@ -44,14 +46,16 @@
 
 | method | general acc | code acc | worst acc | avg loss |
 | --- | ---: | ---: | ---: | ---: |
-| matched_router_calibrated_average | 0.838 | 0.840 | 0.838 | 0.600 |
 | matched_router_sweep_selected_average | 0.838 | 0.840 | 0.838 | 0.600 |
+| matched_router_calibrated_average | 0.838 | 0.840 | 0.838 | 0.600 |
 | unified_moe_average | 0.828 | 0.838 | 0.828 | 0.605 |
 | expert_weight_search_router_calibrated_average | 0.828 | 0.835 | 0.828 | 0.600 |
+| expert_output_projection_router_calibrated_average | 0.825 | 0.845 | 0.825 | 0.601 |
 | matched_router_weight_search_average | 0.820 | 0.818 | 0.818 | 0.616 |
 | matched_router_topk_calibrated_average | 0.835 | 0.815 | 0.815 | 0.605 |
 | matched_router_route_kd_average | 0.828 | 0.815 | 0.815 | 0.607 |
 | matched_router_hessian_average | 0.818 | 0.807 | 0.807 | 0.616 |
+| expert_output_projection_average | 0.807 | 0.818 | 0.807 | 0.619 |
 | expert_weight_search_average | 0.810 | 0.802 | 0.802 | 0.618 |
 | matched_router_kd_average | 0.820 | 0.802 | 0.802 | 0.617 |
 | code_endpoint_permuted | 0.818 | 0.802 | 0.802 | 0.618 |
@@ -83,6 +87,8 @@
 - `matched_router_sweep_selected_average` 对 router calibration 的 KL 系数做 sweep，先过 route-overlap guard，再按 calibration worst-loss 选择候选；它把 router overlap/load 和任务精度放到同一个 probe 里。
 - `expert_weight_search_average` 在同一个 expert 数和 tensor shape 内，对每个 expert 的 general/code delta 系数做校准集 min-max 坐标搜索；router 仍固定为 base。
 - `expert_weight_search_router_calibrated_average` 在 per-expert 系数搜索后，只开放 router 做 guarded calibration。
+- `expert_output_projection_average` 不用标签分数搜索，而是用 route-conditioned expert output residual 解每个 expert 的 source-delta 权重；它检验 output-space projection 是否能解释 expert merging。
+- `expert_output_projection_router_calibrated_average` 在 output-space expert 权重后只校准 router，用来区分 expert 输出拟合和 router dispatch 校准的贡献。
 - `unified_moe_average` 先用 per-expert source weight search 处理 expert 语义和重要性，再只更新 router；目标同时包含 soft/hard task loss、source route KD、source output KD、base-router KL、load-balance 和 differentiable capacity-overflow surrogate，用来检验这些 probe 能否合成一个统一方法。
 - `route_aware_expert_average` 冻结 base router，并按 base router 在 general/code prompt 上的 route mass 给每个 expert 设置 source delta 权重；这对应 route-weight recipes 的 toy 版本。
 - 这个实验不是 Qwen3 结果，但它把 MoE merging 的特质从报告落成了可跑的 probe：expert index、router overlap、expert load 和 category route mass 都会影响 average 是否安全。
@@ -105,6 +111,7 @@
 - `expert_sparse_task_vectors.csv`
 - `expert_search_weights_by_expert.csv`
 - `expert_weight_search_trace.csv`
+- `expert_output_projection_weights_by_expert.csv`
 - `router_weight_search.csv`
 - `router_hessian_average.csv`
 - `router_kd_trace.csv`

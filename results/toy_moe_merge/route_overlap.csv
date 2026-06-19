@@ -37,6 +37,10 @@ base,expert_weight_search_average,general,0,toy_router,400,1.0,1.0
 base,expert_weight_search_average,code,0,toy_router,400,1.0,1.0
 base,expert_weight_search_router_calibrated_average,general,0,toy_router,400,0.8774999976158142,0.8933333333333333
 base,expert_weight_search_router_calibrated_average,code,0,toy_router,400,0.8399999737739563,0.8308333333333333
+base,expert_output_projection_average,general,0,toy_router,400,1.0,1.0
+base,expert_output_projection_average,code,0,toy_router,400,1.0,1.0
+base,expert_output_projection_router_calibrated_average,general,0,toy_router,400,0.8774999976158142,0.8916666666666667
+base,expert_output_projection_router_calibrated_average,code,0,toy_router,400,0.8224999904632568,0.8333333333333333
 base,unified_moe_average,general,0,toy_router,400,0.9100000262260437,0.8583333333333333
 base,unified_moe_average,code,0,toy_router,400,0.9424999952316284,0.8416666666666667
 base,route_aware_expert_average,general,0,toy_router,400,1.0,1.0

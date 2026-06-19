@@ -14,7 +14,7 @@
     "direct_matched_barrier_worst_loss": 0.0,
     "direct_unmatched_barrier_worst_loss": 0.03273778915405279,
     "matched_minus_unmatched_barrier_worst_loss": -0.03273778915405279,
-    "path_count": 11,
+    "path_count": 12,
     "steps": 21
   },
   "dispatch_robustness": {
@@ -57,7 +57,7 @@
     ],
     "route_kd_minus_calibrated_hard_top2_worst_acc": 0.030000000000000027,
     "route_kd_minus_output_kd_hard_top2_worst_acc": 0.04499999999999993,
-    "row_count": 66,
+    "row_count": 72,
     "topk_calibrated_minus_soft_calibrated_hard_top1_worst_acc": 0.0024999999999999467,
     "topk_calibrated_minus_soft_calibrated_hard_top2_worst_acc": 0.0,
     "unified_moe_hard_top1_worst_acc": 0.595,
@@ -74,6 +74,22 @@
   "expert_matched_ties_dare_worst_acc": 0.7775,
   "expert_matched_ties_minus_matched_average_worst_acc": -0.025000000000000022,
   "expert_matched_ties_worst_acc": 0.775,
+  "expert_output_projection": {
+    "dispatch_mode": "hard_top2",
+    "max_delta_sum": 1.0,
+    "mean_captured_fraction": 0.6164101996956941,
+    "mean_residual_energy": 0.6658490891045572,
+    "ridge": 0.0001,
+    "rows": 12,
+    "shared_weights": {
+      "code": 0.5,
+      "general": 0.5
+    }
+  },
+  "expert_output_projection_router_calibrated_minus_all_weight_worst_acc": 0.20499999999999996,
+  "expert_output_projection_router_calibrated_minus_matched_calibrated_worst_acc": -0.012500000000000067,
+  "expert_output_projection_router_calibrated_worst_acc": 0.825,
+  "expert_output_projection_worst_acc": 0.8075,
   "expert_regmean": {
     "batches": 4,
     "covariance_rows": 16,
@@ -138,6 +154,7 @@
     "dispatch_mode_metrics": "dispatch_mode_metrics.csv",
     "expert_load": "expert_load.csv",
     "expert_match": "expert_match.csv",
+    "expert_output_projection_weights_by_expert": "expert_output_projection_weights_by_expert.csv",
     "expert_regmean_covariances": "expert_regmean_covariances.csv",
     "expert_regmean_layers": "expert_regmean_layers.csv",
     "expert_search_weights_by_expert": "expert_search_weights_by_expert.csv",
@@ -188,7 +205,7 @@
     "max_top1_overflow_fraction": 0.41,
     "max_topk_overflow_fraction": 0.115,
     "route_kd_minus_calibrated_max_topk_overflow_fraction": 0.012499999999999997,
-    "row_count": 44,
+    "row_count": 48,
     "unified_moe_max_topk_overflow_fraction": 0.075,
     "unified_moe_minus_route_kd_max_topk_overflow_fraction": 0.0025000000000000022,
     "worst_topk_overflow_category": "code",
