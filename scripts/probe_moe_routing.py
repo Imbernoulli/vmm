@@ -8,6 +8,7 @@ import math
 import re
 from collections import Counter
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -24,11 +25,26 @@ DEFAULT_PROMPTS = [
     {"category": "safety", "prompt": "How should a lab safely dispose of expired chemical reagents?"},
 ]
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
 
 @dataclass
 class RouterCapture:
     name: str
     logits: list[torch.Tensor]
+
+
+def repo_path(path: str | Path) -> Path:
+    path = Path(path)
+    return path if path.is_absolute() else REPO_ROOT / path
+
+
+def rel(path: str | Path) -> str:
+    path = repo_path(path)
+    try:
+        return str(path.relative_to(REPO_ROOT))
+    except ValueError:
+        return str(path)
 
 
 def parse_args() -> argparse.Namespace:
@@ -300,6 +316,131 @@ def route_overlap_rows(
     return rows
 
 
+def unique_values(rows: list[dict[str, Any]], key: str) -> list[str]:
+    return sorted({str(row[key]) for row in rows if key in row and row[key] is not None})
+
+
+def build_summary(
+    *,
+    args: argparse.Namespace,
+    output_dir: Path,
+    prompts: list[dict[str, str]],
+    summary_rows: list[dict[str, Any]],
+    expert_rows: list[dict[str, Any]],
+    token_route_rows: list[dict[str, Any]],
+    compare_summary: list[dict[str, Any]],
+    compare_expert_rows: list[dict[str, Any]],
+    compare_token_rows: list[dict[str, Any]],
+    overlap_rows: list[dict[str, Any]],
+) -> dict[str, Any]:
+    categories = sorted({str(item.get("category", "default")) for item in prompts})
+    routers = unique_values(summary_rows, "router")
+    compare_routers = unique_values(compare_summary, "router")
+    return {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "model": str(args.model),
+        "compare_model": None if args.compare_model is None else str(args.compare_model),
+        "prompt_count": len(prompts),
+        "categories": categories,
+        "category_count": len(categories),
+        "router_count": len(routers),
+        "routers": routers,
+        "compare_router_count": len(compare_routers),
+        "compare_routers": compare_routers,
+        "top_k": args.top_k,
+        "max_length": args.max_length,
+        "use_chat_template": bool(args.use_chat_template),
+        "write_token_routes": bool(args.write_token_routes),
+        "router_name_regex": args.router_name_regex,
+        "exclude_name_regex": args.exclude_name_regex,
+        "row_counts": {
+            "router_summary": len(summary_rows),
+            "expert_load": len(expert_rows),
+            "token_routes": len(token_route_rows),
+            "compare_router_summary": len(compare_summary),
+            "compare_expert_load": len(compare_expert_rows),
+            "compare_token_routes": len(compare_token_rows),
+            "route_overlap": len(overlap_rows),
+        },
+        "outputs": {
+            "router_summary": rel(output_dir / "router_summary.csv"),
+            "expert_load": rel(output_dir / "expert_load.csv"),
+            "token_routes": rel(output_dir / "token_routes.csv") if args.write_token_routes else None,
+            "compare_router_summary": rel(output_dir / "compare_router_summary.csv") if compare_summary else None,
+            "compare_expert_load": rel(output_dir / "compare_expert_load.csv") if compare_expert_rows else None,
+            "compare_token_routes": rel(output_dir / "compare_token_routes.csv") if compare_token_rows else None,
+            "route_overlap": rel(output_dir / "route_overlap.csv") if overlap_rows else None,
+            "manifest": rel(output_dir / "manifest.json"),
+            "summary": rel(output_dir / "summary.json"),
+            "report": rel(output_dir / "report.md"),
+        },
+        "downstream_consumers": {
+            "readiness": "scripts/analyze_moe_routing_readiness.py",
+            "route_weight_recipes": "scripts/build_moe_route_weight_recipes.py",
+            "average_decision": "scripts/build_average_decision_report.py",
+            "moe_average_plan": "scripts/build_moe_average_plan.py",
+        },
+    }
+
+
+def build_report(summary: dict[str, Any]) -> str:
+    outputs = summary["outputs"]
+    row_counts = summary["row_counts"]
+    lines = [
+        "# MoE Routing Probe",
+        "",
+        "这个报告由 `scripts/probe_moe_routing.py` 生成，用来把真实 MoE router 的 top-k、entropy、expert load 和可选 source-to-source route overlap 转成后续 readiness / route-weight recipe 可直接读取的 CSV。",
+        "",
+        "## Run Summary",
+        "",
+        f"- Model: `{summary['model']}`",
+        f"- Compare model: `{summary['compare_model']}`",
+        f"- Prompts: `{summary['prompt_count']}` across `{summary['category_count']}` categories",
+        f"- Routers observed: `{summary['router_count']}`",
+        f"- Top-k: `{summary['top_k']}`",
+        f"- Chat template: `{summary['use_chat_template']}`",
+        "",
+        "## Output Rows",
+        "",
+        "| file | rows | consumer |",
+        "| --- | ---: | --- |",
+        f"| `{outputs['router_summary']}` | {row_counts['router_summary']} | routing readiness / MoE average plan |",
+        f"| `{outputs['expert_load']}` | {row_counts['expert_load']} | route-weight recipes / expert risk analysis |",
+    ]
+    if outputs.get("route_overlap"):
+        lines.append(f"| `{outputs['route_overlap']}` | {row_counts['route_overlap']} | router overlap gate |")
+    if outputs.get("token_routes"):
+        lines.append(f"| `{outputs['token_routes']}` | {row_counts['token_routes']} | token-level debugging |")
+    if outputs.get("compare_router_summary"):
+        lines.append(f"| `{outputs['compare_router_summary']}` | {row_counts['compare_router_summary']} | comparison audit |")
+    if outputs.get("compare_expert_load"):
+        lines.append(f"| `{outputs['compare_expert_load']}` | {row_counts['compare_expert_load']} | comparison audit |")
+    lines.extend(
+        [
+            "",
+            "## CSV Contract",
+            "",
+            "- `router_summary.csv` records `model`, `category`, `prompt_idx`, `router`, `num_experts`, `tokens`, `top_k`, `router_entropy_mean`, `top1_margin_mean`, `unique_top1_experts`, `unique_topk_experts`, `max_top1_fraction`, and `effective_top1_experts`.",
+            "- `expert_load.csv` records per-router/per-expert `top1_fraction` and `topk_fraction`; `scripts/build_moe_route_weight_recipes.py` uses these route masses to emit same-shape tensor rules.",
+            "- `route_overlap.csv`, when a compare model is supplied, records `top1_agreement` and `topk_jaccard`; `scripts/analyze_moe_routing_readiness.py` uses them to catch routing breakdown before materialization.",
+            "",
+            "## Next Commands",
+            "",
+            "```bash",
+            f"PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir {Path(outputs['summary']).parent}",
+            f"PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --router-dir {Path(outputs['summary']).parent} --source general --source code",
+            "```",
+            "",
+            "## Files",
+            "",
+            f"- `{outputs['manifest']}`",
+            f"- `{outputs['summary']}`",
+            f"- `{outputs['report']}`",
+        ]
+    )
+    return "\n".join(lines) + "\n"
+
+
 def write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     if not rows:
@@ -327,7 +468,7 @@ def load_model(model_name: str, args: argparse.Namespace, device: torch.device) 
 
 def main() -> None:
     args = parse_args()
-    output_dir = Path(args.output_dir)
+    output_dir = repo_path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     device = resolve_device(args.device)
     prompts = load_prompts(args.prompts, args.max_prompts)
@@ -349,6 +490,9 @@ def main() -> None:
         torch.cuda.empty_cache()
 
     overlap_rows: list[dict[str, Any]] = []
+    compare_summary: list[dict[str, Any]] = []
+    compare_expert_rows: list[dict[str, Any]] = []
+    compare_token_rows: list[dict[str, Any]] = []
     if args.compare_model:
         compare_model = load_model(args.compare_model, args, device)
         compare_args = argparse.Namespace(**{**vars(args), "model": args.compare_model})
@@ -368,6 +512,7 @@ def main() -> None:
         write_csv(output_dir / "route_overlap.csv", overlap_rows)
 
     manifest = {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
         "model": args.model,
         "compare_model": args.compare_model,
         "prompts": len(prompts),
@@ -378,10 +523,30 @@ def main() -> None:
             "router_summary": "router_summary.csv",
             "expert_load": "expert_load.csv",
             "token_routes": "token_routes.csv" if args.write_token_routes else None,
+            "compare_router_summary": "compare_router_summary.csv" if compare_summary else None,
+            "compare_expert_load": "compare_expert_load.csv" if compare_expert_rows else None,
+            "compare_token_routes": "compare_token_routes.csv" if compare_token_rows else None,
             "route_overlap": "route_overlap.csv" if overlap_rows else None,
+            "summary": "summary.json",
+            "report": "report.md",
         },
     }
-    (output_dir / "manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8")
+    summary = build_summary(
+        args=args,
+        output_dir=output_dir,
+        prompts=prompts,
+        summary_rows=summary_rows,
+        expert_rows=expert_rows,
+        token_route_rows=token_route_rows,
+        compare_summary=compare_summary,
+        compare_expert_rows=compare_expert_rows,
+        compare_token_rows=compare_token_rows,
+        overlap_rows=overlap_rows,
+    )
+    (output_dir / "manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    (output_dir / "summary.json").write_text(json.dumps(summary, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    (output_dir / "report.md").write_text(build_report(summary), encoding="utf-8")
+    print(f"Wrote MoE routing probe outputs to {output_dir.resolve()}")
 
 
 if __name__ == "__main__":

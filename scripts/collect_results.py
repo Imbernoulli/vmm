@@ -741,6 +741,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/moe_routing_readiness/report.md turns router_summary, route_overlap, and expert_load CSVs into router collapse, drift, boundary-fragility, and expert-load risk actions.",
         },
         {
+            "item": "MoE routing probe CLI",
+            "status": "complete",
+            "evidence": "scripts/probe_moe_routing.py captures MoE router hooks and writes router_summary.csv, expert_load.csv, optional route_overlap.csv, summary.json, and report.md for downstream readiness and route-weight recipes.",
+        },
+        {
             "item": "Toy MoE route-aware merge",
             "status": "complete",
             "evidence": "results/toy_moe_merge/report.md runs a small same-shape MoE averaging experiment showing expert-index mismatch and route-aware/expert-matched fixes.",

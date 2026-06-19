@@ -106,6 +106,11 @@
       "status": "complete"
     },
     {
+      "evidence": "scripts/probe_moe_routing.py captures MoE router hooks and writes router_summary.csv, expert_load.csv, optional route_overlap.csv, summary.json, and report.md for downstream readiness and route-weight recipes.",
+      "item": "MoE routing probe CLI",
+      "status": "complete"
+    },
+    {
       "evidence": "results/toy_moe_merge/report.md runs a small same-shape MoE averaging experiment showing expert-index mismatch and route-aware/expert-matched fixes.",
       "item": "Toy MoE route-aware merge",
       "status": "complete"
@@ -132,7 +137,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 26,
+    "complete": 27,
     "missing": 0,
     "partial": 0
   },
@@ -2670,7 +2675,7 @@
       }
     }
   },
-  "generated_at": "2026-06-19T05:03:10.765830+00:00",
+  "generated_at": "2026-06-19T05:08:04.895061+00:00",
   "overall_status": "complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
