@@ -1534,6 +1534,52 @@ def evaluate_dispatch_modes(
     return pd.DataFrame(rows)
 
 
+def router_capacity_metrics(
+    router_summary: pd.DataFrame,
+    expert_load: pd.DataFrame,
+    *,
+    capacity_factor: float,
+) -> pd.DataFrame:
+    rows: list[dict[str, Any]] = []
+    summary_index = router_summary.set_index(["method", "category"])
+    for (method, category), group in expert_load.groupby(["method", "category"], sort=False):
+        if (method, category) not in summary_index.index:
+            continue
+        summary = summary_index.loc[(method, category)]
+        if isinstance(summary, pd.DataFrame):
+            summary = summary.iloc[0]
+        tokens = int(summary["tokens"])
+        top_k = int(summary["top_k"])
+        n_experts = int(summary["num_experts"])
+        top1_capacity = int(math.ceil(capacity_factor * tokens / max(1, n_experts)))
+        topk_capacity = int(math.ceil(capacity_factor * tokens * top_k / max(1, n_experts)))
+        top1_counts = group["top1_count"].astype(float)
+        topk_counts = group["topk_count"].astype(float)
+        top1_overflow = float((top1_counts - top1_capacity).clip(lower=0).sum())
+        topk_overflow = float((topk_counts - topk_capacity).clip(lower=0).sum())
+        rows.append(
+            {
+                "method": str(method),
+                "category": str(category),
+                "router": str(summary["router"]),
+                "tokens": tokens,
+                "num_experts": n_experts,
+                "top_k": top_k,
+                "capacity_factor": float(capacity_factor),
+                "top1_capacity_per_expert": top1_capacity,
+                "topk_capacity_per_expert": topk_capacity,
+                "top1_overflow_tokens": int(top1_overflow),
+                "top1_overflow_fraction": top1_overflow / max(1, tokens),
+                "topk_overflow_assignments": int(topk_overflow),
+                "topk_overflow_fraction": topk_overflow / max(1, tokens * top_k),
+                "max_top1_capacity_ratio": float(top1_counts.max() / max(1, top1_capacity)),
+                "max_topk_capacity_ratio": float(topk_counts.max() / max(1, topk_capacity)),
+                "capacity_action": "capacity_overflow_risk" if topk_overflow > 0 else "capacity_ok",
+            }
+        )
+    return pd.DataFrame(rows)
+
+
 def plot_results(method_metrics: pd.DataFrame, router_summary: pd.DataFrame, out: Path) -> None:
     fig, axes = plt.subplots(1, 2, figsize=(12.5, 4.5), constrained_layout=True)
     order = method_metrics.sort_values("worst_acc", ascending=False)["method"].tolist()
@@ -1601,6 +1647,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
     route_aware = method_metrics[method_metrics["method"] == "route_aware_expert_average"].iloc[0]
     connectivity = summary["connectivity"]
     dispatch = summary["dispatch_robustness"]
+    capacity = summary["router_capacity"]
     lines = [
         "# Toy MoE Route-Aware Merge",
         "",
@@ -1638,6 +1685,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
         f"- Matched + route-KD hard top-2 worst accuracy: `{dispatch['matched_router_route_kd_hard_top2_worst_acc']:.3f}`.",
         f"- Route-KD hard top-2 delta vs router-calibrated: `{dispatch['route_kd_minus_calibrated_hard_top2_worst_acc']:.3f}`.",
         f"- Matched + router-topk-calibrated hard top-2 worst accuracy: `{dispatch['matched_router_topk_calibrated_hard_top2_worst_acc']:.3f}`.",
+        f"- Capacity factor `{capacity['capacity_factor']:.2f}` max top-k overflow fraction: `{capacity['max_topk_overflow_fraction']:.3f}`.",
         f"- Top-k router calibration delta vs soft router calibration under hard top-2: `{dispatch['topk_calibrated_minus_soft_calibrated_hard_top2_worst_acc']:.3f}`.",
         f"- Recovered expert matching mean cosine: `{summary['expert_match_mean_cosine']:.3f}`.",
         f"- Code source permutation: `{summary['code_source_permutation']}`.",
@@ -1680,6 +1728,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
             "- `dispatch_mode_metrics.csv`",
             "- `router_summary.csv`",
             "- `expert_load.csv`",
+            "- `router_capacity_metrics.csv`",
             "- `route_overlap.csv`",
             "- `expert_match.csv`",
             "- `route_weights_by_expert.csv`",
@@ -1757,6 +1806,7 @@ def main() -> None:
     parser.add_argument("--match-batches", type=int, default=6)
     parser.add_argument("--connectivity-steps", type=int, default=21)
     parser.add_argument("--dispatch-eval-modes", default="soft_all,hard_top1,hard_top2")
+    parser.add_argument("--capacity-factor", type=float, default=1.25)
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     args = parser.parse_args()
 
@@ -2218,6 +2268,7 @@ def main() -> None:
     router_summary = pd.DataFrame(router_rows)
     expert_load = pd.DataFrame(expert_rows)
     route_overlap_df = pd.DataFrame(overlap_rows)
+    router_capacity = router_capacity_metrics(router_summary, expert_load, capacity_factor=args.capacity_factor)
 
     method_metrics.to_csv(args.output_dir / "method_metrics.csv", index=False)
     dispatch_mode_metrics.to_csv(args.output_dir / "dispatch_mode_metrics.csv", index=False)
@@ -2225,6 +2276,7 @@ def main() -> None:
     connectivity_summary.to_csv(args.output_dir / "connectivity_summary.csv", index=False)
     router_summary.to_csv(args.output_dir / "router_summary.csv", index=False)
     expert_load.to_csv(args.output_dir / "expert_load.csv", index=False)
+    router_capacity.to_csv(args.output_dir / "router_capacity_metrics.csv", index=False)
     route_overlap_df.to_csv(args.output_dir / "route_overlap.csv", index=False)
     expert_match.to_csv(args.output_dir / "expert_match.csv", index=False)
     route_weights.to_csv(args.output_dir / "route_weights_by_expert.csv", index=False)
@@ -2284,6 +2336,9 @@ def main() -> None:
         method_metrics["method"] == "expert_weight_search_router_calibrated_average"
     ].iloc[0]
     route_aware_row = method_metrics[method_metrics["method"] == "route_aware_expert_average"].iloc[0]
+    capacity_route_kd = router_capacity[router_capacity["method"] == "matched_router_route_kd_average"]
+    capacity_calibrated = router_capacity[router_capacity["method"] == "matched_router_calibrated_average"]
+    worst_capacity_row = router_capacity.sort_values("topk_overflow_fraction", ascending=False).iloc[0]
     summary = {
         "schema_version": 1,
         "seed": args.seed,
@@ -2416,6 +2471,24 @@ def main() -> None:
                 ("matched_router_kd_average", "hard_top2"),
             }.issubset(dispatch_index_keys)
             else None,
+        },
+        "router_capacity": {
+            "capacity_factor": args.capacity_factor,
+            "row_count": int(len(router_capacity)),
+            "max_top1_overflow_fraction": float(router_capacity["top1_overflow_fraction"].max()),
+            "max_topk_overflow_fraction": float(router_capacity["topk_overflow_fraction"].max()),
+            "worst_topk_overflow_method": str(worst_capacity_row["method"]),
+            "worst_topk_overflow_category": str(worst_capacity_row["category"]),
+            "matched_router_route_kd_max_topk_overflow_fraction": float(
+                capacity_route_kd["topk_overflow_fraction"].max()
+            ),
+            "matched_router_calibrated_max_topk_overflow_fraction": float(
+                capacity_calibrated["topk_overflow_fraction"].max()
+            ),
+            "route_kd_minus_calibrated_max_topk_overflow_fraction": float(
+                capacity_route_kd["topk_overflow_fraction"].max()
+                - capacity_calibrated["topk_overflow_fraction"].max()
+            ),
         },
         "all_weight_average_worst_acc": float(all_avg["worst_acc"]),
         "matched_router_frozen_worst_acc": float(matched_router_frozen_row["worst_acc"]),
@@ -2606,6 +2679,7 @@ def main() -> None:
             "dispatch_mode_metrics": "dispatch_mode_metrics.csv",
             "router_summary": "router_summary.csv",
             "expert_load": "expert_load.csv",
+            "router_capacity_metrics": "router_capacity_metrics.csv",
             "route_overlap": "route_overlap.csv",
             "expert_match": "expert_match.csv",
             "route_weights_by_expert": "route_weights_by_expert.csv",

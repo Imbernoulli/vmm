@@ -1165,16 +1165,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 148915,
+      "bytes": 150157,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "55010e000b939e25c2b515f82a536a5847f203b8de4563e42f4ab8d795bf8a3c"
+      "sha256": "b418d5714fc5727069e59c6cd17bfcbc0b37d74823bcf92d07428856cd9a24cc"
     },
     {
-      "bytes": 14073,
+      "bytes": 14348,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "f8e696dcc5247286e713952815d2ff0b3abb2266a84a4033fe761d3ff2d3328c"
+      "sha256": "e8ecfa1ef7be1c31a9dfbe25938206c0ab735c4367f9ef7d3ebb0491c5a04dbc"
     },
     {
       "bytes": 556,
@@ -1198,7 +1198,7 @@
       "bytes": 927,
       "kind": "data",
       "path": "results/toy_moe_expert_remap_plan/summary.json",
-      "sha256": "5aea8ed8821656b73ac8c4e6bfab74af2db60b6b1a88b8e864f90c13e1755098"
+      "sha256": "b4b3133d2b7bce5d8e9f5bebde6465b81ac22bb82d2ba19868382a4a6e5aba6f"
     },
     {
       "bytes": 434,
@@ -1309,10 +1309,10 @@
       "sha256": "0d2ac53c3fbd1404b124adb05d8fdf42f5f4744833afcc818d50d73256776819"
     },
     {
-      "bytes": 7650,
+      "bytes": 7745,
       "kind": "document",
       "path": "results/toy_moe_merge/report.md",
-      "sha256": "75bdc566da23371ba9af3c84d01996dd8e56796fec8b2e1d50e5d4cd7cc573f9"
+      "sha256": "b036816893e263d527db90e69d628f9c0909f80774b2ac1689494d54979f9d8e"
     },
     {
       "bytes": 3334,
@@ -1331,6 +1331,12 @@
       "kind": "data",
       "path": "results/toy_moe_merge/router_calibration_sweep.csv",
       "sha256": "fdc989f0f61d45a945277c7a4c53e2618fadca8ce917c4055f7ff464a695aacf"
+    },
+    {
+      "bytes": 5365,
+      "kind": "data",
+      "path": "results/toy_moe_merge/router_capacity_metrics.csv",
+      "sha256": "869bc1f540d345b90cbb6db131de0b73d24d2e5f730bce2a48e4fa4d5eb48f8a"
     },
     {
       "bytes": 475,
@@ -1363,10 +1369,10 @@
       "sha256": "6a0e0f94f5e847fe309728df0db503afa93c020bd86ba48cb4ff43b68aa5c7a9"
     },
     {
-      "bytes": 8031,
+      "bytes": 8565,
       "kind": "data",
       "path": "results/toy_moe_merge/summary.json",
-      "sha256": "3a7282baea3626f2ceefeecafc439c9da1382758faa0f440a55962c8251ae58e"
+      "sha256": "8aab264ec99525b14b83ea7a813b7c36beb8a48a2960c4874aa3bc46638225b8"
     },
     {
       "bytes": 297646,
@@ -1390,7 +1396,7 @@
       "bytes": 1019,
       "kind": "data",
       "path": "results/toy_moe_method_selection/summary.json",
-      "sha256": "48e6293224c13f2623495674e808f75161a7f6ac4a88b294553183f2db8decfb"
+      "sha256": "c02d08cb34b75f576c579288faac84fd0423eec63c3b45db406700b8d38aa1dc"
     },
     {
       "bytes": 18803,
@@ -1420,7 +1426,7 @@
       "bytes": 1466,
       "kind": "data",
       "path": "results/toy_moe_routing_readiness/summary.json",
-      "sha256": "6c4d17c3783a924fd8af5c7ba5c5757933db6a458336bfb37b711a1ef7ce7fa6"
+      "sha256": "530993b7fdf1d8c2d8d481853a3b114f3fbcc87de019e009f826b90d292c96ff"
     },
     {
       "bytes": 190,
@@ -1501,10 +1507,10 @@
       "sha256": "a1d54b8d275c55bbdc12aa051e4cb6888ce0371ff7698b547c1d7aa17f79c8e4"
     },
     {
-      "bytes": 86091,
+      "bytes": 87273,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "86beb70f915367cfae71ed6a1d792f19127bc02c48c43bbcf1538609862afac7"
+      "sha256": "538376bdc0ac70c9656a4e9aa85c6e8d621ba9270cd710fd75d3ecf0dab70f62"
     },
     {
       "bytes": 17809,
@@ -1597,10 +1603,10 @@
       "sha256": "b6f0e648135e011f773d78e4ae89f21215f26dbf99fb5ff01d38bb9b3481eb7a"
     },
     {
-      "bytes": 120218,
+      "bytes": 124366,
       "kind": "code",
       "path": "scripts/run_toy_moe_merge.py",
-      "sha256": "cfba4e8d6b96fdf1c137a9e2a186f918e2910474de740e377626ec1edac32633"
+      "sha256": "09095602c2465b51b9d1f48bd980e3c806ef4be1384c29588653c0ba28f86410"
     },
     {
       "bytes": 25366,
@@ -1651,7 +1657,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T11:11:58.745697+00:00",
+  "generated_at": "2026-06-19T11:16:57.908746+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

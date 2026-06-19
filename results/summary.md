@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-19T11:11:58.701186+00:00`
+Generated at: `2026-06-19T11:16:57.875515+00:00`
 
 ## Coverage
 
@@ -99,6 +99,10 @@ Complete: `31`; partial: `1`; missing: `0`.
 | toy MoE hard dispatch | matched + route-KD hard top-2 worst accuracy | 0.730 |
 | toy MoE hard dispatch | route-KD hard top-2 delta vs router-calibrated | 0.030 |
 | toy MoE hard dispatch | route-KD hard top-2 delta vs output-KD | 0.045 |
+| toy MoE capacity | max top-k overflow fraction | 0.115 |
+| toy MoE capacity | worst overflow method/category | all_weight_average / code |
+| toy MoE capacity | route-KD max top-k overflow fraction | 0.072 |
+| toy MoE capacity | route-KD minus calibrated overflow | 0.012 |
 | toy MoE hard dispatch | soft to hard top-1 delta | -0.270 |
 | toy MoE hard dispatch | top-k vs soft-calibrated hard top-2 delta | 0.000 |
 | toy MoE route-aware merge | guarded router-sweep selected KL | 0.25 |

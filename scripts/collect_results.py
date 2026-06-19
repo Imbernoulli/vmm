@@ -571,6 +571,7 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
     dispatch_modes = read_csv("results/toy_moe_merge/dispatch_mode_metrics.csv")
     connectivity = read_csv("results/toy_moe_merge/connectivity_summary.csv")
     router_summary = read_csv("results/toy_moe_merge/router_summary.csv")
+    router_capacity = read_csv("results/toy_moe_merge/router_capacity_metrics.csv")
     expert_match = read_csv("results/toy_moe_merge/expert_match.csv")
     expert_regmean_layers = read_csv("results/toy_moe_merge/expert_regmean_layers.csv")
     expert_regmean_covariances = read_csv("results/toy_moe_merge/expert_regmean_covariances.csv")
@@ -596,6 +597,8 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
         if not connectivity.empty
         else None,
         "connectivity": summary.get("connectivity", {}),
+        "router_capacity": summary.get("router_capacity", {}),
+        "router_capacity_rows": int(len(router_capacity)),
         "all_weight_average": find_method(methods, "all_weight_average"),
         "expert_matched_average": find_method(methods, "expert_matched_average"),
         "matched_router_frozen_average": find_method(methods, "matched_router_frozen_average"),
@@ -694,6 +697,7 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
         "connectivity_path_metrics": rel("results/toy_moe_merge/connectivity_path_metrics.csv"),
         "connectivity_figure": rel("results/toy_moe_merge/connectivity_paths.png"),
         "router_summary": rel("results/toy_moe_merge/router_summary.csv"),
+        "router_capacity_metrics": rel("results/toy_moe_merge/router_capacity_metrics.csv"),
         "expert_load": rel("results/toy_moe_merge/expert_load.csv"),
         "route_overlap": rel("results/toy_moe_merge/route_overlap.csv"),
         "expert_match": rel("results/toy_moe_merge/expert_match.csv"),
@@ -1419,6 +1423,23 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| toy MoE hard dispatch | route-KD hard top-2 delta vs output-KD | "
                 f"{fmt(toy_moe['dispatch_robustness']['route_kd_minus_output_kd_hard_top2_worst_acc'])} |"
+            ),
+            (
+                "| toy MoE capacity | max top-k overflow fraction | "
+                f"{fmt(toy_moe['router_capacity']['max_topk_overflow_fraction'])} |"
+            ),
+            (
+                "| toy MoE capacity | worst overflow method/category | "
+                f"{toy_moe['router_capacity']['worst_topk_overflow_method']} / "
+                f"{toy_moe['router_capacity']['worst_topk_overflow_category']} |"
+            ),
+            (
+                "| toy MoE capacity | route-KD max top-k overflow fraction | "
+                f"{fmt(toy_moe['router_capacity']['matched_router_route_kd_max_topk_overflow_fraction'])} |"
+            ),
+            (
+                "| toy MoE capacity | route-KD minus calibrated overflow | "
+                f"{fmt(toy_moe['router_capacity']['route_kd_minus_calibrated_max_topk_overflow_fraction'])} |"
             ),
             (
                 "| toy MoE hard dispatch | soft to hard top-1 delta | "

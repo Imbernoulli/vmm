@@ -145,6 +145,7 @@
     "route_overlap": "route_overlap.csv",
     "route_weights_by_expert": "route_weights_by_expert.csv",
     "router_calibration_sweep": "router_calibration_sweep.csv",
+    "router_capacity_metrics": "router_capacity_metrics.csv",
     "router_hessian_average": "router_hessian_average.csv",
     "router_kd_trace": "router_kd_trace.csv",
     "router_route_kd_trace": "router_route_kd_trace.csv",
@@ -174,6 +175,17 @@
     "selected_kl_coef": 0.25,
     "selected_minus_fixed_kl_worst_acc": 0.0,
     "selected_test_worst_acc": 0.8375
+  },
+  "router_capacity": {
+    "capacity_factor": 1.25,
+    "matched_router_calibrated_max_topk_overflow_fraction": 0.06,
+    "matched_router_route_kd_max_topk_overflow_fraction": 0.0725,
+    "max_top1_overflow_fraction": 0.41,
+    "max_topk_overflow_fraction": 0.115,
+    "route_kd_minus_calibrated_max_topk_overflow_fraction": 0.012499999999999997,
+    "row_count": 42,
+    "worst_topk_overflow_category": "code",
+    "worst_topk_overflow_method": "all_weight_average"
   },
   "router_hessian": {
     "precision_trace": 1401.7780635747238,

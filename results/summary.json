@@ -2664,7 +2664,7 @@
       "source_tensor_aliases": "results/toy_moe_expert_remap_plan/source_tensor_aliases.txt",
       "summary": {
         "alias_rule_count": 4,
-        "generated_at": "2026-06-19T11:08:05.216996+00:00",
+        "generated_at": "2026-06-19T11:16:53.065874+00:00",
         "manual_review_count": 0,
         "mean_output_cosine": 0.9773149192333221,
         "min_cosine_threshold": 0.9,
@@ -3087,6 +3087,19 @@
         "test_worst_acc": 0.8375,
         "test_worst_loss": 0.6125870132446289
       },
+      "router_capacity": {
+        "capacity_factor": 1.25,
+        "matched_router_calibrated_max_topk_overflow_fraction": 0.06,
+        "matched_router_route_kd_max_topk_overflow_fraction": 0.0725,
+        "max_top1_overflow_fraction": 0.41,
+        "max_topk_overflow_fraction": 0.115,
+        "route_kd_minus_calibrated_max_topk_overflow_fraction": 0.012499999999999997,
+        "row_count": 42,
+        "worst_topk_overflow_category": "code",
+        "worst_topk_overflow_method": "all_weight_average"
+      },
+      "router_capacity_metrics": "results/toy_moe_merge/router_capacity_metrics.csv",
+      "router_capacity_rows": 42,
       "router_hessian_average": "results/toy_moe_merge/router_hessian_average.csv",
       "router_hessian_rows": 3,
       "router_kd_rows": 16,
@@ -3272,6 +3285,7 @@
           "route_overlap": "route_overlap.csv",
           "route_weights_by_expert": "route_weights_by_expert.csv",
           "router_calibration_sweep": "router_calibration_sweep.csv",
+          "router_capacity_metrics": "router_capacity_metrics.csv",
           "router_hessian_average": "router_hessian_average.csv",
           "router_kd_trace": "router_kd_trace.csv",
           "router_route_kd_trace": "router_route_kd_trace.csv",
@@ -3301,6 +3315,17 @@
           "selected_kl_coef": 0.25,
           "selected_minus_fixed_kl_worst_acc": 0.0,
           "selected_test_worst_acc": 0.8375
+        },
+        "router_capacity": {
+          "capacity_factor": 1.25,
+          "matched_router_calibrated_max_topk_overflow_fraction": 0.06,
+          "matched_router_route_kd_max_topk_overflow_fraction": 0.0725,
+          "max_top1_overflow_fraction": 0.41,
+          "max_topk_overflow_fraction": 0.115,
+          "route_kd_minus_calibrated_max_topk_overflow_fraction": 0.012499999999999997,
+          "row_count": 42,
+          "worst_topk_overflow_category": "code",
+          "worst_topk_overflow_method": "all_weight_average"
         },
         "router_hessian": {
           "precision_trace": 1401.7780635747238,
@@ -3420,7 +3445,7 @@
       "report": "results/toy_moe_method_selection/report.md",
       "summary": {
         "base_worst_acc": 0.775,
-        "generated_at": "2026-06-19T11:11:40.834498+00:00",
+        "generated_at": "2026-06-19T11:16:52.913671+00:00",
         "inputs": {
           "dispatch_metrics": "results/toy_moe_merge/dispatch_mode_metrics.csv",
           "method_metrics": "results/toy_moe_merge/method_metrics.csv",
@@ -3462,7 +3487,7 @@
           "low_lambda_or_route_frequency_average": 168
         },
         "expert_rows": 168,
-        "generated_at": "2026-06-19T11:07:56.269261+00:00",
+        "generated_at": "2026-06-19T11:16:46.480910+00:00",
         "outputs": {
           "category_specialization": "results/toy_moe_routing_readiness/category_specialization.csv",
           "expert_load_risks": "results/toy_moe_routing_readiness/expert_load_risks.csv",
@@ -3542,7 +3567,7 @@
       "tasks": "gsm8k,mmlu,safety,humaneval_compile"
     }
   },
-  "generated_at": "2026-06-19T11:11:58.701186+00:00",
+  "generated_at": "2026-06-19T11:16:57.875515+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [

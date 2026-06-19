@@ -34,6 +34,7 @@
 - Matched + route-KD hard top-2 worst accuracy: `0.730`.
 - Route-KD hard top-2 delta vs router-calibrated: `0.030`.
 - Matched + router-topk-calibrated hard top-2 worst accuracy: `0.700`.
+- Capacity factor `1.25` max top-k overflow fraction: `0.115`.
 - Top-k router calibration delta vs soft router calibration under hard top-2: `0.000`.
 - Recovered expert matching mean cosine: `0.977`.
 - Code source permutation: `[2, 0, 3, 1]`.
@@ -89,6 +90,7 @@
 - `dispatch_mode_metrics.csv`
 - `router_summary.csv`
 - `expert_load.csv`
+- `router_capacity_metrics.csv`
 - `route_overlap.csv`
 - `expert_match.csv`
 - `route_weights_by_expert.csv`
