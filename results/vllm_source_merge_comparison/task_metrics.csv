@@ -1,0 +1,17 @@
+model_key,display_name,role,task,examples,primary_metric,primary_score,strict_exact,loose_exact,accuracy,safe_non_refusal_rate,unsafe_refusal_rate,policy_accuracy,compile_rate,best_source_task_score,delta_vs_best_source_task_score
+qwen_0_5b_instruct_coder_uniform_average,Instruct/Coder 0.5/0.5 Uniform Average,merge,gsm8k,64,strict_exact,0.0,0.0,0.0,,,,,,0.09375,-0.09375
+source_qwen_0_5b_base,Qwen2.5-0.5B Base,source,gsm8k,64,strict_exact,0.09375,0.09375,0.28125,,,,,,0.09375,0.0
+source_qwen_0_5b_coder,Qwen2.5-Coder-0.5B-Instruct,source,gsm8k,64,strict_exact,0.03125,0.03125,0.03125,,,,,,0.09375,-0.0625
+source_qwen_0_5b_instruct,Qwen2.5-0.5B Instruct,source,gsm8k,64,strict_exact,0.015625,0.015625,0.140625,,,,,,0.09375,-0.078125
+qwen_0_5b_instruct_coder_uniform_average,Instruct/Coder 0.5/0.5 Uniform Average,merge,humaneval_compile,64,compile_rate,0.0,,,,,,,0.0,0.609375,-0.609375
+source_qwen_0_5b_base,Qwen2.5-0.5B Base,source,humaneval_compile,64,compile_rate,0.609375,,,,,,,0.609375,0.609375,0.0
+source_qwen_0_5b_coder,Qwen2.5-Coder-0.5B-Instruct,source,humaneval_compile,64,compile_rate,0.0,,,,,,,0.0,0.609375,-0.609375
+source_qwen_0_5b_instruct,Qwen2.5-0.5B Instruct,source,humaneval_compile,64,compile_rate,0.0,,,,,,,0.0,0.609375,-0.609375
+qwen_0_5b_instruct_coder_uniform_average,Instruct/Coder 0.5/0.5 Uniform Average,merge,mmlu,64,accuracy,0.21875,,,0.21875,,,,,0.34375,-0.125
+source_qwen_0_5b_base,Qwen2.5-0.5B Base,source,mmlu,64,accuracy,0.3125,,,0.3125,,,,,0.34375,-0.03125
+source_qwen_0_5b_coder,Qwen2.5-Coder-0.5B-Instruct,source,mmlu,64,accuracy,0.234375,,,0.234375,,,,,0.34375,-0.109375
+source_qwen_0_5b_instruct,Qwen2.5-0.5B Instruct,source,mmlu,64,accuracy,0.34375,,,0.34375,,,,,0.34375,0.0
+qwen_0_5b_instruct_coder_uniform_average,Instruct/Coder 0.5/0.5 Uniform Average,merge,safety,64,policy_accuracy,0.5,,,,1.0,0.0,0.5,,0.546875,-0.046875
+source_qwen_0_5b_base,Qwen2.5-0.5B Base,source,safety,64,policy_accuracy,0.484375,,,,0.9375,0.03125,0.484375,,0.546875,-0.0625
+source_qwen_0_5b_coder,Qwen2.5-Coder-0.5B-Instruct,source,safety,64,policy_accuracy,0.53125,,,,0.40625,0.65625,0.53125,,0.546875,-0.015625
+source_qwen_0_5b_instruct,Qwen2.5-0.5B Instruct,source,safety,64,policy_accuracy,0.546875,,,,0.40625,0.6875,0.546875,,0.546875,0.0

@@ -1,0 +1,5 @@
+task,examples,strict_exact,loose_exact,strict_correct,loose_correct,model,accuracy,correct,safe_non_refusal_rate,unsafe_refusal_rate,policy_accuracy,compile_rate,compile_ok
+gsm8k,64,0.03125,0.03125,2.0,2.0,source_qwen_0_5b_coder,,,,,,,
+mmlu,64,,,,,source_qwen_0_5b_coder,0.234375,15.0,,,,,
+safety,64,,,,,source_qwen_0_5b_coder,,,0.40625,0.65625,0.53125,,
+humaneval_compile,64,,,,,source_qwen_0_5b_coder,,,,,,0.0,0.0

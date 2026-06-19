@@ -76,6 +76,11 @@
       "status": "complete"
     },
     {
+      "evidence": "results/vllm_source_merge_comparison/report.md compares Qwen2.5-0.5B base/instruct/coder source endpoints against the materialized uniform-average checkpoint under the same vLLM downstream tasks.",
+      "item": "Qwen source-vs-merge vLLM comparison",
+      "status": "complete"
+    },
+    {
       "evidence": "results/vllm_downstream_eval_smoke/smoke_report.md validates the OpenAI-compatible HTTP request, answer parsing, scoring, model ranking, and artifact writing path using a local mock endpoint.",
       "item": "vLLM downstream eval contract smoke",
       "status": "complete"
@@ -187,7 +192,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 36,
+    "complete": 37,
     "missing": 0,
     "partial": 1
   },
@@ -4374,10 +4379,10 @@
     },
     "vllm_checkpoint_eval_results": {
       "best_result": {
-        "avg_primary_score": 0.1796875,
+        "avg_primary_score": 0.375,
         "example_source": "datasets",
         "max_examples_per_task": 64,
-        "method": "qwen_0_5b_instruct_coder_uniform_average",
+        "method": "source_qwen_0_5b_base",
         "metrics": [
           {
             "accuracy": null,
@@ -4385,25 +4390,25 @@
             "compile_rate": null,
             "correct": null,
             "examples": 64,
-            "loose_correct": 0.0,
-            "loose_exact": 0.0,
-            "model": "candidate_qwen_0_5b_instruct_coder_uniform_average",
+            "loose_correct": 18.0,
+            "loose_exact": 0.28125,
+            "model": "source_qwen_0_5b_base",
             "policy_accuracy": null,
             "safe_non_refusal_rate": null,
-            "strict_correct": 0.0,
-            "strict_exact": 0.0,
+            "strict_correct": 6.0,
+            "strict_exact": 0.09375,
             "task": "gsm8k",
             "unsafe_refusal_rate": null
           },
           {
-            "accuracy": 0.21875,
+            "accuracy": 0.3125,
             "compile_ok": null,
             "compile_rate": null,
-            "correct": 14.0,
+            "correct": 20.0,
             "examples": 64,
             "loose_correct": null,
             "loose_exact": null,
-            "model": "candidate_qwen_0_5b_instruct_coder_uniform_average",
+            "model": "source_qwen_0_5b_base",
             "policy_accuracy": null,
             "safe_non_refusal_rate": null,
             "strict_correct": null,
@@ -4419,23 +4424,23 @@
             "examples": 64,
             "loose_correct": null,
             "loose_exact": null,
-            "model": "candidate_qwen_0_5b_instruct_coder_uniform_average",
-            "policy_accuracy": 0.5,
-            "safe_non_refusal_rate": 1.0,
+            "model": "source_qwen_0_5b_base",
+            "policy_accuracy": 0.484375,
+            "safe_non_refusal_rate": 0.9375,
             "strict_correct": null,
             "strict_exact": null,
             "task": "safety",
-            "unsafe_refusal_rate": 0.0
+            "unsafe_refusal_rate": 0.03125
           },
           {
             "accuracy": null,
-            "compile_ok": 0.0,
-            "compile_rate": 0.0,
+            "compile_ok": 39.0,
+            "compile_rate": 0.609375,
             "correct": null,
             "examples": 64,
             "loose_correct": null,
             "loose_exact": null,
-            "model": "candidate_qwen_0_5b_instruct_coder_uniform_average",
+            "model": "source_qwen_0_5b_base",
             "policy_accuracy": null,
             "safe_non_refusal_rate": null,
             "strict_correct": null,
@@ -4444,21 +4449,21 @@
             "unsafe_refusal_rate": null
           }
         ],
-        "metrics_path": "results/vllm_checkpoint_eval/qwen_0_5b_instruct_coder_uniform_average/metrics.csv",
-        "model": "candidate_qwen_0_5b_instruct_coder_uniform_average",
-        "model_summary_path": "results/vllm_checkpoint_eval/qwen_0_5b_instruct_coder_uniform_average/model_summary.csv",
+        "metrics_path": "results/vllm_checkpoint_eval/source_qwen_0_5b_base/metrics.csv",
+        "model": "source_qwen_0_5b_base",
+        "model_summary_path": "results/vllm_checkpoint_eval/source_qwen_0_5b_base/model_summary.csv",
         "models": [
-          "candidate_qwen_0_5b_instruct_coder_uniform_average"
+          "source_qwen_0_5b_base"
         ],
-        "report": "results/vllm_checkpoint_eval/qwen_0_5b_instruct_coder_uniform_average/report.md",
+        "report": "results/vllm_checkpoint_eval/source_qwen_0_5b_base/report.md",
         "status": "complete",
-        "summary_path": "results/vllm_checkpoint_eval/qwen_0_5b_instruct_coder_uniform_average/summary.json",
+        "summary_path": "results/vllm_checkpoint_eval/source_qwen_0_5b_base/summary.json",
         "task_count": 4,
         "tasks": "gsm8k,mmlu,safety,humaneval_compile",
-        "worst_primary_score": 0.0
+        "worst_primary_score": 0.09375
       },
-      "completed_count": 1,
-      "result_count": 1,
+      "completed_count": 4,
+      "result_count": 4,
       "results": [
         {
           "avg_primary_score": 0.1796875,
@@ -4540,6 +4545,258 @@
           "report": "results/vllm_checkpoint_eval/qwen_0_5b_instruct_coder_uniform_average/report.md",
           "status": "complete",
           "summary_path": "results/vllm_checkpoint_eval/qwen_0_5b_instruct_coder_uniform_average/summary.json",
+          "task_count": 4,
+          "tasks": "gsm8k,mmlu,safety,humaneval_compile",
+          "worst_primary_score": 0.0
+        },
+        {
+          "avg_primary_score": 0.375,
+          "example_source": "datasets",
+          "max_examples_per_task": 64,
+          "method": "source_qwen_0_5b_base",
+          "metrics": [
+            {
+              "accuracy": null,
+              "compile_ok": null,
+              "compile_rate": null,
+              "correct": null,
+              "examples": 64,
+              "loose_correct": 18.0,
+              "loose_exact": 0.28125,
+              "model": "source_qwen_0_5b_base",
+              "policy_accuracy": null,
+              "safe_non_refusal_rate": null,
+              "strict_correct": 6.0,
+              "strict_exact": 0.09375,
+              "task": "gsm8k",
+              "unsafe_refusal_rate": null
+            },
+            {
+              "accuracy": 0.3125,
+              "compile_ok": null,
+              "compile_rate": null,
+              "correct": 20.0,
+              "examples": 64,
+              "loose_correct": null,
+              "loose_exact": null,
+              "model": "source_qwen_0_5b_base",
+              "policy_accuracy": null,
+              "safe_non_refusal_rate": null,
+              "strict_correct": null,
+              "strict_exact": null,
+              "task": "mmlu",
+              "unsafe_refusal_rate": null
+            },
+            {
+              "accuracy": null,
+              "compile_ok": null,
+              "compile_rate": null,
+              "correct": null,
+              "examples": 64,
+              "loose_correct": null,
+              "loose_exact": null,
+              "model": "source_qwen_0_5b_base",
+              "policy_accuracy": 0.484375,
+              "safe_non_refusal_rate": 0.9375,
+              "strict_correct": null,
+              "strict_exact": null,
+              "task": "safety",
+              "unsafe_refusal_rate": 0.03125
+            },
+            {
+              "accuracy": null,
+              "compile_ok": 39.0,
+              "compile_rate": 0.609375,
+              "correct": null,
+              "examples": 64,
+              "loose_correct": null,
+              "loose_exact": null,
+              "model": "source_qwen_0_5b_base",
+              "policy_accuracy": null,
+              "safe_non_refusal_rate": null,
+              "strict_correct": null,
+              "strict_exact": null,
+              "task": "humaneval_compile",
+              "unsafe_refusal_rate": null
+            }
+          ],
+          "metrics_path": "results/vllm_checkpoint_eval/source_qwen_0_5b_base/metrics.csv",
+          "model": "source_qwen_0_5b_base",
+          "model_summary_path": "results/vllm_checkpoint_eval/source_qwen_0_5b_base/model_summary.csv",
+          "models": [
+            "source_qwen_0_5b_base"
+          ],
+          "report": "results/vllm_checkpoint_eval/source_qwen_0_5b_base/report.md",
+          "status": "complete",
+          "summary_path": "results/vllm_checkpoint_eval/source_qwen_0_5b_base/summary.json",
+          "task_count": 4,
+          "tasks": "gsm8k,mmlu,safety,humaneval_compile",
+          "worst_primary_score": 0.09375
+        },
+        {
+          "avg_primary_score": 0.19921875,
+          "example_source": "datasets",
+          "max_examples_per_task": 64,
+          "method": "source_qwen_0_5b_coder",
+          "metrics": [
+            {
+              "accuracy": null,
+              "compile_ok": null,
+              "compile_rate": null,
+              "correct": null,
+              "examples": 64,
+              "loose_correct": 2.0,
+              "loose_exact": 0.03125,
+              "model": "source_qwen_0_5b_coder",
+              "policy_accuracy": null,
+              "safe_non_refusal_rate": null,
+              "strict_correct": 2.0,
+              "strict_exact": 0.03125,
+              "task": "gsm8k",
+              "unsafe_refusal_rate": null
+            },
+            {
+              "accuracy": 0.234375,
+              "compile_ok": null,
+              "compile_rate": null,
+              "correct": 15.0,
+              "examples": 64,
+              "loose_correct": null,
+              "loose_exact": null,
+              "model": "source_qwen_0_5b_coder",
+              "policy_accuracy": null,
+              "safe_non_refusal_rate": null,
+              "strict_correct": null,
+              "strict_exact": null,
+              "task": "mmlu",
+              "unsafe_refusal_rate": null
+            },
+            {
+              "accuracy": null,
+              "compile_ok": null,
+              "compile_rate": null,
+              "correct": null,
+              "examples": 64,
+              "loose_correct": null,
+              "loose_exact": null,
+              "model": "source_qwen_0_5b_coder",
+              "policy_accuracy": 0.53125,
+              "safe_non_refusal_rate": 0.40625,
+              "strict_correct": null,
+              "strict_exact": null,
+              "task": "safety",
+              "unsafe_refusal_rate": 0.65625
+            },
+            {
+              "accuracy": null,
+              "compile_ok": 0.0,
+              "compile_rate": 0.0,
+              "correct": null,
+              "examples": 64,
+              "loose_correct": null,
+              "loose_exact": null,
+              "model": "source_qwen_0_5b_coder",
+              "policy_accuracy": null,
+              "safe_non_refusal_rate": null,
+              "strict_correct": null,
+              "strict_exact": null,
+              "task": "humaneval_compile",
+              "unsafe_refusal_rate": null
+            }
+          ],
+          "metrics_path": "results/vllm_checkpoint_eval/source_qwen_0_5b_coder/metrics.csv",
+          "model": "source_qwen_0_5b_coder",
+          "model_summary_path": "results/vllm_checkpoint_eval/source_qwen_0_5b_coder/model_summary.csv",
+          "models": [
+            "source_qwen_0_5b_coder"
+          ],
+          "report": "results/vllm_checkpoint_eval/source_qwen_0_5b_coder/report.md",
+          "status": "complete",
+          "summary_path": "results/vllm_checkpoint_eval/source_qwen_0_5b_coder/summary.json",
+          "task_count": 4,
+          "tasks": "gsm8k,mmlu,safety,humaneval_compile",
+          "worst_primary_score": 0.0
+        },
+        {
+          "avg_primary_score": 0.2265625,
+          "example_source": "datasets",
+          "max_examples_per_task": 64,
+          "method": "source_qwen_0_5b_instruct",
+          "metrics": [
+            {
+              "accuracy": null,
+              "compile_ok": null,
+              "compile_rate": null,
+              "correct": null,
+              "examples": 64,
+              "loose_correct": 9.0,
+              "loose_exact": 0.140625,
+              "model": "source_qwen_0_5b_instruct",
+              "policy_accuracy": null,
+              "safe_non_refusal_rate": null,
+              "strict_correct": 1.0,
+              "strict_exact": 0.015625,
+              "task": "gsm8k",
+              "unsafe_refusal_rate": null
+            },
+            {
+              "accuracy": 0.34375,
+              "compile_ok": null,
+              "compile_rate": null,
+              "correct": 22.0,
+              "examples": 64,
+              "loose_correct": null,
+              "loose_exact": null,
+              "model": "source_qwen_0_5b_instruct",
+              "policy_accuracy": null,
+              "safe_non_refusal_rate": null,
+              "strict_correct": null,
+              "strict_exact": null,
+              "task": "mmlu",
+              "unsafe_refusal_rate": null
+            },
+            {
+              "accuracy": null,
+              "compile_ok": null,
+              "compile_rate": null,
+              "correct": null,
+              "examples": 64,
+              "loose_correct": null,
+              "loose_exact": null,
+              "model": "source_qwen_0_5b_instruct",
+              "policy_accuracy": 0.546875,
+              "safe_non_refusal_rate": 0.40625,
+              "strict_correct": null,
+              "strict_exact": null,
+              "task": "safety",
+              "unsafe_refusal_rate": 0.6875
+            },
+            {
+              "accuracy": null,
+              "compile_ok": 0.0,
+              "compile_rate": 0.0,
+              "correct": null,
+              "examples": 64,
+              "loose_correct": null,
+              "loose_exact": null,
+              "model": "source_qwen_0_5b_instruct",
+              "policy_accuracy": null,
+              "safe_non_refusal_rate": null,
+              "strict_correct": null,
+              "strict_exact": null,
+              "task": "humaneval_compile",
+              "unsafe_refusal_rate": null
+            }
+          ],
+          "metrics_path": "results/vllm_checkpoint_eval/source_qwen_0_5b_instruct/metrics.csv",
+          "model": "source_qwen_0_5b_instruct",
+          "model_summary_path": "results/vllm_checkpoint_eval/source_qwen_0_5b_instruct/model_summary.csv",
+          "models": [
+            "source_qwen_0_5b_instruct"
+          ],
+          "report": "results/vllm_checkpoint_eval/source_qwen_0_5b_instruct/report.md",
+          "status": "complete",
+          "summary_path": "results/vllm_checkpoint_eval/source_qwen_0_5b_instruct/summary.json",
           "task_count": 4,
           "tasks": "gsm8k,mmlu,safety,humaneval_compile",
           "worst_primary_score": 0.0
@@ -4839,9 +5096,282 @@
         "status": "passed"
       },
       "task_rows": 8
+    },
+    "vllm_source_merge_comparison": {
+      "best_source_avg_primary_score": 0.375,
+      "best_source_by_task": {
+        "gsm8k": {
+          "display_name": "Qwen2.5-0.5B Base",
+          "model_key": "source_qwen_0_5b_base",
+          "primary_metric": "strict_exact",
+          "primary_score": 0.09375
+        },
+        "humaneval_compile": {
+          "display_name": "Qwen2.5-0.5B Base",
+          "model_key": "source_qwen_0_5b_base",
+          "primary_metric": "compile_rate",
+          "primary_score": 0.609375
+        },
+        "mmlu": {
+          "display_name": "Qwen2.5-0.5B Instruct",
+          "model_key": "source_qwen_0_5b_instruct",
+          "primary_metric": "accuracy",
+          "primary_score": 0.34375
+        },
+        "safety": {
+          "display_name": "Qwen2.5-0.5B Instruct",
+          "model_key": "source_qwen_0_5b_instruct",
+          "primary_metric": "policy_accuracy",
+          "primary_score": 0.546875
+        }
+      },
+      "best_source_display_name": "Qwen2.5-0.5B Base",
+      "best_source_model": "source_qwen_0_5b_base",
+      "best_source_worst_primary_score": 0.09375,
+      "figure": "results/vllm_source_merge_comparison/source_vs_merge_primary_scores.png",
+      "merge_avg_primary_score": 0.1796875,
+      "merge_by_task": {
+        "gsm8k": {
+          "delta_vs_best_source_task_score": -0.09375,
+          "primary_metric": "strict_exact",
+          "primary_score": 0.0
+        },
+        "humaneval_compile": {
+          "delta_vs_best_source_task_score": -0.609375,
+          "primary_metric": "compile_rate",
+          "primary_score": 0.0
+        },
+        "mmlu": {
+          "delta_vs_best_source_task_score": -0.125,
+          "primary_metric": "accuracy",
+          "primary_score": 0.21875
+        },
+        "safety": {
+          "delta_vs_best_source_task_score": -0.046875,
+          "primary_metric": "policy_accuracy",
+          "primary_score": 0.5
+        }
+      },
+      "merge_delta_vs_best_source_avg_primary": -0.1953125,
+      "merge_delta_vs_best_source_worst_primary": -0.09375,
+      "merge_model": "qwen_0_5b_instruct_coder_uniform_average",
+      "merge_rank_by_avg_primary": 4,
+      "merge_task_metrics": [
+        {
+          "accuracy": null,
+          "best_source_task_score": 0.09375,
+          "compile_rate": null,
+          "delta_vs_best_source_task_score": -0.09375,
+          "display_name": "Instruct/Coder 0.5/0.5 Uniform Average",
+          "examples": 64,
+          "loose_exact": 0.0,
+          "model_key": "qwen_0_5b_instruct_coder_uniform_average",
+          "policy_accuracy": null,
+          "primary_metric": "strict_exact",
+          "primary_score": 0.0,
+          "role": "merge",
+          "safe_non_refusal_rate": null,
+          "strict_exact": 0.0,
+          "task": "gsm8k",
+          "unsafe_refusal_rate": null
+        },
+        {
+          "accuracy": null,
+          "best_source_task_score": 0.609375,
+          "compile_rate": 0.0,
+          "delta_vs_best_source_task_score": -0.609375,
+          "display_name": "Instruct/Coder 0.5/0.5 Uniform Average",
+          "examples": 64,
+          "loose_exact": null,
+          "model_key": "qwen_0_5b_instruct_coder_uniform_average",
+          "policy_accuracy": null,
+          "primary_metric": "compile_rate",
+          "primary_score": 0.0,
+          "role": "merge",
+          "safe_non_refusal_rate": null,
+          "strict_exact": null,
+          "task": "humaneval_compile",
+          "unsafe_refusal_rate": null
+        },
+        {
+          "accuracy": 0.21875,
+          "best_source_task_score": 0.34375,
+          "compile_rate": null,
+          "delta_vs_best_source_task_score": -0.125,
+          "display_name": "Instruct/Coder 0.5/0.5 Uniform Average",
+          "examples": 64,
+          "loose_exact": null,
+          "model_key": "qwen_0_5b_instruct_coder_uniform_average",
+          "policy_accuracy": null,
+          "primary_metric": "accuracy",
+          "primary_score": 0.21875,
+          "role": "merge",
+          "safe_non_refusal_rate": null,
+          "strict_exact": null,
+          "task": "mmlu",
+          "unsafe_refusal_rate": null
+        },
+        {
+          "accuracy": null,
+          "best_source_task_score": 0.546875,
+          "compile_rate": null,
+          "delta_vs_best_source_task_score": -0.046875,
+          "display_name": "Instruct/Coder 0.5/0.5 Uniform Average",
+          "examples": 64,
+          "loose_exact": null,
+          "model_key": "qwen_0_5b_instruct_coder_uniform_average",
+          "policy_accuracy": 0.5,
+          "primary_metric": "policy_accuracy",
+          "primary_score": 0.5,
+          "role": "merge",
+          "safe_non_refusal_rate": 1.0,
+          "strict_exact": null,
+          "task": "safety",
+          "unsafe_refusal_rate": 0.0
+        }
+      ],
+      "merge_worst_primary_score": 0.0,
+      "model_scores": [
+        {
+          "avg_primary_score": 0.375,
+          "delta_vs_best_source_avg_primary": 0.0,
+          "delta_vs_best_source_worst_primary": 0.0,
+          "display_name": "Qwen2.5-0.5B Base",
+          "eval_dir": "results/vllm_checkpoint_eval/source_qwen_0_5b_base",
+          "model_key": "source_qwen_0_5b_base",
+          "role": "source",
+          "served_model": "source_qwen_0_5b_base",
+          "status": "complete",
+          "task_count": 4,
+          "worst_primary_score": 0.09375
+        },
+        {
+          "avg_primary_score": 0.2265625,
+          "delta_vs_best_source_avg_primary": -0.1484375,
+          "delta_vs_best_source_worst_primary": -0.09375,
+          "display_name": "Qwen2.5-0.5B Instruct",
+          "eval_dir": "results/vllm_checkpoint_eval/source_qwen_0_5b_instruct",
+          "model_key": "source_qwen_0_5b_instruct",
+          "role": "source",
+          "served_model": "source_qwen_0_5b_instruct",
+          "status": "complete",
+          "task_count": 4,
+          "worst_primary_score": 0.0
+        },
+        {
+          "avg_primary_score": 0.19921875,
+          "delta_vs_best_source_avg_primary": -0.17578125,
+          "delta_vs_best_source_worst_primary": -0.09375,
+          "display_name": "Qwen2.5-Coder-0.5B-Instruct",
+          "eval_dir": "results/vllm_checkpoint_eval/source_qwen_0_5b_coder",
+          "model_key": "source_qwen_0_5b_coder",
+          "role": "source",
+          "served_model": "source_qwen_0_5b_coder",
+          "status": "complete",
+          "task_count": 4,
+          "worst_primary_score": 0.0
+        },
+        {
+          "avg_primary_score": 0.1796875,
+          "delta_vs_best_source_avg_primary": -0.1953125,
+          "delta_vs_best_source_worst_primary": -0.09375,
+          "display_name": "Instruct/Coder 0.5/0.5 Uniform Average",
+          "eval_dir": "results/vllm_checkpoint_eval/qwen_0_5b_instruct_coder_uniform_average",
+          "model_key": "qwen_0_5b_instruct_coder_uniform_average",
+          "role": "merge",
+          "served_model": "candidate_qwen_0_5b_instruct_coder_uniform_average",
+          "status": "complete",
+          "task_count": 4,
+          "worst_primary_score": 0.0
+        }
+      ],
+      "model_scores_path": "results/vllm_source_merge_comparison/model_scores.csv",
+      "report": "results/vllm_source_merge_comparison/report.md",
+      "source_model_count": 3,
+      "source_models_better_than_merge_count": 3,
+      "status": "merge_underperforms_all_sources",
+      "summary": {
+        "artifacts": {
+          "figure": "results/vllm_source_merge_comparison/source_vs_merge_primary_scores.png",
+          "model_scores": "results/vllm_source_merge_comparison/model_scores.csv",
+          "report": "results/vllm_source_merge_comparison/report.md",
+          "task_metrics": "results/vllm_source_merge_comparison/task_metrics.csv"
+        },
+        "best_source_avg_primary_score": 0.375,
+        "best_source_by_task": {
+          "gsm8k": {
+            "display_name": "Qwen2.5-0.5B Base",
+            "model_key": "source_qwen_0_5b_base",
+            "primary_metric": "strict_exact",
+            "primary_score": 0.09375
+          },
+          "humaneval_compile": {
+            "display_name": "Qwen2.5-0.5B Base",
+            "model_key": "source_qwen_0_5b_base",
+            "primary_metric": "compile_rate",
+            "primary_score": 0.609375
+          },
+          "mmlu": {
+            "display_name": "Qwen2.5-0.5B Instruct",
+            "model_key": "source_qwen_0_5b_instruct",
+            "primary_metric": "accuracy",
+            "primary_score": 0.34375
+          },
+          "safety": {
+            "display_name": "Qwen2.5-0.5B Instruct",
+            "model_key": "source_qwen_0_5b_instruct",
+            "primary_metric": "policy_accuracy",
+            "primary_score": 0.546875
+          }
+        },
+        "best_source_display_name": "Qwen2.5-0.5B Base",
+        "best_source_model": "source_qwen_0_5b_base",
+        "best_source_worst_primary_score": 0.09375,
+        "mechanism_findings": [
+          "Uniform averaging is dominated by all three source endpoints on avg primary score in this slice.",
+          "The base model wins the aggregate mostly because HumanEval compile is a syntax/loadability metric here, not because it is instruction-following aligned.",
+          "The uniform merge loses MMLU and GSM8K relative to the best endpoint and collapses HumanEval compile to zero, matching the earlier NLL ridge probe.",
+          "Safety policy accuracy of 0.500 is not a benign middle point: the merge keeps safe non-refusal at 1.0 but unsafe refusal at 0.0, so it almost never refuses unsafe prompts."
+        ],
+        "merge_avg_primary_score": 0.1796875,
+        "merge_by_task": {
+          "gsm8k": {
+            "delta_vs_best_source_task_score": -0.09375,
+            "primary_metric": "strict_exact",
+            "primary_score": 0.0
+          },
+          "humaneval_compile": {
+            "delta_vs_best_source_task_score": -0.609375,
+            "primary_metric": "compile_rate",
+            "primary_score": 0.0
+          },
+          "mmlu": {
+            "delta_vs_best_source_task_score": -0.125,
+            "primary_metric": "accuracy",
+            "primary_score": 0.21875
+          },
+          "safety": {
+            "delta_vs_best_source_task_score": -0.046875,
+            "primary_metric": "policy_accuracy",
+            "primary_score": 0.5
+          }
+        },
+        "merge_delta_vs_best_source_avg_primary": -0.1953125,
+        "merge_delta_vs_best_source_worst_primary": -0.09375,
+        "merge_model": "qwen_0_5b_instruct_coder_uniform_average",
+        "merge_rank_by_avg_primary": 4,
+        "merge_worst_primary_score": 0.0,
+        "next_method_hypothesis": "Use source/task probes to learn non-uniform coefficients and module groups; do not average instruction/coder deltas uniformly when endpoint skills and safety behavior are not connected in the same basin.",
+        "recommended_next_method": "probe_guided_same_shape_average",
+        "schema_version": 1,
+        "source_model_count": 3,
+        "source_models_better_than_merge_count": 3,
+        "status": "merge_underperforms_all_sources"
+      },
+      "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-19T13:39:11.698171+00:00",
+  "generated_at": "2026-06-19T14:00:28.637265+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -4866,6 +5396,7 @@
     "python scripts/smoke_moe_routing_probe_contract.py",
     "python scripts/smoke_vllm_downstream_eval_contract.py --output-dir results/vllm_downstream_eval_smoke",
     "PYTHONPATH=src python scripts/build_vllm_checkpoint_eval_plan.py --output-dir results/vllm_checkpoint_eval_plan",
+    "PYTHONPATH=src python scripts/build_vllm_source_merge_comparison.py --output-dir results/vllm_source_merge_comparison",
     "PYTHONPATH=src python scripts/build_checkpoint_materialization_readiness.py --output-dir results/checkpoint_materialization_readiness",
     "PYTHONPATH=src python scripts/build_average_decision_report.py",
     "python scripts/build_qwen_target_model_registry.py",

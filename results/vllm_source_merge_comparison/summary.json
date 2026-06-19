@@ -1,0 +1,78 @@
+{
+  "artifacts": {
+    "figure": "results/vllm_source_merge_comparison/source_vs_merge_primary_scores.png",
+    "model_scores": "results/vllm_source_merge_comparison/model_scores.csv",
+    "report": "results/vllm_source_merge_comparison/report.md",
+    "task_metrics": "results/vllm_source_merge_comparison/task_metrics.csv"
+  },
+  "best_source_avg_primary_score": 0.375,
+  "best_source_by_task": {
+    "gsm8k": {
+      "display_name": "Qwen2.5-0.5B Base",
+      "model_key": "source_qwen_0_5b_base",
+      "primary_metric": "strict_exact",
+      "primary_score": 0.09375
+    },
+    "humaneval_compile": {
+      "display_name": "Qwen2.5-0.5B Base",
+      "model_key": "source_qwen_0_5b_base",
+      "primary_metric": "compile_rate",
+      "primary_score": 0.609375
+    },
+    "mmlu": {
+      "display_name": "Qwen2.5-0.5B Instruct",
+      "model_key": "source_qwen_0_5b_instruct",
+      "primary_metric": "accuracy",
+      "primary_score": 0.34375
+    },
+    "safety": {
+      "display_name": "Qwen2.5-0.5B Instruct",
+      "model_key": "source_qwen_0_5b_instruct",
+      "primary_metric": "policy_accuracy",
+      "primary_score": 0.546875
+    }
+  },
+  "best_source_display_name": "Qwen2.5-0.5B Base",
+  "best_source_model": "source_qwen_0_5b_base",
+  "best_source_worst_primary_score": 0.09375,
+  "mechanism_findings": [
+    "Uniform averaging is dominated by all three source endpoints on avg primary score in this slice.",
+    "The base model wins the aggregate mostly because HumanEval compile is a syntax/loadability metric here, not because it is instruction-following aligned.",
+    "The uniform merge loses MMLU and GSM8K relative to the best endpoint and collapses HumanEval compile to zero, matching the earlier NLL ridge probe.",
+    "Safety policy accuracy of 0.500 is not a benign middle point: the merge keeps safe non-refusal at 1.0 but unsafe refusal at 0.0, so it almost never refuses unsafe prompts."
+  ],
+  "merge_avg_primary_score": 0.1796875,
+  "merge_by_task": {
+    "gsm8k": {
+      "delta_vs_best_source_task_score": -0.09375,
+      "primary_metric": "strict_exact",
+      "primary_score": 0.0
+    },
+    "humaneval_compile": {
+      "delta_vs_best_source_task_score": -0.609375,
+      "primary_metric": "compile_rate",
+      "primary_score": 0.0
+    },
+    "mmlu": {
+      "delta_vs_best_source_task_score": -0.125,
+      "primary_metric": "accuracy",
+      "primary_score": 0.21875
+    },
+    "safety": {
+      "delta_vs_best_source_task_score": -0.046875,
+      "primary_metric": "policy_accuracy",
+      "primary_score": 0.5
+    }
+  },
+  "merge_delta_vs_best_source_avg_primary": -0.1953125,
+  "merge_delta_vs_best_source_worst_primary": -0.09375,
+  "merge_model": "qwen_0_5b_instruct_coder_uniform_average",
+  "merge_rank_by_avg_primary": 4,
+  "merge_worst_primary_score": 0.0,
+  "next_method_hypothesis": "Use source/task probes to learn non-uniform coefficients and module groups; do not average instruction/coder deltas uniformly when endpoint skills and safety behavior are not connected in the same basin.",
+  "recommended_next_method": "probe_guided_same_shape_average",
+  "schema_version": 1,
+  "source_model_count": 3,
+  "source_models_better_than_merge_count": 3,
+  "status": "merge_underperforms_all_sources"
+}

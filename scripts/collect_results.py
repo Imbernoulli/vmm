@@ -1037,6 +1037,41 @@ def summarize_vllm_checkpoint_eval_results() -> dict[str, Any]:
     }
 
 
+def summarize_vllm_source_merge_comparison() -> dict[str, Any]:
+    summary = read_json("results/vllm_source_merge_comparison/summary.json")
+    model_scores = read_csv("results/vllm_source_merge_comparison/model_scores.csv")
+    task_metrics = read_csv("results/vllm_source_merge_comparison/task_metrics.csv")
+    merge_tasks = task_metrics[task_metrics["role"] == "merge"]
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "source_model_count": int(summary.get("source_model_count", 0)),
+        "merge_model": summary.get("merge_model"),
+        "merge_rank_by_avg_primary": int(summary.get("merge_rank_by_avg_primary", 0)),
+        "source_models_better_than_merge_count": int(summary.get("source_models_better_than_merge_count", 0)),
+        "best_source_model": summary.get("best_source_model"),
+        "best_source_display_name": summary.get("best_source_display_name"),
+        "best_source_avg_primary_score": maybe_float(summary.get("best_source_avg_primary_score")),
+        "best_source_worst_primary_score": maybe_float(summary.get("best_source_worst_primary_score")),
+        "merge_avg_primary_score": maybe_float(summary.get("merge_avg_primary_score")),
+        "merge_worst_primary_score": maybe_float(summary.get("merge_worst_primary_score")),
+        "merge_delta_vs_best_source_avg_primary": maybe_float(
+            summary.get("merge_delta_vs_best_source_avg_primary")
+        ),
+        "merge_delta_vs_best_source_worst_primary": maybe_float(
+            summary.get("merge_delta_vs_best_source_worst_primary")
+        ),
+        "best_source_by_task": summary.get("best_source_by_task", {}),
+        "merge_by_task": summary.get("merge_by_task", {}),
+        "model_scores": [clean_row(row) for _, row in model_scores.iterrows()],
+        "merge_task_metrics": [clean_row(row) for _, row in merge_tasks.iterrows()],
+        "report": rel("results/vllm_source_merge_comparison/report.md"),
+        "model_scores_path": rel("results/vllm_source_merge_comparison/model_scores.csv"),
+        "task_metrics_path": rel("results/vllm_source_merge_comparison/task_metrics.csv"),
+        "figure": rel("results/vllm_source_merge_comparison/source_vs_merge_primary_scores.png"),
+    }
+
+
 def summarize_checkpoint_materialization_readiness() -> dict[str, Any]:
     summary = read_json("results/checkpoint_materialization_readiness/summary.json")
     readiness = read_csv("results/checkpoint_materialization_readiness/candidate_readiness.csv")
@@ -1204,6 +1239,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/vllm_checkpoint_eval/qwen_0_5b_instruct_coder_uniform_average/report.md contains a real vLLM-hosted GSM8K/MMLU/safety/HumanEval compile eval for the materialized Qwen2.5-0.5B uniform-average checkpoint.",
         },
         {
+            "item": "Qwen source-vs-merge vLLM comparison",
+            "status": "complete",
+            "evidence": "results/vllm_source_merge_comparison/report.md compares Qwen2.5-0.5B base/instruct/coder source endpoints against the materialized uniform-average checkpoint under the same vLLM downstream tasks.",
+        },
+        {
             "item": "vLLM downstream eval contract smoke",
             "status": "complete",
             "evidence": "results/vllm_downstream_eval_smoke/smoke_report.md validates the OpenAI-compatible HTTP request, answer parsing, scoring, model ranking, and artifact writing path using a local mock endpoint.",
@@ -1352,6 +1392,7 @@ def build_summary() -> dict[str, Any]:
         "vllm_downstream_eval_smoke": summarize_vllm_downstream_eval_smoke(),
         "vllm_checkpoint_eval_plan": summarize_vllm_checkpoint_eval_plan(),
         "vllm_checkpoint_eval_results": summarize_vllm_checkpoint_eval_results(),
+        "vllm_source_merge_comparison": summarize_vllm_source_merge_comparison(),
         "checkpoint_materialization_readiness": summarize_checkpoint_materialization_readiness(),
     }
     coverage = coverage_checklist()
@@ -1396,6 +1437,7 @@ def build_summary() -> dict[str, Any]:
             "python scripts/smoke_moe_routing_probe_contract.py",
             "python scripts/smoke_vllm_downstream_eval_contract.py --output-dir results/vllm_downstream_eval_smoke",
             "PYTHONPATH=src python scripts/build_vllm_checkpoint_eval_plan.py --output-dir results/vllm_checkpoint_eval_plan",
+            "PYTHONPATH=src python scripts/build_vllm_source_merge_comparison.py --output-dir results/vllm_source_merge_comparison",
             "PYTHONPATH=src python scripts/build_checkpoint_materialization_readiness.py --output-dir results/checkpoint_materialization_readiness",
             "PYTHONPATH=src python scripts/build_average_decision_report.py",
             "python scripts/build_qwen_target_model_registry.py",
@@ -1460,6 +1502,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     vllm_checkpoint_eval_plan = exp["vllm_checkpoint_eval_plan"]
     vllm_checkpoint_eval_results = exp["vllm_checkpoint_eval_results"]
     vllm_checkpoint_best = vllm_checkpoint_eval_results.get("best_result") or {}
+    vllm_source_merge = exp["vllm_source_merge_comparison"]
     materialization_readiness = exp["checkpoint_materialization_readiness"]
     coverage_counts = summary["coverage_counts"]
     lines = [
@@ -1956,14 +1999,29 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{vllm_checkpoint_eval_plan['not_vllm_loadable_count']} |"
             ),
             (
-                "| vLLM checkpoint eval results | completed checkpoints | "
+                "| vLLM hosted eval results | completed eval dirs | "
                 f"{vllm_checkpoint_eval_results['completed_count']} |"
             ),
             (
-                "| vLLM checkpoint eval results | best checkpoint avg / worst primary | "
+                "| vLLM hosted eval results | best eval avg / worst primary | "
                 f"{vllm_checkpoint_best.get('method')} / "
                 f"{fmt(vllm_checkpoint_best.get('avg_primary_score'))} / "
                 f"{fmt(vllm_checkpoint_best.get('worst_primary_score'))} |"
+            ),
+            (
+                "| vLLM source-vs-merge comparison | status | "
+                f"{vllm_source_merge['status']} |"
+            ),
+            (
+                "| vLLM source-vs-merge comparison | best source / merge avg / delta | "
+                f"{vllm_source_merge['best_source_display_name']} / "
+                f"{fmt(vllm_source_merge['merge_avg_primary_score'])} / "
+                f"{fmt(vllm_source_merge['merge_delta_vs_best_source_avg_primary'])} |"
+            ),
+            (
+                "| vLLM source-vs-merge comparison | merge rank / source endpoints better | "
+                f"{vllm_source_merge['merge_rank_by_avg_primary']} / "
+                f"{vllm_source_merge['source_models_better_than_merge_count']} |"
             ),
             (
                 "| checkpoint materialization readiness | status | "

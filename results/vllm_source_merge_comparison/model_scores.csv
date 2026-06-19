@@ -1,0 +1,5 @@
+model_key,display_name,role,eval_dir,status,served_model,task_count,avg_primary_score,worst_primary_score,delta_vs_best_source_avg_primary,delta_vs_best_source_worst_primary
+source_qwen_0_5b_base,Qwen2.5-0.5B Base,source,results/vllm_checkpoint_eval/source_qwen_0_5b_base,complete,source_qwen_0_5b_base,4,0.375,0.09375,0.0,0.0
+source_qwen_0_5b_instruct,Qwen2.5-0.5B Instruct,source,results/vllm_checkpoint_eval/source_qwen_0_5b_instruct,complete,source_qwen_0_5b_instruct,4,0.2265625,0.0,-0.1484375,-0.09375
+source_qwen_0_5b_coder,Qwen2.5-Coder-0.5B-Instruct,source,results/vllm_checkpoint_eval/source_qwen_0_5b_coder,complete,source_qwen_0_5b_coder,4,0.19921875,0.0,-0.17578125,-0.09375
+qwen_0_5b_instruct_coder_uniform_average,Instruct/Coder 0.5/0.5 Uniform Average,merge,results/vllm_checkpoint_eval/qwen_0_5b_instruct_coder_uniform_average,complete,candidate_qwen_0_5b_instruct_coder_uniform_average,4,0.1796875,0.0,-0.1953125,-0.09375
