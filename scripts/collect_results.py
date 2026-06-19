@@ -607,6 +607,10 @@ def summarize_moe_tensor_rule_writer_smoke() -> dict[str, Any]:
         "additive_delta_tensors": int(manifest.get("additive_delta_tensors", 0)),
         "additive_delta_values": int(manifest.get("additive_delta_values", 0)),
         "tensor_add_delta_summary": manifest.get("tensor_add_delta_summary", {}),
+        "tensor_delta_safetensors_tensors": int(manifest.get("tensor_delta_safetensors_tensors", 0)),
+        "tensor_delta_safetensors_entries": int(manifest.get("tensor_delta_safetensors_entries", 0)),
+        "tensor_delta_safetensors_values": int(manifest.get("tensor_delta_safetensors_values", 0)),
+        "tensor_delta_safetensors_summary": manifest.get("tensor_delta_safetensors_summary", {}),
         "report": rel("results/moe_tensor_rule_writer_smoke/report.md"),
         "tensor_checks": rel("results/moe_tensor_rule_writer_smoke/tensor_checks.csv"),
         "manifest_path": rel("results/moe_tensor_rule_writer_smoke/merge_manifest.json"),
@@ -2632,7 +2636,7 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "MoE tensor-rule writer materialization",
             "status": "complete",
-            "evidence": "results/moe_tensor_rule_writer_smoke/report.md writes a tiny MoE-like safetensors checkpoint and verifies tensor-rule, freeze-router, router-bias additive deltas, and non-floating tensor behavior numerically.",
+            "evidence": "results/moe_tensor_rule_writer_smoke/report.md writes a tiny MoE-like safetensors checkpoint and verifies tensor-rule, freeze-router, router-bias additive deltas, full-tensor router deltas, and non-floating tensor behavior numerically.",
         },
         {
             "item": "MoE combined writer smoke",
@@ -4237,6 +4241,11 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| MoE tensor-rule writer smoke | additive bias delta tensors / values | "
                 f"{moe_tensor_rule_writer_smoke['additive_delta_tensors']} / {moe_tensor_rule_writer_smoke['additive_delta_values']} |"
+            ),
+            (
+                "| MoE tensor-rule writer smoke | safetensors tensor delta tensors / values | "
+                f"{moe_tensor_rule_writer_smoke['tensor_delta_safetensors_tensors']} / "
+                f"{moe_tensor_rule_writer_smoke['tensor_delta_safetensors_values']} |"
             ),
             (
                 "| MoE combined writer smoke | status | "

@@ -4,5 +4,5 @@ model.int_buffer,,,0.0,True
 model.layers.0.mlp.experts.0.down_proj.weight,135.0,135.0,0.0,True
 model.layers.0.mlp.experts.1.down_proj.weight,195.0,195.0,0.0,True
 model.layers.0.router.bias,34.875,34.875,0.0,True
-model.layers.0.router.weight,30.0,30.0,0.0,True
+model.layers.0.router.weight,29.94999885559082,29.94999885559082,0.0,True
 model.layers.0.self_attn.q_proj.weight,176.0,176.0,0.0,True

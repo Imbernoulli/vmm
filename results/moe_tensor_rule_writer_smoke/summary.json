@@ -5,7 +5,7 @@
   "copied_nonfloating_tensors": 1,
   "failed_tensors": 0,
   "floating_tensors": 6,
-  "frozen_tensors": 2,
+  "frozen_tensors": 1,
   "outputs": {
     "merge_manifest": "results/moe_tensor_rule_writer_smoke/merge_manifest.json",
     "report": "results/moe_tensor_rule_writer_smoke/report.md",
@@ -20,5 +20,8 @@
     "tensor_rule:.*self_attn.*": 1
   },
   "schema_version": 1,
-  "status": "passed"
+  "status": "passed",
+  "tensor_delta_safetensors_entries": 1,
+  "tensor_delta_safetensors_tensors": 1,
+  "tensor_delta_safetensors_values": 4
 }

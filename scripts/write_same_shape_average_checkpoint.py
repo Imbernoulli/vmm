@@ -603,6 +603,69 @@ def validate_tensor_add_deltas(base: WeightIndex, deltas_by_tensor: dict[str, li
     }
 
 
+def validate_tensor_delta_safetensors(
+    base: WeightIndex,
+    delta_indexes: list[tuple[str, WeightIndex]],
+) -> dict[str, Any]:
+    errors: list[str] = []
+    tensor_summaries: list[dict[str, Any]] = []
+    source_summaries: list[dict[str, Any]] = []
+    unique_tensors: set[str] = set()
+    tensor_entry_count = 0
+    value_count = 0
+    for source_path, delta_index in delta_indexes:
+        source_value_count = 0
+        for tensor, delta_info in sorted(delta_index.tensor_info.items()):
+            tensor_entry_count += 1
+            entry_numel = shape_numel(delta_info.shape)
+            source_value_count += entry_numel
+            if tensor not in base.tensor_info:
+                errors.append(f"{source_path}: delta tensor {tensor!r} is not present in the base checkpoint")
+                continue
+            base_info = base.tensor_info[tensor]
+            if not is_floating_dtype(base_info.dtype):
+                errors.append(f"{source_path}: base tensor {tensor!r} is not floating point")
+                continue
+            if not is_floating_dtype(delta_info.dtype):
+                errors.append(f"{source_path}: delta tensor {tensor!r} is not floating point")
+                continue
+            if base_info.shape != delta_info.shape:
+                errors.append(
+                    f"{source_path}: delta tensor {tensor!r} shape {delta_info.shape} does not match "
+                    f"base shape {base_info.shape}"
+                )
+                continue
+            unique_tensors.add(tensor)
+            value_count += entry_numel
+            tensor_summaries.append(
+                {
+                    "tensor": tensor,
+                    "shape": list(delta_info.shape),
+                    "base_dtype": str(base_info.dtype),
+                    "delta_dtype": str(delta_info.dtype),
+                    "source_path": source_path,
+                    "value_count": entry_numel,
+                }
+            )
+        source_summaries.append(
+            {
+                "path": source_path,
+                "tensor_entries": len(delta_index.tensor_info),
+                "value_count": source_value_count,
+            }
+        )
+    if errors:
+        raise ValueError("Invalid tensor safetensors deltas:\n" + "\n".join(errors))
+    return {
+        "source_count": len(delta_indexes),
+        "tensor_count": len(unique_tensors),
+        "tensor_entry_count": tensor_entry_count,
+        "value_count": value_count,
+        "sources": source_summaries,
+        "tensors": tensor_summaries,
+    }
+
+
 def validate_packed_expert_slice_rules(
     base: WeightIndex,
     sources: dict[str, WeightIndex],
@@ -750,6 +813,52 @@ def apply_tensor_add_deltas(
     return updated.reshape_as(tensor), len(deltas)
 
 
+def tensor_delta_safetensors_stats_for_name(
+    name: str,
+    delta_indexes: list[tuple[str, WeightIndex]],
+) -> tuple[int, int]:
+    entries = 0
+    values = 0
+    for _, delta_index in delta_indexes:
+        info = delta_index.tensor_info.get(name)
+        if info is None:
+            continue
+        entries += 1
+        values += shape_numel(info.shape)
+    return entries, values
+
+
+def load_tensor_delta_safetensors_values(
+    delta_indexes: list[tuple[str, WeightIndex]],
+    names: list[str],
+) -> dict[str, list[torch.Tensor]]:
+    values_by_tensor: dict[str, list[torch.Tensor]] = {}
+    for _, delta_index in delta_indexes:
+        present = [name for name in names if name in delta_index.tensor_info]
+        if not present:
+            continue
+        loaded = load_tensors(delta_index, present)
+        for name, tensor in loaded.items():
+            values_by_tensor.setdefault(name, []).append(tensor)
+    return values_by_tensor
+
+
+def apply_tensor_delta_safetensors(
+    name: str,
+    tensor: torch.Tensor,
+    delta_values_by_tensor: dict[str, list[torch.Tensor]],
+) -> tuple[torch.Tensor, int, int]:
+    deltas = delta_values_by_tensor.get(name)
+    if not deltas:
+        return tensor, 0, 0
+    updated = tensor.to(torch.float32)
+    value_count = 0
+    for delta in deltas:
+        updated = updated + delta.to(torch.float32)
+        value_count += int(delta.numel())
+    return updated, len(deltas), value_count
+
+
 def merge_sparse_task_vectors(
     name: str,
     base_tensor: torch.Tensor,
@@ -875,12 +984,17 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
     tensor_alias_rules = parse_tensor_alias_rules(raw_tensor_alias_rules, source_names)
     tensor_add_csv_paths = getattr(args, "tensor_add_csv", None)
     tensor_add_deltas = load_tensor_add_csv(tensor_add_csv_paths)
+    tensor_delta_safetensor_paths = getattr(args, "tensor_delta_safetensors", None)
     packed_expert_rule_csv_paths = getattr(args, "packed_expert_rule_csv", None)
     packed_expert_rules = load_packed_expert_rule_csv(packed_expert_rule_csv_paths, source_names)
     freeze_patterns = [re.compile(pattern) for pattern in args.freeze_regex]
 
     base = discover_safetensors(args.base)
     sources = {name: discover_safetensors(path) for name, path in source_specs}
+    tensor_delta_indexes = [
+        (str(Path(path)), discover_safetensors(path))
+        for path in tensor_delta_safetensor_paths or []
+    ]
     source_summaries = validate_compatible(
         base,
         sources,
@@ -888,6 +1002,7 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
         alias_rules=tensor_alias_rules,
     )
     tensor_add_delta_summary = validate_tensor_add_deltas(base, tensor_add_deltas)
+    tensor_delta_safetensors_summary = validate_tensor_delta_safetensors(base, tensor_delta_indexes)
     packed_expert_slice_rule_summary = validate_packed_expert_slice_rules(
         base,
         sources,
@@ -905,6 +1020,9 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
     copied_tensors = 0
     additive_delta_tensors = 0
     additive_delta_values = 0
+    tensor_delta_safetensors_tensors = 0
+    tensor_delta_safetensors_entries = 0
+    tensor_delta_safetensors_values = 0
     packed_expert_rule_tensors = 0
     packed_expert_rule_slices = 0
     packed_expert_rule_values = 0
@@ -933,8 +1051,20 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
                     packed_expert_rule_tensors += 1
                     packed_expert_rule_slices += len(packed_expert_rules[name])
                     packed_expert_rule_values += sum(len(rules) for rules in packed_expert_rules[name].values())
+                safetensors_delta_entries, safetensors_delta_values = tensor_delta_safetensors_stats_for_name(
+                    name,
+                    tensor_delta_indexes,
+                )
+                if safetensors_delta_entries:
+                    tensor_delta_safetensors_tensors += 1
+                    tensor_delta_safetensors_entries += safetensors_delta_entries
+                    tensor_delta_safetensors_values += safetensors_delta_values
                 if all(abs(value) <= 1e-12 for value in weights.values()):
-                    if name not in tensor_add_deltas and name not in packed_expert_rules:
+                    if (
+                        name not in tensor_add_deltas
+                        and name not in packed_expert_rules
+                        and not safetensors_delta_entries
+                    ):
                         frozen_tensors += 1
                 if name in tensor_add_deltas:
                     additive_delta_tensors += 1
@@ -955,6 +1085,7 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
             source_name: load_tensors(index, sorted(set(source_name_maps[source_name].values())))
             for source_name, index in sources.items()
         }
+        tensor_delta_values = load_tensor_delta_safetensors_values(tensor_delta_indexes, names)
         output_tensors: dict[str, torch.Tensor] = {}
         shard_name = base_shard.name if base.has_index else SAFE_WEIGHTS_NAME
         if base.has_index and len(base.shard_to_tensors) > 1:
@@ -999,7 +1130,16 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
                 if applied:
                     additive_delta_tensors += 1
                     additive_delta_values += applied
-                elif not applied_slice_values:
+                merged, applied_delta_entries, applied_delta_values = apply_tensor_delta_safetensors(
+                    name,
+                    merged,
+                    tensor_delta_values,
+                )
+                if applied_delta_entries:
+                    tensor_delta_safetensors_tensors += 1
+                    tensor_delta_safetensors_entries += applied_delta_entries
+                    tensor_delta_safetensors_values += applied_delta_values
+                elif not applied and not applied_slice_values:
                     frozen_tensors += 1
                 output_tensors[name] = merged.to(dtype=target_dtype)
                 continue
@@ -1031,6 +1171,15 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
             if applied:
                 additive_delta_tensors += 1
                 additive_delta_values += applied
+            merged, applied_delta_entries, applied_delta_values = apply_tensor_delta_safetensors(
+                name,
+                merged,
+                tensor_delta_values,
+            )
+            if applied_delta_entries:
+                tensor_delta_safetensors_tensors += 1
+                tensor_delta_safetensors_entries += applied_delta_entries
+                tensor_delta_safetensors_values += applied_delta_values
             output_tensors[name] = merged.to(dtype=target_dtype)
 
         if not args.dry_run:
@@ -1064,6 +1213,8 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
         ],
         "tensor_add_csv": tensor_add_csv_paths or [],
         "tensor_add_delta_summary": tensor_add_delta_summary,
+        "tensor_delta_safetensors": tensor_delta_safetensor_paths or [],
+        "tensor_delta_safetensors_summary": tensor_delta_safetensors_summary,
         "packed_expert_rule_csv": packed_expert_rule_csv_paths or [],
         "packed_expert_slice_rule_summary": packed_expert_slice_rule_summary,
         "freeze_regex": args.freeze_regex,
@@ -1075,6 +1226,9 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
         "copied_nonfloating_tensors": copied_tensors,
         "additive_delta_tensors": additive_delta_tensors,
         "additive_delta_values": additive_delta_values,
+        "tensor_delta_safetensors_tensors": tensor_delta_safetensors_tensors,
+        "tensor_delta_safetensors_entries": tensor_delta_safetensors_entries,
+        "tensor_delta_safetensors_values": tensor_delta_safetensors_values,
         "packed_expert_rule_tensors": packed_expert_rule_tensors,
         "packed_expert_rule_slices": packed_expert_rule_slices,
         "packed_expert_rule_values": packed_expert_rule_values,
@@ -1137,6 +1291,15 @@ def parse_args() -> argparse.Namespace:
         action="append",
         default=None,
         help="CSV with tensor,index,delta rows applied after averaging and before dtype cast. Repeatable.",
+    )
+    parser.add_argument(
+        "--tensor-delta-safetensors",
+        action="append",
+        default=None,
+        help=(
+            "Safetensors file or directory containing full-tensor additive deltas keyed by target tensor name. "
+            "Deltas are applied after averaging and before dtype cast. Repeatable."
+        ),
     )
     parser.add_argument(
         "--packed-expert-rule-csv",

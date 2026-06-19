@@ -166,7 +166,7 @@
       "status": "complete"
     },
     {
-      "evidence": "results/moe_tensor_rule_writer_smoke/report.md writes a tiny MoE-like safetensors checkpoint and verifies tensor-rule, freeze-router, router-bias additive deltas, and non-floating tensor behavior numerically.",
+      "evidence": "results/moe_tensor_rule_writer_smoke/report.md writes a tiny MoE-like safetensors checkpoint and verifies tensor-rule, freeze-router, router-bias additive deltas, full-tensor router deltas, and non-floating tensor behavior numerically.",
       "item": "MoE tensor-rule writer materialization",
       "status": "complete"
     },
@@ -5329,7 +5329,7 @@
       "checked_tensors": 7,
       "failed_tensors": 0,
       "floating_tensors": 6,
-      "frozen_tensors": 2,
+      "frozen_tensors": 1,
       "manifest_path": "results/moe_tensor_rule_writer_smoke/merge_manifest.json",
       "report": "results/moe_tensor_rule_writer_smoke/report.md",
       "rule_counts": {
@@ -5347,7 +5347,7 @@
         "copied_nonfloating_tensors": 1,
         "failed_tensors": 0,
         "floating_tensors": 6,
-        "frozen_tensors": 2,
+        "frozen_tensors": 1,
         "outputs": {
           "merge_manifest": "results/moe_tensor_rule_writer_smoke/merge_manifest.json",
           "report": "results/moe_tensor_rule_writer_smoke/report.md",
@@ -5362,7 +5362,10 @@
           "tensor_rule:.*self_attn.*": 1
         },
         "schema_version": 1,
-        "status": "passed"
+        "status": "passed",
+        "tensor_delta_safetensors_entries": 1,
+        "tensor_delta_safetensors_tensors": 1,
+        "tensor_delta_safetensors_values": 4
       },
       "tensor_add_delta_summary": {
         "abs_delta_sum": 0.75,
@@ -5382,7 +5385,36 @@
           }
         ]
       },
-      "tensor_checks": "results/moe_tensor_rule_writer_smoke/tensor_checks.csv"
+      "tensor_checks": "results/moe_tensor_rule_writer_smoke/tensor_checks.csv",
+      "tensor_delta_safetensors_entries": 1,
+      "tensor_delta_safetensors_summary": {
+        "source_count": 1,
+        "sources": [
+          {
+            "path": "TMP/router_weight_delta.safetensors",
+            "tensor_entries": 1,
+            "value_count": 4
+          }
+        ],
+        "tensor_count": 1,
+        "tensor_entry_count": 1,
+        "tensors": [
+          {
+            "base_dtype": "torch.float32",
+            "delta_dtype": "torch.float32",
+            "shape": [
+              2,
+              2
+            ],
+            "source_path": "TMP/router_weight_delta.safetensors",
+            "tensor": "model.layers.0.router.weight",
+            "value_count": 4
+          }
+        ],
+        "value_count": 4
+      },
+      "tensor_delta_safetensors_tensors": 1,
+      "tensor_delta_safetensors_values": 4
     },
     "moe_unified_preflight_qwen3_30b": {
       "config_rows": [
@@ -20764,7 +20796,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-19T21:28:02.209366+00:00",
+  "generated_at": "2026-06-19T21:34:24.893238+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [

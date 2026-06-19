@@ -14,7 +14,7 @@
   "floating_tensors": 6,
   "freeze_regex": [],
   "freeze_router": true,
-  "frozen_tensors": 2,
+  "frozen_tensors": 1,
   "method_counts": {
     "linear": 6
   },
@@ -91,6 +91,38 @@
     ]
   },
   "tensor_alias_rules": [],
+  "tensor_delta_safetensors": [
+    "TMP/router_weight_delta.safetensors"
+  ],
+  "tensor_delta_safetensors_entries": 1,
+  "tensor_delta_safetensors_summary": {
+    "source_count": 1,
+    "sources": [
+      {
+        "path": "TMP/router_weight_delta.safetensors",
+        "tensor_entries": 1,
+        "value_count": 4
+      }
+    ],
+    "tensor_count": 1,
+    "tensor_entry_count": 1,
+    "tensors": [
+      {
+        "base_dtype": "torch.float32",
+        "delta_dtype": "torch.float32",
+        "shape": [
+          2,
+          2
+        ],
+        "source_path": "TMP/router_weight_delta.safetensors",
+        "tensor": "model.layers.0.router.weight",
+        "value_count": 4
+      }
+    ],
+    "value_count": 4
+  },
+  "tensor_delta_safetensors_tensors": 1,
+  "tensor_delta_safetensors_values": 4,
   "tensor_method_rules": [],
   "tensor_rules": [
     {
