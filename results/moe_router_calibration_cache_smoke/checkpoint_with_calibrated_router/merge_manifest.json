@@ -1,0 +1,109 @@
+{
+  "additive_delta_tensors": 0,
+  "additive_delta_values": 0,
+  "base": "/tmp/moe_router_delta_calibration_cache_fhle1eq0/base",
+  "copied_metadata": [],
+  "copied_nonfloating_tensors": 0,
+  "default_weights": {
+    "same": 0.0
+  },
+  "dry_run": false,
+  "floating_tensors": 2,
+  "freeze_regex": [],
+  "freeze_router": true,
+  "frozen_tensors": 0,
+  "method_counts": {
+    "linear": 2
+  },
+  "output_dtype": "base",
+  "packed_expert_rule_csv": [],
+  "packed_expert_rule_slices": 0,
+  "packed_expert_rule_tensors": 0,
+  "packed_expert_rule_values": 0,
+  "packed_expert_slice_rule_summary": {
+    "abs_weight_sum": 0.0,
+    "rule_count": 0,
+    "slice_count": 0,
+    "tensor_count": 0,
+    "tensors": []
+  },
+  "rule_counts": {
+    "freeze_router": 2
+  },
+  "same_shape_constraint": "All output tensors keep base tensor names and shapes; metadata is copied from base when available.",
+  "schema_version": 1,
+  "shards": [
+    {
+      "shard": "model.safetensors",
+      "tensors": 2
+    }
+  ],
+  "source_summaries": {
+    "same": {
+      "aliased_tensors": 0,
+      "dtype_mismatches": 0,
+      "extra_tensors": 0,
+      "missing_tensors": 0,
+      "root": "/tmp/moe_router_delta_calibration_cache_fhle1eq0/base",
+      "shape_mismatches": 0,
+      "tensors": 2
+    }
+  },
+  "sources": {
+    "same": "/tmp/moe_router_delta_calibration_cache_fhle1eq0/base"
+  },
+  "tensor_add_csv": [],
+  "tensor_add_delta_summary": {
+    "abs_delta_sum": 0.0,
+    "delta_count": 0,
+    "max_abs_delta": 0.0,
+    "tensor_count": 0,
+    "tensors": []
+  },
+  "tensor_alias_rules": [],
+  "tensor_delta_safetensors": [
+    "/srv/home/bohanlyu/visualizing-model-merging/results/moe_router_calibration_cache_smoke/delta_calibration/router_delta.safetensors"
+  ],
+  "tensor_delta_safetensors_entries": 2,
+  "tensor_delta_safetensors_summary": {
+    "source_count": 1,
+    "sources": [
+      {
+        "path": "/srv/home/bohanlyu/visualizing-model-merging/results/moe_router_calibration_cache_smoke/delta_calibration/router_delta.safetensors",
+        "tensor_entries": 2,
+        "value_count": 48
+      }
+    ],
+    "tensor_count": 2,
+    "tensor_entry_count": 2,
+    "tensors": [
+      {
+        "base_dtype": "torch.float32",
+        "delta_dtype": "torch.float32",
+        "shape": [
+          4,
+          6
+        ],
+        "source_path": "/srv/home/bohanlyu/visualizing-model-merging/results/moe_router_calibration_cache_smoke/delta_calibration/router_delta.safetensors",
+        "tensor": "blocks.0.router.weight",
+        "value_count": 24
+      },
+      {
+        "base_dtype": "torch.float32",
+        "delta_dtype": "torch.float32",
+        "shape": [
+          4,
+          6
+        ],
+        "source_path": "/srv/home/bohanlyu/visualizing-model-merging/results/moe_router_calibration_cache_smoke/delta_calibration/router_delta.safetensors",
+        "tensor": "blocks.1.router.weight",
+        "value_count": 24
+      }
+    ],
+    "value_count": 48
+  },
+  "tensor_delta_safetensors_tensors": 2,
+  "tensor_delta_safetensors_values": 48,
+  "tensor_method_rules": [],
+  "tensor_rules": []
+}

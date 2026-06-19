@@ -12,13 +12,14 @@ from typing import Any
 import pandas as pd
 import torch
 import torch.nn.functional as F
-from safetensors.torch import save_file
+from safetensors.torch import load_file, save_file
 from torch import nn
 from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from probe_moe_routing import DEFAULT_PROMPTS, prompt_text, resolve_device, resolve_dtype, router_modules
 from train_moe_router_delta_calibration import calibrate_from_cache
+from write_same_shape_average_checkpoint import write_average_checkpoint
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -307,6 +308,8 @@ def build_report(summary: dict[str, Any], cache_summary: pd.DataFrame) -> str:
         f"- Cache-ready routers: `{summary['cache_ready_router_count']}` / `{summary['common_router_count']}`",
         f"- Total cache rows: `{summary['total_cache_rows']}`",
         f"- Mean student->teacher KL: `{summary['mean_student_teacher_route_kl']:.6f}`",
+        f"- Delta calibration: `{summary['calibration_status']}`",
+        f"- Checkpoint materialization: `{summary['materialization_status']}`",
         "",
         "## Next Commands",
         "",
@@ -338,6 +341,8 @@ def build_report(summary: dict[str, Any], cache_summary: pd.DataFrame) -> str:
             f"- `{outputs['report']}`",
         ]
     )
+    if outputs.get("materialization_checks"):
+        lines.append(f"- `{outputs['materialization_checks']}`")
     return "\n".join(lines) + "\n"
 
 
@@ -348,6 +353,7 @@ def save_cache_outputs(
     payload: dict[str, Any],
     cache_summary: pd.DataFrame,
     calibration_summary: dict[str, Any] | None = None,
+    materialization_summary: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     cache_path = output_dir / "router_calibration_cache.pt"
     cache_summary_path = output_dir / "cache_summary.csv"
@@ -375,6 +381,13 @@ def save_cache_outputs(
         "calibration_mean_final_route_kl": (
             None if calibration_summary is None else calibration_summary.get("mean_final_route_kl")
         ),
+        "materialization_status": None if materialization_summary is None else materialization_summary.get("status"),
+        "materialization_checked_tensors": (
+            None if materialization_summary is None else materialization_summary.get("checked_tensors")
+        ),
+        "materialization_failed_tensors": (
+            None if materialization_summary is None else materialization_summary.get("failed_tensors")
+        ),
         "training_command": (
             "python scripts/train_moe_router_delta_calibration.py "
             f"--base STUDENT_BASE_CHECKPOINT --cache {rel(cache_path)} --output-dir {rel(train_output)}"
@@ -391,11 +404,77 @@ def save_cache_outputs(
             "summary": rel(output_dir / "summary.json"),
             "report": rel(output_dir / "report.md"),
             "delta_calibration": rel(train_output) if calibration_summary is not None else None,
+            "materialized_checkpoint": (
+                None if materialization_summary is None else materialization_summary.get("checkpoint_dir")
+            ),
+            "materialization_checks": (
+                None if materialization_summary is None else materialization_summary.get("checks")
+            ),
         },
     }
     (output_dir / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     (output_dir / "report.md").write_text(build_report(summary, cache_summary), encoding="utf-8")
     return summary
+
+
+def materialize_smoke_checkpoint(base_dir: Path, train_output: Path, output_dir: Path) -> dict[str, Any]:
+    checkpoint_dir = output_dir / "checkpoint_with_calibrated_router"
+    delta_path = train_output / "router_delta.safetensors"
+    args = argparse.Namespace(
+        base=str(base_dir),
+        source=[f"same={base_dir}"],
+        source_weight=["same=0.0"],
+        tensor_rule=[],
+        tensor_rule_file=[],
+        tensor_method_rule=[],
+        tensor_method_rule_file=[],
+        source_tensor_alias=[],
+        source_tensor_alias_file=[],
+        tensor_add_csv=[],
+        tensor_delta_safetensors=[str(delta_path)],
+        packed_expert_rule_csv=[],
+        freeze_regex=[],
+        freeze_router=True,
+        allow_missing_source_tensors=False,
+        output_dtype="base",
+        output_dir=str(checkpoint_dir),
+        copy_metadata=True,
+        dry_run=False,
+    )
+    manifest = write_average_checkpoint(args)
+    base_values = load_file(str(base_dir / "model.safetensors"))
+    delta_values = load_file(str(delta_path))
+    actual_values = load_file(str(checkpoint_dir / "model.safetensors"))
+    rows = []
+    all_passed = True
+    for tensor_name in sorted(delta_values):
+        expected = base_values[tensor_name].to(torch.float32) + delta_values[tensor_name].to(torch.float32)
+        actual = actual_values[tensor_name].to(torch.float32)
+        max_abs_error = float((actual - expected).abs().max().item())
+        passed = max_abs_error < 1e-6
+        all_passed = all_passed and passed
+        rows.append(
+            {
+                "tensor": tensor_name,
+                "max_abs_error": max_abs_error,
+                "expected_mean": float(expected.mean().item()),
+                "actual_mean": float(actual.mean().item()),
+                "passed": passed,
+            }
+        )
+    checks = pd.DataFrame(rows)
+    checks_path = output_dir / "materialization_checks.csv"
+    checks.to_csv(checks_path, index=False)
+    return {
+        "status": "passed" if all_passed else "failed",
+        "checked_tensors": int(len(checks)),
+        "failed_tensors": int((~checks["passed"]).sum()) if not checks.empty else 0,
+        "checkpoint_dir": rel(checkpoint_dir),
+        "checks": rel(checks_path),
+        "manifest": manifest,
+        "tensor_delta_safetensors_tensors": int(manifest.get("tensor_delta_safetensors_tensors", 0)),
+        "tensor_delta_safetensors_values": int(manifest.get("tensor_delta_safetensors_values", 0)),
+    }
 
 
 def tokenized_batches(tokenizer: Any, prompts: list[dict[str, str]], args: argparse.Namespace) -> list[dict[str, torch.Tensor]]:
@@ -516,14 +595,24 @@ def run_smoke(args: argparse.Namespace) -> dict[str, Any]:
         smoke=False,
     )
     calibration_summary = calibrate_from_cache(train_args)
+    materialization_summary = materialize_smoke_checkpoint(base_dir, train_output, output_dir)
     summary = save_cache_outputs(
         args=smoke_args,
         output_dir=output_dir,
         payload=payload,
         cache_summary=cache_summary,
         calibration_summary=calibration_summary,
+        materialization_summary=materialization_summary,
     )
-    summary["status"] = "passed" if summary["status"] == "cache_ready" and calibration_summary["status"] == "passed" else "failed"
+    summary["status"] = (
+        "passed"
+        if (
+            summary["status"] == "cache_ready"
+            and calibration_summary["status"] == "passed"
+            and materialization_summary["status"] == "passed"
+        )
+        else "failed"
+    )
     (output_dir / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     (output_dir / "report.md").write_text(build_report(summary, cache_summary), encoding="utf-8")
     if summary["status"] != "passed":

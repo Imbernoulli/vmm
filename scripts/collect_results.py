@@ -661,12 +661,17 @@ def summarize_moe_router_calibration_cache_smoke() -> dict[str, Any]:
         "calibration_mean_final_route_kl": float(calibration.get("mean_final_route_kl", 0.0)),
         "calibration_mean_initial_top1_agreement": float(calibration.get("mean_initial_top1_agreement", 0.0)),
         "calibration_mean_final_top1_agreement": float(calibration.get("mean_final_top1_agreement", 0.0)),
+        "materialization_status": summary.get("materialization_status"),
+        "materialization_checked_tensors": int(summary.get("materialization_checked_tensors") or 0),
+        "materialization_failed_tensors": int(summary.get("materialization_failed_tensors") or 0),
         "router_delta_safetensors": calibration.get("outputs", {}).get(
             "router_delta_safetensors",
             rel(root / "delta_calibration/router_delta.safetensors"),
         ),
         "cache": rel(root / "router_calibration_cache.pt"),
         "cache_summary": rel(root / "cache_summary.csv"),
+        "materialization_checks": rel(root / "materialization_checks.csv"),
+        "materialized_checkpoint_manifest": rel(root / "checkpoint_with_calibrated_router/merge_manifest.json"),
         "report": rel(root / "report.md"),
         "delta_calibration_report": rel(root / "delta_calibration/report.md"),
     }
@@ -4338,6 +4343,12 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{moe_router_calibration_cache_smoke['cache_ready_router_count']}"
                 f"/{moe_router_calibration_cache_smoke['common_router_count']} / "
                 f"{moe_router_calibration_cache_smoke['total_cache_rows']} |"
+            ),
+            (
+                "| MoE router calibration cache smoke | materialization status / checked / failed | "
+                f"{moe_router_calibration_cache_smoke['materialization_status']} / "
+                f"{moe_router_calibration_cache_smoke['materialization_checked_tensors']} / "
+                f"{moe_router_calibration_cache_smoke['materialization_failed_tensors']} |"
             ),
             (
                 "| MoE router calibration cache smoke | cache KL / trained KL initial-final / trained top1 initial-final | "

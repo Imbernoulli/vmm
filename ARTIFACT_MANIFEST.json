@@ -1213,6 +1213,12 @@
       "sha256": "591558c175bed8f91e72128e0f58e38ddf5acb70ce868bc0510ebae500d6e4fd"
     },
     {
+      "bytes": 3079,
+      "kind": "data",
+      "path": "results/moe_router_calibration_cache_smoke/checkpoint_with_calibrated_router/merge_manifest.json",
+      "sha256": "099e198b761b60f7027aac1e811186725a6e952e74f2e04cb72f347ddacf68d9"
+    },
+    {
       "bytes": 1591,
       "kind": "document",
       "path": "results/moe_router_calibration_cache_smoke/delta_calibration/report.md",
@@ -1237,16 +1243,22 @@
       "sha256": "7f59417f1c45470830f480622e9404b094d5a4f3932302b55efef7c8452997e3"
     },
     {
-      "bytes": 1583,
-      "kind": "document",
-      "path": "results/moe_router_calibration_cache_smoke/report.md",
-      "sha256": "fa94f81444545d0860fe5816f625b45afb889977d5e78575991217d66cc9658a"
+      "bytes": 204,
+      "kind": "data",
+      "path": "results/moe_router_calibration_cache_smoke/materialization_checks.csv",
+      "sha256": "b50e08928eebc847d8c0f1ab7d032795320249c31252f6500e940d4bffec8687"
     },
     {
-      "bytes": 1522,
+      "bytes": 1726,
+      "kind": "document",
+      "path": "results/moe_router_calibration_cache_smoke/report.md",
+      "sha256": "92ef9c3e6bb60c9f222a70a5fec4968b62d9a683f44ec9389df46158f7198880"
+    },
+    {
+      "bytes": 1853,
       "kind": "data",
       "path": "results/moe_router_calibration_cache_smoke/summary.json",
-      "sha256": "a891a26debe32822eac0a49035643b38bf2fcf2c19a5e18a99997a836a93e301"
+      "sha256": "5a30793c5701658b36d2d16140d1b0697455cc10213338aae8f0ed6321979ac3"
     },
     {
       "bytes": 1411,
@@ -2797,16 +2809,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 914944,
+      "bytes": 915681,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "df908fc66ba523698184ab7bd26021d0774297e3ccfd42b3f6f3250fa1b882e7"
+      "sha256": "de530ac2bada950d402ef7297240fa31e7ec26ec20e1ce5c35a0fd02e7968fc7"
     },
     {
-      "bytes": 38341,
+      "bytes": 38441,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "669a295a9df1a25d0cc2b918d7d1e722af53746755f00ff6b3b598ee62a85030"
+      "sha256": "7b1535f238ac1713edaf39edf031d1baf2bc9918b894f19d2140e9bae16fce31"
     },
     {
       "bytes": 288,
@@ -3943,16 +3955,16 @@
       "sha256": "0b0e4be7ec51f0afb74dfdee6e3d8b217da9aac4d965a170bea36c89f1b46abb"
     },
     {
-      "bytes": 24389,
+      "bytes": 28312,
       "kind": "code",
       "path": "scripts/collect_moe_router_calibration_cache.py",
-      "sha256": "6fb92e1bb3f1c2ae259c92e43f975347a66c4bd1106c9c73a61234596f18ce44"
+      "sha256": "acde2a24b0761d48b0e835dea0eaf7545bae9aedf80da7ba91671a4c699c3b01"
     },
     {
-      "bytes": 258482,
+      "bytes": 259346,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "efef2a6cce71bde5ed6db3896a723f2197c3ea00a0e87beecd3c5a8c373030a7"
+      "sha256": "1abaa67cef95952495db4e159fc5e6f5aa56135c59f481d5b179e5f6223c729a"
     },
     {
       "bytes": 16101,
@@ -4183,7 +4195,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T21:49:00.223328+00:00",
+  "generated_at": "2026-06-19T21:52:28.245311+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

@@ -5256,6 +5256,11 @@
       },
       "common_router_count": 2,
       "delta_calibration_report": "results/moe_router_calibration_cache_smoke/delta_calibration/report.md",
+      "materialization_checked_tensors": 2,
+      "materialization_checks": "results/moe_router_calibration_cache_smoke/materialization_checks.csv",
+      "materialization_failed_tensors": 0,
+      "materialization_status": "passed",
+      "materialized_checkpoint_manifest": "results/moe_router_calibration_cache_smoke/checkpoint_with_calibrated_router/merge_manifest.json",
       "mean_student_teacher_route_kl": 0.0623903963714838,
       "mean_student_teacher_top1_agreement": 0.703125,
       "report": "results/moe_router_calibration_cache_smoke/report.md",
@@ -5266,6 +5271,9 @@
         "calibration_mean_final_route_kl": 0.020388375502079725,
         "calibration_status": "passed",
         "common_router_count": 2,
+        "materialization_checked_tensors": 2,
+        "materialization_failed_tensors": 0,
+        "materialization_status": "passed",
         "mean_student_teacher_route_kl": 0.0623903963714838,
         "mean_student_teacher_top1_agreement": 0.703125,
         "mean_student_teacher_topk_jaccard": 0.7534722222222223,
@@ -5273,6 +5281,8 @@
           "cache": "results/moe_router_calibration_cache_smoke/router_calibration_cache.pt",
           "cache_summary": "results/moe_router_calibration_cache_smoke/cache_summary.csv",
           "delta_calibration": "results/moe_router_calibration_cache_smoke/delta_calibration",
+          "materialization_checks": "results/moe_router_calibration_cache_smoke/materialization_checks.csv",
+          "materialized_checkpoint": "results/moe_router_calibration_cache_smoke/checkpoint_with_calibrated_router",
           "report": "results/moe_router_calibration_cache_smoke/report.md",
           "summary": "results/moe_router_calibration_cache_smoke/summary.json"
         },
@@ -20922,7 +20932,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-19T21:49:00.179228+00:00",
+  "generated_at": "2026-06-19T21:52:28.235000+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [

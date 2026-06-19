@@ -8,6 +8,8 @@
 - Cache-ready routers: `2` / `2`
 - Total cache rows: `192`
 - Mean student->teacher KL: `0.062390`
+- Delta calibration: `passed`
+- Checkpoint materialization: `passed`
 
 ## Next Commands
 
@@ -29,3 +31,4 @@ python scripts/write_same_shape_average_checkpoint.py --base STUDENT_BASE_CHECKP
 - `results/moe_router_calibration_cache_smoke/cache_summary.csv`
 - `results/moe_router_calibration_cache_smoke/summary.json`
 - `results/moe_router_calibration_cache_smoke/report.md`
+- `results/moe_router_calibration_cache_smoke/materialization_checks.csv`

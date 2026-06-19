@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-19T21:49:00.179228+00:00`
+Generated at: `2026-06-19T21:52:28.235000+00:00`
 
 ## Coverage
 
@@ -333,6 +333,7 @@ Complete: `66`; partial: `1`; missing: `0`.
 | MoE router delta calibration smoke | status / routers / delta tensors | passed / 1 / 1 |
 | MoE router delta calibration smoke | route KL initial-final / top1 initial-final / rel cap | 0.1752-0.0516 / 0.5260-0.7708 / 0.5000 |
 | MoE router calibration cache smoke | status / ready routers / cache rows | passed / 2/2 / 192 |
+| MoE router calibration cache smoke | materialization status / checked / failed | passed / 2 / 0 |
 | MoE router calibration cache smoke | cache KL / trained KL initial-final / trained top1 initial-final | 0.0624 / 0.0624-0.0204 / 0.7031-0.8802 |
 | MoE combined writer smoke | status | passed |
 | MoE combined writer smoke | checked / failed tensors | 7 / 0 |
