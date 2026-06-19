@@ -176,11 +176,42 @@ def build_selection_table(
     return table.sort_values(["decision", "selection_score"], ascending=[True, False])
 
 
+def attach_dispatch_metrics(selection: pd.DataFrame, dispatch_metrics: pd.DataFrame) -> pd.DataFrame:
+    if dispatch_metrics.empty:
+        return selection
+    dispatch_worst = dispatch_metrics.pivot_table(
+        index="method",
+        columns="dispatch_mode",
+        values="worst_acc",
+        aggfunc="max",
+    )
+    dispatch_worst = dispatch_worst.rename(
+        columns={mode: f"dispatch_{mode}_worst_acc" for mode in dispatch_worst.columns}
+    )
+    return selection.merge(dispatch_worst.reset_index(), on="method", how="left")
+
+
 def choose_recommendation(selection: pd.DataFrame) -> pd.Series | None:
     candidates = selection[selection["decision"].isin(["candidate_materialize", "candidate_with_router_guard"])]
     if candidates.empty:
         return None
     return candidates.sort_values(["selection_score", "worst_acc", "avg_acc"], ascending=False).iloc[0]
+
+
+def choose_sparse_recommendation(selection: pd.DataFrame, dispatch_mode: str) -> pd.Series | None:
+    metric = f"dispatch_{dispatch_mode}_worst_acc"
+    if metric not in selection:
+        return None
+    candidates = selection[selection["decision"].isin(["candidate_materialize", "candidate_with_router_guard"])].copy()
+    candidates = candidates[candidates[metric].notna()]
+    if candidates.empty:
+        return None
+    candidates[f"{dispatch_mode}_selection_score"] = (
+        candidates[metric].astype(float)
+        - 0.01 * candidates["mean_risk_score"].fillna(0.0).astype(float)
+        - 0.05 * candidates["low_overlap_count"].fillna(0.0).astype(float)
+    )
+    return candidates.sort_values([f"{dispatch_mode}_selection_score", metric, "worst_acc"], ascending=False).iloc[0]
 
 
 def build_report(
@@ -190,25 +221,30 @@ def build_report(
     summary: dict[str, Any],
 ) -> str:
     recommendation = summary.get("recommended_method")
+    sparse_recommendation = summary.get("recommended_sparse_method")
+    sparse_dispatch_mode = summary.get("recommended_sparse_dispatch_mode")
     lines = [
         "# MoE Merge Method Selection",
         "",
         "这个报告把 MoE 方法分数和 routing readiness 合在一起，给出是否 materialize 的决策。它的边界是保守的：endpoint 只能作 baseline，低 route-overlap / 低 top-1 agreement 的 average 会被拒绝，能过性能和 routing gate 的方法才进入 checkpoint writer 或下一轮 held-out eval。",
         "",
-        f"- Recommended method: `{recommendation or 'none'}`",
+        f"- Recommended soft-router method: `{recommendation or 'none'}`",
+        f"- Recommended sparse `{sparse_dispatch_mode or 'n/a'}` method: `{sparse_recommendation or 'none'}`",
         f"- Selection status: `{summary['selection_status']}`",
         f"- Base worst accuracy: `{summary.get('base_worst_acc')}`",
         "",
         "## Decision Table",
         "",
-        "| method | kind | worst acc | avg acc | calibrate flags | min top-k Jaccard | decision |",
-        "| --- | --- | ---: | ---: | ---: | ---: | --- |",
+        "| method | kind | soft worst acc | hard top-2 worst acc | avg acc | calibrate flags | min top-k Jaccard | decision |",
+        "| --- | --- | ---: | ---: | ---: | ---: | ---: | --- |",
     ]
     for _, row in selection.sort_values(["selection_score"], ascending=False).iterrows():
         min_jaccard = row.get("min_topk_jaccard")
         min_jaccard_text = "n/a" if pd.isna(min_jaccard) else f"{float(min_jaccard):.4g}"
+        hard_top2 = row.get("dispatch_hard_top2_worst_acc")
+        hard_top2_text = "n/a" if pd.isna(hard_top2) else f"{float(hard_top2):.3f}"
         lines.append(
-            f"| {row['method']} | {row['method_kind']} | {float(row['worst_acc']):.3f} | {float(row['avg_acc']):.3f} | "
+            f"| {row['method']} | {row['method_kind']} | {float(row['worst_acc']):.3f} | {hard_top2_text} | {float(row['avg_acc']):.3f} | "
             f"{int(row['calibrate_router_count'])} | {min_jaccard_text} | `{row['decision']}` |"
         )
     lines.extend(["", "## Recommendation", ""])
@@ -226,6 +262,19 @@ def build_report(
         )
     else:
         lines.append("当前没有方法同时通过性能和 routing readiness gate；应先做 router calibration、expert matching 或重新选 source。")
+    if sparse_recommendation:
+        rec = selection[selection["method"] == sparse_recommendation].iloc[0]
+        sparse_metric = f"dispatch_{sparse_dispatch_mode}_worst_acc"
+        lines.extend(
+            [
+                "",
+                f"如果部署路径使用 `{sparse_dispatch_mode}` sparse dispatch，优先复评 `{sparse_recommendation}`。",
+                "",
+                f"- {sparse_dispatch_mode} worst accuracy: `{float(rec[sparse_metric]):.3f}`",
+                f"- soft worst accuracy: `{float(rec['worst_acc']):.3f}`",
+                f"- decision: `{rec['decision']}`",
+            ]
+        )
     lines.extend(
         [
             "",
@@ -248,6 +297,8 @@ def build_report(
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Select MoE merge methods from performance metrics and routing readiness probes.")
     parser.add_argument("--method-metrics", default="results/toy_moe_merge/method_metrics.csv")
+    parser.add_argument("--dispatch-metrics", default="results/toy_moe_merge/dispatch_mode_metrics.csv")
+    parser.add_argument("--sparse-dispatch-mode", default="hard_top2")
     parser.add_argument("--router-readiness", default="results/toy_moe_routing_readiness/router_readiness.csv")
     parser.add_argument("--output-dir", type=Path, default=Path("results/toy_moe_method_selection"))
     parser.add_argument("--min-worst-acc-delta-vs-base", type=float, default=0.0)
@@ -261,19 +312,28 @@ def main() -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     method_metrics = read_csv(args.method_metrics)
     router_readiness = read_csv(args.router_readiness)
+    dispatch_metrics = read_csv(args.dispatch_metrics) if repo_path(args.dispatch_metrics).exists() else pd.DataFrame()
     selection = build_selection_table(
         method_metrics,
         router_readiness,
         min_worst_acc_delta_vs_base=args.min_worst_acc_delta_vs_base,
         max_calibrate_count=args.max_calibrate_count,
     )
+    selection = attach_dispatch_metrics(selection, dispatch_metrics)
     recommended = choose_recommendation(selection)
+    sparse_recommended = choose_sparse_recommendation(selection, args.sparse_dispatch_mode)
     base_rows = selection[selection["method"] == "base"]
     summary = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "selection_status": "has_candidate" if recommended is not None else "no_candidate",
         "recommended_method": None if recommended is None else str(recommended["method"]),
         "recommended_decision": None if recommended is None else str(recommended["decision"]),
+        "recommended_sparse_dispatch_mode": args.sparse_dispatch_mode,
+        "recommended_sparse_method": None if sparse_recommended is None else str(sparse_recommended["method"]),
+        "recommended_sparse_decision": None if sparse_recommended is None else str(sparse_recommended["decision"]),
+        "recommended_sparse_worst_acc": None
+        if sparse_recommended is None
+        else float(sparse_recommended[f"dispatch_{args.sparse_dispatch_mode}_worst_acc"]),
         "base_worst_acc": None if base_rows.empty else float(base_rows.iloc[0]["worst_acc"]),
         "thresholds": {
             "min_worst_acc_delta_vs_base": args.min_worst_acc_delta_vs_base,
@@ -281,6 +341,7 @@ def main() -> None:
         },
         "inputs": {
             "method_metrics": rel(args.method_metrics),
+            "dispatch_metrics": rel(args.dispatch_metrics),
             "router_readiness": rel(args.router_readiness),
         },
         "outputs": {

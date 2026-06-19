@@ -1,8 +1,12 @@
 {
-  "generated_at": "2026-06-19T11:08:05.085831+00:00",
+  "generated_at": "2026-06-19T11:11:40.834498+00:00",
   "selection_status": "has_candidate",
   "recommended_method": "matched_router_calibrated_average",
   "recommended_decision": "candidate_with_router_guard",
+  "recommended_sparse_dispatch_mode": "hard_top2",
+  "recommended_sparse_method": "matched_router_route_kd_average",
+  "recommended_sparse_decision": "candidate_with_router_guard",
+  "recommended_sparse_worst_acc": 0.73,
   "base_worst_acc": 0.775,
   "thresholds": {
     "min_worst_acc_delta_vs_base": 0.0,
@@ -10,6 +14,7 @@
   },
   "inputs": {
     "method_metrics": "results/toy_moe_merge/method_metrics.csv",
+    "dispatch_metrics": "results/toy_moe_merge/dispatch_mode_metrics.csv",
     "router_readiness": "results/toy_moe_routing_readiness/router_readiness.csv"
   },
   "outputs": {

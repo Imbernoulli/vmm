@@ -736,13 +736,20 @@ def summarize_toy_moe_method_selection() -> dict[str, Any]:
     summary = read_json("results/toy_moe_method_selection/summary.json")
     selection = read_csv("results/toy_moe_method_selection/method_selection.csv")
     recommended_method = summary.get("recommended_method")
+    recommended_sparse_method = summary.get("recommended_sparse_method")
     recommended = selection[selection["method"] == recommended_method]
+    sparse_recommended = selection[selection["method"] == recommended_sparse_method]
     all_weight = selection[selection["method"] == "all_weight_average"]
     return {
         "summary": summary,
         "recommended_method": recommended_method,
         "recommended_decision": summary.get("recommended_decision"),
         "recommended_row": clean_row(recommended.iloc[0]) if not recommended.empty else None,
+        "recommended_sparse_dispatch_mode": summary.get("recommended_sparse_dispatch_mode"),
+        "recommended_sparse_method": recommended_sparse_method,
+        "recommended_sparse_decision": summary.get("recommended_sparse_decision"),
+        "recommended_sparse_worst_acc": maybe_float(summary.get("recommended_sparse_worst_acc")),
+        "recommended_sparse_row": clean_row(sparse_recommended.iloc[0]) if not sparse_recommended.empty else None,
         "all_weight_decision": None if all_weight.empty else str(all_weight.iloc[0]["decision"]),
         "all_weight_calibrate_count": 0 if all_weight.empty else int(all_weight.iloc[0]["calibrate_router_count"]),
         "report": rel("results/toy_moe_method_selection/report.md"),
@@ -1504,6 +1511,14 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| toy MoE method selection | recommended method | "
                 f"{toy_moe_selection['recommended_method']} |"
+            ),
+            (
+                "| toy MoE method selection | recommended hard top-2 method | "
+                f"{toy_moe_selection['recommended_sparse_method']} |"
+            ),
+            (
+                "| toy MoE method selection | recommended hard top-2 worst accuracy | "
+                f"{fmt(toy_moe_selection['recommended_sparse_worst_acc'])} |"
             ),
             (
                 "| toy MoE method selection | all-weight decision | "

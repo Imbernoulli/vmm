@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-19T11:08:09.673452+00:00`
+Generated at: `2026-06-19T11:11:58.701186+00:00`
 
 ## Coverage
 
@@ -122,6 +122,8 @@ Complete: `31`; partial: `1`; missing: `0`.
 | toy MoE routing readiness | readiness status | high_risk_calibrate_router_before_merge |
 | toy MoE routing readiness | all-weight calibrate-router flags | 1 |
 | toy MoE method selection | recommended method | matched_router_calibrated_average |
+| toy MoE method selection | recommended hard top-2 method | matched_router_route_kd_average |
+| toy MoE method selection | recommended hard top-2 worst accuracy | 0.730 |
 | toy MoE method selection | all-weight decision | reject_routing_breakdown |
 | toy MoE expert remap plan | remap status | ready |
 | toy MoE expert remap plan | source tensor alias rules | 4 |
