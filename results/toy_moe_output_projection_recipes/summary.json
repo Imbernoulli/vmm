@@ -9,16 +9,16 @@
   "fallback_source": "general",
   "router_dirs": [],
   "expert_weight_csvs": [
-    "results/toy_moe_merge/expert_search_weights_by_expert.csv"
+    "results/toy_moe_merge/expert_output_projection_weights_by_expert.csv"
   ],
-  "expert_weight_category": null,
+  "expert_weight_category": "combined",
   "input_summaries": [
     {
-      "expert_weight_csv": "results/toy_moe_merge/expert_search_weights_by_expert.csv",
-      "rows": 4,
+      "expert_weight_csv": "results/toy_moe_merge/expert_output_projection_weights_by_expert.csv",
+      "rows": 12,
       "filtered_rows": 4,
       "used_rows": 4,
-      "category_filter": null,
+      "category_filter": "combined",
       "status": "loaded"
     }
   ],
@@ -109,13 +109,13 @@
   "topology": null,
   "same_shape_constraint": "Tensor rules only change weights inside the existing model structure; expert count, router shape, tokenizer, and layer count stay fixed.",
   "outputs": {
-    "source_weights": "results/toy_moe_expert_weight_recipes/source_weights_by_expert.csv",
-    "tensor_rules": "results/toy_moe_expert_weight_recipes/tensor_rules.txt",
-    "writer_command": "results/toy_moe_expert_weight_recipes/writer_command.txt",
-    "routing_probe_plan": "results/toy_moe_expert_weight_recipes/routing_probe_plan.csv",
-    "routing_probe_plan_json": "results/toy_moe_expert_weight_recipes/routing_probe_plan.json",
-    "category_source_plan": "results/toy_moe_expert_weight_recipes/category_source_plan.csv",
-    "summary": "results/toy_moe_expert_weight_recipes/summary.json",
-    "report": "results/toy_moe_expert_weight_recipes/report.md"
+    "source_weights": "results/toy_moe_output_projection_recipes/source_weights_by_expert.csv",
+    "tensor_rules": "results/toy_moe_output_projection_recipes/tensor_rules.txt",
+    "writer_command": "results/toy_moe_output_projection_recipes/writer_command.txt",
+    "routing_probe_plan": "results/toy_moe_output_projection_recipes/routing_probe_plan.csv",
+    "routing_probe_plan_json": "results/toy_moe_output_projection_recipes/routing_probe_plan.json",
+    "category_source_plan": "results/toy_moe_output_projection_recipes/category_source_plan.csv",
+    "summary": "results/toy_moe_output_projection_recipes/summary.json",
+    "report": "results/toy_moe_output_projection_recipes/report.md"
   }
 }

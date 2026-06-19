@@ -1088,6 +1088,70 @@ def output_space_expert_weight_state(
     return state, pd.DataFrame(rows)
 
 
+def confidence_blended_expert_weight_state(
+    base: dict[str, Tensor],
+    general: dict[str, Tensor],
+    code: dict[str, Tensor],
+    *,
+    n_experts: int,
+    search_weights: pd.DataFrame,
+    output_projection_weights: pd.DataFrame,
+    shared_weights: tuple[float, float],
+) -> tuple[dict[str, Tensor], pd.DataFrame]:
+    search_by_expert = {
+        int(row["expert_id"]): (float(row["weight_general"]), float(row["weight_code"]))
+        for _, row in search_weights.iterrows()
+    }
+    projection_rows = output_projection_weights[output_projection_weights["category"] == "combined"]
+    projection_by_expert = {
+        int(row["expert_id"]): {
+            "weight_general": float(row["weight_general"]),
+            "weight_code": float(row["weight_code"]),
+            "captured_fraction": max(0.0, min(1.0, float(row["captured_fraction"]))),
+        }
+        for _, row in projection_rows.iterrows()
+    }
+    blended: dict[int, tuple[float, float]] = {}
+    rows: list[dict[str, Any]] = []
+    for expert_id in range(n_experts):
+        search_general, search_code = search_by_expert.get(expert_id, (0.0, 0.0))
+        projection = projection_by_expert.get(
+            expert_id,
+            {
+                "weight_general": search_general,
+                "weight_code": search_code,
+                "captured_fraction": 0.0,
+            },
+        )
+        confidence = float(projection["captured_fraction"])
+        general_weight = (1.0 - confidence) * search_general + confidence * float(projection["weight_general"])
+        code_weight = (1.0 - confidence) * search_code + confidence * float(projection["weight_code"])
+        blended[expert_id] = (general_weight, code_weight)
+        rows.append(
+            {
+                "expert_id": expert_id,
+                "weight_general": general_weight,
+                "weight_code": code_weight,
+                "anchor_weight": 1.0 - general_weight - code_weight,
+                "search_weight_general": search_general,
+                "search_weight_code": search_code,
+                "projection_weight_general": float(projection["weight_general"]),
+                "projection_weight_code": float(projection["weight_code"]),
+                "projection_captured_fraction": confidence,
+                "same_shape_action": "confidence_blended_search_and_output_projection_expert_delta",
+            }
+        )
+    state = expert_coeff_state(
+        base,
+        general,
+        code,
+        n_experts=n_experts,
+        expert_weights=blended,
+        shared_weights=shared_weights,
+    )
+    return state, pd.DataFrame(rows)
+
+
 @torch.no_grad()
 def collect_linear_covariances(
     model: nn.Module,
@@ -2157,6 +2221,8 @@ def sweep_router_bias_capacity(
     initial_kl_coef: float,
     load_balance_coef: float,
     capacity_factor: float,
+    method_prefix: str,
+    state_prefix: str,
     device: torch.device,
 ) -> tuple[dict[str, Tensor], pd.DataFrame, pd.DataFrame]:
     rows: list[dict[str, Any]] = []
@@ -2180,7 +2246,7 @@ def sweep_router_bias_capacity(
             device=device,
             desc=f"bias capacity coef={capacity_loss_coef:g}",
         )
-        state_key = f"bias_capacity_{coef_key}"
+        state_key = f"{state_prefix}_{coef_key}"
         states[state_key] = state
         trace = trace.copy()
         trace.insert(0, "sweep_capacity_loss_coef", float(capacity_loss_coef))
@@ -2190,7 +2256,7 @@ def sweep_router_bias_capacity(
             state,
             loaders,
             device,
-            method=f"unified_moe_bias_capacity_{coef_key}",
+            method=f"{method_prefix}_{coef_key}",
             dispatch_mode=dispatch_mode,
             capacity_factor=capacity_factor,
         )
@@ -2285,17 +2351,33 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
     expert_output_projection_calibrated = method_metrics[
         method_metrics["method"] == "expert_output_projection_router_calibrated_average"
     ].iloc[0]
+    confidence_blended = method_metrics[method_metrics["method"] == "confidence_blended_expert_average"].iloc[0]
+    confidence_blended_calibrated = method_metrics[
+        method_metrics["method"] == "confidence_blended_router_calibrated_average"
+    ].iloc[0]
     unified_moe = method_metrics[method_metrics["method"] == "unified_moe_average"].iloc[0]
     unified_output_projection_moe = method_metrics[
         method_metrics["method"] == "unified_output_projection_moe_average"
     ].iloc[0]
+    unified_confidence_blended = method_metrics[
+        method_metrics["method"] == "unified_confidence_blended_moe_average"
+    ].iloc[0]
     unified_bias = method_metrics[method_metrics["method"] == "unified_moe_bias_capacity_average"].iloc[0]
+    unified_output_projection_bias = method_metrics[
+        method_metrics["method"] == "unified_output_projection_bias_capacity_average"
+    ].iloc[0]
+    unified_confidence_blended_bias = method_metrics[
+        method_metrics["method"] == "unified_confidence_blended_bias_capacity_average"
+    ].iloc[0]
     route_aware = method_metrics[method_metrics["method"] == "route_aware_expert_average"].iloc[0]
     connectivity = summary["connectivity"]
     dispatch = summary["dispatch_robustness"]
     capacity = summary["router_capacity"]
     unified_summary = summary["unified_moe"]
     unified_output_projection_summary = summary["unified_output_projection_moe"]
+    unified_confidence_blended_summary = summary["unified_confidence_blended_moe"]
+    unified_output_projection_bias_summary = summary["unified_output_projection_bias_capacity"]
+    unified_confidence_blended_bias_summary = summary["unified_confidence_blended_bias_capacity"]
     lines = [
         "# Toy MoE Route-Aware Merge",
         "",
@@ -2324,11 +2406,19 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
         f"- Expert-weight search + router-calibrated worst accuracy: `{expert_search_calibrated['worst_acc']:.3f}`.",
         f"- Expert output-projection average worst accuracy: `{expert_output_projection['worst_acc']:.3f}`.",
         f"- Expert output-projection + router-calibrated worst accuracy: `{expert_output_projection_calibrated['worst_acc']:.3f}`.",
+        f"- Confidence-blended expert average worst accuracy: `{confidence_blended['worst_acc']:.3f}`.",
+        f"- Confidence-blended expert + router-calibrated worst accuracy: `{confidence_blended_calibrated['worst_acc']:.3f}`.",
         f"- Unified expert/router objective worst accuracy: `{unified_moe['worst_acc']:.3f}`.",
         f"- Unified output-projection expert/router objective worst accuracy: `{unified_output_projection_moe['worst_acc']:.3f}`.",
+        f"- Unified confidence-blended expert/router objective worst accuracy: `{unified_confidence_blended['worst_acc']:.3f}`.",
         f"- Unified + router-bias capacity calibration worst accuracy: `{unified_bias['worst_acc']:.3f}`.",
+        f"- Unified output-projection + router-bias capacity calibration worst accuracy: `{unified_output_projection_bias['worst_acc']:.3f}`.",
+        f"- Unified confidence-blended + router-bias capacity calibration worst accuracy: `{unified_confidence_blended_bias['worst_acc']:.3f}`.",
         f"- Unified router/capacity sweep selected router seed `{unified_summary['selected_router_seed']}` and capacity loss `{unified_summary['selected_capacity_loss_coef']:.3f}` with held-out selection capacity-aware score `{unified_summary['selected_select_capacity_aware_score']:.3f}`.",
         f"- Unified output-projection sweep selected router seed `{unified_output_projection_summary['selected_router_seed']}` and capacity loss `{unified_output_projection_summary['selected_capacity_loss_coef']:.3f}` with held-out selection capacity-aware score `{unified_output_projection_summary['selected_select_capacity_aware_score']:.3f}`.",
+        f"- Unified confidence-blended sweep selected router seed `{unified_confidence_blended_summary['selected_router_seed']}` and capacity loss `{unified_confidence_blended_summary['selected_capacity_loss_coef']:.3f}` with held-out selection capacity-aware score `{unified_confidence_blended_summary['selected_select_capacity_aware_score']:.3f}`.",
+        f"- Unified output-projection bias-capacity sweep selected capacity loss `{unified_output_projection_bias_summary['selected_capacity_loss_coef']:.3f}` with held-out selection capacity-aware score `{unified_output_projection_bias_summary['selected_select_capacity_aware_score']:.3f}`.",
+        f"- Unified confidence-blended bias-capacity sweep selected capacity loss `{unified_confidence_blended_bias_summary['selected_capacity_loss_coef']:.3f}` with held-out selection capacity-aware score `{unified_confidence_blended_bias_summary['selected_select_capacity_aware_score']:.3f}`.",
         f"- Route-aware expert average worst accuracy: `{route_aware['worst_acc']:.3f}`.",
         f"- Lowest MoE connectivity barrier: `{connectivity['best_path']}` = `{connectivity['best_barrier_worst_loss']:.4f}` worst-loss barrier.",
         f"- Direct unmatched source barrier: `{connectivity['direct_unmatched_barrier_worst_loss']:.4f}`.",
@@ -2376,9 +2466,13 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
             "- `expert_weight_search_router_calibrated_average` 在 per-expert 系数搜索后，只开放 router 做 guarded calibration。",
             "- `expert_output_projection_average` 不用标签分数搜索，而是用 route-conditioned expert output residual 解每个 expert 的 source-delta 权重；它检验 output-space projection 是否能解释 expert merging。",
             "- `expert_output_projection_router_calibrated_average` 在 output-space expert 权重后只校准 router，用来区分 expert 输出拟合和 router dispatch 校准的贡献。",
+            "- `confidence_blended_expert_average` 用 output-space projection 的 captured fraction 当置信度：projection 能解释该 expert 输出残差时更信 projection 权重，解释不了时退回 calibration search 权重。",
             "- `unified_moe_average` 先用 per-expert source weight search 处理 expert 语义和重要性，再只更新 router；目标同时包含 soft/hard task loss、source route KD、source output KD、base-router KL、load-balance 和 differentiable capacity-overflow surrogate。router seed 和 capacity loss 系数都不是手工固定，而是在独立 selection split 上按 hard top-2 worst accuracy 减 max overflow 自动选择。",
             "- `unified_output_projection_moe_average` 把 expert seed 从校准集分数搜索换成 route-conditioned output-space projection，再套同一个 router/capacity selection；它检验 soft-router 最优的 output-projection expert weights 是否能迁移到 hard sparse dispatch。",
+            "- `unified_confidence_blended_moe_average` 把 search 和 projection 两条 expert 信号做置信度融合，再套同一个 router/capacity selection；它检验能否避免 projection 在低 captured fraction experts 上过度移动。",
             "- `unified_moe_bias_capacity_average` 从 unified 结果出发只训练 router bias，检验全局 expert 负载偏置能否降低 capacity overflow，同时避免重学完整 router 几何。",
+            "- `unified_output_projection_bias_capacity_average` 把 output-space expert seed、统一 router objective 和 bias-only capacity correction 串起来；它检验输出空间专家权重的 soft 能力提升能否在 sparse capacity gate 下保住。",
+            "- `unified_confidence_blended_bias_capacity_average` 从 confidence-blended unified 结果出发只训练 router bias，是当前最完整的同构 MoE 组合候选。",
             "- `route_aware_expert_average` 冻结 base router，并按 base router 在 general/code prompt 上的 route mass 给每个 expert 设置 source delta 权重；这对应 route-weight recipes 的 toy 版本。",
             "- 这个实验不是 Qwen3 结果，但它把 MoE merging 的特质从报告落成了可跑的 probe：expert index、router overlap、expert load 和 category route mass 都会影响 average 是否安全。",
             "",
@@ -2401,6 +2495,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
             "- `expert_search_weights_by_expert.csv`",
             "- `expert_weight_search_trace.csv`",
             "- `expert_output_projection_weights_by_expert.csv`",
+            "- `confidence_blended_expert_weights_by_expert.csv`",
             "- `router_weight_search.csv`",
             "- `router_hessian_average.csv`",
             "- `router_kd_trace.csv`",
@@ -2409,8 +2504,14 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
             "- `unified_moe_capacity_sweep.csv`",
             "- `unified_output_projection_moe_trace.csv`",
             "- `unified_output_projection_moe_capacity_sweep.csv`",
+            "- `unified_confidence_blended_moe_trace.csv`",
+            "- `unified_confidence_blended_moe_capacity_sweep.csv`",
             "- `router_bias_capacity_trace.csv`",
             "- `router_bias_capacity_sweep.csv`",
+            "- `output_projection_bias_capacity_trace.csv`",
+            "- `output_projection_bias_capacity_sweep.csv`",
+            "- `confidence_blended_bias_capacity_trace.csv`",
+            "- `confidence_blended_bias_capacity_sweep.csv`",
             "- `router_calibration_sweep.csv`",
             "- `toy_moe_merge.png`",
             "- `summary.json`",
@@ -2599,6 +2700,15 @@ def main() -> None:
         ridge=args.output_projection_ridge,
         max_delta_sum=args.output_projection_max_delta_sum,
         device=device,
+    )
+    hybrid_output_projection, hybrid_output_projection_weights = confidence_blended_expert_weight_state(
+        base_state,
+        general_state,
+        matched_code_state,
+        n_experts=args.experts,
+        search_weights=expert_search_weights,
+        output_projection_weights=expert_output_projection_weights,
+        shared_weights=(args.expert_search_shared_general_weight, args.expert_search_shared_code_weight),
     )
 
     all_average = task_vector_average(base_state, [general_state, code_permuted_state], [0.5, 0.5])
@@ -2790,6 +2900,18 @@ def main() -> None:
         device=device,
         desc="calibrate output-projected expert router",
     )
+    hybrid_output_projection_router_calibrated = calibrate_router_only_state(
+        template,
+        hybrid_output_projection,
+        base,
+        loaders["mixed_calib"],
+        epochs=args.router_calibration_epochs,
+        lr=args.router_calibration_lr,
+        kl_coef=args.router_calibration_kl_coef,
+        aux_coef=args.aux_coef,
+        device=device,
+        desc="calibrate confidence-blended expert router",
+    )
     unified_capacity_loss_values = (
         parse_grid(args.unified_router_capacity_loss_sweep)
         if args.unified_router_capacity_loss_sweep.strip()
@@ -2859,6 +2981,40 @@ def main() -> None:
         temperature=args.unified_router_temperature,
         device=device,
     )
+    hybrid_unified_router_initial_states = {
+        "base_router": hybrid_output_projection,
+        "hybrid_calibrated_router": hybrid_output_projection_router_calibrated,
+        "router_kd_seed": state_with_router_seed(hybrid_output_projection, matched_router_kd),
+        "route_kd_seed": state_with_router_seed(hybrid_output_projection, matched_router_route_kd),
+    }
+    (
+        unified_hybrid_output_projection_moe_average,
+        unified_hybrid_output_projection_moe_trace,
+        unified_hybrid_output_projection_moe_capacity_sweep,
+    ) = sweep_unified_moe_capacity_loss(
+        template,
+        hybrid_unified_router_initial_states,
+        base,
+        [
+            ("general_source", general_model, loaders["general_calib"], 0.5),
+            ("matched_code_source", matched_code, loaders["code_calib"], 0.5),
+        ],
+        loaders,
+        capacity_loss_coefs=unified_capacity_loss_values,
+        epochs=args.unified_router_epochs,
+        lr=args.unified_router_lr,
+        dispatch_mode=args.unified_router_dispatch_mode,
+        soft_loss_coef=args.unified_router_soft_loss_coef,
+        dispatch_loss_coef=args.unified_router_dispatch_loss_coef,
+        route_kd_coef=args.unified_router_route_kd_coef,
+        output_kd_coef=args.unified_router_output_kd_coef,
+        top1_loss_coef=args.unified_router_top1_loss_coef,
+        base_kl_coef=args.unified_router_base_kl_coef,
+        load_balance_coef=args.unified_router_load_balance_coef,
+        capacity_factor=args.capacity_factor,
+        temperature=args.unified_router_temperature,
+        device=device,
+    )
     selected_output_projection_unified_capacity_row = unified_output_projection_moe_capacity_sweep[
         unified_output_projection_moe_capacity_sweep["selected_by_select_capacity_aware_score"].astype(bool)
     ].iloc[0]
@@ -2869,6 +3025,10 @@ def main() -> None:
         unified_moe_capacity_sweep["selected_by_select_capacity_aware_score"].astype(bool)
     ].iloc[0]
     selected_unified_capacity_loss_coef = float(selected_unified_capacity_row["capacity_loss_coef"])
+    selected_hybrid_unified_capacity_row = unified_hybrid_output_projection_moe_capacity_sweep[
+        unified_hybrid_output_projection_moe_capacity_sweep["selected_by_select_capacity_aware_score"].astype(bool)
+    ].iloc[0]
+    selected_hybrid_unified_capacity_loss_coef = float(selected_hybrid_unified_capacity_row["capacity_loss_coef"])
     router_bias_capacity_loss_values = parse_grid(args.router_bias_capacity_loss_sweep)
     unified_moe_bias_capacity, router_bias_capacity_trace, router_bias_capacity_sweep = sweep_router_bias_capacity(
         template,
@@ -2883,12 +3043,68 @@ def main() -> None:
         initial_kl_coef=args.router_bias_initial_kl_coef,
         load_balance_coef=args.router_bias_load_balance_coef,
         capacity_factor=args.capacity_factor,
+        method_prefix="unified_moe_bias_capacity",
+        state_prefix="bias_capacity",
         device=device,
     )
     selected_bias_capacity_row = router_bias_capacity_sweep[
         router_bias_capacity_sweep["selected_by_select_capacity_aware_score"].astype(bool)
     ].iloc[0]
     selected_bias_capacity_loss_coef = float(selected_bias_capacity_row["capacity_loss_coef"])
+    (
+        unified_output_projection_bias_capacity,
+        output_projection_bias_capacity_trace,
+        output_projection_bias_capacity_sweep,
+    ) = sweep_router_bias_capacity(
+        template,
+        unified_output_projection_moe_average,
+        loaders,
+        capacity_loss_coefs=router_bias_capacity_loss_values,
+        epochs=args.router_bias_capacity_epochs,
+        lr=args.router_bias_capacity_lr,
+        dispatch_mode=args.unified_router_dispatch_mode,
+        soft_loss_coef=args.unified_router_soft_loss_coef,
+        dispatch_loss_coef=args.unified_router_dispatch_loss_coef,
+        initial_kl_coef=args.router_bias_initial_kl_coef,
+        load_balance_coef=args.router_bias_load_balance_coef,
+        capacity_factor=args.capacity_factor,
+        method_prefix="unified_output_projection_bias_capacity",
+        state_prefix="output_projection_bias_capacity",
+        device=device,
+    )
+    selected_output_projection_bias_capacity_row = output_projection_bias_capacity_sweep[
+        output_projection_bias_capacity_sweep["selected_by_select_capacity_aware_score"].astype(bool)
+    ].iloc[0]
+    selected_output_projection_bias_capacity_loss_coef = float(
+        selected_output_projection_bias_capacity_row["capacity_loss_coef"]
+    )
+    (
+        unified_confidence_blended_bias_capacity,
+        confidence_blended_bias_capacity_trace,
+        confidence_blended_bias_capacity_sweep,
+    ) = sweep_router_bias_capacity(
+        template,
+        unified_hybrid_output_projection_moe_average,
+        loaders,
+        capacity_loss_coefs=router_bias_capacity_loss_values,
+        epochs=args.router_bias_capacity_epochs,
+        lr=args.router_bias_capacity_lr,
+        dispatch_mode=args.unified_router_dispatch_mode,
+        soft_loss_coef=args.unified_router_soft_loss_coef,
+        dispatch_loss_coef=args.unified_router_dispatch_loss_coef,
+        initial_kl_coef=args.router_bias_initial_kl_coef,
+        load_balance_coef=args.router_bias_load_balance_coef,
+        capacity_factor=args.capacity_factor,
+        method_prefix="unified_confidence_blended_bias_capacity",
+        state_prefix="confidence_blended_bias_capacity",
+        device=device,
+    )
+    selected_confidence_blended_bias_capacity_row = confidence_blended_bias_capacity_sweep[
+        confidence_blended_bias_capacity_sweep["selected_by_select_capacity_aware_score"].astype(bool)
+    ].iloc[0]
+    selected_confidence_blended_bias_capacity_loss_coef = float(
+        selected_confidence_blended_bias_capacity_row["capacity_loss_coef"]
+    )
 
     methods = [
         MethodState("base", base_state, "mixed-task base before fine-tuning"),
@@ -2978,6 +3194,16 @@ def main() -> None:
             "solve per-expert output-space source delta weights, then calibrate only the router",
         ),
         MethodState(
+            "confidence_blended_expert_average",
+            hybrid_output_projection,
+            "blend searched expert weights and output-space projection weights using projection captured fraction as confidence",
+        ),
+        MethodState(
+            "confidence_blended_router_calibrated_average",
+            hybrid_output_projection_router_calibrated,
+            "calibrate router after confidence-blended expert weights",
+        ),
+        MethodState(
             "unified_router_kd_seed_average",
             unified_router_initial_states["router_kd_seed"],
             "use searched expert weights with a Router-KD router seed before unified objective tuning",
@@ -3008,6 +3234,21 @@ def main() -> None:
             "use output-projection expert weights with a soft-calibrated router seed before unified objective tuning",
         ),
         MethodState(
+            "unified_confidence_blended_router_kd_seed_average",
+            hybrid_unified_router_initial_states["router_kd_seed"],
+            "use confidence-blended expert weights with a Router-KD router seed before unified objective tuning",
+        ),
+        MethodState(
+            "unified_confidence_blended_route_kd_seed_average",
+            hybrid_unified_router_initial_states["route_kd_seed"],
+            "use confidence-blended expert weights with a route-KD router seed before unified objective tuning",
+        ),
+        MethodState(
+            "unified_confidence_blended_calibrated_seed_average",
+            hybrid_unified_router_initial_states["hybrid_calibrated_router"],
+            "use confidence-blended expert weights with a soft-calibrated router seed before unified objective tuning",
+        ),
+        MethodState(
             "unified_moe_average",
             unified_moe_average,
             "search expert source weights, then learn one router objective combining task loss, hard top-k dispatch, route KD, output KD, base-router KL, load balance, and capacity overflow",
@@ -3018,9 +3259,24 @@ def main() -> None:
             "solve expert weights by output-space projection, then learn the same capacity-aware unified router objective",
         ),
         MethodState(
+            "unified_confidence_blended_moe_average",
+            unified_hybrid_output_projection_moe_average,
+            "confidence-blend searched and output-space expert weights, then learn the same capacity-aware unified router objective",
+        ),
+        MethodState(
             "unified_moe_bias_capacity_average",
             unified_moe_bias_capacity,
             "start from unified MoE average and tune only router bias for capacity-aware sparse dispatch",
+        ),
+        MethodState(
+            "unified_output_projection_bias_capacity_average",
+            unified_output_projection_bias_capacity,
+            "start from unified output-projection MoE average and tune only router bias for capacity-aware sparse dispatch",
+        ),
+        MethodState(
+            "unified_confidence_blended_bias_capacity_average",
+            unified_confidence_blended_bias_capacity,
+            "start from unified confidence-blended MoE average and tune only router bias for capacity-aware sparse dispatch",
         ),
         MethodState("route_aware_expert_average", route_aware, "freeze base router and use route-frequency expert source weights"),
     ]
@@ -3104,6 +3360,13 @@ def main() -> None:
             "candidate_two_segment",
         ),
         ConnectivityPath(
+            "via_confidence_blended_router_calibrated",
+            general_state,
+            matched_code_state,
+            hybrid_output_projection_router_calibrated,
+            "candidate_two_segment",
+        ),
+        ConnectivityPath(
             "via_unified_moe_average",
             general_state,
             matched_code_state,
@@ -3115,6 +3378,27 @@ def main() -> None:
             general_state,
             matched_code_state,
             unified_output_projection_moe_average,
+            "candidate_two_segment",
+        ),
+        ConnectivityPath(
+            "via_unified_confidence_blended_moe_average",
+            general_state,
+            matched_code_state,
+            unified_hybrid_output_projection_moe_average,
+            "candidate_two_segment",
+        ),
+        ConnectivityPath(
+            "via_unified_output_projection_bias_capacity_average",
+            general_state,
+            matched_code_state,
+            unified_output_projection_bias_capacity,
+            "candidate_two_segment",
+        ),
+        ConnectivityPath(
+            "via_unified_confidence_blended_bias_capacity_average",
+            general_state,
+            matched_code_state,
+            unified_confidence_blended_bias_capacity,
             "candidate_two_segment",
         ),
     ]
@@ -3185,6 +3469,10 @@ def main() -> None:
     expert_search_weights.to_csv(args.output_dir / "expert_search_weights_by_expert.csv", index=False)
     expert_search_trace.to_csv(args.output_dir / "expert_weight_search_trace.csv", index=False)
     expert_output_projection_weights.to_csv(args.output_dir / "expert_output_projection_weights_by_expert.csv", index=False)
+    hybrid_output_projection_weights.to_csv(
+        args.output_dir / "confidence_blended_expert_weights_by_expert.csv",
+        index=False,
+    )
     router_weight_search.to_csv(args.output_dir / "router_weight_search.csv", index=False)
     router_hessian_average.to_csv(args.output_dir / "router_hessian_average.csv", index=False)
     router_kd_trace.to_csv(args.output_dir / "router_kd_trace.csv", index=False)
@@ -3199,8 +3487,32 @@ def main() -> None:
         args.output_dir / "unified_output_projection_moe_capacity_sweep.csv",
         index=False,
     )
+    unified_hybrid_output_projection_moe_trace.to_csv(
+        args.output_dir / "unified_confidence_blended_moe_trace.csv",
+        index=False,
+    )
+    unified_hybrid_output_projection_moe_capacity_sweep.to_csv(
+        args.output_dir / "unified_confidence_blended_moe_capacity_sweep.csv",
+        index=False,
+    )
     router_bias_capacity_trace.to_csv(args.output_dir / "router_bias_capacity_trace.csv", index=False)
     router_bias_capacity_sweep.to_csv(args.output_dir / "router_bias_capacity_sweep.csv", index=False)
+    output_projection_bias_capacity_trace.to_csv(
+        args.output_dir / "output_projection_bias_capacity_trace.csv",
+        index=False,
+    )
+    output_projection_bias_capacity_sweep.to_csv(
+        args.output_dir / "output_projection_bias_capacity_sweep.csv",
+        index=False,
+    )
+    confidence_blended_bias_capacity_trace.to_csv(
+        args.output_dir / "confidence_blended_bias_capacity_trace.csv",
+        index=False,
+    )
+    confidence_blended_bias_capacity_sweep.to_csv(
+        args.output_dir / "confidence_blended_bias_capacity_sweep.csv",
+        index=False,
+    )
     router_calibration_sweep.to_csv(args.output_dir / "router_calibration_sweep.csv", index=False)
     plot_results(method_metrics, router_summary, args.output_dir / "toy_moe_merge.png")
     plot_connectivity_paths(connectivity_path_metrics, args.output_dir / "connectivity_paths.png")
@@ -3251,12 +3563,25 @@ def main() -> None:
     expert_output_projection_router_calibrated_row = method_metrics[
         method_metrics["method"] == "expert_output_projection_router_calibrated_average"
     ].iloc[0]
+    confidence_blended_row = method_metrics[method_metrics["method"] == "confidence_blended_expert_average"].iloc[0]
+    confidence_blended_router_calibrated_row = method_metrics[
+        method_metrics["method"] == "confidence_blended_router_calibrated_average"
+    ].iloc[0]
     unified_moe_row = method_metrics[method_metrics["method"] == "unified_moe_average"].iloc[0]
     unified_output_projection_moe_row = method_metrics[
         method_metrics["method"] == "unified_output_projection_moe_average"
     ].iloc[0]
+    unified_confidence_blended_moe_row = method_metrics[
+        method_metrics["method"] == "unified_confidence_blended_moe_average"
+    ].iloc[0]
     unified_moe_bias_capacity_row = method_metrics[
         method_metrics["method"] == "unified_moe_bias_capacity_average"
+    ].iloc[0]
+    unified_output_projection_bias_capacity_row = method_metrics[
+        method_metrics["method"] == "unified_output_projection_bias_capacity_average"
+    ].iloc[0]
+    unified_confidence_blended_bias_capacity_row = method_metrics[
+        method_metrics["method"] == "unified_confidence_blended_bias_capacity_average"
     ].iloc[0]
     route_aware_row = method_metrics[method_metrics["method"] == "route_aware_expert_average"].iloc[0]
     capacity_route_kd = router_capacity[router_capacity["method"] == "matched_router_route_kd_average"]
@@ -3266,6 +3591,15 @@ def main() -> None:
         router_capacity["method"] == "unified_output_projection_moe_average"
     ]
     capacity_unified_bias = router_capacity[router_capacity["method"] == "unified_moe_bias_capacity_average"]
+    capacity_unified_output_projection_bias = router_capacity[
+        router_capacity["method"] == "unified_output_projection_bias_capacity_average"
+    ]
+    capacity_unified_confidence_blended = router_capacity[
+        router_capacity["method"] == "unified_confidence_blended_moe_average"
+    ]
+    capacity_unified_confidence_blended_bias = router_capacity[
+        router_capacity["method"] == "unified_confidence_blended_bias_capacity_average"
+    ]
     worst_capacity_row = router_capacity.sort_values("topk_overflow_fraction", ascending=False).iloc[0]
     summary = {
         "schema_version": 1,
@@ -3373,6 +3707,21 @@ def main() -> None:
             )
             if ("unified_output_projection_moe_average", "hard_top2") in dispatch_index_keys
             else None,
+            "unified_output_projection_bias_capacity_hard_top2_worst_acc": float(
+                dispatch_index.loc[("unified_output_projection_bias_capacity_average", "hard_top2"), "worst_acc"]
+            )
+            if ("unified_output_projection_bias_capacity_average", "hard_top2") in dispatch_index_keys
+            else None,
+            "unified_confidence_blended_moe_hard_top2_worst_acc": float(
+                dispatch_index.loc[("unified_confidence_blended_moe_average", "hard_top2"), "worst_acc"]
+            )
+            if ("unified_confidence_blended_moe_average", "hard_top2") in dispatch_index_keys
+            else None,
+            "unified_confidence_blended_bias_capacity_hard_top2_worst_acc": float(
+                dispatch_index.loc[("unified_confidence_blended_bias_capacity_average", "hard_top2"), "worst_acc"]
+            )
+            if ("unified_confidence_blended_bias_capacity_average", "hard_top2") in dispatch_index_keys
+            else None,
             "matched_router_calibrated_soft_to_hard_top1_worst_acc_delta": float(
                 dispatch_index.loc[("matched_router_calibrated_average", "hard_top1"), "worst_acc"]
                 - dispatch_index.loc[("matched_router_calibrated_average", "soft_all"), "worst_acc"]
@@ -3463,6 +3812,33 @@ def main() -> None:
                 ("unified_moe_average", "hard_top2"),
             }.issubset(dispatch_index_keys)
             else None,
+            "unified_output_projection_bias_capacity_minus_unified_output_projection_hard_top2_worst_acc": float(
+                dispatch_index.loc[("unified_output_projection_bias_capacity_average", "hard_top2"), "worst_acc"]
+                - dispatch_index.loc[("unified_output_projection_moe_average", "hard_top2"), "worst_acc"]
+            )
+            if {
+                ("unified_output_projection_bias_capacity_average", "hard_top2"),
+                ("unified_output_projection_moe_average", "hard_top2"),
+            }.issubset(dispatch_index_keys)
+            else None,
+            "unified_confidence_blended_moe_minus_unified_hard_top2_worst_acc": float(
+                dispatch_index.loc[("unified_confidence_blended_moe_average", "hard_top2"), "worst_acc"]
+                - dispatch_index.loc[("unified_moe_average", "hard_top2"), "worst_acc"]
+            )
+            if {
+                ("unified_confidence_blended_moe_average", "hard_top2"),
+                ("unified_moe_average", "hard_top2"),
+            }.issubset(dispatch_index_keys)
+            else None,
+            "unified_confidence_blended_bias_capacity_minus_unified_confidence_blended_hard_top2_worst_acc": float(
+                dispatch_index.loc[("unified_confidence_blended_bias_capacity_average", "hard_top2"), "worst_acc"]
+                - dispatch_index.loc[("unified_confidence_blended_moe_average", "hard_top2"), "worst_acc"]
+            )
+            if {
+                ("unified_confidence_blended_bias_capacity_average", "hard_top2"),
+                ("unified_confidence_blended_moe_average", "hard_top2"),
+            }.issubset(dispatch_index_keys)
+            else None,
         },
         "router_capacity": {
             "capacity_factor": args.capacity_factor,
@@ -3499,6 +3875,23 @@ def main() -> None:
             "unified_moe_bias_capacity_minus_unified_max_topk_overflow_fraction": float(
                 capacity_unified_bias["topk_overflow_fraction"].max()
                 - capacity_unified["topk_overflow_fraction"].max()
+            ),
+            "unified_output_projection_bias_capacity_max_topk_overflow_fraction": float(
+                capacity_unified_output_projection_bias["topk_overflow_fraction"].max()
+            ),
+            "unified_output_projection_bias_capacity_minus_unified_output_projection_max_topk_overflow_fraction": float(
+                capacity_unified_output_projection_bias["topk_overflow_fraction"].max()
+                - capacity_unified_output_projection["topk_overflow_fraction"].max()
+            ),
+            "unified_confidence_blended_moe_max_topk_overflow_fraction": float(
+                capacity_unified_confidence_blended["topk_overflow_fraction"].max()
+            ),
+            "unified_confidence_blended_bias_capacity_max_topk_overflow_fraction": float(
+                capacity_unified_confidence_blended_bias["topk_overflow_fraction"].max()
+            ),
+            "unified_confidence_blended_bias_capacity_minus_unified_confidence_blended_max_topk_overflow_fraction": float(
+                capacity_unified_confidence_blended_bias["topk_overflow_fraction"].max()
+                - capacity_unified_confidence_blended["topk_overflow_fraction"].max()
             ),
         },
         "all_weight_average_worst_acc": float(all_avg["worst_acc"]),
@@ -3700,6 +4093,39 @@ def main() -> None:
                 ].mean()
             ),
         },
+        "confidence_blended_expert_worst_acc": float(confidence_blended_row["worst_acc"]),
+        "confidence_blended_router_calibrated_worst_acc": float(
+            confidence_blended_router_calibrated_row["worst_acc"]
+        ),
+        "confidence_blended_expert": {
+            "rows": int(len(hybrid_output_projection_weights)),
+            "mean_projection_captured_fraction": float(
+                hybrid_output_projection_weights["projection_captured_fraction"].mean()
+            ),
+            "min_projection_captured_fraction": float(
+                hybrid_output_projection_weights["projection_captured_fraction"].min()
+            ),
+            "max_projection_captured_fraction": float(
+                hybrid_output_projection_weights["projection_captured_fraction"].max()
+            ),
+            "mean_abs_general_shift_from_search": float(
+                (
+                    hybrid_output_projection_weights["weight_general"]
+                    - hybrid_output_projection_weights["search_weight_general"]
+                )
+                .abs()
+                .mean()
+            ),
+            "mean_abs_code_shift_from_search": float(
+                (
+                    hybrid_output_projection_weights["weight_code"]
+                    - hybrid_output_projection_weights["search_weight_code"]
+                )
+                .abs()
+                .mean()
+            ),
+            "same_shape_action": "projection-confidence-gated expert source weights",
+        },
         "unified_moe_worst_acc": float(unified_moe_row["worst_acc"]),
         "unified_output_projection_moe_worst_acc": float(unified_output_projection_moe_row["worst_acc"]),
         "unified_output_projection_moe_minus_unified_worst_acc": float(
@@ -3708,9 +4134,34 @@ def main() -> None:
         "unified_output_projection_moe_minus_output_projection_router_calibrated_worst_acc": float(
             unified_output_projection_moe_row["worst_acc"] - expert_output_projection_router_calibrated_row["worst_acc"]
         ),
+        "unified_confidence_blended_moe_worst_acc": float(unified_confidence_blended_moe_row["worst_acc"]),
+        "unified_confidence_blended_moe_minus_unified_worst_acc": float(
+            unified_confidence_blended_moe_row["worst_acc"] - unified_moe_row["worst_acc"]
+        ),
+        "unified_confidence_blended_moe_minus_unified_output_projection_worst_acc": float(
+            unified_confidence_blended_moe_row["worst_acc"] - unified_output_projection_moe_row["worst_acc"]
+        ),
         "unified_moe_bias_capacity_worst_acc": float(unified_moe_bias_capacity_row["worst_acc"]),
         "unified_moe_bias_capacity_minus_unified_worst_acc": float(
             unified_moe_bias_capacity_row["worst_acc"] - unified_moe_row["worst_acc"]
+        ),
+        "unified_output_projection_bias_capacity_worst_acc": float(
+            unified_output_projection_bias_capacity_row["worst_acc"]
+        ),
+        "unified_output_projection_bias_capacity_minus_unified_output_projection_worst_acc": float(
+            unified_output_projection_bias_capacity_row["worst_acc"] - unified_output_projection_moe_row["worst_acc"]
+        ),
+        "unified_output_projection_bias_capacity_minus_unified_bias_capacity_worst_acc": float(
+            unified_output_projection_bias_capacity_row["worst_acc"] - unified_moe_bias_capacity_row["worst_acc"]
+        ),
+        "unified_confidence_blended_bias_capacity_worst_acc": float(
+            unified_confidence_blended_bias_capacity_row["worst_acc"]
+        ),
+        "unified_confidence_blended_bias_capacity_minus_unified_confidence_blended_worst_acc": float(
+            unified_confidence_blended_bias_capacity_row["worst_acc"] - unified_confidence_blended_moe_row["worst_acc"]
+        ),
+        "unified_confidence_blended_bias_capacity_minus_unified_bias_capacity_worst_acc": float(
+            unified_confidence_blended_bias_capacity_row["worst_acc"] - unified_moe_bias_capacity_row["worst_acc"]
         ),
         "unified_moe_minus_expert_search_worst_acc": float(
             unified_moe_row["worst_acc"] - expert_search_row["worst_acc"]
@@ -3858,6 +4309,86 @@ def main() -> None:
                 ]["capacity_ratio"].mean()
             ),
         },
+        "unified_confidence_blended_moe": {
+            "expert_seed": "projection_captured_fraction_confidence_blend",
+            "epochs": args.unified_router_epochs,
+            "lr": args.unified_router_lr,
+            "temperature": args.unified_router_temperature,
+            "dispatch_mode": args.unified_router_dispatch_mode,
+            "soft_loss_coef": args.unified_router_soft_loss_coef,
+            "dispatch_loss_coef": args.unified_router_dispatch_loss_coef,
+            "route_kd_coef": args.unified_router_route_kd_coef,
+            "output_kd_coef": args.unified_router_output_kd_coef,
+            "top1_loss_coef": args.unified_router_top1_loss_coef,
+            "base_kl_coef": args.unified_router_base_kl_coef,
+            "load_balance_coef": args.unified_router_load_balance_coef,
+            "router_seed_sweep": list(hybrid_unified_router_initial_states),
+            "selected_router_seed": str(selected_hybrid_unified_capacity_row["router_seed"]),
+            "capacity_loss_sweep": unified_capacity_loss_values,
+            "capacity_loss_coef": selected_hybrid_unified_capacity_loss_coef,
+            "selected_capacity_loss_coef": selected_hybrid_unified_capacity_loss_coef,
+            "selection_metric": "select_hard_top2_worst_acc_minus_max_topk_overflow_fraction",
+            "capacity_sweep_rows": int(len(unified_hybrid_output_projection_moe_capacity_sweep)),
+            "selected_calib_capacity_aware_score": float(
+                selected_hybrid_unified_capacity_row["calib_capacity_aware_score"]
+            ),
+            "selected_select_capacity_aware_score": float(
+                selected_hybrid_unified_capacity_row["select_capacity_aware_score"]
+            ),
+            "selected_test_capacity_aware_score": float(
+                selected_hybrid_unified_capacity_row["test_capacity_aware_score"]
+            ),
+            "selected_calib_hard_top2_worst_acc": float(
+                selected_hybrid_unified_capacity_row["calib_hard_top2_worst_acc"]
+            ),
+            "selected_select_hard_top2_worst_acc": float(
+                selected_hybrid_unified_capacity_row["select_hard_top2_worst_acc"]
+            ),
+            "selected_test_hard_top2_worst_acc": float(
+                selected_hybrid_unified_capacity_row["test_hard_top2_worst_acc"]
+            ),
+            "selected_calib_max_topk_overflow_fraction": float(
+                selected_hybrid_unified_capacity_row["calib_max_topk_overflow_fraction"]
+            ),
+            "selected_select_max_topk_overflow_fraction": float(
+                selected_hybrid_unified_capacity_row["select_max_topk_overflow_fraction"]
+            ),
+            "selected_test_max_topk_overflow_fraction": float(
+                selected_hybrid_unified_capacity_row["test_max_topk_overflow_fraction"]
+            ),
+            "capacity_factor": args.capacity_factor,
+            "rows": int(len(unified_hybrid_output_projection_moe_trace)),
+            "final_mean_total_loss": float(
+                unified_hybrid_output_projection_moe_trace[
+                    unified_hybrid_output_projection_moe_trace["epoch"]
+                    == unified_hybrid_output_projection_moe_trace["epoch"].max()
+                ]["total_loss"].mean()
+            ),
+            "final_mean_route_kl": float(
+                unified_hybrid_output_projection_moe_trace[
+                    unified_hybrid_output_projection_moe_trace["epoch"]
+                    == unified_hybrid_output_projection_moe_trace["epoch"].max()
+                ]["route_kl"].mean()
+            ),
+            "final_mean_output_kd": float(
+                unified_hybrid_output_projection_moe_trace[
+                    unified_hybrid_output_projection_moe_trace["epoch"]
+                    == unified_hybrid_output_projection_moe_trace["epoch"].max()
+                ]["output_kd"].mean()
+            ),
+            "final_mean_capacity_overflow": float(
+                unified_hybrid_output_projection_moe_trace[
+                    unified_hybrid_output_projection_moe_trace["epoch"]
+                    == unified_hybrid_output_projection_moe_trace["epoch"].max()
+                ]["capacity_overflow"].mean()
+            ),
+            "final_mean_capacity_ratio": float(
+                unified_hybrid_output_projection_moe_trace[
+                    unified_hybrid_output_projection_moe_trace["epoch"]
+                    == unified_hybrid_output_projection_moe_trace["epoch"].max()
+                ]["capacity_ratio"].mean()
+            ),
+        },
         "router_bias_capacity": {
             "epochs": args.router_bias_capacity_epochs,
             "lr": args.router_bias_capacity_lr,
@@ -3885,6 +4416,90 @@ def main() -> None:
             "final_mean_capacity_overflow": float(
                 router_bias_capacity_trace[
                     router_bias_capacity_trace["epoch"] == router_bias_capacity_trace["epoch"].max()
+                ]["capacity_overflow"].mean()
+            ),
+        },
+        "unified_output_projection_bias_capacity": {
+            "expert_seed": "route_conditioned_output_space_projection",
+            "router_seed": "selected_unified_output_projection_moe_router",
+            "epochs": args.router_bias_capacity_epochs,
+            "lr": args.router_bias_capacity_lr,
+            "capacity_loss_sweep": router_bias_capacity_loss_values,
+            "selected_capacity_loss_coef": selected_output_projection_bias_capacity_loss_coef,
+            "initial_kl_coef": args.router_bias_initial_kl_coef,
+            "load_balance_coef": args.router_bias_load_balance_coef,
+            "selection_metric": "select_hard_top2_worst_acc_minus_max_topk_overflow_fraction",
+            "rows": int(len(output_projection_bias_capacity_trace)),
+            "sweep_rows": int(len(output_projection_bias_capacity_sweep)),
+            "selected_select_capacity_aware_score": float(
+                selected_output_projection_bias_capacity_row["select_capacity_aware_score"]
+            ),
+            "selected_test_capacity_aware_score": float(
+                selected_output_projection_bias_capacity_row["test_capacity_aware_score"]
+            ),
+            "selected_select_hard_top2_worst_acc": float(
+                selected_output_projection_bias_capacity_row["select_hard_top2_worst_acc"]
+            ),
+            "selected_test_hard_top2_worst_acc": float(
+                selected_output_projection_bias_capacity_row["test_hard_top2_worst_acc"]
+            ),
+            "selected_select_max_topk_overflow_fraction": float(
+                selected_output_projection_bias_capacity_row["select_max_topk_overflow_fraction"]
+            ),
+            "selected_test_max_topk_overflow_fraction": float(
+                selected_output_projection_bias_capacity_row["test_max_topk_overflow_fraction"]
+            ),
+            "final_mean_total_loss": float(
+                output_projection_bias_capacity_trace[
+                    output_projection_bias_capacity_trace["epoch"] == output_projection_bias_capacity_trace["epoch"].max()
+                ]["total_loss"].mean()
+            ),
+            "final_mean_capacity_overflow": float(
+                output_projection_bias_capacity_trace[
+                    output_projection_bias_capacity_trace["epoch"] == output_projection_bias_capacity_trace["epoch"].max()
+                ]["capacity_overflow"].mean()
+            ),
+        },
+        "unified_confidence_blended_bias_capacity": {
+            "expert_seed": "projection_captured_fraction_confidence_blend",
+            "router_seed": "selected_unified_confidence_blended_moe_router",
+            "epochs": args.router_bias_capacity_epochs,
+            "lr": args.router_bias_capacity_lr,
+            "capacity_loss_sweep": router_bias_capacity_loss_values,
+            "selected_capacity_loss_coef": selected_confidence_blended_bias_capacity_loss_coef,
+            "initial_kl_coef": args.router_bias_initial_kl_coef,
+            "load_balance_coef": args.router_bias_load_balance_coef,
+            "selection_metric": "select_hard_top2_worst_acc_minus_max_topk_overflow_fraction",
+            "rows": int(len(confidence_blended_bias_capacity_trace)),
+            "sweep_rows": int(len(confidence_blended_bias_capacity_sweep)),
+            "selected_select_capacity_aware_score": float(
+                selected_confidence_blended_bias_capacity_row["select_capacity_aware_score"]
+            ),
+            "selected_test_capacity_aware_score": float(
+                selected_confidence_blended_bias_capacity_row["test_capacity_aware_score"]
+            ),
+            "selected_select_hard_top2_worst_acc": float(
+                selected_confidence_blended_bias_capacity_row["select_hard_top2_worst_acc"]
+            ),
+            "selected_test_hard_top2_worst_acc": float(
+                selected_confidence_blended_bias_capacity_row["test_hard_top2_worst_acc"]
+            ),
+            "selected_select_max_topk_overflow_fraction": float(
+                selected_confidence_blended_bias_capacity_row["select_max_topk_overflow_fraction"]
+            ),
+            "selected_test_max_topk_overflow_fraction": float(
+                selected_confidence_blended_bias_capacity_row["test_max_topk_overflow_fraction"]
+            ),
+            "final_mean_total_loss": float(
+                confidence_blended_bias_capacity_trace[
+                    confidence_blended_bias_capacity_trace["epoch"]
+                    == confidence_blended_bias_capacity_trace["epoch"].max()
+                ]["total_loss"].mean()
+            ),
+            "final_mean_capacity_overflow": float(
+                confidence_blended_bias_capacity_trace[
+                    confidence_blended_bias_capacity_trace["epoch"]
+                    == confidence_blended_bias_capacity_trace["epoch"].max()
                 ]["capacity_overflow"].mean()
             ),
         },
@@ -3918,6 +4533,7 @@ def main() -> None:
             "expert_search_weights_by_expert": "expert_search_weights_by_expert.csv",
             "expert_weight_search_trace": "expert_weight_search_trace.csv",
             "expert_output_projection_weights_by_expert": "expert_output_projection_weights_by_expert.csv",
+            "confidence_blended_expert_weights_by_expert": "confidence_blended_expert_weights_by_expert.csv",
             "router_weight_search": "router_weight_search.csv",
             "router_hessian_average": "router_hessian_average.csv",
             "router_kd_trace": "router_kd_trace.csv",
@@ -3926,8 +4542,14 @@ def main() -> None:
             "unified_moe_capacity_sweep": "unified_moe_capacity_sweep.csv",
             "unified_output_projection_moe_trace": "unified_output_projection_moe_trace.csv",
             "unified_output_projection_moe_capacity_sweep": "unified_output_projection_moe_capacity_sweep.csv",
+            "unified_confidence_blended_moe_trace": "unified_confidence_blended_moe_trace.csv",
+            "unified_confidence_blended_moe_capacity_sweep": "unified_confidence_blended_moe_capacity_sweep.csv",
             "router_bias_capacity_trace": "router_bias_capacity_trace.csv",
             "router_bias_capacity_sweep": "router_bias_capacity_sweep.csv",
+            "output_projection_bias_capacity_trace": "output_projection_bias_capacity_trace.csv",
+            "output_projection_bias_capacity_sweep": "output_projection_bias_capacity_sweep.csv",
+            "confidence_blended_bias_capacity_trace": "confidence_blended_bias_capacity_trace.csv",
+            "confidence_blended_bias_capacity_sweep": "confidence_blended_bias_capacity_sweep.csv",
             "router_calibration_sweep": "router_calibration_sweep.csv",
             "figure": "toy_moe_merge.png",
             "connectivity_path_metrics": "connectivity_path_metrics.csv",

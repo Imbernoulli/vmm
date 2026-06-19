@@ -3,5 +3,5 @@
 # Explicit expert-weight rules.
 .*experts\.0\..*::general=0.75,code=0.25
 .*experts\.1\..*::general=0.25,code=0.75
-.*experts\.2\..*::general=0.293593,code=0.556407
+.*experts\.2\..*::general=0.275419,code=0.574581
 .*experts\.3\..*::general=0.5,code=0.5

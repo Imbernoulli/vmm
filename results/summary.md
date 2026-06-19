@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T14:49:16.423674+00:00`
+Generated at: `2026-06-19T15:11:19.968579+00:00`
 
 ## Coverage
 
-Complete: `39`; partial: `1`; missing: `0`.
+Complete: `40`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -40,6 +40,7 @@ Complete: `39`; partial: `1`; missing: `0`.
 | MoE route-weight recipes | complete | results/moe_route_weight_recipes/report.md converts MoE routing/expert-load probes into tensor-rule files for same-shape checkpoint materialization; current recipe is waiting for real routing probe data. |
 | MoE router-bias additive capacity plan | complete | results/moe_router_bias_plan/report.md converts expert_load.csv into writer-ready router-bias additive deltas for same-shape capacity correction. |
 | MoE searched expert-weight recipes | complete | results/toy_moe_expert_weight_recipes/report.md converts calibration-searched per-expert source weights into same-shape checkpoint writer tensor rules. |
+| MoE output-projection expert-weight recipes | complete | results/toy_moe_output_projection_recipes/report.md converts route-conditioned output-space expert weights into same-shape checkpoint writer tensor rules. |
 | MoE routing readiness diagnostics | complete | results/moe_routing_readiness/report.md turns router_summary, route_overlap, and expert_load CSVs into router collapse, drift, boundary-fragility, and expert-load risk actions. |
 | MoE routing probe CLI | complete | scripts/probe_moe_routing.py captures MoE router hooks and writes router_summary.csv, expert_load.csv, optional route_overlap.csv, summary.json, and report.md; results/moe_routing_probe_smoke/report.md validates the contract on a tiny local MoE. |
 | MoE routing probe smoke | complete | results/moe_routing_probe_smoke/report.md proves the routing probe captures two tiny MoE gates and produces router, expert-load, token-route, comparison, and route-overlap CSVs. |
@@ -140,9 +141,20 @@ Complete: `39`; partial: `1`; missing: `0`.
 | toy MoE output projection | output-projection + router-calibrated worst accuracy | 0.807 |
 | toy MoE output projection | mean captured output residual fraction | 0.616 |
 | toy MoE output projection | delta vs matched-calibrated | 0.010 |
+| toy MoE confidence-blended expert | router-calibrated worst accuracy | 0.805 |
+| toy MoE confidence-blended expert | mean projection confidence | 0.616 |
 | toy MoE unified objective | worst accuracy | 0.785 |
 | toy MoE unified objective | delta vs expert-search router-calibrated | -0.017 |
 | toy MoE unified objective | delta vs route-KD | 0.023 |
+| toy MoE confidence-blended unified | worst accuracy | 0.790 |
+| toy MoE confidence-blended unified | hard top-2 worst accuracy | 0.690 |
+| toy MoE confidence-blended unified | max top-k overflow fraction | 0.076 |
+| toy MoE confidence-blended unified | delta vs old unified | 0.005 |
+| toy MoE unified output-projection bias-capacity | worst accuracy | 0.780 |
+| toy MoE unified output-projection bias-capacity | delta vs output-projection unified | -0.015 |
+| toy MoE unified output-projection bias-capacity | selected capacity-aware score | 0.667 |
+| toy MoE confidence-blended bias-capacity | worst accuracy | 0.770 |
+| toy MoE confidence-blended bias-capacity | selected capacity-aware score | 0.677 |
 | toy MoE route-aware merge | route-aware average worst accuracy | 0.750 |
 | toy MoE route-aware merge | matched + router-frozen minus all-weight worst accuracy | 0.198 |
 | toy MoE route-aware merge | matched router calibration gain over frozen | 0.055 |
@@ -158,11 +170,11 @@ Complete: `39`; partial: `1`; missing: `0`.
 | toy MoE routing readiness | readiness status | high_risk_calibrate_router_before_merge |
 | toy MoE routing readiness | all-weight calibrate-router flags | 1 |
 | toy MoE method selection | recommended method | expert_output_projection_router_calibrated_average |
-| toy MoE method selection | recommended hard top-2 method | unified_moe_average |
-| toy MoE method selection | recommended hard top-2 worst accuracy | 0.690 |
+| toy MoE method selection | recommended hard top-2 method | unified_confidence_blended_route_kd_seed_average |
+| toy MoE method selection | recommended hard top-2 worst accuracy | 0.693 |
 | toy MoE method selection | capacity-aware hard top-2 method | unified_moe_bias_capacity_average |
 | toy MoE method selection | capacity-aware top-k overflow | 0.048 |
-| toy MoE method selection | hard top-2 / overflow Pareto methods | unified_moe_average, unified_output_projection_moe_average, unified_moe_bias_capacity_average, matched_router_kd_average |
+| toy MoE method selection | hard top-2 / overflow Pareto methods | unified_confidence_blended_route_kd_seed_average, unified_confidence_blended_moe_average, unified_output_projection_moe_average, unified_moe_bias_capacity_average, unified_output_projection_bias_capacity_average, matched_router_kd_average |
 | toy MoE method selection | all-weight decision | reject_routing_breakdown |
 | toy MoE expert remap plan | remap status | ready |
 | toy MoE expert remap plan | source tensor alias rules | 4 |
@@ -212,5 +224,7 @@ Complete: `39`; partial: `1`; missing: `0`.
 | MoE router-bias plan | nonzero delta rows | 4 |
 | MoE searched expert-weight recipes | recipe status | explicit_expert_weight_rules_ready |
 | MoE searched expert-weight recipes | expert tensor rules | 4 |
+| MoE output-projection expert-weight recipes | recipe status | explicit_expert_weight_rules_ready |
+| MoE output-projection expert-weight recipes | expert tensor rules | 4 |
 | MoE routing readiness | readiness status | waiting_for_routing_probe |
 | MoE routing readiness | router / expert risk rows | 0 / 0 |

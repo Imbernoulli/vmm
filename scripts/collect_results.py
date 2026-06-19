@@ -565,21 +565,31 @@ def summarize_moe_router_bias_plan() -> dict[str, Any]:
     }
 
 
-def summarize_toy_moe_expert_weight_recipes() -> dict[str, Any]:
-    summary = read_json("results/toy_moe_expert_weight_recipes/summary.json")
-    source_weights = read_csv("results/toy_moe_expert_weight_recipes/source_weights_by_expert.csv")
+def summarize_toy_moe_recipe_dir(path: str) -> dict[str, Any]:
+    root = repo_path(path)
+    summary = read_json(root / "summary.json")
+    source_weights = read_csv(root / "source_weights_by_expert.csv")
     return {
         "summary": summary,
         "recipe_status": summary.get("recipe_status"),
         "recipe_kind": summary.get("recipe_kind"),
+        "expert_weight_category": summary.get("expert_weight_category"),
         "expert_rule_count": int(summary.get("expert_rule_count", 0)),
         "tensor_rule_count": int(summary.get("tensor_rule_count", 0)),
         "source_weights_rows": int(len(source_weights)),
-        "report": rel("results/toy_moe_expert_weight_recipes/report.md"),
-        "source_weights": rel("results/toy_moe_expert_weight_recipes/source_weights_by_expert.csv"),
-        "tensor_rules": rel("results/toy_moe_expert_weight_recipes/tensor_rules.txt"),
-        "writer_command": rel("results/toy_moe_expert_weight_recipes/writer_command.txt"),
+        "report": rel(root / "report.md"),
+        "source_weights": rel(root / "source_weights_by_expert.csv"),
+        "tensor_rules": rel(root / "tensor_rules.txt"),
+        "writer_command": rel(root / "writer_command.txt"),
     }
+
+
+def summarize_toy_moe_expert_weight_recipes() -> dict[str, Any]:
+    return summarize_toy_moe_recipe_dir("results/toy_moe_expert_weight_recipes")
+
+
+def summarize_toy_moe_output_projection_recipes() -> dict[str, Any]:
+    return summarize_toy_moe_recipe_dir("results/toy_moe_output_projection_recipes")
 
 
 def summarize_moe_routing_readiness() -> dict[str, Any]:
@@ -612,6 +622,14 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
     expert_regmean_covariances = read_csv("results/toy_moe_merge/expert_regmean_covariances.csv")
     expert_sparse_task_vectors = read_csv("results/toy_moe_merge/expert_sparse_task_vectors.csv")
     expert_output_projection_weights = read_csv("results/toy_moe_merge/expert_output_projection_weights_by_expert.csv")
+    confidence_blended_expert_weights_path = repo_path(
+        "results/toy_moe_merge/confidence_blended_expert_weights_by_expert.csv"
+    )
+    confidence_blended_expert_weights = (
+        read_csv(confidence_blended_expert_weights_path)
+        if confidence_blended_expert_weights_path.exists()
+        else pd.DataFrame()
+    )
     router_weight_search = read_csv("results/toy_moe_merge/router_weight_search.csv")
     router_hessian_average = read_csv("results/toy_moe_merge/router_hessian_average.csv")
     router_kd_trace = read_csv("results/toy_moe_merge/router_kd_trace.csv")
@@ -636,10 +654,54 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
         if unified_output_projection_capacity_sweep_path.exists()
         else pd.DataFrame()
     )
+    unified_confidence_blended_trace_path = repo_path(
+        "results/toy_moe_merge/unified_confidence_blended_moe_trace.csv"
+    )
+    unified_confidence_blended_moe_trace = (
+        read_csv(unified_confidence_blended_trace_path)
+        if unified_confidence_blended_trace_path.exists()
+        else pd.DataFrame()
+    )
+    unified_confidence_blended_capacity_sweep_path = repo_path(
+        "results/toy_moe_merge/unified_confidence_blended_moe_capacity_sweep.csv"
+    )
+    unified_confidence_blended_moe_capacity_sweep = (
+        read_csv(unified_confidence_blended_capacity_sweep_path)
+        if unified_confidence_blended_capacity_sweep_path.exists()
+        else pd.DataFrame()
+    )
     router_bias_trace_path = repo_path("results/toy_moe_merge/router_bias_capacity_trace.csv")
     router_bias_capacity_trace = read_csv(router_bias_trace_path) if router_bias_trace_path.exists() else pd.DataFrame()
     router_bias_sweep_path = repo_path("results/toy_moe_merge/router_bias_capacity_sweep.csv")
     router_bias_capacity_sweep = read_csv(router_bias_sweep_path) if router_bias_sweep_path.exists() else pd.DataFrame()
+    output_projection_bias_trace_path = repo_path(
+        "results/toy_moe_merge/output_projection_bias_capacity_trace.csv"
+    )
+    output_projection_bias_capacity_trace = (
+        read_csv(output_projection_bias_trace_path)
+        if output_projection_bias_trace_path.exists()
+        else pd.DataFrame()
+    )
+    output_projection_bias_sweep_path = repo_path(
+        "results/toy_moe_merge/output_projection_bias_capacity_sweep.csv"
+    )
+    output_projection_bias_capacity_sweep = (
+        read_csv(output_projection_bias_sweep_path)
+        if output_projection_bias_sweep_path.exists()
+        else pd.DataFrame()
+    )
+    confidence_blended_bias_trace_path = repo_path("results/toy_moe_merge/confidence_blended_bias_capacity_trace.csv")
+    confidence_blended_bias_capacity_trace = (
+        read_csv(confidence_blended_bias_trace_path)
+        if confidence_blended_bias_trace_path.exists()
+        else pd.DataFrame()
+    )
+    confidence_blended_bias_sweep_path = repo_path("results/toy_moe_merge/confidence_blended_bias_capacity_sweep.csv")
+    confidence_blended_bias_capacity_sweep = (
+        read_csv(confidence_blended_bias_sweep_path)
+        if confidence_blended_bias_sweep_path.exists()
+        else pd.DataFrame()
+    )
     selected_unified_capacity = (
         unified_moe_capacity_sweep[
             unified_moe_capacity_sweep["selected_by_select_capacity_aware_score"].astype(bool)
@@ -654,11 +716,32 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
         if not unified_output_projection_moe_capacity_sweep.empty
         else pd.DataFrame()
     )
+    selected_unified_confidence_blended_capacity = (
+        unified_confidence_blended_moe_capacity_sweep[
+            unified_confidence_blended_moe_capacity_sweep["selected_by_select_capacity_aware_score"].astype(bool)
+        ]
+        if not unified_confidence_blended_moe_capacity_sweep.empty
+        else pd.DataFrame()
+    )
     selected_router_bias_capacity = (
         router_bias_capacity_sweep[
             router_bias_capacity_sweep["selected_by_select_capacity_aware_score"].astype(bool)
         ]
         if not router_bias_capacity_sweep.empty
+        else pd.DataFrame()
+    )
+    selected_output_projection_bias_capacity = (
+        output_projection_bias_capacity_sweep[
+            output_projection_bias_capacity_sweep["selected_by_select_capacity_aware_score"].astype(bool)
+        ]
+        if not output_projection_bias_capacity_sweep.empty
+        else pd.DataFrame()
+    )
+    selected_confidence_blended_bias_capacity = (
+        confidence_blended_bias_capacity_sweep[
+            confidence_blended_bias_capacity_sweep["selected_by_select_capacity_aware_score"].astype(bool)
+        ]
+        if not confidence_blended_bias_capacity_sweep.empty
         else pd.DataFrame()
     )
     selected_router_weight = router_weight_search[
@@ -704,9 +787,20 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
         "expert_output_projection_router_calibrated_average": find_method(
             methods, "expert_output_projection_router_calibrated_average"
         ),
+        "confidence_blended_expert_average": find_method(methods, "confidence_blended_expert_average"),
+        "confidence_blended_router_calibrated_average": find_method(
+            methods, "confidence_blended_router_calibrated_average"
+        ),
         "unified_moe_average": find_method(methods, "unified_moe_average"),
         "unified_output_projection_moe_average": find_method(methods, "unified_output_projection_moe_average"),
+        "unified_confidence_blended_moe_average": find_method(methods, "unified_confidence_blended_moe_average"),
         "unified_moe_bias_capacity_average": find_method(methods, "unified_moe_bias_capacity_average"),
+        "unified_output_projection_bias_capacity_average": find_method(
+            methods, "unified_output_projection_bias_capacity_average"
+        ),
+        "unified_confidence_blended_bias_capacity_average": find_method(
+            methods, "unified_confidence_blended_bias_capacity_average"
+        ),
         "route_aware_expert_average": find_method(methods, "route_aware_expert_average"),
         "matched_router_frozen_minus_all_weight_worst_acc": float(
             summary.get("matched_router_frozen_minus_all_weight_worst_acc", 0.0)
@@ -777,6 +871,8 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
         ),
         "expert_output_projection_rows": int(len(expert_output_projection_weights)),
         "expert_output_projection": summary.get("expert_output_projection", {}),
+        "confidence_blended_expert_rows": int(len(confidence_blended_expert_weights)),
+        "confidence_blended_expert": summary.get("confidence_blended_expert", {}),
         "expert_output_projection_router_calibrated_minus_all_weight_worst_acc": float(
             summary.get("expert_output_projection_router_calibrated_minus_all_weight_worst_acc", 0.0)
         ),
@@ -797,10 +893,33 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
         )
         if not selected_unified_output_projection_capacity.empty
         else None,
+        "unified_confidence_blended_moe_trace_rows": int(len(unified_confidence_blended_moe_trace)),
+        "unified_confidence_blended_moe_capacity_sweep_rows": int(
+            len(unified_confidence_blended_moe_capacity_sweep)
+        ),
+        "unified_confidence_blended_moe_capacity_sweep_selected": clean_row(
+            selected_unified_confidence_blended_capacity.iloc[0]
+        )
+        if not selected_unified_confidence_blended_capacity.empty
+        else None,
         "router_bias_capacity_trace_rows": int(len(router_bias_capacity_trace)),
         "router_bias_capacity_sweep_rows": int(len(router_bias_capacity_sweep)),
         "router_bias_capacity_sweep_selected": clean_row(selected_router_bias_capacity.iloc[0])
         if not selected_router_bias_capacity.empty
+        else None,
+        "output_projection_bias_capacity_trace_rows": int(len(output_projection_bias_capacity_trace)),
+        "output_projection_bias_capacity_sweep_rows": int(len(output_projection_bias_capacity_sweep)),
+        "output_projection_bias_capacity_sweep_selected": clean_row(
+            selected_output_projection_bias_capacity.iloc[0]
+        )
+        if not selected_output_projection_bias_capacity.empty
+        else None,
+        "confidence_blended_bias_capacity_trace_rows": int(len(confidence_blended_bias_capacity_trace)),
+        "confidence_blended_bias_capacity_sweep_rows": int(len(confidence_blended_bias_capacity_sweep)),
+        "confidence_blended_bias_capacity_sweep_selected": clean_row(
+            selected_confidence_blended_bias_capacity.iloc[0]
+        )
+        if not selected_confidence_blended_bias_capacity.empty
         else None,
         "unified_moe_bias_capacity_minus_unified_worst_acc": float(
             summary.get("unified_moe_bias_capacity_minus_unified_worst_acc", 0.0)
@@ -820,6 +939,24 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
                 "unified_output_projection_moe_minus_output_projection_router_calibrated_worst_acc",
                 0.0,
             )
+        ),
+        "unified_confidence_blended_moe_minus_unified_worst_acc": float(
+            summary.get("unified_confidence_blended_moe_minus_unified_worst_acc", 0.0)
+        ),
+        "unified_confidence_blended_moe_minus_unified_output_projection_worst_acc": float(
+            summary.get("unified_confidence_blended_moe_minus_unified_output_projection_worst_acc", 0.0)
+        ),
+        "unified_output_projection_bias_capacity_minus_unified_output_projection_worst_acc": float(
+            summary.get("unified_output_projection_bias_capacity_minus_unified_output_projection_worst_acc", 0.0)
+        ),
+        "unified_output_projection_bias_capacity_minus_unified_bias_capacity_worst_acc": float(
+            summary.get("unified_output_projection_bias_capacity_minus_unified_bias_capacity_worst_acc", 0.0)
+        ),
+        "unified_confidence_blended_bias_capacity_minus_unified_confidence_blended_worst_acc": float(
+            summary.get("unified_confidence_blended_bias_capacity_minus_unified_confidence_blended_worst_acc", 0.0)
+        ),
+        "unified_confidence_blended_bias_capacity_minus_unified_bias_capacity_worst_acc": float(
+            summary.get("unified_confidence_blended_bias_capacity_minus_unified_bias_capacity_worst_acc", 0.0)
         ),
         "route_aware_minus_all_weight_worst_acc": float(summary["route_aware_minus_all_weight_worst_acc"]),
         "expert_match_mean_cosine": float(expert_match["output_cosine"].mean()),
@@ -842,6 +979,9 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
         "expert_search_weights": rel("results/toy_moe_merge/expert_search_weights_by_expert.csv"),
         "expert_weight_search_trace": rel("results/toy_moe_merge/expert_weight_search_trace.csv"),
         "expert_output_projection_weights": rel("results/toy_moe_merge/expert_output_projection_weights_by_expert.csv"),
+        "confidence_blended_expert_weights": rel(confidence_blended_expert_weights_path)
+        if confidence_blended_expert_weights_path.exists()
+        else None,
         "router_weight_search": rel("results/toy_moe_merge/router_weight_search.csv"),
         "router_hessian_average": rel("results/toy_moe_merge/router_hessian_average.csv"),
         "router_kd_trace": rel("results/toy_moe_merge/router_kd_trace.csv"),
@@ -856,8 +996,26 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
         "unified_output_projection_moe_capacity_sweep": rel(unified_output_projection_capacity_sweep_path)
         if unified_output_projection_capacity_sweep_path.exists()
         else None,
+        "unified_confidence_blended_moe_trace": rel(unified_confidence_blended_trace_path)
+        if unified_confidence_blended_trace_path.exists()
+        else None,
+        "unified_confidence_blended_moe_capacity_sweep": rel(unified_confidence_blended_capacity_sweep_path)
+        if unified_confidence_blended_capacity_sweep_path.exists()
+        else None,
         "router_bias_capacity_trace": rel(router_bias_trace_path) if router_bias_trace_path.exists() else None,
         "router_bias_capacity_sweep": rel(router_bias_sweep_path) if router_bias_sweep_path.exists() else None,
+        "output_projection_bias_capacity_trace": rel(output_projection_bias_trace_path)
+        if output_projection_bias_trace_path.exists()
+        else None,
+        "output_projection_bias_capacity_sweep": rel(output_projection_bias_sweep_path)
+        if output_projection_bias_sweep_path.exists()
+        else None,
+        "confidence_blended_bias_capacity_trace": rel(confidence_blended_bias_trace_path)
+        if confidence_blended_bias_trace_path.exists()
+        else None,
+        "confidence_blended_bias_capacity_sweep": rel(confidence_blended_bias_sweep_path)
+        if confidence_blended_bias_sweep_path.exists()
+        else None,
         "router_calibration_sweep": rel("results/toy_moe_merge/router_calibration_sweep.csv"),
         "figure": rel("results/toy_moe_merge/toy_moe_merge.png"),
     }
@@ -1433,6 +1591,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/toy_moe_expert_weight_recipes/report.md converts calibration-searched per-expert source weights into same-shape checkpoint writer tensor rules.",
         },
         {
+            "item": "MoE output-projection expert-weight recipes",
+            "status": "complete",
+            "evidence": "results/toy_moe_output_projection_recipes/report.md converts route-conditioned output-space expert weights into same-shape checkpoint writer tensor rules.",
+        },
+        {
             "item": "MoE routing readiness diagnostics",
             "status": "complete",
             "evidence": "results/moe_routing_readiness/report.md turns router_summary, route_overlap, and expert_load CSVs into router collapse, drift, boundary-fragility, and expert-load risk actions.",
@@ -1502,6 +1665,7 @@ def build_summary() -> dict[str, Any]:
         "moe_route_weight_recipes": summarize_moe_route_weight_recipes(),
         "moe_router_bias_plan": summarize_moe_router_bias_plan(),
         "toy_moe_expert_weight_recipes": summarize_toy_moe_expert_weight_recipes(),
+        "toy_moe_output_projection_recipes": summarize_toy_moe_output_projection_recipes(),
         "moe_routing_readiness": summarize_moe_routing_readiness(),
         "toy_moe_merge": summarize_toy_moe_merge(),
         "toy_moe_routing_readiness": summarize_toy_moe_routing_readiness(),
@@ -1583,6 +1747,7 @@ def build_summary() -> dict[str, Any]:
             "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code --source general --source code",
             "PYTHONPATH=src python scripts/build_moe_router_bias_plan.py --router-dir results/toy_moe_merge --method unified_moe_average --router-bias-template '{router}.bias'",
             "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --output-dir results/toy_moe_expert_weight_recipes --expert-weight-csv results/toy_moe_merge/expert_search_weights_by_expert.csv --source general --source code --checkpoint-output-dir results/checkpoints/toy_moe_expert_weight_candidate --topology-summary ''",
+            "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --output-dir results/toy_moe_output_projection_recipes --expert-weight-csv results/toy_moe_merge/expert_output_projection_weights_by_expert.csv --expert-weight-category combined --source general --source code --checkpoint-output-dir results/checkpoints/toy_moe_output_projection_candidate --topology-summary ''",
             "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
             "PYTHONPATH=src python scripts/collect_results.py",
         ],
@@ -1623,13 +1788,19 @@ def build_markdown(summary: dict[str, Any]) -> str:
     route_weight_recipes = exp["moe_route_weight_recipes"]
     router_bias_plan = exp["moe_router_bias_plan"]
     toy_expert_weight_recipes = exp["toy_moe_expert_weight_recipes"]
+    toy_output_projection_recipes = exp["toy_moe_output_projection_recipes"]
     routing_readiness = exp["moe_routing_readiness"]
     toy_moe = exp["toy_moe_merge"]
     selected_unified_capacity = toy_moe.get("unified_moe_capacity_sweep_selected") or {}
     selected_unified_output_projection_capacity = (
         toy_moe.get("unified_output_projection_moe_capacity_sweep_selected") or {}
     )
+    selected_unified_confidence_blended_capacity = (
+        toy_moe.get("unified_confidence_blended_moe_capacity_sweep_selected") or {}
+    )
     selected_router_bias_capacity = toy_moe.get("router_bias_capacity_sweep_selected") or {}
+    selected_output_projection_bias_capacity = toy_moe.get("output_projection_bias_capacity_sweep_selected") or {}
+    selected_confidence_blended_bias_capacity = toy_moe.get("confidence_blended_bias_capacity_sweep_selected") or {}
     toy_moe_readiness = exp["toy_moe_routing_readiness"]
     toy_moe_selection = exp["toy_moe_method_selection"]
     toy_moe_remap = exp["toy_moe_expert_remap_plan"]
@@ -2021,6 +2192,14 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(toy_moe['expert_output_projection_router_calibrated_minus_matched_calibrated_worst_acc'])} |"
             ),
             (
+                "| toy MoE confidence-blended expert | router-calibrated worst accuracy | "
+                f"{fmt(toy_moe['confidence_blended_router_calibrated_average']['worst_acc'])} |"
+            ),
+            (
+                "| toy MoE confidence-blended expert | mean projection confidence | "
+                f"{fmt(toy_moe['confidence_blended_expert'].get('mean_projection_captured_fraction'))} |"
+            ),
+            (
                 "| toy MoE unified objective | worst accuracy | "
                 f"{fmt(toy_moe['unified_moe_average']['worst_acc'])} |"
             ),
@@ -2031,6 +2210,42 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| toy MoE unified objective | delta vs route-KD | "
                 f"{fmt(toy_moe['unified_moe_minus_route_kd_worst_acc'])} |"
+            ),
+            (
+                "| toy MoE confidence-blended unified | worst accuracy | "
+                f"{fmt(toy_moe['unified_confidence_blended_moe_average']['worst_acc'])} |"
+            ),
+            (
+                "| toy MoE confidence-blended unified | hard top-2 worst accuracy | "
+                f"{fmt(toy_moe['dispatch_robustness'].get('unified_confidence_blended_moe_hard_top2_worst_acc'))} |"
+            ),
+            (
+                "| toy MoE confidence-blended unified | max top-k overflow fraction | "
+                f"{fmt(toy_moe['router_capacity'].get('unified_confidence_blended_moe_max_topk_overflow_fraction'))} |"
+            ),
+            (
+                "| toy MoE confidence-blended unified | delta vs old unified | "
+                f"{fmt(toy_moe['unified_confidence_blended_moe_minus_unified_worst_acc'])} |"
+            ),
+            (
+                "| toy MoE unified output-projection bias-capacity | worst accuracy | "
+                f"{fmt(toy_moe['unified_output_projection_bias_capacity_average']['worst_acc'])} |"
+            ),
+            (
+                "| toy MoE unified output-projection bias-capacity | delta vs output-projection unified | "
+                f"{fmt(toy_moe['unified_output_projection_bias_capacity_minus_unified_output_projection_worst_acc'])} |"
+            ),
+            (
+                "| toy MoE unified output-projection bias-capacity | selected capacity-aware score | "
+                f"{fmt(selected_output_projection_bias_capacity.get('select_capacity_aware_score'))} |"
+            ),
+            (
+                "| toy MoE confidence-blended bias-capacity | worst accuracy | "
+                f"{fmt(toy_moe['unified_confidence_blended_bias_capacity_average']['worst_acc'])} |"
+            ),
+            (
+                "| toy MoE confidence-blended bias-capacity | selected capacity-aware score | "
+                f"{fmt(selected_confidence_blended_bias_capacity.get('select_capacity_aware_score'))} |"
             ),
             (
                 "| toy MoE route-aware merge | route-aware average worst accuracy | "
@@ -2323,6 +2538,14 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| MoE searched expert-weight recipes | expert tensor rules | "
                 f"{toy_expert_weight_recipes['expert_rule_count']} |"
+            ),
+            (
+                "| MoE output-projection expert-weight recipes | recipe status | "
+                f"{toy_output_projection_recipes['recipe_status']} |"
+            ),
+            (
+                "| MoE output-projection expert-weight recipes | expert tensor rules | "
+                f"{toy_output_projection_recipes['expert_rule_count']} |"
             ),
             (
                 "| MoE routing readiness | readiness status | "

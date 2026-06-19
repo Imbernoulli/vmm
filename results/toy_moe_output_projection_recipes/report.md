@@ -6,10 +6,10 @@
 - Recipe kind: `explicit_expert_weights`
 - Sources: `general, code`
 - Router dirs: `none`
-- Expert weight CSVs: `results/toy_moe_merge/expert_search_weights_by_expert.csv`
-- Expert weight category filter: `none`
+- Expert weight CSVs: `results/toy_moe_merge/expert_output_projection_weights_by_expert.csv`
+- Expert weight category filter: `combined`
 - Expert tensor rules: `4`
-- Tensor rule file: `results/toy_moe_expert_weight_recipes/tensor_rules.txt`
+- Tensor rule file: `results/toy_moe_output_projection_recipes/tensor_rules.txt`
 
 ## 权重规则
 
@@ -24,14 +24,14 @@ writer_weight[source, layer, expert] = (1 - anchor_floor) * normalize(route_mass
 
 ## 当前专家权重摘要
 
-Action counts: `{"calibration_searched_expert_delta": 4}`
+Action counts: `{"route_conditioned_output_space_expert_delta": 4}`
 
 | layer | expert | total top-k fraction | dominant source | dominant weight | action |
 | --- | ---: | ---: | --- | ---: | --- |
-|  | 0 | 0 | general | 0.75 | `calibration_searched_expert_delta` |
-|  | 1 | 0 | code | 0.75 | `calibration_searched_expert_delta` |
-|  | 2 | 0 | code | 0.5746 | `calibration_searched_expert_delta` |
-|  | 3 | 0 | general | 0.5 | `calibration_searched_expert_delta` |
+|  | 0 | 0 | general | 0.8771 | `route_conditioned_output_space_expert_delta` |
+|  | 1 | 0 | code | 0.6564 | `route_conditioned_output_space_expert_delta` |
+|  | 2 | 0 | general | 0.4071 | `route_conditioned_output_space_expert_delta` |
+|  | 3 | 0 | code | 0.6492 | `route_conditioned_output_space_expert_delta` |
 
 ## Prompt Category Source Map
 
@@ -55,7 +55,7 @@ Action counts: `{"calibration_searched_expert_delta": 4}`
 ## Writer Dry-Run Command
 
 ```bash
-python scripts/write_same_shape_average_checkpoint.py --base MOE_BASE_OR_ANCHOR_PATH --source general=GENERAL_MODEL_PATH --source code=CODE_MODEL_PATH --source-weight general=0.0 --source-weight code=0.0 --freeze-router --tensor-rule-file results/toy_moe_expert_weight_recipes/tensor_rules.txt --output-dir results/checkpoints/toy_moe_expert_weight_candidate --dry-run
+python scripts/write_same_shape_average_checkpoint.py --base MOE_BASE_OR_ANCHOR_PATH --source general=GENERAL_MODEL_PATH --source code=CODE_MODEL_PATH --source-weight general=0.0 --source-weight code=0.0 --freeze-router --tensor-rule-file results/toy_moe_output_projection_recipes/tensor_rules.txt --output-dir results/checkpoints/toy_moe_output_projection_candidate --dry-run
 ```
 
 ## 需要先跑的 Routing Probe
@@ -72,9 +72,9 @@ PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --router-dir res
 
 ## Files
 
-- `results/toy_moe_expert_weight_recipes/source_weights_by_expert.csv`
-- `results/toy_moe_expert_weight_recipes/tensor_rules.txt`
-- `results/toy_moe_expert_weight_recipes/writer_command.txt`
-- `results/toy_moe_expert_weight_recipes/routing_probe_plan.csv`
-- `results/toy_moe_expert_weight_recipes/category_source_plan.csv`
-- `results/toy_moe_expert_weight_recipes/summary.json`
+- `results/toy_moe_output_projection_recipes/source_weights_by_expert.csv`
+- `results/toy_moe_output_projection_recipes/tensor_rules.txt`
+- `results/toy_moe_output_projection_recipes/writer_command.txt`
+- `results/toy_moe_output_projection_recipes/routing_probe_plan.csv`
+- `results/toy_moe_output_projection_recipes/category_source_plan.csv`
+- `results/toy_moe_output_projection_recipes/summary.json`

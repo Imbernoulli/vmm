@@ -3,9 +3,9 @@
 这个报告把 MoE 方法分数和 routing readiness 合在一起，给出是否 materialize 的决策。它的边界是保守的：endpoint 只能作 baseline，低 route-overlap / 低 top-1 agreement 的 average 会被拒绝，能过性能和 routing gate 的方法才进入 checkpoint writer 或下一轮 held-out eval。
 
 - Recommended soft-router method: `expert_output_projection_router_calibrated_average`
-- Recommended sparse `hard_top2` method: `unified_moe_average`
+- Recommended sparse `hard_top2` method: `unified_confidence_blended_route_kd_seed_average`
 - Capacity-aware sparse `hard_top2` method: `unified_moe_bias_capacity_average`
-- Sparse accuracy/overflow Pareto frontier: `unified_moe_average, unified_output_projection_moe_average, unified_moe_bias_capacity_average, matched_router_kd_average`
+- Sparse accuracy/overflow Pareto frontier: `unified_confidence_blended_route_kd_seed_average, unified_confidence_blended_moe_average, unified_output_projection_moe_average, unified_moe_bias_capacity_average, unified_output_projection_bias_capacity_average, matched_router_kd_average`
 - Selection status: `has_candidate`
 - Base worst accuracy: `0.7325`
 
@@ -15,18 +15,26 @@
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | expert_output_projection_router_calibrated_average | merge_candidate | 0.807 | 0.647 | 0.0550 | 0.835 | 0 | 0.84 | `candidate_with_router_guard` |
 | unified_output_projection_calibrated_seed_average | merge_candidate | 0.807 | 0.647 | 0.0550 | 0.835 | 0 | 0.84 | `candidate_with_router_guard` |
+| confidence_blended_router_calibrated_average | merge_candidate | 0.805 | 0.642 | 0.0563 | 0.833 | 0 | 0.84 | `candidate_with_router_guard` |
+| unified_confidence_blended_calibrated_seed_average | merge_candidate | 0.805 | 0.642 | 0.0563 | 0.833 | 0 | 0.84 | `candidate_with_router_guard` |
 | expert_weight_search_router_calibrated_average | merge_candidate | 0.802 | 0.642 | 0.0563 | 0.830 | 0 | 0.84 | `candidate_with_router_guard` |
 | unified_calibrated_seed_average | merge_candidate | 0.802 | 0.642 | 0.0563 | 0.830 | 0 | 0.84 | `candidate_with_router_guard` |
 | matched_router_calibrated_average | merge_candidate | 0.797 | 0.665 | 0.0537 | 0.829 | 0 | 0.8367 | `candidate_with_router_guard` |
 | matched_router_sweep_selected_average | merge_candidate | 0.797 | 0.665 | 0.0537 | 0.829 | 0 | 0.8367 | `candidate_with_router_guard` |
-| unified_output_projection_route_kd_seed_average | merge_candidate | 0.795 | 0.680 | 0.0788 | 0.821 | 0 | 0.865 | `candidate_with_router_guard` |
 | unified_output_projection_moe_average | merge_candidate | 0.795 | 0.685 | 0.0700 | 0.829 | 0 | 0.895 | `candidate_with_router_guard` |
+| unified_output_projection_route_kd_seed_average | merge_candidate | 0.795 | 0.680 | 0.0788 | 0.821 | 0 | 0.865 | `candidate_with_router_guard` |
+| unified_confidence_blended_moe_average | merge_candidate | 0.790 | 0.690 | 0.0762 | 0.824 | 0 | 0.8767 | `candidate_with_router_guard` |
+| unified_confidence_blended_route_kd_seed_average | merge_candidate | 0.785 | 0.693 | 0.0788 | 0.820 | 0 | 0.865 | `candidate_with_router_guard` |
 | unified_moe_average | merge_candidate | 0.785 | 0.690 | 0.0775 | 0.823 | 0 | 0.8733 | `candidate_with_router_guard` |
+| unified_output_projection_bias_capacity_average | merge_candidate | 0.780 | 0.675 | 0.0450 | 0.816 | 0 | 0.915 | `candidate_with_router_guard` |
 | unified_route_kd_seed_average | merge_candidate | 0.777 | 0.688 | 0.0788 | 0.816 | 0 | 0.865 | `candidate_with_router_guard` |
 | unified_moe_bias_capacity_average | merge_candidate | 0.770 | 0.682 | 0.0475 | 0.809 | 0 | 0.9217 | `candidate_with_router_guard` |
+| unified_confidence_blended_bias_capacity_average | merge_candidate | 0.770 | 0.680 | 0.0475 | 0.810 | 0 | 0.9217 | `candidate_with_router_guard` |
 | matched_router_route_kd_average | merge_candidate | 0.762 | 0.685 | 0.0788 | 0.805 | 0 | 0.865 | `candidate_with_router_guard` |
-| unified_router_kd_seed_average | merge_candidate | 0.760 | 0.598 | 0.0338 | 0.800 | 0 | 0.8983 | `candidate_with_router_guard` |
+| unified_confidence_blended_router_kd_seed_average | merge_candidate | 0.762 | 0.600 | 0.0338 | 0.801 | 0 | 0.8983 | `candidate_with_router_guard` |
+| confidence_blended_expert_average | merge_candidate | 0.760 | 0.627 | 0.0675 | 0.797 | 0 | 1 | `candidate_with_router_guard` |
 | unified_output_projection_router_kd_seed_average | merge_candidate | 0.760 | 0.608 | 0.0338 | 0.796 | 0 | 0.8983 | `candidate_with_router_guard` |
+| unified_router_kd_seed_average | merge_candidate | 0.760 | 0.598 | 0.0338 | 0.800 | 0 | 0.8983 | `candidate_with_router_guard` |
 | expert_output_projection_average | merge_candidate | 0.757 | 0.635 | 0.0675 | 0.795 | 0 | 1 | `candidate_with_router_guard` |
 | matched_router_topk_calibrated_average | merge_candidate | 0.755 | 0.657 | 0.0788 | 0.792 | 0 | 0.895 | `candidate_with_router_guard` |
 | expert_weight_search_average | merge_candidate | 0.755 | 0.632 | 0.0675 | 0.795 | 0 | 1 | `candidate_with_router_guard` |
@@ -55,9 +63,9 @@
 - decision: `candidate_with_router_guard`
 - reason: candidate passes routing-overlap gate after router calibration; keep load-balance and held-out route checks.
 
-如果部署路径使用 `hard_top2` sparse dispatch，优先复评 `unified_moe_average`。
+如果部署路径使用 `hard_top2` sparse dispatch，优先复评 `unified_confidence_blended_route_kd_seed_average`。
 
-- hard_top2 worst accuracy: `0.690`
+- hard_top2 worst accuracy: `0.693`
 - soft worst accuracy: `0.785`
 - decision: `candidate_with_router_guard`
 
@@ -74,9 +82,11 @@
 
 | method | hard top-2 worst acc | top-k overflow | worst category | soft worst acc |
 | --- | ---: | ---: | --- | ---: |
-| unified_moe_average | 0.690 | 0.0775 | general | 0.785 |
+| unified_confidence_blended_route_kd_seed_average | 0.693 | 0.0788 | general | 0.785 |
+| unified_confidence_blended_moe_average | 0.690 | 0.0762 | general | 0.790 |
 | unified_output_projection_moe_average | 0.685 | 0.0700 | general | 0.795 |
 | unified_moe_bias_capacity_average | 0.682 | 0.0475 | general | 0.770 |
+| unified_output_projection_bias_capacity_average | 0.675 | 0.0450 | general | 0.780 |
 | matched_router_kd_average | 0.660 | 0.0338 | code | 0.745 |
 
 ## 规则

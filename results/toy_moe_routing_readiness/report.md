@@ -4,11 +4,11 @@
 
 - Readiness status: `high_risk_calibrate_router_before_merge`
 - Router dirs: `results/toy_moe_merge`
-- Router rows: `64`；expert rows: `256`；specialization rows: `128`
+- Router rows: `80`；expert rows: `320`；specialization rows: `160`
 
 ## Router Readiness
 
-Router action counts: `{"freeze_router_and_check_load_balance": 31, "router_probe_passed_for_small_lambda": 30, "calibrate_router_before_average": 3}`
+Router action counts: `{"freeze_router_and_check_load_balance": 39, "router_probe_passed_for_small_lambda": 38, "calibrate_router_before_average": 3}`
 
 | method | router | category | max top1 | effective fraction | top-k Jaccard | risk flags | action |
 | --- | --- | --- | ---: | ---: | ---: | --- | --- |
@@ -28,64 +28,64 @@ Router action counts: `{"freeze_router_and_check_load_balance": 31, "router_prob
 | matched_router_weight_search_average | toy_router | general | 0.575 | 0.6769 | 0.9833 | top1_load_concentration | `freeze_router_and_check_load_balance` |
 | expert_matched_dare_average | toy_router | general | 0.5825 | 0.6717 | 1 | top1_load_concentration | `freeze_router_and_check_load_balance` |
 | expert_matched_ties_average | toy_router | general | 0.5825 | 0.6717 | 1 | top1_load_concentration | `freeze_router_and_check_load_balance` |
-| matched_router_kd_average | toy_router | general | 0.5375 | 0.7812 | 0.8983 | top1_load_concentration | `freeze_router_and_check_load_balance` |
-| matched_router_hessian_average | toy_router | general | 0.615 | 0.6322 | 0.98 | top1_load_concentration | `freeze_router_and_check_load_balance` |
-| unified_output_projection_calibrated_seed_average | toy_router | general | 0.65 | 0.6075 | 0.895 | top1_load_concentration | `freeze_router_and_check_load_balance` |
-| unified_output_projection_route_kd_seed_average | toy_router | general | 0.6225 | 0.6187 | 0.92 | top1_load_concentration | `freeze_router_and_check_load_balance` |
+| unified_confidence_blended_calibrated_seed_average | toy_router | general | 0.6525 | 0.6049 | 0.8983 | top1_load_concentration | `freeze_router_and_check_load_balance` |
+| unified_moe_average | toy_router | general | 0.615 | 0.6337 | 0.89 | top1_load_concentration | `freeze_router_and_check_load_balance` |
+| unified_confidence_blended_moe_average | toy_router | general | 0.61 | 0.6364 | 0.8933 | top1_load_concentration | `freeze_router_and_check_load_balance` |
+| unified_output_projection_moe_average | toy_router | general | 0.5825 | 0.6453 | 0.91 | top1_load_concentration | `freeze_router_and_check_load_balance` |
 
 ## Expert Load Risks
 
-Expert action counts: `{"low_lambda_or_route_frequency_average": 256}`
+Expert action counts: `{"low_lambda_or_route_frequency_average": 320}`
 
 | method | router | category | expert | top-k over uniform | flags | action |
 | --- | --- | --- | ---: | ---: | --- | --- |
 | all_weight_average | toy_router | code | 3 | 1.615 | none | `low_lambda_or_route_frequency_average` |
-| matched_router_route_kd_average | toy_router | general | 0 | 1.565 | none | `low_lambda_or_route_frequency_average` |
+| unified_confidence_blended_route_kd_seed_average | toy_router | general | 0 | 1.565 | none | `low_lambda_or_route_frequency_average` |
 | unified_route_kd_seed_average | toy_router | general | 0 | 1.565 | none | `low_lambda_or_route_frequency_average` |
 | matched_router_topk_calibrated_average | toy_router | general | 0 | 1.565 | none | `low_lambda_or_route_frequency_average` |
+| matched_router_route_kd_average | toy_router | general | 0 | 1.565 | none | `low_lambda_or_route_frequency_average` |
 | unified_output_projection_route_kd_seed_average | toy_router | general | 0 | 1.565 | none | `low_lambda_or_route_frequency_average` |
 | unified_moe_average | toy_router | general | 0 | 1.56 | none | `low_lambda_or_route_frequency_average` |
+| unified_confidence_blended_moe_average | toy_router | general | 0 | 1.555 | none | `low_lambda_or_route_frequency_average` |
 | unified_output_projection_moe_average | toy_router | general | 0 | 1.53 | none | `low_lambda_or_route_frequency_average` |
 | matched_router_hessian_average | toy_router | general | 0 | 1.51 | none | `low_lambda_or_route_frequency_average` |
 | general_endpoint | toy_router | general | 0 | 1.5 | none | `low_lambda_or_route_frequency_average` |
 | expert_matched_average | toy_router | general | 0 | 1.495 | none | `low_lambda_or_route_frequency_average` |
 | code_endpoint_permuted | toy_router | general | 1 | 1.49 | none | `low_lambda_or_route_frequency_average` |
 | matched_router_weight_search_average | toy_router | general | 0 | 1.49 | none | `low_lambda_or_route_frequency_average` |
-| expert_matched_ties_average | toy_router | general | 0 | 1.48 | none | `low_lambda_or_route_frequency_average` |
-| expert_matched_regmean_average | toy_router | general | 0 | 1.48 | none | `low_lambda_or_route_frequency_average` |
-| expert_matched_dare_average | toy_router | general | 0 | 1.48 | none | `low_lambda_or_route_frequency_average` |
-| matched_router_frozen_average | toy_router | general | 0 | 1.48 | none | `low_lambda_or_route_frequency_average` |
-| expert_weight_search_average | toy_router | general | 0 | 1.48 | none | `low_lambda_or_route_frequency_average` |
+| confidence_blended_expert_average | toy_router | general | 0 | 1.48 | none | `low_lambda_or_route_frequency_average` |
 | expert_output_projection_average | toy_router | general | 0 | 1.48 | none | `low_lambda_or_route_frequency_average` |
-| route_aware_expert_average | toy_router | general | 0 | 1.48 | none | `low_lambda_or_route_frequency_average` |
-| expert_matched_ties_dare_average | toy_router | general | 0 | 1.48 | none | `low_lambda_or_route_frequency_average` |
+| matched_router_frozen_average | toy_router | general | 0 | 1.48 | none | `low_lambda_or_route_frequency_average` |
+| expert_matched_ties_average | toy_router | general | 0 | 1.48 | none | `low_lambda_or_route_frequency_average` |
+| expert_matched_dare_average | toy_router | general | 0 | 1.48 | none | `low_lambda_or_route_frequency_average` |
+| base | toy_router | general | 0 | 1.48 | none | `low_lambda_or_route_frequency_average` |
 
 ## Category Specialization
 
-Specialization action counts: `{"shared_or_mixed_expert": 95, "category_specialized_route_weight": 33}`
+Specialization action counts: `{"shared_or_mixed_expert": 119, "category_specialized_route_weight": 41}`
 
 | method | router | expert | dominant category | share | action |
 | --- | --- | ---: | --- | ---: | --- |
 | base | toy_router | 0 | general | 0.8087 | `category_specialized_route_weight` |
-| expert_matched_ties_dare_average | toy_router | 0 | general | 0.8087 | `category_specialized_route_weight` |
-| expert_matched_regmean_average | toy_router | 0 | general | 0.8087 | `category_specialized_route_weight` |
+| confidence_blended_expert_average | toy_router | 0 | general | 0.8087 | `category_specialized_route_weight` |
 | expert_matched_dare_average | toy_router | 0 | general | 0.8087 | `category_specialized_route_weight` |
-| expert_matched_ties_average | toy_router | 0 | general | 0.8087 | `category_specialized_route_weight` |
-| matched_router_frozen_average | toy_router | 0 | general | 0.8087 | `category_specialized_route_weight` |
+| expert_matched_regmean_average | toy_router | 0 | general | 0.8087 | `category_specialized_route_weight` |
 | expert_weight_search_average | toy_router | 0 | general | 0.8087 | `category_specialized_route_weight` |
 | expert_output_projection_average | toy_router | 0 | general | 0.8087 | `category_specialized_route_weight` |
-| route_aware_expert_average | toy_router | 0 | general | 0.8087 | `category_specialized_route_weight` |
+| expert_matched_ties_dare_average | toy_router | 0 | general | 0.8087 | `category_specialized_route_weight` |
+| expert_matched_ties_average | toy_router | 0 | general | 0.8087 | `category_specialized_route_weight` |
+| matched_router_frozen_average | toy_router | 0 | general | 0.8087 | `category_specialized_route_weight` |
 | router_frozen_average | toy_router | 0 | general | 0.8087 | `category_specialized_route_weight` |
+| route_aware_expert_average | toy_router | 0 | general | 0.8087 | `category_specialized_route_weight` |
+| unified_output_projection_bias_capacity_average | toy_router | 0 | general | 0.7989 | `category_specialized_route_weight` |
 | unified_moe_bias_capacity_average | toy_router | 0 | general | 0.7978 | `category_specialized_route_weight` |
+| unified_confidence_blended_bias_capacity_average | toy_router | 0 | general | 0.7978 | `category_specialized_route_weight` |
 | code_endpoint_permuted | toy_router | 1 | general | 0.7926 | `category_specialized_route_weight` |
 | matched_router_weight_search_average | toy_router | 0 | general | 0.7926 | `category_specialized_route_weight` |
 | matched_router_hessian_average | toy_router | 0 | general | 0.7885 | `category_specialized_route_weight` |
 | matched_router_topk_calibrated_average | toy_router | 0 | general | 0.7884 | `category_specialized_route_weight` |
 | matched_router_route_kd_average | toy_router | 0 | general | 0.7864 | `category_specialized_route_weight` |
 | unified_route_kd_seed_average | toy_router | 0 | general | 0.7864 | `category_specialized_route_weight` |
-| unified_output_projection_route_kd_seed_average | toy_router | 0 | general | 0.7864 | `category_specialized_route_weight` |
-| general_endpoint | toy_router | 0 | general | 0.7853 | `category_specialized_route_weight` |
-| expert_matched_average | toy_router | 0 | general | 0.7848 | `category_specialized_route_weight` |
 
 ## 规则依据
 

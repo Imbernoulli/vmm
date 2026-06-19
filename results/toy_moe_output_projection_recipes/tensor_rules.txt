@@ -1,0 +1,7 @@
+# Shared attention rule. Keep before expert rules because writer uses first match.
+.*self_attn.*::general=0.5,code=0.5
+# Explicit expert-weight rules.
+.*experts\.0\..*::general=0.877124,code=0.122876
+.*experts\.1\..*::general=0.343564,code=0.656436
+.*experts\.2\..*::general=0.407055,code=0.163364
+.*experts\.3\..*::general=0.25332,code=0.649235

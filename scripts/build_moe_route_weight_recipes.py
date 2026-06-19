@@ -382,6 +382,7 @@ def load_explicit_expert_weight_rows(
     *,
     paths: list[Path],
     source_names: list[str],
+    category_filter: str | None,
     expert_tensor_pattern_template: str,
     fallback_expert_tensor_pattern_template: str,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
@@ -392,6 +393,22 @@ def load_explicit_expert_weight_rows(
         if weights_df is None or weights_df.empty:
             inputs.append({"expert_weight_csv": rel(path), "rows": 0, "status": "missing_or_empty"})
             continue
+        original_rows = int(len(weights_df))
+        if category_filter is not None:
+            if "category" not in weights_df.columns:
+                raise ValueError(f"{path} uses --expert-weight-category but has no category column")
+            weights_df = weights_df[weights_df["category"].astype(str) == category_filter].copy()
+            if weights_df.empty:
+                inputs.append(
+                    {
+                        "expert_weight_csv": rel(path),
+                        "rows": original_rows,
+                        "filtered_rows": 0,
+                        "category_filter": category_filter,
+                        "status": "filtered_empty",
+                    }
+                )
+                continue
         required = {"expert_id"} | {f"weight_{source}" for source in source_names}
         missing = sorted(required - set(weights_df.columns))
         if missing:
@@ -433,7 +450,16 @@ def load_explicit_expert_weight_rows(
                 row[f"route_mass_{source}"] = route_masses[source]
             rows.append(row)
             used_rows += 1
-        inputs.append({"expert_weight_csv": rel(path), "rows": int(len(weights_df)), "used_rows": used_rows, "status": "loaded"})
+        inputs.append(
+            {
+                "expert_weight_csv": rel(path),
+                "rows": original_rows,
+                "filtered_rows": int(len(weights_df)),
+                "used_rows": used_rows,
+                "category_filter": category_filter,
+                "status": "loaded",
+            }
+        )
     return rows, inputs
 
 
@@ -523,6 +549,7 @@ def build_report(
         f"- Sources: `{', '.join(summary['source_names'])}`",
         f"- Router dirs: `{', '.join(summary['router_dirs']) if summary['router_dirs'] else 'none'}`",
         f"- Expert weight CSVs: `{', '.join(summary.get('expert_weight_csvs', [])) if summary.get('expert_weight_csvs') else 'none'}`",
+        f"- Expert weight category filter: `{summary.get('expert_weight_category') or 'none'}`",
         f"- Expert tensor rules: `{summary['expert_rule_count']}`",
         f"- Tensor rule file: `{rel(tensor_rule_file)}`",
         "",
@@ -635,6 +662,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", type=Path, default=Path("results/moe_route_weight_recipes"))
     parser.add_argument("--router-dir", action="append", default=[], help="Output directory from scripts/probe_moe_routing.py.")
     parser.add_argument("--expert-weight-csv", action="append", default=[], help="CSV with expert_id and weight_<source> columns from a calibration/search step.")
+    parser.add_argument("--expert-weight-category", default=None, help="When expert-weight CSV has a category column, keep only rows with this category.")
     parser.add_argument("--source", action="append", default=[], help="Source name used by the checkpoint writer, e.g. general or code.")
     parser.add_argument("--category-source", action="append", default=[], help="Map prompt category to source, e.g. code=code.")
     parser.add_argument("--fallback-source", default=None, help="Source used for unmapped prompt categories. Defaults to first --source.")
@@ -711,6 +739,7 @@ def main() -> None:
         source_rows, expert_weight_inputs = load_explicit_expert_weight_rows(
             paths=expert_weight_csvs,
             source_names=source_names,
+            category_filter=args.expert_weight_category,
             expert_tensor_pattern_template=args.expert_tensor_pattern_template,
             fallback_expert_tensor_pattern_template=args.fallback_expert_tensor_pattern_template,
         )
@@ -771,6 +800,7 @@ def main() -> None:
         "fallback_source": fallback_source,
         "router_dirs": [rel(path) for path in router_dirs],
         "expert_weight_csvs": [rel(path) for path in expert_weight_csvs],
+        "expert_weight_category": args.expert_weight_category,
         "input_summaries": input_summaries,
         "routing_probe_plan_rows": len(routing_probe_plan),
         "routing_probe_plan": routing_probe_plan,
