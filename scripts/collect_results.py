@@ -1278,6 +1278,23 @@ def summarize_qwen3_moe_router_calibration_task_regression_negative_smoke() -> d
     )
 
 
+def summarize_qwen3_moe_router_calibration_selector_matrix_smoke() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_router_calibration_selector_matrix_smoke")
+    summary = read_json(root / "summary.json")
+    matrix = read_csv(root / "selector_matrix.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "case_count": int(summary.get("case_count", len(matrix))),
+        "passed_case_count": int(summary.get("passed_case_count", 0)),
+        "failed_case_count": int(summary.get("failed_case_count", 0)),
+        "case_rows": [clean_row(row) for _, row in matrix.iterrows()],
+        "report": rel(root / "report.md"),
+        "matrix": rel(root / "selector_matrix.csv"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_qwen3_moe_trust_region_cap_search() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_trust_region_cap_search")
     summary = read_json(root / "summary.json")
@@ -3093,6 +3110,9 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_router_calibration_task_regression_negative_smoke": (
             summarize_qwen3_moe_router_calibration_task_regression_negative_smoke()
         ),
+        "qwen3_moe_router_calibration_selector_matrix_smoke": (
+            summarize_qwen3_moe_router_calibration_selector_matrix_smoke()
+        ),
         "qwen3_moe_trust_region_cap_search": summarize_qwen3_moe_trust_region_cap_search(),
         "toy_moe_routing_readiness": summarize_toy_moe_routing_readiness(),
         "toy_moe_method_selection": summarize_toy_moe_method_selection(),
@@ -3224,6 +3244,7 @@ def build_summary() -> dict[str, Any]:
             "python scripts/select_qwen3_moe_router_calibration_result.py --source-dominance-negative-smoke --output-dir results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke",
             "python scripts/select_qwen3_moe_router_calibration_result.py --no-downstream-gain-negative-smoke --output-dir results/qwen3_moe_router_calibration_selection_no_gain_negative_smoke",
             "python scripts/select_qwen3_moe_router_calibration_result.py --task-regression-negative-smoke --output-dir results/qwen3_moe_router_calibration_selection_task_regression_negative_smoke",
+            "python scripts/smoke_qwen3_moe_router_calibration_selector_matrix.py --output-dir results/qwen3_moe_router_calibration_selector_matrix_smoke",
             "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
             "PYTHONPATH=src python scripts/collect_results.py",
         ],
@@ -3326,6 +3347,9 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_router_calibration_task_regression_rows = (
         qwen3_moe_router_calibration_task_regression_negative_smoke.get("candidate_rows") or [{}]
     )
+    qwen3_moe_router_calibration_selector_matrix_smoke = exp[
+        "qwen3_moe_router_calibration_selector_matrix_smoke"
+    ]
     def matching_decision_reason(rows: list[dict[str, Any]], marker: str | None = None) -> Any:
         for row in rows:
             reason = row.get("decision_reason")
@@ -3928,6 +3952,12 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| Qwen3 MoE router task-regression negative smoke | first decision reason | "
                 f"{matching_decision_reason(qwen3_moe_router_calibration_task_regression_rows, 'task_score_regression')} |"
+            ),
+            (
+                "| Qwen3 MoE router selector matrix smoke | status / passed cases | "
+                f"{qwen3_moe_router_calibration_selector_matrix_smoke['status']} / "
+                f"{qwen3_moe_router_calibration_selector_matrix_smoke['passed_case_count']}"
+                f"/{qwen3_moe_router_calibration_selector_matrix_smoke['case_count']} |"
             ),
             (
                 "| Qwen3 MoE cap-law search | searched / frontier / expert groups | "

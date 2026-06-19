@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-19T23:28:57.563133+00:00`
+Generated at: `2026-06-19T23:33:10.560329+00:00`
 
 ## Coverage
 
@@ -187,6 +187,7 @@ Complete: `68`; partial: `1`; missing: `0`.
 | Qwen3 MoE router no-gain negative smoke | first decision reason | no_downstream_gain |
 | Qwen3 MoE router task-regression negative smoke | status / selected / eligible | keep_frozen_router_baseline / qwen3_moe_searched_no_gt065_max_retention_candidate / 0/3 |
 | Qwen3 MoE router task-regression negative smoke | first decision reason | task_score_regression |
+| Qwen3 MoE router selector matrix smoke | status / passed cases | passed / 5/5 |
 | Qwen3 MoE cap-law search | searched / frontier / expert groups | 432 / 88 / 5243 |
 | Qwen3 MoE cap-law search | current trust vs uniform 0.65 retention | 0.982 / 0.982 |
 | Qwen3 MoE cap-law search | current trust vs uniform 0.65 >0.65 groups | 129 / 0 |
