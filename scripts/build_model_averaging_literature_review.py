@@ -187,6 +187,14 @@ SOURCES: list[dict[str, str]] = [
         "use_in_this_repo": "Prefer output-space expert matching over raw parameter averaging for routed experts.",
     },
     {
+        "short_name": "Output-space projection",
+        "year": "2026",
+        "category": "output_space_calibration",
+        "title": "Model Merging by Output-Space Projection",
+        "url": "https://arxiv.org/abs/2605.29101",
+        "use_in_this_repo": "Use calibration outputs to formulate merge selection as a quadratic residual objective; treat output residual energy as a predictive probe for merge quality.",
+    },
+    {
         "short_name": "HARC",
         "year": "2026",
         "category": "moe_router_calibration",
@@ -233,6 +241,15 @@ METHODS: list[dict[str, str]] = [
         "failure_signal": "calibration data does not match target tasks; off-plane residual is large",
         "recommended_action": "Report as structured average with plane residual, not as raw on-plane average.",
         "sources": "Fisher merging; RegMean++; FroM",
+    },
+    {
+        "method_family": "Output-space calibrated average",
+        "dense_use": "Fit merge coefficients to calibration outputs when labels are scarce but source logits are available.",
+        "moe_use": "Use source logits, route logits, and expert outputs as residual targets for router/expert weighting.",
+        "primary_probe": "output residual energy; source-logit KL; layer-wise projection residual",
+        "failure_signal": "low parameter conflict but high output residual; soft objective does not transfer to sparse top-k dispatch",
+        "recommended_action": "Optimize coefficients against output/KD residuals and validate under hard dispatch.",
+        "sources": "Output-space projection; MergeMoE; WEMoE",
     },
     {
         "method_family": "Alignment before averaging",
@@ -298,6 +315,13 @@ PROBES: list[dict[str, str]] = [
         "moe_decision": "Build expert remap aliases before averaging expert tensors.",
         "artifact_target": "expert_match.csv; source_tensor_aliases.txt",
     },
+    {
+        "probe": "output residual and source KD",
+        "what_it_measures": "Whether a candidate average can reproduce source logits or expert outputs on calibration inputs.",
+        "dense_decision": "Use output-space coefficient fitting when parameter probes are ambiguous.",
+        "moe_decision": "Use route/output KD to calibrate router and expert weights, then recheck sparse dispatch.",
+        "artifact_target": "router_kd_trace.csv; router_route_kd_trace.csv; unified_moe_trace.csv",
+    },
 ]
 
 
@@ -338,7 +362,14 @@ MOE_OPTIMIZATIONS: list[dict[str, str]] = [
         "writer_action": "Emit tensor rules for shared modules; freeze risky lm_head/norm if needed.",
     },
     {
-        "stage": "5_candidate_acceptance",
+        "stage": "5_sparse_capacity_gate",
+        "question": "Does sparse top-k dispatch overload experts under the deployment capacity factor?",
+        "required_probe": "top-k expert counts, capacity ratio, overflow fraction",
+        "accept_rule": "Capacity-aware score beats route-KD/calibrated baselines or remains on the Pareto frontier.",
+        "writer_action": "Increase capacity guard, keep route-KD alternative, or reject deployment candidate.",
+    },
+    {
+        "stage": "6_candidate_acceptance",
         "question": "Does the materialized checkpoint beat baselines on held-out tasks?",
         "required_probe": "held-in retention, worst score, format safety, cost",
         "accept_rule": "Beat all-weight average and avoid endpoint-only pseudo-success.",
@@ -370,7 +401,7 @@ def build_report(output_dir: Path, summary: dict[str, Any]) -> str:
         "2. TIES、DARE、DELLA、STAR 这些方法本质上是在处理 delta 冗余、符号冲突或谱空间冲突；它们需要 delta magnitude、sign conflict、singular spectrum 等 probe 支撑。",
         "3. Fisher、RegMean、AdaMerging、DAM 这类方法把 average 变成重要性加权或 coefficient learning；它们更像 probe-guided average，而不是固定菜谱。",
         "4. MoE 的核心失败模式是 router/expert 共同失配：router 可能 breakdown，expert index 可能不再对应同一功能，专家专长会让全参数同权平均更脆弱。",
-        "5. 对 Qwen3-30B-A3B / Qwen3-Coder-30B-A3B 这类同构 MoE，最保守路径是 topology gate -> router gate -> expert matching -> route-frequency tensor rules -> held-out eval。",
+        "5. 对 Qwen3-30B-A3B / Qwen3-Coder-30B-A3B 这类同构 MoE，最保守路径是 topology gate -> router gate -> expert matching -> route-frequency tensor rules -> sparse capacity gate -> held-out eval。",
         "",
         "## 关键计数",
         "",

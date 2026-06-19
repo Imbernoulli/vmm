@@ -23,7 +23,7 @@
 - Matched + router-sweep-selected average worst accuracy: `0.838`.
 - Expert-weight search average worst accuracy: `0.802`.
 - Expert-weight search + router-calibrated worst accuracy: `0.828`.
-- Unified expert/router objective worst accuracy: `0.830`.
+- Unified expert/router objective worst accuracy: `0.828`.
 - Route-aware expert average worst accuracy: `0.790`.
 - Lowest MoE connectivity barrier: `direct_matched_general_to_code` = `0.0000` worst-loss barrier.
 - Direct unmatched source barrier: `0.0327`.
@@ -46,7 +46,7 @@
 | --- | ---: | ---: | ---: | ---: |
 | matched_router_calibrated_average | 0.838 | 0.840 | 0.838 | 0.600 |
 | matched_router_sweep_selected_average | 0.838 | 0.840 | 0.838 | 0.600 |
-| unified_moe_average | 0.830 | 0.833 | 0.830 | 0.605 |
+| unified_moe_average | 0.828 | 0.838 | 0.828 | 0.605 |
 | expert_weight_search_router_calibrated_average | 0.828 | 0.835 | 0.828 | 0.600 |
 | matched_router_weight_search_average | 0.820 | 0.818 | 0.818 | 0.616 |
 | matched_router_topk_calibrated_average | 0.835 | 0.815 | 0.815 | 0.605 |
@@ -83,7 +83,7 @@
 - `matched_router_sweep_selected_average` 对 router calibration 的 KL 系数做 sweep，先过 route-overlap guard，再按 calibration worst-loss 选择候选；它把 router overlap/load 和任务精度放到同一个 probe 里。
 - `expert_weight_search_average` 在同一个 expert 数和 tensor shape 内，对每个 expert 的 general/code delta 系数做校准集 min-max 坐标搜索；router 仍固定为 base。
 - `expert_weight_search_router_calibrated_average` 在 per-expert 系数搜索后，只开放 router 做 guarded calibration。
-- `unified_moe_average` 先用 per-expert source weight search 处理 expert 语义和重要性，再只更新 router；目标同时包含 soft/hard task loss、source route KD、source output KD、base-router KL 和 load-balance surrogate，用来检验这些 probe 能否合成一个统一方法。
+- `unified_moe_average` 先用 per-expert source weight search 处理 expert 语义和重要性，再只更新 router；目标同时包含 soft/hard task loss、source route KD、source output KD、base-router KL、load-balance 和 differentiable capacity-overflow surrogate，用来检验这些 probe 能否合成一个统一方法。
 - `route_aware_expert_average` 冻结 base router，并按 base router 在 general/code prompt 上的 route mass 给每个 expert 设置 source delta 权重；这对应 route-weight recipes 的 toy 版本。
 - 这个实验不是 Qwen3 结果，但它把 MoE merging 的特质从报告落成了可跑的 probe：expert index、router overlap、expert load 和 category route mass 都会影响 average 是否安全。
 

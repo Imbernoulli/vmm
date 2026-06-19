@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-19T11:48:39.257681+00:00`
+Generated at: `2026-06-19T12:00:05.754346+00:00`
 
 ## Coverage
 
@@ -99,13 +99,13 @@ Complete: `31`; partial: `1`; missing: `0`.
 | toy MoE hard dispatch | matched + route-KD hard top-2 worst accuracy | 0.730 |
 | toy MoE hard dispatch | route-KD hard top-2 delta vs router-calibrated | 0.030 |
 | toy MoE hard dispatch | route-KD hard top-2 delta vs output-KD | 0.045 |
-| toy MoE unified objective | hard top-2 worst accuracy | 0.738 |
-| toy MoE unified objective | hard top-2 delta vs route-KD | 0.008 |
+| toy MoE unified objective | hard top-2 worst accuracy | 0.735 |
+| toy MoE unified objective | hard top-2 delta vs route-KD | 0.005 |
 | toy MoE capacity | max top-k overflow fraction | 0.115 |
 | toy MoE capacity | worst overflow method/category | all_weight_average / code |
 | toy MoE capacity | route-KD max top-k overflow fraction | 0.072 |
 | toy MoE capacity | route-KD minus calibrated overflow | 0.012 |
-| toy MoE unified objective | max top-k overflow fraction | 0.080 |
+| toy MoE unified objective | max top-k overflow fraction | 0.075 |
 | toy MoE hard dispatch | soft to hard top-1 delta | -0.270 |
 | toy MoE hard dispatch | top-k vs soft-calibrated hard top-2 delta | 0.000 |
 | toy MoE route-aware merge | guarded router-sweep selected KL | 0.25 |
@@ -114,9 +114,9 @@ Complete: `31`; partial: `1`; missing: `0`.
 | toy MoE route-aware merge | matched + router-sweep-selected worst accuracy | 0.838 |
 | toy MoE route-aware merge | expert-weight search worst accuracy | 0.802 |
 | toy MoE route-aware merge | expert-weight search + router-calibrated worst accuracy | 0.828 |
-| toy MoE unified objective | worst accuracy | 0.830 |
-| toy MoE unified objective | delta vs expert-search router-calibrated | 0.002 |
-| toy MoE unified objective | delta vs route-KD | 0.015 |
+| toy MoE unified objective | worst accuracy | 0.828 |
+| toy MoE unified objective | delta vs expert-search router-calibrated | 0.000 |
+| toy MoE unified objective | delta vs route-KD | 0.013 |
 | toy MoE route-aware merge | route-aware average worst accuracy | 0.790 |
 | toy MoE route-aware merge | matched + router-frozen minus all-weight worst accuracy | 0.167 |
 | toy MoE route-aware merge | matched router calibration gain over frozen | 0.050 |
@@ -133,9 +133,9 @@ Complete: `31`; partial: `1`; missing: `0`.
 | toy MoE routing readiness | all-weight calibrate-router flags | 1 |
 | toy MoE method selection | recommended method | matched_router_calibrated_average |
 | toy MoE method selection | recommended hard top-2 method | unified_moe_average |
-| toy MoE method selection | recommended hard top-2 worst accuracy | 0.738 |
+| toy MoE method selection | recommended hard top-2 worst accuracy | 0.735 |
 | toy MoE method selection | capacity-aware hard top-2 method | unified_moe_average |
-| toy MoE method selection | capacity-aware top-k overflow | 0.080 |
+| toy MoE method selection | capacity-aware top-k overflow | 0.075 |
 | toy MoE method selection | hard top-2 / overflow Pareto methods | unified_moe_average, matched_router_route_kd_average, matched_router_calibrated_average, matched_router_sweep_selected_average, matched_router_kd_average |
 | toy MoE method selection | all-weight decision | reject_routing_breakdown |
 | toy MoE expert remap plan | remap status | ready |
@@ -146,8 +146,8 @@ Complete: `31`; partial: `1`; missing: `0`.
 | vLLM hosted downstream eval | candidate table | results/qwen_target_model_registry/model_registry.csv |
 | Average decision report | avoid uniform average decisions | 3 |
 | Average decision report | coefficient-search decisions | 2 |
-| model averaging literature review | sources reviewed | 21 |
-| model averaging literature review | method / probe / MoE-stage counts | 6 / 6 / 6 |
+| model averaging literature review | sources reviewed | 22 |
+| model averaging literature review | method / probe / MoE-stage counts | 7 / 7 / 7 |
 | Qwen target model registry | candidate dense / MoE models | 12 / 5 |
 | Qwen target model registry | downstream or third-party candidates | 9 |
 | Qwen target model registry | recommended first scenario | dense_7b_general_code_math_reasoning |

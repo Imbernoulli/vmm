@@ -152,6 +152,28 @@ def load_balance_loss(model: TinyMoEClassifier, x: Tensor) -> Tensor:
     return model.n_experts * mean_probs.pow(2).sum()
 
 
+def capacity_overflow_loss(
+    model: TinyMoEClassifier,
+    x: Tensor,
+    *,
+    dispatch_mode: str,
+    capacity_factor: float,
+) -> tuple[Tensor, Tensor, Tensor]:
+    if dispatch_mode == "hard_top1":
+        top_k = 1
+    elif dispatch_mode == "hard_top2":
+        top_k = min(2, model.n_experts)
+    else:
+        top_k = model.n_experts
+    probs = model.dispatch_probs(x, dispatch_mode)
+    expected_assignments = probs.sum(dim=0) * float(top_k)
+    capacity = float(capacity_factor) * float(x.shape[0] * top_k) / max(1, model.n_experts)
+    overflow = F.relu(expected_assignments - capacity)
+    overflow_fraction = overflow.sum() / max(1.0, float(x.shape[0] * top_k))
+    max_capacity_ratio = expected_assignments.max() / max(1e-12, capacity)
+    return model.n_experts * overflow_fraction.pow(2), overflow_fraction, max_capacity_ratio
+
+
 def train_model(
     model: TinyMoEClassifier,
     loader: DataLoader,
@@ -436,6 +458,8 @@ def calibrate_unified_moe_router_state(
     top1_loss_coef: float,
     base_kl_coef: float,
     load_balance_coef: float,
+    capacity_loss_coef: float,
+    capacity_factor: float,
     temperature: float,
     device: torch.device,
     desc: str,
@@ -468,6 +492,8 @@ def calibrate_unified_moe_router_state(
                 "top1_ce": 0.0,
                 "base_kl": 0.0,
                 "load_balance": 0.0,
+                "capacity_overflow": 0.0,
+                "capacity_ratio": 0.0,
                 "total_loss": 0.0,
             }
             for source_name, _teacher, _loader, _weight in teachers
@@ -503,9 +529,15 @@ def calibrate_unified_moe_router_state(
                 top1_ce = F.cross_entropy(student_router_logits, teacher_top1)
                 base_kl = F.kl_div(torch.log(student_router_probs.clamp_min(1e-12)), reference_probs, reduction="batchmean")
                 load_balance = load_balance_loss(model, x)
+                capacity_loss, capacity_overflow, capacity_ratio = capacity_overflow_loss(
+                    model,
+                    x,
+                    dispatch_mode=dispatch_mode,
+                    capacity_factor=capacity_factor,
+                )
                 task_loss = soft_loss_coef * soft_ce + dispatch_loss_coef * dispatch_ce
                 teacher_loss = route_kd_coef * route_kl + output_kd_coef * output_kd + top1_loss_coef * top1_ce
-                guard_loss = base_kl_coef * base_kl + load_balance_coef * load_balance
+                guard_loss = base_kl_coef * base_kl + load_balance_coef * load_balance + capacity_loss_coef * capacity_loss
                 loss = float(source_weight) * (task_loss + teacher_loss) + guard_loss
                 loss.backward()
                 optimizer.step()
@@ -520,6 +552,8 @@ def calibrate_unified_moe_router_state(
                 totals["top1_ce"] += float(top1_ce.detach().cpu()) * n
                 totals["base_kl"] += float(base_kl.detach().cpu()) * n
                 totals["load_balance"] += float(load_balance.detach().cpu()) * n
+                totals["capacity_overflow"] += float(capacity_overflow.detach().cpu()) * n
+                totals["capacity_ratio"] += float(capacity_ratio.detach().cpu()) * n
                 totals["total_loss"] += float(loss.detach().cpu()) * n
         for source_name, totals in source_totals.items():
             examples = max(1, int(totals["examples"]))
@@ -539,6 +573,8 @@ def calibrate_unified_moe_router_state(
                     "top1_loss_coef": top1_loss_coef,
                     "base_kl_coef": base_kl_coef,
                     "load_balance_coef": load_balance_coef,
+                    "capacity_loss_coef": capacity_loss_coef,
+                    "capacity_factor": capacity_factor,
                     "temperature": temperature,
                     "soft_ce": totals["soft_ce"] / examples,
                     "dispatch_ce": totals["dispatch_ce"] / examples,
@@ -547,8 +583,10 @@ def calibrate_unified_moe_router_state(
                     "top1_ce": totals["top1_ce"] / examples,
                     "base_kl": totals["base_kl"] / examples,
                     "load_balance": totals["load_balance"] / examples,
+                    "capacity_overflow": totals["capacity_overflow"] / examples,
+                    "capacity_ratio": totals["capacity_ratio"] / examples,
                     "total_loss": totals["total_loss"] / examples,
-                    "same_shape_action": "unified_router_objective_expert_aligned_same_shape",
+                    "same_shape_action": "capacity_aware_unified_router_objective_expert_aligned_same_shape",
                 }
             )
     return cpu_state(model), pd.DataFrame(rows)
@@ -1855,7 +1893,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
             "- `matched_router_sweep_selected_average` 对 router calibration 的 KL 系数做 sweep，先过 route-overlap guard，再按 calibration worst-loss 选择候选；它把 router overlap/load 和任务精度放到同一个 probe 里。",
             "- `expert_weight_search_average` 在同一个 expert 数和 tensor shape 内，对每个 expert 的 general/code delta 系数做校准集 min-max 坐标搜索；router 仍固定为 base。",
             "- `expert_weight_search_router_calibrated_average` 在 per-expert 系数搜索后，只开放 router 做 guarded calibration。",
-            "- `unified_moe_average` 先用 per-expert source weight search 处理 expert 语义和重要性，再只更新 router；目标同时包含 soft/hard task loss、source route KD、source output KD、base-router KL 和 load-balance surrogate，用来检验这些 probe 能否合成一个统一方法。",
+            "- `unified_moe_average` 先用 per-expert source weight search 处理 expert 语义和重要性，再只更新 router；目标同时包含 soft/hard task loss、source route KD、source output KD、base-router KL、load-balance 和 differentiable capacity-overflow surrogate，用来检验这些 probe 能否合成一个统一方法。",
             "- `route_aware_expert_average` 冻结 base router，并按 base router 在 general/code prompt 上的 route mass 给每个 expert 设置 source delta 权重；这对应 route-weight recipes 的 toy 版本。",
             "- 这个实验不是 Qwen3 结果，但它把 MoE merging 的特质从报告落成了可跑的 probe：expert index、router overlap、expert load 和 category route mass 都会影响 average 是否安全。",
             "",
@@ -1933,6 +1971,7 @@ def main() -> None:
     parser.add_argument("--unified-router-top1-loss-coef", type=float, default=0.5)
     parser.add_argument("--unified-router-base-kl-coef", type=float, default=0.25)
     parser.add_argument("--unified-router-load-balance-coef", type=float, default=0.10)
+    parser.add_argument("--unified-router-capacity-loss-coef", type=float, default=0.05)
     parser.add_argument("--router-weight-search-grid", default="0,0.25,0.5,0.75,1.0")
     parser.add_argument("--router-weight-search-max-delta-sum", type=float, default=1.0)
     parser.add_argument("--router-weight-search-min-topk-jaccard", type=float, default=0.80)
@@ -2233,6 +2272,8 @@ def main() -> None:
         top1_loss_coef=args.unified_router_top1_loss_coef,
         base_kl_coef=args.unified_router_base_kl_coef,
         load_balance_coef=args.unified_router_load_balance_coef,
+        capacity_loss_coef=args.unified_router_capacity_loss_coef,
+        capacity_factor=args.capacity_factor,
         temperature=args.unified_router_temperature,
         device=device,
         desc="unified expert/router objective",
@@ -2318,7 +2359,7 @@ def main() -> None:
         MethodState(
             "unified_moe_average",
             unified_moe_average,
-            "search expert source weights, then learn one router objective combining task loss, hard top-k dispatch, route KD, output KD, base-router KL, and load balance",
+            "search expert source weights, then learn one router objective combining task loss, hard top-k dispatch, route KD, output KD, base-router KL, load balance, and capacity overflow",
         ),
         MethodState("route_aware_expert_average", route_aware, "freeze base router and use route-frequency expert source weights"),
     ]
@@ -2900,6 +2941,8 @@ def main() -> None:
             "top1_loss_coef": args.unified_router_top1_loss_coef,
             "base_kl_coef": args.unified_router_base_kl_coef,
             "load_balance_coef": args.unified_router_load_balance_coef,
+            "capacity_loss_coef": args.unified_router_capacity_loss_coef,
+            "capacity_factor": args.capacity_factor,
             "rows": int(len(unified_moe_trace)),
             "final_mean_total_loss": float(
                 unified_moe_trace[unified_moe_trace["epoch"] == unified_moe_trace["epoch"].max()][
@@ -2914,6 +2957,16 @@ def main() -> None:
             "final_mean_output_kd": float(
                 unified_moe_trace[unified_moe_trace["epoch"] == unified_moe_trace["epoch"].max()][
                     "output_kd"
+                ].mean()
+            ),
+            "final_mean_capacity_overflow": float(
+                unified_moe_trace[unified_moe_trace["epoch"] == unified_moe_trace["epoch"].max()][
+                    "capacity_overflow"
+                ].mean()
+            ),
+            "final_mean_capacity_ratio": float(
+                unified_moe_trace[unified_moe_trace["epoch"] == unified_moe_trace["epoch"].max()][
+                    "capacity_ratio"
                 ].mean()
             ),
         },

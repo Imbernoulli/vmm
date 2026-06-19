@@ -6,7 +6,7 @@
 
 这里说的 Average 不是 ensemble，也不是把 MoE experts 扩成更多分支；最终目标模型必须和输入模型保持同构，能用同一个 config/tokenizer/model class 直接加载。Probe 的作用是决定哪些模型、层、模块或 experts 可以被平均，以及平均系数应该怎么设。
 
-最新 MoE 机制结果：toy MoE 上，失败主因不是“平均”这个动作本身，而是 expert 语义 index 和 router dispatch 一起漂移。当前统一方法 `unified_moe_average` 先用 per-expert source weight search 处理 expert 语义/重要性，再在同构 checkpoint 内只校准 router，并把 soft task loss、hard top-2 dispatch loss、route/output KD、base-router KL 和 load-balance surrogate 放进同一个 objective。它把 soft worst accuracy 做到 `0.830`，高于 route-KD 的 `0.815`；hard top-2 worst accuracy 做到 `0.738`，高于 route-KD 的 `0.730`。但它的 max top-k overflow 是 `0.080`，比 route-KD 的 `0.0725` 略高，所以当前不是宣称无条件支配，而是把 `unified_moe_average` 作为 sparse/capacity-aware 首选，同时保留 route-KD 在 Pareto frontier 里。
+最新 MoE 机制结果：toy MoE 上，失败主因不是“平均”这个动作本身，而是 expert 语义 index 和 router dispatch 一起漂移。当前统一方法 `unified_moe_average` 先用 per-expert source weight search 处理 expert 语义/重要性，再在同构 checkpoint 内只校准 router，并把 soft task loss、hard top-2 dispatch loss、route/output KD、base-router KL、load-balance 和 differentiable capacity-overflow surrogate 放进同一个 objective。它把 soft worst accuracy 做到 `0.8275`，高于 route-KD 的 `0.815`；hard top-2 worst accuracy 做到 `0.735`，高于 route-KD 的 `0.730`。max top-k overflow 从上一版 unified 的 `0.080` 降到 `0.075`，但仍略高于 route-KD 的 `0.0725`；capacity-aware score `hard_top2_worst_acc - overflow` 为 `0.660`，高于 route-KD 的 `0.6575`，所以当前把 `unified_moe_average` 作为 sparse/capacity-aware 首选，同时保留 route-KD 在 Pareto frontier 里。
 
 ## 一屏版结论
 
@@ -19,7 +19,7 @@
 5. **不是所有有效方法都真的在这个二维 plane 上。** base、expert、linear average、task arithmetic、grid point 是 raw task-vector plane 里的点；RegMean、layer-wise task arithmetic 这类方法可能离开这个 plane。展示图里这类点用 `projected` 标记，表示它们只是投影到 `alpha,beta` 平面上看位置。
 6. **这些图看起来有些凸，不是理论假设。** 这只是当前 same-base task-vector slice 和 worst-loss/NLL 指标在选定范围内的形状。Li et al. 那类 loss-landscape 图用的是随机或 filter-normalized 方向，目标是展示局部训练地形；这里的方向是任务语义方向，回答的是 merge 几何，所以图形不必长得一样。
 7. **Average 决策现在由 probe 输出驱动。** [Average Decision Report](results/average_decision_report/report.md) 把 merge grid、conflict probe 和可选 MoE routing probe 汇总成同构 checkpoint 的权重建议；当前 Qwen instruct/coder 被标成 `avoid_uniform_average`，建议先做 connectivity/barrier 筛选再重学平均权重。
-8. **Dense/MoE 文献矩阵已经转成工程规则。** [Model Averaging Literature Review](results/model_averaging_literature_review/report.md) 整理了 `21` 篇 Dense averaging、task-vector、conflict-aware merge、MoE routing/expert merging 相关来源，并映射成 `6` 类方法、`6` 类 probe 和 `6` 个 MoE 优化 gate。
+8. **Dense/MoE 文献矩阵已经转成工程规则。** [Model Averaging Literature Review](results/model_averaging_literature_review/report.md) 整理了 `22` 篇 Dense averaging、task-vector、conflict-aware merge、output-space projection、MoE routing/expert merging 相关来源，并映射成 `7` 类方法、`7` 类 probe 和 `7` 个 MoE 优化 gate。
 9. **Qwen 目标模型已经落成 registry。** [Qwen Target Model Registry](results/qwen_target_model_registry/report.md) 现在列出 `17` 个候选条目：dense `12`、MoE `5`；其中包含官方 Qwen 分支、DeepSeek/AM 等第三方下游模型、DianJin/Long1K 论文候选和下游 adapter/finetune 候选池。第一轮建议先跑 `Qwen2.5-7B-Instruct + Coder + Math + DeepSeek-R1-Distill-Qwen-7B`。
 10. **MoE 不能把 router/expert 当普通 dense 层平均。** [MoE Same-Shape Average Plan](results/moe_average_plan/report.md) 把 router、shared modules、expert FFN、embedding/lm_head 和 LoRA/adapters 分开：默认先冻结/校准 router，experts 先按 route frequency/output similarity 匹配，再写回同 expert 数的 checkpoint。
 11. **同构 checkpoint 写出路径已经打通。** `scripts/write_same_shape_average_checkpoint.py` 会先验证 tensor name/shape，再按 `base + sum_i w_i * (source_i - base)` 写 safetensors；Qwen2.5-0.5B base/instruct/coder dry-run 已检查 `290` 个 tensor 无缺失、无 shape mismatch。
@@ -28,7 +28,7 @@
 14. **MoE route-aware average 已落到 tensor-rule 文件。** [MoE Route-Weight Recipes](results/moe_route_weight_recipes/report.md) 会把 routing probe 的 `expert_load.csv` 转成 `tensor_rules.txt`，由 checkpoint writer 直接读取；当前状态是 `waiting_for_routing_probe`，说明还缺真实 Qwen3 MoE route probe，不应该假装已经有 expert-wise 权重。
 15. **真实 MoE routing probe CLI 已经补上。** `scripts/probe_moe_routing.py` 会捕获 MoE router hook，输出 `router_summary.csv`、`expert_load.csv`、可选 `route_overlap.csv`，并额外写 `summary.json` 和 `report.md`；[MoE Routing Probe Smoke](results/moe_routing_probe_smoke/report.md) 已验证 tiny MoE 上能抓到 2 个 router 和 6 行 overlap。下一步是把它跑在 Qwen3-30B-A3B / Qwen3-Coder-30B-A3B 上。
 16. **MoE router 先过 readiness gate。** [MoE Routing Readiness](results/moe_routing_readiness/report.md) 会把 `router_summary.csv`、`route_overlap.csv`、`expert_load.csv` 转成 collapse、route drift、top-k 边界脆弱性和 expert load 风险；只有这些风险可控，才考虑开放 router 小 λ 或生成 expert-wise tensor rules。
-17. **Toy MoE 已经复现 expert-index mismatch 和 router 漂移风险。** [Toy MoE Route-Aware Merge](results/toy_moe_merge/report.md) 中，直接 all-weight average 的 worst accuracy 是 `0.620`，expert-matched average 是 `0.800`，route-aware expert average 是 `0.790`；进一步的 `unified_moe_average` 在 expert 权重搜索后校准 router，soft worst accuracy 达到 `0.830`，hard top-2 worst accuracy 达到 `0.738`。
+17. **Toy MoE 已经复现 expert-index mismatch 和 router 漂移风险。** [Toy MoE Route-Aware Merge](results/toy_moe_merge/report.md) 中，直接 all-weight average 的 worst accuracy 是 `0.620`，expert-matched average 是 `0.800`，route-aware expert average 是 `0.790`；进一步的 `unified_moe_average` 在 expert 权重搜索后做 capacity-aware router 校准，soft worst accuracy 达到 `0.8275`，hard top-2 worst accuracy 达到 `0.735`，max top-k overflow 为 `0.075`。
 18. **同一个 readiness gate 已能分析多方法 MoE probe。** [Toy MoE Routing Readiness](results/toy_moe_routing_readiness/report.md) 把 toy MoE 的 base、endpoint、all-weight、expert-matched、route-aware 方法分开诊断；其中 `all_weight_average` 的 general slice 触发 `calibrate_router_before_average`，而 expert-matched/route-aware 的 route overlap 接近 `1.0`。
 19. **MoE 方法选择已从“读表”变成自动决策。** [Toy MoE Method Selection](results/toy_moe_method_selection/report.md) 把 worst accuracy、routing readiness、hard top-2 dispatch 和 capacity overflow 合在一起：`all_weight_average` 被判为 `reject_routing_breakdown`；soft dispatch 下推荐 `matched_router_calibrated_average`；sparse hard top-2 和 capacity-aware sparse 选择当前推荐 `unified_moe_average`，但 route-KD 仍因 overflow 更低留在 Pareto frontier。
 20. **Expert matching 已能进入 checkpoint materialization。** [Toy MoE Expert Remap Plan](results/toy_moe_expert_remap_plan/report.md) 把 expert-output matching 转成 `source_tensor_aliases.txt`：输出 checkpoint 的 expert index、tensor name 和 shape 不变，只改变某个 source 读取哪个 matched expert tensor；当前 4 个 alias rule 全部 ready，最小 output cosine 为 `0.943`。
@@ -117,7 +117,7 @@ z 轴 = loss
 | Qwen LLM path | 完成 | Qwen2.5-1.5B base-to-instruct |
 | Qwen benchmark slices | 完成 | GSM8K、MMLU、HumanEval NLL、BeaverTails safety/refusal |
 | Qwen multi-expert | 完成 | Qwen2.5-0.5B base + instruct + coder |
-| Dense/MoE averaging literature matrix | 完成 | 21 个来源被整理成方法、probe、MoE 优化 gate 和 writer action |
+| Dense/MoE averaging literature matrix | 完成 | 22 个来源被整理成方法、probe、MoE 优化 gate 和 writer action，并补入 output-space / sparse capacity gate |
 | Qwen target model registry | 完成 | 17 个 Qwen 官方/第三方/下游候选映射到场景、评测、probe 和同构拓扑 gate |
 | MoE routing probe CLI | 完成 | 真实 MoE router hook probe 已实现，能写 router/expert/overlap CSV 与 summary/report |
 | MoE routing probe smoke | 完成 | tiny MoE 本地验证捕获 2 个 router、6 行 route overlap |

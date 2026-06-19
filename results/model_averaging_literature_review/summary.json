@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-06-19T05:03:02.955791+00:00",
-  "source_count": 21,
-  "method_family_count": 6,
-  "probe_count": 6,
-  "moe_stage_count": 6,
+  "generated_at": "2026-06-19T12:00:00.883867+00:00",
+  "source_count": 22,
+  "method_family_count": 7,
+  "probe_count": 7,
+  "moe_stage_count": 7,
   "dense_recommendation": "Treat uniform averaging as a low-barrier baseline; escalate to conflict-aware, importance-aware, or coefficient-learned averages only when probes justify them.",
   "moe_recommendation": "Do not merge router and experts blindly; run topology, routing, expert matching, and route-weight probes before materializing same-shape checkpoints.",
   "outputs": {

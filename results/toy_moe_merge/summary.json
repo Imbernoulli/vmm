@@ -26,10 +26,10 @@
         "worst_loss": 0.683913459777832
       },
       "hard_top2": {
-        "avg_acc": 0.78125,
+        "avg_acc": 0.7749999999999999,
         "method": "unified_moe_average",
-        "worst_acc": 0.7375,
-        "worst_loss": 0.6264592552185059
+        "worst_acc": 0.735,
+        "worst_loss": 0.6278231620788575
       },
       "soft_all": {
         "avg_acc": 0.83875,
@@ -60,10 +60,10 @@
     "row_count": 66,
     "topk_calibrated_minus_soft_calibrated_hard_top1_worst_acc": 0.0024999999999999467,
     "topk_calibrated_minus_soft_calibrated_hard_top2_worst_acc": 0.0,
-    "unified_moe_hard_top1_worst_acc": 0.5975,
-    "unified_moe_hard_top2_worst_acc": 0.7375,
-    "unified_moe_minus_calibrated_hard_top2_worst_acc": 0.03750000000000009,
-    "unified_moe_minus_route_kd_hard_top2_worst_acc": 0.007500000000000062
+    "unified_moe_hard_top1_worst_acc": 0.595,
+    "unified_moe_hard_top2_worst_acc": 0.735,
+    "unified_moe_minus_calibrated_hard_top2_worst_acc": 0.03500000000000003,
+    "unified_moe_minus_route_kd_hard_top2_worst_acc": 0.0050000000000000044
   },
   "expert_match_mean_cosine": 0.9773149192333221,
   "expert_matched_dare_minus_matched_average_worst_acc": -0.020000000000000018,
@@ -189,8 +189,8 @@
     "max_topk_overflow_fraction": 0.115,
     "route_kd_minus_calibrated_max_topk_overflow_fraction": 0.012499999999999997,
     "row_count": 44,
-    "unified_moe_max_topk_overflow_fraction": 0.08,
-    "unified_moe_minus_route_kd_max_topk_overflow_fraction": 0.007500000000000007,
+    "unified_moe_max_topk_overflow_fraction": 0.075,
+    "unified_moe_minus_route_kd_max_topk_overflow_fraction": 0.0025000000000000022,
     "worst_topk_overflow_category": "code",
     "worst_topk_overflow_method": "all_weight_average"
   },
@@ -241,12 +241,16 @@
   "seed": 17,
   "unified_moe": {
     "base_kl_coef": 0.25,
+    "capacity_factor": 1.25,
+    "capacity_loss_coef": 0.05,
     "dispatch_loss_coef": 1.0,
     "dispatch_mode": "hard_top2",
     "epochs": 8,
-    "final_mean_output_kd": 0.0008208545676898211,
-    "final_mean_route_kl": 0.011371635116636754,
-    "final_mean_total_loss": 0.7849270665645599,
+    "final_mean_capacity_overflow": 0.12850428929924965,
+    "final_mean_capacity_ratio": 1.3449666538238525,
+    "final_mean_output_kd": 0.00088861202087719,
+    "final_mean_route_kl": 0.011035848807543516,
+    "final_mean_total_loss": 0.788702629327774,
     "load_balance_coef": 0.1,
     "lr": 0.005,
     "output_kd_coef": 0.0,
@@ -256,8 +260,8 @@
     "temperature": 1.0,
     "top1_loss_coef": 0.5
   },
-  "unified_moe_minus_expert_search_router_calibrated_worst_acc": 0.0024999999999999467,
-  "unified_moe_minus_expert_search_worst_acc": 0.02749999999999997,
-  "unified_moe_minus_route_kd_worst_acc": 0.015000000000000013,
-  "unified_moe_worst_acc": 0.83
+  "unified_moe_minus_expert_search_router_calibrated_worst_acc": 0.0,
+  "unified_moe_minus_expert_search_worst_acc": 0.025000000000000022,
+  "unified_moe_minus_route_kd_worst_acc": 0.012500000000000067,
+  "unified_moe_worst_acc": 0.8275
 }

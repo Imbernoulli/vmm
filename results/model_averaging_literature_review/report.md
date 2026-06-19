@@ -8,14 +8,14 @@
 2. TIES、DARE、DELLA、STAR 这些方法本质上是在处理 delta 冗余、符号冲突或谱空间冲突；它们需要 delta magnitude、sign conflict、singular spectrum 等 probe 支撑。
 3. Fisher、RegMean、AdaMerging、DAM 这类方法把 average 变成重要性加权或 coefficient learning；它们更像 probe-guided average，而不是固定菜谱。
 4. MoE 的核心失败模式是 router/expert 共同失配：router 可能 breakdown，expert index 可能不再对应同一功能，专家专长会让全参数同权平均更脆弱。
-5. 对 Qwen3-30B-A3B / Qwen3-Coder-30B-A3B 这类同构 MoE，最保守路径是 topology gate -> router gate -> expert matching -> route-frequency tensor rules -> held-out eval。
+5. 对 Qwen3-30B-A3B / Qwen3-Coder-30B-A3B 这类同构 MoE，最保守路径是 topology gate -> router gate -> expert matching -> route-frequency tensor rules -> sparse capacity gate -> held-out eval。
 
 ## 关键计数
 
-- Sources reviewed: `21`
-- Method families: `6`
-- Probe groups: `6`
-- MoE optimization stages: `6`
+- Sources reviewed: `22`
+- Method families: `7`
+- Probe groups: `7`
+- MoE optimization stages: `7`
 
 ## 方法矩阵
 
@@ -25,6 +25,7 @@
 | Task arithmetic / coefficient search | Search task-vector coefficients on same-anchor deltas. | Apply separately to shared modules, router, and expert groups. | alpha/beta grid; layer cosine; held-in retention | Move from global weights to layer/module/expert-specific weights. |
 | Sign / sparsity conflict methods | Use TIES, DARE, DELLA, or STAR when deltas are redundant or sign-conflicting. | Use on shared and expert FFN deltas after expert matching, not on router blindly. | sign conflict; weighted conflict; delta magnitude distribution; singular spectrum | Convert conflict signals into tensor rules and preserve critical groups. |
 | Importance / activation-aware average | Use Fisher, RegMean, or RegMean++ when calibration activations are available. | Estimate expert sensitivity with route-conditioned NLL and activation covariance. | diagonal Fisher; activation covariance; NLL sensitivity | Report as structured average with plane residual, not as raw on-plane average. |
+| Output-space calibrated average | Fit merge coefficients to calibration outputs when labels are scarce but source logits are available. | Use source logits, route logits, and expert outputs as residual targets for router/expert weighting. | output residual energy; source-logit KL; layer-wise projection residual | Optimize coefficients against output/KD residuals and validate under hard dispatch. |
 | Alignment before averaging | Needed when checkpoints are not same initialization or barrier remains high. | Needed when expert indices or feature spaces are permuted. | permutation residual; feature CKA; expert output cosine | Run feature/expert matching before computing any average. |
 | Router-aware MoE average | Not applicable. | Freeze or calibrate router; merge shared/expert tensors with separate rules. | route overlap; router entropy; max expert fraction; top-k margin | Keep router frozen, calibrate router, or reject candidate before writing checkpoint. |
 
@@ -38,6 +39,7 @@
 | activation/Fisher sensitivity | Which parameters or linear layers are important on calibration data. | Use Fisher/RegMean/AdaMerging style coefficients. | Compute route-conditioned sensitivity for experts and router. | future activation covariance and Fisher summaries |
 | router entropy and route overlap | Whether MoE routing still dispatches tokens to appropriate experts after merging. | Not applicable. | Freeze/calibrate router or reject all-weight average if overlap collapses. | router_summary.csv; route_overlap.csv; router_readiness.csv |
 | expert output similarity | Whether expert index e in two checkpoints represents the same function. | Use analogous feature alignment only if initialization differs. | Build expert remap aliases before averaging expert tensors. | expert_match.csv; source_tensor_aliases.txt |
+| output residual and source KD | Whether a candidate average can reproduce source logits or expert outputs on calibration inputs. | Use output-space coefficient fitting when parameter probes are ambiguous. | Use route/output KD to calibrate router and expert weights, then recheck sparse dispatch. | router_kd_trace.csv; router_route_kd_trace.csv; unified_moe_trace.csv |
 
 ## MoE 优化路线
 
@@ -48,7 +50,8 @@
 | 2_expert_alignment | Are source expert indices semantically aligned? | expert output cosine, route coactivation, task profile similarity | Matched experts above cosine threshold; manual review for low matches. | Pass source_tensor_aliases.txt to same-shape writer. |
 | 3_expert_weighting | Which source should dominate each expert tensor? | route frequency, NLL sensitivity, expert delta conflict | Weights reflect task route mass and do not damage general retention. | Emit tensor_rules.txt with per-expert source weights. |
 | 4_shared_module_merge | Can shared attention/norm/MLP be averaged globally? | layer cosine, sign conflict, Fisher/activation sensitivity | Use module-specific weights when conflicts concentrate. | Emit tensor rules for shared modules; freeze risky lm_head/norm if needed. |
-| 5_candidate_acceptance | Does the materialized checkpoint beat baselines on held-out tasks? | held-in retention, worst score, format safety, cost | Beat all-weight average and avoid endpoint-only pseudo-success. | Promote candidate only after held-out eval. |
+| 5_sparse_capacity_gate | Does sparse top-k dispatch overload experts under the deployment capacity factor? | top-k expert counts, capacity ratio, overflow fraction | Capacity-aware score beats route-KD/calibrated baselines or remains on the Pareto frontier. | Increase capacity guard, keep route-KD alternative, or reject deployment candidate. |
+| 6_candidate_acceptance | Does the materialized checkpoint beat baselines on held-out tasks? | held-in retention, worst score, format safety, cost | Beat all-weight average and avoid endpoint-only pseudo-success. | Promote candidate only after held-out eval. |
 
 ## 对当前仓库的直接影响
 
@@ -87,4 +90,5 @@
 - RegMean++ (2025): [RegMean++: Enhancing Effectiveness and Generalization of Regression Mean for Model Merging](https://arxiv.org/abs/2508.03121)
 - Merge scaling laws (2025): [Model Merging Scaling Laws in Large Language Models](https://arxiv.org/abs/2509.24244)
 - MergeMoE (2025): [MergeMoE: Efficient Compression of MoE Models via Expert Output Merging](https://arxiv.org/abs/2510.14436)
+- Output-space projection (2026): [Model Merging by Output-Space Projection](https://arxiv.org/abs/2605.29101)
 - HARC (2026): [When Model Merging Breaks Routing: Training-Free Calibration for MoE](https://arxiv.org/abs/2606.03391)
