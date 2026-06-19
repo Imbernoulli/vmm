@@ -1142,6 +1142,33 @@ def summarize_qwen3_moe_router_move_gate() -> dict[str, Any]:
     }
 
 
+def summarize_qwen3_moe_router_calibration_job() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_router_calibration_job")
+    summary = read_json(root / "summary.json")
+    candidate_plan = read_csv(root / "candidate_plan.csv")
+    stage_plan = read_csv(root / "stage_plan.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "student_exists": bool(summary.get("student_exists", False)),
+        "teacher_exists": bool(summary.get("teacher_exists", False)),
+        "tokenizer_exists": bool(summary.get("tokenizer_exists", False)),
+        "prompts_exists": bool(summary.get("prompts_exists", False)),
+        "local_gpu_status": summary.get("local_gpu_status"),
+        "router_caps": summary.get("router_caps", []),
+        "candidate_count": int(summary.get("candidate_count", len(candidate_plan))),
+        "stage_count": int(summary.get("stage_count", len(stage_plan))),
+        "mechanism": summary.get("mechanism"),
+        "candidate_rows": [clean_row(row) for _, row in candidate_plan.iterrows()],
+        "stage_rows": [clean_row(row) for _, row in stage_plan.iterrows()],
+        "report": rel(root / "report.md"),
+        "candidate_plan": rel(root / "candidate_plan.csv"),
+        "stage_plan": rel(root / "stage_plan.csv"),
+        "run_script": rel(root / "run_router_calibration_job.sh"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_qwen3_moe_trust_region_cap_search() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_trust_region_cap_search")
     summary = read_json(root / "summary.json")
@@ -2839,6 +2866,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/qwen3_moe_router_move_gate/report.md combines router tensor deltas with real routing readiness and rejects direct router-weight movement for all 48 layers.",
         },
         {
+            "item": "Qwen3 MoE router calibration job",
+            "status": "complete",
+            "evidence": "results/qwen3_moe_router_calibration_job/report.md turns the rejected direct-router-move result into a capped route-KD router-calibration sweep job over the searched no-gt-0.65 candidate.",
+        },
+        {
             "item": "Qwen3 MoE trust-region cap-law search",
             "status": "complete",
             "evidence": "results/qwen3_moe_trust_region_cap_search/report.md searches interpretable expert cap laws over real Qwen3 route-mass, risk-flag, and safetensors-delta probes and emits writer-ready next-candidate rules.",
@@ -2933,6 +2965,7 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_delta_frontier": summarize_qwen3_moe_delta_frontier(),
         "qwen3_moe_mechanism_eval_gate": summarize_qwen3_moe_mechanism_eval_gate(),
         "qwen3_moe_router_move_gate": summarize_qwen3_moe_router_move_gate(),
+        "qwen3_moe_router_calibration_job": summarize_qwen3_moe_router_calibration_job(),
         "qwen3_moe_trust_region_cap_search": summarize_qwen3_moe_trust_region_cap_search(),
         "toy_moe_routing_readiness": summarize_toy_moe_routing_readiness(),
         "toy_moe_method_selection": summarize_toy_moe_method_selection(),
@@ -3057,6 +3090,7 @@ def build_summary() -> dict[str, Any]:
             "python scripts/audit_materialized_checkpoint_delta.py --base BASE --candidate results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate --output-dir results/qwen3_moe_searched_no_gt065_delta_audit",
             "python scripts/build_qwen3_moe_delta_frontier.py --output-dir results/qwen3_moe_delta_frontier",
             "python scripts/build_qwen3_moe_router_move_gate.py --output-dir results/qwen3_moe_router_move_gate",
+            "python scripts/build_qwen3_moe_router_calibration_job.py --output-dir results/qwen3_moe_router_calibration_job",
             "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
             "PYTHONPATH=src python scripts/collect_results.py",
         ],
@@ -3133,6 +3167,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_delta_frontier = exp["qwen3_moe_delta_frontier"]
     qwen3_moe_mechanism_eval_gate = exp["qwen3_moe_mechanism_eval_gate"]
     qwen3_moe_router_move_gate = exp["qwen3_moe_router_move_gate"]
+    qwen3_moe_router_calibration_job = exp["qwen3_moe_router_calibration_job"]
     qwen3_moe_trust_region_cap_search = exp["qwen3_moe_trust_region_cap_search"]
     selected_unified_capacity = toy_moe.get("unified_moe_capacity_sweep_selected") or {}
     selected_unified_output_projection_capacity = (
@@ -3645,6 +3680,19 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(qwen3_moe_router_move_gate['mean_topk_jaccard'])}"
                 f"-{fmt(qwen3_moe_router_move_gate['min_topk_jaccard'])} / "
                 f"{fmt(qwen3_moe_router_move_gate['min_top1_agreement'])} |"
+            ),
+            (
+                "| Qwen3 MoE router calibration job | status / local GPU / candidates / stages | "
+                f"{qwen3_moe_router_calibration_job['status']} / "
+                f"{qwen3_moe_router_calibration_job['local_gpu_status']} / "
+                f"{qwen3_moe_router_calibration_job['candidate_count']} / "
+                f"{qwen3_moe_router_calibration_job['stage_count']} |"
+            ),
+            (
+                "| Qwen3 MoE router calibration job | inputs student / teacher / prompts | "
+                f"{qwen3_moe_router_calibration_job['student_exists']} / "
+                f"{qwen3_moe_router_calibration_job['teacher_exists']} / "
+                f"{qwen3_moe_router_calibration_job['prompts_exists']} |"
             ),
             (
                 "| Qwen3 MoE cap-law search | searched / frontier / expert groups | "

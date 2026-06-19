@@ -311,6 +311,11 @@
       "status": "complete"
     },
     {
+      "evidence": "results/qwen3_moe_router_calibration_job/report.md turns the rejected direct-router-move result into a capped route-KD router-calibration sweep job over the searched no-gt-0.65 candidate.",
+      "item": "Qwen3 MoE router calibration job",
+      "status": "complete"
+    },
+    {
       "evidence": "results/qwen3_moe_trust_region_cap_search/report.md searches interpretable expert cap laws over real Qwen3 route-mass, risk-flag, and safetensors-delta probes and emits writer-ready next-candidate rules.",
       "item": "Qwen3 MoE trust-region cap-law search",
       "status": "complete"
@@ -337,7 +342,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 66,
+    "complete": 67,
     "missing": 0,
     "partial": 1
   },
@@ -9804,6 +9809,221 @@
       "writer_manifest_exists": true,
       "writer_manifest_floating_tensors": 18867,
       "writer_manifest_frozen_tensors": 3603
+    },
+    "qwen3_moe_router_calibration_job": {
+      "candidate_count": 3,
+      "candidate_plan": "results/qwen3_moe_router_calibration_job/candidate_plan.csv",
+      "candidate_rows": [
+        {
+          "audit_dir": "results/qwen3_moe_router_calibration_job/audit_cap001",
+          "base_url": "http://127.0.0.1:8108/v1",
+          "cache_dir": "results/qwen3_moe_router_calibration_job/cache",
+          "cache_path": "results/qwen3_moe_router_calibration_job/cache/router_calibration_cache.pt",
+          "cap_label": "cap001",
+          "checkpoint_dir": "results/checkpoints/qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate",
+          "delta_dir": "results/qwen3_moe_router_calibration_job/delta_cap001",
+          "delta_safetensors": "results/qwen3_moe_router_calibration_job/delta_cap001/router_delta.safetensors",
+          "eval_dir": "results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate",
+          "method": "qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate",
+          "port": 8108,
+          "rank": 0,
+          "router_max_relative_norm": 0.01,
+          "selection_question": "Does route-KD router calibration improve the searched no-gt-0.65 expert-only candidate without breaking source-control downstream scores?",
+          "served_model": "candidate_qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate",
+          "student_checkpoint": "results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate",
+          "teacher_checkpoint": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-Coder-30B-A3B-Instruct/snapshots/b2cff646eb4bb1d68355c01b18ae02e7cf42d120"
+        },
+        {
+          "audit_dir": "results/qwen3_moe_router_calibration_job/audit_cap0025",
+          "base_url": "http://127.0.0.1:8109/v1",
+          "cache_dir": "results/qwen3_moe_router_calibration_job/cache",
+          "cache_path": "results/qwen3_moe_router_calibration_job/cache/router_calibration_cache.pt",
+          "cap_label": "cap0025",
+          "checkpoint_dir": "results/checkpoints/qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate",
+          "delta_dir": "results/qwen3_moe_router_calibration_job/delta_cap0025",
+          "delta_safetensors": "results/qwen3_moe_router_calibration_job/delta_cap0025/router_delta.safetensors",
+          "eval_dir": "results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate",
+          "method": "qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate",
+          "port": 8109,
+          "rank": 1,
+          "router_max_relative_norm": 0.025,
+          "selection_question": "Does route-KD router calibration improve the searched no-gt-0.65 expert-only candidate without breaking source-control downstream scores?",
+          "served_model": "candidate_qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate",
+          "student_checkpoint": "results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate",
+          "teacher_checkpoint": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-Coder-30B-A3B-Instruct/snapshots/b2cff646eb4bb1d68355c01b18ae02e7cf42d120"
+        },
+        {
+          "audit_dir": "results/qwen3_moe_router_calibration_job/audit_cap005",
+          "base_url": "http://127.0.0.1:8110/v1",
+          "cache_dir": "results/qwen3_moe_router_calibration_job/cache",
+          "cache_path": "results/qwen3_moe_router_calibration_job/cache/router_calibration_cache.pt",
+          "cap_label": "cap005",
+          "checkpoint_dir": "results/checkpoints/qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate",
+          "delta_dir": "results/qwen3_moe_router_calibration_job/delta_cap005",
+          "delta_safetensors": "results/qwen3_moe_router_calibration_job/delta_cap005/router_delta.safetensors",
+          "eval_dir": "results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate",
+          "method": "qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate",
+          "port": 8110,
+          "rank": 2,
+          "router_max_relative_norm": 0.05,
+          "selection_question": "Does route-KD router calibration improve the searched no-gt-0.65 expert-only candidate without breaking source-control downstream scores?",
+          "served_model": "candidate_qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate",
+          "student_checkpoint": "results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate",
+          "teacher_checkpoint": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-Coder-30B-A3B-Instruct/snapshots/b2cff646eb4bb1d68355c01b18ae02e7cf42d120"
+        }
+      ],
+      "local_gpu_status": "unavailable",
+      "mechanism": "route_kd_router_delta_after_frozen_router_expert_cap_law_candidate",
+      "prompts_exists": true,
+      "report": "results/qwen3_moe_router_calibration_job/report.md",
+      "router_caps": [
+        0.01,
+        0.025,
+        0.05
+      ],
+      "run_script": "results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh",
+      "stage_count": 13,
+      "stage_plan": "results/qwen3_moe_router_calibration_job/stage_plan.csv",
+      "stage_rows": [
+        {
+          "cap_label": "shared",
+          "command": "PYTHONPATH=scripts python scripts/collect_moe_router_calibration_cache.py --student-model results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate --teacher-model /srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-Coder-30B-A3B-Instruct/snapshots/b2cff646eb4bb1d68355c01b18ae02e7cf42d120 --tokenizer /srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe --prompts prompts/qwen_moe_route_probe_prompts.jsonl --device-map auto --dtype bfloat16 --max-length 768 --top-k 8 --capacity-factor 1.25 --max-samples-per-router 4096 --use-chat-template --local-files-only --output-dir /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_router_calibration_job/cache",
+          "expected_output": "results/qwen3_moe_router_calibration_job/cache/router_calibration_cache.pt",
+          "method": "shared_cache",
+          "purpose": "Capture student router hidden states and teacher router logits on the shared prompt pack.",
+          "stage": "collect_router_cache"
+        },
+        {
+          "cap_label": "cap001",
+          "command": "python scripts/train_moe_router_delta_calibration.py --base results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate --cache results/qwen3_moe_router_calibration_job/cache/router_calibration_cache.pt --output-dir results/qwen3_moe_router_calibration_job/delta_cap001 --epochs 120 --lr 0.05 --temperature 1.0 --top-k 8 --capacity-factor 1.25 --top1-loss-coef 0.25 --capacity-loss-coef 0.1 --trust-l2-coef 0.001 --max-relative-norm 0.01",
+          "expected_output": "results/qwen3_moe_router_calibration_job/delta_cap001/router_delta.safetensors",
+          "method": "qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate",
+          "purpose": "Train same-shape additive router delta under the cap-specific relative norm.",
+          "stage": "train_router_delta"
+        },
+        {
+          "cap_label": "cap001",
+          "command": "python scripts/write_same_shape_average_checkpoint.py --base results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate --source same=/srv/home/bohanlyu/visualizing-model-merging/results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate --source-weight same=0.0 --freeze-router --tensor-delta-safetensors results/qwen3_moe_router_calibration_job/delta_cap001/router_delta.safetensors --output-dir results/checkpoints/qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate",
+          "expected_output": "results/checkpoints/qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate",
+          "method": "qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate",
+          "purpose": "Apply only the calibrated router delta to the searched no-gt-0.65 student checkpoint.",
+          "stage": "materialize_checkpoint"
+        },
+        {
+          "cap_label": "cap001",
+          "command": "python scripts/audit_materialized_checkpoint_delta.py --base results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate --candidate results/checkpoints/qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate --output-dir results/qwen3_moe_router_calibration_job/audit_cap001",
+          "expected_output": "results/qwen3_moe_router_calibration_job/audit_cap001",
+          "method": "qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate",
+          "purpose": "Verify the new checkpoint only moves intended tensors and records delta norms.",
+          "stage": "audit_delta"
+        },
+        {
+          "cap_label": "cap001",
+          "command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8108/v1 --models candidate_qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate",
+          "expected_output": "results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate",
+          "method": "qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate",
+          "purpose": "Run downstream tasks against the router-calibrated ablation candidate.",
+          "stage": "vllm_eval"
+        },
+        {
+          "cap_label": "cap0025",
+          "command": "python scripts/train_moe_router_delta_calibration.py --base results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate --cache results/qwen3_moe_router_calibration_job/cache/router_calibration_cache.pt --output-dir results/qwen3_moe_router_calibration_job/delta_cap0025 --epochs 120 --lr 0.05 --temperature 1.0 --top-k 8 --capacity-factor 1.25 --top1-loss-coef 0.25 --capacity-loss-coef 0.1 --trust-l2-coef 0.001 --max-relative-norm 0.025",
+          "expected_output": "results/qwen3_moe_router_calibration_job/delta_cap0025/router_delta.safetensors",
+          "method": "qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate",
+          "purpose": "Train same-shape additive router delta under the cap-specific relative norm.",
+          "stage": "train_router_delta"
+        },
+        {
+          "cap_label": "cap0025",
+          "command": "python scripts/write_same_shape_average_checkpoint.py --base results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate --source same=/srv/home/bohanlyu/visualizing-model-merging/results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate --source-weight same=0.0 --freeze-router --tensor-delta-safetensors results/qwen3_moe_router_calibration_job/delta_cap0025/router_delta.safetensors --output-dir results/checkpoints/qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate",
+          "expected_output": "results/checkpoints/qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate",
+          "method": "qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate",
+          "purpose": "Apply only the calibrated router delta to the searched no-gt-0.65 student checkpoint.",
+          "stage": "materialize_checkpoint"
+        },
+        {
+          "cap_label": "cap0025",
+          "command": "python scripts/audit_materialized_checkpoint_delta.py --base results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate --candidate results/checkpoints/qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate --output-dir results/qwen3_moe_router_calibration_job/audit_cap0025",
+          "expected_output": "results/qwen3_moe_router_calibration_job/audit_cap0025",
+          "method": "qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate",
+          "purpose": "Verify the new checkpoint only moves intended tensors and records delta norms.",
+          "stage": "audit_delta"
+        },
+        {
+          "cap_label": "cap0025",
+          "command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8109/v1 --models candidate_qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate",
+          "expected_output": "results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate",
+          "method": "qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate",
+          "purpose": "Run downstream tasks against the router-calibrated ablation candidate.",
+          "stage": "vllm_eval"
+        },
+        {
+          "cap_label": "cap005",
+          "command": "python scripts/train_moe_router_delta_calibration.py --base results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate --cache results/qwen3_moe_router_calibration_job/cache/router_calibration_cache.pt --output-dir results/qwen3_moe_router_calibration_job/delta_cap005 --epochs 120 --lr 0.05 --temperature 1.0 --top-k 8 --capacity-factor 1.25 --top1-loss-coef 0.25 --capacity-loss-coef 0.1 --trust-l2-coef 0.001 --max-relative-norm 0.05",
+          "expected_output": "results/qwen3_moe_router_calibration_job/delta_cap005/router_delta.safetensors",
+          "method": "qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate",
+          "purpose": "Train same-shape additive router delta under the cap-specific relative norm.",
+          "stage": "train_router_delta"
+        },
+        {
+          "cap_label": "cap005",
+          "command": "python scripts/write_same_shape_average_checkpoint.py --base results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate --source same=/srv/home/bohanlyu/visualizing-model-merging/results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate --source-weight same=0.0 --freeze-router --tensor-delta-safetensors results/qwen3_moe_router_calibration_job/delta_cap005/router_delta.safetensors --output-dir results/checkpoints/qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate",
+          "expected_output": "results/checkpoints/qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate",
+          "method": "qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate",
+          "purpose": "Apply only the calibrated router delta to the searched no-gt-0.65 student checkpoint.",
+          "stage": "materialize_checkpoint"
+        },
+        {
+          "cap_label": "cap005",
+          "command": "python scripts/audit_materialized_checkpoint_delta.py --base results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate --candidate results/checkpoints/qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate --output-dir results/qwen3_moe_router_calibration_job/audit_cap005",
+          "expected_output": "results/qwen3_moe_router_calibration_job/audit_cap005",
+          "method": "qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate",
+          "purpose": "Verify the new checkpoint only moves intended tensors and records delta norms.",
+          "stage": "audit_delta"
+        },
+        {
+          "cap_label": "cap005",
+          "command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8110/v1 --models candidate_qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate",
+          "expected_output": "results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate",
+          "method": "qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate",
+          "purpose": "Run downstream tasks against the router-calibrated ablation candidate.",
+          "stage": "vllm_eval"
+        }
+      ],
+      "status": "job_ready_awaiting_gpu",
+      "student_exists": true,
+      "summary": {
+        "candidate_count": 3,
+        "local_gpu_status": "unavailable",
+        "mechanism": "route_kd_router_delta_after_frozen_router_expert_cap_law_candidate",
+        "outputs": {
+          "candidate_plan": "results/qwen3_moe_router_calibration_job/candidate_plan.csv",
+          "report": "results/qwen3_moe_router_calibration_job/report.md",
+          "run_script": "results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh",
+          "stage_plan": "results/qwen3_moe_router_calibration_job/stage_plan.csv",
+          "summary": "results/qwen3_moe_router_calibration_job/summary.json"
+        },
+        "prompts": "prompts/qwen_moe_route_probe_prompts.jsonl",
+        "prompts_exists": true,
+        "router_caps": [
+          0.01,
+          0.025,
+          0.05
+        ],
+        "run_script_command": "results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh all",
+        "schema_version": 1,
+        "stage_count": 13,
+        "status": "job_ready_awaiting_gpu",
+        "student": "results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate",
+        "student_exists": true,
+        "teacher": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-Coder-30B-A3B-Instruct/snapshots/b2cff646eb4bb1d68355c01b18ae02e7cf42d120",
+        "teacher_exists": true,
+        "tokenizer": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe",
+        "tokenizer_exists": true
+      },
+      "summary_path": "results/qwen3_moe_router_calibration_job/summary.json",
+      "teacher_exists": true,
+      "tokenizer_exists": true
     },
     "qwen3_moe_router_move_gate": {
       "allowed_router_layer_count": 0,
@@ -20932,7 +21152,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-19T21:52:28.235000+00:00",
+  "generated_at": "2026-06-19T21:59:27.976326+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -21009,6 +21229,7 @@
     "python scripts/audit_materialized_checkpoint_delta.py --base BASE --candidate results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate --output-dir results/qwen3_moe_searched_no_gt065_delta_audit",
     "python scripts/build_qwen3_moe_delta_frontier.py --output-dir results/qwen3_moe_delta_frontier",
     "python scripts/build_qwen3_moe_router_move_gate.py --output-dir results/qwen3_moe_router_move_gate",
+    "python scripts/build_qwen3_moe_router_calibration_job.py --output-dir results/qwen3_moe_router_calibration_job",
     "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
     "PYTHONPATH=src python scripts/collect_results.py"
   ],
