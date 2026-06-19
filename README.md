@@ -36,6 +36,7 @@
 20. **Expert matching 已能进入 checkpoint materialization。** [Toy MoE Expert Remap Plan](results/toy_moe_expert_remap_plan/report.md) 把 expert-output matching 转成 `source_tensor_aliases.txt`：输出 checkpoint 的 expert index、tensor name 和 shape 不变，只改变某个 source 读取哪个 matched expert tensor；当前 4 个 alias rule 全部 ready，最小 output cosine 为 `0.943`。
 21. **Router-bias capacity correction 已落成 recipe。** [MoE Router Bias Plan](results/moe_router_bias_plan/report.md) 用 per prompt/category 的 worst top-k load 生成 writer-ready `router_bias_deltas.csv`；toy `unified_moe_average` 上 expert 0 的 worst top-k fraction 是 `0.3900`，高于 capacity `0.3125`，因此生成 `-0.0530` 的 bias delta，其余 experts 做中心化补偿。真实 Qwen checkpoint 若没有对应 bias tensor，writer 会在校验阶段报错，而不是改变模型结构。
 22. **vLLM 下游评测 harness 已做 HTTP contract smoke。** [vLLM Downstream Eval Contract Smoke](results/vllm_downstream_eval_smoke/smoke_report.md) 启动本地 OpenAI-compatible mock endpoint，通过真实 HTTP 调用 `scripts/run_vllm_downstream_eval.py`，验证 GSM8K、MMLU、safety、HumanEval compile 的请求、解析、打分、排序和产物写出；mock-good 平均主指标 `1.000`，mock-bad 为 `0.000`。真实 GPU/vLLM endpoint 仍然是下一步，不能把这个 smoke 当成真实性能结果。
+23. **同构 checkpoint 的 vLLM 轮测计划已生成。** [vLLM Checkpoint Eval Plan](results/vllm_checkpoint_eval_plan/report.md) 把候选 checkpoint 转成逐个 `vllm serve` 和 `run_vllm_downstream_eval.py` 命令；当前 3 个候选里 `0` 个 ready、`2` 个还缺真实 materialized checkpoint、`1` 个是 toy writer 验证不能 vLLM 加载。也就是说流程已经接上，但真实性能仍必须等 checkpoint 写出后再 host 评测。
 
 核心对象是：
 
@@ -92,7 +93,7 @@ z 轴 = loss
 
 ## 结论摘要
 
-当前 coverage audit：`complete = 32`, `partial = 1`, `missing = 0`；唯一 partial 是 vLLM hosted downstream eval 还没有可用 endpoint。完整汇总见 `results/summary.md` 和 `results/summary.json`。
+当前 coverage audit：`complete = 33`, `partial = 1`, `missing = 0`；唯一 partial 是 vLLM hosted downstream eval 还没有可用 endpoint。完整汇总见 `results/summary.md` 和 `results/summary.json`。
 
 主要结论：
 

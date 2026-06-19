@@ -972,6 +972,24 @@ def summarize_vllm_downstream_eval_smoke() -> dict[str, Any]:
     }
 
 
+def summarize_vllm_checkpoint_eval_plan() -> dict[str, Any]:
+    summary = read_json("results/vllm_checkpoint_eval_plan/summary.json")
+    plan = read_csv("results/vllm_checkpoint_eval_plan/checkpoint_eval_plan.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "candidate_count": int(summary.get("candidate_count", len(plan))),
+        "ready_to_host_count": int(summary.get("ready_to_host_count", 0)),
+        "missing_checkpoint_count": int(summary.get("missing_checkpoint_count", 0)),
+        "not_vllm_loadable_count": int(summary.get("not_vllm_loadable_count", 0)),
+        "tasks": summary.get("tasks"),
+        "plan_rows": [clean_row(row) for _, row in plan.iterrows()],
+        "report": rel("results/vllm_checkpoint_eval_plan/report.md"),
+        "plan_csv": rel("results/vllm_checkpoint_eval_plan/checkpoint_eval_plan.csv"),
+        "shell_script": rel("results/vllm_checkpoint_eval_plan/serve_and_eval_commands.sh"),
+    }
+
+
 def summarize_model_averaging_literature_review() -> dict[str, Any]:
     summary = read_json("results/model_averaging_literature_review/summary.json")
     methods = read_csv("results/model_averaging_literature_review/method_matrix.csv")
@@ -1121,6 +1139,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/vllm_downstream_eval_smoke/smoke_report.md validates the OpenAI-compatible HTTP request, answer parsing, scoring, model ranking, and artifact writing path using a local mock endpoint.",
         },
         {
+            "item": "vLLM checkpoint eval plan",
+            "status": "complete",
+            "evidence": "results/vllm_checkpoint_eval_plan/report.md turns same-shape checkpoint candidates into one-checkpoint-at-a-time vLLM serve/eval commands while keeping missing checkpoints separate from completed metrics.",
+        },
+        {
             "item": "Probe-guided Average decision report",
             "status": "complete",
             "evidence": "results/average_decision_report/report.md converts merge grids, conflict probes, and optional MoE routing probes into same-shape average decisions.",
@@ -1252,6 +1275,7 @@ def build_summary() -> dict[str, Any]:
         "toy_moe_expert_remap_plan": summarize_toy_moe_expert_remap_plan(),
         "vllm_downstream_eval": summarize_vllm_downstream_eval(),
         "vllm_downstream_eval_smoke": summarize_vllm_downstream_eval_smoke(),
+        "vllm_checkpoint_eval_plan": summarize_vllm_checkpoint_eval_plan(),
     }
     coverage = coverage_checklist()
     counts = {
@@ -1294,6 +1318,7 @@ def build_summary() -> dict[str, Any]:
             "python scripts/build_model_averaging_literature_review.py",
             "python scripts/smoke_moe_routing_probe_contract.py",
             "python scripts/smoke_vllm_downstream_eval_contract.py --output-dir results/vllm_downstream_eval_smoke",
+            "PYTHONPATH=src python scripts/build_vllm_checkpoint_eval_plan.py --output-dir results/vllm_checkpoint_eval_plan",
             "PYTHONPATH=src python scripts/build_average_decision_report.py",
             "python scripts/build_qwen_target_model_registry.py",
             "PYTHONPATH=src python scripts/build_moe_average_plan.py",
@@ -1354,6 +1379,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     toy_moe_remap = exp["toy_moe_expert_remap_plan"]
     vllm_eval = exp["vllm_downstream_eval"]
     vllm_eval_smoke = exp["vllm_downstream_eval_smoke"]
+    vllm_checkpoint_eval_plan = exp["vllm_checkpoint_eval_plan"]
     coverage_counts = summary["coverage_counts"]
     lines = [
         "# Result Summary",
@@ -1837,6 +1863,16 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| vLLM downstream eval smoke | good / bad avg primary | "
                 f"{fmt(vllm_eval_smoke['mock_good_avg_primary_score'])} / {fmt(vllm_eval_smoke['mock_bad_avg_primary_score'])} |"
+            ),
+            (
+                "| vLLM checkpoint eval plan | status | "
+                f"{vllm_checkpoint_eval_plan['status']} |"
+            ),
+            (
+                "| vLLM checkpoint eval plan | ready / missing / not-loadable | "
+                f"{vllm_checkpoint_eval_plan['ready_to_host_count']} / "
+                f"{vllm_checkpoint_eval_plan['missing_checkpoint_count']} / "
+                f"{vllm_checkpoint_eval_plan['not_vllm_loadable_count']} |"
             ),
             (
                 "| Average decision report | avoid uniform average decisions | "

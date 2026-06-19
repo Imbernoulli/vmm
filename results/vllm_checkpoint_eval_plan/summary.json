@@ -1,0 +1,17 @@
+{
+  "candidate_count": 3,
+  "example_source": "datasets",
+  "missing_checkpoint_count": 2,
+  "not_vllm_loadable_count": 1,
+  "outputs": {
+    "plan_csv": "results/vllm_checkpoint_eval_plan/checkpoint_eval_plan.csv",
+    "report": "results/vllm_checkpoint_eval_plan/report.md",
+    "shell_script": "results/vllm_checkpoint_eval_plan/serve_and_eval_commands.sh",
+    "summary": "results/vllm_checkpoint_eval_plan/summary.json"
+  },
+  "ready_to_host_count": 0,
+  "same_shape_constraint": "The plan evaluates one materialized checkpoint at a time through vLLM; it does not use ensembles or change model structure.",
+  "schema_version": 1,
+  "status": "waiting_for_checkpoint_materialization",
+  "tasks": "gsm8k,mmlu,safety,humaneval_compile"
+}
