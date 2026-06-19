@@ -66,6 +66,11 @@
       "status": "complete"
     },
     {
+      "evidence": "results/fp_merge_compare_dense/report.md evaluates a finite family containing linear average, task arithmetic, sign-elect, and magnitude-weighted variants, then selects by held-out worst-task NLL.",
+      "item": "Unified merge-family selector",
+      "status": "complete"
+    },
+    {
       "evidence": "Representative Qwen2.5-1.5B benchmark slices cover MMLU, GSM8K, HumanEval canonical-solution NLL, and BeaverTails safety/refusal NLL.",
       "item": "Formal LLM benchmark slices",
       "status": "complete"
@@ -277,7 +282,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 54,
+    "complete": 55,
     "missing": 0,
     "partial": 1
   },
@@ -2153,6 +2158,517 @@
         "general": 5.9108830695058785,
         "worst": 5.9108830695058785
       }
+    },
+    "fp_merge_compare_dense": {
+      "best_endpoint_worst": 5.150962227269223,
+      "candidate_count": 24,
+      "grid_profile": "linear",
+      "heldout_best_worst": 5.452541559392755,
+      "linear": {
+        "avg": 5.837696116221578,
+        "code": 2.727657198905945,
+        "config": {
+          "density": 1.0,
+          "importance": "uniform",
+          "lam": 1.0,
+          "router": "average",
+          "sign_resolve": false
+        },
+        "general": 8.947735033537212,
+        "worst": 8.947735033537212
+      },
+      "linear_worst_delta_vs_unified": 3.764782955771998,
+      "method_metrics": "results/fp_merge_compare_dense/method_metrics.csv",
+      "method_rows": [
+        {
+          "avg": 2.9024367599110854,
+          "code": 0.653911292552948,
+          "config": "{}",
+          "general": 5.150962227269223,
+          "ho_worst": null,
+          "method": "instruct",
+          "worst": 5.150962227269223
+        },
+        {
+          "avg": 2.8319436915610967,
+          "code": 0.4809353053569793,
+          "config": "{\"density\": 1.0, \"importance\": \"uniform\", \"lam\": 0.0, \"router\": \"average\", \"sign_resolve\": true}",
+          "general": 5.182952077765214,
+          "ho_worst": 5.452541559392755,
+          "method": "unified",
+          "worst": 5.182952077765214
+        },
+        {
+          "avg": 2.9639150178746174,
+          "code": 0.4512002766132355,
+          "config": "{\"density\": 1.0, \"importance\": \"uniform\", \"lam\": 0.5, \"router\": \"average\", \"sign_resolve\": false}",
+          "general": 5.476629759135999,
+          "ho_worst": null,
+          "method": "task_arith_0.5",
+          "worst": 5.476629759135999
+        },
+        {
+          "avg": 3.0273181592163287,
+          "code": 0.5733227133750916,
+          "config": "{}",
+          "general": 5.481313605057566,
+          "ho_worst": null,
+          "method": "coder",
+          "worst": 5.481313605057566
+        },
+        {
+          "avg": 5.837696116221578,
+          "code": 2.727657198905945,
+          "config": "{\"density\": 1.0, \"importance\": \"uniform\", \"lam\": 1.0, \"router\": \"average\", \"sign_resolve\": false}",
+          "general": 8.947735033537212,
+          "ho_worst": null,
+          "method": "linear",
+          "worst": 8.947735033537212
+        },
+        {
+          "avg": 5.333095423485103,
+          "code": 1.556502640247345,
+          "config": "{\"density\": 0.5, \"importance\": \"uniform\", \"lam\": 1.0, \"router\": \"average\", \"sign_resolve\": true}",
+          "general": 9.10968820672286,
+          "ho_worst": null,
+          "method": "ties_0.5",
+          "worst": 9.10968820672286
+        }
+      ],
+      "models": {
+        "base": "Qwen/Qwen2.5-0.5B",
+        "coder": "Qwen/Qwen2.5-Coder-0.5B-Instruct",
+        "instruct": "Qwen/Qwen2.5-0.5B-Instruct"
+      },
+      "report": "results/fp_merge_compare_dense/report.md",
+      "selected_config": {
+        "density": 1.0,
+        "importance": "uniform",
+        "lam": 0.0,
+        "router": "average",
+        "sign_resolve": true
+      },
+      "selection_trace": "results/fp_merge_compare_dense/selection_trace.csv",
+      "summary": {
+        "best_endpoint_worst": 5.150962227269223,
+        "candidate_count": 24,
+        "grid_profile": "linear",
+        "interpretation": {
+          "finite_candidate_note": "inside the candidate set, validation risk selection targets the empirical best candidate; residual risk is validation noise, not a static algorithm assumption",
+          "selection_rule": "choose the candidate with lowest held-out worst-task NLL, then report it on a disjoint test split",
+          "unified_family": "base + lambda * coordinate_rule(delta_instruct, delta_coder), with named methods as special cases",
+          "why_this_is_unified": "the method selector is a probe over mechanisms: barrier/coefficient, sign disagreement, magnitude importance, and optionally router policy"
+        },
+        "is_moe": false,
+        "models": {
+          "base": "Qwen/Qwen2.5-0.5B",
+          "coder": "Qwen/Qwen2.5-Coder-0.5B-Instruct",
+          "instruct": "Qwen/Qwen2.5-0.5B-Instruct"
+        },
+        "results": {
+          "coder": {
+            "avg": 3.0273181592163287,
+            "code": 0.5733227133750916,
+            "general": 5.481313605057566,
+            "worst": 5.481313605057566
+          },
+          "instruct": {
+            "avg": 2.9024367599110854,
+            "code": 0.653911292552948,
+            "general": 5.150962227269223,
+            "worst": 5.150962227269223
+          },
+          "linear": {
+            "avg": 5.837696116221578,
+            "code": 2.727657198905945,
+            "config": {
+              "density": 1.0,
+              "importance": "uniform",
+              "lam": 1.0,
+              "router": "average",
+              "sign_resolve": false
+            },
+            "general": 8.947735033537212,
+            "worst": 8.947735033537212
+          },
+          "task_arith_0.5": {
+            "avg": 2.9639150178746174,
+            "code": 0.4512002766132355,
+            "config": {
+              "density": 1.0,
+              "importance": "uniform",
+              "lam": 0.5,
+              "router": "average",
+              "sign_resolve": false
+            },
+            "general": 5.476629759135999,
+            "worst": 5.476629759135999
+          },
+          "ties_0.5": {
+            "avg": 5.333095423485103,
+            "code": 1.556502640247345,
+            "config": {
+              "density": 0.5,
+              "importance": "uniform",
+              "lam": 1.0,
+              "router": "average",
+              "sign_resolve": true
+            },
+            "general": 9.109688206722861,
+            "worst": 9.109688206722861
+          },
+          "unified": {
+            "avg": 2.8319436915610967,
+            "code": 0.48093530535697937,
+            "config": {
+              "density": 1.0,
+              "importance": "uniform",
+              "lam": 0.0,
+              "router": "average",
+              "sign_resolve": true
+            },
+            "general": 5.182952077765214,
+            "ho_worst": 5.452541559392755,
+            "worst": 5.182952077765214
+          }
+        },
+        "schema_version": 1,
+        "selection_trace": [
+          {
+            "density": 1.0,
+            "ho_avg": 4.498831733790311,
+            "ho_worst": 5.452541559392755,
+            "importance": "uniform",
+            "lam": 0.0,
+            "router": "average",
+            "sign_resolve": true
+          },
+          {
+            "density": 1.0,
+            "ho_avg": 4.498831733790311,
+            "ho_worst": 5.452541559392755,
+            "importance": "mag",
+            "lam": 0.0,
+            "router": "average",
+            "sign_resolve": true
+          },
+          {
+            "density": 1.0,
+            "ho_avg": 4.498831733790311,
+            "ho_worst": 5.452541559392755,
+            "importance": "uniform",
+            "lam": 0.0,
+            "router": "average",
+            "sign_resolve": false
+          },
+          {
+            "density": 1.0,
+            "ho_avg": 4.498831733790311,
+            "ho_worst": 5.452541559392755,
+            "importance": "mag",
+            "lam": 0.0,
+            "router": "average",
+            "sign_resolve": false
+          },
+          {
+            "density": 1.0,
+            "ho_avg": 4.435853585329923,
+            "ho_worst": 6.040932672674006,
+            "importance": "uniform",
+            "lam": 0.25,
+            "router": "average",
+            "sign_resolve": true
+          },
+          {
+            "density": 1.0,
+            "ho_avg": 4.825362599979748,
+            "ho_worst": 6.57334511496804,
+            "importance": "mag",
+            "lam": 0.25,
+            "router": "average",
+            "sign_resolve": true
+          },
+          {
+            "density": 1.0,
+            "ho_avg": 4.550848256457936,
+            "ho_worst": 5.762036965110085,
+            "importance": "uniform",
+            "lam": 0.25,
+            "router": "average",
+            "sign_resolve": false
+          },
+          {
+            "density": 1.0,
+            "ho_avg": 4.849828737432307,
+            "ho_worst": 6.586525379527699,
+            "importance": "mag",
+            "lam": 0.25,
+            "router": "average",
+            "sign_resolve": false
+          },
+          {
+            "density": 1.0,
+            "ho_avg": 4.661592760953036,
+            "ho_worst": 7.020343572443182,
+            "importance": "uniform",
+            "lam": 0.5,
+            "router": "average",
+            "sign_resolve": true
+          },
+          {
+            "density": 1.0,
+            "ho_avg": 5.395954916693948,
+            "ho_worst": 7.935041947798296,
+            "importance": "mag",
+            "lam": 0.5,
+            "router": "average",
+            "sign_resolve": true
+          },
+          {
+            "density": 1.0,
+            "ho_avg": 4.922777865149758,
+            "ho_worst": 6.813200517134233,
+            "importance": "uniform",
+            "lam": 0.5,
+            "router": "average",
+            "sign_resolve": false
+          },
+          {
+            "density": 1.0,
+            "ho_avg": 5.369788798418912,
+            "ho_worst": 7.931029718572443,
+            "importance": "mag",
+            "lam": 0.5,
+            "router": "average",
+            "sign_resolve": false
+          },
+          {
+            "density": 1.0,
+            "ho_avg": 5.630808392438022,
+            "ho_worst": 8.312512761896306,
+            "importance": "uniform",
+            "lam": 0.75,
+            "router": "average",
+            "sign_resolve": true
+          },
+          {
+            "density": 1.0,
+            "ho_avg": 5.544785048744895,
+            "ho_worst": 8.15616288618608,
+            "importance": "mag",
+            "lam": 0.75,
+            "router": "average",
+            "sign_resolve": true
+          },
+          {
+            "density": 1.0,
+            "ho_avg": 5.6405119625004865,
+            "ho_worst": 8.834704034978694,
+            "importance": "uniform",
+            "lam": 0.75,
+            "router": "average",
+            "sign_resolve": false
+          },
+          {
+            "density": 1.0,
+            "ho_avg": 5.438619717684659,
+            "ho_worst": 7.966796320134943,
+            "importance": "mag",
+            "lam": 0.75,
+            "router": "average",
+            "sign_resolve": false
+          },
+          {
+            "density": 1.0,
+            "ho_avg": 5.4669323108413,
+            "ho_worst": 8.765836958451704,
+            "importance": "uniform",
+            "lam": 1.0,
+            "router": "average",
+            "sign_resolve": true
+          },
+          {
+            "density": 1.0,
+            "ho_avg": 4.5200706590305675,
+            "ho_worst": 5.766849587180397,
+            "importance": "mag",
+            "lam": 1.0,
+            "router": "average",
+            "sign_resolve": true
+          },
+          {
+            "density": 1.0,
+            "ho_avg": 5.384348448840054,
+            "ho_worst": 8.03221074884588,
+            "importance": "uniform",
+            "lam": 1.0,
+            "router": "average",
+            "sign_resolve": false
+          },
+          {
+            "density": 1.0,
+            "ho_avg": 4.483708830313249,
+            "ho_worst": 5.803842440518466,
+            "importance": "mag",
+            "lam": 1.0,
+            "router": "average",
+            "sign_resolve": false
+          },
+          {
+            "density": 1.0,
+            "ho_avg": 4.413236568190834,
+            "ho_worst": 6.320195146040483,
+            "importance": "uniform",
+            "lam": 1.25,
+            "router": "average",
+            "sign_resolve": true
+          },
+          {
+            "density": 1.0,
+            "ho_avg": 5.160172500393607,
+            "ho_worst": 7.800373701615767,
+            "importance": "mag",
+            "lam": 1.25,
+            "router": "average",
+            "sign_resolve": true
+          },
+          {
+            "density": 1.0,
+            "ho_avg": 5.513464264436202,
+            "ho_worst": 8.065679654208097,
+            "importance": "uniform",
+            "lam": 1.25,
+            "router": "average",
+            "sign_resolve": false
+          },
+          {
+            "density": 1.0,
+            "ho_avg": 4.968374759500676,
+            "ho_worst": 7.6161265980113635,
+            "importance": "mag",
+            "lam": 1.25,
+            "router": "average",
+            "sign_resolve": false
+          }
+        ]
+      },
+      "summary_path": "results/fp_merge_compare_dense/summary.json",
+      "task_arith_0_5": {
+        "avg": 2.9639150178746174,
+        "code": 0.4512002766132355,
+        "config": {
+          "density": 1.0,
+          "importance": "uniform",
+          "lam": 0.5,
+          "router": "average",
+          "sign_resolve": false
+        },
+        "general": 5.476629759135999,
+        "worst": 5.476629759135999
+      },
+      "ties_0_5": {
+        "avg": 5.333095423485103,
+        "code": 1.556502640247345,
+        "config": {
+          "density": 0.5,
+          "importance": "uniform",
+          "lam": 1.0,
+          "router": "average",
+          "sign_resolve": true
+        },
+        "general": 9.109688206722861,
+        "worst": 9.109688206722861
+      },
+      "ties_worst_delta_vs_unified": 3.9267361289576472,
+      "top_selection_rows": [
+        {
+          "density": 1.0,
+          "ho_avg": 4.498831733790311,
+          "ho_worst": 5.452541559392755,
+          "importance": "uniform",
+          "lam": 0.0,
+          "router": "average",
+          "sign_resolve": true
+        },
+        {
+          "density": 1.0,
+          "ho_avg": 4.498831733790311,
+          "ho_worst": 5.452541559392755,
+          "importance": "mag",
+          "lam": 0.0,
+          "router": "average",
+          "sign_resolve": true
+        },
+        {
+          "density": 1.0,
+          "ho_avg": 4.498831733790311,
+          "ho_worst": 5.452541559392755,
+          "importance": "uniform",
+          "lam": 0.0,
+          "router": "average",
+          "sign_resolve": false
+        },
+        {
+          "density": 1.0,
+          "ho_avg": 4.498831733790311,
+          "ho_worst": 5.452541559392755,
+          "importance": "mag",
+          "lam": 0.0,
+          "router": "average",
+          "sign_resolve": false
+        },
+        {
+          "density": 1.0,
+          "ho_avg": 4.550848256457936,
+          "ho_worst": 5.762036965110085,
+          "importance": "uniform",
+          "lam": 0.25,
+          "router": "average",
+          "sign_resolve": false
+        },
+        {
+          "density": 1.0,
+          "ho_avg": 4.520070659030568,
+          "ho_worst": 5.766849587180397,
+          "importance": "mag",
+          "lam": 1.0,
+          "router": "average",
+          "sign_resolve": true
+        },
+        {
+          "density": 1.0,
+          "ho_avg": 4.483708830313249,
+          "ho_worst": 5.803842440518466,
+          "importance": "mag",
+          "lam": 1.0,
+          "router": "average",
+          "sign_resolve": false
+        },
+        {
+          "density": 1.0,
+          "ho_avg": 4.435853585329923,
+          "ho_worst": 6.040932672674006,
+          "importance": "uniform",
+          "lam": 0.25,
+          "router": "average",
+          "sign_resolve": true
+        }
+      ],
+      "unified": {
+        "avg": 2.8319436915610967,
+        "code": 0.48093530535697937,
+        "config": {
+          "density": 1.0,
+          "importance": "uniform",
+          "lam": 0.0,
+          "router": "average",
+          "sign_resolve": true
+        },
+        "general": 5.182952077765214,
+        "ho_worst": 5.452541559392755,
+        "worst": 5.182952077765214
+      },
+      "unified_worst_minus_best_endpoint": 0.031989850495991234
     },
     "fp_moe_mechanism": {
       "base": {
@@ -11162,7 +11678,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-19T17:33:45.008708+00:00",
+  "generated_at": "2026-06-19T17:47:41.807014+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -11179,6 +11695,7 @@
     "PYTHONPATH=src python scripts/run_qwen_safety_refusal_slice.py --output-dir results/qwen_safety_refusal_slice",
     "PYTHONPATH=src python scripts/run_qwen_multi_expert_merge.py --output-dir results/qwen_multi_expert_merge",
     "python scripts/fp_curvature_law.py --out results/fp_curvature_law",
+    "python scripts/fp_merge_compare.py --instruct Qwen/Qwen2.5-0.5B-Instruct --coder Qwen/Qwen2.5-Coder-0.5B-Instruct --base Qwen/Qwen2.5-0.5B --out results/fp_merge_compare_dense --n-general 4 --n-code 4 --seqlen 128 --grid-profile linear --device cpu",
     "python scripts/fp_moe_mechanism.py --out results/fp_moe_mechanism --base-steps 700 --ft-steps 500",
     "python scripts/fp_moe_real_probe.py --mode gauge_selfmerge --model-a allenai/OLMoE-1B-7B-0924-Instruct --out results/fp_moe_real_probe --n-probe 4 --seqlen 128",
     "PYTHONPATH=src python scripts/run_toy_moe_merge.py --output-dir results/toy_moe_merge --device cpu",

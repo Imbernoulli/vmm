@@ -108,11 +108,11 @@ def collect_artifacts() -> list[dict[str, Any]]:
     ]
     suffixes = {".py", ".md", ".csv", ".json", ".jsonl", ".txt", ".png", ".html"}
     excluded_files = {
-        "scripts/fp_merge_compare.py",  # incomplete: current run only produced a log
+        "scripts/fp_gen_eval.py",  # incomplete: current run only produced a log
         "scripts/fp_moe_barrier.py",  # incomplete: current run only produced a log
     }
     excluded_prefixes = {
-        "results/fp_merge_compare_dense/",
+        "results/fp_gen_eval_moe/",
         "results/fp_moe_barrier/",
         "results/fp_moe_real_probe/olmoe/",
     }
@@ -462,6 +462,48 @@ def summarize_fp_curvature_law() -> dict[str, Any]:
         "report": rel(root / "report.md"),
         "figure": rel(root / "curvature_law.png"),
         "summary_path": rel(root / "summary.json"),
+    }
+
+
+def summarize_fp_merge_compare() -> dict[str, Any]:
+    root = repo_path("results/fp_merge_compare_dense")
+    summary = read_json(root / "summary.json")
+    methods = read_csv(root / "method_metrics.csv")
+    trace = read_csv(root / "selection_trace.csv")
+    results = summary.get("results", {})
+    unified = results.get("unified", {})
+    linear = results.get("linear", {})
+    task_arith = results.get("task_arith_0.5", {})
+    ties = results.get("ties_0.5", {})
+    best_endpoint = maybe_float(summary.get("best_endpoint_worst"))
+    unified_worst = maybe_float(unified.get("worst"))
+    return {
+        "summary": summary,
+        "models": summary.get("models", {}),
+        "grid_profile": summary.get("grid_profile"),
+        "candidate_count": int(summary.get("candidate_count", len(trace))),
+        "selected_config": unified.get("config", {}),
+        "heldout_best_worst": maybe_float(unified.get("ho_worst")),
+        "unified": unified,
+        "linear": linear,
+        "task_arith_0_5": task_arith,
+        "ties_0_5": ties,
+        "best_endpoint_worst": best_endpoint,
+        "unified_worst_minus_best_endpoint": None
+        if unified_worst is None or best_endpoint is None
+        else unified_worst - best_endpoint,
+        "linear_worst_delta_vs_unified": None
+        if maybe_float(linear.get("worst")) is None or unified_worst is None
+        else maybe_float(linear.get("worst")) - unified_worst,
+        "ties_worst_delta_vs_unified": None
+        if maybe_float(ties.get("worst")) is None or unified_worst is None
+        else maybe_float(ties.get("worst")) - unified_worst,
+        "method_rows": [clean_row(row) for _, row in methods.iterrows()],
+        "top_selection_rows": [clean_row(row) for _, row in trace.head(8).iterrows()],
+        "report": rel(root / "report.md"),
+        "summary_path": rel(root / "summary.json"),
+        "method_metrics": rel(root / "method_metrics.csv"),
+        "selection_trace": rel(root / "selection_trace.csv"),
     }
 
 
@@ -1837,6 +1879,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/fp_curvature_law/report.md compares diagonal-Fisher second-order midpoint predictions against real Qwen instruct/coder interpolation loss.",
         },
         {
+            "item": "Unified merge-family selector",
+            "status": "complete",
+            "evidence": "results/fp_merge_compare_dense/report.md evaluates a finite family containing linear average, task arithmetic, sign-elect, and magnitude-weighted variants, then selects by held-out worst-task NLL.",
+        },
+        {
             "item": "Formal LLM benchmark slices",
             "status": "complete",
             "evidence": "Representative Qwen2.5-1.5B benchmark slices cover MMLU, GSM8K, HumanEval canonical-solution NLL, and BeaverTails safety/refusal NLL.",
@@ -2064,6 +2111,7 @@ def build_summary() -> dict[str, Any]:
         "qwen_safety_refusal_slice": summarize_qwen_safety(),
         "qwen_multi_expert_merge": summarize_qwen_multi_expert(),
         "fp_curvature_law": summarize_fp_curvature_law(),
+        "fp_merge_compare_dense": summarize_fp_merge_compare(),
         "qwen_probe_smoke": summarize_qwen_probe_smoke(),
         "average_decision_report": summarize_average_decision_report(),
         "model_averaging_literature_review": summarize_model_averaging_literature_review(),
@@ -2146,6 +2194,7 @@ def build_summary() -> dict[str, Any]:
             "PYTHONPATH=src python scripts/run_qwen_safety_refusal_slice.py --output-dir results/qwen_safety_refusal_slice",
             "PYTHONPATH=src python scripts/run_qwen_multi_expert_merge.py --output-dir results/qwen_multi_expert_merge",
             "python scripts/fp_curvature_law.py --out results/fp_curvature_law",
+            "python scripts/fp_merge_compare.py --instruct Qwen/Qwen2.5-0.5B-Instruct --coder Qwen/Qwen2.5-Coder-0.5B-Instruct --base Qwen/Qwen2.5-0.5B --out results/fp_merge_compare_dense --n-general 4 --n-code 4 --seqlen 128 --grid-profile linear --device cpu",
             "python scripts/fp_moe_mechanism.py --out results/fp_moe_mechanism --base-steps 700 --ft-steps 500",
             "python scripts/fp_moe_real_probe.py --mode gauge_selfmerge --model-a allenai/OLMoE-1B-7B-0924-Instruct --out results/fp_moe_real_probe --n-probe 4 --seqlen 128",
             "PYTHONPATH=src python scripts/run_toy_moe_merge.py --output-dir results/toy_moe_merge --device cpu",
@@ -2221,6 +2270,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen_multi = exp["qwen_multi_expert_merge"]
     qwen_multi_conflict = qwen_multi["instruct_coder_conflict"] or {}
     fp_curvature = exp["fp_curvature_law"]
+    fp_merge_compare = exp["fp_merge_compare_dense"]
     average_decision = exp["average_decision_report"]
     literature_review = exp["model_averaging_literature_review"]
     qwen_registry = exp["qwen_target_model_registry"]
@@ -2420,6 +2470,18 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| dense curvature law | top interference tensor | "
                 f"{fp_curvature['top_interference_tensor'].get('name')} |"
+            ),
+            (
+                "| dense unified selector | selected lambda / test worst NLL | "
+                f"{fmt(fp_merge_compare['selected_config'].get('lam'), 2)} / {fmt(fp_merge_compare['unified'].get('worst'))} |"
+            ),
+            (
+                "| dense unified selector | linear / TIES worst delta vs unified | "
+                f"{fmt(fp_merge_compare['linear_worst_delta_vs_unified'])} / {fmt(fp_merge_compare['ties_worst_delta_vs_unified'])} |"
+            ),
+            (
+                "| dense unified selector | unified minus best endpoint worst NLL | "
+                f"{fmt(fp_merge_compare['unified_worst_minus_best_endpoint'])} |"
             ),
             (
                 "| first-principles MoE mechanism | gauge-equivalent B MSE | "
