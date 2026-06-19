@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T04:17:05.672981+00:00`
+Generated at: `2026-06-19T04:24:41.598259+00:00`
 
 ## Coverage
 
-Complete: `20`; partial: `0`; missing: `0`.
+Complete: `21`; partial: `0`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -27,6 +27,7 @@ Complete: `20`; partial: `0`; missing: `0`.
 | Checkpoint topology inspection | complete | results/checkpoint_topology_inspect/report.md inspects Qwen MoE/Dense configs and safetensors headers without loading weights. |
 | Average candidate recipes | complete | results/average_candidate_recipes/report.md converts probe decisions into conservative same-shape materialization recipes and skips endpoint-only pseudo-averages. |
 | MoE route-weight recipes | complete | results/moe_route_weight_recipes/report.md converts MoE routing/expert-load probes into tensor-rule files for same-shape checkpoint materialization; current recipe is waiting for real routing probe data. |
+| MoE routing readiness diagnostics | complete | results/moe_routing_readiness/report.md turns router_summary, route_overlap, and expert_load CSVs into router collapse, drift, boundary-fragility, and expert-load risk actions. |
 | Interactive explainer UI | complete | Dashboard includes a draggable precomputed merge-plane explorer with task-pair, method, objective, raw/normalized plane, alpha/beta, and lambda controls. |
 
 ## Key Metrics
@@ -69,3 +70,5 @@ Complete: `20`; partial: `0`; missing: `0`.
 | average candidate recipes | MoE templates awaiting routing probe | 1 |
 | MoE route-weight recipes | recipe status | waiting_for_routing_probe |
 | MoE route-weight recipes | expert tensor rules | 0 |
+| MoE routing readiness | readiness status | waiting_for_routing_probe |
+| MoE routing readiness | router / expert risk rows | 0 / 0 |

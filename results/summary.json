@@ -96,13 +96,18 @@
       "status": "complete"
     },
     {
+      "evidence": "results/moe_routing_readiness/report.md turns router_summary, route_overlap, and expert_load CSVs into router collapse, drift, boundary-fragility, and expert-load risk actions.",
+      "item": "MoE routing readiness diagnostics",
+      "status": "complete"
+    },
+    {
       "evidence": "Dashboard includes a draggable precomputed merge-plane explorer with task-pair, method, objective, raw/normalized plane, alpha/beta, and lambda controls.",
       "item": "Interactive explainer UI",
       "status": "complete"
     }
   ],
   "coverage_counts": {
-    "complete": 20,
+    "complete": 21,
     "missing": 0,
     "partial": 0
   },
@@ -1501,6 +1506,54 @@
       "tensor_rules": "results/moe_route_weight_recipes/tensor_rules.txt",
       "writer_command": "results/moe_route_weight_recipes/writer_command.txt"
     },
+    "moe_routing_readiness": {
+      "category_specialization": "results/moe_routing_readiness/category_specialization.csv",
+      "expert_load_risks": "results/moe_routing_readiness/expert_load_risks.csv",
+      "expert_rows": 0,
+      "readiness_status": "waiting_for_routing_probe",
+      "report": "results/moe_routing_readiness/report.md",
+      "router_readiness": "results/moe_routing_readiness/router_readiness.csv",
+      "router_rows": 0,
+      "specialization_rows": 0,
+      "summary": {
+        "expert_action_counts": {},
+        "expert_rows": 0,
+        "generated_at": "2026-06-19T04:24:03.287202+00:00",
+        "outputs": {
+          "category_specialization": "results/moe_routing_readiness/category_specialization.csv",
+          "expert_load_risks": "results/moe_routing_readiness/expert_load_risks.csv",
+          "report": "results/moe_routing_readiness/report.md",
+          "router_readiness": "results/moe_routing_readiness/router_readiness.csv",
+          "summary": "results/moe_routing_readiness/summary.json"
+        },
+        "readiness_status": "waiting_for_routing_probe",
+        "router_action_counts": {},
+        "router_dirs": [],
+        "router_rows": 0,
+        "same_shape_constraint": "Readiness actions preserve router shape, expert count, hidden size, tokenizer, and model class.",
+        "specialization_action_counts": {},
+        "specialization_rows": 0,
+        "thresholds": {
+          "collapse_threshold": 0.5,
+          "low_margin_threshold": 0.05,
+          "min_effective_fraction": 0.02,
+          "min_top1_agreement": 0.5,
+          "min_topk_jaccard": 0.5,
+          "overuse_ratio_threshold": 4.0,
+          "specialization_threshold": 0.7,
+          "underuse_fraction_threshold": 0.0
+        },
+        "topology": {
+          "active_expert_fraction_per_token": 0.03125,
+          "model_type": "qwen3_5_moe",
+          "name": "qwen3_5_35b_a3b",
+          "num_experts": 256,
+          "num_experts_per_tok": 8,
+          "num_hidden_layers": 40,
+          "weights_available": false
+        }
+      }
+    },
     "pretrained_vit_transfer_merge": {
       "base": {
         "alpha": 0.0,
@@ -2291,7 +2344,7 @@
       }
     }
   },
-  "generated_at": "2026-06-19T04:17:05.672981+00:00",
+  "generated_at": "2026-06-19T04:24:41.598259+00:00",
   "overall_status": "complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -2312,6 +2365,7 @@
     "python scripts/write_same_shape_average_checkpoint.py --base BASE --source expert=EXPERT --dry-run --output-dir results/same_shape_writer_smoke",
     "python scripts/inspect_checkpoint_topology.py --model NAME=MODEL_PATH --output-dir results/checkpoint_topology_inspect",
     "PYTHONPATH=src python scripts/build_average_candidate_recipes.py",
+    "PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code",
     "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code --source general --source code",
     "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
     "PYTHONPATH=src python scripts/collect_results.py"

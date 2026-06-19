@@ -1,10 +1,10 @@
 {
   "artifacts": [
     {
-      "bytes": 27882,
+      "bytes": 28641,
       "kind": "document",
       "path": "MODEL_AVERAGING_PROBES_AND_MOE_OPTIMIZATION.md",
-      "sha256": "1f7541a1312331cc618cf8b34df9cda8533a75c0e1915d23381d55b6418e9251"
+      "sha256": "e14ccb4960edd27d7180a8b6048135819fdeaae68a166b14956808a4d17af68e"
     },
     {
       "bytes": 20526,
@@ -13,16 +13,16 @@
       "sha256": "313cfe00a4f762c28f5fe1b881615f93e824f15a3f1ac2440b17d363819b3706"
     },
     {
-      "bytes": 20804,
+      "bytes": 21154,
       "kind": "document",
       "path": "QWEN_DENSE_MOE_EXPERIMENT_PLAN.md",
-      "sha256": "36d98721757ebad25aead293faaa520feb6ac074b5a20e1e4210b28cd21d17a7"
+      "sha256": "2cc1cf533ae78da28037cfaae42019cac69d9e41d26d10f07a1406ffedc1fd3d"
     },
     {
-      "bytes": 23861,
+      "bytes": 24310,
       "kind": "document",
       "path": "README.md",
-      "sha256": "14ebc7ecc02b9f560ff5f6458216b6abe32df5ae6b350b11d2d1e1fdc1575a99"
+      "sha256": "a927ce9dab88d6c1965c3c843d7c855ef31e8c02f4c2ae46fe0905a87ad37366"
     },
     {
       "bytes": 33211,
@@ -685,6 +685,36 @@
       "sha256": "276498aaf76af7e607940b433424c884adc3178eafd97e8b55e4f8627779c8dd"
     },
     {
+      "bytes": 136,
+      "kind": "data",
+      "path": "results/moe_routing_readiness/category_specialization.csv",
+      "sha256": "ec9b3581df21a6a25ff9960c33c13ea72e9da8480d5b2301328c6972457d9eb1"
+    },
+    {
+      "bytes": 161,
+      "kind": "data",
+      "path": "results/moe_routing_readiness/expert_load_risks.csv",
+      "sha256": "fc134c464750f744d0edacb69b33685e27161d1ff8e0c3e6735cca8ba77a6990"
+    },
+    {
+      "bytes": 2708,
+      "kind": "document",
+      "path": "results/moe_routing_readiness/report.md",
+      "sha256": "91932dd3a82833da3176f3feca34cde4973810e9218bd7b560d5e3865aacf3c0"
+    },
+    {
+      "bytes": 208,
+      "kind": "data",
+      "path": "results/moe_routing_readiness/router_readiness.csv",
+      "sha256": "762a1cbeb7425f311bd4bcb7e1d3e8ee8c3b54920b159b1fca6b05bb508bf13a"
+    },
+    {
+      "bytes": 1352,
+      "kind": "data",
+      "path": "results/moe_routing_readiness/summary.json",
+      "sha256": "a3e253643f4f9a5d3d5ab5cfa481d8fe70007d6be45cb2f7b02ceed26519f800"
+    },
+    {
       "bytes": 31792,
       "kind": "figure",
       "path": "results/pretrained_vit_transfer_merge/figures/interference_heatmap.png",
@@ -985,16 +1015,22 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 92012,
+      "bytes": 94515,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "7eff025fa46c22e6f1e93671690a4fff247351b3ad4ae0036fc89aab2682bf55"
+      "sha256": "9912815e4e26e807d712af55a72212709f15f24452829e17404775f0a5d93984"
     },
     {
-      "bytes": 5638,
+      "bytes": 6001,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "92b220c45e6cf132acd0646451f83ce74bba19b9a68d01d43192d9e7d4c5670a"
+      "sha256": "27999596a9c6295014c31f1a3c230d10462e8c29a629e120f0da507873de83d7"
+    },
+    {
+      "bytes": 25757,
+      "kind": "code",
+      "path": "scripts/analyze_moe_routing_readiness.py",
+      "sha256": "7a6d9f6613a94a604efb808c3ebe85a7077b70fe1cdde6b6946ceaf788452592"
     },
     {
       "bytes": 13129,
@@ -1033,10 +1069,10 @@
       "sha256": "6887b5b682ddce5c8855811f95aed1a7ee64cc11e0805f1e046fcadc2b59228f"
     },
     {
-      "bytes": 41146,
+      "bytes": 43070,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "31bfe87e0906ce96094dff52080046bb9c24ccdc63a9c97498208b510ee489cb"
+      "sha256": "4dc9385436d3832d6bda44e97a7541977d6bce8a5e0b13667cec36e4d5e9d37c"
     },
     {
       "bytes": 17809,
@@ -1153,7 +1189,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T04:17:05.675089+00:00",
+  "generated_at": "2026-06-19T04:24:41.600036+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

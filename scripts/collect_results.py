@@ -512,6 +512,24 @@ def summarize_moe_route_weight_recipes() -> dict[str, Any]:
     }
 
 
+def summarize_moe_routing_readiness() -> dict[str, Any]:
+    summary = read_json("results/moe_routing_readiness/summary.json")
+    router_readiness = read_csv("results/moe_routing_readiness/router_readiness.csv")
+    expert_risks = read_csv("results/moe_routing_readiness/expert_load_risks.csv")
+    specialization = read_csv("results/moe_routing_readiness/category_specialization.csv")
+    return {
+        "summary": summary,
+        "readiness_status": summary.get("readiness_status"),
+        "router_rows": int(len(router_readiness)),
+        "expert_rows": int(len(expert_risks)),
+        "specialization_rows": int(len(specialization)),
+        "report": rel("results/moe_routing_readiness/report.md"),
+        "router_readiness": rel("results/moe_routing_readiness/router_readiness.csv"),
+        "expert_load_risks": rel("results/moe_routing_readiness/expert_load_risks.csv"),
+        "category_specialization": rel("results/moe_routing_readiness/category_specialization.csv"),
+    }
+
+
 def coverage_checklist() -> list[dict[str, str]]:
     return [
         {
@@ -610,6 +628,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/moe_route_weight_recipes/report.md converts MoE routing/expert-load probes into tensor-rule files for same-shape checkpoint materialization; current recipe is waiting for real routing probe data.",
         },
         {
+            "item": "MoE routing readiness diagnostics",
+            "status": "complete",
+            "evidence": "results/moe_routing_readiness/report.md turns router_summary, route_overlap, and expert_load CSVs into router collapse, drift, boundary-fragility, and expert-load risk actions.",
+        },
+        {
             "item": "Interactive explainer UI",
             "status": "complete",
             "evidence": "Dashboard includes a draggable precomputed merge-plane explorer with task-pair, method, objective, raw/normalized plane, alpha/beta, and lambda controls.",
@@ -638,6 +661,7 @@ def build_summary() -> dict[str, Any]:
         "checkpoint_topology_inspect": summarize_checkpoint_topology(),
         "average_candidate_recipes": summarize_average_candidate_recipes(),
         "moe_route_weight_recipes": summarize_moe_route_weight_recipes(),
+        "moe_routing_readiness": summarize_moe_routing_readiness(),
     }
     coverage = coverage_checklist()
     counts = {
@@ -671,6 +695,7 @@ def build_summary() -> dict[str, Any]:
             "python scripts/write_same_shape_average_checkpoint.py --base BASE --source expert=EXPERT --dry-run --output-dir results/same_shape_writer_smoke",
             "python scripts/inspect_checkpoint_topology.py --model NAME=MODEL_PATH --output-dir results/checkpoint_topology_inspect",
             "PYTHONPATH=src python scripts/build_average_candidate_recipes.py",
+            "PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code",
             "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code --source general --source code",
             "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
             "PYTHONPATH=src python scripts/collect_results.py",
@@ -706,6 +731,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     moe_models = [model for model in topology["models"] if model.get("config", {}).get("is_moe_config")]
     recipes = exp["average_candidate_recipes"]
     route_weight_recipes = exp["moe_route_weight_recipes"]
+    routing_readiness = exp["moe_routing_readiness"]
     coverage_counts = summary["coverage_counts"]
     lines = [
         "# Result Summary",
@@ -875,6 +901,14 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| MoE route-weight recipes | expert tensor rules | "
                 f"{route_weight_recipes['expert_rule_count']} |"
+            ),
+            (
+                "| MoE routing readiness | readiness status | "
+                f"{routing_readiness['readiness_status']} |"
+            ),
+            (
+                "| MoE routing readiness | router / expert risk rows | "
+                f"{routing_readiness['router_rows']} / {routing_readiness['expert_rows']} |"
             ),
         ]
     )

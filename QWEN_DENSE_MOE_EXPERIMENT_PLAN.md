@@ -226,6 +226,7 @@ Qwen2.5-7B dense merged assistant
 - Average decision report：把 grid、method、delta conflict、routing probe 汇总成同构 checkpoint 的平均权重建议；输出 `uniform_average_ok`、`coefficient_search`、`structured_average` 或 `avoid_uniform_average`。
 - Average candidate recipes：把 decision report 转成 `materialize`、`skip_endpoint_only`、`skip_rejected_by_probe`、`template_waiting_for_routing_probe`，避免把端点或失败的 uniform average 当作最终结果。
 - MoE same-shape average plan：把 router entropy/load/overlap 和 expert route frequency 转成 router/shared/expert/adapter 的参数组平均策略；最终仍输出同 expert 数、同 router shape 的 MoE checkpoint。
+- MoE routing readiness：用 `scripts/analyze_moe_routing_readiness.py` 把 `router_summary.csv`、`route_overlap.csv`、`expert_load.csv` 转成 router collapse、route drift、top-k boundary、expert load 和 category specialization 风险表；当前模板见 [results/moe_routing_readiness/report.md](results/moe_routing_readiness/report.md)。
 - MoE route-weight recipes：用 `scripts/build_moe_route_weight_recipes.py` 把 `scripts/probe_moe_routing.py` 的 `expert_load.csv` 转成 checkpoint writer 可读的 `tensor_rules.txt`；当前模板见 [results/moe_route_weight_recipes/report.md](results/moe_route_weight_recipes/report.md)，prompt pack 见 [prompts/qwen_moe_route_probe_prompts.jsonl](prompts/qwen_moe_route_probe_prompts.jsonl)。
 - Same-shape checkpoint：用 `scripts/write_same_shape_average_checkpoint.py` 把选好的全局/layer/module/router/expert 权重写成 safetensors，再在 held-out slice 上评测；不能只停在图和 CSV。
 
