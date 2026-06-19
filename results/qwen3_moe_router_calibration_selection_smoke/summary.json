@@ -97,5 +97,6 @@
       "worst_primary_score": 0.26
     }
   ],
-  "status": "selected_router_calibrated_candidate"
+  "status": "selected_router_calibrated_candidate",
+  "task_regression_negative_smoke": false
 }

@@ -97,5 +97,6 @@
       "worst_primary_score": 0.26
     }
   ],
-  "status": "keep_frozen_router_baseline"
+  "status": "keep_frozen_router_baseline",
+  "task_regression_negative_smoke": false
 }

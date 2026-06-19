@@ -1,0 +1,13 @@
+{
+  "best_avg_primary_model": "source_qwen3_30b_instruct",
+  "model_summary": [
+    {
+      "avg_primary_score": 0.49,
+      "model": "source_qwen3_30b_instruct",
+      "rank": 1,
+      "task_count": 4,
+      "worst_primary_score": 0.28
+    }
+  ],
+  "status": "complete"
+}

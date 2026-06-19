@@ -1,0 +1,2 @@
+group,tensor_count,changed_tensors,delta_norm,relative_delta_norm,max_abs_delta
+router,4,4,0.21999999999999997,0.022,0.01

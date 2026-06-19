@@ -1088,6 +1088,7 @@ def write_smoke_inputs(
     row_validation_negative: bool = False,
     source_dominance_negative: bool = False,
     no_downstream_gain_negative: bool = False,
+    task_regression_negative: bool = False,
 ) -> Path:
     job_dir = output_dir / "input_job"
     if job_dir.exists():
@@ -1149,6 +1150,8 @@ def write_smoke_inputs(
     cap0025_scores = (
         (0.501, 0.300, 0.421, 0.529, 0.620, 0.300)
         if no_downstream_gain_negative
+        else (0.515, 0.310, 0.480, 0.590, 0.650, 0.260)
+        if task_regression_negative
         else (0.515, 0.310, 0.430, 0.535, 0.620, 0.320)
     )
     cap005_scores = (
@@ -1281,6 +1284,7 @@ def run_selection(args: argparse.Namespace) -> dict[str, Any]:
         bool(args.row_validation_negative_smoke),
         bool(args.source_dominance_negative_smoke),
         bool(args.no_downstream_gain_negative_smoke),
+        bool(args.task_regression_negative_smoke),
     ]
     if sum(smoke_modes) > 1:
         raise ValueError("Use only one smoke mode at a time.")
@@ -1290,6 +1294,7 @@ def run_selection(args: argparse.Namespace) -> dict[str, Any]:
             row_validation_negative=args.row_validation_negative_smoke,
             source_dominance_negative=args.source_dominance_negative_smoke,
             no_downstream_gain_negative=args.no_downstream_gain_negative_smoke,
+            task_regression_negative=args.task_regression_negative_smoke,
         )
         args.baseline_eval_dir = args.job_dir / "eval_baseline"
         args.source_eval_dir = [args.job_dir / "eval_source_instruct", args.job_dir / "eval_source_coder"]
@@ -1322,6 +1327,7 @@ def run_selection(args: argparse.Namespace) -> dict[str, Any]:
         "row_validation_negative_smoke": bool(args.row_validation_negative_smoke),
         "source_dominance_negative_smoke": bool(args.source_dominance_negative_smoke),
         "no_downstream_gain_negative_smoke": bool(args.no_downstream_gain_negative_smoke),
+        "task_regression_negative_smoke": bool(args.task_regression_negative_smoke),
         "job_dir": rel(args.job_dir),
         "baseline_eval": baseline_eval,
         "baseline_audit_status": baseline_audit.get("status") if baseline_audit else "not_available",
@@ -1422,6 +1428,11 @@ def parse_args() -> argparse.Namespace:
         "--no-downstream-gain-negative-smoke",
         action="store_true",
         help="Build a complete smoke job where mechanically valid candidates do not clear the downstream gain gate.",
+    )
+    parser.add_argument(
+        "--task-regression-negative-smoke",
+        action="store_true",
+        help="Build a complete smoke job where a candidate has aggregate gain but fails one task-specific regression gate.",
     )
     parser.add_argument(
         "--allow-missing-source-eval",

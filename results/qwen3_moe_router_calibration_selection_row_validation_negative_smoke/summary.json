@@ -97,5 +97,6 @@
       "worst_primary_score": 0.26
     }
   ],
-  "status": "awaiting_router_calibration_eval"
+  "status": "awaiting_router_calibration_eval",
+  "task_regression_negative_smoke": false
 }

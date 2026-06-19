@@ -82,5 +82,6 @@
       "worst_primary_score": null
     }
   ],
-  "status": "awaiting_baseline_eval"
+  "status": "awaiting_baseline_eval",
+  "task_regression_negative_smoke": false
 }
