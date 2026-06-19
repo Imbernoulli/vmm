@@ -32,6 +32,7 @@
     "schema_version": 1,
     "selected_method": "smoke_router_calibrated_cap0025",
     "source_eval_completed": true,
+    "source_eval_required": true,
     "status": "selected_router_calibrated_candidate"
   },
   "job_dir": "results/qwen3_moe_router_calibration_selection_smoke/input_job",

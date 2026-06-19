@@ -328,6 +328,7 @@ def build_candidate_rows(
     rows: list[dict[str, Any]] = []
     baseline_complete = bool(baseline_eval.get("eval_completed"))
     source_complete = all(bool(row.get("eval_completed")) for row in source_evals) if source_evals else False
+    source_required = not bool(args.allow_missing_source_eval)
 
     for _, plan_row in candidate_plan.iterrows():
         method = str(plan_row["method"])
@@ -385,6 +386,8 @@ def build_candidate_rows(
         rejection_reasons = []
         if not baseline_complete:
             rejection_reasons.append("awaiting_baseline_eval")
+        if source_required and not source_complete:
+            rejection_reasons.append("awaiting_source_eval")
         if not eval_state["eval_completed"]:
             rejection_reasons.append("awaiting_candidate_eval")
         if not audit_state["audit_exists"]:
@@ -406,6 +409,7 @@ def build_candidate_rows(
 
         eligible = (
             baseline_complete
+            and (source_complete or not source_required)
             and eval_state["eval_completed"]
             and audit_state["audit_passed_for_router_calibration"]
             and preserves_average
@@ -445,17 +449,23 @@ def build_selection(
     table: pd.DataFrame,
     baseline_eval: dict[str, Any],
     source_evals: list[dict[str, Any]],
+    args: argparse.Namespace,
 ) -> dict[str, Any]:
     baseline_complete = bool(baseline_eval.get("eval_completed"))
     candidate_eval_complete = bool((table["eval_completed"].astype(bool)).all()) if not table.empty else False
     audit_complete = bool((table["audit_exists"].astype(bool)).all()) if not table.empty else False
     source_complete = all(bool(row.get("eval_completed")) for row in source_evals) if source_evals else False
+    source_required = not bool(args.allow_missing_source_eval)
     eligible = table[table["selection_eligible"].astype(bool)].copy() if not table.empty else pd.DataFrame()
 
     if not baseline_complete:
         status = "awaiting_baseline_eval"
         selected_method = None
         reason = "Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps."
+    elif source_required and not source_complete:
+        status = "awaiting_source_eval"
+        selected_method = None
+        reason = "Run both source endpoint evals before allowing router calibration selection or frozen-router fallback."
     elif not candidate_eval_complete or not audit_complete:
         status = "awaiting_router_calibration_eval"
         selected_method = None
@@ -486,6 +496,7 @@ def build_selection(
         "candidate_eval_completed": candidate_eval_complete,
         "audit_completed": audit_complete,
         "source_eval_completed": source_complete,
+        "source_eval_required": source_required,
         "eligible_candidate_count": int(len(eligible)),
         "candidate_count": int(len(table)),
     }
@@ -516,6 +527,7 @@ def build_decision_rules(args: argparse.Namespace, selection: dict[str, Any]) ->
         ],
         "acceptance_gates": [
             "Baseline searched_no_gt065 eval must be complete on the same vLLM task set.",
+            "Both source endpoint evals must be complete unless --allow-missing-source-eval is explicitly set.",
             "Every cap candidate must have a materialized delta audit and vLLM eval before final selection.",
             "The audit must show only router tensors changed, with no shape/dtype mismatch.",
             "The maximum per-router relative delta norm must stay inside the planned cap.",
@@ -523,7 +535,7 @@ def build_decision_rules(args: argparse.Namespace, selection: dict[str, Any]) ->
             f"Worst primary score may not drop more than {args.max_worst_drop}.",
             f"No available task primary score may drop more than {args.max_task_drop}.",
             f"At least one downstream primary/task score must improve by {args.min_gain} or more.",
-            "If source endpoint evals are available, a candidate is rejected when a source dominates it on all available scores.",
+            "A candidate is rejected when a source endpoint dominates it on all available scores.",
         ],
         "ranking": [
             "Among accepted candidates, sort by selection_score.",
@@ -560,6 +572,8 @@ def build_report(
         f"- Selected method: `{selection.get('selected_method')}`",
         f"- Reason: {selection['reason']}",
         f"- Baseline eval completed: `{selection['baseline_eval_completed']}`",
+        f"- Source eval required: `{selection['source_eval_required']}`",
+        f"- Source eval completed: `{selection['source_eval_completed']}`",
         f"- Candidate eval completed: `{selection['candidate_eval_completed']}`",
         f"- Audit completed: `{selection['audit_completed']}`",
         f"- Eligible candidates: `{selection['eligible_candidate_count']}/{selection['candidate_count']}`",
@@ -889,7 +903,7 @@ def run_selection(args: argparse.Namespace) -> dict[str, Any]:
     baseline_audit = read_json_if_exists(args.baseline_audit_dir / "summary.json")
     source_evals = [read_eval_state(path) for path in args.source_eval_dir]
     table = build_candidate_rows(candidate_plan, baseline_eval, source_evals, args)
-    selection = build_selection(table, baseline_eval, source_evals)
+    selection = build_selection(table, baseline_eval, source_evals, args)
     rules = build_decision_rules(args, selection)
 
     selection_table_path = output_dir / "selection_table.csv"
@@ -939,6 +953,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-task-drop", type=float, default=0.02)
     parser.add_argument("--min-gain", type=float, default=0.002)
     parser.add_argument("--cap-tolerance", type=float, default=0.02)
+    parser.add_argument(
+        "--allow-missing-source-eval",
+        action="store_true",
+        help="Debug escape hatch: allow selection without completed source endpoint evals.",
+    )
     parser.add_argument("--smoke", action="store_true")
     args = parser.parse_args()
     if args.source_eval_dir is None:

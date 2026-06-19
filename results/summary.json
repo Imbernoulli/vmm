@@ -10119,7 +10119,7 @@
           "changed_tensors": null,
           "checkpoint_dir": "results/checkpoints/qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate",
           "decision": "reject_or_wait",
-          "decision_reason": "awaiting_baseline_eval,awaiting_candidate_eval,awaiting_audit",
+          "decision_reason": "awaiting_baseline_eval,awaiting_source_eval,awaiting_candidate_eval,awaiting_audit",
           "delta_dir": "results/qwen3_moe_router_calibration_job/delta_cap001",
           "dominated_by_source": null,
           "eval_completed": false,
@@ -10179,7 +10179,7 @@
           "changed_tensors": null,
           "checkpoint_dir": "results/checkpoints/qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate",
           "decision": "reject_or_wait",
-          "decision_reason": "awaiting_baseline_eval,awaiting_candidate_eval,awaiting_audit",
+          "decision_reason": "awaiting_baseline_eval,awaiting_source_eval,awaiting_candidate_eval,awaiting_audit",
           "delta_dir": "results/qwen3_moe_router_calibration_job/delta_cap0025",
           "dominated_by_source": null,
           "eval_completed": false,
@@ -10239,7 +10239,7 @@
           "changed_tensors": null,
           "checkpoint_dir": "results/checkpoints/qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate",
           "decision": "reject_or_wait",
-          "decision_reason": "awaiting_baseline_eval,awaiting_candidate_eval,awaiting_audit",
+          "decision_reason": "awaiting_baseline_eval,awaiting_source_eval,awaiting_candidate_eval,awaiting_audit",
           "delta_dir": "results/qwen3_moe_router_calibration_job/delta_cap005",
           "dominated_by_source": null,
           "eval_completed": false,
@@ -10291,6 +10291,7 @@
       "selection_reason": "Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps.",
       "selection_table": "results/qwen3_moe_router_calibration_selection/selection_table.csv",
       "source_eval_completed": false,
+      "source_eval_required": true,
       "status": "awaiting_baseline_eval",
       "summary": {
         "baseline_audit_status": "passed",
@@ -10321,6 +10322,7 @@
           "schema_version": 1,
           "selected_method": null,
           "source_eval_completed": false,
+          "source_eval_required": true,
           "status": "awaiting_baseline_eval"
         },
         "job_dir": "results/qwen3_moe_router_calibration_job",
@@ -21500,7 +21502,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-19T22:21:27.506155+00:00",
+  "generated_at": "2026-06-19T22:24:35.968034+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [

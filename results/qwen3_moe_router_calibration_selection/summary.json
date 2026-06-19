@@ -27,6 +27,7 @@
     "schema_version": 1,
     "selected_method": null,
     "source_eval_completed": false,
+    "source_eval_required": true,
     "status": "awaiting_baseline_eval"
   },
   "job_dir": "results/qwen3_moe_router_calibration_job",

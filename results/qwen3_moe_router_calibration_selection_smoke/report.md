@@ -6,6 +6,8 @@
 - Selected method: `smoke_router_calibrated_cap0025`
 - Reason: Selected the router-calibrated cap that improved downstream scores, stayed within cap, changed only router tensors, and was not source dominated.
 - Baseline eval completed: `True`
+- Source eval required: `True`
+- Source eval completed: `True`
 - Candidate eval completed: `True`
 - Audit completed: `True`
 - Eligible candidates: `1/3`
@@ -38,6 +40,7 @@
 ## Decision Rules
 
 - Baseline searched_no_gt065 eval must be complete on the same vLLM task set.
+- Both source endpoint evals must be complete unless --allow-missing-source-eval is explicitly set.
 - Every cap candidate must have a materialized delta audit and vLLM eval before final selection.
 - The audit must show only router tensors changed, with no shape/dtype mismatch.
 - The maximum per-router relative delta norm must stay inside the planned cap.
@@ -45,7 +48,7 @@
 - Worst primary score may not drop more than 0.01.
 - No available task primary score may drop more than 0.02.
 - At least one downstream primary/task score must improve by 0.002 or more.
-- If source endpoint evals are available, a candidate is rejected when a source dominates it on all available scores.
+- A candidate is rejected when a source endpoint dominates it on all available scores.
 
 ## Literature Hooks
 

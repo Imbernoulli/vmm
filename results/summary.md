@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-19T22:21:27.506155+00:00`
+Generated at: `2026-06-19T22:24:35.968034+00:00`
 
 ## Coverage
 
@@ -177,7 +177,7 @@ Complete: `68`; partial: `1`; missing: `0`.
 | Qwen3 MoE router calibration job | source controls / ready | 2 / True |
 | Qwen3 MoE router calibration job | inputs student / teacher / prompts | True / True / True |
 | Qwen3 MoE router calibration selector | status / selected / eligible | awaiting_baseline_eval / None / 0/3 |
-| Qwen3 MoE router calibration selector | baseline eval / candidate eval / audit | False / False / False |
+| Qwen3 MoE router calibration selector | source required-complete / baseline eval / candidate eval / audit | True-False / False / False / False |
 | Qwen3 MoE cap-law search | searched / frontier / expert groups | 432 / 88 / 5243 |
 | Qwen3 MoE cap-law search | current trust vs uniform 0.65 retention | 0.982 / 0.982 |
 | Qwen3 MoE cap-law search | current trust vs uniform 0.65 >0.65 groups | 129 / 0 |

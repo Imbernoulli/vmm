@@ -1186,6 +1186,7 @@ def summarize_qwen3_moe_router_calibration_selection() -> dict[str, Any]:
         "selected_method": selection.get("selected_method"),
         "selection_reason": selection.get("reason"),
         "baseline_eval_completed": bool(selection.get("baseline_eval_completed", False)),
+        "source_eval_required": bool(selection.get("source_eval_required", False)),
         "candidate_eval_completed": bool(selection.get("candidate_eval_completed", False)),
         "audit_completed": bool(selection.get("audit_completed", False)),
         "source_eval_completed": bool(selection.get("source_eval_completed", False)),
@@ -3747,7 +3748,9 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"/{qwen3_moe_router_calibration_selection['candidate_count']} |"
             ),
             (
-                "| Qwen3 MoE router calibration selector | baseline eval / candidate eval / audit | "
+                "| Qwen3 MoE router calibration selector | source required-complete / baseline eval / candidate eval / audit | "
+                f"{qwen3_moe_router_calibration_selection['source_eval_required']}-"
+                f"{qwen3_moe_router_calibration_selection['source_eval_completed']} / "
                 f"{qwen3_moe_router_calibration_selection['baseline_eval_completed']} / "
                 f"{qwen3_moe_router_calibration_selection['candidate_eval_completed']} / "
                 f"{qwen3_moe_router_calibration_selection['audit_completed']} |"
