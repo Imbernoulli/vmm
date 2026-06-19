@@ -17,6 +17,9 @@
 - Selection split: `validation`
 - Mean selected epoch: `3.00`
 - Mean train/selection samples: `77.0` / `19.0`
+- Mean train/final validation KL: `0.030515` / `0.023867`
+- Max validation KL gap: `0.000032`
+- Max validation top-1 drop: `0.158578`
 
 ## Writer
 
@@ -26,10 +29,10 @@ python scripts/write_same_shape_average_checkpoint.py --base SMOKE_BASE_CHECKPOI
 
 ## Router Metrics
 
-| tensor | selected epoch | initial KL | final KL | initial top1 | final top1 | final rel delta | top1 overflow initial-final | top-k overflow initial-final | top1 load initial-final | top-k load initial-final |
+| tensor | selected epoch | train KL | validation KL | KL gap | train top1 | validation top1 | top1 drop | final rel delta | top1 overflow initial-final | top-k overflow initial-final |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| `blocks.0.router.weight` | 1 | 0.069256 | 0.038879 | 0.8421 | 0.8947 | 0.5000 | 0.1645-0.1645 | 0.0033-0.0033 | 0.4211-0.4211 | 0.3158-0.3158 |
-| `blocks.1.router.weight` | 5 | 0.038800 | 0.008856 | 0.7895 | 0.7895 | 0.5000 | 0.2138-0.2138 | 0.0000-0.0000 | 0.5263-0.5263 | 0.2895-0.2895 |
+| `blocks.0.router.weight` | 1 | 0.052207 | 0.038879 | -0.013328 | 0.7922 | 0.8947 | -0.1025 | 0.5000 | 0.1645-0.1645 | 0.0033-0.0033 |
+| `blocks.1.router.weight` | 5 | 0.008824 | 0.008856 | 0.000032 | 0.9481 | 0.7895 | 0.1586 | 0.5000 | 0.2138-0.2138 | 0.0000-0.0000 |
 
 ## Files
 

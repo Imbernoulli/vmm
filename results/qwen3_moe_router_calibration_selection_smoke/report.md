@@ -22,11 +22,11 @@
 
 ## Candidate Gate
 
-| cap | method | split | selected epoch | decision | avg delta | worst delta | worst task delta | router max rel | top1/top-k overflow | top1/top-k increase | load pass | router-only | cap pass | score | reason |
-| ---: | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | ---: | --- |
-| 0.0100 | `smoke_router_calibrated_cap001` | `validation` | 10.0 | `reject_or_wait` | 0.0010 | 0.0000 | -0.0010 | 0.0080 | 0.0000/0.0000 | 0.0000/0.0000 | `True` | `True` | `True` | 0.0012 | `no_downstream_gain` |
-| 0.0250 | `smoke_router_calibrated_cap0025` | `validation` | 10.0 | `candidate_eligible` | 0.0150 | 0.0100 | 0.0000 | 0.0220 | 0.0150/0.0200 | 0.0050/0.0150 | `True` | `True` | `True` | 0.0085 | `passes_all_gates` |
-| 0.0500 | `smoke_router_calibrated_cap005` | `validation` | 10.0 | `reject_or_wait` | 0.0250 | 0.0150 | 0.0000 | 0.0710 | 0.0900/0.0400 | 0.0600/0.0250 | `False` | `False` | `False` | -0.0025 | `top1_capacity_overflow_increase,audit_not_router_only,router_delta_cap_violation` |
+| cap | method | split | selected epoch | KL gap | top1 drop | decision | avg delta | worst delta | worst task delta | router max rel | top1/top-k overflow | top1/top-k increase | load pass | gen pass | router-only | cap pass | score | reason |
+| ---: | --- | --- | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- | ---: | --- |
+| 0.0100 | `smoke_router_calibrated_cap001` | `validation` | 10.0 | 0.0200 | 0.0200 | `reject_or_wait` | 0.0010 | 0.0000 | -0.0010 | 0.0080 | 0.0000/0.0000 | 0.0000/0.0000 | `True` | `True` | `True` | `True` | -0.0018 | `no_downstream_gain` |
+| 0.0250 | `smoke_router_calibrated_cap0025` | `validation` | 10.0 | 0.0200 | 0.0200 | `candidate_eligible` | 0.0150 | 0.0100 | 0.0000 | 0.0220 | 0.0150/0.0200 | 0.0050/0.0150 | `True` | `True` | `True` | `True` | 0.0055 | `passes_all_gates` |
+| 0.0500 | `smoke_router_calibrated_cap005` | `validation` | 10.0 | 0.0200 | 0.0200 | `reject_or_wait` | 0.0250 | 0.0150 | 0.0000 | 0.0710 | 0.0900/0.0400 | 0.0600/0.0250 | `False` | `True` | `False` | `False` | -0.0055 | `top1_capacity_overflow_increase,audit_not_router_only,router_delta_cap_violation` |
 
 ## Source Controls
 
@@ -51,6 +51,8 @@
 - Hard top-k route capacity overflow may not exceed 0.05.
 - Hard top-1 route capacity overflow may not increase over the frozen-router start by more than 0.05.
 - Hard top-k route capacity overflow may not increase over the frozen-router start by more than 0.02.
+- Validation route-KL gap over train route-KL may not exceed 0.2.
+- Validation top-1 agreement drop from train top-1 agreement may not exceed 0.2.
 - Average primary score may not drop more than 0.005.
 - Worst primary score may not drop more than 0.01.
 - No available task primary score may drop more than 0.02.

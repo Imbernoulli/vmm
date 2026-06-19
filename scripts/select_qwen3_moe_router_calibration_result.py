@@ -208,6 +208,12 @@ def read_training_state(delta_dir: str | Path) -> dict[str, Any]:
         "min_selected_epoch": maybe_int(summary.get("min_selected_epoch")),
         "max_selected_epoch": maybe_int(summary.get("max_selected_epoch")),
         "mean_selection_score": maybe_float(summary.get("mean_selection_score")),
+        "mean_train_final_route_kl": maybe_float(summary.get("mean_train_final_route_kl")),
+        "mean_train_final_top1_agreement": maybe_float(summary.get("mean_train_final_top1_agreement")),
+        "mean_route_kl_generalization_gap": maybe_float(summary.get("mean_route_kl_generalization_gap")),
+        "max_route_kl_generalization_gap": maybe_float(summary.get("max_route_kl_generalization_gap")),
+        "mean_top1_generalization_drop": maybe_float(summary.get("mean_top1_generalization_drop")),
+        "max_top1_generalization_drop": maybe_float(summary.get("max_top1_generalization_drop")),
         "mean_initial_capacity_overflow_fraction": maybe_float(summary.get("mean_initial_capacity_overflow_fraction")),
         "max_initial_capacity_overflow_fraction": maybe_float(summary.get("max_initial_capacity_overflow_fraction")),
         "mean_final_capacity_overflow_fraction": maybe_float(summary.get("mean_final_capacity_overflow_fraction")),
@@ -392,12 +398,17 @@ def build_candidate_rows(
         topk_overflow = training_state.get("max_final_topk_capacity_overflow_fraction")
         top1_overflow_increase = training_state.get("max_router_top1_capacity_overflow_increase")
         topk_overflow_increase = training_state.get("max_router_topk_capacity_overflow_increase")
+        route_kl_gap = training_state.get("max_route_kl_generalization_gap")
+        top1_drop = training_state.get("max_top1_generalization_drop")
         capacity_metrics_ready = (
             bool(training_state["training_summary_exists"])
             and top1_overflow is not None
             and topk_overflow is not None
             and top1_overflow_increase is not None
             and topk_overflow_increase is not None
+        )
+        generalization_metrics_ready = (
+            bool(training_state["training_summary_exists"]) and route_kl_gap is not None and top1_drop is not None
         )
         top1_capacity_passed = (
             top1_overflow is not None and top1_overflow <= float(args.max_top1_capacity_overflow)
@@ -413,12 +424,19 @@ def build_candidate_rows(
             topk_overflow_increase is not None
             and topk_overflow_increase <= float(args.max_topk_capacity_overflow_increase)
         )
+        route_kl_generalizes = route_kl_gap is not None and route_kl_gap <= float(args.max_route_kl_validation_gap)
+        top1_generalizes = top1_drop is not None and top1_drop <= float(args.max_top1_validation_drop)
         router_load_capacity_passed = bool(
             capacity_metrics_ready
             and top1_capacity_passed
             and topk_capacity_passed
             and top1_capacity_not_worse
             and topk_capacity_not_worse
+        )
+        router_generalization_passed = bool(
+            generalization_metrics_ready
+            and route_kl_generalizes
+            and top1_generalizes
         )
 
         row: dict[str, Any] = {
@@ -439,6 +457,10 @@ def build_candidate_rows(
             "top1_capacity_not_worse": top1_capacity_not_worse,
             "topk_capacity_not_worse": topk_capacity_not_worse,
             "router_load_capacity_passed": router_load_capacity_passed,
+            "generalization_metrics_ready": generalization_metrics_ready,
+            "route_kl_generalizes": route_kl_generalizes,
+            "top1_generalizes": top1_generalizes,
+            "router_generalization_passed": router_generalization_passed,
         }
 
         deltas = {
@@ -493,6 +515,12 @@ def build_candidate_rows(
             rejection_reasons.append("top1_capacity_overflow_increase")
         elif not topk_capacity_not_worse:
             rejection_reasons.append("topk_capacity_overflow_increase")
+        if training_state["training_summary_exists"] and not generalization_metrics_ready:
+            rejection_reasons.append("awaiting_router_generalization_metrics")
+        elif generalization_metrics_ready and not route_kl_generalizes:
+            rejection_reasons.append("router_route_kl_validation_gap")
+        elif generalization_metrics_ready and not top1_generalizes:
+            rejection_reasons.append("router_top1_validation_drop")
         if not eval_state["eval_completed"]:
             rejection_reasons.append("awaiting_candidate_eval")
         if not audit_state["audit_exists"]:
@@ -517,6 +545,7 @@ def build_candidate_rows(
             and (source_complete or not source_required)
             and training_passed
             and router_load_capacity_passed
+            and router_generalization_passed
             and eval_state["eval_completed"]
             and audit_state["audit_passed_for_router_calibration"]
             and preserves_average
@@ -553,6 +582,8 @@ def selection_score(row: dict[str, Any]) -> float:
     topk_overflow = maybe_float(row.get("max_final_topk_capacity_overflow_fraction")) or 0.0
     top1_overflow_increase = max(0.0, maybe_float(row.get("max_router_top1_capacity_overflow_increase")) or 0.0)
     topk_overflow_increase = max(0.0, maybe_float(row.get("max_router_topk_capacity_overflow_increase")) or 0.0)
+    route_kl_gap = max(0.0, maybe_float(row.get("max_route_kl_generalization_gap")) or 0.0)
+    top1_drop = max(0.0, maybe_float(row.get("max_top1_generalization_drop")) or 0.0)
     return (
         avg
         + 0.5 * worst
@@ -563,6 +594,8 @@ def selection_score(row: dict[str, Any]) -> float:
         - 0.25 * topk_overflow
         - 0.15 * top1_overflow_increase
         - 0.35 * topk_overflow_increase
+        - 0.10 * route_kl_gap
+        - 0.05 * top1_drop
     )
 
 
@@ -657,6 +690,10 @@ def build_decision_rules(args: argparse.Namespace, selection: dict[str, Any]) ->
                 "implication": "The selector rejects candidates whose hard capacity overflow increases too much relative to the frozen-router starting point, even if their absolute overflow is below a fixed cap.",
             },
             {
+                "claim": "Router probes need held-out evidence.",
+                "implication": "A calibrated router delta can only pass selection when its route-KD and top-1 agreement transfer from the training cache to the held-out selection cache.",
+            },
+            {
                 "claim": "A better unified algorithm needs an abstention rule.",
                 "implication": "When no calibrated cap is non-dominated by the frozen-router baseline/source endpoints, the correct same-shape output is the baseline/no-router-move candidate.",
             },
@@ -672,6 +709,8 @@ def build_decision_rules(args: argparse.Namespace, selection: dict[str, Any]) ->
             f"Hard top-k route capacity overflow may not exceed {args.max_topk_capacity_overflow}.",
             f"Hard top-1 route capacity overflow may not increase over the frozen-router start by more than {args.max_top1_capacity_overflow_increase}.",
             f"Hard top-k route capacity overflow may not increase over the frozen-router start by more than {args.max_topk_capacity_overflow_increase}.",
+            f"Validation route-KL gap over train route-KL may not exceed {args.max_route_kl_validation_gap}.",
+            f"Validation top-1 agreement drop from train top-1 agreement may not exceed {args.max_top1_validation_drop}.",
             f"Average primary score may not drop more than {args.max_avg_drop}.",
             f"Worst primary score may not drop more than {args.max_worst_drop}.",
             f"No available task primary score may drop more than {args.max_task_drop}.",
@@ -680,7 +719,7 @@ def build_decision_rules(args: argparse.Namespace, selection: dict[str, Any]) ->
         ],
         "ranking": [
             "Among accepted candidates, sort by selection_score.",
-            "selection_score = avg_gain + 0.5 * worst_gain + 0.25 * worst_task_gain + 0.05 * route_kl_gain - 0.01 * router_delta_norm - 0.10 * top1_overflow - 0.25 * topk_overflow - 0.15 * top1_overflow_increase - 0.35 * topk_overflow_increase.",
+            "selection_score = avg_gain + 0.5 * worst_gain + 0.25 * worst_task_gain + 0.05 * route_kl_gain - 0.01 * router_delta_norm - 0.10 * top1_overflow - 0.25 * topk_overflow - 0.15 * top1_overflow_increase - 0.35 * topk_overflow_increase - 0.10 * route_kl_validation_gap - 0.05 * top1_validation_drop.",
             "Use avg score, worst score, and smaller cap as tie breakers.",
         ],
         "literature_hooks": LITERATURE_HOOKS,
@@ -734,8 +773,8 @@ def build_report(
         "",
         "## Candidate Gate",
         "",
-        "| cap | method | split | selected epoch | decision | avg delta | worst delta | worst task delta | router max rel | top1/top-k overflow | top1/top-k increase | load pass | router-only | cap pass | score | reason |",
-        "| ---: | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | ---: | --- |",
+        "| cap | method | split | selected epoch | KL gap | top1 drop | decision | avg delta | worst delta | worst task delta | router max rel | top1/top-k overflow | top1/top-k increase | load pass | gen pass | router-only | cap pass | score | reason |",
+        "| ---: | --- | --- | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- | ---: | --- |",
     ]
     for _, row in table.iterrows():
         overflow_text = (
@@ -748,13 +787,16 @@ def build_report(
         )
         lines.append(
             f"| {fmt(row['router_max_relative_norm'])} | `{row['method']}` | "
-            f"`{row.get('selection_split')}` | {fmt(row.get('mean_selected_epoch'), 1)} | `{row['decision']}` | "
+            f"`{row.get('selection_split')}` | {fmt(row.get('mean_selected_epoch'), 1)} | "
+            f"{fmt(row.get('max_route_kl_generalization_gap'))} | "
+            f"{fmt(row.get('max_top1_generalization_drop'))} | `{row['decision']}` | "
             f"{fmt(row.get('delta_vs_baseline_avg_primary_score'))} | "
             f"{fmt(row.get('delta_vs_baseline_worst_primary_score'))} | "
             f"{fmt(row.get('worst_task_delta_vs_baseline'))} | "
             f"{fmt(row.get('router_max_relative_delta_norm'))} | {overflow_text} | "
             f"{increase_text} | "
-            f"`{row.get('router_load_capacity_passed')}` | `{row.get('router_only_changed')}` | "
+            f"`{row.get('router_load_capacity_passed')}` | `{row.get('router_generalization_passed')}` | "
+            f"`{row.get('router_only_changed')}` | "
             f"`{row.get('cap_passed')}` | {fmt(row.get('selection_score'))} | `{row.get('decision_reason')}` |"
         )
     lines.extend(
@@ -952,6 +994,12 @@ def write_training_dir(
         "min_selected_epoch": 10,
         "max_selected_epoch": 10,
         "mean_selection_score": max(0.0, 0.12 - cap),
+        "mean_train_final_route_kl": max(0.01, 0.10 - cap),
+        "mean_train_final_top1_agreement": min(0.98, 0.72 + cap * 2),
+        "mean_route_kl_generalization_gap": 0.01,
+        "max_route_kl_generalization_gap": 0.02,
+        "mean_top1_generalization_drop": 0.01,
+        "max_top1_generalization_drop": 0.02,
         "mean_initial_capacity_overflow_fraction": initial_topk_overflow / 2.0,
         "max_initial_capacity_overflow_fraction": initial_topk_overflow,
         "mean_final_capacity_overflow_fraction": final_topk_overflow / 2.0,
@@ -1193,6 +1241,18 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=0.02,
         help="Reject router-calibrated candidates whose hard top-k overflow increases too much over the frozen-router start.",
+    )
+    parser.add_argument(
+        "--max-route-kl-validation-gap",
+        type=float,
+        default=0.20,
+        help="Reject router-calibrated candidates whose held-out route KL is too much worse than train route KL.",
+    )
+    parser.add_argument(
+        "--max-top1-validation-drop",
+        type=float,
+        default=0.20,
+        help="Reject router-calibrated candidates whose held-out top-1 agreement drops too much below train top-1.",
     )
     parser.add_argument(
         "--allow-missing-source-eval",

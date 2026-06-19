@@ -638,6 +638,10 @@ def summarize_moe_router_delta_calibration_smoke() -> dict[str, Any]:
         "mean_validation_fraction": float(summary.get("mean_validation_fraction", 0.0)),
         "mean_selected_epoch": float(summary.get("mean_selected_epoch", 0.0)),
         "mean_selection_score": float(summary.get("mean_selection_score", 0.0)),
+        "mean_train_final_route_kl": float(summary.get("mean_train_final_route_kl", 0.0)),
+        "mean_train_final_top1_agreement": float(summary.get("mean_train_final_top1_agreement", 0.0)),
+        "max_route_kl_generalization_gap": float(summary.get("max_route_kl_generalization_gap", 0.0)),
+        "max_top1_generalization_drop": float(summary.get("max_top1_generalization_drop", 0.0)),
         "max_initial_top1_capacity_overflow_fraction": float(
             summary.get("max_initial_top1_capacity_overflow_fraction", 0.0)
         ),
@@ -4494,6 +4498,15 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(moe_router_delta_calibration_smoke['mean_train_samples'], 1)}/"
                 f"{fmt(moe_router_delta_calibration_smoke['mean_selection_samples'], 1)} / "
                 f"{fmt(moe_router_delta_calibration_smoke['mean_validation_fraction'], 3)} |"
+            ),
+            (
+                "| MoE router delta calibration smoke | train-validation KL / top1 gap | "
+                f"{fmt(moe_router_delta_calibration_smoke['mean_train_final_route_kl'], 4)}-"
+                f"{fmt(moe_router_delta_calibration_smoke['mean_final_route_kl'], 4)} / "
+                f"{fmt(moe_router_delta_calibration_smoke['mean_train_final_top1_agreement'], 4)}-"
+                f"{fmt(moe_router_delta_calibration_smoke['mean_final_top1_agreement'], 4)} / "
+                f"{fmt(moe_router_delta_calibration_smoke['max_route_kl_generalization_gap'], 4)}/"
+                f"{fmt(moe_router_delta_calibration_smoke['max_top1_generalization_drop'], 4)} |"
             ),
             (
                 "| MoE router delta calibration smoke | hard top1/top-k overflow initial-final / increase | "

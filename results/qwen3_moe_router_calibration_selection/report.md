@@ -22,11 +22,11 @@
 
 ## Candidate Gate
 
-| cap | method | split | selected epoch | decision | avg delta | worst delta | worst task delta | router max rel | top1/top-k overflow | top1/top-k increase | load pass | router-only | cap pass | score | reason |
-| ---: | --- | --- | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | ---: | --- |
-| 0.0100 | `qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate` | `None` |  | `reject_or_wait` |  |  |  |  | / | / | `False` | `False` | `False` | -0.0001 | `awaiting_baseline_eval,awaiting_source_eval,awaiting_router_training,awaiting_candidate_eval,awaiting_audit` |
-| 0.0250 | `qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate` | `None` |  | `reject_or_wait` |  |  |  |  | / | / | `False` | `False` | `False` | -0.0003 | `awaiting_baseline_eval,awaiting_source_eval,awaiting_router_training,awaiting_candidate_eval,awaiting_audit` |
-| 0.0500 | `qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate` | `None` |  | `reject_or_wait` |  |  |  |  | / | / | `False` | `False` | `False` | -0.0005 | `awaiting_baseline_eval,awaiting_source_eval,awaiting_router_training,awaiting_candidate_eval,awaiting_audit` |
+| cap | method | split | selected epoch | KL gap | top1 drop | decision | avg delta | worst delta | worst task delta | router max rel | top1/top-k overflow | top1/top-k increase | load pass | gen pass | router-only | cap pass | score | reason |
+| ---: | --- | --- | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- | ---: | --- |
+| 0.0100 | `qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate` | `None` |  |  |  | `reject_or_wait` |  |  |  |  | / | / | `False` | `False` | `False` | `False` | -0.0001 | `awaiting_baseline_eval,awaiting_source_eval,awaiting_router_training,awaiting_candidate_eval,awaiting_audit` |
+| 0.0250 | `qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate` | `None` |  |  |  | `reject_or_wait` |  |  |  |  | / | / | `False` | `False` | `False` | `False` | -0.0003 | `awaiting_baseline_eval,awaiting_source_eval,awaiting_router_training,awaiting_candidate_eval,awaiting_audit` |
+| 0.0500 | `qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate` | `None` |  |  |  | `reject_or_wait` |  |  |  |  | / | / | `False` | `False` | `False` | `False` | -0.0005 | `awaiting_baseline_eval,awaiting_source_eval,awaiting_router_training,awaiting_candidate_eval,awaiting_audit` |
 
 ## Source Controls
 
@@ -51,6 +51,8 @@
 - Hard top-k route capacity overflow may not exceed 0.05.
 - Hard top-1 route capacity overflow may not increase over the frozen-router start by more than 0.05.
 - Hard top-k route capacity overflow may not increase over the frozen-router start by more than 0.02.
+- Validation route-KL gap over train route-KL may not exceed 0.2.
+- Validation top-1 agreement drop from train top-1 agreement may not exceed 0.2.
 - Average primary score may not drop more than 0.005.
 - Worst primary score may not drop more than 0.01.
 - No available task primary score may drop more than 0.02.

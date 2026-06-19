@@ -479,6 +479,20 @@ def train_one_router(
             orientation,
             None if base_bias is None else base_bias + delta_bias,
         )
+        train_final_logits = router_logits(
+            train_hidden,
+            base_weight + delta_weight,
+            orientation,
+            None if base_bias is None else base_bias + delta_bias,
+        )
+        train_final = selection_metrics(
+            logits=train_final_logits,
+            teacher_logits=train_teacher_logits,
+            base_weight=base_weight,
+            delta_weight=delta_weight.detach(),
+            top_k=args.top_k,
+            capacity_factor=args.capacity_factor,
+        )
         metric_rows.append(
             metric_row(
                 tensor_name=tensor_name,
@@ -500,6 +514,16 @@ def train_one_router(
         metric_rows[-1]["selection_policy"] = args.selection_policy
         metric_rows[-1]["selected_route_kl"] = best_selection["route_kl"]
         metric_rows[-1]["selected_top1_agreement"] = best_selection["top1_agreement"]
+        metric_rows[-1]["train_final_route_kl"] = train_final["route_kl"]
+        metric_rows[-1]["train_final_top1_agreement"] = train_final["top1_agreement"]
+        metric_rows[-1]["train_final_top1_capacity_overflow_fraction"] = train_final[
+            "top1_capacity_overflow_fraction"
+        ]
+        metric_rows[-1]["train_final_topk_capacity_overflow_fraction"] = train_final[
+            "topk_capacity_overflow_fraction"
+        ]
+        metric_rows[-1]["route_kl_generalization_gap"] = best_selection["route_kl"] - train_final["route_kl"]
+        metric_rows[-1]["top1_generalization_drop"] = train_final["top1_agreement"] - best_selection["top1_agreement"]
     delta_tensors = {tensor_name: delta_weight.detach().cpu()}
     if delta_bias is not None and bias_tensor:
         delta_tensors[str(bias_tensor)] = delta_bias.detach().cpu()
@@ -527,6 +551,9 @@ def build_report(summary: dict[str, Any], metric_df: pd.DataFrame) -> str:
         f"- Selection split: `{summary['selection_split']}`",
         f"- Mean selected epoch: `{summary['mean_selected_epoch']:.2f}`",
         f"- Mean train/selection samples: `{summary['mean_train_samples']:.1f}` / `{summary['mean_selection_samples']:.1f}`",
+        f"- Mean train/final validation KL: `{summary['mean_train_final_route_kl']:.6f}` / `{summary['mean_final_route_kl']:.6f}`",
+        f"- Max validation KL gap: `{summary['max_route_kl_generalization_gap']:.6f}`",
+        f"- Max validation top-1 drop: `{summary['max_top1_generalization_drop']:.6f}`",
         "",
         "## Writer",
         "",
@@ -536,7 +563,7 @@ def build_report(summary: dict[str, Any], metric_df: pd.DataFrame) -> str:
         "",
         "## Router Metrics",
         "",
-        "| tensor | selected epoch | initial KL | final KL | initial top1 | final top1 | final rel delta | top1 overflow initial-final | top-k overflow initial-final | top1 load initial-final | top-k load initial-final |",
+        "| tensor | selected epoch | train KL | validation KL | KL gap | train top1 | validation top1 | top1 drop | final rel delta | top1 overflow initial-final | top-k overflow initial-final |",
         "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for tensor, group in metric_df.groupby("tensor", sort=True):
@@ -544,13 +571,13 @@ def build_report(summary: dict[str, Any], metric_df: pd.DataFrame) -> str:
         final = group[group["stage"] == "final"].iloc[0]
         lines.append(
             f"| `{tensor}` | {int(final.get('selected_epoch', summary['mean_selected_epoch']))} | "
-            f"{float(initial['route_kl']):.6f} | {float(final['route_kl']):.6f} | "
-            f"{float(initial['top1_agreement']):.4f} | {float(final['top1_agreement']):.4f} | "
+            f"{float(final['train_final_route_kl']):.6f} | {float(final['route_kl']):.6f} | "
+            f"{float(final['route_kl_generalization_gap']):.6f} | "
+            f"{float(final['train_final_top1_agreement']):.4f} | {float(final['top1_agreement']):.4f} | "
+            f"{float(final['top1_generalization_drop']):.4f} | "
             f"{float(final['relative_delta_norm']):.4f} | "
             f"{float(initial['top1_capacity_overflow_fraction']):.4f}-{float(final['top1_capacity_overflow_fraction']):.4f} | "
-            f"{float(initial['topk_capacity_overflow_fraction']):.4f}-{float(final['topk_capacity_overflow_fraction']):.4f} | "
-            f"{float(initial['top1_max_load_fraction']):.4f}-{float(final['top1_max_load_fraction']):.4f} | "
-            f"{float(initial['topk_max_load_fraction']):.4f}-{float(final['topk_max_load_fraction']):.4f} |"
+            f"{float(initial['topk_capacity_overflow_fraction']):.4f}-{float(final['topk_capacity_overflow_fraction']):.4f} |"
         )
     lines.extend(
         [
@@ -652,6 +679,12 @@ def calibrate_from_cache(args: argparse.Namespace) -> dict[str, Any]:
         "min_selected_epoch": int(final["selected_epoch"].min()),
         "max_selected_epoch": int(final["selected_epoch"].max()),
         "mean_selection_score": float(final["selection_score"].mean()),
+        "mean_train_final_route_kl": float(final["train_final_route_kl"].mean()),
+        "mean_train_final_top1_agreement": float(final["train_final_top1_agreement"].mean()),
+        "mean_route_kl_generalization_gap": float(final["route_kl_generalization_gap"].mean()),
+        "max_route_kl_generalization_gap": float(final["route_kl_generalization_gap"].max()),
+        "mean_top1_generalization_drop": float(final["top1_generalization_drop"].mean()),
+        "max_top1_generalization_drop": float(final["top1_generalization_drop"].max()),
         "mean_initial_capacity_overflow_fraction": initial_mean("capacity_overflow_fraction"),
         "max_initial_capacity_overflow_fraction": initial_max("capacity_overflow_fraction"),
         "mean_final_capacity_overflow_fraction": final_mean("capacity_overflow_fraction"),

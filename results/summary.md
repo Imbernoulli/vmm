@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-19T22:53:45.279991+00:00`
+Generated at: `2026-06-19T23:02:03.935013+00:00`
 
 ## Coverage
 
@@ -342,6 +342,7 @@ Complete: `68`; partial: `1`; missing: `0`.
 | MoE router delta calibration smoke | route KL initial-final / top1 initial-final / rel cap | 0.1894-0.0557 / 0.4545-0.7792 / 0.5000 |
 | MoE router delta calibration smoke | selection policy-split / selected epoch / score | capacity_aware-validation / 2.00 / 0.1738 |
 | MoE router delta calibration smoke | train/selection samples / validation fraction | 307.0/77.0 / 0.201 |
+| MoE router delta calibration smoke | train-validation KL / top1 gap | 0.0519-0.0557 / 0.7720-0.7792 / 0.0038/-0.0072 |
 | MoE router delta calibration smoke | hard top1/top-k overflow initial-final / increase | 0.0122-0.0633 / 0.0000-0.0000 / 0.0511/0.0000 |
 | MoE router delta calibration smoke | hard top1/top-k max load initial-final | 0.3247-0.3636 / 0.2727-0.2922 |
 | MoE router calibration cache smoke | status / ready routers / cache rows | passed / 2/2 / 192 |
