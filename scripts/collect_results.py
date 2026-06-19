@@ -631,13 +631,27 @@ def summarize_moe_router_delta_calibration_smoke() -> dict[str, Any]:
         "mean_initial_top1_agreement": float(summary.get("mean_initial_top1_agreement", 0.0)),
         "mean_final_top1_agreement": float(summary.get("mean_final_top1_agreement", 0.0)),
         "max_final_relative_delta_norm": float(summary.get("max_final_relative_delta_norm", 0.0)),
+        "max_initial_top1_capacity_overflow_fraction": float(
+            summary.get("max_initial_top1_capacity_overflow_fraction", 0.0)
+        ),
         "max_final_top1_capacity_overflow_fraction": float(
             summary.get("max_final_top1_capacity_overflow_fraction", 0.0)
+        ),
+        "max_router_top1_capacity_overflow_increase": float(
+            summary.get("max_router_top1_capacity_overflow_increase", 0.0)
+        ),
+        "max_initial_topk_capacity_overflow_fraction": float(
+            summary.get("max_initial_topk_capacity_overflow_fraction", 0.0)
         ),
         "max_final_topk_capacity_overflow_fraction": float(
             summary.get("max_final_topk_capacity_overflow_fraction", 0.0)
         ),
+        "max_router_topk_capacity_overflow_increase": float(
+            summary.get("max_router_topk_capacity_overflow_increase", 0.0)
+        ),
+        "max_initial_top1_load_fraction": float(summary.get("max_initial_top1_load_fraction", 0.0)),
         "max_final_top1_load_fraction": float(summary.get("max_final_top1_load_fraction", 0.0)),
+        "max_initial_topk_load_fraction": float(summary.get("max_initial_topk_load_fraction", 0.0)),
         "max_final_topk_load_fraction": float(summary.get("max_final_topk_load_fraction", 0.0)),
         "max_relative_norm": summary.get("max_relative_norm"),
         "router_delta_safetensors": summary.get("outputs", {}).get(
@@ -4462,10 +4476,19 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(moe_router_delta_calibration_smoke['max_final_relative_delta_norm'], 4)} |"
             ),
             (
-                "| MoE router delta calibration smoke | hard top1/top-k overflow / hard top1/top-k max load | "
-                f"{fmt(moe_router_delta_calibration_smoke['max_final_top1_capacity_overflow_fraction'], 4)}/"
+                "| MoE router delta calibration smoke | hard top1/top-k overflow initial-final / increase | "
+                f"{fmt(moe_router_delta_calibration_smoke['max_initial_top1_capacity_overflow_fraction'], 4)}-"
+                f"{fmt(moe_router_delta_calibration_smoke['max_final_top1_capacity_overflow_fraction'], 4)} / "
+                f"{fmt(moe_router_delta_calibration_smoke['max_initial_topk_capacity_overflow_fraction'], 4)}-"
                 f"{fmt(moe_router_delta_calibration_smoke['max_final_topk_capacity_overflow_fraction'], 4)} / "
-                f"{fmt(moe_router_delta_calibration_smoke['max_final_top1_load_fraction'], 4)}/"
+                f"{fmt(moe_router_delta_calibration_smoke['max_router_top1_capacity_overflow_increase'], 4)}/"
+                f"{fmt(moe_router_delta_calibration_smoke['max_router_topk_capacity_overflow_increase'], 4)} |"
+            ),
+            (
+                "| MoE router delta calibration smoke | hard top1/top-k max load initial-final | "
+                f"{fmt(moe_router_delta_calibration_smoke['max_initial_top1_load_fraction'], 4)}-"
+                f"{fmt(moe_router_delta_calibration_smoke['max_final_top1_load_fraction'], 4)} / "
+                f"{fmt(moe_router_delta_calibration_smoke['max_initial_topk_load_fraction'], 4)}-"
                 f"{fmt(moe_router_delta_calibration_smoke['max_final_topk_load_fraction'], 4)} |"
             ),
             (

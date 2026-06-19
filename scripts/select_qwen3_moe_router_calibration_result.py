@@ -199,13 +199,30 @@ def read_training_state(delta_dir: str | Path) -> dict[str, Any]:
         "mean_initial_top1_agreement": maybe_float(summary.get("mean_initial_top1_agreement")),
         "mean_final_top1_agreement": maybe_float(summary.get("mean_final_top1_agreement")),
         "max_final_relative_delta_norm": maybe_float(summary.get("max_final_relative_delta_norm")),
+        "mean_initial_capacity_overflow_fraction": maybe_float(summary.get("mean_initial_capacity_overflow_fraction")),
+        "max_initial_capacity_overflow_fraction": maybe_float(summary.get("max_initial_capacity_overflow_fraction")),
         "mean_final_capacity_overflow_fraction": maybe_float(summary.get("mean_final_capacity_overflow_fraction")),
         "max_final_capacity_overflow_fraction": maybe_float(summary.get("max_final_capacity_overflow_fraction")),
+        "mean_initial_top1_capacity_overflow_fraction": maybe_float(
+            summary.get("mean_initial_top1_capacity_overflow_fraction")
+        ),
+        "max_initial_top1_capacity_overflow_fraction": maybe_float(
+            summary.get("max_initial_top1_capacity_overflow_fraction")
+        ),
         "mean_final_top1_capacity_overflow_fraction": maybe_float(
             summary.get("mean_final_top1_capacity_overflow_fraction")
         ),
         "max_final_top1_capacity_overflow_fraction": maybe_float(
             summary.get("max_final_top1_capacity_overflow_fraction")
+        ),
+        "max_router_top1_capacity_overflow_increase": maybe_float(
+            summary.get("max_router_top1_capacity_overflow_increase")
+        ),
+        "mean_initial_topk_capacity_overflow_fraction": maybe_float(
+            summary.get("mean_initial_topk_capacity_overflow_fraction")
+        ),
+        "max_initial_topk_capacity_overflow_fraction": maybe_float(
+            summary.get("max_initial_topk_capacity_overflow_fraction")
         ),
         "mean_final_topk_capacity_overflow_fraction": maybe_float(
             summary.get("mean_final_topk_capacity_overflow_fraction")
@@ -213,9 +230,16 @@ def read_training_state(delta_dir: str | Path) -> dict[str, Any]:
         "max_final_topk_capacity_overflow_fraction": maybe_float(
             summary.get("max_final_topk_capacity_overflow_fraction")
         ),
+        "max_router_topk_capacity_overflow_increase": maybe_float(
+            summary.get("max_router_topk_capacity_overflow_increase")
+        ),
+        "max_initial_top1_load_fraction": maybe_float(summary.get("max_initial_top1_load_fraction")),
         "max_final_top1_load_fraction": maybe_float(summary.get("max_final_top1_load_fraction")),
+        "max_initial_topk_load_fraction": maybe_float(summary.get("max_initial_topk_load_fraction")),
         "max_final_topk_load_fraction": maybe_float(summary.get("max_final_topk_load_fraction")),
+        "mean_initial_top1_load_entropy": maybe_float(summary.get("mean_initial_top1_load_entropy")),
         "mean_final_top1_load_entropy": maybe_float(summary.get("mean_final_top1_load_entropy")),
+        "mean_initial_topk_load_entropy": maybe_float(summary.get("mean_initial_topk_load_entropy")),
         "mean_final_topk_load_entropy": maybe_float(summary.get("mean_final_topk_load_entropy")),
         "final_training_loss": final_loss,
         "router_delta_safetensors": summary.get("outputs", {}).get("router_delta_safetensors")
@@ -357,10 +381,14 @@ def build_candidate_rows(
         training_passed = training_state["training_status"] == "passed"
         top1_overflow = training_state.get("max_final_top1_capacity_overflow_fraction")
         topk_overflow = training_state.get("max_final_topk_capacity_overflow_fraction")
+        top1_overflow_increase = training_state.get("max_router_top1_capacity_overflow_increase")
+        topk_overflow_increase = training_state.get("max_router_topk_capacity_overflow_increase")
         capacity_metrics_ready = (
             bool(training_state["training_summary_exists"])
             and top1_overflow is not None
             and topk_overflow is not None
+            and top1_overflow_increase is not None
+            and topk_overflow_increase is not None
         )
         top1_capacity_passed = (
             top1_overflow is not None and top1_overflow <= float(args.max_top1_capacity_overflow)
@@ -368,7 +396,21 @@ def build_candidate_rows(
         topk_capacity_passed = (
             topk_overflow is not None and topk_overflow <= float(args.max_topk_capacity_overflow)
         )
-        router_load_capacity_passed = bool(capacity_metrics_ready and top1_capacity_passed and topk_capacity_passed)
+        top1_capacity_not_worse = (
+            top1_overflow_increase is not None
+            and top1_overflow_increase <= float(args.max_top1_capacity_overflow_increase)
+        )
+        topk_capacity_not_worse = (
+            topk_overflow_increase is not None
+            and topk_overflow_increase <= float(args.max_topk_capacity_overflow_increase)
+        )
+        router_load_capacity_passed = bool(
+            capacity_metrics_ready
+            and top1_capacity_passed
+            and topk_capacity_passed
+            and top1_capacity_not_worse
+            and topk_capacity_not_worse
+        )
 
         row: dict[str, Any] = {
             "cap_label": str(plan_row["cap_label"]),
@@ -385,6 +427,8 @@ def build_candidate_rows(
             "capacity_metrics_ready": capacity_metrics_ready,
             "top1_capacity_passed": top1_capacity_passed,
             "topk_capacity_passed": topk_capacity_passed,
+            "top1_capacity_not_worse": top1_capacity_not_worse,
+            "topk_capacity_not_worse": topk_capacity_not_worse,
             "router_load_capacity_passed": router_load_capacity_passed,
         }
 
@@ -436,6 +480,10 @@ def build_candidate_rows(
             rejection_reasons.append("top1_capacity_overflow")
         elif not topk_capacity_passed:
             rejection_reasons.append("topk_capacity_overflow")
+        elif not top1_capacity_not_worse:
+            rejection_reasons.append("top1_capacity_overflow_increase")
+        elif not topk_capacity_not_worse:
+            rejection_reasons.append("topk_capacity_overflow_increase")
         if not eval_state["eval_completed"]:
             rejection_reasons.append("awaiting_candidate_eval")
         if not audit_state["audit_exists"]:
@@ -494,6 +542,8 @@ def selection_score(row: dict[str, Any]) -> float:
         route_kl_gain = initial_kl - final_kl
     top1_overflow = maybe_float(row.get("max_final_top1_capacity_overflow_fraction")) or 0.0
     topk_overflow = maybe_float(row.get("max_final_topk_capacity_overflow_fraction")) or 0.0
+    top1_overflow_increase = max(0.0, maybe_float(row.get("max_router_top1_capacity_overflow_increase")) or 0.0)
+    topk_overflow_increase = max(0.0, maybe_float(row.get("max_router_topk_capacity_overflow_increase")) or 0.0)
     return (
         avg
         + 0.5 * worst
@@ -502,6 +552,8 @@ def selection_score(row: dict[str, Any]) -> float:
         - 0.01 * router_norm
         - 0.10 * top1_overflow
         - 0.25 * topk_overflow
+        - 0.15 * top1_overflow_increase
+        - 0.35 * topk_overflow_increase
     )
 
 
@@ -592,6 +644,10 @@ def build_decision_rules(args: argparse.Namespace, selection: dict[str, Any]) ->
                 "implication": "A candidate must also pass hard top-1/top-k capacity-overflow gates computed from actual token assignments, not only softmax mean load.",
             },
             {
+                "claim": "Router calibration should be a local correction, not a new routing regime.",
+                "implication": "The selector rejects candidates whose hard capacity overflow increases too much relative to the frozen-router starting point, even if their absolute overflow is below a fixed cap.",
+            },
+            {
                 "claim": "A better unified algorithm needs an abstention rule.",
                 "implication": "When no calibrated cap is non-dominated by the frozen-router baseline/source endpoints, the correct same-shape output is the baseline/no-router-move candidate.",
             },
@@ -605,6 +661,8 @@ def build_decision_rules(args: argparse.Namespace, selection: dict[str, Any]) ->
             "The maximum per-router relative delta norm must stay inside the planned cap.",
             f"Hard top-1 route capacity overflow may not exceed {args.max_top1_capacity_overflow}.",
             f"Hard top-k route capacity overflow may not exceed {args.max_topk_capacity_overflow}.",
+            f"Hard top-1 route capacity overflow may not increase over the frozen-router start by more than {args.max_top1_capacity_overflow_increase}.",
+            f"Hard top-k route capacity overflow may not increase over the frozen-router start by more than {args.max_topk_capacity_overflow_increase}.",
             f"Average primary score may not drop more than {args.max_avg_drop}.",
             f"Worst primary score may not drop more than {args.max_worst_drop}.",
             f"No available task primary score may drop more than {args.max_task_drop}.",
@@ -613,7 +671,7 @@ def build_decision_rules(args: argparse.Namespace, selection: dict[str, Any]) ->
         ],
         "ranking": [
             "Among accepted candidates, sort by selection_score.",
-            "selection_score = avg_gain + 0.5 * worst_gain + 0.25 * worst_task_gain + 0.05 * route_kl_gain - 0.01 * router_delta_norm - 0.10 * top1_overflow - 0.25 * topk_overflow.",
+            "selection_score = avg_gain + 0.5 * worst_gain + 0.25 * worst_task_gain + 0.05 * route_kl_gain - 0.01 * router_delta_norm - 0.10 * top1_overflow - 0.25 * topk_overflow - 0.15 * top1_overflow_increase - 0.35 * topk_overflow_increase.",
             "Use avg score, worst score, and smaller cap as tie breakers.",
         ],
         "literature_hooks": LITERATURE_HOOKS,
@@ -667,13 +725,17 @@ def build_report(
         "",
         "## Candidate Gate",
         "",
-        "| cap | method | decision | avg delta | worst delta | worst task delta | router max rel | top1/top-k overflow | load pass | router-only | cap pass | score | reason |",
-        "| ---: | --- | --- | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | ---: | --- |",
+        "| cap | method | decision | avg delta | worst delta | worst task delta | router max rel | top1/top-k overflow | top1/top-k increase | load pass | router-only | cap pass | score | reason |",
+        "| ---: | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | ---: | --- |",
     ]
     for _, row in table.iterrows():
         overflow_text = (
             f"{fmt(row.get('max_final_top1_capacity_overflow_fraction'))}/"
             f"{fmt(row.get('max_final_topk_capacity_overflow_fraction'))}"
+        )
+        increase_text = (
+            f"{fmt(row.get('max_router_top1_capacity_overflow_increase'))}/"
+            f"{fmt(row.get('max_router_topk_capacity_overflow_increase'))}"
         )
         lines.append(
             f"| {fmt(row['router_max_relative_norm'])} | `{row['method']}` | `{row['decision']}` | "
@@ -681,6 +743,7 @@ def build_report(
             f"{fmt(row.get('delta_vs_baseline_worst_primary_score'))} | "
             f"{fmt(row.get('worst_task_delta_vs_baseline'))} | "
             f"{fmt(row.get('router_max_relative_delta_norm'))} | {overflow_text} | "
+            f"{increase_text} | "
             f"`{row.get('router_load_capacity_passed')}` | `{row.get('router_only_changed')}` | "
             f"`{row.get('cap_passed')}` | {fmt(row.get('selection_score'))} | `{row.get('decision_reason')}` |"
         )
@@ -851,8 +914,17 @@ def write_audit_dir(root: Path, cap: float, router_max: float, *, non_router_cha
     )
 
 
-def write_training_dir(root: Path, cap: float, top1_overflow: float, topk_overflow: float) -> None:
+def write_training_dir(
+    root: Path,
+    cap: float,
+    initial_top1_overflow: float,
+    final_top1_overflow: float,
+    initial_topk_overflow: float,
+    final_topk_overflow: float,
+) -> None:
     root.mkdir(parents=True, exist_ok=True)
+    top1_increase = final_top1_overflow - initial_top1_overflow
+    topk_increase = final_topk_overflow - initial_topk_overflow
     summary = {
         "status": "passed",
         "schema_version": 2,
@@ -861,16 +933,28 @@ def write_training_dir(root: Path, cap: float, top1_overflow: float, topk_overfl
         "mean_initial_top1_agreement": 0.70,
         "mean_final_top1_agreement": min(0.95, 0.70 + cap * 2),
         "max_final_relative_delta_norm": cap,
-        "mean_final_capacity_overflow_fraction": topk_overflow / 2.0,
-        "max_final_capacity_overflow_fraction": topk_overflow,
-        "mean_final_top1_capacity_overflow_fraction": top1_overflow / 2.0,
-        "max_final_top1_capacity_overflow_fraction": top1_overflow,
-        "mean_final_topk_capacity_overflow_fraction": topk_overflow / 2.0,
-        "max_final_topk_capacity_overflow_fraction": topk_overflow,
-        "max_final_top1_load_fraction": 0.20 + top1_overflow,
-        "max_final_topk_load_fraction": 0.18 + topk_overflow,
-        "mean_final_top1_load_entropy": max(0.0, 0.96 - top1_overflow),
-        "mean_final_topk_load_entropy": max(0.0, 0.98 - topk_overflow),
+        "mean_initial_capacity_overflow_fraction": initial_topk_overflow / 2.0,
+        "max_initial_capacity_overflow_fraction": initial_topk_overflow,
+        "mean_final_capacity_overflow_fraction": final_topk_overflow / 2.0,
+        "max_final_capacity_overflow_fraction": final_topk_overflow,
+        "mean_initial_top1_capacity_overflow_fraction": initial_top1_overflow / 2.0,
+        "max_initial_top1_capacity_overflow_fraction": initial_top1_overflow,
+        "mean_final_top1_capacity_overflow_fraction": final_top1_overflow / 2.0,
+        "max_final_top1_capacity_overflow_fraction": final_top1_overflow,
+        "max_router_top1_capacity_overflow_increase": top1_increase,
+        "mean_initial_topk_capacity_overflow_fraction": initial_topk_overflow / 2.0,
+        "max_initial_topk_capacity_overflow_fraction": initial_topk_overflow,
+        "mean_final_topk_capacity_overflow_fraction": final_topk_overflow / 2.0,
+        "max_final_topk_capacity_overflow_fraction": final_topk_overflow,
+        "max_router_topk_capacity_overflow_increase": topk_increase,
+        "max_initial_top1_load_fraction": 0.20 + initial_top1_overflow,
+        "max_final_top1_load_fraction": 0.20 + final_top1_overflow,
+        "max_initial_topk_load_fraction": 0.18 + initial_topk_overflow,
+        "max_final_topk_load_fraction": 0.18 + final_topk_overflow,
+        "mean_initial_top1_load_entropy": max(0.0, 0.96 - initial_top1_overflow),
+        "mean_final_top1_load_entropy": max(0.0, 0.96 - final_top1_overflow),
+        "mean_initial_topk_load_entropy": max(0.0, 0.98 - initial_topk_overflow),
+        "mean_final_topk_load_entropy": max(0.0, 0.98 - final_topk_overflow),
         "outputs": {"router_delta_safetensors": rel(root / "router_delta.safetensors")},
     }
     (root / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -925,9 +1009,9 @@ def write_smoke_inputs(output_dir: Path) -> Path:
     )
 
     specs = [
-        ("cap001", 0.010, 0.008, False, 0.000, 0.000, 0.501, 0.300, 0.421, 0.529, 0.620, 0.300),
-        ("cap0025", 0.025, 0.022, False, 0.015, 0.020, 0.515, 0.310, 0.430, 0.535, 0.620, 0.320),
-        ("cap005", 0.050, 0.071, True, 0.120, 0.090, 0.525, 0.315, 0.435, 0.540, 0.620, 0.340),
+        ("cap001", 0.010, 0.008, False, 0.000, 0.000, 0.000, 0.000, 0.501, 0.300, 0.421, 0.529, 0.620, 0.300),
+        ("cap0025", 0.025, 0.022, False, 0.010, 0.015, 0.005, 0.020, 0.515, 0.310, 0.430, 0.535, 0.620, 0.320),
+        ("cap005", 0.050, 0.071, True, 0.030, 0.090, 0.015, 0.040, 0.525, 0.315, 0.435, 0.540, 0.620, 0.340),
     ]
     candidate_rows = []
     for idx, (
@@ -935,8 +1019,10 @@ def write_smoke_inputs(output_dir: Path) -> Path:
         cap,
         router_max,
         non_router_changed,
-        top1_overflow,
-        topk_overflow,
+        initial_top1_overflow,
+        final_top1_overflow,
+        initial_topk_overflow,
+        final_topk_overflow,
         avg,
         worst,
         gsm8k,
@@ -948,7 +1034,14 @@ def write_smoke_inputs(output_dir: Path) -> Path:
         delta_dir = job_dir / f"delta_{label}"
         audit_dir = job_dir / f"audit_{label}"
         eval_dir = job_dir / f"eval_{label}"
-        write_training_dir(delta_dir, cap, top1_overflow, topk_overflow)
+        write_training_dir(
+            delta_dir,
+            cap,
+            initial_top1_overflow,
+            final_top1_overflow,
+            initial_topk_overflow,
+            final_topk_overflow,
+        )
         write_audit_dir(audit_dir, cap, router_max, non_router_changed=non_router_changed)
         write_eval_dir(
             eval_dir,
@@ -1069,6 +1162,18 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=0.05,
         help="Reject router-calibrated candidates whose final hard top-k route-load overflow exceeds this fraction.",
+    )
+    parser.add_argument(
+        "--max-top1-capacity-overflow-increase",
+        type=float,
+        default=0.05,
+        help="Reject router-calibrated candidates whose hard top-1 overflow increases too much over the frozen-router start.",
+    )
+    parser.add_argument(
+        "--max-topk-capacity-overflow-increase",
+        type=float,
+        default=0.02,
+        help="Reject router-calibrated candidates whose hard top-k overflow increases too much over the frozen-router start.",
     )
     parser.add_argument(
         "--allow-missing-source-eval",

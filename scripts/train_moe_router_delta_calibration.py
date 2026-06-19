@@ -368,6 +368,8 @@ def build_report(summary: dict[str, Any], metric_df: pd.DataFrame) -> str:
         f"- Mean final top-1 agreement: `{summary['mean_final_top1_agreement']:.4f}`",
         f"- Max final hard top-1 capacity overflow: `{summary['max_final_top1_capacity_overflow_fraction']:.6f}`",
         f"- Max final hard top-k capacity overflow: `{summary['max_final_topk_capacity_overflow_fraction']:.6f}`",
+        f"- Max router hard top-1 overflow increase: `{summary['max_router_top1_capacity_overflow_increase']:.6f}`",
+        f"- Max router hard top-k overflow increase: `{summary['max_router_topk_capacity_overflow_increase']:.6f}`",
         "",
         "## Writer",
         "",
@@ -377,8 +379,8 @@ def build_report(summary: dict[str, Any], metric_df: pd.DataFrame) -> str:
         "",
         "## Router Metrics",
         "",
-        "| tensor | initial KL | final KL | initial top1 | final top1 | final rel delta | final top1 load | final top-k load | final top-k overflow |",
-        "|---|---:|---:|---:|---:|---:|---:|---:|---:|",
+        "| tensor | initial KL | final KL | initial top1 | final top1 | final rel delta | top1 overflow initial-final | top-k overflow initial-final | top1 load initial-final | top-k load initial-final |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for tensor, group in metric_df.groupby("tensor", sort=True):
         initial = group[group["stage"] == "initial"].iloc[0]
@@ -386,9 +388,11 @@ def build_report(summary: dict[str, Any], metric_df: pd.DataFrame) -> str:
         lines.append(
             f"| `{tensor}` | {float(initial['route_kl']):.6f} | {float(final['route_kl']):.6f} | "
             f"{float(initial['top1_agreement']):.4f} | {float(final['top1_agreement']):.4f} | "
-            f"{float(final['relative_delta_norm']):.4f} | {float(final['top1_max_load_fraction']):.4f} | "
-            f"{float(final['topk_max_load_fraction']):.4f} | "
-            f"{float(final['topk_capacity_overflow_fraction']):.4f} |"
+            f"{float(final['relative_delta_norm']):.4f} | "
+            f"{float(initial['top1_capacity_overflow_fraction']):.4f}-{float(final['top1_capacity_overflow_fraction']):.4f} | "
+            f"{float(initial['topk_capacity_overflow_fraction']):.4f}-{float(final['topk_capacity_overflow_fraction']):.4f} | "
+            f"{float(initial['top1_max_load_fraction']):.4f}-{float(final['top1_max_load_fraction']):.4f} | "
+            f"{float(initial['topk_max_load_fraction']):.4f}-{float(final['topk_max_load_fraction']):.4f} |"
         )
     lines.extend(
         [
@@ -447,11 +451,26 @@ def calibrate_from_cache(args: argparse.Namespace) -> dict[str, Any]:
     kl_improved = float(final["route_kl"].mean()) < float(initial["route_kl"].mean())
     top1_not_worse = float(final["top1_agreement"].mean()) >= float(initial["top1_agreement"].mean())
     status = "passed" if kl_improved and top1_not_worse else "no_improvement"
+
     def final_mean(column: str) -> float:
         return float(final[column].mean())
 
     def final_max(column: str) -> float:
         return float(final[column].max())
+
+    def initial_mean(column: str) -> float:
+        return float(initial[column].mean())
+
+    def initial_max(column: str) -> float:
+        return float(initial[column].max())
+
+    def max_paired_increase(column: str) -> float:
+        pairs = initial[["tensor", column]].merge(
+            final[["tensor", column]],
+            on="tensor",
+            suffixes=("_initial", "_final"),
+        )
+        return float((pairs[f"{column}_final"] - pairs[f"{column}_initial"]).max())
 
     summary = {
         "schema_version": 2,
@@ -466,15 +485,27 @@ def calibrate_from_cache(args: argparse.Namespace) -> dict[str, Any]:
         "mean_final_top1_agreement": float(final["top1_agreement"].mean()),
         "mean_final_relative_delta_norm": float(final["relative_delta_norm"].mean()),
         "max_final_relative_delta_norm": float(final["relative_delta_norm"].max()),
+        "mean_initial_capacity_overflow_fraction": initial_mean("capacity_overflow_fraction"),
+        "max_initial_capacity_overflow_fraction": initial_max("capacity_overflow_fraction"),
         "mean_final_capacity_overflow_fraction": final_mean("capacity_overflow_fraction"),
         "max_final_capacity_overflow_fraction": final_max("capacity_overflow_fraction"),
+        "mean_initial_top1_capacity_overflow_fraction": initial_mean("top1_capacity_overflow_fraction"),
+        "max_initial_top1_capacity_overflow_fraction": initial_max("top1_capacity_overflow_fraction"),
         "mean_final_top1_capacity_overflow_fraction": final_mean("top1_capacity_overflow_fraction"),
         "max_final_top1_capacity_overflow_fraction": final_max("top1_capacity_overflow_fraction"),
+        "max_router_top1_capacity_overflow_increase": max_paired_increase("top1_capacity_overflow_fraction"),
+        "mean_initial_topk_capacity_overflow_fraction": initial_mean("topk_capacity_overflow_fraction"),
+        "max_initial_topk_capacity_overflow_fraction": initial_max("topk_capacity_overflow_fraction"),
         "mean_final_topk_capacity_overflow_fraction": final_mean("topk_capacity_overflow_fraction"),
         "max_final_topk_capacity_overflow_fraction": final_max("topk_capacity_overflow_fraction"),
+        "max_router_topk_capacity_overflow_increase": max_paired_increase("topk_capacity_overflow_fraction"),
+        "max_initial_top1_load_fraction": initial_max("top1_max_load_fraction"),
         "max_final_top1_load_fraction": final_max("top1_max_load_fraction"),
+        "max_initial_topk_load_fraction": initial_max("topk_max_load_fraction"),
         "max_final_topk_load_fraction": final_max("topk_max_load_fraction"),
+        "mean_initial_top1_load_entropy": initial_mean("top1_load_entropy"),
         "mean_final_top1_load_entropy": final_mean("top1_load_entropy"),
+        "mean_initial_topk_load_entropy": initial_mean("topk_load_entropy"),
         "mean_final_topk_load_entropy": final_mean("topk_load_entropy"),
         "epochs": int(args.epochs),
         "lr": float(args.lr),
