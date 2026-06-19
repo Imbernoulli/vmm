@@ -1334,6 +1334,45 @@ def summarize_qwen3_moe_trust_region_cap_search() -> dict[str, Any]:
     }
 
 
+def summarize_qwen3_moe_unified_mechanism_candidate() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_unified_mechanism_candidate")
+    summary = read_json(root / "summary.json")
+    search = read_csv(root / "candidate_search.csv")
+    group_rules = read_csv(root / "unified_group_rules.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "expert_group_count": int(summary.get("expert_group_count", len(group_rules))),
+        "candidate_count": int(summary.get("candidate_count", len(search))),
+        "selected_candidate_id": summary.get("selected_candidate_id"),
+        "selected_candidate_family": summary.get("selected_candidate_family"),
+        "selected_nonbase_mass_retention": maybe_float(summary.get("selected_nonbase_mass_retention")),
+        "selected_delta_norm_proxy_ratio_vs_uncapped": maybe_float(
+            summary.get("selected_delta_norm_proxy_ratio_vs_uncapped")
+        ),
+        "selected_max_predicted_relative_delta": maybe_float(summary.get("selected_max_predicted_relative_delta")),
+        "selected_routed_gt_hard_cap_groups": int(summary.get("selected_routed_gt_hard_cap_groups", 0)),
+        "selected_routed_gt_065_groups": int(summary.get("selected_routed_gt_065_groups", 0)),
+        "selected_routed_gt_075_groups": int(summary.get("selected_routed_gt_075_groups", 0)),
+        "selected_scaled_group_count": int(summary.get("selected_scaled_group_count", 0)),
+        "matches_validated_reference_rules": bool(summary.get("matches_validated_reference_rules", False)),
+        "candidate_rule_count": int(summary.get("candidate_rule_count", 0)),
+        "reference_rule_count": int(summary.get("reference_rule_count", 0)),
+        "max_reference_weight_abs_diff": maybe_float(summary.get("max_reference_weight_abs_diff")),
+        "router_policy": summary.get("router_policy"),
+        "shared_attention_policy": summary.get("shared_attention_policy"),
+        "mechanism_features": summary.get("mechanism_features", {}),
+        "candidate_rows": [clean_row(row) for _, row in search.iterrows()],
+        "report": rel(root / "report.md"),
+        "candidate_search": rel(root / "candidate_search.csv"),
+        "unified_group_rules": rel(root / "unified_group_rules.csv"),
+        "tensor_rules": rel(root / "tensor_rules.txt"),
+        "writer_command": rel(root / "writer_command.txt"),
+        "dry_run_command": rel(root / "dry_run_command.txt"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_qwen3_moe_trust_region_delta_validation() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_trust_region_delta_validation")
     summary = read_json(root / "summary.json")
@@ -3007,6 +3046,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/qwen3_moe_trust_region_cap_search/report.md searches interpretable expert cap laws over real Qwen3 route-mass, risk-flag, and safetensors-delta probes and emits writer-ready next-candidate rules.",
         },
         {
+            "item": "Qwen3 MoE unified mechanism candidate",
+            "status": "complete",
+            "evidence": "results/qwen3_moe_unified_mechanism_candidate/report.md turns route mass, router fragility, load, source-conflict, and delta probes into one same-shape constrained optimizer and writer-ready candidate.",
+        },
+        {
             "item": "Toy MoE multi-method routing readiness",
             "status": "complete",
             "evidence": "results/toy_moe_routing_readiness/report.md applies the generic readiness gate to toy MoE methods and flags all-weight routing drift separately from expert-matched/route-aware variants.",
@@ -3114,6 +3158,7 @@ def build_summary() -> dict[str, Any]:
             summarize_qwen3_moe_router_calibration_selector_matrix_smoke()
         ),
         "qwen3_moe_trust_region_cap_search": summarize_qwen3_moe_trust_region_cap_search(),
+        "qwen3_moe_unified_mechanism_candidate": summarize_qwen3_moe_unified_mechanism_candidate(),
         "toy_moe_routing_readiness": summarize_toy_moe_routing_readiness(),
         "toy_moe_method_selection": summarize_toy_moe_method_selection(),
         "toy_moe_expert_remap_plan": summarize_toy_moe_expert_remap_plan(),
@@ -3245,6 +3290,7 @@ def build_summary() -> dict[str, Any]:
             "python scripts/select_qwen3_moe_router_calibration_result.py --no-downstream-gain-negative-smoke --output-dir results/qwen3_moe_router_calibration_selection_no_gain_negative_smoke",
             "python scripts/select_qwen3_moe_router_calibration_result.py --task-regression-negative-smoke --output-dir results/qwen3_moe_router_calibration_selection_task_regression_negative_smoke",
             "python scripts/smoke_qwen3_moe_router_calibration_selector_matrix.py --output-dir results/qwen3_moe_router_calibration_selector_matrix_smoke",
+            "python scripts/build_qwen3_moe_unified_mechanism_candidate.py --output-dir results/qwen3_moe_unified_mechanism_candidate",
             "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
             "PYTHONPATH=src python scripts/collect_results.py",
         ],
@@ -3358,6 +3404,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
         return rows[0].get("decision_reason") if rows else None
 
     qwen3_moe_trust_region_cap_search = exp["qwen3_moe_trust_region_cap_search"]
+    qwen3_moe_unified_mechanism_candidate = exp["qwen3_moe_unified_mechanism_candidate"]
     selected_unified_capacity = toy_moe.get("unified_moe_capacity_sweep_selected") or {}
     selected_unified_output_projection_capacity = (
         toy_moe.get("unified_output_projection_moe_capacity_sweep_selected") or {}
@@ -3984,6 +4031,28 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_trust_region_cap_search['dry_run_validated_rule_count']} / "
                 f"{qwen3_moe_trust_region_cap_search['max_dry_run_expert_rule_hits']} / "
                 f"{qwen3_moe_trust_region_cap_search['max_dry_run_freeze_router_hits']} |"
+            ),
+            (
+                "| Qwen3 MoE unified mechanism candidate | selected / family / candidates | "
+                f"{qwen3_moe_unified_mechanism_candidate['selected_candidate_id']} / "
+                f"{qwen3_moe_unified_mechanism_candidate['selected_candidate_family']} / "
+                f"{qwen3_moe_unified_mechanism_candidate['candidate_count']} |"
+            ),
+            (
+                "| Qwen3 MoE unified mechanism candidate | retention / max rel-delta / hard-cap violations | "
+                f"{fmt(qwen3_moe_unified_mechanism_candidate['selected_nonbase_mass_retention'])} / "
+                f"{fmt(qwen3_moe_unified_mechanism_candidate['selected_max_predicted_relative_delta'])} / "
+                f"{qwen3_moe_unified_mechanism_candidate['selected_routed_gt_hard_cap_groups']} |"
+            ),
+            (
+                "| Qwen3 MoE unified mechanism candidate | router / attention policy | "
+                f"{qwen3_moe_unified_mechanism_candidate['router_policy']} / "
+                f"{qwen3_moe_unified_mechanism_candidate['shared_attention_policy']} |"
+            ),
+            (
+                "| Qwen3 MoE unified mechanism candidate | matches validated no-gt-0.65 rules / max diff | "
+                f"{qwen3_moe_unified_mechanism_candidate['matches_validated_reference_rules']} / "
+                f"{fmt(qwen3_moe_unified_mechanism_candidate['max_reference_weight_abs_diff'])} |"
             ),
             (
                 "| real MoE gauge self-merge | baseline / same-name / aligned NLL | "

@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T23:33:10.560329+00:00`
+Generated at: `2026-06-19T23:47:05.080925+00:00`
 
 ## Coverage
 
-Complete: `68`; partial: `1`; missing: `0`.
+Complete: `69`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -73,6 +73,7 @@ Complete: `68`; partial: `1`; missing: `0`.
 | Qwen3 MoE router calibration job | complete | results/qwen3_moe_router_calibration_job/report.md turns the rejected direct-router-move result into a capped route-KD router-calibration sweep job over the searched no-gt-0.65 candidate. |
 | Qwen3 MoE router calibration result selector | complete | results/qwen3_moe_router_calibration_selection/report.md accepts a router-calibrated cap only when matched vLLM eval, router-only tensor audit, cap compliance, and source/baseline dominance gates pass. |
 | Qwen3 MoE trust-region cap-law search | complete | results/qwen3_moe_trust_region_cap_search/report.md searches interpretable expert cap laws over real Qwen3 route-mass, risk-flag, and safetensors-delta probes and emits writer-ready next-candidate rules. |
+| Qwen3 MoE unified mechanism candidate | complete | results/qwen3_moe_unified_mechanism_candidate/report.md turns route mass, router fragility, load, source-conflict, and delta probes into one same-shape constrained optimizer and writer-ready candidate. |
 | Toy MoE multi-method routing readiness | complete | results/toy_moe_routing_readiness/report.md applies the generic readiness gate to toy MoE methods and flags all-weight routing drift separately from expert-matched/route-aware variants. |
 | Toy MoE merge method selection | complete | results/toy_moe_method_selection/report.md combines method metrics, routing readiness, and sparse capacity overflow into materialization gates plus a hard-top2/overflow Pareto frontier. |
 | Toy MoE expert remap plan | complete | results/toy_moe_expert_remap_plan/report.md turns expert-output matching into source tensor alias rules for same-shape checkpoint materialization. |
@@ -193,6 +194,10 @@ Complete: `68`; partial: `1`; missing: `0`.
 | Qwen3 MoE cap-law search | current trust vs uniform 0.65 >0.65 groups | 129 / 0 |
 | Qwen3 MoE cap-law search | extra risk penalties threshold-efficient | False |
 | Qwen3 MoE cap-law search | validated dry-run rules / expert hits / router hits | 1 / 15729 / 48 |
+| Qwen3 MoE unified mechanism candidate | selected / family / candidates | uniform_0.65 / threshold_efficient_cap / 10 |
+| Qwen3 MoE unified mechanism candidate | retention / max rel-delta / hard-cap violations | 0.982 / 0.650 / 0 |
+| Qwen3 MoE unified mechanism candidate | router / attention policy | freeze_router / freeze_shared_attention_pending_downstream_eval |
+| Qwen3 MoE unified mechanism candidate | matches validated no-gt-0.65 rules / max diff | True / 0.000 |
 | real MoE gauge self-merge | baseline / same-name / aligned NLL | 4.168 / 9.659 / 4.168 |
 | real MoE gauge self-merge | same-name degradation vs baseline | 5.491 |
 | real MoE gauge self-merge | recovered expert permutations | 16 / 16 |
