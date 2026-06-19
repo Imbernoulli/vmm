@@ -1046,6 +1046,38 @@ def summarize_qwen3_moe_mechanism_eval_gate() -> dict[str, Any]:
     }
 
 
+def summarize_qwen3_moe_router_move_gate() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_router_move_gate")
+    summary = read_json(root / "summary.json")
+    layer_gate = read_csv(root / "router_layer_move_gate.csv")
+    router_delta = read_csv(root / "router_delta_summary.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "router_layer_count": int(summary.get("router_layer_count", 0)),
+        "allowed_router_layer_count": int(summary.get("allowed_router_layer_count", 0)),
+        "frozen_router_layer_count": int(summary.get("frozen_router_layer_count", 0)),
+        "unsafe_readiness_rows": int(summary.get("unsafe_readiness_rows", 0)),
+        "calibrate_readiness_rows": int(summary.get("calibrate_readiness_rows", 0)),
+        "freeze_readiness_rows": int(summary.get("freeze_readiness_rows", 0)),
+        "small_lambda_readiness_rows": int(summary.get("small_lambda_readiness_rows", 0)),
+        "passed_readiness_rows": int(summary.get("passed_readiness_rows", 0)),
+        "total_router_relative_delta_norm": maybe_float(summary.get("total_router_relative_delta_norm")),
+        "max_router_relative_delta_norm": maybe_float(summary.get("max_router_relative_delta_norm")),
+        "mean_topk_jaccard": maybe_float(summary.get("mean_topk_jaccard")),
+        "min_topk_jaccard": maybe_float(summary.get("min_topk_jaccard")),
+        "mean_top1_agreement": maybe_float(summary.get("mean_top1_agreement")),
+        "min_top1_agreement": maybe_float(summary.get("min_top1_agreement")),
+        "recommended_unified_router_action": summary.get("recommended_unified_router_action"),
+        "layer_gate_rows": [clean_row(row) for _, row in layer_gate.iterrows()],
+        "router_delta_rows": [clean_row(row) for _, row in router_delta.iterrows()],
+        "report": rel(root / "report.md"),
+        "router_layer_move_gate": rel(root / "router_layer_move_gate.csv"),
+        "router_delta_summary": rel(root / "router_delta_summary.csv"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_qwen3_moe_trust_region_cap_search() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_trust_region_cap_search")
     summary = read_json(root / "summary.json")
@@ -2728,6 +2760,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/qwen3_moe_searched_no_gt065_delta_audit/report.md verifies the materialized searched 0.65 cap-law checkpoint and adds it to the Qwen3 MoE eval gate.",
         },
         {
+            "item": "Qwen3 MoE router move gate",
+            "status": "complete",
+            "evidence": "results/qwen3_moe_router_move_gate/report.md combines router tensor deltas with real routing readiness and rejects direct router-weight movement for all 48 layers.",
+        },
+        {
             "item": "Qwen3 MoE trust-region cap-law search",
             "status": "complete",
             "evidence": "results/qwen3_moe_trust_region_cap_search/report.md searches interpretable expert cap laws over real Qwen3 route-mass, risk-flag, and safetensors-delta probes and emits writer-ready next-candidate rules.",
@@ -2819,6 +2856,7 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_searched_no_gt065_delta_audit": summarize_qwen3_moe_searched_no_gt065_delta_audit(),
         "qwen3_moe_delta_frontier": summarize_qwen3_moe_delta_frontier(),
         "qwen3_moe_mechanism_eval_gate": summarize_qwen3_moe_mechanism_eval_gate(),
+        "qwen3_moe_router_move_gate": summarize_qwen3_moe_router_move_gate(),
         "qwen3_moe_trust_region_cap_search": summarize_qwen3_moe_trust_region_cap_search(),
         "toy_moe_routing_readiness": summarize_toy_moe_routing_readiness(),
         "toy_moe_method_selection": summarize_toy_moe_method_selection(),
@@ -2940,6 +2978,7 @@ def build_summary() -> dict[str, Any]:
             "bash results/qwen3_moe_trust_region_cap_search/searched_no_gt065_max_retention_writer_command.txt",
             "python scripts/audit_materialized_checkpoint_delta.py --base BASE --candidate results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate --output-dir results/qwen3_moe_searched_no_gt065_delta_audit",
             "python scripts/build_qwen3_moe_delta_frontier.py --output-dir results/qwen3_moe_delta_frontier",
+            "python scripts/build_qwen3_moe_router_move_gate.py --output-dir results/qwen3_moe_router_move_gate",
             "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
             "PYTHONPATH=src python scripts/collect_results.py",
         ],
@@ -3013,6 +3052,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_searched_no_gt065_delta_audit = exp["qwen3_moe_searched_no_gt065_delta_audit"]
     qwen3_moe_delta_frontier = exp["qwen3_moe_delta_frontier"]
     qwen3_moe_mechanism_eval_gate = exp["qwen3_moe_mechanism_eval_gate"]
+    qwen3_moe_router_move_gate = exp["qwen3_moe_router_move_gate"]
     qwen3_moe_trust_region_cap_search = exp["qwen3_moe_trust_region_cap_search"]
     selected_unified_capacity = toy_moe.get("unified_moe_capacity_sweep_selected") or {}
     selected_unified_output_projection_capacity = (
@@ -3505,6 +3545,26 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 "| Qwen3 MoE mechanism eval gate | local GPU / best delta-safety candidate | "
                 f"{qwen3_moe_mechanism_eval_gate['local_gpu_status']} / "
                 f"{qwen3_moe_mechanism_eval_gate['best_delta_safety_candidate']} |"
+            ),
+            (
+                "| Qwen3 MoE router move gate | status / action / allowed layers | "
+                f"{qwen3_moe_router_move_gate['status']} / "
+                f"{qwen3_moe_router_move_gate['recommended_unified_router_action']} / "
+                f"{qwen3_moe_router_move_gate['allowed_router_layer_count']}"
+                f"/{qwen3_moe_router_move_gate['router_layer_count']} |"
+            ),
+            (
+                "| Qwen3 MoE router move gate | unsafe / calibrate / freeze rows | "
+                f"{qwen3_moe_router_move_gate['unsafe_readiness_rows']} / "
+                f"{qwen3_moe_router_move_gate['calibrate_readiness_rows']} / "
+                f"{qwen3_moe_router_move_gate['freeze_readiness_rows']} |"
+            ),
+            (
+                "| Qwen3 MoE router move gate | router rel-norm / mean-min top-k Jaccard / min top1 | "
+                f"{fmt(qwen3_moe_router_move_gate['total_router_relative_delta_norm'])} / "
+                f"{fmt(qwen3_moe_router_move_gate['mean_topk_jaccard'])}"
+                f"-{fmt(qwen3_moe_router_move_gate['min_topk_jaccard'])} / "
+                f"{fmt(qwen3_moe_router_move_gate['min_top1_agreement'])} |"
             ),
             (
                 "| Qwen3 MoE cap-law search | searched / frontier / expert groups | "

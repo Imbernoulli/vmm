@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T21:22:20.221218+00:00`
+Generated at: `2026-06-19T21:28:02.209366+00:00`
 
 ## Coverage
 
-Complete: `63`; partial: `1`; missing: `0`.
+Complete: `64`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -67,6 +67,7 @@ Complete: `63`; partial: `1`; missing: `0`.
 | Qwen3 MoE route-guarded unified candidate | complete | results/qwen3_moe_unified_route_guarded_candidate/report.md converts the real Qwen3 route/load probe into source-route-conditioned same-shape tensor rules and a validated writer dry-run command. |
 | Qwen3 MoE mechanism-gated vLLM eval gate | complete | results/qwen3_moe_mechanism_eval_gate/report.md turns two source endpoints and six same-shape Qwen3 MoE candidates into mechanism tests, a one-model-at-a-time vLLM run script, and endpoint-fallback selection rules. |
 | Qwen3 MoE searched cap-law materialized candidate | complete | results/qwen3_moe_searched_no_gt065_delta_audit/report.md verifies the materialized searched 0.65 cap-law checkpoint and adds it to the Qwen3 MoE eval gate. |
+| Qwen3 MoE router move gate | complete | results/qwen3_moe_router_move_gate/report.md combines router tensor deltas with real routing readiness and rejects direct router-weight movement for all 48 layers. |
 | Qwen3 MoE trust-region cap-law search | complete | results/qwen3_moe_trust_region_cap_search/report.md searches interpretable expert cap laws over real Qwen3 route-mass, risk-flag, and safetensors-delta probes and emits writer-ready next-candidate rules. |
 | Toy MoE multi-method routing readiness | complete | results/toy_moe_routing_readiness/report.md applies the generic readiness gate to toy MoE methods and flags all-weight routing drift separately from expert-matched/route-aware variants. |
 | Toy MoE merge method selection | complete | results/toy_moe_method_selection/report.md combines method metrics, routing readiness, and sparse capacity overflow into materialization gates plus a hard-top2/overflow Pareto frontier. |
@@ -165,6 +166,9 @@ Complete: `63`; partial: `1`; missing: `0`.
 | Qwen3 MoE mechanism eval gate | status / selection / selected | awaiting_remote_vllm_eval / awaiting_source_eval / None |
 | Qwen3 MoE mechanism eval gate | ready / completed / awaiting tests | 8 / 0 / 7 |
 | Qwen3 MoE mechanism eval gate | local GPU / best delta-safety candidate | nvidia_smi_failed / tail_trimmed |
+| Qwen3 MoE router move gate | status / action / allowed layers | router_move_rejected_freeze_router / freeze_router / 0/48 |
+| Qwen3 MoE router move gate | unsafe / calibrate / freeze rows | 499 / 493 / 6 |
+| Qwen3 MoE router move gate | router rel-norm / mean-min top-k Jaccard / min top1 | 0.739 / 0.454-0.242 / 0.069 |
 | Qwen3 MoE cap-law search | searched / frontier / expert groups | 432 / 88 / 5243 |
 | Qwen3 MoE cap-law search | current trust vs uniform 0.65 retention | 0.982 / 0.982 |
 | Qwen3 MoE cap-law search | current trust vs uniform 0.65 >0.65 groups | 129 / 0 |

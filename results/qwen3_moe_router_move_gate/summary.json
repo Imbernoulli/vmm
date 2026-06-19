@@ -1,0 +1,29 @@
+{
+  "allowed_router_layer_count": 0,
+  "calibrate_readiness_rows": 493,
+  "freeze_readiness_rows": 6,
+  "frozen_router_layer_count": 48,
+  "interpretation": "No router layer passes the all-observed-category guard. Because router tensors are shared across categories, selective category-level movement is not expressible as a same-shape weight average. The current unified Qwen3 MoE rule should keep router frozen and test route-KD/HARC-style calibration only as a separate trained/calibrated intervention.",
+  "max_router_relative_delta_norm": 0.8763447826293789,
+  "mean_top1_agreement": 0.4125356771853856,
+  "mean_topk_jaccard": 0.4539157016864801,
+  "min_top1_agreement": 0.0689655169844627,
+  "min_topk_jaccard": 0.2422377622377622,
+  "outputs": {
+    "report": "results/qwen3_moe_router_move_gate/report.md",
+    "router_delta_summary": "results/qwen3_moe_router_move_gate/router_delta_summary.csv",
+    "router_layer_move_gate": "results/qwen3_moe_router_move_gate/router_layer_move_gate.csv",
+    "summary": "results/qwen3_moe_router_move_gate/summary.json"
+  },
+  "passed_readiness_rows": 31,
+  "readiness_rows": 576,
+  "recommended_unified_router_action": "freeze_router",
+  "router_layer_count": 48,
+  "schema_version": 1,
+  "small_lambda_readiness_rows": 46,
+  "status": "router_move_rejected_freeze_router",
+  "total_router_base_norm": 114.87305499434108,
+  "total_router_delta_norm": 84.92469591721341,
+  "total_router_relative_delta_norm": 0.7392916983133861,
+  "unsafe_readiness_rows": 499
+}

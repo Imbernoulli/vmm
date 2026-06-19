@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 66982,
+      "bytes": 67919,
       "kind": "document",
       "path": "README.md",
-      "sha256": "74d0ff08509c54505cc2adafbd750396b3c4a41af0c94541a73900d5f9fc6cce"
+      "sha256": "025f034e3990618d202cd6a68fac941d3839e4a02a64729fe2e051694da0f003"
     },
     {
       "bytes": 33211,
@@ -1831,6 +1831,30 @@
       "sha256": "10812dd561bf658d53097cd8b8f5954b8935c3194f853a755f6758975d07492c"
     },
     {
+      "bytes": 11586,
+      "kind": "document",
+      "path": "results/qwen3_moe_router_move_gate/report.md",
+      "sha256": "a5318250a7557f932253bfc010d42a036972d4f93ba6e3566b98fb1dd1005583"
+    },
+    {
+      "bytes": 6047,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_move_gate/router_delta_summary.csv",
+      "sha256": "bce2b71e4f68d17815d5f2082762083d803b891af06e734e6e0e3db0447f95c3"
+    },
+    {
+      "bytes": 16075,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_move_gate/router_layer_move_gate.csv",
+      "sha256": "ae7fee319e0714ed1bffa5eaf61db67a4cf2d85a37ca51de9e53b7ae41ce39af"
+    },
+    {
+      "bytes": 1508,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_move_gate/summary.json",
+      "sha256": "237377b99f37a8a04dbed5ee7697ab8dc867d81a962df9d894471c6602aebf02"
+    },
+    {
       "bytes": 516,
       "kind": "data",
       "path": "results/qwen3_moe_searched_no_gt065_delta_audit/group_delta_summary.csv",
@@ -2707,16 +2731,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 838681,
+      "bytes": 906099,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "eeeb60630311b1310a328f320ca2755430ee6af162cef45f399235015b7c599f"
+      "sha256": "008928e2d8b3f8ff5201723d895f44a93b6e15d8708e86603d0353afebba4129"
     },
     {
-      "bytes": 36726,
+      "bytes": 37257,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "d7099e9c387ac93f2561119bd08069b785a0eeabb9bc1cf6c2bb14354503fdf1"
+      "sha256": "0d1104acc2ba64f7b1c19f278ff8f11e8745b382720ef9d0bc4a3b6886b27487"
     },
     {
       "bytes": 288,
@@ -3805,6 +3829,12 @@
       "sha256": "1514fc6a95e094a2c82983cd9d1126e2df890f1dd29c34d2955db62737de96fa"
     },
     {
+      "bytes": 14811,
+      "kind": "code",
+      "path": "scripts/build_qwen3_moe_router_move_gate.py",
+      "sha256": "a54935494e9f4e369e436baa1560e60f687a20a3224f43aadbcbaffaa8cfc1fa"
+    },
+    {
       "bytes": 16588,
       "kind": "code",
       "path": "scripts/build_qwen3_moe_tail_trimmed_expert_only_candidate.py",
@@ -3847,10 +3877,10 @@
       "sha256": "0b0e4be7ec51f0afb74dfdee6e3d8b217da9aac4d965a170bea36c89f1b46abb"
     },
     {
-      "bytes": 247195,
+      "bytes": 251027,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "532548a19884d2aa754cd4dd4af3b3a630da7e2f3c884ec9b63634e8042f6409"
+      "sha256": "f68d8c062fef10749b9e492c38129146df77e37b82c815f6e67b7f583effd0c3"
     },
     {
       "bytes": 16101,
@@ -4075,7 +4105,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T21:22:20.231198+00:00",
+  "generated_at": "2026-06-19T21:28:02.255265+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"
