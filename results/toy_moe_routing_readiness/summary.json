@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-19T10:31:00.127581+00:00",
+  "generated_at": "2026-06-19T10:35:44.969201+00:00",
   "readiness_status": "high_risk_calibrate_router_before_merge",
   "router_dirs": [
     "results/toy_moe_merge"

@@ -17,6 +17,38 @@
     "path_count": 6,
     "steps": 21
   },
+  "dispatch_robustness": {
+    "best_by_mode": {
+      "hard_top1": {
+        "avg_acc": 0.67875,
+        "method": "router_frozen_average",
+        "worst_acc": 0.65,
+        "worst_loss": 0.683913459777832
+      },
+      "hard_top2": {
+        "avg_acc": 0.7625,
+        "method": "matched_router_calibrated_average",
+        "worst_acc": 0.7,
+        "worst_loss": 0.619939136505127
+      },
+      "soft_all": {
+        "avg_acc": 0.83875,
+        "method": "matched_router_calibrated_average",
+        "worst_acc": 0.8375,
+        "worst_loss": 0.6125870132446289
+      }
+    },
+    "matched_router_calibrated_hard_top1_worst_acc": 0.5675,
+    "matched_router_calibrated_hard_top2_worst_acc": 0.7,
+    "matched_router_calibrated_soft_to_hard_top1_worst_acc_delta": -0.27,
+    "matched_router_calibrated_soft_to_hard_top2_worst_acc_delta": -0.13750000000000007,
+    "modes": [
+      "soft_all",
+      "hard_top1",
+      "hard_top2"
+    ],
+    "row_count": 51
+  },
   "expert_match_mean_cosine": 0.9773149192333221,
   "expert_matched_dare_minus_matched_average_worst_acc": -0.020000000000000018,
   "expert_matched_dare_worst_acc": 0.78,
@@ -75,6 +107,7 @@
     "connectivity_figure": "connectivity_paths.png",
     "connectivity_path_metrics": "connectivity_path_metrics.csv",
     "connectivity_summary": "connectivity_summary.csv",
+    "dispatch_mode_metrics": "dispatch_mode_metrics.csv",
     "expert_load": "expert_load.csv",
     "expert_match": "expert_match.csv",
     "expert_regmean_covariances": "expert_regmean_covariances.csv",

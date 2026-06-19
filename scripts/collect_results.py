@@ -568,6 +568,7 @@ def summarize_moe_routing_readiness() -> dict[str, Any]:
 def summarize_toy_moe_merge() -> dict[str, Any]:
     summary = read_json("results/toy_moe_merge/summary.json")
     methods = read_csv("results/toy_moe_merge/method_metrics.csv")
+    dispatch_modes = read_csv("results/toy_moe_merge/dispatch_mode_metrics.csv")
     connectivity = read_csv("results/toy_moe_merge/connectivity_summary.csv")
     router_summary = read_csv("results/toy_moe_merge/router_summary.csv")
     expert_match = read_csv("results/toy_moe_merge/expert_match.csv")
@@ -585,6 +586,8 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
     return {
         "summary": summary,
         "best_method": find_method(methods, summary["best_method"]),
+        "dispatch_mode_rows": int(len(dispatch_modes)),
+        "dispatch_robustness": summary.get("dispatch_robustness", {}),
         "connectivity_summary_rows": int(len(connectivity)),
         "connectivity_best": clean_row(connectivity.sort_values("barrier_worst_loss").iloc[0])
         if not connectivity.empty
@@ -650,6 +653,7 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
         "router_rows": int(len(router_summary)),
         "report": rel("results/toy_moe_merge/report.md"),
         "method_metrics": rel("results/toy_moe_merge/method_metrics.csv"),
+        "dispatch_mode_metrics": rel("results/toy_moe_merge/dispatch_mode_metrics.csv"),
         "connectivity_summary": rel("results/toy_moe_merge/connectivity_summary.csv"),
         "connectivity_path_metrics": rel("results/toy_moe_merge/connectivity_path_metrics.csv"),
         "connectivity_figure": rel("results/toy_moe_merge/connectivity_paths.png"),
@@ -1321,6 +1325,18 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| toy MoE route-aware merge | matched + router-calibrated worst accuracy | "
                 f"{fmt(toy_moe['matched_router_calibrated_average']['worst_acc'])} |"
+            ),
+            (
+                "| toy MoE hard dispatch | matched + router-calibrated hard top-1 worst accuracy | "
+                f"{fmt(toy_moe['dispatch_robustness']['matched_router_calibrated_hard_top1_worst_acc'])} |"
+            ),
+            (
+                "| toy MoE hard dispatch | matched + router-calibrated hard top-2 worst accuracy | "
+                f"{fmt(toy_moe['dispatch_robustness']['matched_router_calibrated_hard_top2_worst_acc'])} |"
+            ),
+            (
+                "| toy MoE hard dispatch | soft to hard top-1 delta | "
+                f"{fmt(toy_moe['dispatch_robustness']['matched_router_calibrated_soft_to_hard_top1_worst_acc_delta'])} |"
             ),
             (
                 "| toy MoE route-aware merge | guarded router-sweep selected KL | "

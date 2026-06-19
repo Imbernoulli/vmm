@@ -52,10 +52,28 @@ class TinyMoEClassifier(nn.Module):
     def router_probs(self, x: Tensor) -> Tensor:
         return F.softmax(self.router(x), dim=-1)
 
-    def forward(self, x: Tensor) -> Tensor:
+    def dispatch_probs(self, x: Tensor, dispatch_mode: str = "soft_all") -> Tensor:
         probs = self.router_probs(x)
+        if dispatch_mode == "soft_all":
+            return probs
+        if dispatch_mode == "hard_top1":
+            k = 1
+        elif dispatch_mode == "hard_top2":
+            k = min(2, self.n_experts)
+        else:
+            raise ValueError(f"Unknown dispatch mode: {dispatch_mode}")
+        top_values, top_indices = torch.topk(probs, k=k, dim=-1)
+        masked = torch.zeros_like(probs)
+        masked.scatter_(1, top_indices, top_values)
+        return masked / masked.sum(dim=-1, keepdim=True).clamp_min(1e-12)
+
+    def forward_dispatch(self, x: Tensor, dispatch_mode: str = "soft_all") -> Tensor:
+        probs = self.dispatch_probs(x, dispatch_mode)
         expert_logits = self.expert_logits(x)
         return torch.einsum("be,bec->bc", probs, expert_logits)
+
+    def forward(self, x: Tensor) -> Tensor:
+        return self.forward_dispatch(x)
 
 
 @dataclass(frozen=True)
@@ -200,7 +218,13 @@ def calibrate_router_only_state(
 
 
 @torch.no_grad()
-def evaluate(model: TinyMoEClassifier, loader: DataLoader, device: torch.device) -> dict[str, float]:
+def evaluate(
+    model: TinyMoEClassifier,
+    loader: DataLoader,
+    device: torch.device,
+    *,
+    dispatch_mode: str = "soft_all",
+) -> dict[str, float]:
     model.to(device)
     model.eval()
     loss_sum = 0.0
@@ -209,7 +233,7 @@ def evaluate(model: TinyMoEClassifier, loader: DataLoader, device: torch.device)
     for x, y in loader:
         x = x.to(device)
         y = y.to(device)
-        logits = model(x)
+        logits = model.forward_dispatch(x, dispatch_mode)
         loss_sum += float(F.cross_entropy(logits, y, reduction="sum").detach().cpu())
         correct += int((logits.argmax(dim=-1) == y).sum().item())
         total += int(y.numel())
@@ -382,6 +406,17 @@ def parse_grid(raw: str) -> list[float]:
     if not values:
         raise ValueError("expert search grid must contain at least one value")
     return values
+
+
+def parse_dispatch_modes(raw: str) -> list[str]:
+    allowed = {"soft_all", "hard_top1", "hard_top2"}
+    modes = [item.strip() for item in raw.split(",") if item.strip()]
+    if not modes:
+        raise ValueError("dispatch eval modes must contain at least one mode")
+    unknown = sorted(set(modes) - allowed)
+    if unknown:
+        raise ValueError(f"Unknown dispatch eval modes: {unknown}; allowed={sorted(allowed)}")
+    return modes
 
 
 def expert_id_for_tensor(name: str, n_experts: int) -> int | None:
@@ -1175,6 +1210,38 @@ def evaluate_method(
     return method_row, router_rows, expert_rows
 
 
+def evaluate_dispatch_modes(
+    template: TinyMoEClassifier,
+    methods: list[MethodState],
+    loaders: dict[str, DataLoader],
+    device: torch.device,
+    *,
+    dispatch_modes: list[str],
+) -> pd.DataFrame:
+    rows = []
+    for method in methods:
+        model = deepcopy(template)
+        model.load_state_dict(method.state)
+        for dispatch_mode in dispatch_modes:
+            general = evaluate(model, loaders["general_test"], device, dispatch_mode=dispatch_mode)
+            code = evaluate(model, loaders["code_test"], device, dispatch_mode=dispatch_mode)
+            rows.append(
+                {
+                    "method": method.name,
+                    "dispatch_mode": dispatch_mode,
+                    "general_loss": general["loss"],
+                    "code_loss": code["loss"],
+                    "general_acc": general["acc"],
+                    "code_acc": code["acc"],
+                    "avg_loss": 0.5 * (general["loss"] + code["loss"]),
+                    "worst_loss": max(general["loss"], code["loss"]),
+                    "avg_acc": 0.5 * (general["acc"] + code["acc"]),
+                    "worst_acc": min(general["acc"], code["acc"]),
+                }
+            )
+    return pd.DataFrame(rows)
+
+
 def plot_results(method_metrics: pd.DataFrame, router_summary: pd.DataFrame, out: Path) -> None:
     fig, axes = plt.subplots(1, 2, figsize=(12.5, 4.5), constrained_layout=True)
     order = method_metrics.sort_values("worst_acc", ascending=False)["method"].tolist()
@@ -1237,6 +1304,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
     ].iloc[0]
     route_aware = method_metrics[method_metrics["method"] == "route_aware_expert_average"].iloc[0]
     connectivity = summary["connectivity"]
+    dispatch = summary["dispatch_robustness"]
     lines = [
         "# Toy MoE Route-Aware Merge",
         "",
@@ -1263,6 +1331,8 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
         f"- Lowest MoE connectivity barrier: `{connectivity['best_path']}` = `{connectivity['best_barrier_worst_loss']:.4f}` worst-loss barrier.",
         f"- Direct unmatched source barrier: `{connectivity['direct_unmatched_barrier_worst_loss']:.4f}`.",
         f"- Direct matched source barrier: `{connectivity['direct_matched_barrier_worst_loss']:.4f}`.",
+        f"- Matched + router-calibrated hard top-1 worst accuracy: `{dispatch['matched_router_calibrated_hard_top1_worst_acc']:.3f}`.",
+        f"- Matched + router-calibrated hard top-2 worst accuracy: `{dispatch['matched_router_calibrated_hard_top2_worst_acc']:.3f}`.",
         f"- Recovered expert matching mean cosine: `{summary['expert_match_mean_cosine']:.3f}`.",
         f"- Code source permutation: `{summary['code_source_permutation']}`.",
         "",
@@ -1297,6 +1367,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
             "## Files",
             "",
             "- `method_metrics.csv`",
+            "- `dispatch_mode_metrics.csv`",
             "- `router_summary.csv`",
             "- `expert_load.csv`",
             "- `route_overlap.csv`",
@@ -1359,12 +1430,14 @@ def main() -> None:
     parser.add_argument("--anchor-floor", type=float, default=0.15)
     parser.add_argument("--match-batches", type=int, default=6)
     parser.add_argument("--connectivity-steps", type=int, default=21)
+    parser.add_argument("--dispatch-eval-modes", default="soft_all,hard_top1,hard_top2")
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     args = parser.parse_args()
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     set_seed(args.seed)
     device = torch.device(args.device)
+    dispatch_eval_modes = parse_dispatch_modes(args.dispatch_eval_modes)
     loaders = prepare_data(args.seed, args.train_per_category, args.test_per_category, args.batch_size)
     template = TinyMoEClassifier(hidden=args.hidden, n_experts=args.experts)
 
@@ -1674,6 +1747,13 @@ def main() -> None:
         device,
         steps=args.connectivity_steps,
     )
+    dispatch_mode_metrics = evaluate_dispatch_modes(
+        template,
+        methods,
+        loaders,
+        device,
+        dispatch_modes=dispatch_eval_modes,
+    )
 
     method_rows: list[dict[str, Any]] = []
     router_rows: list[dict[str, Any]] = []
@@ -1711,6 +1791,7 @@ def main() -> None:
     route_overlap_df = pd.DataFrame(overlap_rows)
 
     method_metrics.to_csv(args.output_dir / "method_metrics.csv", index=False)
+    dispatch_mode_metrics.to_csv(args.output_dir / "dispatch_mode_metrics.csv", index=False)
     connectivity_path_metrics.to_csv(args.output_dir / "connectivity_path_metrics.csv", index=False)
     connectivity_summary.to_csv(args.output_dir / "connectivity_summary.csv", index=False)
     router_summary.to_csv(args.output_dir / "router_summary.csv", index=False)
@@ -1731,6 +1812,18 @@ def main() -> None:
     best = method_metrics.sort_values(["worst_acc", "avg_acc"], ascending=False).iloc[0]
     best_connectivity = connectivity_summary.iloc[0]
     connectivity_by_path = connectivity_summary.set_index("path")
+    dispatch_best_rows = {}
+    for mode in dispatch_eval_modes:
+        mode_rows = dispatch_mode_metrics[dispatch_mode_metrics["dispatch_mode"] == mode]
+        if not mode_rows.empty:
+            best_dispatch = mode_rows.sort_values(["worst_acc", "avg_acc"], ascending=False).iloc[0]
+            dispatch_best_rows[mode] = {
+                "method": str(best_dispatch["method"]),
+                "worst_acc": float(best_dispatch["worst_acc"]),
+                "avg_acc": float(best_dispatch["avg_acc"]),
+                "worst_loss": float(best_dispatch["worst_loss"]),
+            }
+    dispatch_index = dispatch_mode_metrics.set_index(["method", "dispatch_mode"])
     all_avg = method_metrics[method_metrics["method"] == "all_weight_average"].iloc[0]
     expert_matched_row = method_metrics[method_metrics["method"] == "expert_matched_average"].iloc[0]
     matched_router_frozen_row = method_metrics[method_metrics["method"] == "matched_router_frozen_average"].iloc[0]
@@ -1773,6 +1866,39 @@ def main() -> None:
                 - connectivity_by_path.loc["direct_unmatched_general_to_code", "barrier_worst_loss"]
             ),
             "path_count": int(len(connectivity_summary)),
+        },
+        "dispatch_robustness": {
+            "modes": dispatch_eval_modes,
+            "row_count": int(len(dispatch_mode_metrics)),
+            "best_by_mode": dispatch_best_rows,
+            "matched_router_calibrated_hard_top1_worst_acc": float(
+                dispatch_index.loc[("matched_router_calibrated_average", "hard_top1"), "worst_acc"]
+            )
+            if ("matched_router_calibrated_average", "hard_top1") in dispatch_index.index
+            else None,
+            "matched_router_calibrated_hard_top2_worst_acc": float(
+                dispatch_index.loc[("matched_router_calibrated_average", "hard_top2"), "worst_acc"]
+            )
+            if ("matched_router_calibrated_average", "hard_top2") in dispatch_index.index
+            else None,
+            "matched_router_calibrated_soft_to_hard_top1_worst_acc_delta": float(
+                dispatch_index.loc[("matched_router_calibrated_average", "hard_top1"), "worst_acc"]
+                - dispatch_index.loc[("matched_router_calibrated_average", "soft_all"), "worst_acc"]
+            )
+            if {
+                ("matched_router_calibrated_average", "hard_top1"),
+                ("matched_router_calibrated_average", "soft_all"),
+            }.issubset(set(dispatch_index.index))
+            else None,
+            "matched_router_calibrated_soft_to_hard_top2_worst_acc_delta": float(
+                dispatch_index.loc[("matched_router_calibrated_average", "hard_top2"), "worst_acc"]
+                - dispatch_index.loc[("matched_router_calibrated_average", "soft_all"), "worst_acc"]
+            )
+            if {
+                ("matched_router_calibrated_average", "hard_top2"),
+                ("matched_router_calibrated_average", "soft_all"),
+            }.issubset(set(dispatch_index.index))
+            else None,
         },
         "all_weight_average_worst_acc": float(all_avg["worst_acc"]),
         "matched_router_frozen_worst_acc": float(matched_router_frozen_row["worst_acc"]),
@@ -1897,6 +2023,7 @@ def main() -> None:
         "same_shape_constraint": "All methods keep the same TinyMoEClassifier architecture, expert count, router shape, and output classes.",
         "outputs": {
             "method_metrics": "method_metrics.csv",
+            "dispatch_mode_metrics": "dispatch_mode_metrics.csv",
             "router_summary": "router_summary.csv",
             "expert_load": "expert_load.csv",
             "route_overlap": "route_overlap.csv",

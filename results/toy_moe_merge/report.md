@@ -23,6 +23,8 @@
 - Lowest MoE connectivity barrier: `direct_matched_general_to_code` = `0.0000` worst-loss barrier.
 - Direct unmatched source barrier: `0.0327`.
 - Direct matched source barrier: `0.0000`.
+- Matched + router-calibrated hard top-1 worst accuracy: `0.568`.
+- Matched + router-calibrated hard top-2 worst accuracy: `0.700`.
 - Recovered expert matching mean cosine: `0.977`.
 - Code source permutation: `[2, 0, 3, 1]`.
 
@@ -66,6 +68,7 @@
 ## Files
 
 - `method_metrics.csv`
+- `dispatch_mode_metrics.csv`
 - `router_summary.csv`
 - `expert_load.csv`
 - `route_overlap.csv`
