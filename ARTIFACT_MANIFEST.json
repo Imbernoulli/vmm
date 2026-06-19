@@ -1,10 +1,10 @@
 {
   "artifacts": [
     {
-      "bytes": 26033,
+      "bytes": 26399,
       "kind": "document",
       "path": "MODEL_AVERAGING_PROBES_AND_MOE_OPTIMIZATION.md",
-      "sha256": "2819e131b911843d21af3afcf3685f0a9699bee2bec7b97a428d6b79254b7b07"
+      "sha256": "41cfcd851a675f79323818f67fce53d50f2e336af24e8d651d30777798e06c1a"
     },
     {
       "bytes": 20526,
@@ -13,16 +13,16 @@
       "sha256": "313cfe00a4f762c28f5fe1b881615f93e824f15a3f1ac2440b17d363819b3706"
     },
     {
-      "bytes": 19951,
+      "bytes": 20171,
       "kind": "document",
       "path": "QWEN_DENSE_MOE_EXPERIMENT_PLAN.md",
-      "sha256": "dcbe86ae791f56dd4984c261a89174ef4399ce03c4a675f64776f00e2b13ff19"
+      "sha256": "40710107a687c6fbba10c152f2c281d8e4b68ab4a303a4f198ec3c23e010518a"
     },
     {
-      "bytes": 22504,
+      "bytes": 22924,
       "kind": "document",
       "path": "README.md",
-      "sha256": "156aaa15247af0330f16fb2a5f7736ab94bc36a93de47a22b1520e7cac362aa5"
+      "sha256": "bbae6fd6374777cc3952076ea4b17b5d19b13c117c3041074e952b795c83cc74"
     },
     {
       "bytes": 33211,
@@ -83,6 +83,42 @@
       "kind": "data",
       "path": "results/average_decision_report/summary.json",
       "sha256": "0d96089876a6d351544e0d393c80824155d324738f462d9e96fb888e41042d5e"
+    },
+    {
+      "bytes": 310,
+      "kind": "data",
+      "path": "results/checkpoint_topology_inspect/compatibility.csv",
+      "sha256": "c995599c67c4a106a09721956795fd0b774291b48e72e685463b907eec19b973"
+    },
+    {
+      "bytes": 33,
+      "kind": "data",
+      "path": "results/checkpoint_topology_inspect/qwen3_0_6b_dense_experts.csv",
+      "sha256": "005edaab80c3276003c48d99ce1e7ce04bc57aca920e9906a815f474ed9e7de7"
+    },
+    {
+      "bytes": 175,
+      "kind": "data",
+      "path": "results/checkpoint_topology_inspect/qwen3_0_6b_dense_groups.csv",
+      "sha256": "cd58d434314767ba131a30f8738982598adc935305bf6fa4ab68255b6e859fa2"
+    },
+    {
+      "bytes": 32004,
+      "kind": "data",
+      "path": "results/checkpoint_topology_inspect/qwen3_0_6b_dense_tensors.csv",
+      "sha256": "10bb2493bc152b6eb147e761c53112c04eb46d4baca49964258346792caca0dc"
+    },
+    {
+      "bytes": 1753,
+      "kind": "document",
+      "path": "results/checkpoint_topology_inspect/report.md",
+      "sha256": "fcb69d62d34d3dc9256b2fdab5918e60c5280dc9462ec17ea942541745077d6c"
+    },
+    {
+      "bytes": 3914,
+      "kind": "data",
+      "path": "results/checkpoint_topology_inspect/summary.json",
+      "sha256": "422822ac08c929f677835230ba0ea0a021addd117eb71f49661d4756f929b57b"
     },
     {
       "bytes": 262391,
@@ -895,16 +931,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 71137,
+      "bytes": 80726,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "77331c0ee9b439622bad84eac61b8e1da35c1eedf0b729d66b4e52d481e79ed0"
+      "sha256": "b9b2c7874d4ebd888acb140f2c4efdc86c6bcd7793800f4b1336282cdab14b56"
     },
     {
-      "bytes": 4702,
+      "bytes": 4929,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "a0d9340d37f35090366a2e2fd68a3800df8e8f3a14a7dbc97ee1cb5c8d428f31"
+      "sha256": "0c0f46e55a4681f36981479428ba91ba7a0329335318eab8637fa762aa47c258"
     },
     {
       "bytes": 13129,
@@ -931,10 +967,16 @@
       "sha256": "9c64b6b1882d0782f1ff60c1dfd9b517ee02ca922a104108c8a927a1311965af"
     },
     {
-      "bytes": 36534,
+      "bytes": 37752,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "a939d08afd9423488d482fe496d73984152a90ea1d19e130ea361d637df64f1f"
+      "sha256": "5d0ec08c2da5e2ba9c2c2edea6c174c936f069c67727fe96790444bb151b328d"
+    },
+    {
+      "bytes": 17809,
+      "kind": "code",
+      "path": "scripts/inspect_checkpoint_topology.py",
+      "sha256": "dc99287f52592e28c0d1427a120bf0e74c5322202b3eb716b206a24ceed5e169"
     },
     {
       "bytes": 15724,
@@ -1045,7 +1087,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T03:53:13.922425+00:00",
+  "generated_at": "2026-06-19T04:00:07.070069+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

@@ -1,0 +1,121 @@
+{
+  "models": [
+    {
+      "name": "qwen3_5_35b_a3b",
+      "path": "/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3.5-35B-A3B/snapshots/59d61f3ce65a6d9863b86d2e96597125219dc754",
+      "config_path": "/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3.5-35B-A3B/snapshots/59d61f3ce65a6d9863b86d2e96597125219dc754/config.json",
+      "weights_root": null,
+      "has_safetensors_index": false,
+      "config": {
+        "model_type": "qwen3_5_moe",
+        "architectures": [
+          "Qwen3_5MoeForConditionalGeneration"
+        ],
+        "hidden_size": 2048,
+        "num_hidden_layers": 40,
+        "num_attention_heads": 16,
+        "num_key_value_heads": 2,
+        "intermediate_size": null,
+        "moe_intermediate_size": 512,
+        "shared_expert_intermediate_size": 512,
+        "num_experts": 256,
+        "num_experts_per_tok": 8,
+        "active_expert_fraction_per_token": 0.03125,
+        "router_aux_loss_coef": 0.001,
+        "vocab_size": 248320,
+        "max_position_embeddings": 262144,
+        "layer_type_counts": {
+          "linear_attention": 30,
+          "full_attention": 10
+        },
+        "is_moe_config": true
+      },
+      "headers": {
+        "weights_available": false
+      },
+      "artifacts": {
+        "tensors_csv": null,
+        "groups_csv": null,
+        "experts_csv": null
+      }
+    },
+    {
+      "name": "qwen3_0_6b_dense",
+      "path": "/srv/home/bohanlyu/MLS-Bench/vendor/data/models/Qwen3-0.6B",
+      "config_path": "/srv/home/bohanlyu/MLS-Bench/vendor/data/models/Qwen3-0.6B/config.json",
+      "weights_root": "/srv/home/bohanlyu/MLS-Bench/vendor/data/models/Qwen3-0.6B",
+      "has_safetensors_index": false,
+      "config": {
+        "model_type": "qwen3",
+        "architectures": [
+          "Qwen3ForCausalLM"
+        ],
+        "hidden_size": 1024,
+        "num_hidden_layers": 28,
+        "num_attention_heads": 16,
+        "num_key_value_heads": 8,
+        "intermediate_size": 3072,
+        "moe_intermediate_size": null,
+        "shared_expert_intermediate_size": null,
+        "num_experts": null,
+        "num_experts_per_tok": null,
+        "active_expert_fraction_per_token": null,
+        "router_aux_loss_coef": null,
+        "vocab_size": 151936,
+        "max_position_embeddings": 40960,
+        "layer_type_counts": {},
+        "is_moe_config": false
+      },
+      "headers": {
+        "weights_available": true,
+        "total_tensors": 311,
+        "total_numel": 751632384,
+        "total_bytes": 1503264768,
+        "groups": {
+          "dense_mlp": {
+            "tensors": 84,
+            "numel": 264241152,
+            "bytes": 528482304
+          },
+          "attention": {
+            "tensors": 196,
+            "numel": 176196608,
+            "bytes": 352393216
+          },
+          "embedding": {
+            "tensors": 1,
+            "numel": 155582464,
+            "bytes": 311164928
+          },
+          "lm_head": {
+            "tensors": 1,
+            "numel": 155582464,
+            "bytes": 311164928
+          },
+          "norm": {
+            "tensors": 29,
+            "numel": 29696,
+            "bytes": 59392
+          }
+        },
+        "num_layers_with_weights": 28,
+        "num_experts_with_weights": 0
+      },
+      "artifacts": {
+        "tensors_csv": "results/checkpoint_topology_inspect/qwen3_0_6b_dense_tensors.csv",
+        "groups_csv": "results/checkpoint_topology_inspect/qwen3_0_6b_dense_groups.csv",
+        "experts_csv": null
+      }
+    }
+  ],
+  "comparisons": [
+    {
+      "left": "qwen3_5_35b_a3b",
+      "right": "qwen3_0_6b_dense",
+      "same_config_for_average": false,
+      "mismatched_fields": "model_type,hidden_size,num_hidden_layers,num_key_value_heads,moe_intermediate_size,shared_expert_intermediate_size,num_experts,num_experts_per_tok,vocab_size",
+      "left_weights_available": false,
+      "right_weights_available": true
+    }
+  ]
+}

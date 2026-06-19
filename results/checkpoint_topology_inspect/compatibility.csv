@@ -1,0 +1,2 @@
+left,right,same_config_for_average,mismatched_fields,left_weights_available,right_weights_available
+qwen3_5_35b_a3b,qwen3_0_6b_dense,False,"model_type,hidden_size,num_hidden_layers,num_key_value_heads,moe_intermediate_size,shared_expert_intermediate_size,num_experts,num_experts_per_tok,vocab_size",False,True

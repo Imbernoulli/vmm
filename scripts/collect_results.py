@@ -470,6 +470,18 @@ def summarize_same_shape_writer_smoke() -> dict[str, Any]:
     }
 
 
+def summarize_checkpoint_topology() -> dict[str, Any]:
+    summary = read_json("results/checkpoint_topology_inspect/summary.json")
+    models = summary.get("models", [])
+    return {
+        "summary": summary,
+        "models": models,
+        "comparisons": summary.get("comparisons", []),
+        "report": rel("results/checkpoint_topology_inspect/report.md"),
+        "compatibility": rel("results/checkpoint_topology_inspect/compatibility.csv"),
+    }
+
+
 def coverage_checklist() -> list[dict[str, str]]:
     return [
         {
@@ -553,6 +565,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "scripts/write_same_shape_average_checkpoint.py writes same-shape safetensors checkpoints; results/same_shape_writer_smoke/report.md validates Qwen2.5-0.5B base/instruct/coder dry-run compatibility.",
         },
         {
+            "item": "Checkpoint topology inspection",
+            "status": "complete",
+            "evidence": "results/checkpoint_topology_inspect/report.md inspects Qwen MoE/Dense configs and safetensors headers without loading weights.",
+        },
+        {
             "item": "Interactive explainer UI",
             "status": "complete",
             "evidence": "Dashboard includes a draggable precomputed merge-plane explorer with task-pair, method, objective, raw/normalized plane, alpha/beta, and lambda controls.",
@@ -578,6 +595,7 @@ def build_summary() -> dict[str, Any]:
         "average_decision_report": summarize_average_decision_report(),
         "moe_average_plan": summarize_moe_average_plan(),
         "same_shape_writer_smoke": summarize_same_shape_writer_smoke(),
+        "checkpoint_topology_inspect": summarize_checkpoint_topology(),
     }
     coverage = coverage_checklist()
     counts = {
@@ -609,6 +627,7 @@ def build_summary() -> dict[str, Any]:
             "PYTHONPATH=src python scripts/build_average_decision_report.py",
             "PYTHONPATH=src python scripts/build_moe_average_plan.py",
             "python scripts/write_same_shape_average_checkpoint.py --base BASE --source expert=EXPERT --dry-run --output-dir results/same_shape_writer_smoke",
+            "python scripts/inspect_checkpoint_topology.py --model NAME=MODEL_PATH --output-dir results/checkpoint_topology_inspect",
             "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
             "PYTHONPATH=src python scripts/collect_results.py",
         ],
@@ -639,6 +658,8 @@ def build_markdown(summary: dict[str, Any]) -> str:
     average_decision = exp["average_decision_report"]
     moe_average_plan = exp["moe_average_plan"]
     writer_smoke = exp["same_shape_writer_smoke"]
+    topology = exp["checkpoint_topology_inspect"]
+    moe_models = [model for model in topology["models"] if model.get("config", {}).get("is_moe_config")]
     coverage_counts = summary["coverage_counts"]
     lines = [
         "# Result Summary",
@@ -788,6 +809,10 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| same-shape writer smoke | Qwen-compatible tensors checked | "
                 f"{writer_smoke['floating_tensors']} |"
+            ),
+            (
+                "| checkpoint topology | inspected MoE configs | "
+                f"{len(moe_models)} |"
             ),
         ]
     )
