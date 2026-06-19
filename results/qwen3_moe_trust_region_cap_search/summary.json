@@ -1,0 +1,29 @@
+{
+  "current_extra_risk_penalties_delta_threshold_efficient": false,
+  "current_trust_retention": 0.9818252502613988,
+  "current_trust_routed_gt_065_groups": 129,
+  "current_trust_routed_gt_075_groups": 0,
+  "expert_group_count": 5243,
+  "interpretation": "Use this search as an internal risk/utility frontier. It can suggest the next cap law, but vLLM source/candidate evaluation remains the decision gate.",
+  "outputs": {
+    "cap_law_search": "results/qwen3_moe_trust_region_cap_search/cap_law_search.csv",
+    "pareto_frontier": "results/qwen3_moe_trust_region_cap_search/pareto_frontier.csv",
+    "reference_laws": "results/qwen3_moe_trust_region_cap_search/reference_laws.csv",
+    "report": "results/qwen3_moe_trust_region_cap_search/report.md",
+    "risk_flag_ablation": "results/qwen3_moe_trust_region_cap_search/risk_flag_ablation.csv",
+    "selected_cap_laws": "results/qwen3_moe_trust_region_cap_search/selected_cap_laws.csv",
+    "selected_rule_artifacts": "results/qwen3_moe_trust_region_cap_search/selected_rule_artifacts.json",
+    "summary": "results/qwen3_moe_trust_region_cap_search/summary.json"
+  },
+  "pareto_frontier_count": 88,
+  "schema_version": 1,
+  "searched_law_count": 432,
+  "selected_no_gt065_law": "grid_00288_b0.65_m0.60_h0.00_s0.00_r0.00_l0.00_c0.00",
+  "selected_no_gt075_law": "grid_00000_b0.75_m0.60_h0.00_s0.00_r0.00_l0.00_c0.00",
+  "selected_rule_artifact_count": 3,
+  "status": "cap_law_search_ready",
+  "uniform_065_retention": 0.9822839246724455,
+  "uniform_065_retention_delta_vs_current_trust": 0.00045867441104674445,
+  "uniform_065_routed_gt_065_groups": 0,
+  "uniform_065_routed_gt_075_groups": 0
+}

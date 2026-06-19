@@ -1,0 +1,44 @@
+[
+  {
+    "checkpoint_output_dir": "results/checkpoints/qwen3_moe_searched_no_gt075_max_retention_candidate",
+    "dry_run_command": "results/qwen3_moe_trust_region_cap_search/searched_no_gt075_max_retention_dry_run_command.txt",
+    "dry_run_expert_rule_hits": 0,
+    "dry_run_floating_tensors": 0,
+    "dry_run_freeze_router_hits": 0,
+    "dry_run_frozen_tensors": 0,
+    "dry_run_manifest": null,
+    "dry_run_validated": false,
+    "law_id": "grid_00000_b0.75_m0.60_h0.00_s0.00_r0.00_l0.00_c0.00",
+    "selection_role": "searched_no_gt075_max_retention",
+    "tensor_rules": "results/qwen3_moe_trust_region_cap_search/searched_no_gt075_max_retention_tensor_rules.txt",
+    "writer_command": "results/qwen3_moe_trust_region_cap_search/searched_no_gt075_max_retention_writer_command.txt"
+  },
+  {
+    "checkpoint_output_dir": "results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate",
+    "dry_run_command": "results/qwen3_moe_trust_region_cap_search/searched_no_gt065_max_retention_dry_run_command.txt",
+    "dry_run_expert_rule_hits": 15729,
+    "dry_run_floating_tensors": 18867,
+    "dry_run_freeze_router_hits": 48,
+    "dry_run_frozen_tensors": 3891,
+    "dry_run_manifest": "results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate/merge_manifest.json",
+    "dry_run_validated": true,
+    "law_id": "grid_00288_b0.65_m0.60_h0.00_s0.00_r0.00_l0.00_c0.00",
+    "selection_role": "searched_no_gt065_max_retention",
+    "tensor_rules": "results/qwen3_moe_trust_region_cap_search/searched_no_gt065_max_retention_tensor_rules.txt",
+    "writer_command": "results/qwen3_moe_trust_region_cap_search/searched_no_gt065_max_retention_writer_command.txt"
+  },
+  {
+    "checkpoint_output_dir": "results/checkpoints/qwen3_moe_searched_min_internal_risk_score_candidate",
+    "dry_run_command": "results/qwen3_moe_trust_region_cap_search/searched_min_internal_risk_score_dry_run_command.txt",
+    "dry_run_expert_rule_hits": 0,
+    "dry_run_floating_tensors": 0,
+    "dry_run_freeze_router_hits": 0,
+    "dry_run_frozen_tensors": 0,
+    "dry_run_manifest": null,
+    "dry_run_validated": false,
+    "law_id": "grid_00288_b0.65_m0.60_h0.00_s0.00_r0.00_l0.00_c0.00",
+    "selection_role": "searched_min_internal_risk_score",
+    "tensor_rules": "results/qwen3_moe_trust_region_cap_search/searched_min_internal_risk_score_tensor_rules.txt",
+    "writer_command": "results/qwen3_moe_trust_region_cap_search/searched_min_internal_risk_score_writer_command.txt"
+  }
+]

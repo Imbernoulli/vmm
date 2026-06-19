@@ -1021,6 +1021,45 @@ def summarize_qwen3_moe_mechanism_eval_gate() -> dict[str, Any]:
     }
 
 
+def summarize_qwen3_moe_trust_region_cap_search() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_trust_region_cap_search")
+    summary = read_json(root / "summary.json")
+    selected = read_csv(root / "selected_cap_laws.csv")
+    ablation = read_csv(root / "risk_flag_ablation.csv")
+    artifacts = read_json(root / "selected_rule_artifacts.json")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "expert_group_count": int(summary.get("expert_group_count", 0)),
+        "searched_law_count": int(summary.get("searched_law_count", 0)),
+        "pareto_frontier_count": int(summary.get("pareto_frontier_count", 0)),
+        "selected_no_gt075_law": summary.get("selected_no_gt075_law"),
+        "selected_no_gt065_law": summary.get("selected_no_gt065_law"),
+        "current_trust_retention": maybe_float(summary.get("current_trust_retention")),
+        "uniform_065_retention": maybe_float(summary.get("uniform_065_retention")),
+        "uniform_065_retention_delta_vs_current_trust": maybe_float(
+            summary.get("uniform_065_retention_delta_vs_current_trust")
+        ),
+        "current_trust_routed_gt_065_groups": int(summary.get("current_trust_routed_gt_065_groups", 0)),
+        "uniform_065_routed_gt_065_groups": int(summary.get("uniform_065_routed_gt_065_groups", 0)),
+        "current_extra_risk_penalties_delta_threshold_efficient": bool(
+            summary.get("current_extra_risk_penalties_delta_threshold_efficient", False)
+        ),
+        "dry_run_validated_rule_count": sum(1 for row in artifacts if row.get("dry_run_validated")),
+        "max_dry_run_expert_rule_hits": max((int(row.get("dry_run_expert_rule_hits", 0)) for row in artifacts), default=0),
+        "max_dry_run_freeze_router_hits": max((int(row.get("dry_run_freeze_router_hits", 0)) for row in artifacts), default=0),
+        "selected_rows": [clean_row(row) for _, row in selected.iterrows()],
+        "risk_flag_ablation_rows": [clean_row(row) for _, row in ablation.iterrows()],
+        "report": rel(root / "report.md"),
+        "cap_law_search": rel(root / "cap_law_search.csv"),
+        "pareto_frontier": rel(root / "pareto_frontier.csv"),
+        "selected_cap_laws": rel(root / "selected_cap_laws.csv"),
+        "risk_flag_ablation": rel(root / "risk_flag_ablation.csv"),
+        "selected_rule_artifacts": rel(root / "selected_rule_artifacts.json"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_qwen3_moe_trust_region_delta_validation() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_trust_region_delta_validation")
     summary = read_json(root / "summary.json")
@@ -2659,6 +2698,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/qwen3_moe_mechanism_eval_gate/report.md turns two source endpoints and five same-shape Qwen3 MoE candidates into mechanism tests, a one-model-at-a-time vLLM run script, and endpoint-fallback selection rules.",
         },
         {
+            "item": "Qwen3 MoE trust-region cap-law search",
+            "status": "complete",
+            "evidence": "results/qwen3_moe_trust_region_cap_search/report.md searches interpretable expert cap laws over real Qwen3 route-mass, risk-flag, and safetensors-delta probes and emits writer-ready next-candidate rules.",
+        },
+        {
             "item": "Toy MoE multi-method routing readiness",
             "status": "complete",
             "evidence": "results/toy_moe_routing_readiness/report.md applies the generic readiness gate to toy MoE methods and flags all-weight routing drift separately from expert-matched/route-aware variants.",
@@ -2744,6 +2788,7 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_tail_trimmed_delta_audit": summarize_qwen3_moe_tail_trimmed_delta_audit(),
         "qwen3_moe_delta_frontier": summarize_qwen3_moe_delta_frontier(),
         "qwen3_moe_mechanism_eval_gate": summarize_qwen3_moe_mechanism_eval_gate(),
+        "qwen3_moe_trust_region_cap_search": summarize_qwen3_moe_trust_region_cap_search(),
         "toy_moe_routing_readiness": summarize_toy_moe_routing_readiness(),
         "toy_moe_method_selection": summarize_toy_moe_method_selection(),
         "toy_moe_expert_remap_plan": summarize_toy_moe_expert_remap_plan(),
@@ -2934,6 +2979,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_tail_trimmed_delta_audit = exp["qwen3_moe_tail_trimmed_delta_audit"]
     qwen3_moe_delta_frontier = exp["qwen3_moe_delta_frontier"]
     qwen3_moe_mechanism_eval_gate = exp["qwen3_moe_mechanism_eval_gate"]
+    qwen3_moe_trust_region_cap_search = exp["qwen3_moe_trust_region_cap_search"]
     selected_unified_capacity = toy_moe.get("unified_moe_capacity_sweep_selected") or {}
     selected_unified_output_projection_capacity = (
         toy_moe.get("unified_output_projection_moe_capacity_sweep_selected") or {}
@@ -3405,6 +3451,32 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 "| Qwen3 MoE mechanism eval gate | local GPU / best delta-safety candidate | "
                 f"{qwen3_moe_mechanism_eval_gate['local_gpu_status']} / "
                 f"{qwen3_moe_mechanism_eval_gate['best_delta_safety_candidate']} |"
+            ),
+            (
+                "| Qwen3 MoE cap-law search | searched / frontier / expert groups | "
+                f"{qwen3_moe_trust_region_cap_search['searched_law_count']} / "
+                f"{qwen3_moe_trust_region_cap_search['pareto_frontier_count']} / "
+                f"{qwen3_moe_trust_region_cap_search['expert_group_count']} |"
+            ),
+            (
+                "| Qwen3 MoE cap-law search | current trust vs uniform 0.65 retention | "
+                f"{fmt(qwen3_moe_trust_region_cap_search['current_trust_retention'])} / "
+                f"{fmt(qwen3_moe_trust_region_cap_search['uniform_065_retention'])} |"
+            ),
+            (
+                "| Qwen3 MoE cap-law search | current trust vs uniform 0.65 >0.65 groups | "
+                f"{qwen3_moe_trust_region_cap_search['current_trust_routed_gt_065_groups']} / "
+                f"{qwen3_moe_trust_region_cap_search['uniform_065_routed_gt_065_groups']} |"
+            ),
+            (
+                "| Qwen3 MoE cap-law search | extra risk penalties threshold-efficient | "
+                f"{qwen3_moe_trust_region_cap_search['current_extra_risk_penalties_delta_threshold_efficient']} |"
+            ),
+            (
+                "| Qwen3 MoE cap-law search | validated dry-run rules / expert hits / router hits | "
+                f"{qwen3_moe_trust_region_cap_search['dry_run_validated_rule_count']} / "
+                f"{qwen3_moe_trust_region_cap_search['max_dry_run_expert_rule_hits']} / "
+                f"{qwen3_moe_trust_region_cap_search['max_dry_run_freeze_router_hits']} |"
             ),
             (
                 "| real MoE gauge self-merge | baseline / same-name / aligned NLL | "

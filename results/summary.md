@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T20:50:53.499767+00:00`
+Generated at: `2026-06-19T21:08:45.954032+00:00`
 
 ## Coverage
 
-Complete: `61`; partial: `1`; missing: `0`.
+Complete: `62`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -66,6 +66,7 @@ Complete: `61`; partial: `1`; missing: `0`.
 | Qwen3 MoE real routing readiness | complete | results/moe_routing_readiness/qwen3_30b_instruct_vs_coder/report.md analyzes the real Qwen3-30B Instruct/Coder route overlap and expert load probe, showing direct router averaging is high risk and needs calibration or freeze. |
 | Qwen3 MoE route-guarded unified candidate | complete | results/qwen3_moe_unified_route_guarded_candidate/report.md converts the real Qwen3 route/load probe into source-route-conditioned same-shape tensor rules and a validated writer dry-run command. |
 | Qwen3 MoE mechanism-gated vLLM eval gate | complete | results/qwen3_moe_mechanism_eval_gate/report.md turns two source endpoints and five same-shape Qwen3 MoE candidates into mechanism tests, a one-model-at-a-time vLLM run script, and endpoint-fallback selection rules. |
+| Qwen3 MoE trust-region cap-law search | complete | results/qwen3_moe_trust_region_cap_search/report.md searches interpretable expert cap laws over real Qwen3 route-mass, risk-flag, and safetensors-delta probes and emits writer-ready next-candidate rules. |
 | Toy MoE multi-method routing readiness | complete | results/toy_moe_routing_readiness/report.md applies the generic readiness gate to toy MoE methods and flags all-weight routing drift separately from expert-matched/route-aware variants. |
 | Toy MoE merge method selection | complete | results/toy_moe_method_selection/report.md combines method metrics, routing readiness, and sparse capacity overflow into materialization gates plus a hard-top2/overflow Pareto frontier. |
 | Toy MoE expert remap plan | complete | results/toy_moe_expert_remap_plan/report.md turns expert-output matching into source tensor alias rules for same-shape checkpoint materialization. |
@@ -160,6 +161,11 @@ Complete: `61`; partial: `1`; missing: `0`.
 | Qwen3 MoE mechanism eval gate | status / selection / selected | awaiting_remote_vllm_eval / awaiting_source_eval / None |
 | Qwen3 MoE mechanism eval gate | ready / completed / awaiting tests | 7 / 0 / 6 |
 | Qwen3 MoE mechanism eval gate | local GPU / best delta-safety candidate | nvidia_smi_failed / tail_trimmed |
+| Qwen3 MoE cap-law search | searched / frontier / expert groups | 432 / 88 / 5243 |
+| Qwen3 MoE cap-law search | current trust vs uniform 0.65 retention | 0.982 / 0.982 |
+| Qwen3 MoE cap-law search | current trust vs uniform 0.65 >0.65 groups | 129 / 0 |
+| Qwen3 MoE cap-law search | extra risk penalties threshold-efficient | False |
+| Qwen3 MoE cap-law search | validated dry-run rules / expert hits / router hits | 1 / 15729 / 48 |
 | real MoE gauge self-merge | baseline / same-name / aligned NLL | 4.168 / 9.659 / 4.168 |
 | real MoE gauge self-merge | same-name degradation vs baseline | 5.491 |
 | real MoE gauge self-merge | recovered expert permutations | 16 / 16 |
