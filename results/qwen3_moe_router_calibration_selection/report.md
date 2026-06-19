@@ -10,6 +10,8 @@
 - Source eval completed: `False`
 - Candidate eval completed: `False`
 - Audit completed: `False`
+- Training completed: `False`
+- Capacity metrics completed: `False`
 - Eligible candidates: `0/3`
 
 ## Baseline
@@ -20,11 +22,11 @@
 
 ## Candidate Gate
 
-| cap | method | decision | avg delta | worst delta | worst task delta | router max rel | router-only | cap pass | score | reason |
-| ---: | --- | --- | ---: | ---: | ---: | ---: | --- | --- | ---: | --- |
-| 0.0100 | `qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate` | `reject_or_wait` |  |  |  |  | `False` | `False` | -0.0001 | `awaiting_baseline_eval,awaiting_source_eval,awaiting_candidate_eval,awaiting_audit` |
-| 0.0250 | `qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate` | `reject_or_wait` |  |  |  |  | `False` | `False` | -0.0003 | `awaiting_baseline_eval,awaiting_source_eval,awaiting_candidate_eval,awaiting_audit` |
-| 0.0500 | `qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate` | `reject_or_wait` |  |  |  |  | `False` | `False` | -0.0005 | `awaiting_baseline_eval,awaiting_source_eval,awaiting_candidate_eval,awaiting_audit` |
+| cap | method | decision | avg delta | worst delta | worst task delta | router max rel | top1/top-k overflow | load pass | router-only | cap pass | score | reason |
+| ---: | --- | --- | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | ---: | --- |
+| 0.0100 | `qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate` | `reject_or_wait` |  |  |  |  | / | `False` | `False` | `False` | -0.0001 | `awaiting_baseline_eval,awaiting_source_eval,awaiting_router_training,awaiting_candidate_eval,awaiting_audit` |
+| 0.0250 | `qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate` | `reject_or_wait` |  |  |  |  | / | `False` | `False` | `False` | -0.0003 | `awaiting_baseline_eval,awaiting_source_eval,awaiting_router_training,awaiting_candidate_eval,awaiting_audit` |
+| 0.0500 | `qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate` | `reject_or_wait` |  |  |  |  | / | `False` | `False` | `False` | -0.0005 | `awaiting_baseline_eval,awaiting_source_eval,awaiting_router_training,awaiting_candidate_eval,awaiting_audit` |
 
 ## Source Controls
 
@@ -42,8 +44,11 @@
 - Baseline searched_no_gt065 eval must be complete on the same vLLM task set.
 - Both source endpoint evals must be complete unless --allow-missing-source-eval is explicitly set.
 - Every cap candidate must have a materialized delta audit and vLLM eval before final selection.
+- Every cap candidate must have router training metrics with hard top-1/top-k route-load statistics.
 - The audit must show only router tensors changed, with no shape/dtype mismatch.
 - The maximum per-router relative delta norm must stay inside the planned cap.
+- Hard top-1 route capacity overflow may not exceed 0.1.
+- Hard top-k route capacity overflow may not exceed 0.05.
 - Average primary score may not drop more than 0.005.
 - Worst primary score may not drop more than 0.01.
 - No available task primary score may drop more than 0.02.

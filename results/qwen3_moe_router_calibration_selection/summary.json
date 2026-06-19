@@ -22,13 +22,15 @@
     "baseline_eval_completed": false,
     "candidate_count": 3,
     "candidate_eval_completed": false,
+    "capacity_metrics_completed": false,
     "eligible_candidate_count": 0,
     "reason": "Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps.",
     "schema_version": 1,
     "selected_method": null,
     "source_eval_completed": false,
     "source_eval_required": true,
-    "status": "awaiting_baseline_eval"
+    "status": "awaiting_baseline_eval",
+    "training_completed": false
   },
   "job_dir": "results/qwen3_moe_router_calibration_job",
   "outputs": {

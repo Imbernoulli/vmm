@@ -27,13 +27,15 @@
     "baseline_eval_completed": true,
     "candidate_count": 3,
     "candidate_eval_completed": true,
+    "capacity_metrics_completed": true,
     "eligible_candidate_count": 1,
     "reason": "Selected the router-calibrated cap that improved downstream scores, stayed within cap, changed only router tensors, and was not source dominated.",
     "schema_version": 1,
     "selected_method": "smoke_router_calibrated_cap0025",
     "source_eval_completed": true,
     "source_eval_required": true,
-    "status": "selected_router_calibrated_candidate"
+    "status": "selected_router_calibrated_candidate",
+    "training_completed": true
   },
   "job_dir": "results/qwen3_moe_router_calibration_selection_smoke/input_job",
   "outputs": {

@@ -10,6 +10,8 @@
 - Source eval completed: `True`
 - Candidate eval completed: `True`
 - Audit completed: `True`
+- Training completed: `True`
+- Capacity metrics completed: `True`
 - Eligible candidates: `1/3`
 
 ## Baseline
@@ -20,11 +22,11 @@
 
 ## Candidate Gate
 
-| cap | method | decision | avg delta | worst delta | worst task delta | router max rel | router-only | cap pass | score | reason |
-| ---: | --- | --- | ---: | ---: | ---: | ---: | --- | --- | ---: | --- |
-| 0.0100 | `smoke_router_calibrated_cap001` | `reject_or_wait` | 0.0010 | 0.0000 | -0.0010 | 0.0080 | `True` | `True` | 0.0012 | `no_downstream_gain` |
-| 0.0250 | `smoke_router_calibrated_cap0025` | `candidate_eligible` | 0.0150 | 0.0100 | 0.0000 | 0.0220 | `True` | `True` | 0.0210 | `passes_all_gates` |
-| 0.0500 | `smoke_router_calibrated_cap005` | `reject_or_wait` | 0.0250 | 0.0150 | 0.0000 | 0.0710 | `False` | `False` | 0.0343 | `audit_not_router_only,router_delta_cap_violation` |
+| cap | method | decision | avg delta | worst delta | worst task delta | router max rel | top1/top-k overflow | load pass | router-only | cap pass | score | reason |
+| ---: | --- | --- | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | ---: | --- |
+| 0.0100 | `smoke_router_calibrated_cap001` | `reject_or_wait` | 0.0010 | 0.0000 | -0.0010 | 0.0080 | 0.0000/0.0000 | `True` | `True` | `True` | 0.0012 | `no_downstream_gain` |
+| 0.0250 | `smoke_router_calibrated_cap0025` | `candidate_eligible` | 0.0150 | 0.0100 | 0.0000 | 0.0220 | 0.0150/0.0200 | `True` | `True` | `True` | 0.0145 | `passes_all_gates` |
+| 0.0500 | `smoke_router_calibrated_cap005` | `reject_or_wait` | 0.0250 | 0.0150 | 0.0000 | 0.0710 | 0.1200/0.0900 | `False` | `False` | `False` | -0.0002 | `top1_capacity_overflow,audit_not_router_only,router_delta_cap_violation` |
 
 ## Source Controls
 
@@ -42,8 +44,11 @@
 - Baseline searched_no_gt065 eval must be complete on the same vLLM task set.
 - Both source endpoint evals must be complete unless --allow-missing-source-eval is explicitly set.
 - Every cap candidate must have a materialized delta audit and vLLM eval before final selection.
+- Every cap candidate must have router training metrics with hard top-1/top-k route-load statistics.
 - The audit must show only router tensors changed, with no shape/dtype mismatch.
 - The maximum per-router relative delta norm must stay inside the planned cap.
+- Hard top-1 route capacity overflow may not exceed 0.1.
+- Hard top-k route capacity overflow may not exceed 0.05.
 - Average primary score may not drop more than 0.005.
 - Worst primary score may not drop more than 0.01.
 - No available task primary score may drop more than 0.02.

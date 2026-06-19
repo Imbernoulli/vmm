@@ -143,6 +143,52 @@ def capacity_overflow_fraction(logits: torch.Tensor, capacity_factor: float) -> 
     return float(overflow.item())
 
 
+def _load_entropy(load: torch.Tensor) -> float:
+    if load.numel() <= 1:
+        return 1.0
+    total = load.sum().clamp_min(1e-12)
+    probs = load / total
+    positive = probs[probs > 0]
+    entropy = -(positive * torch.log(positive)).sum()
+    return float((entropy / math.log(load.numel())).item())
+
+
+def _load_cv(load: torch.Tensor) -> float:
+    if load.numel() <= 1:
+        return 0.0
+    return float((load.std(unbiased=False) / load.mean().clamp_min(1e-12)).item())
+
+
+def route_load_stats(logits: torch.Tensor, top_k: int, capacity_factor: float) -> dict[str, float]:
+    num_experts = int(logits.shape[-1])
+    if num_experts <= 0:
+        raise ValueError("Router logits must have at least one expert dimension.")
+    token_count = int(logits.shape[0])
+    capacity = float(capacity_factor) / max(1, num_experts)
+
+    top1_indices = logits.argmax(dim=-1)
+    top1_counts = torch.bincount(top1_indices, minlength=num_experts).to(torch.float32)
+    top1_load = top1_counts / max(1, token_count)
+    top1_overflow = F.relu(top1_load - capacity).sum()
+
+    k = min(max(1, int(top_k)), num_experts)
+    topk_indices = torch.topk(logits, k=k, dim=-1).indices.reshape(-1)
+    topk_counts = torch.bincount(topk_indices, minlength=num_experts).to(torch.float32)
+    topk_load = topk_counts / max(1, token_count * k)
+    topk_overflow = F.relu(topk_load - capacity).sum()
+
+    return {
+        "top1_max_load_fraction": float(top1_load.max().item()),
+        "top1_capacity_overflow_fraction": float(top1_overflow.item()),
+        "top1_load_entropy": _load_entropy(top1_load),
+        "top1_load_cv": _load_cv(top1_load),
+        "topk_max_load_fraction": float(topk_load.max().item()),
+        "topk_capacity_overflow_fraction": float(topk_overflow.item()),
+        "topk_load_entropy": _load_entropy(topk_load),
+        "topk_load_cv": _load_cv(topk_load),
+    }
+
+
 def metric_row(
     *,
     tensor_name: str,
@@ -160,6 +206,7 @@ def metric_row(
     student_top1 = logits.argmax(dim=-1)
     delta_norm = float(torch.linalg.vector_norm(delta_weight).item())
     base_norm = float(torch.linalg.vector_norm(base_weight.to(torch.float32)).item())
+    load_stats = route_load_stats(logits, top_k=top_k, capacity_factor=capacity_factor)
     return {
         "tensor": tensor_name,
         "stage": stage,
@@ -167,6 +214,7 @@ def metric_row(
         "top1_agreement": float((student_top1 == teacher_top1).to(torch.float32).mean().item()),
         "topk_jaccard": topk_jaccard(logits, teacher_logits, top_k=top_k),
         "capacity_overflow_fraction": capacity_overflow_fraction(logits, capacity_factor),
+        **load_stats,
         "delta_norm": delta_norm,
         "base_norm": base_norm,
         "relative_delta_norm": delta_norm / max(1e-12, base_norm),
@@ -262,6 +310,7 @@ def train_one_router(
                     orientation,
                     None if base_bias is None else base_bias + delta_bias,
                 )
+                load_stats = route_load_stats(eval_logits, top_k=args.top_k, capacity_factor=args.capacity_factor)
                 trace_rows.append(
                     {
                         "tensor": tensor_name,
@@ -275,6 +324,7 @@ def train_one_router(
                         "top1_agreement": float((eval_logits.argmax(dim=-1) == teacher_top1).float().mean().item()),
                         "topk_jaccard": topk_jaccard(eval_logits, teacher_logits, top_k=args.top_k),
                         "capacity_overflow_fraction": capacity_overflow_fraction(eval_logits, args.capacity_factor),
+                        **load_stats,
                     }
                 )
 
@@ -316,6 +366,8 @@ def build_report(summary: dict[str, Any], metric_df: pd.DataFrame) -> str:
         f"- Mean final KL: `{summary['mean_final_route_kl']:.6f}`",
         f"- Mean initial top-1 agreement: `{summary['mean_initial_top1_agreement']:.4f}`",
         f"- Mean final top-1 agreement: `{summary['mean_final_top1_agreement']:.4f}`",
+        f"- Max final hard top-1 capacity overflow: `{summary['max_final_top1_capacity_overflow_fraction']:.6f}`",
+        f"- Max final hard top-k capacity overflow: `{summary['max_final_topk_capacity_overflow_fraction']:.6f}`",
         "",
         "## Writer",
         "",
@@ -325,8 +377,8 @@ def build_report(summary: dict[str, Any], metric_df: pd.DataFrame) -> str:
         "",
         "## Router Metrics",
         "",
-        "| tensor | initial KL | final KL | initial top1 | final top1 | final rel delta |",
-        "|---|---:|---:|---:|---:|---:|",
+        "| tensor | initial KL | final KL | initial top1 | final top1 | final rel delta | final top1 load | final top-k load | final top-k overflow |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for tensor, group in metric_df.groupby("tensor", sort=True):
         initial = group[group["stage"] == "initial"].iloc[0]
@@ -334,7 +386,9 @@ def build_report(summary: dict[str, Any], metric_df: pd.DataFrame) -> str:
         lines.append(
             f"| `{tensor}` | {float(initial['route_kl']):.6f} | {float(final['route_kl']):.6f} | "
             f"{float(initial['top1_agreement']):.4f} | {float(final['top1_agreement']):.4f} | "
-            f"{float(final['relative_delta_norm']):.4f} |"
+            f"{float(final['relative_delta_norm']):.4f} | {float(final['top1_max_load_fraction']):.4f} | "
+            f"{float(final['topk_max_load_fraction']):.4f} | "
+            f"{float(final['topk_capacity_overflow_fraction']):.4f} |"
         )
     lines.extend(
         [
@@ -393,8 +447,14 @@ def calibrate_from_cache(args: argparse.Namespace) -> dict[str, Any]:
     kl_improved = float(final["route_kl"].mean()) < float(initial["route_kl"].mean())
     top1_not_worse = float(final["top1_agreement"].mean()) >= float(initial["top1_agreement"].mean())
     status = "passed" if kl_improved and top1_not_worse else "no_improvement"
+    def final_mean(column: str) -> float:
+        return float(final[column].mean())
+
+    def final_max(column: str) -> float:
+        return float(final[column].max())
+
     summary = {
-        "schema_version": 1,
+        "schema_version": 2,
         "status": status,
         "kl_improved": kl_improved,
         "top1_not_worse": top1_not_worse,
@@ -406,9 +466,21 @@ def calibrate_from_cache(args: argparse.Namespace) -> dict[str, Any]:
         "mean_final_top1_agreement": float(final["top1_agreement"].mean()),
         "mean_final_relative_delta_norm": float(final["relative_delta_norm"].mean()),
         "max_final_relative_delta_norm": float(final["relative_delta_norm"].max()),
+        "mean_final_capacity_overflow_fraction": final_mean("capacity_overflow_fraction"),
+        "max_final_capacity_overflow_fraction": final_max("capacity_overflow_fraction"),
+        "mean_final_top1_capacity_overflow_fraction": final_mean("top1_capacity_overflow_fraction"),
+        "max_final_top1_capacity_overflow_fraction": final_max("top1_capacity_overflow_fraction"),
+        "mean_final_topk_capacity_overflow_fraction": final_mean("topk_capacity_overflow_fraction"),
+        "max_final_topk_capacity_overflow_fraction": final_max("topk_capacity_overflow_fraction"),
+        "max_final_top1_load_fraction": final_max("top1_max_load_fraction"),
+        "max_final_topk_load_fraction": final_max("topk_max_load_fraction"),
+        "mean_final_top1_load_entropy": final_mean("top1_load_entropy"),
+        "mean_final_topk_load_entropy": final_mean("topk_load_entropy"),
         "epochs": int(args.epochs),
         "lr": float(args.lr),
         "temperature": float(args.temperature),
+        "top_k": int(args.top_k),
+        "capacity_factor": float(args.capacity_factor),
         "top1_loss_coef": float(args.top1_loss_coef),
         "capacity_loss_coef": float(args.capacity_loss_coef),
         "load_balance_coef": float(args.load_balance_coef),

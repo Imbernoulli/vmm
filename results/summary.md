@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-19T22:24:35.968034+00:00`
+Generated at: `2026-06-19T22:33:58.050042+00:00`
 
 ## Coverage
 
@@ -178,6 +178,7 @@ Complete: `68`; partial: `1`; missing: `0`.
 | Qwen3 MoE router calibration job | inputs student / teacher / prompts | True / True / True |
 | Qwen3 MoE router calibration selector | status / selected / eligible | awaiting_baseline_eval / None / 0/3 |
 | Qwen3 MoE router calibration selector | source required-complete / baseline eval / candidate eval / audit | True-False / False / False / False |
+| Qwen3 MoE router calibration selector | training / hard route-load metrics | False / False |
 | Qwen3 MoE cap-law search | searched / frontier / expert groups | 432 / 88 / 5243 |
 | Qwen3 MoE cap-law search | current trust vs uniform 0.65 retention | 0.982 / 0.982 |
 | Qwen3 MoE cap-law search | current trust vs uniform 0.65 >0.65 groups | 129 / 0 |
@@ -339,6 +340,7 @@ Complete: `68`; partial: `1`; missing: `0`.
 | MoE tensor-rule writer smoke | safetensors tensor delta tensors / values | 1 / 4 |
 | MoE router delta calibration smoke | status / routers / delta tensors | passed / 1 / 1 |
 | MoE router delta calibration smoke | route KL initial-final / top1 initial-final / rel cap | 0.1752-0.0516 / 0.5260-0.7708 / 0.5000 |
+| MoE router delta calibration smoke | hard top1/top-k overflow / hard top1/top-k max load | 0.0885/0.0000 / 0.4010/0.2734 |
 | MoE router calibration cache smoke | status / ready routers / cache rows | passed / 2/2 / 192 |
 | MoE router calibration cache smoke | materialization status / checked / failed | passed / 2 / 0 |
 | MoE router calibration cache smoke | cache KL / trained KL initial-final / trained top1 initial-final | 0.0624 / 0.0624-0.0204 / 0.7031-0.8802 |

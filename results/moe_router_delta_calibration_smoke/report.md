@@ -9,6 +9,8 @@
 - Mean final KL: `0.051595`
 - Mean initial top-1 agreement: `0.5260`
 - Mean final top-1 agreement: `0.7708`
+- Max final hard top-1 capacity overflow: `0.088542`
+- Max final hard top-k capacity overflow: `0.000000`
 
 ## Writer
 
@@ -18,9 +20,9 @@ python scripts/write_same_shape_average_checkpoint.py --base SMOKE_BASE_CHECKPOI
 
 ## Router Metrics
 
-| tensor | initial KL | final KL | initial top1 | final top1 | final rel delta |
-|---|---:|---:|---:|---:|---:|
-| `model.layers.0.router.weight` | 0.175224 | 0.051595 | 0.5260 | 0.7708 | 0.5000 |
+| tensor | initial KL | final KL | initial top1 | final top1 | final rel delta | final top1 load | final top-k load | final top-k overflow |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| `model.layers.0.router.weight` | 0.175224 | 0.051595 | 0.5260 | 0.7708 | 0.5000 | 0.4010 | 0.2734 | 0.0000 |
 
 ## Files
 

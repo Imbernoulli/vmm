@@ -1,11 +1,22 @@
 {
+  "max_final_capacity_overflow_fraction": 0.09,
   "max_final_relative_delta_norm": 0.05,
+  "max_final_top1_capacity_overflow_fraction": 0.12,
+  "max_final_top1_load_fraction": 0.32,
+  "max_final_topk_capacity_overflow_fraction": 0.09,
+  "max_final_topk_load_fraction": 0.27,
+  "mean_final_capacity_overflow_fraction": 0.045,
   "mean_final_route_kl": 0.06999999999999999,
   "mean_final_top1_agreement": 0.7999999999999999,
+  "mean_final_top1_capacity_overflow_fraction": 0.06,
+  "mean_final_top1_load_entropy": 0.84,
+  "mean_final_topk_capacity_overflow_fraction": 0.045,
+  "mean_final_topk_load_entropy": 0.89,
   "mean_initial_route_kl": 0.12,
   "mean_initial_top1_agreement": 0.7,
   "outputs": {
     "router_delta_safetensors": "results/qwen3_moe_router_calibration_selection_smoke/input_job/delta_cap005/router_delta.safetensors"
   },
+  "schema_version": 2,
   "status": "passed"
 }

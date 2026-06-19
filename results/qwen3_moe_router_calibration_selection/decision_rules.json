@@ -3,8 +3,11 @@
     "Baseline searched_no_gt065 eval must be complete on the same vLLM task set.",
     "Both source endpoint evals must be complete unless --allow-missing-source-eval is explicitly set.",
     "Every cap candidate must have a materialized delta audit and vLLM eval before final selection.",
+    "Every cap candidate must have router training metrics with hard top-1/top-k route-load statistics.",
     "The audit must show only router tensors changed, with no shape/dtype mismatch.",
     "The maximum per-router relative delta norm must stay inside the planned cap.",
+    "Hard top-1 route capacity overflow may not exceed 0.1.",
+    "Hard top-k route capacity overflow may not exceed 0.05.",
     "Average primary score may not drop more than 0.005.",
     "Worst primary score may not drop more than 0.01.",
     "No available task primary score may drop more than 0.02.",
@@ -16,13 +19,15 @@
     "baseline_eval_completed": false,
     "candidate_count": 3,
     "candidate_eval_completed": false,
+    "capacity_metrics_completed": false,
     "eligible_candidate_count": 0,
     "reason": "Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps.",
     "schema_version": 1,
     "selected_method": null,
     "source_eval_completed": false,
     "source_eval_required": true,
-    "status": "awaiting_baseline_eval"
+    "status": "awaiting_baseline_eval",
+    "training_completed": false
   },
   "literature_hooks": [
     {
@@ -66,7 +71,7 @@
   "problem_statement": "The target model must stay same-shape with the input Qwen3 MoE checkpoint. Router calibration is not accepted because an algorithm name sounds better; it is accepted only if the mechanism survives matched downstream eval and tensor audit.",
   "ranking": [
     "Among accepted candidates, sort by selection_score.",
-    "selection_score = avg_gain + 0.5 * worst_gain + 0.25 * worst_task_gain + 0.05 * route_kl_gain - 0.01 * router_delta_norm.",
+    "selection_score = avg_gain + 0.5 * worst_gain + 0.25 * worst_task_gain + 0.05 * route_kl_gain - 0.01 * router_delta_norm - 0.10 * top1_overflow - 0.25 * topk_overflow.",
     "Use avg score, worst score, and smaller cap as tie breakers."
   ],
   "schema_version": 1,
@@ -78,6 +83,10 @@
     {
       "claim": "MoE routers create discontinuous functional changes.",
       "implication": "A small router weight delta can change expert assignment for many tokens; therefore the default unified method freezes routers unless route-KD calibration gives downstream evidence."
+    },
+    {
+      "claim": "Route KL alone can hide expert-load collapse.",
+      "implication": "A candidate must also pass hard top-1/top-k capacity-overflow gates computed from actual token assignments, not only softmax mean load."
     },
     {
       "claim": "A better unified algorithm needs an abstention rule.",

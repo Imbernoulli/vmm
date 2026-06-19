@@ -199,6 +199,24 @@ def read_training_state(delta_dir: str | Path) -> dict[str, Any]:
         "mean_initial_top1_agreement": maybe_float(summary.get("mean_initial_top1_agreement")),
         "mean_final_top1_agreement": maybe_float(summary.get("mean_final_top1_agreement")),
         "max_final_relative_delta_norm": maybe_float(summary.get("max_final_relative_delta_norm")),
+        "mean_final_capacity_overflow_fraction": maybe_float(summary.get("mean_final_capacity_overflow_fraction")),
+        "max_final_capacity_overflow_fraction": maybe_float(summary.get("max_final_capacity_overflow_fraction")),
+        "mean_final_top1_capacity_overflow_fraction": maybe_float(
+            summary.get("mean_final_top1_capacity_overflow_fraction")
+        ),
+        "max_final_top1_capacity_overflow_fraction": maybe_float(
+            summary.get("max_final_top1_capacity_overflow_fraction")
+        ),
+        "mean_final_topk_capacity_overflow_fraction": maybe_float(
+            summary.get("mean_final_topk_capacity_overflow_fraction")
+        ),
+        "max_final_topk_capacity_overflow_fraction": maybe_float(
+            summary.get("max_final_topk_capacity_overflow_fraction")
+        ),
+        "max_final_top1_load_fraction": maybe_float(summary.get("max_final_top1_load_fraction")),
+        "max_final_topk_load_fraction": maybe_float(summary.get("max_final_topk_load_fraction")),
+        "mean_final_top1_load_entropy": maybe_float(summary.get("mean_final_top1_load_entropy")),
+        "mean_final_topk_load_entropy": maybe_float(summary.get("mean_final_topk_load_entropy")),
         "final_training_loss": final_loss,
         "router_delta_safetensors": summary.get("outputs", {}).get("router_delta_safetensors")
         if summary
@@ -336,6 +354,21 @@ def build_candidate_rows(
         eval_state = read_eval_state(plan_row["eval_dir"])
         audit_state = read_audit_state(plan_row["audit_dir"], cap, args.cap_tolerance)
         training_state = read_training_state(plan_row["delta_dir"])
+        training_passed = training_state["training_status"] == "passed"
+        top1_overflow = training_state.get("max_final_top1_capacity_overflow_fraction")
+        topk_overflow = training_state.get("max_final_topk_capacity_overflow_fraction")
+        capacity_metrics_ready = (
+            bool(training_state["training_summary_exists"])
+            and top1_overflow is not None
+            and topk_overflow is not None
+        )
+        top1_capacity_passed = (
+            top1_overflow is not None and top1_overflow <= float(args.max_top1_capacity_overflow)
+        )
+        topk_capacity_passed = (
+            topk_overflow is not None and topk_overflow <= float(args.max_topk_capacity_overflow)
+        )
+        router_load_capacity_passed = bool(capacity_metrics_ready and top1_capacity_passed and topk_capacity_passed)
 
         row: dict[str, Any] = {
             "cap_label": str(plan_row["cap_label"]),
@@ -348,6 +381,11 @@ def build_candidate_rows(
             **eval_state,
             **audit_state,
             **training_state,
+            "training_passed": training_passed,
+            "capacity_metrics_ready": capacity_metrics_ready,
+            "top1_capacity_passed": top1_capacity_passed,
+            "topk_capacity_passed": topk_capacity_passed,
+            "router_load_capacity_passed": router_load_capacity_passed,
         }
 
         deltas = {
@@ -388,6 +426,16 @@ def build_candidate_rows(
             rejection_reasons.append("awaiting_baseline_eval")
         if source_required and not source_complete:
             rejection_reasons.append("awaiting_source_eval")
+        if not training_state["training_summary_exists"]:
+            rejection_reasons.append("awaiting_router_training")
+        elif not training_passed:
+            rejection_reasons.append("router_training_not_passed")
+        elif not capacity_metrics_ready:
+            rejection_reasons.append("awaiting_router_load_metrics")
+        elif not top1_capacity_passed:
+            rejection_reasons.append("top1_capacity_overflow")
+        elif not topk_capacity_passed:
+            rejection_reasons.append("topk_capacity_overflow")
         if not eval_state["eval_completed"]:
             rejection_reasons.append("awaiting_candidate_eval")
         if not audit_state["audit_exists"]:
@@ -410,6 +458,8 @@ def build_candidate_rows(
         eligible = (
             baseline_complete
             and (source_complete or not source_required)
+            and training_passed
+            and router_load_capacity_passed
             and eval_state["eval_completed"]
             and audit_state["audit_passed_for_router_calibration"]
             and preserves_average
@@ -442,7 +492,17 @@ def selection_score(row: dict[str, Any]) -> float:
     final_kl = maybe_float(row.get("mean_final_route_kl"))
     if initial_kl is not None and final_kl is not None:
         route_kl_gain = initial_kl - final_kl
-    return avg + 0.5 * worst + 0.25 * task + 0.05 * route_kl_gain - 0.01 * router_norm
+    top1_overflow = maybe_float(row.get("max_final_top1_capacity_overflow_fraction")) or 0.0
+    topk_overflow = maybe_float(row.get("max_final_topk_capacity_overflow_fraction")) or 0.0
+    return (
+        avg
+        + 0.5 * worst
+        + 0.25 * task
+        + 0.05 * route_kl_gain
+        - 0.01 * router_norm
+        - 0.10 * top1_overflow
+        - 0.25 * topk_overflow
+    )
 
 
 def build_selection(
@@ -454,6 +514,8 @@ def build_selection(
     baseline_complete = bool(baseline_eval.get("eval_completed"))
     candidate_eval_complete = bool((table["eval_completed"].astype(bool)).all()) if not table.empty else False
     audit_complete = bool((table["audit_exists"].astype(bool)).all()) if not table.empty else False
+    training_complete = bool((table["training_summary_exists"].astype(bool)).all()) if not table.empty else False
+    capacity_metrics_complete = bool((table["capacity_metrics_ready"].astype(bool)).all()) if not table.empty else False
     source_complete = all(bool(row.get("eval_completed")) for row in source_evals) if source_evals else False
     source_required = not bool(args.allow_missing_source_eval)
     eligible = table[table["selection_eligible"].astype(bool)].copy() if not table.empty else pd.DataFrame()
@@ -466,10 +528,13 @@ def build_selection(
         status = "awaiting_source_eval"
         selected_method = None
         reason = "Run both source endpoint evals before allowing router calibration selection or frozen-router fallback."
-    elif not candidate_eval_complete or not audit_complete:
+    elif not candidate_eval_complete or not audit_complete or not training_complete or not capacity_metrics_complete:
         status = "awaiting_router_calibration_eval"
         selected_method = None
-        reason = "The cap sweep is not complete; all candidates need audit and matched vLLM downstream eval."
+        reason = (
+            "The cap sweep is not complete; all candidates need router training summaries, hard route-load metrics, "
+            "audit, and matched vLLM downstream eval."
+        )
     elif eligible.empty:
         status = "keep_frozen_router_baseline"
         selected_method = "qwen3_moe_searched_no_gt065_max_retention_candidate"
@@ -495,6 +560,8 @@ def build_selection(
         "baseline_eval_completed": baseline_complete,
         "candidate_eval_completed": candidate_eval_complete,
         "audit_completed": audit_complete,
+        "training_completed": training_complete,
+        "capacity_metrics_completed": capacity_metrics_complete,
         "source_eval_completed": source_complete,
         "source_eval_required": source_required,
         "eligible_candidate_count": int(len(eligible)),
@@ -521,6 +588,10 @@ def build_decision_rules(args: argparse.Namespace, selection: dict[str, Any]) ->
                 "implication": "A small router weight delta can change expert assignment for many tokens; therefore the default unified method freezes routers unless route-KD calibration gives downstream evidence.",
             },
             {
+                "claim": "Route KL alone can hide expert-load collapse.",
+                "implication": "A candidate must also pass hard top-1/top-k capacity-overflow gates computed from actual token assignments, not only softmax mean load.",
+            },
+            {
                 "claim": "A better unified algorithm needs an abstention rule.",
                 "implication": "When no calibrated cap is non-dominated by the frozen-router baseline/source endpoints, the correct same-shape output is the baseline/no-router-move candidate.",
             },
@@ -529,8 +600,11 @@ def build_decision_rules(args: argparse.Namespace, selection: dict[str, Any]) ->
             "Baseline searched_no_gt065 eval must be complete on the same vLLM task set.",
             "Both source endpoint evals must be complete unless --allow-missing-source-eval is explicitly set.",
             "Every cap candidate must have a materialized delta audit and vLLM eval before final selection.",
+            "Every cap candidate must have router training metrics with hard top-1/top-k route-load statistics.",
             "The audit must show only router tensors changed, with no shape/dtype mismatch.",
             "The maximum per-router relative delta norm must stay inside the planned cap.",
+            f"Hard top-1 route capacity overflow may not exceed {args.max_top1_capacity_overflow}.",
+            f"Hard top-k route capacity overflow may not exceed {args.max_topk_capacity_overflow}.",
             f"Average primary score may not drop more than {args.max_avg_drop}.",
             f"Worst primary score may not drop more than {args.max_worst_drop}.",
             f"No available task primary score may drop more than {args.max_task_drop}.",
@@ -539,7 +613,7 @@ def build_decision_rules(args: argparse.Namespace, selection: dict[str, Any]) ->
         ],
         "ranking": [
             "Among accepted candidates, sort by selection_score.",
-            "selection_score = avg_gain + 0.5 * worst_gain + 0.25 * worst_task_gain + 0.05 * route_kl_gain - 0.01 * router_delta_norm.",
+            "selection_score = avg_gain + 0.5 * worst_gain + 0.25 * worst_task_gain + 0.05 * route_kl_gain - 0.01 * router_delta_norm - 0.10 * top1_overflow - 0.25 * topk_overflow.",
             "Use avg score, worst score, and smaller cap as tie breakers.",
         ],
         "literature_hooks": LITERATURE_HOOKS,
@@ -576,6 +650,8 @@ def build_report(
         f"- Source eval completed: `{selection['source_eval_completed']}`",
         f"- Candidate eval completed: `{selection['candidate_eval_completed']}`",
         f"- Audit completed: `{selection['audit_completed']}`",
+        f"- Training completed: `{selection['training_completed']}`",
+        f"- Capacity metrics completed: `{selection['capacity_metrics_completed']}`",
         f"- Eligible candidates: `{selection['eligible_candidate_count']}/{selection['candidate_count']}`",
         "",
         "## Baseline",
@@ -591,16 +667,21 @@ def build_report(
         "",
         "## Candidate Gate",
         "",
-        "| cap | method | decision | avg delta | worst delta | worst task delta | router max rel | router-only | cap pass | score | reason |",
-        "| ---: | --- | --- | ---: | ---: | ---: | ---: | --- | --- | ---: | --- |",
+        "| cap | method | decision | avg delta | worst delta | worst task delta | router max rel | top1/top-k overflow | load pass | router-only | cap pass | score | reason |",
+        "| ---: | --- | --- | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | ---: | --- |",
     ]
     for _, row in table.iterrows():
+        overflow_text = (
+            f"{fmt(row.get('max_final_top1_capacity_overflow_fraction'))}/"
+            f"{fmt(row.get('max_final_topk_capacity_overflow_fraction'))}"
+        )
         lines.append(
             f"| {fmt(row['router_max_relative_norm'])} | `{row['method']}` | `{row['decision']}` | "
             f"{fmt(row.get('delta_vs_baseline_avg_primary_score'))} | "
             f"{fmt(row.get('delta_vs_baseline_worst_primary_score'))} | "
             f"{fmt(row.get('worst_task_delta_vs_baseline'))} | "
-            f"{fmt(row.get('router_max_relative_delta_norm'))} | `{row.get('router_only_changed')}` | "
+            f"{fmt(row.get('router_max_relative_delta_norm'))} | {overflow_text} | "
+            f"`{row.get('router_load_capacity_passed')}` | `{row.get('router_only_changed')}` | "
             f"`{row.get('cap_passed')}` | {fmt(row.get('selection_score'))} | `{row.get('decision_reason')}` |"
         )
     lines.extend(
@@ -770,15 +851,26 @@ def write_audit_dir(root: Path, cap: float, router_max: float, *, non_router_cha
     )
 
 
-def write_training_dir(root: Path, cap: float) -> None:
+def write_training_dir(root: Path, cap: float, top1_overflow: float, topk_overflow: float) -> None:
     root.mkdir(parents=True, exist_ok=True)
     summary = {
         "status": "passed",
+        "schema_version": 2,
         "mean_initial_route_kl": 0.12,
         "mean_final_route_kl": max(0.01, 0.12 - cap),
         "mean_initial_top1_agreement": 0.70,
         "mean_final_top1_agreement": min(0.95, 0.70 + cap * 2),
         "max_final_relative_delta_norm": cap,
+        "mean_final_capacity_overflow_fraction": topk_overflow / 2.0,
+        "max_final_capacity_overflow_fraction": topk_overflow,
+        "mean_final_top1_capacity_overflow_fraction": top1_overflow / 2.0,
+        "max_final_top1_capacity_overflow_fraction": top1_overflow,
+        "mean_final_topk_capacity_overflow_fraction": topk_overflow / 2.0,
+        "max_final_topk_capacity_overflow_fraction": topk_overflow,
+        "max_final_top1_load_fraction": 0.20 + top1_overflow,
+        "max_final_topk_load_fraction": 0.18 + topk_overflow,
+        "mean_final_top1_load_entropy": max(0.0, 0.96 - top1_overflow),
+        "mean_final_topk_load_entropy": max(0.0, 0.98 - topk_overflow),
         "outputs": {"router_delta_safetensors": rel(root / "router_delta.safetensors")},
     }
     (root / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -833,17 +925,30 @@ def write_smoke_inputs(output_dir: Path) -> Path:
     )
 
     specs = [
-        ("cap001", 0.010, 0.008, False, 0.501, 0.300, 0.421, 0.529, 0.620, 0.300),
-        ("cap0025", 0.025, 0.022, False, 0.515, 0.310, 0.430, 0.535, 0.620, 0.320),
-        ("cap005", 0.050, 0.071, True, 0.525, 0.315, 0.435, 0.540, 0.620, 0.340),
+        ("cap001", 0.010, 0.008, False, 0.000, 0.000, 0.501, 0.300, 0.421, 0.529, 0.620, 0.300),
+        ("cap0025", 0.025, 0.022, False, 0.015, 0.020, 0.515, 0.310, 0.430, 0.535, 0.620, 0.320),
+        ("cap005", 0.050, 0.071, True, 0.120, 0.090, 0.525, 0.315, 0.435, 0.540, 0.620, 0.340),
     ]
     candidate_rows = []
-    for idx, (label, cap, router_max, non_router_changed, avg, worst, gsm8k, mmlu, safety, humaneval) in enumerate(specs):
+    for idx, (
+        label,
+        cap,
+        router_max,
+        non_router_changed,
+        top1_overflow,
+        topk_overflow,
+        avg,
+        worst,
+        gsm8k,
+        mmlu,
+        safety,
+        humaneval,
+    ) in enumerate(specs):
         method = f"smoke_router_calibrated_{label}"
         delta_dir = job_dir / f"delta_{label}"
         audit_dir = job_dir / f"audit_{label}"
         eval_dir = job_dir / f"eval_{label}"
-        write_training_dir(delta_dir, cap)
+        write_training_dir(delta_dir, cap, top1_overflow, topk_overflow)
         write_audit_dir(audit_dir, cap, router_max, non_router_changed=non_router_changed)
         write_eval_dir(
             eval_dir,
@@ -953,6 +1058,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-task-drop", type=float, default=0.02)
     parser.add_argument("--min-gain", type=float, default=0.002)
     parser.add_argument("--cap-tolerance", type=float, default=0.02)
+    parser.add_argument(
+        "--max-top1-capacity-overflow",
+        type=float,
+        default=0.10,
+        help="Reject router-calibrated candidates whose final hard top-1 route-load overflow exceeds this fraction.",
+    )
+    parser.add_argument(
+        "--max-topk-capacity-overflow",
+        type=float,
+        default=0.05,
+        help="Reject router-calibrated candidates whose final hard top-k route-load overflow exceeds this fraction.",
+    )
     parser.add_argument(
         "--allow-missing-source-eval",
         action="store_true",

@@ -631,6 +631,14 @@ def summarize_moe_router_delta_calibration_smoke() -> dict[str, Any]:
         "mean_initial_top1_agreement": float(summary.get("mean_initial_top1_agreement", 0.0)),
         "mean_final_top1_agreement": float(summary.get("mean_final_top1_agreement", 0.0)),
         "max_final_relative_delta_norm": float(summary.get("max_final_relative_delta_norm", 0.0)),
+        "max_final_top1_capacity_overflow_fraction": float(
+            summary.get("max_final_top1_capacity_overflow_fraction", 0.0)
+        ),
+        "max_final_topk_capacity_overflow_fraction": float(
+            summary.get("max_final_topk_capacity_overflow_fraction", 0.0)
+        ),
+        "max_final_top1_load_fraction": float(summary.get("max_final_top1_load_fraction", 0.0)),
+        "max_final_topk_load_fraction": float(summary.get("max_final_topk_load_fraction", 0.0)),
         "max_relative_norm": summary.get("max_relative_norm"),
         "router_delta_safetensors": summary.get("outputs", {}).get(
             "router_delta_safetensors",
@@ -1189,6 +1197,8 @@ def summarize_qwen3_moe_router_calibration_selection() -> dict[str, Any]:
         "source_eval_required": bool(selection.get("source_eval_required", False)),
         "candidate_eval_completed": bool(selection.get("candidate_eval_completed", False)),
         "audit_completed": bool(selection.get("audit_completed", False)),
+        "training_completed": bool(selection.get("training_completed", False)),
+        "capacity_metrics_completed": bool(selection.get("capacity_metrics_completed", False)),
         "source_eval_completed": bool(selection.get("source_eval_completed", False)),
         "eligible_candidate_count": int(selection.get("eligible_candidate_count", len(eligible))),
         "candidate_count": int(selection.get("candidate_count", len(table))),
@@ -3756,6 +3766,11 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_router_calibration_selection['audit_completed']} |"
             ),
             (
+                "| Qwen3 MoE router calibration selector | training / hard route-load metrics | "
+                f"{qwen3_moe_router_calibration_selection['training_completed']} / "
+                f"{qwen3_moe_router_calibration_selection['capacity_metrics_completed']} |"
+            ),
+            (
                 "| Qwen3 MoE cap-law search | searched / frontier / expert groups | "
                 f"{qwen3_moe_trust_region_cap_search['searched_law_count']} / "
                 f"{qwen3_moe_trust_region_cap_search['pareto_frontier_count']} / "
@@ -4445,6 +4460,13 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(moe_router_delta_calibration_smoke['mean_initial_top1_agreement'], 4)}-"
                 f"{fmt(moe_router_delta_calibration_smoke['mean_final_top1_agreement'], 4)} / "
                 f"{fmt(moe_router_delta_calibration_smoke['max_final_relative_delta_norm'], 4)} |"
+            ),
+            (
+                "| MoE router delta calibration smoke | hard top1/top-k overflow / hard top1/top-k max load | "
+                f"{fmt(moe_router_delta_calibration_smoke['max_final_top1_capacity_overflow_fraction'], 4)}/"
+                f"{fmt(moe_router_delta_calibration_smoke['max_final_topk_capacity_overflow_fraction'], 4)} / "
+                f"{fmt(moe_router_delta_calibration_smoke['max_final_top1_load_fraction'], 4)}/"
+                f"{fmt(moe_router_delta_calibration_smoke['max_final_topk_load_fraction'], 4)} |"
             ),
             (
                 "| MoE router calibration cache smoke | status / ready routers / cache rows | "
