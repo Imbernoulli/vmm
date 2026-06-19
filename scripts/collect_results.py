@@ -1060,6 +1060,15 @@ def summarize_qwen3_moe_delta_frontier() -> dict[str, Any]:
         "searched_no_gt065_total_relative_delta_norm": maybe_float(
             summary.get("searched_no_gt065_total_relative_delta_norm")
         ),
+        "unified_mechanism_total_relative_delta_norm": maybe_float(
+            summary.get("unified_mechanism_total_relative_delta_norm")
+        ),
+        "unified_mechanism_matches_searched_no_gt065_delta": bool(
+            summary.get("unified_mechanism_matches_searched_no_gt065_delta", False)
+        ),
+        "unified_mechanism_router_changed_tensors": int(
+            summary.get("unified_mechanism_router_changed_tensors", 0)
+        ),
         "trust_to_expert_only_relative_norm_reduction": maybe_float(
             summary.get("trust_to_expert_only_relative_norm_reduction")
         ),
@@ -1127,6 +1136,12 @@ def summarize_qwen3_moe_mechanism_eval_gate() -> dict[str, Any]:
     selection = read_csv(root / "method_selection.csv")
     current_selection = summary.get("current_selection", {})
     local_gpu = summary.get("local_gpu", {})
+    unified_gate = gate[gate["method"] == "qwen3_moe_unified_mechanism_candidate"]
+    unified_selection = selection[selection["method"] == "qwen3_moe_unified_mechanism_candidate"]
+    alias_test = tests[tests["test"] == "unified_rule_alias_validation"]
+    unified_gate_row = {} if unified_gate.empty else unified_gate.iloc[0].to_dict()
+    unified_selection_row = {} if unified_selection.empty else unified_selection.iloc[0].to_dict()
+    alias_test_row = {} if alias_test.empty else alias_test.iloc[0].to_dict()
     return {
         "summary": summary,
         "status": summary.get("status"),
@@ -1140,6 +1155,15 @@ def summarize_qwen3_moe_mechanism_eval_gate() -> dict[str, Any]:
         "local_gpu_available": bool(local_gpu.get("available", False)),
         "local_gpu_status": local_gpu.get("status"),
         "awaiting_tests": int((tests["current_status"] == "awaiting_eval").sum()),
+        "unified_candidate_serve_status": unified_gate_row.get("serve_status"),
+        "unified_candidate_eval_status": unified_gate_row.get("eval_status"),
+        "unified_candidate_end_to_end_status": unified_gate_row.get("end_to_end_status"),
+        "unified_candidate_audit_passed": bool(unified_gate_row.get("audit_passed", False)),
+        "unified_candidate_eval_output_dir": unified_gate_row.get("eval_output_dir"),
+        "unified_candidate_selection_eligible": bool(
+            unified_selection_row.get("selection_eligible", False)
+        ),
+        "unified_rule_alias_validation_status": alias_test_row.get("current_status"),
         "mechanism_test_rows": [clean_row(row) for _, row in tests.iterrows()],
         "eval_gate_rows": [clean_row(row) for _, row in gate.iterrows()],
         "selection_rows": [clean_row(row) for _, row in selection.iterrows()],
@@ -2386,6 +2410,8 @@ def summarize_vllm_downstream_eval_smoke() -> dict[str, Any]:
 def summarize_vllm_checkpoint_eval_plan() -> dict[str, Any]:
     summary = read_json("results/vllm_checkpoint_eval_plan/summary.json")
     plan = read_csv("results/vllm_checkpoint_eval_plan/checkpoint_eval_plan.csv")
+    unified = plan[plan["method"] == "qwen3_moe_unified_mechanism_candidate"]
+    unified_row = {} if unified.empty else unified.iloc[0].to_dict()
     return {
         "summary": summary,
         "status": summary.get("status"),
@@ -2395,6 +2421,10 @@ def summarize_vllm_checkpoint_eval_plan() -> dict[str, Any]:
         "missing_checkpoint_count": int(summary.get("missing_checkpoint_count", 0)),
         "not_vllm_loadable_count": int(summary.get("not_vllm_loadable_count", 0)),
         "tasks": summary.get("tasks"),
+        "unified_candidate_serve_status": unified_row.get("serve_status"),
+        "unified_candidate_eval_status": unified_row.get("eval_status"),
+        "unified_candidate_eval_output_dir": unified_row.get("eval_output_dir"),
+        "unified_candidate_checkpoint_path": unified_row.get("checkpoint_path"),
         "plan_rows": [clean_row(row) for _, row in plan.iterrows()],
         "report": rel("results/vllm_checkpoint_eval_plan/report.md"),
         "plan_csv": rel("results/vllm_checkpoint_eval_plan/checkpoint_eval_plan.csv"),
@@ -2589,6 +2619,8 @@ def summarize_qwen_dense_sparse_method_candidate(output_dir: str = "results/qwen
 def summarize_checkpoint_materialization_readiness() -> dict[str, Any]:
     summary = read_json("results/checkpoint_materialization_readiness/summary.json")
     readiness = read_csv("results/checkpoint_materialization_readiness/candidate_readiness.csv")
+    unified = readiness[readiness["candidate"] == "qwen3_moe_unified_mechanism_candidate"]
+    unified_row = {} if unified.empty else unified.iloc[0].to_dict()
     return {
         "summary": summary,
         "status": summary.get("status"),
@@ -2598,6 +2630,10 @@ def summarize_checkpoint_materialization_readiness() -> dict[str, Any]:
         "ready_for_vllm_eval_count": int(summary.get("ready_for_vllm_eval_count", 0)),
         "completed_vllm_eval_count": int(summary.get("completed_vllm_eval_count", 0)),
         "toy_validation_only_count": int(summary.get("toy_validation_only_count", 0)),
+        "unified_candidate_writer_status": unified_row.get("writer_status"),
+        "unified_candidate_vllm_plan_status": unified_row.get("vllm_plan_status"),
+        "unified_candidate_end_to_end_status": unified_row.get("end_to_end_status"),
+        "unified_candidate_eval_output_dir": unified_row.get("vllm_eval_output_dir"),
         "rows": [clean_row(row) for _, row in readiness.iterrows()],
         "report": rel("results/checkpoint_materialization_readiness/report.md"),
         "readiness_csv": rel("results/checkpoint_materialization_readiness/candidate_readiness.csv"),
@@ -3881,6 +3917,12 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"->{qwen3_moe_delta_frontier['searched_no_gt065_routed_gt_0_6505']} |"
             ),
             (
+                "| Qwen3 MoE delta frontier | unified matches searched / unified rel-norm / router changed | "
+                f"{qwen3_moe_delta_frontier['unified_mechanism_matches_searched_no_gt065_delta']} / "
+                f"{fmt(qwen3_moe_delta_frontier['unified_mechanism_total_relative_delta_norm'])} / "
+                f"{qwen3_moe_delta_frontier['unified_mechanism_router_changed_tensors']} |"
+            ),
+            (
                 "| Qwen3 MoE mechanism eval gate | status / selection / selected | "
                 f"{qwen3_moe_mechanism_eval_gate['status']} / "
                 f"{qwen3_moe_mechanism_eval_gate['selection_status']} / "
@@ -3896,6 +3938,12 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 "| Qwen3 MoE mechanism eval gate | local GPU / best delta-safety candidate | "
                 f"{qwen3_moe_mechanism_eval_gate['local_gpu_status']} / "
                 f"{qwen3_moe_mechanism_eval_gate['best_delta_safety_candidate']} |"
+            ),
+            (
+                "| Qwen3 MoE mechanism eval gate | unified serve / audit / alias test | "
+                f"{qwen3_moe_mechanism_eval_gate['unified_candidate_serve_status']} / "
+                f"{qwen3_moe_mechanism_eval_gate['unified_candidate_audit_passed']} / "
+                f"{qwen3_moe_mechanism_eval_gate['unified_rule_alias_validation_status']} |"
             ),
             (
                 "| Qwen3 MoE router move gate | status / action / allowed layers | "
@@ -4516,6 +4564,11 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{vllm_checkpoint_eval_plan['not_vllm_loadable_count']} |"
             ),
             (
+                "| vLLM checkpoint eval plan | unified serve / eval output | "
+                f"{vllm_checkpoint_eval_plan['unified_candidate_serve_status']} / "
+                f"{vllm_checkpoint_eval_plan['unified_candidate_eval_output_dir']} |"
+            ),
+            (
                 "| vLLM hosted eval results | completed eval dirs | "
                 f"{vllm_checkpoint_eval_results['completed_count']} |"
             ),
@@ -4594,6 +4647,12 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{materialization_readiness['blocked_by_placeholder_count']} / "
                 f"{materialization_readiness['ready_for_vllm_eval_count']} / "
                 f"{materialization_readiness['completed_vllm_eval_count']} |"
+            ),
+            (
+                "| checkpoint materialization readiness | unified writer / vLLM / end-to-end | "
+                f"{materialization_readiness['unified_candidate_writer_status']} / "
+                f"{materialization_readiness['unified_candidate_vllm_plan_status']} / "
+                f"{materialization_readiness['unified_candidate_end_to_end_status']} |"
             ),
             (
                 "| MoE materialization pipeline | status | "

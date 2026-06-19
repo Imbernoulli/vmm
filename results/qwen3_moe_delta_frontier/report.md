@@ -4,12 +4,14 @@
 目的不是替代 vLLM 下游评测，而是回答：当前几版规则到底改变了哪些参数组，下一版算法应该把风险预算放在哪里。
 
 - Status: `delta_frontier_ready`
-- Candidates: `6`
+- Candidates: `7`
 - Best delta-safety candidate: `tail_trimmed`
 - Trust-region total relative delta norm: `0.249`
 - Expert-only total relative delta norm: `0.246`
 - Tail-trimmed total relative delta norm: `0.243`
 - Searched no-gt-0.65 total relative delta norm: `0.248`
+- Unified mechanism total relative delta norm: `0.248`
+- Unified mechanism matches searched no-gt-0.65 delta: `True`
 - Trust -> expert-only relative norm reduction: `0.003`
 - Expert-only -> tail-trimmed relative norm reduction: `0.003`
 - Tail-trimmed -> searched no-gt-0.65 relative norm delta: `0.004`
@@ -30,6 +32,7 @@
 | `expert_only` | 0.246 | 0.255 | 0.000 | 0/48 | 0.750 | 0 | 14 | 366 | 354 | 10353 |
 | `tail_trimmed` | 0.243 | 0.252 | 0.000 | 0/48 | 0.650 | 0 | 0 | 80 | 0 | 10353 |
 | `searched_no_gt065` | 0.248 | 0.256 | 0.000 | 0/48 | 0.650 | 0 | 0 | 245 | 0 | 10353 |
+| `unified_mechanism` | 0.248 | 0.256 | 0.000 | 0/48 | 0.650 | 0 | 0 | 245 | 0 | 10353 |
 
 ## Pairwise Reductions
 
@@ -40,6 +43,7 @@
 | `trust_region` | `expert_only` | 0.003 | 0.000 | 0.189 | 0 | 0 | 0 |
 | `expert_only` | `tail_trimmed` | 0.003 | 0.003 | 0.000 | 0 | 14 | 286 |
 | `tail_trimmed` | `searched_no_gt065` | -0.004 | -0.005 | 0.000 | 0 | 0 | -165 |
+| `searched_no_gt065` | `unified_mechanism` | 0.000 | 0.000 | 0.000 | 0 | 0 | 0 |
 
 ## Highest Trust-Region Layers
 

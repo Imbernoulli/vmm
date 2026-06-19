@@ -188,6 +188,15 @@ def default_candidates() -> list[dict[str, Any]]:
             "notes": "Searched Qwen3 MoE cap-law candidate: freeze router and shared attention, keep source-route-conditioned expert weights, and replace hand-built risk penalties with a simple global 0.65 routed-expert relative-delta cap.",
         },
         {
+            "candidate_source": "results/qwen3_moe_unified_mechanism_candidate/summary.json",
+            "method": "qwen3_moe_unified_mechanism_candidate",
+            "checkpoint_path": "results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate",
+            "tensor_parallel_size": 4,
+            "gpu": "0,1,2,3",
+            "materialization_status": "alias_to_validated_searched_no_gt065_checkpoint",
+            "notes": "Unified mechanism optimizer selected the threshold-efficient uniform 0.65 cap. Its 5243 tensor rules match searched_no_gt065 exactly, so the existing materialized checkpoint is reused for vLLM evaluation under the unified-method name.",
+        },
+        {
             "candidate_source": "local_materialized_dense_baseline",
             "method": "qwen_0_5b_instruct_coder_uniform_average",
             "checkpoint_path": "results/checkpoints/qwen_0_5b_instruct_coder_uniform_average",

@@ -26,6 +26,7 @@ CANDIDATE_METHODS = [
     "qwen3_moe_expert_only_trust_region_candidate",
     "qwen3_moe_tail_trimmed_expert_only_candidate",
     "qwen3_moe_searched_no_gt065_max_retention_candidate",
+    "qwen3_moe_unified_mechanism_candidate",
 ]
 
 METHOD_ORDER = SOURCE_METHODS + CANDIDATE_METHODS
@@ -87,6 +88,13 @@ METHOD_META: dict[str, dict[str, str]] = {
         "question": "Can a simple searched 0.65 cap replace the hand-built route/load/category risk penalties?",
         "required_controls": "tail-trimmed; expert-only; both sources",
     },
+    "qwen3_moe_unified_mechanism_candidate": {
+        "role": "candidate",
+        "short_name": "unified_mechanism",
+        "mechanism": "mechanism-optimized same-shape MoE average with frozen router/attention and threshold-efficient 0.65 expert cap",
+        "question": "Does the unified mechanism optimizer produce a candidate that survives source dominance and downstream task gates?",
+        "required_controls": "both sources; searched_no_gt065 alias; router calibration selector",
+    },
 }
 
 MECHANISM_TESTS = [
@@ -147,11 +155,20 @@ MECHANISM_TESTS = [
     {
         "test": "candidate_vs_sources",
         "from_method": "source_qwen3_30b_instruct",
-        "to_method": "qwen3_moe_searched_no_gt065_max_retention_candidate",
+        "to_method": "qwen3_moe_unified_mechanism_candidate",
         "mechanism_question": "Does any same-shape candidate avoid Pareto domination by the two source endpoints?",
         "why_it_matters": "If every candidate is dominated by an endpoint, the correct same-shape output is an endpoint/no-average, not a worse average.",
         "pass_signal": "At least one candidate is non-dominated by both sources and wins on avg/worst/task trade-off.",
         "fail_signal": "All candidates are dominated; select endpoint and use probes to design the next intervention.",
+    },
+    {
+        "test": "unified_rule_alias_validation",
+        "from_method": "qwen3_moe_searched_no_gt065_max_retention_candidate",
+        "to_method": "qwen3_moe_unified_mechanism_candidate",
+        "mechanism_question": "Did the unified risk/retention optimizer recover the same materialized rule as the validated searched no-gt-0.65 checkpoint?",
+        "why_it_matters": "This prevents the unified method name from being a documentation-only alias; it must point to an auditable same-shape checkpoint rule.",
+        "pass_signal": "Delta/audit metrics match the searched no-gt-0.65 candidate; vLLM can reuse the materialized checkpoint under the unified-method name.",
+        "fail_signal": "The unified rule diverges from the validated checkpoint; materialize and audit it separately before vLLM eval.",
     },
 ]
 
@@ -600,6 +617,20 @@ def build_mechanism_tests(gate: pd.DataFrame, pairwise: pd.DataFrame) -> pd.Data
         edge = pairwise_by_edge.get((from_short, to_short))
         if edge is None and from_short in short_to_method and to_short in short_to_method:
             edge = pairwise_by_edge.get((from_short, to_short))
+        if test["test"] == "unified_rule_alias_validation" and edge is not None:
+            norm_delta = maybe_float(edge.get("total_relative_delta_norm_reduction"))
+            routed_delta = maybe_float(edge.get("routed_relative_delta_norm_reduction"))
+            routed_tail_delta = maybe_float(edge.get("routed_gt_065_reduction"))
+            if (
+                norm_delta is not None
+                and routed_delta is not None
+                and routed_tail_delta is not None
+                and abs(norm_delta) <= 1e-12
+                and abs(routed_delta) <= 1e-12
+                and abs(routed_tail_delta) <= 1e-12
+            ):
+                status = "mechanism_supported"
+                interpretation = test["pass_signal"]
         rows.append(
             {
                 "test": test["test"],

@@ -1,7 +1,7 @@
 {
   "audit_to_trust_routed_gt_075_reduction": 150,
   "best_delta_safety_candidate": "tail_trimmed",
-  "candidate_count": 6,
+  "candidate_count": 7,
   "expert_only_attention_changed_tensors": 0,
   "expert_only_router_changed_tensors": 0,
   "expert_only_to_tail_trimmed_relative_norm_reduction": 0.0028877384914612614,
@@ -117,5 +117,8 @@
   "trust_region_total_relative_delta_norm": 0.2486605810368496,
   "trust_to_expert_only_attention_norm_reduction": 0.188546444938151,
   "trust_to_expert_only_relative_norm_reduction": 0.0026275270880279644,
-  "trust_to_expert_only_routed_gt_075_reduction": 0
+  "trust_to_expert_only_routed_gt_075_reduction": 0,
+  "unified_mechanism_matches_searched_no_gt065_delta": true,
+  "unified_mechanism_router_changed_tensors": 0,
+  "unified_mechanism_total_relative_delta_norm": 0.2475948491291486
 }

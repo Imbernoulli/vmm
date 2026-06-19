@@ -48,6 +48,12 @@ DEFAULT_CANDIDATES = [
         "audit_dir": "results/qwen3_moe_searched_no_gt065_delta_audit",
         "rule": "searched_source_route_expert_weights_uniform_cap_0_65",
     },
+    {
+        "candidate": "unified_mechanism",
+        "method": "qwen3_moe_unified_mechanism_candidate",
+        "audit_dir": "results/qwen3_moe_searched_no_gt065_delta_audit",
+        "rule": "unified_mechanism_threshold_efficient_cap_0_65",
+    },
 ]
 THRESHOLDS = [1.0, 0.75, 0.6505, 0.65, 0.5]
 
@@ -239,6 +245,7 @@ def build_summary(
     expert = candidate_rows[candidate_rows["candidate"] == "expert_only"].iloc[0]
     tail = candidate_rows[candidate_rows["candidate"] == "tail_trimmed"].iloc[0]
     searched = candidate_rows[candidate_rows["candidate"] == "searched_no_gt065"].iloc[0]
+    unified = candidate_rows[candidate_rows["candidate"] == "unified_mechanism"].iloc[0]
     route_to_trust = pairwise_rows[
         (pairwise_rows["from_candidate"] == "audit_gated")
         & (pairwise_rows["to_candidate"] == "trust_region")
@@ -265,12 +272,20 @@ def build_summary(
         "expert_only_total_relative_delta_norm": float(expert["total_relative_delta_norm"]),
         "tail_trimmed_total_relative_delta_norm": float(tail["total_relative_delta_norm"]),
         "searched_no_gt065_total_relative_delta_norm": float(searched["total_relative_delta_norm"]),
+        "unified_mechanism_total_relative_delta_norm": float(unified["total_relative_delta_norm"]),
         "expert_only_attention_changed_tensors": int(expert["attention_changed_tensors"]),
         "tail_trimmed_attention_changed_tensors": int(tail["attention_changed_tensors"]),
         "searched_no_gt065_attention_changed_tensors": int(searched["attention_changed_tensors"]),
         "expert_only_router_changed_tensors": int(expert["router_changed_tensors"]),
         "tail_trimmed_router_changed_tensors": int(tail["router_changed_tensors"]),
         "searched_no_gt065_router_changed_tensors": int(searched["router_changed_tensors"]),
+        "unified_mechanism_router_changed_tensors": int(unified["router_changed_tensors"]),
+        "unified_mechanism_matches_searched_no_gt065_delta": bool(
+            abs(float(unified["total_relative_delta_norm"]) - float(searched["total_relative_delta_norm"])) <= 1e-12
+            and abs(float(unified["routed_relative_delta_norm"]) - float(searched["routed_relative_delta_norm"])) <= 1e-12
+            and int(unified["routed_tensors_gt_0_65"]) == int(searched["routed_tensors_gt_0_65"])
+            and int(unified["router_changed_tensors"]) == int(searched["router_changed_tensors"])
+        ),
         "trust_to_expert_only_relative_norm_reduction": float(
             trust["total_relative_delta_norm"] - expert["total_relative_delta_norm"]
         ),
@@ -344,6 +359,8 @@ def build_report(
         f"- Expert-only total relative delta norm: `{fmt(summary['expert_only_total_relative_delta_norm'])}`",
         f"- Tail-trimmed total relative delta norm: `{fmt(summary['tail_trimmed_total_relative_delta_norm'])}`",
         f"- Searched no-gt-0.65 total relative delta norm: `{fmt(summary['searched_no_gt065_total_relative_delta_norm'])}`",
+        f"- Unified mechanism total relative delta norm: `{fmt(summary['unified_mechanism_total_relative_delta_norm'])}`",
+        f"- Unified mechanism matches searched no-gt-0.65 delta: `{summary['unified_mechanism_matches_searched_no_gt065_delta']}`",
         f"- Trust -> expert-only relative norm reduction: `{fmt(summary['trust_to_expert_only_relative_norm_reduction'])}`",
         f"- Expert-only -> tail-trimmed relative norm reduction: `{fmt(summary['expert_only_to_tail_trimmed_relative_norm_reduction'])}`",
         f"- Tail-trimmed -> searched no-gt-0.65 relative norm delta: `{fmt(summary['tail_trimmed_to_searched_no_gt065_relative_norm_delta'])}`",

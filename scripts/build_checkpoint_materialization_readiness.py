@@ -131,6 +131,11 @@ def writer_command_candidates() -> list[dict[str, Any]]:
             "loadability": "qwen_moe_if_materialized",
         },
         {
+            "candidate": "qwen3_moe_unified_mechanism_candidate",
+            "source": "results/qwen3_moe_unified_mechanism_candidate/writer_command.txt",
+            "loadability": "qwen_moe_if_materialized",
+        },
+        {
             "candidate": "moe_route_aware_candidate",
             "source": "results/moe_route_weight_recipes/writer_command.txt",
             "loadability": "qwen_moe_if_materialized",
@@ -300,7 +305,10 @@ def attach_vllm_status(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         if row["vllm_eval_status"] == "complete":
             row["end_to_end_status"] = "hosted_eval_complete"
             row["next_writer_action"] = "compare this negative baseline against source endpoints and optimized candidates"
-        elif row["writer_output_exists"] and row["vllm_plan_status"] in {"ready_to_host", "not_in_vllm_plan"}:
+        elif row["vllm_plan_status"] == "ready_to_host":
+            row["end_to_end_status"] = "ready_for_vllm_eval"
+            row["next_writer_action"] = "host the vLLM plan checkpoint and run downstream eval"
+        elif row["writer_output_exists"] and row["vllm_plan_status"] == "not_in_vllm_plan":
             row["end_to_end_status"] = "ready_for_vllm_eval"
         elif row["loadability"] == "not_vllm_loadable_toy":
             row["end_to_end_status"] = "toy_writer_validation_only"
