@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-19T19:47:21.978342+00:00`
+Generated at: `2026-06-19T19:53:45.616635+00:00`
 
 ## Coverage
 
@@ -140,6 +140,8 @@ Complete: `60`; partial: `1`; missing: `0`.
 | Qwen3 MoE trust-region candidate | dry-run expert / attention / router hits | 15729 / 288 / 48 |
 | Qwen3 MoE trust-region delta audit | status / total relative norm / router changed | passed / 0.249 / 0/48 |
 | Qwen3 MoE trust-region delta audit | max routed rel-delta / routed tensors >1.0 / >0.75 | 0.750 / 0 / 14 |
+| Qwen3 MoE trust-region delta validation | status / max abs pred error / p99 pred error | passed / 0.000 / 0.000 |
+| Qwen3 MoE trust-region delta validation | tensors above tolerance / actual >0.75 / rounding slop | 0 / 14 / 14 |
 | real MoE gauge self-merge | baseline / same-name / aligned NLL | 4.168 / 9.659 / 4.168 |
 | real MoE gauge self-merge | same-name degradation vs baseline | 5.491 |
 | real MoE gauge self-merge | recovered expert permutations | 16 / 16 |

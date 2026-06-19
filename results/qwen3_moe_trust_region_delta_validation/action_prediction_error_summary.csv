@@ -1,0 +1,5 @@
+trust_gate_action,tensor_count,actual_changed_tensors,mean_abs_relative_error,p99_abs_relative_error,max_abs_relative_error,mean_abs_delta_norm_error,max_abs_delta_norm_error,max_actual_relative_delta_norm,max_predicted_relative_delta_norm,actual_relative_delta_gt_075,predicted_relative_delta_gt_075,rounding_slop_gt_075
+keep_route_weight_rule,1260,834,0.0,0.0,0.0,9.516197353929913e-18,3.552713678800501e-15,0.7494104602083921,0.7494104602083921,0,0,0
+keep_with_moe_risk_monitor,13254,8304,0.0,0.0,0.0,2.445941777505249e-18,3.552713678800501e-15,0.6936705248823077,0.6936705248823077,0,0,0
+non_expert_or_unruled,2703,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0,0,0
+scale_nonbase_delta_to_moe_trust_region,1215,1215,4.640939440292881e-06,3.8579917705854286e-05,9.306381069340564e-05,0.0001366137028987272,0.0027640927561201067,0.7500218768922794,0.75,14,0,14

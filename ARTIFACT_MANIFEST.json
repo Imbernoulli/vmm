@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 61876,
+      "bytes": 62600,
       "kind": "document",
       "path": "README.md",
-      "sha256": "5195bc807c8dd204ff5d708ba007b54f703c530b25a9334a4c94935f0ccec4dc"
+      "sha256": "c7d2171fd0f2da8ad60d3949a1f9bed41c8f4d3158938f5b74c663561cb46a58"
     },
     {
       "bytes": 33211,
@@ -1747,6 +1747,48 @@
       "sha256": "37bd93c9a06f9958b2c16d765503fd9fc9c832f6023a96e8bdb0cbf196fc695f"
     },
     {
+      "bytes": 848,
+      "kind": "data",
+      "path": "results/qwen3_moe_trust_region_delta_validation/action_prediction_error_summary.csv",
+      "sha256": "88c72d6c64f0b2738c0546240f6a6ed54f77f2159d185cdfc44a303d0109aaee"
+    },
+    {
+      "bytes": 711,
+      "kind": "data",
+      "path": "results/qwen3_moe_trust_region_delta_validation/group_prediction_error_summary.csv",
+      "sha256": "b4baef85765b2b687eb5e1da2ad4084a7a50f30a6b86b34e6d7a55b09e8014bc"
+    },
+    {
+      "bytes": 4910,
+      "kind": "document",
+      "path": "results/qwen3_moe_trust_region_delta_validation/report.md",
+      "sha256": "73e9fdadbbf129d300a62eb44443c3babb51f5f8423b0f571aaf4cf833a6aec2"
+    },
+    {
+      "bytes": 1803,
+      "kind": "data",
+      "path": "results/qwen3_moe_trust_region_delta_validation/risk_flag_prediction_error_summary.csv",
+      "sha256": "7aa708c8d8a19ee0dac04dc5ca15883b683ceb7aae9859f1b738c4754130d247"
+    },
+    {
+      "bytes": 1539,
+      "kind": "data",
+      "path": "results/qwen3_moe_trust_region_delta_validation/summary.json",
+      "sha256": "4fc1e3c36ef483c101a0382277494f1e20bbdf9e536f39fd887f9c7410a878c8"
+    },
+    {
+      "bytes": 8496492,
+      "kind": "data",
+      "path": "results/qwen3_moe_trust_region_delta_validation/tensor_prediction_error.csv",
+      "sha256": "91a57ffa018646fc0b790082ca700d711032e32967a55644fae04f566b6802db"
+    },
+    {
+      "bytes": 8982,
+      "kind": "data",
+      "path": "results/qwen3_moe_trust_region_delta_validation/threshold_residuals.csv",
+      "sha256": "67d6ac5f731555462289fac5b1fa5ec9312d4c178ecfa6cd62a50919044825a3"
+    },
+    {
       "bytes": 268,
       "kind": "data",
       "path": "results/qwen3_moe_unified_route_guarded_candidate/category_source_plan.csv",
@@ -2293,16 +2335,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 663836,
+      "bytes": 672340,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "4b6d009cb560fdaf225f46bcfee4bee4dbbc1e9cb000541c95c47afb2880e009"
+      "sha256": "1a869c92e62d85b79dae3be88f0c3b29209564501b4dd72e272e8f5013ac8c37"
     },
     {
-      "bytes": 32991,
+      "bytes": 33222,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "d4c7f5bbec12226967f6ada426a675c94d34a2934d859305cb1b53da38fdb6a3"
+      "sha256": "9bf49792587ce909125f7216b02aa9c2556ad2f0ea835dafedaeb31dfbc63794"
     },
     {
       "bytes": 288,
@@ -3409,10 +3451,10 @@
       "sha256": "0b0e4be7ec51f0afb74dfdee6e3d8b217da9aac4d965a170bea36c89f1b46abb"
     },
     {
-      "bytes": 215266,
+      "bytes": 218335,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "d7231806528deccfc5c323818e93e7c4c27c862b73a94dfee047a3017c912b5c"
+      "sha256": "e0343d84aadb80e2efc7766c9e023e16f22c58eeefe467053cd8353e272251ef"
     },
     {
       "bytes": 16101,
@@ -3601,6 +3643,12 @@
       "sha256": "5658ca550161fcdd509eaa1793288b0383f79a42e96f55a089df1fae03a2b184"
     },
     {
+      "bytes": 16731,
+      "kind": "code",
+      "path": "scripts/validate_qwen3_moe_trust_region_delta.py",
+      "sha256": "d69d301a179836e3812f7ac2c5bba5438c8a8b38b10ba624919ddd7a032b4aff"
+    },
+    {
       "bytes": 48762,
       "kind": "code",
       "path": "scripts/write_same_shape_average_checkpoint.py",
@@ -3625,7 +3673,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T19:47:21.986885+00:00",
+  "generated_at": "2026-06-19T19:53:45.659240+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

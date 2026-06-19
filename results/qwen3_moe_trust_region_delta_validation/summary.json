@@ -1,0 +1,29 @@
+{
+  "max_abs_relative_error": 9.306381069340564e-05,
+  "mean_abs_relative_error": 2.988679397867096e-07,
+  "outputs": {
+    "action_prediction_error_summary": "results/qwen3_moe_trust_region_delta_validation/action_prediction_error_summary.csv",
+    "group_prediction_error_summary": "results/qwen3_moe_trust_region_delta_validation/group_prediction_error_summary.csv",
+    "report": "results/qwen3_moe_trust_region_delta_validation/report.md",
+    "risk_flag_prediction_error_summary": "results/qwen3_moe_trust_region_delta_validation/risk_flag_prediction_error_summary.csv",
+    "summary": "results/qwen3_moe_trust_region_delta_validation/summary.json",
+    "tensor_prediction_error": "results/qwen3_moe_trust_region_delta_validation/tensor_prediction_error.csv",
+    "threshold_residuals": "results/qwen3_moe_trust_region_delta_validation/threshold_residuals.csv"
+  },
+  "p99_abs_relative_error": 7.343303550957359e-06,
+  "prediction_relative_tolerance": 0.002,
+  "rounding_slop_threshold": 0.751,
+  "routed_above_075_rounding_slop": 14,
+  "routed_actual_relative_delta_gt_075": 14,
+  "routed_max_abs_relative_error": 9.306381069340564e-05,
+  "routed_max_actual_relative_delta_norm": 0.7500218768922794,
+  "routed_max_predicted_relative_delta_norm": 0.75,
+  "routed_p99_abs_relative_error": 7.463492167774007e-06,
+  "routed_predicted_relative_delta_gt_075": 0,
+  "routed_tensor_count": 18432,
+  "scaled_tensor_count": 1215,
+  "schema_version": 1,
+  "status": "passed",
+  "tensor_count": 18867,
+  "tensors_above_relative_tolerance": 0
+}

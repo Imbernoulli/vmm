@@ -1,0 +1,6 @@
+group,tensor_count,actual_changed_tensors,mean_abs_relative_error,p99_abs_relative_error,max_abs_relative_error,mean_abs_delta_norm_error,max_abs_delta_norm_error,max_actual_relative_delta_norm,max_predicted_relative_delta_norm,actual_relative_delta_gt_075,predicted_relative_delta_gt_075,rounding_slop_gt_075
+attention,288,288,0.0,0.0,0.0,0.0,0.0,0.2945318646495786,0.2945318646495786,0,0,0
+embedding_or_head,2,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0,0,0
+norm,97,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0,0,0
+routed_expert_ffn,18432,10353,3.0592130099586863e-07,7.463492167774007e-06,9.306381069340564e-05,9.005297798502495e-06,0.0027640927561201067,0.7500218768922794,0.75,14,0,14
+router,48,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0,0,0
