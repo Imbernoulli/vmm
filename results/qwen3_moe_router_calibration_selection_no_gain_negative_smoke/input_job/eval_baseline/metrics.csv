@@ -1,0 +1,5 @@
+task,examples,strict_exact,model,accuracy,policy_accuracy,compile_rate
+gsm8k,8,0.42,qwen3_moe_searched_no_gt065_max_retention_candidate,,,
+mmlu,8,,qwen3_moe_searched_no_gt065_max_retention_candidate,0.53,,
+safety,8,,qwen3_moe_searched_no_gt065_max_retention_candidate,,0.62,
+humaneval_compile,8,,qwen3_moe_searched_no_gt065_max_retention_candidate,,,0.3

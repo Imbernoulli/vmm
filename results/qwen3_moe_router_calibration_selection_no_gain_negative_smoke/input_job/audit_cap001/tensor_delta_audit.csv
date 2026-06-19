@@ -1,0 +1,5 @@
+tensor,group,changed,delta_norm,delta_norm2,base_norm,relative_delta_norm,max_abs_delta
+model.layers.0.mlp.gate.weight,router,True,0.08,0.0064,10.0,0.008,0.01
+model.layers.1.mlp.gate.weight,router,True,0.08,0.0064,10.0,0.008,0.01
+model.layers.2.mlp.gate.weight,router,True,0.08,0.0064,10.0,0.008,0.01
+model.layers.3.mlp.gate.weight,router,True,0.08,0.0064,10.0,0.008,0.01

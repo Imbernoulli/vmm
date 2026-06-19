@@ -39,6 +39,7 @@
     "training_completed": true
   },
   "job_dir": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job",
+  "no_downstream_gain_negative_smoke": false,
   "outputs": {
     "decision_rules": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/decision_rules.json",
     "literature_sources": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/literature_sources.json",

@@ -1087,6 +1087,7 @@ def write_smoke_inputs(
     *,
     row_validation_negative: bool = False,
     source_dominance_negative: bool = False,
+    no_downstream_gain_negative: bool = False,
 ) -> Path:
     job_dir = output_dir / "input_job"
     if job_dir.exists():
@@ -1145,6 +1146,16 @@ def write_smoke_inputs(
     )
 
     smoke_split = "validation" if row_validation_negative else "group_validation"
+    cap0025_scores = (
+        (0.501, 0.300, 0.421, 0.529, 0.620, 0.300)
+        if no_downstream_gain_negative
+        else (0.515, 0.310, 0.430, 0.535, 0.620, 0.320)
+    )
+    cap005_scores = (
+        (0.501, 0.300, 0.421, 0.529, 0.620, 0.300)
+        if no_downstream_gain_negative
+        else (0.525, 0.315, 0.435, 0.540, 0.620, 0.340)
+    )
     specs = [
         (
             "cap001",
@@ -1173,12 +1184,7 @@ def write_smoke_inputs(
             0.015,
             0.005,
             0.020,
-            0.515,
-            0.310,
-            0.430,
-            0.535,
-            0.620,
-            0.320,
+            *cap0025_scores,
         ),
         (
             "cap005",
@@ -1190,12 +1196,7 @@ def write_smoke_inputs(
             0.090,
             0.015,
             0.040,
-            0.525,
-            0.315,
-            0.435,
-            0.540,
-            0.620,
-            0.340,
+            *cap005_scores,
         ),
     ]
     candidate_rows = []
@@ -1279,6 +1280,7 @@ def run_selection(args: argparse.Namespace) -> dict[str, Any]:
         bool(args.smoke),
         bool(args.row_validation_negative_smoke),
         bool(args.source_dominance_negative_smoke),
+        bool(args.no_downstream_gain_negative_smoke),
     ]
     if sum(smoke_modes) > 1:
         raise ValueError("Use only one smoke mode at a time.")
@@ -1287,6 +1289,7 @@ def run_selection(args: argparse.Namespace) -> dict[str, Any]:
             output_dir,
             row_validation_negative=args.row_validation_negative_smoke,
             source_dominance_negative=args.source_dominance_negative_smoke,
+            no_downstream_gain_negative=args.no_downstream_gain_negative_smoke,
         )
         args.baseline_eval_dir = args.job_dir / "eval_baseline"
         args.source_eval_dir = [args.job_dir / "eval_source_instruct", args.job_dir / "eval_source_coder"]
@@ -1318,6 +1321,7 @@ def run_selection(args: argparse.Namespace) -> dict[str, Any]:
         "smoke": any(smoke_modes),
         "row_validation_negative_smoke": bool(args.row_validation_negative_smoke),
         "source_dominance_negative_smoke": bool(args.source_dominance_negative_smoke),
+        "no_downstream_gain_negative_smoke": bool(args.no_downstream_gain_negative_smoke),
         "job_dir": rel(args.job_dir),
         "baseline_eval": baseline_eval,
         "baseline_audit_status": baseline_audit.get("status") if baseline_audit else "not_available",
@@ -1413,6 +1417,11 @@ def parse_args() -> argparse.Namespace:
         "--source-dominance-negative-smoke",
         action="store_true",
         help="Build a complete smoke job where a source endpoint dominates otherwise valid router-calibrated candidates.",
+    )
+    parser.add_argument(
+        "--no-downstream-gain-negative-smoke",
+        action="store_true",
+        help="Build a complete smoke job where mechanically valid candidates do not clear the downstream gain gate.",
     )
     parser.add_argument(
         "--allow-missing-source-eval",

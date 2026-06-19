@@ -1,0 +1,3 @@
+group,tensor_count,changed_tensors,delta_norm,relative_delta_norm,max_abs_delta
+attention,1,1,1.0,0.1,0.02
+router,4,4,0.71,0.071,0.01

@@ -1266,6 +1266,12 @@ def summarize_qwen3_moe_router_calibration_source_dominance_negative_smoke() -> 
     )
 
 
+def summarize_qwen3_moe_router_calibration_no_gain_negative_smoke() -> dict[str, Any]:
+    return summarize_qwen3_moe_router_calibration_selection_dir(
+        "results/qwen3_moe_router_calibration_selection_no_gain_negative_smoke"
+    )
+
+
 def summarize_qwen3_moe_trust_region_cap_search() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_trust_region_cap_search")
     summary = read_json(root / "summary.json")
@@ -3075,6 +3081,9 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_router_calibration_source_dominance_negative_smoke": (
             summarize_qwen3_moe_router_calibration_source_dominance_negative_smoke()
         ),
+        "qwen3_moe_router_calibration_no_gain_negative_smoke": (
+            summarize_qwen3_moe_router_calibration_no_gain_negative_smoke()
+        ),
         "qwen3_moe_trust_region_cap_search": summarize_qwen3_moe_trust_region_cap_search(),
         "toy_moe_routing_readiness": summarize_toy_moe_routing_readiness(),
         "toy_moe_method_selection": summarize_toy_moe_method_selection(),
@@ -3204,6 +3213,7 @@ def build_summary() -> dict[str, Any]:
             "python scripts/select_qwen3_moe_router_calibration_result.py --smoke --output-dir results/qwen3_moe_router_calibration_selection_smoke",
             "python scripts/select_qwen3_moe_router_calibration_result.py --row-validation-negative-smoke --output-dir results/qwen3_moe_router_calibration_selection_row_validation_negative_smoke",
             "python scripts/select_qwen3_moe_router_calibration_result.py --source-dominance-negative-smoke --output-dir results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke",
+            "python scripts/select_qwen3_moe_router_calibration_result.py --no-downstream-gain-negative-smoke --output-dir results/qwen3_moe_router_calibration_selection_no_gain_negative_smoke",
             "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
             "PYTHONPATH=src python scripts/collect_results.py",
         ],
@@ -3293,6 +3303,12 @@ def build_markdown(summary: dict[str, Any]) -> str:
     ]
     qwen3_moe_router_calibration_source_dominance_rows = (
         qwen3_moe_router_calibration_source_dominance_negative_smoke.get("candidate_rows") or [{}]
+    )
+    qwen3_moe_router_calibration_no_gain_negative_smoke = exp[
+        "qwen3_moe_router_calibration_no_gain_negative_smoke"
+    ]
+    qwen3_moe_router_calibration_no_gain_rows = (
+        qwen3_moe_router_calibration_no_gain_negative_smoke.get("candidate_rows") or [{}]
     )
     qwen3_moe_trust_region_cap_search = exp["qwen3_moe_trust_region_cap_search"]
     selected_unified_capacity = toy_moe.get("unified_moe_capacity_sweep_selected") or {}
@@ -3867,6 +3883,17 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| Qwen3 MoE router source-dominance negative smoke | first decision reason | "
                 f"{qwen3_moe_router_calibration_source_dominance_rows[0].get('decision_reason')} |"
+            ),
+            (
+                "| Qwen3 MoE router no-gain negative smoke | status / selected / eligible | "
+                f"{qwen3_moe_router_calibration_no_gain_negative_smoke['status']} / "
+                f"{qwen3_moe_router_calibration_no_gain_negative_smoke['selected_method']} / "
+                f"{qwen3_moe_router_calibration_no_gain_negative_smoke['eligible_candidate_count']}"
+                f"/{qwen3_moe_router_calibration_no_gain_negative_smoke['candidate_count']} |"
+            ),
+            (
+                "| Qwen3 MoE router no-gain negative smoke | first decision reason | "
+                f"{qwen3_moe_router_calibration_no_gain_rows[0].get('decision_reason')} |"
             ),
             (
                 "| Qwen3 MoE cap-law search | searched / frontier / expert groups | "
