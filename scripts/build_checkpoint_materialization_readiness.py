@@ -182,6 +182,38 @@ def same_shape_smoke_candidate() -> dict[str, Any]:
     }
 
 
+def dense_uniform_materialized_candidate() -> dict[str, Any]:
+    output_dir = "results/checkpoints/qwen_0_5b_instruct_coder_uniform_average"
+    checkpoint_exists = has_safetensors(repo_path(output_dir))
+    if checkpoint_exists:
+        status = "materialized_checkpoint_exists"
+        next_action = "host with vLLM and run downstream eval as a negative uniform-average baseline"
+    else:
+        status = "checkpoint_missing_until_materialized"
+        next_action = "run write_same_shape_average_checkpoint.py for Qwen2.5-0.5B Instruct/Coder 0.5/0.5 uniform average"
+    return {
+        "candidate": "qwen_0_5b_instruct_coder_uniform_average",
+        "source_kind": "local_materialized_dense_baseline",
+        "source_path": "results/checkpoints/qwen_0_5b_instruct_coder_uniform_average/merge_manifest.json",
+        "loadability": "qwen_dense_materialized_negative_baseline",
+        "writer_command": (
+            "python scripts/write_same_shape_average_checkpoint.py "
+            "--base /srv/home/bohanlyu/MLS-Bench/vendor/data/models/Qwen2.5-0.5B "
+            "--source instruct=/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen2.5-0.5B-Instruct/snapshots/7ae557604adf67be50417f59c2c2f167def9a775 "
+            "--source coder=/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen2.5-Coder-0.5B-Instruct/snapshots/ea3f2471cf1b1f0db85067f1ef93848e38e88c25 "
+            "--source-weight instruct=0.5 --source-weight coder=0.5 "
+            "--output-dir results/checkpoints/qwen_0_5b_instruct_coder_uniform_average"
+        ),
+        "writer_output_dir": output_dir,
+        "writer_output_exists": checkpoint_exists,
+        "dry_run_only": False,
+        "placeholder_count": 0,
+        "placeholders": "",
+        "writer_status": status,
+        "next_writer_action": next_action,
+    }
+
+
 def vllm_rows() -> pd.DataFrame:
     path = repo_path("results/vllm_checkpoint_eval_plan/checkpoint_eval_plan.csv")
     if not path.exists():
@@ -220,7 +252,14 @@ def attach_vllm_status(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def build_rows() -> list[dict[str, Any]]:
-    return attach_vllm_status(writer_command_candidates() + [bias_candidate(), same_shape_smoke_candidate()])
+    return attach_vllm_status(
+        writer_command_candidates()
+        + [
+            bias_candidate(),
+            same_shape_smoke_candidate(),
+            dense_uniform_materialized_candidate(),
+        ]
+    )
 
 
 def build_report(summary: dict[str, Any], rows: list[dict[str, Any]]) -> str:

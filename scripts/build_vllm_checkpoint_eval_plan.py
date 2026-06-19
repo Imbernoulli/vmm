@@ -98,6 +98,13 @@ def load_candidate_table(args: argparse.Namespace) -> list[dict[str, Any]]:
 def default_candidates() -> list[dict[str, Any]]:
     return [
         {
+            "candidate_source": "local_materialized_dense_baseline",
+            "method": "qwen_0_5b_instruct_coder_uniform_average",
+            "checkpoint_path": "results/checkpoints/qwen_0_5b_instruct_coder_uniform_average",
+            "materialization_status": "local_ignored_checkpoint_materialized",
+            "notes": "Dense Qwen2.5-0.5B Instruct/Coder 0.5/0.5 uniform-average negative baseline. The checkpoint is a local ignored artifact and is not committed to git.",
+        },
+        {
             "candidate_source": "default_same_shape_recipes",
             "method": "moe_route_aware_candidate",
             "checkpoint_path": "results/checkpoints/moe_route_aware_candidate",
@@ -228,7 +235,7 @@ def build_shell_script(rows: list[dict[str, Any]], *, wait_command: str) -> str:
         "",
     ]
     for row in rows:
-        command_prefix = "" if row["serve_status"] == "ready_to_host" else "# "
+        command_prefix = "# "
         lines.extend(
             [
                 f"# [{row['eval_order']}] {row['method']} - {row['serve_status']}",

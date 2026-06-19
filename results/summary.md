@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-19T13:14:14.195155+00:00`
+Generated at: `2026-06-19T13:22:12.039965+00:00`
 
 ## Coverage
 
@@ -163,10 +163,10 @@ Complete: `35`; partial: `1`; missing: `0`.
 | vLLM hosted downstream eval | candidate table | results/qwen_target_model_registry/model_registry.csv |
 | vLLM downstream eval smoke | status | passed |
 | vLLM downstream eval smoke | good / bad avg primary | 1.000 / 0.000 |
-| vLLM checkpoint eval plan | status | waiting_for_checkpoint_materialization |
-| vLLM checkpoint eval plan | ready / missing / not-loadable | 0 / 2 / 1 |
-| checkpoint materialization readiness | status | waiting_for_checkpoint_materialization |
-| checkpoint materialization readiness | materialized / blocked / ready | 0 / 3 / 0 |
+| vLLM checkpoint eval plan | status | ready_to_host |
+| vLLM checkpoint eval plan | ready / missing / not-loadable | 1 / 2 / 1 |
+| checkpoint materialization readiness | status | ready_for_vllm_eval |
+| checkpoint materialization readiness | materialized / blocked / ready | 1 / 3 / 1 |
 | Average decision report | avoid uniform average decisions | 3 |
 | Average decision report | coefficient-search decisions | 2 |
 | model averaging literature review | sources reviewed | 22 |

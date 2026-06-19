@@ -24,7 +24,7 @@
 8. **Dense/MoE 文献矩阵已经转成工程规则。** [Model Averaging Literature Review](results/model_averaging_literature_review/report.md) 整理了 `22` 篇 Dense averaging、task-vector、conflict-aware merge、output-space projection、MoE routing/expert merging 相关来源，并映射成 `7` 类方法、`7` 类 probe 和 `7` 个 MoE 优化 gate。
 9. **Qwen 目标模型已经落成 registry。** [Qwen Target Model Registry](results/qwen_target_model_registry/report.md) 现在列出 `17` 个候选条目：dense `12`、MoE `5`；其中包含官方 Qwen 分支、DeepSeek/AM 等第三方下游模型、DianJin/Long1K 论文候选和下游 adapter/finetune 候选池。第一轮建议先跑 `Qwen2.5-7B-Instruct + Coder + Math + DeepSeek-R1-Distill-Qwen-7B`。
 10. **MoE 不能把 router/expert 当普通 dense 层平均。** [MoE Same-Shape Average Plan](results/moe_average_plan/report.md) 把 router、shared modules、expert FFN、embedding/lm_head 和 LoRA/adapters 分开：默认先冻结/校准 router，experts 先按 route frequency/output similarity 匹配，再写回同 expert 数的 checkpoint。
-11. **同构 checkpoint 写出路径已经打通。** `scripts/write_same_shape_average_checkpoint.py` 会先验证 tensor name/shape，再按 `base + sum_i w_i * (source_i - base)` 写 safetensors；现在也支持 `--tensor-add-csv`，可把离线 probe 得到的 router-bias scalar delta 写入已有 bias tensor。Qwen2.5-0.5B base/instruct/coder dry-run 已检查 `290` 个 tensor 无缺失、无 shape mismatch；MoE writer smoke 还验证了 freeze-router 下的 bias additive correction。
+11. **同构 checkpoint 写出路径已经打通。** `scripts/write_same_shape_average_checkpoint.py` 会先验证 tensor name/shape，再按 `base + sum_i w_i * (source_i - base)` 写 safetensors；现在也支持 `--tensor-add-csv`，可把离线 probe 得到的 router-bias scalar delta 写入已有 bias tensor。Qwen2.5-0.5B base/instruct/coder dry-run 已检查 `290` 个 tensor 无缺失、无 shape mismatch；本地还已写出 `qwen_0_5b_instruct_coder_uniform_average` 这个 0.5/0.5 Dense 负 baseline checkpoint，用于验证真实 host/eval 管线。MoE writer smoke 还验证了 freeze-router 下的 bias additive correction。
 12. **MoE 大模型先做 header/config probe。** [Checkpoint Topology Inspect](results/checkpoint_topology_inspect/report.md) 对本地 Qwen3.5-35B-A3B config 做了不加载权重的拓扑检查：`256` experts、每 token 激活 `8` 个，active fraction `0.03125`；这直接支持 router/expert 分组 average。
 13. **不是每个 best grid 都值得写 checkpoint。** [Average Candidate Recipes](results/average_candidate_recipes/report.md) 明确把当前 Qwen instruct/coder best grid 标成 `skip_endpoint_only`，因为 `alpha=1,beta=0` 只是端点，不是有价值的 average；`0.5/0.5` uniform average 也被 probe 标成负 baseline。
 14. **MoE route-aware average 已落到 tensor-rule 文件。** [MoE Route-Weight Recipes](results/moe_route_weight_recipes/report.md) 会把 routing probe 的 `expert_load.csv` 转成 `tensor_rules.txt`，由 checkpoint writer 直接读取；当前状态是 `waiting_for_routing_probe`，说明还缺真实 Qwen3 MoE route probe，不应该假装已经有 expert-wise 权重。
@@ -36,8 +36,8 @@
 20. **Expert matching 已能进入 checkpoint materialization。** [Toy MoE Expert Remap Plan](results/toy_moe_expert_remap_plan/report.md) 把 expert-output matching 转成 `source_tensor_aliases.txt`：输出 checkpoint 的 expert index、tensor name 和 shape 不变，只改变某个 source 读取哪个 matched expert tensor；当前 4 个 alias rule 全部 ready，最小 output cosine 为 `0.943`。
 21. **Router-bias capacity correction 已落成 recipe。** [MoE Router Bias Plan](results/moe_router_bias_plan/report.md) 用 per prompt/category 的 worst top-k load 生成 writer-ready `router_bias_deltas.csv`；toy `unified_moe_average` 上 expert 0 的 worst top-k fraction 是 `0.3900`，高于 capacity `0.3125`，因此生成 `-0.0530` 的 bias delta，其余 experts 做中心化补偿。真实 Qwen checkpoint 若没有对应 bias tensor，writer 会在校验阶段报错，而不是改变模型结构。
 22. **vLLM 下游评测 harness 已做 HTTP contract smoke。** [vLLM Downstream Eval Contract Smoke](results/vllm_downstream_eval_smoke/smoke_report.md) 启动本地 OpenAI-compatible mock endpoint，通过真实 HTTP 调用 `scripts/run_vllm_downstream_eval.py`，验证 GSM8K、MMLU、safety、HumanEval compile 的请求、解析、打分、排序和产物写出；mock-good 平均主指标 `1.000`，mock-bad 为 `0.000`。真实 GPU/vLLM endpoint 仍然是下一步，不能把这个 smoke 当成真实性能结果。
-23. **同构 checkpoint 的 vLLM 轮测计划已生成。** [vLLM Checkpoint Eval Plan](results/vllm_checkpoint_eval_plan/report.md) 把候选 checkpoint 转成逐个 `vllm serve` 和 `run_vllm_downstream_eval.py` 命令；当前 3 个候选里 `0` 个 ready、`2` 个还缺真实 materialized checkpoint、`1` 个是 toy writer 验证不能 vLLM 加载。也就是说流程已经接上，但真实性能仍必须等 checkpoint 写出后再 host 评测。
-24. **Checkpoint materialization readiness 已单独审计。** [Checkpoint Materialization Readiness](results/checkpoint_materialization_readiness/report.md) 把 writer 命令、placeholder、dry-run、checkpoint 是否存在和 vLLM readiness 放进一张表：当前 5 个候选里 `0` 个已 materialize，`3` 个被 placeholder source path 卡住，`0` 个 ready for vLLM eval。这解释了为什么现在还不能给真实下游分数。
+23. **同构 checkpoint 的 vLLM 轮测计划已生成。** [vLLM Checkpoint Eval Plan](results/vllm_checkpoint_eval_plan/report.md) 把候选 checkpoint 转成逐个 `vllm serve` 和 `run_vllm_downstream_eval.py` 命令；当前 4 个候选里 `1` 个 ready、`2` 个还缺真实 materialized checkpoint、`1` 个是 toy writer 验证不能 vLLM 加载。这个 ready checkpoint 是 `qwen_0_5b_instruct_coder_uniform_average`，它是本地 ignored artifact 和 uniform-average 负 baseline，不是推荐算法。
+24. **Checkpoint materialization readiness 已单独审计。** [Checkpoint Materialization Readiness](results/checkpoint_materialization_readiness/report.md) 把 writer 命令、placeholder、dry-run、checkpoint 是否存在和 vLLM readiness 放进一张表：当前 6 个候选里 `1` 个已 materialize，`3` 个被 placeholder source path 卡住，`1` 个 ready for vLLM eval。现在不能给真实下游分数的原因已经收窄为：还没有实际启动 vLLM 跑 GSM8K/MMLU/safety/HumanEval，而不是没有任何可 host checkpoint。
 
 核心对象是：
 
@@ -94,7 +94,7 @@ z 轴 = loss
 
 ## 结论摘要
 
-当前 coverage audit：`complete = 34`, `partial = 1`, `missing = 0`；唯一 partial 是 vLLM hosted downstream eval 还没有可用 endpoint。完整汇总见 `results/summary.md` 和 `results/summary.json`。
+当前 coverage audit：`complete = 35`, `partial = 1`, `missing = 0`；唯一 partial 是 vLLM hosted downstream eval 还没有真实跑完。现在已有 1 个本地 materialized checkpoint 可 host，但还没有得到 GPU/vLLM 下游任务分数。完整汇总见 `results/summary.md` 和 `results/summary.json`。
 
 主要结论：
 
