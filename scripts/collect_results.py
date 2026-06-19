@@ -1147,6 +1147,7 @@ def summarize_toy_moe_expert_remap_plan() -> dict[str, Any]:
         "summary": summary,
         "remap_status": summary.get("remap_status"),
         "alias_rule_count": int(summary.get("alias_rule_count", 0)),
+        "layer_aware_rule_count": int(summary.get("layer_aware_rule_count", 0)),
         "manual_review_count": int(summary.get("manual_review_count", 0)),
         "min_output_cosine": maybe_float(summary.get("min_output_cosine")),
         "mean_output_cosine": maybe_float(summary.get("mean_output_cosine")),
@@ -1155,6 +1156,25 @@ def summarize_toy_moe_expert_remap_plan() -> dict[str, Any]:
         "expert_remap": rel("results/toy_moe_expert_remap_plan/expert_remap.csv"),
         "source_tensor_aliases": rel("results/toy_moe_expert_remap_plan/source_tensor_aliases.txt"),
         "writer_command": rel("results/toy_moe_expert_remap_plan/writer_command.txt"),
+    }
+
+
+def summarize_moe_layerwise_expert_remap_smoke() -> dict[str, Any]:
+    summary = read_json("results/moe_layerwise_expert_remap_smoke/summary.json")
+    checks = read_csv("results/moe_layerwise_expert_remap_smoke/checks.csv")
+    remap = read_csv("results/moe_layerwise_expert_remap_smoke/expert_remap.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "input_rows": int(summary.get("input_rows", len(remap))),
+        "alias_rule_count": int(summary.get("alias_rule_count", 0)),
+        "layer_aware_rule_count": int(summary.get("layer_aware_rule_count", 0)),
+        "manual_review_count": int(summary.get("manual_review_count", 0)),
+        "failed_checks": int((~checks["passed"]).sum()),
+        "report": rel("results/moe_layerwise_expert_remap_smoke/report.md"),
+        "checks": rel("results/moe_layerwise_expert_remap_smoke/checks.csv"),
+        "expert_remap": rel("results/moe_layerwise_expert_remap_smoke/expert_remap.csv"),
+        "source_tensor_aliases": rel("results/moe_layerwise_expert_remap_smoke/source_tensor_aliases.txt"),
     }
 
 
@@ -1624,6 +1644,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/moe_combined_writer_smoke/report.md verifies expert tensor rules, source expert alias remap, freeze-router, and router-bias additive deltas in one same-shape writer call.",
         },
         {
+            "item": "MoE layer-wise expert remap smoke",
+            "status": "complete",
+            "evidence": "results/moe_layerwise_expert_remap_smoke/report.md verifies layer-scoped source tensor alias rules for real multi-layer MoE expert matching.",
+        },
+        {
             "item": "Checkpoint topology inspection",
             "status": "complete",
             "evidence": "results/checkpoint_topology_inspect/report.md inspects Qwen MoE/Dense configs and safetensors headers without loading weights.",
@@ -1748,6 +1773,7 @@ def build_summary() -> dict[str, Any]:
         "toy_moe_routing_readiness": summarize_toy_moe_routing_readiness(),
         "toy_moe_method_selection": summarize_toy_moe_method_selection(),
         "toy_moe_expert_remap_plan": summarize_toy_moe_expert_remap_plan(),
+        "moe_layerwise_expert_remap_smoke": summarize_moe_layerwise_expert_remap_smoke(),
         "vllm_downstream_eval": summarize_vllm_downstream_eval(),
         "vllm_downstream_eval_smoke": summarize_vllm_downstream_eval_smoke(),
         "vllm_checkpoint_eval_plan": summarize_vllm_checkpoint_eval_plan(),
@@ -1796,6 +1822,7 @@ def build_summary() -> dict[str, Any]:
             "PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir results/toy_moe_merge --output-dir results/toy_moe_routing_readiness --topology-summary ''",
             "PYTHONPATH=src python scripts/select_moe_merge_method.py",
             "PYTHONPATH=src python scripts/build_moe_expert_remap_plan.py",
+            "PYTHONPATH=scripts python scripts/smoke_moe_layerwise_expert_remap.py --output-dir results/moe_layerwise_expert_remap_smoke",
             (
                 "python scripts/run_vllm_downstream_eval.py "
                 "--candidate-table results/qwen_target_model_registry/model_registry.csv "
@@ -1889,6 +1916,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     toy_moe_readiness = exp["toy_moe_routing_readiness"]
     toy_moe_selection = exp["toy_moe_method_selection"]
     toy_moe_remap = exp["toy_moe_expert_remap_plan"]
+    layerwise_remap_smoke = exp["moe_layerwise_expert_remap_smoke"]
     vllm_eval = exp["vllm_downstream_eval"]
     vllm_eval_smoke = exp["vllm_downstream_eval_smoke"]
     vllm_checkpoint_eval_plan = exp["vllm_checkpoint_eval_plan"]
@@ -2425,8 +2453,22 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{toy_moe_remap['alias_rule_count']} |"
             ),
             (
+                "| toy MoE expert remap plan | layer-aware alias rules | "
+                f"{toy_moe_remap['layer_aware_rule_count']} |"
+            ),
+            (
                 "| toy MoE expert remap plan | min expert-output cosine | "
                 f"{fmt(toy_moe_remap['min_output_cosine'])} |"
+            ),
+            (
+                "| MoE layer-wise expert remap smoke | status | "
+                f"{layerwise_remap_smoke['status']} |"
+            ),
+            (
+                "| MoE layer-wise expert remap smoke | alias / layer-aware / manual-review rows | "
+                f"{layerwise_remap_smoke['alias_rule_count']} / "
+                f"{layerwise_remap_smoke['layer_aware_rule_count']} / "
+                f"{layerwise_remap_smoke['manual_review_count']} |"
             ),
             (
                 "| vLLM hosted downstream eval | status | "

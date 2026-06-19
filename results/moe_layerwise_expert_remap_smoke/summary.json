@@ -1,0 +1,17 @@
+{
+  "alias_rule_count": 3,
+  "input_rows": 4,
+  "layer_aware_rule_count": 3,
+  "manual_review_count": 1,
+  "min_cosine_threshold": 0.9,
+  "outputs": {
+    "checks": "results/moe_layerwise_expert_remap_smoke/checks.csv",
+    "expert_match_input": "results/moe_layerwise_expert_remap_smoke/expert_match_input.csv",
+    "expert_remap": "results/moe_layerwise_expert_remap_smoke/expert_remap.csv",
+    "report": "results/moe_layerwise_expert_remap_smoke/report.md",
+    "source_tensor_aliases": "results/moe_layerwise_expert_remap_smoke/source_tensor_aliases.txt",
+    "summary": "results/moe_layerwise_expert_remap_smoke/summary.json"
+  },
+  "schema_version": 1,
+  "status": "passed"
+}

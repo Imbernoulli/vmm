@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T15:36:37.797133+00:00`
+Generated at: `2026-06-19T15:44:08.559490+00:00`
 
 ## Coverage
 
-Complete: `44`; partial: `1`; missing: `0`.
+Complete: `45`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -36,6 +36,7 @@ Complete: `44`; partial: `1`; missing: `0`.
 | Same-shape checkpoint writer | complete | scripts/write_same_shape_average_checkpoint.py writes same-shape safetensors checkpoints; results/same_shape_writer_smoke/report.md validates Qwen2.5-0.5B base/instruct/coder dry-run compatibility. |
 | MoE tensor-rule writer materialization | complete | results/moe_tensor_rule_writer_smoke/report.md writes a tiny MoE-like safetensors checkpoint and verifies tensor-rule, freeze-router, router-bias additive deltas, and non-floating tensor behavior numerically. |
 | MoE combined writer smoke | complete | results/moe_combined_writer_smoke/report.md verifies expert tensor rules, source expert alias remap, freeze-router, and router-bias additive deltas in one same-shape writer call. |
+| MoE layer-wise expert remap smoke | complete | results/moe_layerwise_expert_remap_smoke/report.md verifies layer-scoped source tensor alias rules for real multi-layer MoE expert matching. |
 | Checkpoint topology inspection | complete | results/checkpoint_topology_inspect/report.md inspects Qwen MoE/Dense configs and safetensors headers without loading weights. |
 | Average candidate recipes | complete | results/average_candidate_recipes/report.md converts probe decisions into conservative same-shape materialization recipes and skips endpoint-only pseudo-averages. |
 | MoE route-weight recipes | complete | results/moe_route_weight_recipes/report.md converts MoE routing/expert-load probes into tensor-rule files for same-shape checkpoint materialization; current recipe is waiting for real routing probe data. |
@@ -182,7 +183,10 @@ Complete: `44`; partial: `1`; missing: `0`.
 | toy MoE method selection | all-weight decision | reject_routing_breakdown |
 | toy MoE expert remap plan | remap status | ready |
 | toy MoE expert remap plan | source tensor alias rules | 4 |
-| toy MoE expert remap plan | min expert-output cosine | 0.943 |
+| toy MoE expert remap plan | layer-aware alias rules | 0 |
+| toy MoE expert remap plan | min expert-output cosine | 0.941 |
+| MoE layer-wise expert remap smoke | status | passed |
+| MoE layer-wise expert remap smoke | alias / layer-aware / manual-review rows | 3 / 3 / 1 |
 | vLLM hosted downstream eval | status | endpoint_unavailable |
 | vLLM hosted downstream eval | queued served models | 7 |
 | vLLM hosted downstream eval | candidate table | results/qwen_target_model_registry/model_registry.csv |

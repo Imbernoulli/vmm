@@ -1,0 +1,5 @@
+check,passed
+alias_rule_count,True
+manual_review_count,True
+all_usable_rules_layer_aware,True
+manual_review_rule_not_emitted,True

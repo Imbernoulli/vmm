@@ -30,11 +30,23 @@ def read_json(path: str | Path) -> dict[str, Any]:
     return json.loads(repo_path(path).read_text(encoding="utf-8"))
 
 
-def build_alias_pattern(reference_expert: int, target_expert: int) -> tuple[str, str]:
+def build_alias_pattern(reference_expert: int, target_expert: int, layer_id: int | None = None) -> tuple[str, str]:
+    if layer_id is None:
+        return (
+            rf"(^|.*\.)experts\.{reference_expert}\.",
+            rf"\1experts.{target_expert}.",
+        )
     return (
-        rf"(^|.*\.)experts\.{reference_expert}\.",
+        rf"(^|.*\.layers\.{layer_id}\..*)experts\.{reference_expert}\.",
         rf"\1experts.{target_expert}.",
     )
+
+
+def layer_value(item: pd.Series) -> int | None:
+    for column in ("layer_id", "layer", "layer_idx"):
+        if column in item and not pd.isna(item[column]):
+            return int(item[column])
+    return None
 
 
 def build_remap(match: pd.DataFrame, source_name: str, min_cosine: float) -> tuple[pd.DataFrame, list[str]]:
@@ -43,15 +55,18 @@ def build_remap(match: pd.DataFrame, source_name: str, min_cosine: float) -> tup
         "# SOURCE::BASE_REGEX::SOURCE_REPLACEMENT",
         "# For each output/base expert index, read the matched source expert tensor.",
     ]
-    for _, item in match.sort_values("reference_expert").iterrows():
+    sort_columns = [column for column in ("layer_id", "layer", "layer_idx", "reference_expert") if column in match.columns]
+    for _, item in match.sort_values(sort_columns or ["reference_expert"]).iterrows():
+        layer_id = layer_value(item)
         reference_expert = int(item["reference_expert"])
         target_expert = int(item["target_expert_before_alignment"])
         output_cosine = float(item["output_cosine"])
-        pattern, replacement = build_alias_pattern(reference_expert, target_expert)
+        pattern, replacement = build_alias_pattern(reference_expert, target_expert, layer_id=layer_id)
         status = "use_alias" if output_cosine >= min_cosine else "needs_manual_review"
         rows.append(
             {
                 "source": source_name,
+                "layer_id": layer_id,
                 "output_expert": reference_expert,
                 "matched_source_expert": target_expert,
                 "output_cosine": output_cosine,
@@ -111,16 +126,18 @@ def build_report(
         f"- Recommended upstream method: `{summary.get('recommended_method')}`",
         f"- Remap status: `{summary['remap_status']}`",
         f"- Alias rules: `{summary['alias_rule_count']}`",
+        f"- Layer-aware rules: `{summary['layer_aware_rule_count']}`",
         f"- Min output cosine: `{summary['min_output_cosine']:.4f}`",
         "",
         "## Expert Mapping",
         "",
-        "| output expert | matched source expert | output cosine | status |",
-        "| ---: | ---: | ---: | --- |",
+        "| layer | output expert | matched source expert | output cosine | status |",
+        "| ---: | ---: | ---: | ---: | --- |",
     ]
     for _, row in remap.iterrows():
+        layer = "" if pd.isna(row.get("layer_id")) else int(row["layer_id"])
         lines.append(
-            f"| {int(row['output_expert'])} | {int(row['matched_source_expert'])} | "
+            f"| {layer} | {int(row['output_expert'])} | {int(row['matched_source_expert'])} | "
             f"{float(row['output_cosine']):.4f} | `{row['status']}` |"
         )
     lines.extend(
@@ -188,6 +205,7 @@ def main() -> None:
         "min_output_cosine": float(remap["output_cosine"].min()) if not remap.empty else None,
         "mean_output_cosine": float(remap["output_cosine"].mean()) if not remap.empty else None,
         "alias_rule_count": int((remap["status"] == "use_alias").sum()),
+        "layer_aware_rule_count": int(((remap["status"] == "use_alias") & remap["layer_id"].notna()).sum()),
         "manual_review_count": int((remap["status"] == "needs_manual_review").sum()),
         "remap_status": "ready" if int((remap["status"] == "needs_manual_review").sum()) == 0 else "needs_manual_review",
         "same_shape_constraint": "Output expert indices and tensor names stay unchanged; aliases only remap which source expert tensor is read.",

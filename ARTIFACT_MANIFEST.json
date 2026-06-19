@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 40468,
+      "bytes": 40822,
       "kind": "document",
       "path": "README.md",
-      "sha256": "2fe7587c3b39688a1109490bf1c7db3f85ba2529a1eb4c0bdfa5f782d26e495b"
+      "sha256": "41f23a48623e840ac703e823623d741d49cefd495e61e5fbab25d25a17089416"
     },
     {
       "bytes": 33211,
@@ -775,6 +775,42 @@
       "sha256": "87ce8d984a2dbbb4aaef9af5f126d8113376dcffd63725df8281f2425e31d394"
     },
     {
+      "bytes": 130,
+      "kind": "data",
+      "path": "results/moe_layerwise_expert_remap_smoke/checks.csv",
+      "sha256": "61f9efb1a303098f98fc37f304788b7f8430565a882a8030d9b6fcbc4a84502d"
+    },
+    {
+      "bytes": 114,
+      "kind": "data",
+      "path": "results/moe_layerwise_expert_remap_smoke/expert_match_input.csv",
+      "sha256": "86eb80f0136a82b213b64badf9b00db577c22bf81c3293838cbd5f7b2489e60c"
+    },
+    {
+      "bytes": 631,
+      "kind": "data",
+      "path": "results/moe_layerwise_expert_remap_smoke/expert_remap.csv",
+      "sha256": "4e47214897ec0417db537daffd83f81e0683f86d2c37c76a33d2d3a2f42bbe63"
+    },
+    {
+      "bytes": 608,
+      "kind": "document",
+      "path": "results/moe_layerwise_expert_remap_smoke/report.md",
+      "sha256": "52549062f9ab602218cf8b3b0eb6c3240a53324164d60cd0ee7df418bca9e77c"
+    },
+    {
+      "bytes": 279,
+      "kind": "data",
+      "path": "results/moe_layerwise_expert_remap_smoke/source_tensor_aliases.txt",
+      "sha256": "c45508fa1e90a14a8d26fe9f2c2471c84e4b23252b31fa7c0637635370064074"
+    },
+    {
+      "bytes": 683,
+      "kind": "data",
+      "path": "results/moe_layerwise_expert_remap_smoke/summary.json",
+      "sha256": "12aa1e52b9d9bae40f18ee77f515827e89f73506f4c1edb7ca9f546e9977abc0"
+    },
+    {
       "bytes": 288,
       "kind": "data",
       "path": "results/moe_route_weight_recipes/category_source_plan.csv",
@@ -1423,16 +1459,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 362335,
+      "bytes": 364261,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "6c4b710107b46b026c8f60e38b00b2e456dcfd931c5af4d5e70cd21fd3860540"
+      "sha256": "9b9ed403b681b727baf5385ccd086ca03a04639964e96eecccf9c27d9198c1ff"
     },
     {
-      "bytes": 23313,
+      "bytes": 23714,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "66f97796fd7b5daca5173241f809c3bb2d1e6fe18b14d3bc0c65ffbe63e2a6e7"
+      "sha256": "c45f19794fb0385d0242772a0d634ecd36546df8d45ce465aee9f9527fc3d4d5"
     },
     {
       "bytes": 288,
@@ -1483,16 +1519,16 @@
       "sha256": "2a6166e2d0fcae820d26b139fa5c1e452dd019a703104dc1db0be868a619c5c5"
     },
     {
-      "bytes": 556,
+      "bytes": 569,
       "kind": "data",
       "path": "results/toy_moe_expert_remap_plan/expert_remap.csv",
-      "sha256": "19429ae4d15286ab64b42ad1ce8c51100e2e4e85aa79538feb0f494e421db5a1"
+      "sha256": "275983bdf32bda7c19bd5bd092384cd904b53183aa02b126d57aa66708ff5b2a"
     },
     {
-      "bytes": 1821,
+      "bytes": 1907,
       "kind": "document",
       "path": "results/toy_moe_expert_remap_plan/report.md",
-      "sha256": "28c32d5410cb3ae5f63a98fa6a9dd9edb8d10b8876a43c651ff890d23818f068"
+      "sha256": "e22e6bcbae9923d65c26cad958512dc2d90dd0e0c484b90c61097b31a0da2cf8"
     },
     {
       "bytes": 281,
@@ -1501,16 +1537,16 @@
       "sha256": "67b54ed193910642460955f8149c481f1a6e0a5c017abc5c29d0ce52e6ab2396"
     },
     {
-      "bytes": 927,
+      "bytes": 975,
       "kind": "data",
       "path": "results/toy_moe_expert_remap_plan/summary.json",
-      "sha256": "b4b3133d2b7bce5d8e9f5bebde6465b81ac22bb82d2ba19868382a4a6e5aba6f"
+      "sha256": "2aaa4d342d159e2f000fda0601ae83b72ad22ed918db103d9601a69ea547eee5"
     },
     {
-      "bytes": 434,
+      "bytes": 451,
       "kind": "data",
       "path": "results/toy_moe_expert_remap_plan/writer_command.txt",
-      "sha256": "09a7b4eadc4d5664220f1c76f77826e77d6098d06216221c85e9a98f0f845002"
+      "sha256": "62843ca4241ae6508d9d684cc0bcbdeb32da820ef060023a030732b6386caeed"
     },
     {
       "bytes": 288,
@@ -2359,10 +2395,10 @@
       "sha256": "7e58796ead65460d64108b2856a65b7434a32a3422db6a731f8de3b4afd38c08"
     },
     {
-      "bytes": 8721,
+      "bytes": 9655,
       "kind": "code",
       "path": "scripts/build_moe_expert_remap_plan.py",
-      "sha256": "3149f9d063eddbb7ed608db889c8d3caedc4616417b99cdbff6989e0962eca29"
+      "sha256": "9c2a30e0309c2d8bb0bd36e7224f2ab67737d31c3c1a3b903c2104eca545e206"
     },
     {
       "bytes": 36398,
@@ -2407,10 +2443,10 @@
       "sha256": "0b0e4be7ec51f0afb74dfdee6e3d8b217da9aac4d965a170bea36c89f1b46abb"
     },
     {
-      "bytes": 146854,
+      "bytes": 149263,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "6afc00402e3fcfa2d8c2c9371b2f0c99d0c2aa747c00c37ceef8d960403607c8"
+      "sha256": "2a9b620e69ec476d1621d3fa0e56abca9e5c3b175b054b7f10eea63d41113173"
     },
     {
       "bytes": 17809,
@@ -2527,6 +2563,12 @@
       "sha256": "863f830128d3ced819d82110c8213bea2c46290fcee5bd9969757d5383866278"
     },
     {
+      "bytes": 5294,
+      "kind": "code",
+      "path": "scripts/smoke_moe_layerwise_expert_remap.py",
+      "sha256": "07c1b92aa42f1427c26f8d7f25f55c201e7bfbcd4dee3efcdb13e6a9961c6fa2"
+    },
+    {
       "bytes": 7229,
       "kind": "code",
       "path": "scripts/smoke_moe_routing_probe_contract.py",
@@ -2569,7 +2611,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T15:36:37.837766+00:00",
+  "generated_at": "2026-06-19T15:44:08.592063+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

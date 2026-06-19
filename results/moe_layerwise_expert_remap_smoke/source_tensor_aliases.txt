@@ -1,0 +1,5 @@
+# SOURCE::BASE_REGEX::SOURCE_REPLACEMENT
+# For each output/base expert index, read the matched source expert tensor.
+code::(^|.*\.layers\.0\..*)experts\.0\.::\1experts.1.
+code::(^|.*\.layers\.0\..*)experts\.1\.::\1experts.0.
+code::(^|.*\.layers\.1\..*)experts\.0\.::\1experts.0.

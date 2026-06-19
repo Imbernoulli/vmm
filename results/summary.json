@@ -141,6 +141,11 @@
       "status": "complete"
     },
     {
+      "evidence": "results/moe_layerwise_expert_remap_smoke/report.md verifies layer-scoped source tensor alias rules for real multi-layer MoE expert matching.",
+      "item": "MoE layer-wise expert remap smoke",
+      "status": "complete"
+    },
+    {
       "evidence": "results/checkpoint_topology_inspect/report.md inspects Qwen MoE/Dense configs and safetensors headers without loading weights.",
       "item": "Checkpoint topology inspection",
       "status": "complete"
@@ -227,7 +232,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 44,
+    "complete": 45,
     "missing": 0,
     "partial": 1
   },
@@ -1914,6 +1919,35 @@
         "writer_csv_ready": true
       },
       "writer_csv_ready": true
+    },
+    "moe_layerwise_expert_remap_smoke": {
+      "alias_rule_count": 3,
+      "checks": "results/moe_layerwise_expert_remap_smoke/checks.csv",
+      "expert_remap": "results/moe_layerwise_expert_remap_smoke/expert_remap.csv",
+      "failed_checks": 0,
+      "input_rows": 4,
+      "layer_aware_rule_count": 3,
+      "manual_review_count": 1,
+      "report": "results/moe_layerwise_expert_remap_smoke/report.md",
+      "source_tensor_aliases": "results/moe_layerwise_expert_remap_smoke/source_tensor_aliases.txt",
+      "status": "passed",
+      "summary": {
+        "alias_rule_count": 3,
+        "input_rows": 4,
+        "layer_aware_rule_count": 3,
+        "manual_review_count": 1,
+        "min_cosine_threshold": 0.9,
+        "outputs": {
+          "checks": "results/moe_layerwise_expert_remap_smoke/checks.csv",
+          "expert_match_input": "results/moe_layerwise_expert_remap_smoke/expert_match_input.csv",
+          "expert_remap": "results/moe_layerwise_expert_remap_smoke/expert_remap.csv",
+          "report": "results/moe_layerwise_expert_remap_smoke/report.md",
+          "source_tensor_aliases": "results/moe_layerwise_expert_remap_smoke/source_tensor_aliases.txt",
+          "summary": "results/moe_layerwise_expert_remap_smoke/summary.json"
+        },
+        "schema_version": 1,
+        "status": "passed"
+      }
     },
     "moe_route_weight_recipes": {
       "category_source_plan": "results/moe_route_weight_recipes/category_source_plan.csv",
@@ -4596,15 +4630,17 @@
     "toy_moe_expert_remap_plan": {
       "alias_rule_count": 4,
       "expert_remap": "results/toy_moe_expert_remap_plan/expert_remap.csv",
+      "layer_aware_rule_count": 0,
       "manual_review_count": 0,
-      "mean_output_cosine": 0.9773149192333221,
-      "min_output_cosine": 0.9426236748695374,
+      "mean_output_cosine": 0.9766365140676498,
+      "min_output_cosine": 0.9406232833862304,
       "remap_rows": [
         {
           "alias_rule": "code::(^|.*\\.)experts\\.0\\.::\\1experts.1.",
           "base_regex": "(^|.*\\.)experts\\.0\\.",
+          "layer_id": null,
           "matched_source_expert": 1,
-          "output_cosine": 0.9956730008125304,
+          "output_cosine": 0.9957007169723512,
           "output_expert": 0,
           "source": "code",
           "source_replacement": "\\1experts.1.",
@@ -4613,8 +4649,9 @@
         {
           "alias_rule": "code::(^|.*\\.)experts\\.1\\.::\\1experts.3.",
           "base_regex": "(^|.*\\.)experts\\.1\\.",
+          "layer_id": null,
           "matched_source_expert": 3,
-          "output_cosine": 0.9426236748695374,
+          "output_cosine": 0.9406232833862304,
           "output_expert": 1,
           "source": "code",
           "source_replacement": "\\1experts.3.",
@@ -4623,8 +4660,9 @@
         {
           "alias_rule": "code::(^|.*\\.)experts\\.2\\.::\\1experts.0.",
           "base_regex": "(^|.*\\.)experts\\.2\\.",
+          "layer_id": null,
           "matched_source_expert": 0,
-          "output_cosine": 0.9724326133728028,
+          "output_cosine": 0.971773087978363,
           "output_expert": 2,
           "source": "code",
           "source_replacement": "\\1experts.0.",
@@ -4633,8 +4671,9 @@
         {
           "alias_rule": "code::(^|.*\\.)experts\\.3\\.::\\1experts.2.",
           "base_regex": "(^|.*\\.)experts\\.3\\.",
+          "layer_id": null,
           "matched_source_expert": 2,
-          "output_cosine": 0.998530387878418,
+          "output_cosine": 0.9984489679336548,
           "output_expert": 3,
           "source": "code",
           "source_replacement": "\\1experts.2.",
@@ -4646,11 +4685,12 @@
       "source_tensor_aliases": "results/toy_moe_expert_remap_plan/source_tensor_aliases.txt",
       "summary": {
         "alias_rule_count": 4,
-        "generated_at": "2026-06-19T11:16:53.065874+00:00",
+        "generated_at": "2026-06-19T15:41:13.856511+00:00",
+        "layer_aware_rule_count": 0,
         "manual_review_count": 0,
-        "mean_output_cosine": 0.9773149192333221,
+        "mean_output_cosine": 0.9766365140676498,
         "min_cosine_threshold": 0.9,
-        "min_output_cosine": 0.9426236748695374,
+        "min_output_cosine": 0.9406232833862304,
         "outputs": {
           "expert_remap": "results/toy_moe_expert_remap_plan/expert_remap.csv",
           "report": "results/toy_moe_expert_remap_plan/report.md",
@@ -4659,7 +4699,7 @@
           "writer_command": "results/toy_moe_expert_remap_plan/writer_command.txt"
         },
         "recommended_decision": "candidate_with_router_guard",
-        "recommended_method": "matched_router_calibrated_average",
+        "recommended_method": "expert_output_projection_router_calibrated_average",
         "remap_status": "ready",
         "same_shape_constraint": "Output expert indices and tensor names stay unchanged; aliases only remap which source expert tensor is read.",
         "source_name": "code"
@@ -8068,7 +8108,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-19T15:36:37.797133+00:00",
+  "generated_at": "2026-06-19T15:44:08.559490+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -8088,6 +8128,7 @@
     "PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir results/toy_moe_merge --output-dir results/toy_moe_routing_readiness --topology-summary ''",
     "PYTHONPATH=src python scripts/select_moe_merge_method.py",
     "PYTHONPATH=src python scripts/build_moe_expert_remap_plan.py",
+    "PYTHONPATH=scripts python scripts/smoke_moe_layerwise_expert_remap.py --output-dir results/moe_layerwise_expert_remap_smoke",
     "python scripts/run_vllm_downstream_eval.py --candidate-table results/qwen_target_model_registry/model_registry.csv --candidate-method-column model_id --candidate-model-id-template '{model_id}' --candidate-query \"priority == 'p0' and phase in ['dense_7b', 'moe_30b_a3b']\" --base-url http://HOST:PORT/v1 --tasks gsm8k,mmlu,safety,humaneval_compile",
     "python scripts/build_model_averaging_literature_review.py",
     "python scripts/smoke_moe_routing_probe_contract.py",

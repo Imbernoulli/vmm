@@ -1,0 +1,5 @@
+layer_id,reference_expert,target_expert_before_alignment,output_cosine
+0,0,1,0.99
+0,1,0,0.95
+1,0,0,0.92
+1,1,1,0.7

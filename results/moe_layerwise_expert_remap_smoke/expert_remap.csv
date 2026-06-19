@@ -1,0 +1,5 @@
+source,layer_id,output_expert,matched_source_expert,output_cosine,status,base_regex,source_replacement,alias_rule
+code,0,0,1,0.99,use_alias,(^|.*\.layers\.0\..*)experts\.0\.,\1experts.1.,code::(^|.*\.layers\.0\..*)experts\.0\.::\1experts.1.
+code,0,1,0,0.95,use_alias,(^|.*\.layers\.0\..*)experts\.1\.,\1experts.0.,code::(^|.*\.layers\.0\..*)experts\.1\.::\1experts.0.
+code,1,0,0,0.92,use_alias,(^|.*\.layers\.1\..*)experts\.0\.,\1experts.0.,code::(^|.*\.layers\.1\..*)experts\.0\.::\1experts.0.
+code,1,1,1,0.7,needs_manual_review,(^|.*\.layers\.1\..*)experts\.1\.,\1experts.1.,code::(^|.*\.layers\.1\..*)experts\.1\.::\1experts.1.

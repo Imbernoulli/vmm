@@ -3,24 +3,25 @@
 这个报告把 expert-output matching 结果转成 same-shape checkpoint writer 可以读取的 source tensor alias 规则。它解决的是 MoE average 中最实际的一步：输出 checkpoint 的 expert index 不变，但从 source checkpoint 读取已经匹配过的 expert tensor。
 
 - Source with remap: `code`
-- Recommended upstream method: `matched_router_calibrated_average`
+- Recommended upstream method: `expert_output_projection_router_calibrated_average`
 - Remap status: `ready`
 - Alias rules: `4`
-- Min output cosine: `0.9426`
+- Layer-aware rules: `0`
+- Min output cosine: `0.9406`
 
 ## Expert Mapping
 
-| output expert | matched source expert | output cosine | status |
-| ---: | ---: | ---: | --- |
-| 0 | 1 | 0.9957 | `use_alias` |
-| 1 | 3 | 0.9426 | `use_alias` |
-| 2 | 0 | 0.9724 | `use_alias` |
-| 3 | 2 | 0.9985 | `use_alias` |
+| layer | output expert | matched source expert | output cosine | status |
+| ---: | ---: | ---: | ---: | --- |
+|  | 0 | 1 | 0.9957 | `use_alias` |
+|  | 1 | 3 | 0.9406 | `use_alias` |
+|  | 2 | 0 | 0.9718 | `use_alias` |
+|  | 3 | 2 | 0.9984 | `use_alias` |
 
 ## Writer Dry-Run Command
 
 ```bash
-python scripts/write_same_shape_average_checkpoint.py --base MOE_BASE_OR_ANCHOR_PATH --source general=GENERAL_MODEL_PATH --source code=CODE_MODEL_PATH --source-weight general=0.5 --source-weight code=0.5 --freeze-router --source-tensor-alias-file results/toy_moe_expert_remap_plan/source_tensor_aliases.txt --output-dir results/checkpoints/moe_expert_matched_candidate --dry-run # recommended_method=matched_router_calibrated_average
+python scripts/write_same_shape_average_checkpoint.py --base MOE_BASE_OR_ANCHOR_PATH --source general=GENERAL_MODEL_PATH --source code=CODE_MODEL_PATH --source-weight general=0.5 --source-weight code=0.5 --freeze-router --source-tensor-alias-file results/toy_moe_expert_remap_plan/source_tensor_aliases.txt --output-dir results/checkpoints/moe_expert_matched_candidate --dry-run # recommended_method=expert_output_projection_router_calibrated_average
 ```
 
 ## Interpretation
