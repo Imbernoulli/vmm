@@ -1,0 +1,20 @@
+{
+  "current_blocking_stage": "exact_moe_topology",
+  "gate_count": 10,
+  "outputs": {
+    "next_commands": "results/moe_materialization_pipeline_plan/next_commands.sh",
+    "report": "results/moe_materialization_pipeline_plan/report.md",
+    "stage_gates": "results/moe_materialization_pipeline_plan/stage_gates.csv",
+    "summary": "results/moe_materialization_pipeline_plan/summary.json"
+  },
+  "ready_or_complete_count": 3,
+  "recommended_first_moe_models": [
+    "Qwen/Qwen3-30B-A3B-Base",
+    "Qwen/Qwen3-30B-A3B",
+    "Qwen/Qwen3-Coder-30B-A3B-Instruct"
+  ],
+  "same_shape_constraint": "The pipeline never changes router shape, expert count, hidden size, tokenizer, or model class.",
+  "schema_version": 1,
+  "status": "waiting_for_real_moe_probe_or_paths",
+  "waiting_or_blocked_count": 7
+}

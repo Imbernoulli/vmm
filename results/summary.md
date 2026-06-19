@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T15:44:08.559490+00:00`
+Generated at: `2026-06-19T15:53:27.223057+00:00`
 
 ## Coverage
 
-Complete: `45`; partial: `1`; missing: `0`.
+Complete: `46`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -29,6 +29,7 @@ Complete: `45`; partial: `1`; missing: `0`.
 | vLLM downstream eval contract smoke | complete | results/vllm_downstream_eval_smoke/smoke_report.md validates the OpenAI-compatible HTTP request, answer parsing, scoring, model ranking, and artifact writing path using a local mock endpoint. |
 | vLLM checkpoint eval plan | complete | results/vllm_checkpoint_eval_plan/report.md turns same-shape checkpoint candidates into one-checkpoint-at-a-time vLLM serve/eval commands while keeping missing checkpoints separate from completed metrics. |
 | Checkpoint materialization readiness audit | complete | results/checkpoint_materialization_readiness/report.md audits writer commands, placeholders, dry-run outputs, checkpoint existence, and vLLM eval readiness in one table. |
+| MoE materialization pipeline plan | complete | results/moe_materialization_pipeline_plan/report.md connects Qwen MoE target selection, topology, routing probe, readiness, route weights, expert remap, router-bias deltas, checkpoint writer, and vLLM eval gates. |
 | Probe-guided Average decision report | complete | results/average_decision_report/report.md converts merge grids, conflict probes, and optional MoE routing probes into same-shape average decisions. |
 | Dense/MoE averaging literature matrix | complete | results/model_averaging_literature_review/report.md maps recent model averaging and MoE merging papers to probes, failure signals, and same-shape writer actions. |
 | Qwen target model registry | complete | results/qwen_target_model_registry/report.md maps representative official, third-party, downstream, and adapter-pool Qwen candidates to scenarios, eval slices, probes, and same-shape topology gates. |
@@ -207,6 +208,9 @@ Complete: `45`; partial: `1`; missing: `0`.
 | Qwen dense guard ablation | selective-norm vLLM avg / delta vs global bridge | 0.191 / -0.012 |
 | checkpoint materialization readiness | status | hosted_eval_complete |
 | checkpoint materialization readiness | materialized / blocked / ready / completed | 1 / 4 / 0 / 1 |
+| MoE materialization pipeline | status | waiting_for_real_moe_probe_or_paths |
+| MoE materialization pipeline | current blocking stage | exact_moe_topology |
+| MoE materialization pipeline | ready / waiting gates | 3 / 7 |
 | Average decision report | avoid uniform average decisions | 3 |
 | Average decision report | coefficient-search decisions | 2 |
 | model averaging literature review | sources reviewed | 22 |

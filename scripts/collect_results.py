@@ -1430,6 +1430,24 @@ def summarize_checkpoint_materialization_readiness() -> dict[str, Any]:
     }
 
 
+def summarize_moe_materialization_pipeline_plan() -> dict[str, Any]:
+    summary = read_json("results/moe_materialization_pipeline_plan/summary.json")
+    gates = read_csv("results/moe_materialization_pipeline_plan/stage_gates.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "current_blocking_stage": summary.get("current_blocking_stage"),
+        "gate_count": int(summary.get("gate_count", len(gates))),
+        "ready_or_complete_count": int(summary.get("ready_or_complete_count", 0)),
+        "waiting_or_blocked_count": int(summary.get("waiting_or_blocked_count", 0)),
+        "recommended_first_moe_models": summary.get("recommended_first_moe_models", []),
+        "gates": [clean_row(row) for _, row in gates.iterrows()],
+        "report": rel("results/moe_materialization_pipeline_plan/report.md"),
+        "stage_gates": rel("results/moe_materialization_pipeline_plan/stage_gates.csv"),
+        "next_commands": rel("results/moe_materialization_pipeline_plan/next_commands.sh"),
+    }
+
+
 def summarize_model_averaging_literature_review() -> dict[str, Any]:
     summary = read_json("results/model_averaging_literature_review/summary.json")
     methods = read_csv("results/model_averaging_literature_review/method_matrix.csv")
@@ -1607,6 +1625,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "item": "Checkpoint materialization readiness audit",
             "status": "complete",
             "evidence": "results/checkpoint_materialization_readiness/report.md audits writer commands, placeholders, dry-run outputs, checkpoint existence, and vLLM eval readiness in one table.",
+        },
+        {
+            "item": "MoE materialization pipeline plan",
+            "status": "complete",
+            "evidence": "results/moe_materialization_pipeline_plan/report.md connects Qwen MoE target selection, topology, routing probe, readiness, route weights, expert remap, router-bias deltas, checkpoint writer, and vLLM eval gates.",
         },
         {
             "item": "Probe-guided Average decision report",
@@ -1790,6 +1813,7 @@ def build_summary() -> dict[str, Any]:
             "results/qwen_dense_selective_norm_guarded_candidate"
         ),
         "checkpoint_materialization_readiness": summarize_checkpoint_materialization_readiness(),
+        "moe_materialization_pipeline_plan": summarize_moe_materialization_pipeline_plan(),
     }
     coverage = coverage_checklist()
     counts = {
@@ -1856,6 +1880,7 @@ def build_summary() -> dict[str, Any]:
             "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --output-dir results/toy_moe_confidence_blended_recipes --expert-weight-csv results/toy_moe_merge/confidence_blended_expert_weights_by_expert.csv --source general --source code --checkpoint-output-dir results/checkpoints/toy_moe_confidence_blended_candidate --topology-summary ''",
             "PYTHONPATH=src python scripts/build_moe_combined_materialization_recipe.py",
             "PYTHONPATH=src python scripts/build_checkpoint_materialization_readiness.py --output-dir results/checkpoint_materialization_readiness",
+            "PYTHONPATH=src python scripts/build_moe_materialization_pipeline_plan.py --output-dir results/moe_materialization_pipeline_plan",
             "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
             "PYTHONPATH=src python scripts/collect_results.py",
         ],
@@ -1928,6 +1953,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen_dense_norm_guarded = exp["qwen_dense_norm_guarded_candidate"]
     qwen_dense_selective_norm_guarded = exp["qwen_dense_selective_norm_guarded_candidate"]
     materialization_readiness = exp["checkpoint_materialization_readiness"]
+    moe_pipeline_plan = exp["moe_materialization_pipeline_plan"]
     coverage_counts = summary["coverage_counts"]
     lines = [
         "# Result Summary",
@@ -2565,6 +2591,18 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{materialization_readiness['blocked_by_placeholder_count']} / "
                 f"{materialization_readiness['ready_for_vllm_eval_count']} / "
                 f"{materialization_readiness['completed_vllm_eval_count']} |"
+            ),
+            (
+                "| MoE materialization pipeline | status | "
+                f"{moe_pipeline_plan['status']} |"
+            ),
+            (
+                "| MoE materialization pipeline | current blocking stage | "
+                f"{moe_pipeline_plan['current_blocking_stage']} |"
+            ),
+            (
+                "| MoE materialization pipeline | ready / waiting gates | "
+                f"{moe_pipeline_plan['ready_or_complete_count']} / {moe_pipeline_plan['waiting_or_blocked_count']} |"
             ),
             (
                 "| Average decision report | avoid uniform average decisions | "

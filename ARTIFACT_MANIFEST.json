@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 40822,
+      "bytes": 41778,
       "kind": "document",
       "path": "README.md",
-      "sha256": "41f23a48623e840ac703e823623d741d49cefd495e61e5fbab25d25a17089416"
+      "sha256": "646d37c69fa397ea9e55703784862226f76e2f49abc71035f375804e2948abe2"
     },
     {
       "bytes": 33211,
@@ -811,6 +811,24 @@
       "sha256": "12aa1e52b9d9bae40f18ee77f515827e89f73506f4c1edb7ca9f546e9977abc0"
     },
     {
+      "bytes": 5179,
+      "kind": "document",
+      "path": "results/moe_materialization_pipeline_plan/report.md",
+      "sha256": "b6e1ab6162e0bd1d4bf78da3ddfcb5a0ae77c0e29051c0d6541aac9579f7c44a"
+    },
+    {
+      "bytes": 4592,
+      "kind": "data",
+      "path": "results/moe_materialization_pipeline_plan/stage_gates.csv",
+      "sha256": "294541e637e88bae204b5c9e68c564d8c8b473dd9f4af5bd057a6c73ee4cf76c"
+    },
+    {
+      "bytes": 799,
+      "kind": "data",
+      "path": "results/moe_materialization_pipeline_plan/summary.json",
+      "sha256": "3a51c0815470538ef9dde4b48c8243d7ddb5c3b45d3b0ce496054d1379ec8120"
+    },
+    {
       "bytes": 288,
       "kind": "data",
       "path": "results/moe_route_weight_recipes/category_source_plan.csv",
@@ -1459,16 +1477,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 364261,
+      "bytes": 372515,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "9b9ed403b681b727baf5385ccd086ca03a04639964e96eecccf9c27d9198c1ff"
+      "sha256": "b1f41e18bc4400fe06f6b0aaffe45b8d51ee2bbb4df25169a8021a34f98ab24a"
     },
     {
-      "bytes": 23714,
+      "bytes": 24202,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "c45f19794fb0385d0242772a0d634ecd36546df8d45ce465aee9f9527fc3d4d5"
+      "sha256": "746347310d10712dddd549b65f8d9193814d51c17e61cfc29793bb1549175cf4"
     },
     {
       "bytes": 288,
@@ -2401,6 +2419,12 @@
       "sha256": "9c2a30e0309c2d8bb0bd36e7224f2ab67737d31c3c1a3b903c2104eca545e206"
     },
     {
+      "bytes": 16783,
+      "kind": "code",
+      "path": "scripts/build_moe_materialization_pipeline_plan.py",
+      "sha256": "07d46e51430cb5c95ab4afef6b0340e6eaf7291adf1b913750d7045b1d95ddba"
+    },
+    {
       "bytes": 36398,
       "kind": "code",
       "path": "scripts/build_moe_route_weight_recipes.py",
@@ -2443,10 +2467,10 @@
       "sha256": "0b0e4be7ec51f0afb74dfdee6e3d8b217da9aac4d965a170bea36c89f1b46abb"
     },
     {
-      "bytes": 149263,
+      "bytes": 151496,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "2a9b620e69ec476d1621d3fa0e56abca9e5c3b175b054b7f10eea63d41113173"
+      "sha256": "f22d5a13166e3437fbca4a29132ad998abe1dab20cb25625d6420615b670c46b"
     },
     {
       "bytes": 17809,
@@ -2611,7 +2635,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T15:44:08.592063+00:00",
+  "generated_at": "2026-06-19T15:53:27.267361+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"
