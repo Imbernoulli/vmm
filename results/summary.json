@@ -111,6 +111,11 @@
       "status": "complete"
     },
     {
+      "evidence": "results/toy_moe_expert_weight_recipes/report.md converts calibration-searched per-expert source weights into same-shape checkpoint writer tensor rules.",
+      "item": "MoE searched expert-weight recipes",
+      "status": "complete"
+    },
+    {
       "evidence": "results/moe_routing_readiness/report.md turns router_summary, route_overlap, and expert_load CSVs into router collapse, drift, boundary-fragility, and expert-load risk actions.",
       "item": "MoE routing readiness diagnostics",
       "status": "complete"
@@ -152,7 +157,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 29,
+    "complete": 30,
     "missing": 0,
     "partial": 1
   },
@@ -1531,17 +1536,9 @@
       "source_weights_rows": 0,
       "summary": {
         "anchor_floor": 0.15,
-        "category_sources": {
-          "agentic_code": "code",
-          "code": "code",
-          "finance": "general",
-          "general": "general",
-          "legal": "general",
-          "long_context": "general",
-          "math": "general",
-          "safety": "general"
-        },
+        "category_sources": {},
         "expert_rule_count": 0,
+        "expert_weight_csvs": [],
         "fallback_source": "general",
         "freeze_router": true,
         "input_summaries": [],
@@ -1554,6 +1551,7 @@
           "tensor_rules": "results/moe_route_weight_recipes/tensor_rules.txt",
           "writer_command": "results/moe_route_weight_recipes/writer_command.txt"
         },
+        "recipe_kind": "route_frequency",
         "recipe_status": "waiting_for_routing_probe",
         "router_dirs": [],
         "same_shape_constraint": "Tensor rules only change weights inside the existing model structure; expert count, router shape, tokenizer, and layer count stay fixed.",
@@ -2642,6 +2640,59 @@
       },
       "writer_command": "results/toy_moe_expert_remap_plan/writer_command.txt"
     },
+    "toy_moe_expert_weight_recipes": {
+      "expert_rule_count": 4,
+      "recipe_kind": "explicit_expert_weights",
+      "recipe_status": "explicit_expert_weight_rules_ready",
+      "report": "results/toy_moe_expert_weight_recipes/report.md",
+      "source_weights": "results/toy_moe_expert_weight_recipes/source_weights_by_expert.csv",
+      "source_weights_rows": 4,
+      "summary": {
+        "anchor_floor": 0.15,
+        "category_sources": {},
+        "expert_rule_count": 4,
+        "expert_weight_csvs": [
+          "results/toy_moe_merge/expert_search_weights_by_expert.csv"
+        ],
+        "fallback_source": "general",
+        "freeze_router": true,
+        "input_summaries": [
+          {
+            "expert_weight_csv": "results/toy_moe_merge/expert_search_weights_by_expert.csv",
+            "rows": 4,
+            "status": "loaded",
+            "used_rows": 4
+          }
+        ],
+        "low_route_threshold": 0.005,
+        "min_source_weight": 0.05,
+        "outputs": {
+          "report": "results/toy_moe_expert_weight_recipes/report.md",
+          "source_weights": "results/toy_moe_expert_weight_recipes/source_weights_by_expert.csv",
+          "summary": "results/toy_moe_expert_weight_recipes/summary.json",
+          "tensor_rules": "results/toy_moe_expert_weight_recipes/tensor_rules.txt",
+          "writer_command": "results/toy_moe_expert_weight_recipes/writer_command.txt"
+        },
+        "recipe_kind": "explicit_expert_weights",
+        "recipe_status": "explicit_expert_weight_rules_ready",
+        "router_dirs": [],
+        "same_shape_constraint": "Tensor rules only change weights inside the existing model structure; expert count, router shape, tokenizer, and layer count stay fixed.",
+        "shared_attention_weights": {
+          "code": 0.5,
+          "general": 0.5
+        },
+        "shared_mlp_weights": null,
+        "source_names": [
+          "general",
+          "code"
+        ],
+        "tensor_rule_count": 5,
+        "topology": null
+      },
+      "tensor_rule_count": 5,
+      "tensor_rules": "results/toy_moe_expert_weight_recipes/tensor_rules.txt",
+      "writer_command": "results/toy_moe_expert_weight_recipes/writer_command.txt"
+    },
     "toy_moe_merge": {
       "all_weight_average": {
         "avg_acc": 0.65375,
@@ -2960,7 +3011,7 @@
       "tasks": "gsm8k,mmlu,safety,humaneval_compile"
     }
   },
-  "generated_at": "2026-06-19T09:51:58.649391+00:00",
+  "generated_at": "2026-06-19T09:55:55.540311+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -2991,6 +3042,7 @@
     "PYTHONPATH=src python scripts/build_average_candidate_recipes.py",
     "PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code",
     "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code --source general --source code",
+    "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --output-dir results/toy_moe_expert_weight_recipes --expert-weight-csv results/toy_moe_merge/expert_search_weights_by_expert.csv --source general --source code --checkpoint-output-dir results/checkpoints/toy_moe_expert_weight_candidate --topology-summary ''",
     "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
     "PYTHONPATH=src python scripts/collect_results.py"
   ],

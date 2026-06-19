@@ -1,0 +1,5 @@
+layer_id,router,expert_id,total_topk_fraction,dominant_source,dominant_weight,same_shape_action,tensor_pattern,tensor_rule,reason,weight_general,weight_code,route_mass_general,route_mass_code
+,,0,0.0,general,0.75,calibration_searched_expert_delta,.*experts\.0\..*,".*experts\.0\..*::general=0.75,code=0.25",explicit per-expert source weights supplied by calibration/search,0.75,0.25,0.0,0.0
+,,1,0.0,code,0.75,calibration_searched_expert_delta,.*experts\.1\..*,".*experts\.1\..*::general=0.25,code=0.75",explicit per-expert source weights supplied by calibration/search,0.25,0.75,0.0,0.0
+,,2,0.0,code,0.5564066852367688,calibration_searched_expert_delta,.*experts\.2\..*,".*experts\.2\..*::general=0.293593,code=0.556407",explicit per-expert source weights supplied by calibration/search,0.2935933147632312,0.5564066852367688,0.0,0.0
+,,3,0.0,general,0.5,calibration_searched_expert_delta,.*experts\.3\..*,".*experts\.3\..*::general=0.5,code=0.5",explicit per-expert source weights supplied by calibration/search,0.5,0.5,0.0,0.0

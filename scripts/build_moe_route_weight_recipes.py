@@ -76,7 +76,7 @@ def maybe_float(value: Any, default: float = 0.0) -> float:
 
 
 def discover_moe_topology(summary_path: Path, model_name: str | None) -> dict[str, Any] | None:
-    if not summary_path.exists():
+    if not summary_path.exists() or not summary_path.is_file():
         return None
     payload = json.loads(summary_path.read_text(encoding="utf-8"))
     for model in payload.get("models", []):
@@ -234,6 +234,65 @@ def build_source_weight_rows(
     return rows
 
 
+def load_explicit_expert_weight_rows(
+    *,
+    paths: list[Path],
+    source_names: list[str],
+    expert_tensor_pattern_template: str,
+    fallback_expert_tensor_pattern_template: str,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    rows: list[dict[str, Any]] = []
+    inputs: list[dict[str, Any]] = []
+    for path in paths:
+        weights_df = read_csv_if_exists(path)
+        if weights_df is None or weights_df.empty:
+            inputs.append({"expert_weight_csv": rel(path), "rows": 0, "status": "missing_or_empty"})
+            continue
+        required = {"expert_id"} | {f"weight_{source}" for source in source_names}
+        missing = sorted(required - set(weights_df.columns))
+        if missing:
+            raise ValueError(f"{path} is missing columns: {missing}")
+        used_rows = 0
+        for _, item in weights_df.iterrows():
+            expert_id = int(item["expert_id"])
+            layer_id = "" if "layer_id" not in item or pd.isna(item["layer_id"]) else str(item["layer_id"])
+            router = "" if "router" not in item or pd.isna(item["router"]) else str(item["router"])
+            weights = {source: maybe_float(item.get(f"weight_{source}")) for source in source_names}
+            total_weight = sum(max(0.0, weights[source]) for source in source_names)
+            route_masses = {source: maybe_float(item.get(f"route_mass_{source}")) for source in source_names}
+            total_route = sum(max(0.0, route_masses[source]) for source in source_names)
+            pattern = build_tensor_pattern(
+                layer_id,
+                expert_id,
+                expert_tensor_pattern_template,
+                fallback_expert_tensor_pattern_template,
+            )
+            dominant_source = max(source_names, key=lambda source: weights[source]) if source_names else ""
+            row = {
+                "layer_id": layer_id,
+                "router": router,
+                "expert_id": expert_id,
+                "total_topk_fraction": total_route,
+                "dominant_source": dominant_source,
+                "dominant_weight": weights.get(dominant_source, 0.0),
+                "same_shape_action": str(item.get("same_shape_action", "explicit_expert_delta_weights")),
+                "tensor_pattern": pattern,
+                "tensor_rule": f"{pattern}::{format_weights(weights, source_names)}",
+                "reason": (
+                    "explicit per-expert source weights supplied by calibration/search"
+                    if total_weight > 0
+                    else "explicit row freezes this expert to the anchor/base"
+                ),
+            }
+            for source in source_names:
+                row[f"weight_{source}"] = weights[source]
+                row[f"route_mass_{source}"] = route_masses[source]
+            rows.append(row)
+            used_rows += 1
+        inputs.append({"expert_weight_csv": rel(path), "rows": int(len(weights_df)), "used_rows": used_rows, "status": "loaded"})
+    return rows, inputs
+
+
 def shared_weights(source_names: list[str], raw_weights: list[str]) -> dict[str, float]:
     if raw_weights:
         weights = {name: 0.0 for name in source_names}
@@ -253,13 +312,14 @@ def build_tensor_rules(
     source_names: list[str],
     shared_attention_weights: dict[str, float],
     shared_mlp_weights: dict[str, float] | None,
+    expert_rule_label: str,
 ) -> list[str]:
     rules = [
         "# Shared attention rule. Keep before expert rules because writer uses first match.",
         f".*self_attn.*::{format_weights(shared_attention_weights, source_names)}",
     ]
     if rows:
-        rules.append("# Route-frequency expert rules.")
+        rules.append(f"# {expert_rule_label}")
         rules.extend(str(row["tensor_rule"]) for row in rows)
     else:
         rules.append("# Expert rules are omitted until routing probe expert_load.csv is available.")
@@ -308,20 +368,23 @@ def build_report(
     writer_command: str,
 ) -> str:
     status = summary["recipe_status"]
+    recipe_kind = summary.get("recipe_kind", "route_frequency")
     lines = [
         "# MoE Route-Weight Recipes",
         "",
-        "这个报告把 MoE routing/expert-load probe 转成同构 checkpoint writer 可以读取的 tensor-rule 权重。目标不是增加 experts 或做 ensemble，而是在原 expert 数、原 router shape 下，给每个 routed expert 设置更合理的 source delta 系数。",
+        "这个报告把 MoE routing/expert-load probe 或显式 expert 权重转成同构 checkpoint writer 可以读取的 tensor-rule 权重。目标不是增加 experts 或做 ensemble，而是在原 expert 数、原 router shape 下，给每个 expert 设置更合理的 source delta 系数。",
         "",
         f"- Recipe status: `{status}`",
+        f"- Recipe kind: `{recipe_kind}`",
         f"- Sources: `{', '.join(summary['source_names'])}`",
         f"- Router dirs: `{', '.join(summary['router_dirs']) if summary['router_dirs'] else 'none'}`",
+        f"- Expert weight CSVs: `{', '.join(summary.get('expert_weight_csvs', [])) if summary.get('expert_weight_csvs') else 'none'}`",
         f"- Expert tensor rules: `{summary['expert_rule_count']}`",
         f"- Tensor rule file: `{rel(tensor_rule_file)}`",
         "",
         "## 权重规则",
         "",
-        "对每个 layer/expert，脚本先按 prompt category 把 route mass 分给对应 source，然后做归一化：",
+        "如果传入 `--expert-weight-csv`，脚本直接使用 `weight_<source>` 列；否则先按 prompt category 把 route mass 分给对应 source，然后做归一化：",
         "",
         "```text",
         "route_mass[source, layer, expert] = sum topk_fraction(category -> source)",
@@ -357,7 +420,7 @@ def build_report(
                 f"{row['dominant_source']} | {float(row['dominant_weight']):.4g} | `{row['same_shape_action']}` |"
             )
     else:
-        lines.append("当前没有真实 `expert_load.csv`，因此只生成 shared-module 规则和 writer 模板。下一步需要先跑 MoE routing probe。")
+        lines.append("当前没有真实 `expert_load.csv` 或 explicit expert-weight CSV，因此只生成 shared-module 规则和 writer 模板。下一步需要先跑 MoE routing probe 或传入搜索权重。")
     lines.extend(
         [
             "",
@@ -394,6 +457,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Build route-frequency tensor-rule recipes for same-shape MoE averaging.")
     parser.add_argument("--output-dir", type=Path, default=Path("results/moe_route_weight_recipes"))
     parser.add_argument("--router-dir", action="append", default=[], help="Output directory from scripts/probe_moe_routing.py.")
+    parser.add_argument("--expert-weight-csv", action="append", default=[], help="CSV with expert_id and weight_<source> columns from a calibration/search step.")
     parser.add_argument("--source", action="append", default=[], help="Source name used by the checkpoint writer, e.g. general or code.")
     parser.add_argument("--category-source", action="append", default=[], help="Map prompt category to source, e.g. code=code.")
     parser.add_argument("--fallback-source", default=None, help="Source used for unmapped prompt categories. Defaults to first --source.")
@@ -430,22 +494,34 @@ def main() -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     router_dirs = [repo_path(path) for path in args.router_dir]
     layer_regex = re.compile(args.layer_regex)
-    route_masses, input_summaries = load_route_masses(
-        router_dirs=router_dirs,
-        source_names=source_names,
-        category_sources=category_sources,
-        fallback_source=fallback_source,
-        layer_regex=layer_regex,
-    )
-    source_rows = build_source_weight_rows(
-        route_masses,
-        source_names=source_names,
-        anchor_floor=args.anchor_floor,
-        min_source_weight=args.min_source_weight,
-        low_route_threshold=args.low_route_threshold,
-        expert_tensor_pattern_template=args.expert_tensor_pattern_template,
-        fallback_expert_tensor_pattern_template=args.fallback_expert_tensor_pattern_template,
-    )
+    expert_weight_csvs = [repo_path(path) for path in args.expert_weight_csv]
+    if expert_weight_csvs:
+        source_rows, expert_weight_inputs = load_explicit_expert_weight_rows(
+            paths=expert_weight_csvs,
+            source_names=source_names,
+            expert_tensor_pattern_template=args.expert_tensor_pattern_template,
+            fallback_expert_tensor_pattern_template=args.fallback_expert_tensor_pattern_template,
+        )
+        input_summaries = expert_weight_inputs
+        recipe_kind = "explicit_expert_weights"
+    else:
+        route_masses, input_summaries = load_route_masses(
+            router_dirs=router_dirs,
+            source_names=source_names,
+            category_sources=category_sources,
+            fallback_source=fallback_source,
+            layer_regex=layer_regex,
+        )
+        source_rows = build_source_weight_rows(
+            route_masses,
+            source_names=source_names,
+            anchor_floor=args.anchor_floor,
+            min_source_weight=args.min_source_weight,
+            low_route_threshold=args.low_route_threshold,
+            expert_tensor_pattern_template=args.expert_tensor_pattern_template,
+            fallback_expert_tensor_pattern_template=args.fallback_expert_tensor_pattern_template,
+        )
+        recipe_kind = "route_frequency"
     shared_attention = shared_weights(source_names, args.shared_source_weight)
     shared_mlp = shared_weights(source_names, args.shared_mlp_source_weight) if args.shared_mlp_source_weight else None
     tensor_rules = build_tensor_rules(
@@ -453,6 +529,7 @@ def main() -> None:
         source_names=source_names,
         shared_attention_weights=shared_attention,
         shared_mlp_weights=shared_mlp,
+        expert_rule_label="Explicit expert-weight rules." if expert_weight_csvs else "Route-frequency expert rules.",
     )
 
     tensor_rule_file = output_dir / "tensor_rules.txt"
@@ -469,11 +546,19 @@ def main() -> None:
 
     topology = discover_moe_topology(repo_path(args.topology_summary), args.topology_model)
     summary = {
-        "recipe_status": "route_weight_rules_ready" if source_rows else "waiting_for_routing_probe",
+        "recipe_status": (
+            "explicit_expert_weight_rules_ready"
+            if source_rows and expert_weight_csvs
+            else "route_weight_rules_ready"
+            if source_rows
+            else "waiting_for_routing_probe"
+        ),
+        "recipe_kind": recipe_kind,
         "source_names": source_names,
         "category_sources": category_sources,
         "fallback_source": fallback_source,
         "router_dirs": [rel(path) for path in router_dirs],
+        "expert_weight_csvs": [rel(path) for path in expert_weight_csvs],
         "input_summaries": input_summaries,
         "anchor_floor": args.anchor_floor,
         "min_source_weight": args.min_source_weight,

@@ -1,0 +1,42 @@
+{
+  "recipe_status": "explicit_expert_weight_rules_ready",
+  "recipe_kind": "explicit_expert_weights",
+  "source_names": [
+    "general",
+    "code"
+  ],
+  "category_sources": {},
+  "fallback_source": "general",
+  "router_dirs": [],
+  "expert_weight_csvs": [
+    "results/toy_moe_merge/expert_search_weights_by_expert.csv"
+  ],
+  "input_summaries": [
+    {
+      "expert_weight_csv": "results/toy_moe_merge/expert_search_weights_by_expert.csv",
+      "rows": 4,
+      "used_rows": 4,
+      "status": "loaded"
+    }
+  ],
+  "anchor_floor": 0.15,
+  "min_source_weight": 0.05,
+  "low_route_threshold": 0.005,
+  "freeze_router": true,
+  "shared_attention_weights": {
+    "general": 0.5,
+    "code": 0.5
+  },
+  "shared_mlp_weights": null,
+  "expert_rule_count": 4,
+  "tensor_rule_count": 5,
+  "topology": null,
+  "same_shape_constraint": "Tensor rules only change weights inside the existing model structure; expert count, router shape, tokenizer, and layer count stay fixed.",
+  "outputs": {
+    "source_weights": "results/toy_moe_expert_weight_recipes/source_weights_by_expert.csv",
+    "tensor_rules": "results/toy_moe_expert_weight_recipes/tensor_rules.txt",
+    "writer_command": "results/toy_moe_expert_weight_recipes/writer_command.txt",
+    "summary": "results/toy_moe_expert_weight_recipes/summary.json",
+    "report": "results/toy_moe_expert_weight_recipes/report.md"
+  }
+}

@@ -691,10 +691,10 @@
       "sha256": "22be3c0f561aee877f1af8f7260719d78ec2b2da063647dad810be748d9c7eba"
     },
     {
-      "bytes": 2646,
+      "bytes": 2832,
       "kind": "document",
       "path": "results/moe_route_weight_recipes/report.md",
-      "sha256": "acb59c23b2358bc91284dd80ed780fd3e01a3e51e5144214519754192ffa6084"
+      "sha256": "415b8f06082c9d26d70737c10331d00047679665f7e942fb9454917738ce7ba7"
     },
     {
       "bytes": 192,
@@ -703,10 +703,10 @@
       "sha256": "8d7d0b96684546dc5021bdccc43cc95f23d1c4be1df36db09d481c4b6295eb55"
     },
     {
-      "bytes": 1471,
+      "bytes": 1330,
       "kind": "data",
       "path": "results/moe_route_weight_recipes/summary.json",
-      "sha256": "cd846c2816db9a4c9eb41a6f8652d50e9647d3238e5c36073bb1a8dbddd8e777"
+      "sha256": "1243436664bb36127446444358eafc5dccd10a6a4019a55c1a73bc78c9770877"
     },
     {
       "bytes": 196,
@@ -1141,16 +1141,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 122835,
+      "bytes": 125459,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "0a3b1305606ee23b3be986706a85a4d89cd58eef3de877411ad0da3bf0bd100c"
+      "sha256": "d2362e38d710b3ae0a58d5d2fbb32bfa0728595ba7f6cfb42ca7ec59e6b6fd3b"
     },
     {
-      "bytes": 10179,
+      "bytes": 10540,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "d0c8183175b32ce1d67451fd4a0764a21574054712d12bd1bb392ca1d06b2f59"
+      "sha256": "917ae9b995724d729aa3ac1ab22b6acd62d57d257b504bf37c0e7efe7b9675a9"
     },
     {
       "bytes": 556,
@@ -1181,6 +1181,36 @@
       "kind": "data",
       "path": "results/toy_moe_expert_remap_plan/writer_command.txt",
       "sha256": "09a7b4eadc4d5664220f1c76f77826e77d6098d06216221c85e9a98f0f845002"
+    },
+    {
+      "bytes": 3031,
+      "kind": "document",
+      "path": "results/toy_moe_expert_weight_recipes/report.md",
+      "sha256": "0f6cf33081751cf22be208abbdde40ffd5a16874a94942e7b93ac8d10018c480"
+    },
+    {
+      "bytes": 1027,
+      "kind": "data",
+      "path": "results/toy_moe_expert_weight_recipes/source_weights_by_expert.csv",
+      "sha256": "f481d420ead66d1206090f82983a503f719d9d7a702fd4181cdf4e75de41248b"
+    },
+    {
+      "bytes": 1378,
+      "kind": "data",
+      "path": "results/toy_moe_expert_weight_recipes/summary.json",
+      "sha256": "2822517a1fbdb1b16d1b5a0a9a001bd6464d01a7beb67483625c09348a45a38f"
+    },
+    {
+      "bytes": 321,
+      "kind": "data",
+      "path": "results/toy_moe_expert_weight_recipes/tensor_rules.txt",
+      "sha256": "41257f669e20be2fe9e76d4a02838b1529846366c25ea43fd8b793702035ca8a"
+    },
+    {
+      "bytes": 369,
+      "kind": "data",
+      "path": "results/toy_moe_expert_weight_recipes/writer_command.txt",
+      "sha256": "b850055622c869307f1616f83de16a8c9785681c80d51342753feefe9c1ade7c"
     },
     {
       "bytes": 8227,
@@ -1363,10 +1393,10 @@
       "sha256": "3149f9d063eddbb7ed608db889c8d3caedc4616417b99cdbff6989e0962eca29"
     },
     {
-      "bytes": 22366,
+      "bytes": 26994,
       "kind": "code",
       "path": "scripts/build_moe_route_weight_recipes.py",
-      "sha256": "6887b5b682ddce5c8855811f95aed1a7ee64cc11e0805f1e046fcadc2b59228f"
+      "sha256": "f4d337e0f309509ad545b4dad2a8fb93d1558140edf00837a3c19d9b559ce7f8"
     },
     {
       "bytes": 39783,
@@ -1375,10 +1405,10 @@
       "sha256": "a1d54b8d275c55bbdc12aa051e4cb6888ce0371ff7698b547c1d7aa17f79c8e4"
     },
     {
-      "bytes": 65323,
+      "bytes": 67403,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "bb0d7f15b59091aa9aee79b7f53c2df5b48f1ebfd071859422600db917cd7b51"
+      "sha256": "428ddb1bc065b35529eb56793456049da8392c07b02fc0687858080fd1550078"
     },
     {
       "bytes": 17809,
@@ -1519,7 +1549,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T09:51:58.651316+00:00",
+  "generated_at": "2026-06-19T09:55:55.597770+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

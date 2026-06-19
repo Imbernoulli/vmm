@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T09:51:58.649391+00:00`
+Generated at: `2026-06-19T09:55:55.540311+00:00`
 
 ## Coverage
 
-Complete: `29`; partial: `1`; missing: `0`.
+Complete: `30`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -30,6 +30,7 @@ Complete: `29`; partial: `1`; missing: `0`.
 | Checkpoint topology inspection | complete | results/checkpoint_topology_inspect/report.md inspects Qwen MoE/Dense configs and safetensors headers without loading weights. |
 | Average candidate recipes | complete | results/average_candidate_recipes/report.md converts probe decisions into conservative same-shape materialization recipes and skips endpoint-only pseudo-averages. |
 | MoE route-weight recipes | complete | results/moe_route_weight_recipes/report.md converts MoE routing/expert-load probes into tensor-rule files for same-shape checkpoint materialization; current recipe is waiting for real routing probe data. |
+| MoE searched expert-weight recipes | complete | results/toy_moe_expert_weight_recipes/report.md converts calibration-searched per-expert source weights into same-shape checkpoint writer tensor rules. |
 | MoE routing readiness diagnostics | complete | results/moe_routing_readiness/report.md turns router_summary, route_overlap, and expert_load CSVs into router collapse, drift, boundary-fragility, and expert-load risk actions. |
 | MoE routing probe CLI | complete | scripts/probe_moe_routing.py captures MoE router hooks and writes router_summary.csv, expert_load.csv, optional route_overlap.csv, summary.json, and report.md; results/moe_routing_probe_smoke/report.md validates the contract on a tiny local MoE. |
 | MoE routing probe smoke | complete | results/moe_routing_probe_smoke/report.md proves the routing probe captures two tiny MoE gates and produces router, expert-load, token-route, comparison, and route-overlap CSVs. |
@@ -106,5 +107,7 @@ Complete: `29`; partial: `1`; missing: `0`.
 | average candidate recipes | MoE templates awaiting routing probe | 1 |
 | MoE route-weight recipes | recipe status | waiting_for_routing_probe |
 | MoE route-weight recipes | expert tensor rules | 0 |
+| MoE searched expert-weight recipes | recipe status | explicit_expert_weight_rules_ready |
+| MoE searched expert-weight recipes | expert tensor rules | 4 |
 | MoE routing readiness | readiness status | waiting_for_routing_probe |
 | MoE routing readiness | router / expert risk rows | 0 / 0 |

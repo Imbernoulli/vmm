@@ -1,21 +1,14 @@
 {
   "recipe_status": "waiting_for_routing_probe",
+  "recipe_kind": "route_frequency",
   "source_names": [
     "general",
     "code"
   ],
-  "category_sources": {
-    "general": "general",
-    "code": "code",
-    "math": "general",
-    "safety": "general",
-    "finance": "general",
-    "legal": "general",
-    "agentic_code": "code",
-    "long_context": "general"
-  },
+  "category_sources": {},
   "fallback_source": "general",
   "router_dirs": [],
+  "expert_weight_csvs": [],
   "input_summaries": [],
   "anchor_floor": 0.15,
   "min_source_weight": 0.05,

@@ -512,6 +512,23 @@ def summarize_moe_route_weight_recipes() -> dict[str, Any]:
     }
 
 
+def summarize_toy_moe_expert_weight_recipes() -> dict[str, Any]:
+    summary = read_json("results/toy_moe_expert_weight_recipes/summary.json")
+    source_weights = read_csv("results/toy_moe_expert_weight_recipes/source_weights_by_expert.csv")
+    return {
+        "summary": summary,
+        "recipe_status": summary.get("recipe_status"),
+        "recipe_kind": summary.get("recipe_kind"),
+        "expert_rule_count": int(summary.get("expert_rule_count", 0)),
+        "tensor_rule_count": int(summary.get("tensor_rule_count", 0)),
+        "source_weights_rows": int(len(source_weights)),
+        "report": rel("results/toy_moe_expert_weight_recipes/report.md"),
+        "source_weights": rel("results/toy_moe_expert_weight_recipes/source_weights_by_expert.csv"),
+        "tensor_rules": rel("results/toy_moe_expert_weight_recipes/tensor_rules.txt"),
+        "writer_command": rel("results/toy_moe_expert_weight_recipes/writer_command.txt"),
+    }
+
+
 def summarize_moe_routing_readiness() -> dict[str, Any]:
     summary = read_json("results/moe_routing_readiness/summary.json")
     router_readiness = read_csv("results/moe_routing_readiness/router_readiness.csv")
@@ -853,6 +870,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/moe_route_weight_recipes/report.md converts MoE routing/expert-load probes into tensor-rule files for same-shape checkpoint materialization; current recipe is waiting for real routing probe data.",
         },
         {
+            "item": "MoE searched expert-weight recipes",
+            "status": "complete",
+            "evidence": "results/toy_moe_expert_weight_recipes/report.md converts calibration-searched per-expert source weights into same-shape checkpoint writer tensor rules.",
+        },
+        {
             "item": "MoE routing readiness diagnostics",
             "status": "complete",
             "evidence": "results/moe_routing_readiness/report.md turns router_summary, route_overlap, and expert_load CSVs into router collapse, drift, boundary-fragility, and expert-load risk actions.",
@@ -919,6 +941,7 @@ def build_summary() -> dict[str, Any]:
         "checkpoint_topology_inspect": summarize_checkpoint_topology(),
         "average_candidate_recipes": summarize_average_candidate_recipes(),
         "moe_route_weight_recipes": summarize_moe_route_weight_recipes(),
+        "toy_moe_expert_weight_recipes": summarize_toy_moe_expert_weight_recipes(),
         "moe_routing_readiness": summarize_moe_routing_readiness(),
         "toy_moe_merge": summarize_toy_moe_merge(),
         "toy_moe_routing_readiness": summarize_toy_moe_routing_readiness(),
@@ -968,6 +991,7 @@ def build_summary() -> dict[str, Any]:
             "PYTHONPATH=src python scripts/build_average_candidate_recipes.py",
             "PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code",
             "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code --source general --source code",
+            "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --output-dir results/toy_moe_expert_weight_recipes --expert-weight-csv results/toy_moe_merge/expert_search_weights_by_expert.csv --source general --source code --checkpoint-output-dir results/checkpoints/toy_moe_expert_weight_candidate --topology-summary ''",
             "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
             "PYTHONPATH=src python scripts/collect_results.py",
         ],
@@ -1005,6 +1029,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     moe_models = [model for model in topology["models"] if model.get("config", {}).get("is_moe_config")]
     recipes = exp["average_candidate_recipes"]
     route_weight_recipes = exp["moe_route_weight_recipes"]
+    toy_expert_weight_recipes = exp["toy_moe_expert_weight_recipes"]
     routing_readiness = exp["moe_routing_readiness"]
     toy_moe = exp["toy_moe_merge"]
     toy_moe_readiness = exp["toy_moe_routing_readiness"]
@@ -1288,6 +1313,14 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| MoE route-weight recipes | expert tensor rules | "
                 f"{route_weight_recipes['expert_rule_count']} |"
+            ),
+            (
+                "| MoE searched expert-weight recipes | recipe status | "
+                f"{toy_expert_weight_recipes['recipe_status']} |"
+            ),
+            (
+                "| MoE searched expert-weight recipes | expert tensor rules | "
+                f"{toy_expert_weight_recipes['expert_rule_count']} |"
             ),
             (
                 "| MoE routing readiness | readiness status | "

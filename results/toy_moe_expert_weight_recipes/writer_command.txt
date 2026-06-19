@@ -1,0 +1,1 @@
+python scripts/write_same_shape_average_checkpoint.py --base MOE_BASE_OR_ANCHOR_PATH --source general=GENERAL_MODEL_PATH --source code=CODE_MODEL_PATH --source-weight general=0.0 --source-weight code=0.0 --freeze-router --tensor-rule-file results/toy_moe_expert_weight_recipes/tensor_rules.txt --output-dir results/checkpoints/toy_moe_expert_weight_candidate --dry-run
