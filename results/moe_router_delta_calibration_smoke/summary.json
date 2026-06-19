@@ -1,0 +1,30 @@
+{
+  "capacity_loss_coef": 0.1,
+  "delta_tensor_count": 1,
+  "epochs": 120,
+  "kl_improved": true,
+  "load_balance_coef": 0.0,
+  "lr": 0.15,
+  "max_final_relative_delta_norm": 0.5,
+  "max_relative_norm": 0.5,
+  "mean_final_relative_delta_norm": 0.5,
+  "mean_final_route_kl": 0.05159498378634453,
+  "mean_final_top1_agreement": 0.7708333134651184,
+  "mean_initial_route_kl": 0.17522408068180084,
+  "mean_initial_top1_agreement": 0.5260416865348816,
+  "outputs": {
+    "report": "results/moe_router_delta_calibration_smoke/report.md",
+    "router_delta_safetensors": "results/moe_router_delta_calibration_smoke/router_delta.safetensors",
+    "router_delta_summary": "results/moe_router_delta_calibration_smoke/router_delta_summary.csv",
+    "summary": "results/moe_router_delta_calibration_smoke/summary.json",
+    "training_trace": "results/moe_router_delta_calibration_smoke/training_trace.csv"
+  },
+  "router_count": 1,
+  "schema_version": 1,
+  "status": "passed",
+  "temperature": 1.0,
+  "top1_loss_coef": 0.25,
+  "top1_not_worse": true,
+  "trust_l2_coef": 0.001,
+  "writer_command": "python scripts/write_same_shape_average_checkpoint.py --base SMOKE_BASE_CHECKPOINT --source SOURCE_NAME=SOURCE_CHECKPOINT --source-weight SOURCE_NAME=0.0 --freeze-router --tensor-delta-safetensors results/moe_router_delta_calibration_smoke/router_delta.safetensors --output-dir results/moe_router_delta_calibration_smoke/checkpoint_with_calibrated_router"
+}

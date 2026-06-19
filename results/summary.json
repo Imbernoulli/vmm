@@ -171,6 +171,11 @@
       "status": "complete"
     },
     {
+      "evidence": "results/moe_router_delta_calibration_smoke/report.md trains a same-shape router safetensors delta from hidden/router-logit cache, improving route KL and top-1 agreement under a relative-norm cap.",
+      "item": "MoE router delta calibration smoke",
+      "status": "complete"
+    },
+    {
       "evidence": "results/moe_combined_writer_smoke/report.md verifies expert tensor rules, source expert alias remap, freeze-router, and router-bias additive deltas in one same-shape writer call.",
       "item": "MoE combined writer smoke",
       "status": "complete"
@@ -327,7 +332,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 64,
+    "complete": 65,
     "missing": 0,
     "partial": 1
   },
@@ -5204,6 +5209,51 @@
         "writer_csv_ready": true
       },
       "writer_csv_ready": true
+    },
+    "moe_router_delta_calibration_smoke": {
+      "delta_tensor_count": 1,
+      "max_final_relative_delta_norm": 0.5,
+      "max_relative_norm": 0.5,
+      "mean_final_route_kl": 0.05159498378634453,
+      "mean_final_top1_agreement": 0.7708333134651184,
+      "mean_initial_route_kl": 0.17522408068180084,
+      "mean_initial_top1_agreement": 0.5260416865348816,
+      "report": "results/moe_router_delta_calibration_smoke/report.md",
+      "router_count": 1,
+      "router_delta_safetensors": "results/moe_router_delta_calibration_smoke/router_delta.safetensors",
+      "router_delta_summary": "results/moe_router_delta_calibration_smoke/router_delta_summary.csv",
+      "status": "passed",
+      "summary": {
+        "capacity_loss_coef": 0.1,
+        "delta_tensor_count": 1,
+        "epochs": 120,
+        "kl_improved": true,
+        "load_balance_coef": 0.0,
+        "lr": 0.15,
+        "max_final_relative_delta_norm": 0.5,
+        "max_relative_norm": 0.5,
+        "mean_final_relative_delta_norm": 0.5,
+        "mean_final_route_kl": 0.05159498378634453,
+        "mean_final_top1_agreement": 0.7708333134651184,
+        "mean_initial_route_kl": 0.17522408068180084,
+        "mean_initial_top1_agreement": 0.5260416865348816,
+        "outputs": {
+          "report": "results/moe_router_delta_calibration_smoke/report.md",
+          "router_delta_safetensors": "results/moe_router_delta_calibration_smoke/router_delta.safetensors",
+          "router_delta_summary": "results/moe_router_delta_calibration_smoke/router_delta_summary.csv",
+          "summary": "results/moe_router_delta_calibration_smoke/summary.json",
+          "training_trace": "results/moe_router_delta_calibration_smoke/training_trace.csv"
+        },
+        "router_count": 1,
+        "schema_version": 1,
+        "status": "passed",
+        "temperature": 1.0,
+        "top1_loss_coef": 0.25,
+        "top1_not_worse": true,
+        "trust_l2_coef": 0.001,
+        "writer_command": "python scripts/write_same_shape_average_checkpoint.py --base SMOKE_BASE_CHECKPOINT --source SOURCE_NAME=SOURCE_CHECKPOINT --source-weight SOURCE_NAME=0.0 --freeze-router --tensor-delta-safetensors results/moe_router_delta_calibration_smoke/router_delta.safetensors --output-dir results/moe_router_delta_calibration_smoke/checkpoint_with_calibrated_router"
+      },
+      "training_trace": "results/moe_router_delta_calibration_smoke/training_trace.csv"
     },
     "moe_routing_probe_smoke": {
       "expert_load": "results/moe_routing_probe_smoke/expert_load.csv",
@@ -20796,7 +20846,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-19T21:34:24.893238+00:00",
+  "generated_at": "2026-06-19T21:42:15.786563+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -20841,6 +20891,7 @@
     "python scripts/write_same_shape_average_checkpoint.py --base BASE --source expert=EXPERT --dry-run --output-dir results/same_shape_writer_smoke",
     "PYTHONPATH=scripts python scripts/smoke_dense_sparse_method_writer.py --output-dir results/dense_sparse_method_writer_smoke",
     "python scripts/smoke_moe_tensor_rule_writer.py --output-dir results/moe_tensor_rule_writer_smoke",
+    "python scripts/train_moe_router_delta_calibration.py --smoke --output-dir results/moe_router_delta_calibration_smoke",
     "PYTHONPATH=src python scripts/smoke_moe_combined_writer.py --output-dir results/moe_combined_writer_smoke",
     "PYTHONPATH=scripts python scripts/smoke_moe_packed_expert_writer.py --output-dir results/moe_packed_expert_writer_smoke",
     "python scripts/inspect_checkpoint_topology.py --model NAME=MODEL_PATH --output-dir results/checkpoint_topology_inspect",
