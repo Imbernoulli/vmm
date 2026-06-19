@@ -71,6 +71,11 @@
       "status": "complete"
     },
     {
+      "evidence": "results/model_averaging_literature_review/report.md maps recent model averaging and MoE merging papers to probes, failure signals, and same-shape writer actions.",
+      "item": "Dense/MoE averaging literature matrix",
+      "status": "complete"
+    },
+    {
       "evidence": "results/moe_average_plan/report.md maps router/expert probes into same-shape router, shared-module, expert, and adapter averaging actions.",
       "item": "MoE same-shape averaging plan",
       "status": "complete"
@@ -127,7 +132,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 25,
+    "complete": 26,
     "missing": 0,
     "partial": 0
   },
@@ -1362,6 +1367,36 @@
         "task_b_loss": 0.2517042160034179,
         "worst_acc": 0.9166666666666666,
         "worst_loss": 0.2517042160034179
+      }
+    },
+    "model_averaging_literature_review": {
+      "dense_recommendation": "Treat uniform averaging as a low-barrier baseline; escalate to conflict-aware, importance-aware, or coefficient-learned averages only when probes justify them.",
+      "method_family_count": 6,
+      "method_matrix": "results/model_averaging_literature_review/method_matrix.csv",
+      "moe_optimization_matrix": "results/model_averaging_literature_review/moe_optimization_matrix.csv",
+      "moe_recommendation": "Do not merge router and experts blindly; run topology, routing, expert matching, and route-weight probes before materializing same-shape checkpoints.",
+      "moe_stage_count": 6,
+      "probe_count": 6,
+      "probe_matrix": "results/model_averaging_literature_review/probe_matrix.csv",
+      "report": "results/model_averaging_literature_review/report.md",
+      "source_count": 21,
+      "source_matrix": "results/model_averaging_literature_review/source_matrix.csv",
+      "summary": {
+        "dense_recommendation": "Treat uniform averaging as a low-barrier baseline; escalate to conflict-aware, importance-aware, or coefficient-learned averages only when probes justify them.",
+        "generated_at": "2026-06-19T05:03:02.955791+00:00",
+        "method_family_count": 6,
+        "moe_recommendation": "Do not merge router and experts blindly; run topology, routing, expert matching, and route-weight probes before materializing same-shape checkpoints.",
+        "moe_stage_count": 6,
+        "outputs": {
+          "method_matrix": "results/model_averaging_literature_review/method_matrix.csv",
+          "moe_optimization_matrix": "results/model_averaging_literature_review/moe_optimization_matrix.csv",
+          "probe_matrix": "results/model_averaging_literature_review/probe_matrix.csv",
+          "report": "results/model_averaging_literature_review/report.md",
+          "source_matrix": "results/model_averaging_literature_review/source_matrix.csv",
+          "summary": "results/model_averaging_literature_review/summary.json"
+        },
+        "probe_count": 6,
+        "source_count": 21
       }
     },
     "moe_average_plan": {
@@ -2635,7 +2670,7 @@
       }
     }
   },
-  "generated_at": "2026-06-19T04:53:32.502933+00:00",
+  "generated_at": "2026-06-19T05:03:10.765830+00:00",
   "overall_status": "complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -2655,6 +2690,7 @@
     "PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir results/toy_moe_merge --output-dir results/toy_moe_routing_readiness --topology-summary ''",
     "PYTHONPATH=src python scripts/select_moe_merge_method.py",
     "PYTHONPATH=src python scripts/build_moe_expert_remap_plan.py",
+    "python scripts/build_model_averaging_literature_review.py",
     "PYTHONPATH=src python scripts/build_average_decision_report.py",
     "PYTHONPATH=src python scripts/build_moe_average_plan.py",
     "python scripts/write_same_shape_average_checkpoint.py --base BASE --source expert=EXPERT --dry-run --output-dir results/same_shape_writer_smoke",

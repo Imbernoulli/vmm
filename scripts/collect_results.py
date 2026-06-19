@@ -611,6 +611,28 @@ def summarize_toy_moe_expert_remap_plan() -> dict[str, Any]:
     }
 
 
+def summarize_model_averaging_literature_review() -> dict[str, Any]:
+    summary = read_json("results/model_averaging_literature_review/summary.json")
+    methods = read_csv("results/model_averaging_literature_review/method_matrix.csv")
+    probes = read_csv("results/model_averaging_literature_review/probe_matrix.csv")
+    moe_stages = read_csv("results/model_averaging_literature_review/moe_optimization_matrix.csv")
+    sources = read_csv("results/model_averaging_literature_review/source_matrix.csv")
+    return {
+        "summary": summary,
+        "source_count": int(summary.get("source_count", len(sources))),
+        "method_family_count": int(summary.get("method_family_count", len(methods))),
+        "probe_count": int(summary.get("probe_count", len(probes))),
+        "moe_stage_count": int(summary.get("moe_stage_count", len(moe_stages))),
+        "dense_recommendation": summary.get("dense_recommendation"),
+        "moe_recommendation": summary.get("moe_recommendation"),
+        "report": rel("results/model_averaging_literature_review/report.md"),
+        "method_matrix": rel("results/model_averaging_literature_review/method_matrix.csv"),
+        "probe_matrix": rel("results/model_averaging_literature_review/probe_matrix.csv"),
+        "moe_optimization_matrix": rel("results/model_averaging_literature_review/moe_optimization_matrix.csv"),
+        "source_matrix": rel("results/model_averaging_literature_review/source_matrix.csv"),
+    }
+
+
 def coverage_checklist() -> list[dict[str, str]]:
     return [
         {
@@ -682,6 +704,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "item": "Probe-guided Average decision report",
             "status": "complete",
             "evidence": "results/average_decision_report/report.md converts merge grids, conflict probes, and optional MoE routing probes into same-shape average decisions.",
+        },
+        {
+            "item": "Dense/MoE averaging literature matrix",
+            "status": "complete",
+            "evidence": "results/model_averaging_literature_review/report.md maps recent model averaging and MoE merging papers to probes, failure signals, and same-shape writer actions.",
         },
         {
             "item": "MoE same-shape averaging plan",
@@ -757,6 +784,7 @@ def build_summary() -> dict[str, Any]:
         "qwen_multi_expert_merge": summarize_qwen_multi_expert(),
         "qwen_probe_smoke": summarize_qwen_probe_smoke(),
         "average_decision_report": summarize_average_decision_report(),
+        "model_averaging_literature_review": summarize_model_averaging_literature_review(),
         "moe_average_plan": summarize_moe_average_plan(),
         "same_shape_writer_smoke": summarize_same_shape_writer_smoke(),
         "checkpoint_topology_inspect": summarize_checkpoint_topology(),
@@ -799,6 +827,7 @@ def build_summary() -> dict[str, Any]:
             "PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir results/toy_moe_merge --output-dir results/toy_moe_routing_readiness --topology-summary ''",
             "PYTHONPATH=src python scripts/select_moe_merge_method.py",
             "PYTHONPATH=src python scripts/build_moe_expert_remap_plan.py",
+            "python scripts/build_model_averaging_literature_review.py",
             "PYTHONPATH=src python scripts/build_average_decision_report.py",
             "PYTHONPATH=src python scripts/build_moe_average_plan.py",
             "python scripts/write_same_shape_average_checkpoint.py --base BASE --source expert=EXPERT --dry-run --output-dir results/same_shape_writer_smoke",
@@ -834,6 +863,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen_multi = exp["qwen_multi_expert_merge"]
     qwen_multi_conflict = qwen_multi["instruct_coder_conflict"] or {}
     average_decision = exp["average_decision_report"]
+    literature_review = exp["model_averaging_literature_review"]
     moe_average_plan = exp["moe_average_plan"]
     writer_smoke = exp["same_shape_writer_smoke"]
     topology = exp["checkpoint_topology_inspect"]
@@ -1026,6 +1056,14 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| Average decision report | coefficient-search decisions | "
                 f"{average_decision['verdict_counts'].get('coefficient_search', 0)} |"
+            ),
+            (
+                "| model averaging literature review | sources reviewed | "
+                f"{literature_review['source_count']} |"
+            ),
+            (
+                "| model averaging literature review | method / probe / MoE-stage counts | "
+                f"{literature_review['method_family_count']} / {literature_review['probe_count']} / {literature_review['moe_stage_count']} |"
             ),
             (
                 "| MoE average plan | router plan rows | "

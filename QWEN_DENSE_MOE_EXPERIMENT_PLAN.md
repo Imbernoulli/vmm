@@ -2,7 +2,7 @@
 
 更新时间：2026-06-18
 
-这份方案把后续实验范围从“官方 Base vs Instruct”收紧并升级为：围绕 Qwen 官方底座、官方专长分支、以及下游用户/实验室基于 Qwen 继续 SFT/RL/蒸馏得到的模型，系统研究 Dense 模型和 MoE 模型上的 model averaging、线性插值和 probe-guided averaging。这里的 Average 指最终输出仍然是和输入模型同构的 checkpoint，可被同一个 model class/config/tokenizer 直接加载；probe 不是为了堆指标，而是为了判断哪些模型、层、模块、experts 处在可平均的连通区域里，并据此找到更好的平均系数。
+这份方案把后续实验范围从“官方 Base vs Instruct”收紧并升级为：围绕 Qwen 官方底座、官方专长分支、以及下游用户/实验室基于 Qwen 继续 SFT/RL/蒸馏得到的模型，系统研究 Dense 模型和 MoE 模型上的 model averaging、线性插值和 probe-guided averaging。这里的 Average 指最终输出仍然是和输入模型同构的 checkpoint，可被同一个 model class/config/tokenizer 直接加载；probe 不是为了堆指标，而是为了判断哪些模型、层、模块、experts 处在可平均的连通区域里，并据此找到更好的平均系数。Dense/MoE 方法和论文依据整理在 [Model Averaging Literature and Probe Matrix](results/model_averaging_literature_review/report.md)。
 
 核心判断是：真实的合并对象不应只是 `Qwen-Base -> Qwen-Instruct` 这一条官方路径，而应是多个同源微调分支之间的能力整合。例如一个实验室基于 Qwen2.5-Instruct 做金融推理，另一个团队基于 Qwen2.5-Math 或 Qwen2.5-Base 做长思维链推理，另一个团队做代码或 agentic coding；这些分支是否能合成一个更通用的 checkpoint，才是 model merging 更有价值的问题。
 
