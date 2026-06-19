@@ -1165,16 +1165,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 141810,
+      "bytes": 143333,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "53c54882e68eb5cdaa48878fd7f7ff5f4dc8e26601c9cd5bbb6ba397e8e2b6a6"
+      "sha256": "8bb8b65c98b6218fae2c36af5d6b132ac23fbe2a1a390cf5e7a8cffa37c5944c"
     },
     {
-      "bytes": 12781,
+      "bytes": 13118,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "a8d53d7aeac97ea274fd98d28888185feff98eb473d2076ecc25ce419bac3c98"
+      "sha256": "022a9675c3b773a19e7a37723da314787ad489fc4f98a13294abf49164993b3c"
     },
     {
       "bytes": 556,
@@ -1198,7 +1198,7 @@
       "bytes": 927,
       "kind": "data",
       "path": "results/toy_moe_expert_remap_plan/summary.json",
-      "sha256": "ab46acfb0a462000c34677cce9af058ba4bac53fa2115b2cd52560fb162f886a"
+      "sha256": "07a52f47bb37a93ee4c5e230be20e293672eb1c0ac9b3877e13bb05ceb666c42"
     },
     {
       "bytes": 434,
@@ -1237,34 +1237,34 @@
       "sha256": "b850055622c869307f1616f83de16a8c9785681c80d51342753feefe9c1ade7c"
     },
     {
-      "bytes": 28346,
+      "bytes": 32352,
       "kind": "data",
       "path": "results/toy_moe_merge/connectivity_path_metrics.csv",
-      "sha256": "a0832e3b92ef384abc8bbab33a79ba42d89d3e829ab9c7116a46fc8bebe5b311"
+      "sha256": "daffa25ba12b5a846376238c76647371629b52f690da5b3e67e74a2cb7079559"
     },
     {
-      "bytes": 160754,
+      "bytes": 162590,
       "kind": "figure",
       "path": "results/toy_moe_merge/connectivity_paths.png",
-      "sha256": "2810f5e90fb790588603dce1d198afc910928fad7aa3c2eec186e396edc0e6f0"
+      "sha256": "fc8634b610a9dea4c094937da7430fc146b747569057b4fe293b8459dbd364ea"
     },
     {
-      "bytes": 1167,
+      "bytes": 1309,
       "kind": "data",
       "path": "results/toy_moe_merge/connectivity_summary.csv",
-      "sha256": "8f4da8ea30b8c51962bcc32a807bffba151c88e8e0af979fe9f49df39f00b24e"
+      "sha256": "9113daffaa907db4a1346b45d3a8b3e9db027972d1e62dd8d5b5a1fcae9eb8df"
     },
     {
-      "bytes": 7733,
+      "bytes": 8176,
       "kind": "data",
       "path": "results/toy_moe_merge/dispatch_mode_metrics.csv",
-      "sha256": "139fee41b40aab5a203759a56c4b395cd60c05604c9fbabdb75abd2ff6e74f25"
+      "sha256": "1218bcf4986976d58bfc318cbbda8ab9ccf1994bf829ca403764462b6a9bb2e4"
     },
     {
-      "bytes": 14322,
+      "bytes": 15159,
       "kind": "data",
       "path": "results/toy_moe_merge/expert_load.csv",
-      "sha256": "1e357726ddebfef0bd11e365b4343038da75a2a8442697508cb8ebcba04a9959"
+      "sha256": "f3d9b314be99c235abe3013d26364e5e40050951a769e7a7e972b07f887e44df"
     },
     {
       "bytes": 153,
@@ -1303,22 +1303,22 @@
       "sha256": "1d7d71fec9a475daf74128c21e62e9de298084e6786bc54a767dffa5ff5e26cf"
     },
     {
-      "bytes": 3738,
+      "bytes": 3966,
       "kind": "data",
       "path": "results/toy_moe_merge/method_metrics.csv",
-      "sha256": "c6076b6ecd5eb4c724972ed2a21ca33b99d0ef686fb1453af671e53cab663d4a"
+      "sha256": "bad85ebc5b59d3525e08d07010b34e848c12d4ad6788b13394f5db8d1d5a9885"
     },
     {
-      "bytes": 6375,
+      "bytes": 6815,
       "kind": "document",
       "path": "results/toy_moe_merge/report.md",
-      "sha256": "f92b86919c1e2c33debeeb7c87fd502f4b78983ce860c3444e8a44d3e2916a06"
+      "sha256": "82c5b443a52a11be81e23a8b984ca5338e1187229cf713b67572603033613dce"
     },
     {
-      "bytes": 2771,
+      "bytes": 2966,
       "kind": "data",
       "path": "results/toy_moe_merge/route_overlap.csv",
-      "sha256": "4c7e30f6d34167a8955c7b5844a5b5a96469af69519ae74e39ee4b53e8a77908"
+      "sha256": "80dccfbbc26c2e9933eefeba0aef0526158270a7b8adb841f020d541260f20c8"
     },
     {
       "bytes": 475,
@@ -1333,10 +1333,16 @@
       "sha256": "fdc989f0f61d45a945277c7a4c53e2618fadca8ce917c4055f7ff464a695aacf"
     },
     {
-      "bytes": 5634,
+      "bytes": 475,
+      "kind": "data",
+      "path": "results/toy_moe_merge/router_hessian_average.csv",
+      "sha256": "bda8586645cb642ff15a109ec2c4fd5548b460633f15b0af8f5f8f5c30d95867"
+    },
+    {
+      "bytes": 5948,
       "kind": "data",
       "path": "results/toy_moe_merge/router_summary.csv",
-      "sha256": "16fb0166ddf313b0f2170a083d94ce1dd44fd22498d2dd98a8fc4f3f6ea30d13"
+      "sha256": "2205757464fe6511f4aa140404fe829b5b432b14c545124787afe8e6545d844f"
     },
     {
       "bytes": 4681,
@@ -1345,64 +1351,64 @@
       "sha256": "6a0e0f94f5e847fe309728df0db503afa93c020bd86ba48cb4ff43b68aa5c7a9"
     },
     {
-      "bytes": 6142,
+      "bytes": 6676,
       "kind": "data",
       "path": "results/toy_moe_merge/summary.json",
-      "sha256": "00c782be1be5105e0a0aa6fb132e696adc73456e97da2a0f314a0a812e625380"
+      "sha256": "ad53f72ca1d1a6bb97baa1e955e88bef53b155b44378a59c15d8526761f683e2"
     },
     {
-      "bytes": 261529,
+      "bytes": 274724,
       "kind": "figure",
       "path": "results/toy_moe_merge/toy_moe_merge.png",
-      "sha256": "af59c1475514509919a8d70f3780dcea16f729c428c8154db4aba6419a7d58e9"
+      "sha256": "39237775500b033f210f8b56ab3f370d2e85e51d46ed77b08fbb0575a9154c36"
     },
     {
-      "bytes": 7158,
+      "bytes": 7592,
       "kind": "data",
       "path": "results/toy_moe_method_selection/method_selection.csv",
-      "sha256": "c869290a1f96d45f505f2f84a7c2bfa6f7c81d12374dcf47cbb0b2a16dec16cb"
+      "sha256": "bec6a75eb300d992b44f821b2235c84802e31849361b46c646a0aa440378385b"
     },
     {
-      "bytes": 3394,
+      "bytes": 3508,
       "kind": "document",
       "path": "results/toy_moe_method_selection/report.md",
-      "sha256": "1f72d0e4fd318024c0f502d36610a87853bc481826475ecde2e0b7bd1570b770"
+      "sha256": "a76fa54c5d98558a370589867ef5acb01dc29a1bba1e9f8c03e455b9fb10ef04"
     },
     {
       "bytes": 723,
       "kind": "data",
       "path": "results/toy_moe_method_selection/summary.json",
-      "sha256": "949af15210a2f08f145cd526adfdd035c2b20eba1de922e40e7b979ec5710423"
+      "sha256": "09b877327af9e1c01622c638abad4af65237a3913298621b86059ad1f0d5cbb4"
     },
     {
-      "bytes": 16098,
+      "bytes": 16988,
       "kind": "data",
       "path": "results/toy_moe_routing_readiness/category_specialization.csv",
-      "sha256": "060036095df75009dce715e1ce254b6c3d8a90e41821ee1f8ace646024725d2f"
+      "sha256": "ae83f849a9e0c86f0ab34def389cf234f1f0e4e197b770c809042bee5c96cce1"
     },
     {
-      "bytes": 27490,
+      "bytes": 29035,
       "kind": "data",
       "path": "results/toy_moe_routing_readiness/expert_load_risks.csv",
-      "sha256": "415c929be2960ca9a88f142a30c40f62632370149cc2f80ba0b4ebccdab6b59b"
+      "sha256": "6e119a98b527519dc5507dfc1bc65449b2d9476be15af5165187739e1d90109a"
     },
     {
-      "bytes": 10456,
+      "bytes": 10474,
       "kind": "document",
       "path": "results/toy_moe_routing_readiness/report.md",
-      "sha256": "3776576580fcc214a5c11f946866d0b76d4aaa94880407d401a94fb401c57cab"
+      "sha256": "2c626b50a8e9d9e512e7c20034663aab6dcf3e60ec8bdc81e2d8a3d8f9128b9a"
     },
     {
-      "bytes": 10525,
+      "bytes": 11143,
       "kind": "data",
       "path": "results/toy_moe_routing_readiness/router_readiness.csv",
-      "sha256": "ea1b1149a17d536b278119f0b90a04c32a00b7999f615022cb5bc5f5e6f9ff09"
+      "sha256": "b7198d6504d78403ef299d2123b04482d75eff244e13009643446f209d5574c4"
     },
     {
       "bytes": 1466,
       "kind": "data",
       "path": "results/toy_moe_routing_readiness/summary.json",
-      "sha256": "4c278b74fb7ac58982f2c7388b8b2f7ec69a3778b0558944a005d82cac1c56b5"
+      "sha256": "b4e256e8d72a89e88e739c1df7d7e6ba36616a610030f78ddd3e2330e981c5c0"
     },
     {
       "bytes": 190,
@@ -1483,10 +1489,10 @@
       "sha256": "a1d54b8d275c55bbdc12aa051e4cb6888ce0371ff7698b547c1d7aa17f79c8e4"
     },
     {
-      "bytes": 79938,
+      "bytes": 81502,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "b3aa3ea503931f096383be3b0ec9111c044c5ce32e4a89e095572dab75a144ed"
+      "sha256": "538975acba7754d33c3648034761088fcc7a75c14daa15feea4f25efefb09cba"
     },
     {
       "bytes": 17809,
@@ -1579,10 +1585,10 @@
       "sha256": "b6f0e648135e011f773d78e4ae89f21215f26dbf99fb5ff01d38bb9b3481eb7a"
     },
     {
-      "bytes": 97144,
+      "bytes": 104200,
       "kind": "code",
       "path": "scripts/run_toy_moe_merge.py",
-      "sha256": "95ccf7c9bc4fa43be70de5136606fae5de8588c8d6a39ce1bd183a4d0f82bba6"
+      "sha256": "93c7b9cebc5af0d22f2773f2d36be4464c6ca12733c99dfa63dea872658bc79c"
     },
     {
       "bytes": 25366,
@@ -1633,7 +1639,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T10:43:08.316574+00:00",
+  "generated_at": "2026-06-19T10:52:53.958886+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

@@ -15,6 +15,7 @@
 - Expert-matched DARE average worst accuracy: `0.780`.
 - Expert-matched TIES+DARE average worst accuracy: `0.777`.
 - Matched + router-weight-search average worst accuracy: `0.818`.
+- Matched + Hessian-router average worst accuracy: `0.807`.
 - Matched + router-calibrated average worst accuracy: `0.838`.
 - Matched + router-topk-calibrated average worst accuracy: `0.815`.
 - Matched + router-sweep-selected average worst accuracy: `0.838`.
@@ -26,6 +27,7 @@
 - Direct matched source barrier: `0.0000`.
 - Matched + router-calibrated hard top-1 worst accuracy: `0.568`.
 - Matched + router-calibrated hard top-2 worst accuracy: `0.700`.
+- Matched + Hessian-router hard top-2 worst accuracy: `0.675`.
 - Matched + router-topk-calibrated hard top-2 worst accuracy: `0.700`.
 - Top-k router calibration delta vs soft router calibration under hard top-2: `0.000`.
 - Recovered expert matching mean cosine: `0.977`.
@@ -35,11 +37,12 @@
 
 | method | general acc | code acc | worst acc | avg loss |
 | --- | ---: | ---: | ---: | ---: |
-| matched_router_calibrated_average | 0.838 | 0.840 | 0.838 | 0.600 |
 | matched_router_sweep_selected_average | 0.838 | 0.840 | 0.838 | 0.600 |
+| matched_router_calibrated_average | 0.838 | 0.840 | 0.838 | 0.600 |
 | expert_weight_search_router_calibrated_average | 0.828 | 0.835 | 0.828 | 0.600 |
 | matched_router_weight_search_average | 0.820 | 0.818 | 0.818 | 0.616 |
 | matched_router_topk_calibrated_average | 0.835 | 0.815 | 0.815 | 0.605 |
+| matched_router_hessian_average | 0.818 | 0.807 | 0.807 | 0.616 |
 | code_endpoint_permuted | 0.818 | 0.802 | 0.802 | 0.618 |
 | expert_weight_search_average | 0.810 | 0.802 | 0.802 | 0.618 |
 | expert_matched_average | 0.818 | 0.800 | 0.800 | 0.616 |
@@ -62,6 +65,7 @@
 - `expert_matched_regmean_average` 在 expert matching 后只对 expert Linear 层做 activation-covariance RegMean，router 仍固定为 base；这把 Dense RegMean 转成了 MoE expert-local 版本。
 - `expert_matched_ties_average` / `expert_matched_dare_average` / `expert_matched_ties_dare_average` 把 Dense sparse task-vector merging 迁移到 MoE expert 子网；router 不参与稀疏合并。
 - `matched_router_weight_search_average` 不做梯度训练，只对 router tensor 的 general/code task-vector 系数做 guarded search；这是 checkpoint-only 的 MoE router probe。
+- `matched_router_hessian_average` 只解 router：用 source router softmax Hessian 和输入协方差做二阶加权最小二乘，检验 routing breakdown 是否来自线性 router averaging 的非线性 mismatch。
 - `matched_router_calibrated_average` 冻结 matched experts，只用小校准集更新 router，并用 base-router KL 约束防止 dispatch 漂移。
 - `matched_router_topk_calibrated_average` 在 router-only calibration 里显式加入 hard top-2 dispatch loss，用来检验 soft-router 优化是否能迁移到真实 sparse dispatch。
 - `matched_router_sweep_selected_average` 对 router calibration 的 KL 系数做 sweep，先过 route-overlap guard，再按 calibration worst-loss 选择候选；它把 router overlap/load 和任务精度放到同一个 probe 里。
@@ -88,6 +92,7 @@
 - `expert_search_weights_by_expert.csv`
 - `expert_weight_search_trace.csv`
 - `router_weight_search.csv`
+- `router_hessian_average.csv`
 - `router_calibration_sweep.csv`
 - `toy_moe_merge.png`
 - `summary.json`

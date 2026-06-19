@@ -1,0 +1,4 @@
+source,tokens,source_weight,router_entropy_mean,router_hessian_trace_mean,precision_trace,same_shape_action,ridge_value,system_dim
+general_source,500,0.5,1.3077000130449141,0.7110667734803453,715.6312438208317,hessian_router_distribution_average,,
+matched_code_source,500,0.5,1.3118984126743576,0.7128844831357183,686.1468197538917,hessian_router_distribution_average,,
+solved_router,1000,1.0,,,1401.7780635747238,closed_form_hessian_router_average,0.007008890317873619,20.0
