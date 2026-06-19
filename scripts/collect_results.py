@@ -605,6 +605,23 @@ def summarize_toy_moe_confidence_blended_recipes() -> dict[str, Any]:
     return summarize_toy_moe_recipe_dir("results/toy_moe_confidence_blended_recipes")
 
 
+def summarize_moe_confidence_blended_combined_recipe() -> dict[str, Any]:
+    root = repo_path("results/moe_confidence_blended_combined_recipe")
+    summary = read_json(root / "summary.json")
+    return {
+        "summary": summary,
+        "recipe_status": summary.get("recipe_status"),
+        "tensor_rule_count": int(summary.get("tensor_rule_count", 0)),
+        "alias_rule_count": int(summary.get("alias_rule_count", 0)),
+        "router_bias_delta_rows": int(summary.get("router_bias_delta_rows", 0)),
+        "freeze_router": bool(summary.get("freeze_router", False)),
+        "dry_run": bool(summary.get("dry_run", False)),
+        "report": rel(root / "report.md"),
+        "writer_command": rel(root / "writer_command.txt"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_moe_routing_readiness() -> dict[str, Any]:
     summary = read_json("results/moe_routing_readiness/summary.json")
     router_readiness = read_csv("results/moe_routing_readiness/router_readiness.csv")
@@ -1619,6 +1636,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/toy_moe_confidence_blended_recipes/report.md converts projection-confidence-gated expert weights into same-shape checkpoint writer tensor rules.",
         },
         {
+            "item": "MoE confidence-blended combined materialization recipe",
+            "status": "complete",
+            "evidence": "results/moe_confidence_blended_combined_recipe/report.md composes expert weights, expert alias remap, and router-bias capacity deltas into one same-shape writer command.",
+        },
+        {
             "item": "MoE routing readiness diagnostics",
             "status": "complete",
             "evidence": "results/moe_routing_readiness/report.md turns router_summary, route_overlap, and expert_load CSVs into router collapse, drift, boundary-fragility, and expert-load risk actions.",
@@ -1691,6 +1713,7 @@ def build_summary() -> dict[str, Any]:
         "toy_moe_expert_weight_recipes": summarize_toy_moe_expert_weight_recipes(),
         "toy_moe_output_projection_recipes": summarize_toy_moe_output_projection_recipes(),
         "toy_moe_confidence_blended_recipes": summarize_toy_moe_confidence_blended_recipes(),
+        "moe_confidence_blended_combined_recipe": summarize_moe_confidence_blended_combined_recipe(),
         "moe_routing_readiness": summarize_moe_routing_readiness(),
         "toy_moe_merge": summarize_toy_moe_merge(),
         "toy_moe_routing_readiness": summarize_toy_moe_routing_readiness(),
@@ -1760,7 +1783,6 @@ def build_summary() -> dict[str, Any]:
             "PYTHONPATH=src python scripts/build_qwen_dense_module_guarded_candidate.py --output-dir results/qwen_dense_module_guarded_candidate --variant module_guarded",
             "PYTHONPATH=src python scripts/build_qwen_dense_module_guarded_candidate.py --output-dir results/qwen_dense_norm_guarded_candidate --variant norm_only",
             "PYTHONPATH=src python scripts/build_qwen_dense_module_guarded_candidate.py --output-dir results/qwen_dense_selective_norm_guarded_candidate --variant selective_norm",
-            "PYTHONPATH=src python scripts/build_checkpoint_materialization_readiness.py --output-dir results/checkpoint_materialization_readiness",
             "PYTHONPATH=src python scripts/build_average_decision_report.py",
             "python scripts/build_qwen_target_model_registry.py",
             "PYTHONPATH=src python scripts/build_moe_average_plan.py",
@@ -1775,6 +1797,8 @@ def build_summary() -> dict[str, Any]:
             "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --output-dir results/toy_moe_expert_weight_recipes --expert-weight-csv results/toy_moe_merge/expert_search_weights_by_expert.csv --source general --source code --checkpoint-output-dir results/checkpoints/toy_moe_expert_weight_candidate --topology-summary ''",
             "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --output-dir results/toy_moe_output_projection_recipes --expert-weight-csv results/toy_moe_merge/expert_output_projection_weights_by_expert.csv --expert-weight-category combined --source general --source code --checkpoint-output-dir results/checkpoints/toy_moe_output_projection_candidate --topology-summary ''",
             "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --output-dir results/toy_moe_confidence_blended_recipes --expert-weight-csv results/toy_moe_merge/confidence_blended_expert_weights_by_expert.csv --source general --source code --checkpoint-output-dir results/checkpoints/toy_moe_confidence_blended_candidate --topology-summary ''",
+            "PYTHONPATH=src python scripts/build_moe_combined_materialization_recipe.py",
+            "PYTHONPATH=src python scripts/build_checkpoint_materialization_readiness.py --output-dir results/checkpoint_materialization_readiness",
             "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
             "PYTHONPATH=src python scripts/collect_results.py",
         ],
@@ -1818,6 +1842,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     toy_expert_weight_recipes = exp["toy_moe_expert_weight_recipes"]
     toy_output_projection_recipes = exp["toy_moe_output_projection_recipes"]
     toy_confidence_blended_recipes = exp["toy_moe_confidence_blended_recipes"]
+    confidence_blended_combined_recipe = exp["moe_confidence_blended_combined_recipe"]
     routing_readiness = exp["moe_routing_readiness"]
     toy_moe = exp["toy_moe_merge"]
     selected_unified_capacity = toy_moe.get("unified_moe_capacity_sweep_selected") or {}
@@ -2591,6 +2616,16 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| MoE confidence-blended expert-weight recipes | expert tensor rules | "
                 f"{toy_confidence_blended_recipes['expert_rule_count']} |"
+            ),
+            (
+                "| MoE confidence-blended combined recipe | status | "
+                f"{confidence_blended_combined_recipe['recipe_status']} |"
+            ),
+            (
+                "| MoE confidence-blended combined recipe | tensor / alias / bias-delta rules | "
+                f"{confidence_blended_combined_recipe['tensor_rule_count']} / "
+                f"{confidence_blended_combined_recipe['alias_rule_count']} / "
+                f"{confidence_blended_combined_recipe['router_bias_delta_rows']} |"
             ),
             (
                 "| MoE routing readiness | readiness status | "

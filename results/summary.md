@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T15:22:27.817991+00:00`
+Generated at: `2026-06-19T15:31:14.821113+00:00`
 
 ## Coverage
 
-Complete: `42`; partial: `1`; missing: `0`.
+Complete: `43`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -43,6 +43,7 @@ Complete: `42`; partial: `1`; missing: `0`.
 | MoE searched expert-weight recipes | complete | results/toy_moe_expert_weight_recipes/report.md converts calibration-searched per-expert source weights into same-shape checkpoint writer tensor rules. |
 | MoE output-projection expert-weight recipes | complete | results/toy_moe_output_projection_recipes/report.md converts route-conditioned output-space expert weights into same-shape checkpoint writer tensor rules. |
 | MoE confidence-blended expert-weight recipes | complete | results/toy_moe_confidence_blended_recipes/report.md converts projection-confidence-gated expert weights into same-shape checkpoint writer tensor rules. |
+| MoE confidence-blended combined materialization recipe | complete | results/moe_confidence_blended_combined_recipe/report.md composes expert weights, expert alias remap, and router-bias capacity deltas into one same-shape writer command. |
 | MoE routing readiness diagnostics | complete | results/moe_routing_readiness/report.md turns router_summary, route_overlap, and expert_load CSVs into router collapse, drift, boundary-fragility, and expert-load risk actions. |
 | MoE routing probe CLI | complete | scripts/probe_moe_routing.py captures MoE router hooks and writes router_summary.csv, expert_load.csv, optional route_overlap.csv, summary.json, and report.md; results/moe_routing_probe_smoke/report.md validates the contract on a tiny local MoE. |
 | MoE routing probe smoke | complete | results/moe_routing_probe_smoke/report.md proves the routing probe captures two tiny MoE gates and produces router, expert-load, token-route, comparison, and route-overlap CSVs. |
@@ -200,7 +201,7 @@ Complete: `42`; partial: `1`; missing: `0`.
 | Qwen dense guard ablation | norm-only vLLM avg / delta vs global bridge | 0.203 / 0.000 |
 | Qwen dense guard ablation | selective-norm vLLM avg / delta vs global bridge | 0.191 / -0.012 |
 | checkpoint materialization readiness | status | hosted_eval_complete |
-| checkpoint materialization readiness | materialized / blocked / ready / completed | 1 / 3 / 0 / 1 |
+| checkpoint materialization readiness | materialized / blocked / ready / completed | 1 / 4 / 0 / 1 |
 | Average decision report | avoid uniform average decisions | 3 |
 | Average decision report | coefficient-search decisions | 2 |
 | model averaging literature review | sources reviewed | 22 |
@@ -232,5 +233,7 @@ Complete: `42`; partial: `1`; missing: `0`.
 | MoE output-projection expert-weight recipes | expert tensor rules | 4 |
 | MoE confidence-blended expert-weight recipes | recipe status | explicit_expert_weight_rules_ready |
 | MoE confidence-blended expert-weight recipes | expert tensor rules | 4 |
+| MoE confidence-blended combined recipe | status | combined_writer_command_ready |
+| MoE confidence-blended combined recipe | tensor / alias / bias-delta rules | 5 / 4 / 4 |
 | MoE routing readiness | readiness status | waiting_for_routing_probe |
 | MoE routing readiness | router / expert risk rows | 0 / 0 |

@@ -115,6 +115,11 @@ def writer_command_candidates() -> list[dict[str, Any]]:
             "source": "results/toy_moe_expert_remap_plan/writer_command.txt",
             "loadability": "not_vllm_loadable_toy",
         },
+        {
+            "candidate": "toy_moe_confidence_blended_combined_candidate",
+            "source": "results/moe_confidence_blended_combined_recipe/writer_command.txt",
+            "loadability": "not_vllm_loadable_toy",
+        },
     ]
     rows = []
     for spec in specs:

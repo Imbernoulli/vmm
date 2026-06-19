@@ -1,6 +1,6 @@
 {
-  "blocked_by_placeholder_count": 3,
-  "candidate_count": 6,
+  "blocked_by_placeholder_count": 4,
+  "candidate_count": 7,
   "completed_vllm_eval_count": 1,
   "materialized_count": 1,
   "outputs": {
@@ -11,5 +11,5 @@
   "ready_for_vllm_eval_count": 0,
   "schema_version": 1,
   "status": "hosted_eval_complete",
-  "toy_validation_only_count": 2
+  "toy_validation_only_count": 3
 }

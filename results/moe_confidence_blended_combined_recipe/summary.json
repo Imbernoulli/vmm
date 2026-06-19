@@ -1,0 +1,29 @@
+{
+  "alias_rule_count": 4,
+  "candidate": "toy_moe_confidence_blended_combined_candidate",
+  "default_source_delta_weight": 0.0,
+  "dry_run": true,
+  "freeze_router": true,
+  "inputs": {
+    "source_tensor_alias_file": "results/toy_moe_expert_remap_plan/source_tensor_aliases.txt",
+    "tensor_add_csv": "results/moe_confidence_blended_router_bias_plan/router_bias_deltas.csv",
+    "tensor_rule_file": "results/toy_moe_confidence_blended_recipes/tensor_rules.txt"
+  },
+  "missing_inputs": [],
+  "outputs": {
+    "checkpoint_output_dir": "results/checkpoints/toy_moe_confidence_blended_combined_candidate",
+    "report": "results/moe_confidence_blended_combined_recipe/report.md",
+    "summary": "results/moe_confidence_blended_combined_recipe/summary.json",
+    "writer_command": "results/moe_confidence_blended_combined_recipe/writer_command.txt"
+  },
+  "recipe_status": "combined_writer_command_ready",
+  "router_bias_delta_rows": 4,
+  "same_shape_constraint": "Output tensor names and shapes stay unchanged; rules only select source deltas, source tensor aliases, and additive router-bias values.",
+  "schema_version": 1,
+  "sources": [
+    "general=GENERAL_MODEL_PATH",
+    "code=CODE_MODEL_PATH"
+  ],
+  "tensor_rule_count": 5,
+  "writer_command": "python scripts/write_same_shape_average_checkpoint.py --base MOE_BASE_OR_ANCHOR_PATH --source general=GENERAL_MODEL_PATH --source-weight general=0.0 --source code=CODE_MODEL_PATH --source-weight code=0.0 --freeze-router --tensor-rule-file results/toy_moe_confidence_blended_recipes/tensor_rules.txt --source-tensor-alias-file results/toy_moe_expert_remap_plan/source_tensor_aliases.txt --tensor-add-csv results/moe_confidence_blended_router_bias_plan/router_bias_deltas.csv --output-dir results/checkpoints/toy_moe_confidence_blended_combined_candidate --dry-run"
+}
