@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-19T09:42:56.179458+00:00`
+Generated at: `2026-06-19T09:51:58.649391+00:00`
 
 ## Coverage
 
@@ -73,9 +73,12 @@ Complete: `29`; partial: `1`; missing: `0`.
 | toy MoE route-aware merge | expert-matched average worst accuracy | 0.800 |
 | toy MoE route-aware merge | matched + router-frozen worst accuracy | 0.787 |
 | toy MoE route-aware merge | matched + router-calibrated worst accuracy | 0.838 |
+| toy MoE route-aware merge | expert-weight search worst accuracy | 0.802 |
+| toy MoE route-aware merge | expert-weight search + router-calibrated worst accuracy | 0.828 |
 | toy MoE route-aware merge | route-aware average worst accuracy | 0.790 |
 | toy MoE route-aware merge | matched + router-frozen minus all-weight worst accuracy | 0.167 |
 | toy MoE route-aware merge | matched router calibration gain over frozen | 0.050 |
+| toy MoE route-aware merge | expert search router-calibrated delta vs matched-calibrated | -0.010 |
 | toy MoE route-aware merge | route-aware minus all-weight worst accuracy | 0.170 |
 | toy MoE routing readiness | readiness status | high_risk_calibrate_router_before_merge |
 | toy MoE routing readiness | all-weight calibrate-router flags | 1 |

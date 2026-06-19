@@ -2622,7 +2622,7 @@
       "source_tensor_aliases": "results/toy_moe_expert_remap_plan/source_tensor_aliases.txt",
       "summary": {
         "alias_rule_count": 4,
-        "generated_at": "2026-06-19T09:32:01.683722+00:00",
+        "generated_at": "2026-06-19T09:51:05.108255+00:00",
         "manual_review_count": 0,
         "mean_output_cosine": 0.9773149192333221,
         "min_cosine_threshold": 0.9,
@@ -2656,16 +2656,16 @@
         "worst_loss": 0.6685362434387208
       },
       "best_method": {
-        "avg_acc": 0.8375,
-        "avg_loss": 0.5973525428771973,
-        "code_acc": 0.8375,
-        "code_loss": 0.6105970764160156,
+        "avg_acc": 0.83875,
+        "avg_loss": 0.5999638271331788,
+        "code_acc": 0.84,
+        "code_loss": 0.6125870132446289,
         "description": "align code experts, freeze non-router tensors, and calibrate only the router",
         "general_acc": 0.8375,
-        "general_loss": 0.5841080093383789,
+        "general_loss": 0.5873406410217286,
         "method": "matched_router_calibrated_average",
         "worst_acc": 0.8375,
-        "worst_loss": 0.6105970764160156
+        "worst_loss": 0.6125870132446289
       },
       "expert_load": "results/toy_moe_merge/expert_load.csv",
       "expert_match": "results/toy_moe_merge/expert_match.csv",
@@ -2682,18 +2682,46 @@
         "worst_acc": 0.8,
         "worst_loss": 0.6304422187805175
       },
+      "expert_search_weights": "results/toy_moe_merge/expert_search_weights_by_expert.csv",
+      "expert_weight_search_average": {
+        "avg_acc": 0.80625,
+        "avg_loss": 0.618458776473999,
+        "code_acc": 0.8025,
+        "code_loss": 0.6323366737365723,
+        "description": "search per-expert source delta weights on the calibration set with the base router fixed",
+        "general_acc": 0.81,
+        "general_loss": 0.6045808792114258,
+        "method": "expert_weight_search_average",
+        "worst_acc": 0.8025,
+        "worst_loss": 0.6323366737365723
+      },
+      "expert_weight_search_router_calibrated_average": {
+        "avg_acc": 0.83125,
+        "avg_loss": 0.600217227935791,
+        "code_acc": 0.835,
+        "code_loss": 0.6131016731262207,
+        "description": "search per-expert source delta weights, then calibrate only the router",
+        "general_acc": 0.8275,
+        "general_loss": 0.5873327827453614,
+        "method": "expert_weight_search_router_calibrated_average",
+        "worst_acc": 0.8275,
+        "worst_loss": 0.6131016731262207
+      },
+      "expert_weight_search_router_calibrated_minus_all_weight_worst_acc": 0.20750000000000002,
+      "expert_weight_search_router_calibrated_minus_matched_calibrated_worst_acc": -0.010000000000000009,
+      "expert_weight_search_trace": "results/toy_moe_merge/expert_weight_search_trace.csv",
       "figure": "results/toy_moe_merge/toy_moe_merge.png",
       "matched_router_calibrated_average": {
-        "avg_acc": 0.8375,
-        "avg_loss": 0.5973525428771973,
-        "code_acc": 0.8375,
-        "code_loss": 0.6105970764160156,
+        "avg_acc": 0.83875,
+        "avg_loss": 0.5999638271331788,
+        "code_acc": 0.84,
+        "code_loss": 0.6125870132446289,
         "description": "align code experts, freeze non-router tensors, and calibrate only the router",
         "general_acc": 0.8375,
-        "general_loss": 0.5841080093383789,
+        "general_loss": 0.5873406410217286,
         "method": "matched_router_calibrated_average",
         "worst_acc": 0.8375,
-        "worst_loss": 0.6105970764160156
+        "worst_loss": 0.6125870132446289
       },
       "matched_router_calibrated_minus_all_weight_worst_acc": 0.21750000000000003,
       "matched_router_calibrated_minus_frozen_worst_acc": 0.050000000000000044,
@@ -2727,7 +2755,7 @@
       "route_aware_minus_all_weight_worst_acc": 0.17000000000000004,
       "route_overlap": "results/toy_moe_merge/route_overlap.csv",
       "route_weights": "results/toy_moe_merge/route_weights_by_expert.csv",
-      "router_rows": 18,
+      "router_rows": 22,
       "router_summary": "results/toy_moe_merge/router_summary.csv",
       "summary": {
         "all_weight_average_worst_acc": 0.62,
@@ -2740,6 +2768,28 @@
           1
         ],
         "expert_match_mean_cosine": 0.9773149192333221,
+        "expert_weight_search": {
+          "candidate_pair_count": 15,
+          "grid": [
+            0.0,
+            0.25,
+            0.5,
+            0.75,
+            1.0
+          ],
+          "max_delta_sum": 1.0,
+          "objective": "worst_loss",
+          "passes": 2,
+          "prior_penalty": 0.02,
+          "shared_weights": {
+            "code": 0.5,
+            "general": 0.5
+          }
+        },
+        "expert_weight_search_router_calibrated_minus_all_weight_worst_acc": 0.20750000000000002,
+        "expert_weight_search_router_calibrated_minus_matched_calibrated_worst_acc": -0.010000000000000009,
+        "expert_weight_search_router_calibrated_worst_acc": 0.8275,
+        "expert_weight_search_worst_acc": 0.8025,
         "matched_router_calibrated_minus_all_weight_worst_acc": 0.21750000000000003,
         "matched_router_calibrated_minus_frozen_worst_acc": 0.050000000000000044,
         "matched_router_calibrated_worst_acc": 0.8375,
@@ -2749,6 +2799,8 @@
         "outputs": {
           "expert_load": "expert_load.csv",
           "expert_match": "expert_match.csv",
+          "expert_search_weights_by_expert": "expert_search_weights_by_expert.csv",
+          "expert_weight_search_trace": "expert_weight_search_trace.csv",
           "figure": "toy_moe_merge.png",
           "method_metrics": "method_metrics.csv",
           "report": "report.md",
@@ -2776,35 +2828,35 @@
       "recommended_decision": "candidate_with_router_guard",
       "recommended_method": "matched_router_calibrated_average",
       "recommended_row": {
-        "avg_acc": 0.8375,
-        "avg_loss": 0.5973525428771973,
+        "avg_acc": 0.83875,
+        "avg_loss": 0.5999638271331788,
         "calibrate_router_count": 0,
-        "code_acc": 0.8375,
-        "code_loss": 0.6105970764160156,
+        "code_acc": 0.84,
+        "code_loss": 0.6125870132446289,
         "decision": "candidate_with_router_guard",
         "decision_reason": "candidate passes routing-overlap gate after router calibration; keep load-balance and held-out route checks.",
         "description": "align code experts, freeze non-router tensors, and calibrate only the router",
         "general_acc": 0.8375,
-        "general_loss": 0.5841080093383789,
+        "general_loss": 0.5873406410217286,
         "load_concentration_count": 1,
         "low_overlap_count": 0,
         "low_top1_agreement_count": 0,
         "max_risk_score": 1,
         "mean_risk_score": 0.5,
-        "mean_topk_jaccard": 0.8595833333333334,
+        "mean_topk_jaccard": 0.85875,
         "method": "matched_router_calibrated_average",
         "method_kind": "merge_candidate",
-        "min_top1_agreement": 0.8299999833106995,
-        "min_topk_jaccard": 0.8375,
+        "min_top1_agreement": 0.8374999761581421,
+        "min_topk_jaccard": 0.8275,
         "router_rows": 2,
         "selection_score": 0.8325,
         "worst_acc": 0.8375,
-        "worst_loss": 0.6105970764160156
+        "worst_loss": 0.6125870132446289
       },
       "report": "results/toy_moe_method_selection/report.md",
       "summary": {
         "base_worst_acc": 0.775,
-        "generated_at": "2026-06-19T09:42:49.727116+00:00",
+        "generated_at": "2026-06-19T09:51:52.004115+00:00",
         "inputs": {
           "method_metrics": "results/toy_moe_merge/method_metrics.csv",
           "router_readiness": "results/toy_moe_routing_readiness/router_readiness.csv"
@@ -2830,18 +2882,18 @@
       },
       "category_specialization": "results/toy_moe_routing_readiness/category_specialization.csv",
       "expert_load_risks": "results/toy_moe_routing_readiness/expert_load_risks.csv",
-      "expert_rows": 72,
+      "expert_rows": 88,
       "readiness_status": "high_risk_calibrate_router_before_merge",
       "report": "results/toy_moe_routing_readiness/report.md",
       "router_readiness": "results/toy_moe_routing_readiness/router_readiness.csv",
-      "router_rows": 18,
-      "specialization_rows": 36,
+      "router_rows": 22,
+      "specialization_rows": 44,
       "summary": {
         "expert_action_counts": {
-          "low_lambda_or_route_frequency_average": 72
+          "low_lambda_or_route_frequency_average": 88
         },
-        "expert_rows": 72,
-        "generated_at": "2026-06-19T09:31:50.010886+00:00",
+        "expert_rows": 88,
+        "generated_at": "2026-06-19T09:51:05.003898+00:00",
         "outputs": {
           "category_specialization": "results/toy_moe_routing_readiness/category_specialization.csv",
           "expert_load_risks": "results/toy_moe_routing_readiness/expert_load_risks.csv",
@@ -2852,19 +2904,19 @@
         "readiness_status": "high_risk_calibrate_router_before_merge",
         "router_action_counts": {
           "calibrate_router_before_average": 3,
-          "freeze_router_and_check_load_balance": 8,
-          "router_probe_passed_for_small_lambda": 7
+          "freeze_router_and_check_load_balance": 10,
+          "router_probe_passed_for_small_lambda": 9
         },
         "router_dirs": [
           "results/toy_moe_merge"
         ],
-        "router_rows": 18,
+        "router_rows": 22,
         "same_shape_constraint": "Readiness actions preserve router shape, expert count, hidden size, tokenizer, and model class.",
         "specialization_action_counts": {
-          "category_specialized_route_weight": 10,
-          "shared_or_mixed_expert": 26
+          "category_specialized_route_weight": 12,
+          "shared_or_mixed_expert": 32
         },
-        "specialization_rows": 36,
+        "specialization_rows": 44,
         "thresholds": {
           "collapse_threshold": 0.5,
           "low_margin_threshold": 0.05,
@@ -2908,7 +2960,7 @@
       "tasks": "gsm8k,mmlu,safety,humaneval_compile"
     }
   },
-  "generated_at": "2026-06-19T09:42:56.179458+00:00",
+  "generated_at": "2026-06-19T09:51:58.649391+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [

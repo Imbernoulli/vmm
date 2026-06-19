@@ -11,6 +11,8 @@
 - Expert-matched average worst accuracy: `0.800`.
 - Matched + router-frozen average worst accuracy: `0.787`.
 - Matched + router-calibrated average worst accuracy: `0.838`.
+- Expert-weight search average worst accuracy: `0.802`.
+- Expert-weight search + router-calibrated worst accuracy: `0.828`.
 - Route-aware expert average worst accuracy: `0.790`.
 - Recovered expert matching mean cosine: `0.977`.
 - Code source permutation: `[2, 0, 3, 1]`.
@@ -19,8 +21,10 @@
 
 | method | general acc | code acc | worst acc | avg loss |
 | --- | ---: | ---: | ---: | ---: |
-| matched_router_calibrated_average | 0.838 | 0.838 | 0.838 | 0.597 |
+| matched_router_calibrated_average | 0.838 | 0.840 | 0.838 | 0.600 |
+| expert_weight_search_router_calibrated_average | 0.828 | 0.835 | 0.828 | 0.600 |
 | code_endpoint_permuted | 0.818 | 0.802 | 0.802 | 0.618 |
+| expert_weight_search_average | 0.810 | 0.802 | 0.802 | 0.618 |
 | expert_matched_average | 0.818 | 0.800 | 0.800 | 0.616 |
 | route_aware_expert_average | 0.807 | 0.790 | 0.790 | 0.620 |
 | matched_router_frozen_average | 0.815 | 0.787 | 0.787 | 0.619 |
@@ -35,6 +39,8 @@
 - `expert_matched_average` 先用 unlabeled calibration input 的 expert-output cosine 做 Hungarian matching，再平均；这对应 Sub-MoE / Expert Merging 里强调的 function-aware expert alignment。
 - `matched_router_frozen_average` 直接验证 MoE 特有假设：先对齐 expert 功能，再固定 token-to-expert dispatch，只平均非 router 权重。
 - `matched_router_calibrated_average` 冻结 matched experts，只用小校准集更新 router，并用 base-router KL 约束防止 dispatch 漂移。
+- `expert_weight_search_average` 在同一个 expert 数和 tensor shape 内，对每个 expert 的 general/code delta 系数做校准集 min-max 坐标搜索；router 仍固定为 base。
+- `expert_weight_search_router_calibrated_average` 在 per-expert 系数搜索后，只开放 router 做 guarded calibration。
 - `route_aware_expert_average` 冻结 base router，并按 base router 在 general/code prompt 上的 route mass 给每个 expert 设置 source delta 权重；这对应 route-weight recipes 的 toy 版本。
 - 这个实验不是 Qwen3 结果，但它把 MoE merging 的特质从报告落成了可跑的 probe：expert index、router overlap、expert load 和 category route mass 都会影响 average 是否安全。
 
@@ -46,5 +52,7 @@
 - `route_overlap.csv`
 - `expert_match.csv`
 - `route_weights_by_expert.csv`
+- `expert_search_weights_by_expert.csv`
+- `expert_weight_search_trace.csv`
 - `toy_moe_merge.png`
 - `summary.json`

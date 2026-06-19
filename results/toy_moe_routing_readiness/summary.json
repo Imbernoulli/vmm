@@ -1,23 +1,23 @@
 {
-  "generated_at": "2026-06-19T09:31:50.010886+00:00",
+  "generated_at": "2026-06-19T09:51:05.003898+00:00",
   "readiness_status": "high_risk_calibrate_router_before_merge",
   "router_dirs": [
     "results/toy_moe_merge"
   ],
-  "router_rows": 18,
-  "expert_rows": 72,
-  "specialization_rows": 36,
+  "router_rows": 22,
+  "expert_rows": 88,
+  "specialization_rows": 44,
   "router_action_counts": {
-    "freeze_router_and_check_load_balance": 8,
-    "router_probe_passed_for_small_lambda": 7,
+    "freeze_router_and_check_load_balance": 10,
+    "router_probe_passed_for_small_lambda": 9,
     "calibrate_router_before_average": 3
   },
   "expert_action_counts": {
-    "low_lambda_or_route_frequency_average": 72
+    "low_lambda_or_route_frequency_average": 88
   },
   "specialization_action_counts": {
-    "shared_or_mixed_expert": 26,
-    "category_specialized_route_weight": 10
+    "shared_or_mixed_expert": 32,
+    "category_specialized_route_weight": 12
   },
   "thresholds": {
     "collapse_threshold": 0.5,

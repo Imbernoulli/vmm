@@ -10,7 +10,9 @@
 
 | method | kind | worst acc | avg acc | calibrate flags | min top-k Jaccard | decision |
 | --- | --- | ---: | ---: | ---: | ---: | --- |
-| matched_router_calibrated_average | merge_candidate | 0.838 | 0.838 | 0 | 0.8375 | `candidate_with_router_guard` |
+| matched_router_calibrated_average | merge_candidate | 0.838 | 0.839 | 0 | 0.8275 | `candidate_with_router_guard` |
+| expert_weight_search_router_calibrated_average | merge_candidate | 0.828 | 0.831 | 0 | 0.8308 | `candidate_with_router_guard` |
+| expert_weight_search_average | merge_candidate | 0.802 | 0.806 | 0 | 1 | `candidate_with_router_guard` |
 | expert_matched_average | merge_candidate | 0.800 | 0.809 | 0 | 0.98 | `candidate_with_router_guard` |
 | route_aware_expert_average | merge_candidate | 0.790 | 0.799 | 0 | 1 | `candidate_with_router_guard` |
 | matched_router_frozen_average | merge_candidate | 0.787 | 0.801 | 0 | 1 | `candidate_with_router_guard` |
@@ -25,7 +27,7 @@
 推荐先 materialize/复评 `matched_router_calibrated_average`。
 
 - worst accuracy: `0.838`
-- avg accuracy: `0.838`
+- avg accuracy: `0.839`
 - decision: `candidate_with_router_guard`
 - reason: candidate passes routing-overlap gate after router calibration; keep load-balance and held-out route checks.
 
