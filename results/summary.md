@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T15:15:04.358807+00:00`
+Generated at: `2026-06-19T15:22:27.817991+00:00`
 
 ## Coverage
 
-Complete: `41`; partial: `1`; missing: `0`.
+Complete: `42`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -39,6 +39,7 @@ Complete: `41`; partial: `1`; missing: `0`.
 | Average candidate recipes | complete | results/average_candidate_recipes/report.md converts probe decisions into conservative same-shape materialization recipes and skips endpoint-only pseudo-averages. |
 | MoE route-weight recipes | complete | results/moe_route_weight_recipes/report.md converts MoE routing/expert-load probes into tensor-rule files for same-shape checkpoint materialization; current recipe is waiting for real routing probe data. |
 | MoE router-bias additive capacity plan | complete | results/moe_router_bias_plan/report.md converts expert_load.csv into writer-ready router-bias additive deltas for same-shape capacity correction. |
+| MoE confidence-blended router-bias capacity plan | complete | results/moe_confidence_blended_router_bias_plan/report.md applies the same writer-ready capacity correction to the confidence-blended unified MoE candidate. |
 | MoE searched expert-weight recipes | complete | results/toy_moe_expert_weight_recipes/report.md converts calibration-searched per-expert source weights into same-shape checkpoint writer tensor rules. |
 | MoE output-projection expert-weight recipes | complete | results/toy_moe_output_projection_recipes/report.md converts route-conditioned output-space expert weights into same-shape checkpoint writer tensor rules. |
 | MoE confidence-blended expert-weight recipes | complete | results/toy_moe_confidence_blended_recipes/report.md converts projection-confidence-gated expert weights into same-shape checkpoint writer tensor rules. |
@@ -223,6 +224,8 @@ Complete: `41`; partial: `1`; missing: `0`.
 | MoE route-weight recipes | expert tensor rules | 0 |
 | MoE router-bias plan | status | router_bias_delta_ready |
 | MoE router-bias plan | nonzero delta rows | 4 |
+| MoE confidence-blended router-bias plan | status | router_bias_delta_ready |
+| MoE confidence-blended router-bias plan | nonzero delta rows | 4 |
 | MoE searched expert-weight recipes | recipe status | explicit_expert_weight_rules_ready |
 | MoE searched expert-weight recipes | expert tensor rules | 4 |
 | MoE output-projection expert-weight recipes | recipe status | explicit_expert_weight_rules_ready |

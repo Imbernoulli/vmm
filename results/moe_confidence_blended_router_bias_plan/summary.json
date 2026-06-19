@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "status": "router_bias_delta_ready",
+  "router_dirs": [
+    "results/toy_moe_merge"
+  ],
+  "input_summaries": [
+    {
+      "router_dir": "results/toy_moe_merge",
+      "rows": 320,
+      "status": "loaded"
+    }
+  ],
+  "methods": [
+    "unified_confidence_blended_moe_average"
+  ],
+  "method_filter": [
+    "unified_confidence_blended_moe_average"
+  ],
+  "router_count": 1,
+  "delta_rows": 4,
+  "nonzero_delta_rows": 4,
+  "writer_csv_ready": true,
+  "capacity_factor": 1.25,
+  "target_topk_fraction": null,
+  "load_stat": "worst",
+  "load_quantile": 0.95,
+  "bias_step": 0.25,
+  "max_abs_delta": 0.5,
+  "router_bias_template": "{router}.bias",
+  "same_shape_constraint": "The generated CSV only adds scalar deltas to existing router-bias tensors; it does not add experts, layers, or router outputs.",
+  "outputs": {
+    "router_bias_plan": "results/moe_confidence_blended_router_bias_plan/router_bias_plan.csv",
+    "router_bias_deltas": "results/moe_confidence_blended_router_bias_plan/router_bias_deltas.csv",
+    "summary": "results/moe_confidence_blended_router_bias_plan/summary.json",
+    "report": "results/moe_confidence_blended_router_bias_plan/report.md"
+  }
+}

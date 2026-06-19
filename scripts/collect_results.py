@@ -546,10 +546,11 @@ def summarize_moe_route_weight_recipes() -> dict[str, Any]:
     }
 
 
-def summarize_moe_router_bias_plan() -> dict[str, Any]:
-    summary = read_json("results/moe_router_bias_plan/summary.json")
-    plan = read_csv("results/moe_router_bias_plan/router_bias_plan.csv")
-    deltas = read_csv("results/moe_router_bias_plan/router_bias_deltas.csv")
+def summarize_moe_router_bias_plan_dir(path: str) -> dict[str, Any]:
+    root = repo_path(path)
+    summary = read_json(root / "summary.json")
+    plan = read_csv(root / "router_bias_plan.csv")
+    deltas = read_csv(root / "router_bias_deltas.csv")
     return {
         "summary": summary,
         "status": summary.get("status"),
@@ -559,10 +560,18 @@ def summarize_moe_router_bias_plan() -> dict[str, Any]:
         "nonzero_delta_rows": int(summary.get("nonzero_delta_rows", len(deltas))),
         "writer_csv_ready": bool(summary.get("writer_csv_ready", False)),
         "load_stat": summary.get("load_stat"),
-        "report": rel("results/moe_router_bias_plan/report.md"),
-        "router_bias_plan": rel("results/moe_router_bias_plan/router_bias_plan.csv"),
-        "router_bias_deltas": rel("results/moe_router_bias_plan/router_bias_deltas.csv"),
+        "report": rel(root / "report.md"),
+        "router_bias_plan": rel(root / "router_bias_plan.csv"),
+        "router_bias_deltas": rel(root / "router_bias_deltas.csv"),
     }
+
+
+def summarize_moe_router_bias_plan() -> dict[str, Any]:
+    return summarize_moe_router_bias_plan_dir("results/moe_router_bias_plan")
+
+
+def summarize_moe_confidence_blended_router_bias_plan() -> dict[str, Any]:
+    return summarize_moe_router_bias_plan_dir("results/moe_confidence_blended_router_bias_plan")
 
 
 def summarize_toy_moe_recipe_dir(path: str) -> dict[str, Any]:
@@ -1590,6 +1599,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/moe_router_bias_plan/report.md converts expert_load.csv into writer-ready router-bias additive deltas for same-shape capacity correction.",
         },
         {
+            "item": "MoE confidence-blended router-bias capacity plan",
+            "status": "complete",
+            "evidence": "results/moe_confidence_blended_router_bias_plan/report.md applies the same writer-ready capacity correction to the confidence-blended unified MoE candidate.",
+        },
+        {
             "item": "MoE searched expert-weight recipes",
             "status": "complete",
             "evidence": "results/toy_moe_expert_weight_recipes/report.md converts calibration-searched per-expert source weights into same-shape checkpoint writer tensor rules.",
@@ -1673,6 +1687,7 @@ def build_summary() -> dict[str, Any]:
         "average_candidate_recipes": summarize_average_candidate_recipes(),
         "moe_route_weight_recipes": summarize_moe_route_weight_recipes(),
         "moe_router_bias_plan": summarize_moe_router_bias_plan(),
+        "moe_confidence_blended_router_bias_plan": summarize_moe_confidence_blended_router_bias_plan(),
         "toy_moe_expert_weight_recipes": summarize_toy_moe_expert_weight_recipes(),
         "toy_moe_output_projection_recipes": summarize_toy_moe_output_projection_recipes(),
         "toy_moe_confidence_blended_recipes": summarize_toy_moe_confidence_blended_recipes(),
@@ -1756,6 +1771,7 @@ def build_summary() -> dict[str, Any]:
             "PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code",
             "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code --source general --source code",
             "PYTHONPATH=src python scripts/build_moe_router_bias_plan.py --router-dir results/toy_moe_merge --method unified_moe_average --router-bias-template '{router}.bias'",
+            "PYTHONPATH=src python scripts/build_moe_router_bias_plan.py --router-dir results/toy_moe_merge --method unified_confidence_blended_moe_average --output-dir results/moe_confidence_blended_router_bias_plan --router-bias-template '{router}.bias'",
             "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --output-dir results/toy_moe_expert_weight_recipes --expert-weight-csv results/toy_moe_merge/expert_search_weights_by_expert.csv --source general --source code --checkpoint-output-dir results/checkpoints/toy_moe_expert_weight_candidate --topology-summary ''",
             "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --output-dir results/toy_moe_output_projection_recipes --expert-weight-csv results/toy_moe_merge/expert_output_projection_weights_by_expert.csv --expert-weight-category combined --source general --source code --checkpoint-output-dir results/checkpoints/toy_moe_output_projection_candidate --topology-summary ''",
             "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --output-dir results/toy_moe_confidence_blended_recipes --expert-weight-csv results/toy_moe_merge/confidence_blended_expert_weights_by_expert.csv --source general --source code --checkpoint-output-dir results/checkpoints/toy_moe_confidence_blended_candidate --topology-summary ''",
@@ -1798,6 +1814,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     recipes = exp["average_candidate_recipes"]
     route_weight_recipes = exp["moe_route_weight_recipes"]
     router_bias_plan = exp["moe_router_bias_plan"]
+    confidence_blended_router_bias_plan = exp["moe_confidence_blended_router_bias_plan"]
     toy_expert_weight_recipes = exp["toy_moe_expert_weight_recipes"]
     toy_output_projection_recipes = exp["toy_moe_output_projection_recipes"]
     toy_confidence_blended_recipes = exp["toy_moe_confidence_blended_recipes"]
@@ -2542,6 +2559,14 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| MoE router-bias plan | nonzero delta rows | "
                 f"{router_bias_plan['nonzero_delta_rows']} |"
+            ),
+            (
+                "| MoE confidence-blended router-bias plan | status | "
+                f"{confidence_blended_router_bias_plan['status']} |"
+            ),
+            (
+                "| MoE confidence-blended router-bias plan | nonzero delta rows | "
+                f"{confidence_blended_router_bias_plan['nonzero_delta_rows']} |"
             ),
             (
                 "| MoE searched expert-weight recipes | recipe status | "

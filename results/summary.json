@@ -156,6 +156,11 @@
       "status": "complete"
     },
     {
+      "evidence": "results/moe_confidence_blended_router_bias_plan/report.md applies the same writer-ready capacity correction to the confidence-blended unified MoE candidate.",
+      "item": "MoE confidence-blended router-bias capacity plan",
+      "status": "complete"
+    },
+    {
       "evidence": "results/toy_moe_expert_weight_recipes/report.md converts calibration-searched per-expert source weights into same-shape checkpoint writer tensor rules.",
       "item": "MoE searched expert-weight recipes",
       "status": "complete"
@@ -212,7 +217,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 41,
+    "complete": 42,
     "missing": 0,
     "partial": 1
   },
@@ -1741,6 +1746,58 @@
           "overlap_threshold": 0.5
         }
       }
+    },
+    "moe_confidence_blended_router_bias_plan": {
+      "delta_rows": 4,
+      "load_stat": "worst",
+      "methods": [
+        "unified_confidence_blended_moe_average"
+      ],
+      "nonzero_delta_rows": 4,
+      "report": "results/moe_confidence_blended_router_bias_plan/report.md",
+      "router_bias_deltas": "results/moe_confidence_blended_router_bias_plan/router_bias_deltas.csv",
+      "router_bias_plan": "results/moe_confidence_blended_router_bias_plan/router_bias_plan.csv",
+      "router_count": 1,
+      "status": "router_bias_delta_ready",
+      "summary": {
+        "bias_step": 0.25,
+        "capacity_factor": 1.25,
+        "delta_rows": 4,
+        "input_summaries": [
+          {
+            "router_dir": "results/toy_moe_merge",
+            "rows": 320,
+            "status": "loaded"
+          }
+        ],
+        "load_quantile": 0.95,
+        "load_stat": "worst",
+        "max_abs_delta": 0.5,
+        "method_filter": [
+          "unified_confidence_blended_moe_average"
+        ],
+        "methods": [
+          "unified_confidence_blended_moe_average"
+        ],
+        "nonzero_delta_rows": 4,
+        "outputs": {
+          "report": "results/moe_confidence_blended_router_bias_plan/report.md",
+          "router_bias_deltas": "results/moe_confidence_blended_router_bias_plan/router_bias_deltas.csv",
+          "router_bias_plan": "results/moe_confidence_blended_router_bias_plan/router_bias_plan.csv",
+          "summary": "results/moe_confidence_blended_router_bias_plan/summary.json"
+        },
+        "router_bias_template": "{router}.bias",
+        "router_count": 1,
+        "router_dirs": [
+          "results/toy_moe_merge"
+        ],
+        "same_shape_constraint": "The generated CSV only adds scalar deltas to existing router-bias tensors; it does not add experts, layers, or router outputs.",
+        "schema_version": 1,
+        "status": "router_bias_delta_ready",
+        "target_topk_fraction": null,
+        "writer_csv_ready": true
+      },
+      "writer_csv_ready": true
     },
     "moe_route_weight_recipes": {
       "category_source_plan": "results/moe_route_weight_recipes/category_source_plan.csv",
@@ -7895,7 +7952,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-19T15:15:04.358807+00:00",
+  "generated_at": "2026-06-19T15:22:27.817991+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -7936,6 +7993,7 @@
     "PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code",
     "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code --source general --source code",
     "PYTHONPATH=src python scripts/build_moe_router_bias_plan.py --router-dir results/toy_moe_merge --method unified_moe_average --router-bias-template '{router}.bias'",
+    "PYTHONPATH=src python scripts/build_moe_router_bias_plan.py --router-dir results/toy_moe_merge --method unified_confidence_blended_moe_average --output-dir results/moe_confidence_blended_router_bias_plan --router-bias-template '{router}.bias'",
     "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --output-dir results/toy_moe_expert_weight_recipes --expert-weight-csv results/toy_moe_merge/expert_search_weights_by_expert.csv --source general --source code --checkpoint-output-dir results/checkpoints/toy_moe_expert_weight_candidate --topology-summary ''",
     "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --output-dir results/toy_moe_output_projection_recipes --expert-weight-csv results/toy_moe_merge/expert_output_projection_weights_by_expert.csv --expert-weight-category combined --source general --source code --checkpoint-output-dir results/checkpoints/toy_moe_output_projection_candidate --topology-summary ''",
     "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --output-dir results/toy_moe_confidence_blended_recipes --expert-weight-csv results/toy_moe_merge/confidence_blended_expert_weights_by_expert.csv --source general --source code --checkpoint-output-dir results/checkpoints/toy_moe_confidence_blended_candidate --topology-summary ''",
