@@ -141,6 +141,11 @@
       "status": "complete"
     },
     {
+      "evidence": "results/dense_sparse_method_writer_smoke/report.md verifies coordinate-wise TIES-style trim/sign-elect/merge inside the same-shape checkpoint writer.",
+      "item": "Dense sparse-method writer smoke",
+      "status": "complete"
+    },
+    {
       "evidence": "results/moe_tensor_rule_writer_smoke/report.md writes a tiny MoE-like safetensors checkpoint and verifies tensor-rule, freeze-router, router-bias additive deltas, and non-floating tensor behavior numerically.",
       "item": "MoE tensor-rule writer materialization",
       "status": "complete"
@@ -252,7 +257,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 49,
+    "complete": 50,
     "missing": 0,
     "partial": 1
   },
@@ -1490,6 +1495,44 @@
       },
       "validation_minus_base_worst_acc": 0.04999999999999999,
       "validation_minus_linear_worst_acc": 0.1768518518518518
+    },
+    "dense_sparse_method_writer_smoke": {
+      "checked_tensors": 3,
+      "failed_tensors": 0,
+      "manifest_path": "results/dense_sparse_method_writer_smoke/merge_manifest.json",
+      "method_counts": {
+        "linear": 1,
+        "tensor_method:.*mlp\\.up_proj.*:ties": 1
+      },
+      "report": "results/dense_sparse_method_writer_smoke/report.md",
+      "status": "passed",
+      "summary": {
+        "checked_tensors": 3,
+        "failed_tensors": 0,
+        "method_counts": {
+          "linear": 1,
+          "tensor_method:.*mlp\\.up_proj.*:ties": 1
+        },
+        "outputs": {
+          "merge_manifest": "results/dense_sparse_method_writer_smoke/merge_manifest.json",
+          "report": "results/dense_sparse_method_writer_smoke/report.md",
+          "summary": "results/dense_sparse_method_writer_smoke/summary.json",
+          "tensor_checks": "results/dense_sparse_method_writer_smoke/tensor_checks.csv"
+        },
+        "schema_version": 1,
+        "status": "passed",
+        "tensor_method_rules": [
+          {
+            "density": 1.0,
+            "drop_rate": 0.0,
+            "method": "ties",
+            "pattern": ".*mlp\\.up_proj.*",
+            "seed": 0
+          }
+        ]
+      },
+      "tensor_checks": "results/dense_sparse_method_writer_smoke/tensor_checks.csv",
+      "tensor_method_rule_count": 1
     },
     "digit_pairwise_experts": {
       "figures": [
@@ -8897,7 +8940,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-19T16:27:15.742111+00:00",
+  "generated_at": "2026-06-19T16:33:54.094135+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -8932,6 +8975,7 @@
     "python scripts/build_qwen_target_model_registry.py",
     "PYTHONPATH=src python scripts/build_moe_average_plan.py",
     "python scripts/write_same_shape_average_checkpoint.py --base BASE --source expert=EXPERT --dry-run --output-dir results/same_shape_writer_smoke",
+    "PYTHONPATH=scripts python scripts/smoke_dense_sparse_method_writer.py --output-dir results/dense_sparse_method_writer_smoke",
     "python scripts/smoke_moe_tensor_rule_writer.py --output-dir results/moe_tensor_rule_writer_smoke",
     "PYTHONPATH=src python scripts/smoke_moe_combined_writer.py --output-dir results/moe_combined_writer_smoke",
     "PYTHONPATH=scripts python scripts/smoke_moe_packed_expert_writer.py --output-dir results/moe_packed_expert_writer_smoke",

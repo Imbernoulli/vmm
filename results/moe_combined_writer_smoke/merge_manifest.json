@@ -15,6 +15,9 @@
   "freeze_regex": [],
   "freeze_router": true,
   "frozen_tensors": 2,
+  "method_counts": {
+    "linear": 6
+  },
   "output_dtype": "base",
   "packed_expert_rule_csv": [],
   "packed_expert_rule_slices": 0,
@@ -99,6 +102,7 @@
       "source": "code"
     }
   ],
+  "tensor_method_rules": [],
   "tensor_rules": [
     {
       "pattern": ".*self_attn.*",

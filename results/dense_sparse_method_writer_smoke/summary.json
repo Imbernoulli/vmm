@@ -1,0 +1,25 @@
+{
+  "checked_tensors": 3,
+  "failed_tensors": 0,
+  "method_counts": {
+    "linear": 1,
+    "tensor_method:.*mlp\\.up_proj.*:ties": 1
+  },
+  "outputs": {
+    "merge_manifest": "results/dense_sparse_method_writer_smoke/merge_manifest.json",
+    "report": "results/dense_sparse_method_writer_smoke/report.md",
+    "summary": "results/dense_sparse_method_writer_smoke/summary.json",
+    "tensor_checks": "results/dense_sparse_method_writer_smoke/tensor_checks.csv"
+  },
+  "schema_version": 1,
+  "status": "passed",
+  "tensor_method_rules": [
+    {
+      "density": 1.0,
+      "drop_rate": 0.0,
+      "method": "ties",
+      "pattern": ".*mlp\\.up_proj.*",
+      "seed": 0
+    }
+  ]
+}

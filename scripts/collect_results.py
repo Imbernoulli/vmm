@@ -500,6 +500,23 @@ def summarize_moe_tensor_rule_writer_smoke() -> dict[str, Any]:
     }
 
 
+def summarize_dense_sparse_method_writer_smoke() -> dict[str, Any]:
+    summary = read_json("results/dense_sparse_method_writer_smoke/summary.json")
+    checks = read_csv("results/dense_sparse_method_writer_smoke/tensor_checks.csv")
+    manifest = read_json("results/dense_sparse_method_writer_smoke/merge_manifest.json")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "checked_tensors": int(summary.get("checked_tensors", len(checks))),
+        "failed_tensors": int(summary.get("failed_tensors", (~checks["passed"]).sum())),
+        "method_counts": summary.get("method_counts", {}),
+        "tensor_method_rule_count": len(manifest.get("tensor_method_rules", [])),
+        "report": rel("results/dense_sparse_method_writer_smoke/report.md"),
+        "tensor_checks": rel("results/dense_sparse_method_writer_smoke/tensor_checks.csv"),
+        "manifest_path": rel("results/dense_sparse_method_writer_smoke/merge_manifest.json"),
+    }
+
+
 def summarize_moe_combined_writer_smoke() -> dict[str, Any]:
     summary = read_json("results/moe_combined_writer_smoke/summary.json")
     checks = read_csv("results/moe_combined_writer_smoke/tensor_checks.csv")
@@ -1750,6 +1767,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "scripts/write_same_shape_average_checkpoint.py writes same-shape safetensors checkpoints; results/same_shape_writer_smoke/report.md validates Qwen2.5-0.5B base/instruct/coder dry-run compatibility.",
         },
         {
+            "item": "Dense sparse-method writer smoke",
+            "status": "complete",
+            "evidence": "results/dense_sparse_method_writer_smoke/report.md verifies coordinate-wise TIES-style trim/sign-elect/merge inside the same-shape checkpoint writer.",
+        },
+        {
             "item": "MoE tensor-rule writer materialization",
             "status": "complete",
             "evidence": "results/moe_tensor_rule_writer_smoke/report.md writes a tiny MoE-like safetensors checkpoint and verifies tensor-rule, freeze-router, router-bias additive deltas, and non-floating tensor behavior numerically.",
@@ -1883,6 +1905,7 @@ def build_summary() -> dict[str, Any]:
         "moe_routing_probe_smoke": summarize_moe_routing_probe_smoke(),
         "moe_average_plan": summarize_moe_average_plan(),
         "same_shape_writer_smoke": summarize_same_shape_writer_smoke(),
+        "dense_sparse_method_writer_smoke": summarize_dense_sparse_method_writer_smoke(),
         "moe_tensor_rule_writer_smoke": summarize_moe_tensor_rule_writer_smoke(),
         "moe_combined_writer_smoke": summarize_moe_combined_writer_smoke(),
         "moe_packed_expert_writer_smoke": summarize_moe_packed_expert_writer_smoke(),
@@ -1973,6 +1996,7 @@ def build_summary() -> dict[str, Any]:
             "python scripts/build_qwen_target_model_registry.py",
             "PYTHONPATH=src python scripts/build_moe_average_plan.py",
             "python scripts/write_same_shape_average_checkpoint.py --base BASE --source expert=EXPERT --dry-run --output-dir results/same_shape_writer_smoke",
+            "PYTHONPATH=scripts python scripts/smoke_dense_sparse_method_writer.py --output-dir results/dense_sparse_method_writer_smoke",
             "python scripts/smoke_moe_tensor_rule_writer.py --output-dir results/moe_tensor_rule_writer_smoke",
             "PYTHONPATH=src python scripts/smoke_moe_combined_writer.py --output-dir results/moe_combined_writer_smoke",
             "PYTHONPATH=scripts python scripts/smoke_moe_packed_expert_writer.py --output-dir results/moe_packed_expert_writer_smoke",
@@ -2023,6 +2047,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     routing_probe_smoke = exp["moe_routing_probe_smoke"]
     moe_average_plan = exp["moe_average_plan"]
     writer_smoke = exp["same_shape_writer_smoke"]
+    dense_sparse_writer_smoke = exp["dense_sparse_method_writer_smoke"]
     moe_tensor_rule_writer_smoke = exp["moe_tensor_rule_writer_smoke"]
     moe_combined_writer_smoke = exp["moe_combined_writer_smoke"]
     moe_packed_expert_writer_smoke = exp["moe_packed_expert_writer_smoke"]
@@ -2786,6 +2811,16 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| same-shape writer smoke | Qwen-compatible tensors checked | "
                 f"{writer_smoke['floating_tensors']} |"
+            ),
+            (
+                "| dense sparse-method writer smoke | status | "
+                f"{dense_sparse_writer_smoke['status']} |"
+            ),
+            (
+                "| dense sparse-method writer smoke | checked / failed tensors / method rules | "
+                f"{dense_sparse_writer_smoke['checked_tensors']} / "
+                f"{dense_sparse_writer_smoke['failed_tensors']} / "
+                f"{dense_sparse_writer_smoke['tensor_method_rule_count']} |"
             ),
             (
                 "| MoE tensor-rule writer smoke | status | "

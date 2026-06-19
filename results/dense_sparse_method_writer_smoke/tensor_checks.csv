@@ -1,0 +1,4 @@
+tensor,expected_mean,actual_mean,max_abs_error,passed
+model.int_buffer,,,0.0,True
+model.layers.0.mlp.up_proj.weight,-0.75,-0.75,0.0,True
+model.layers.0.self_attn.q_proj.weight,3.0,3.0,0.0,True

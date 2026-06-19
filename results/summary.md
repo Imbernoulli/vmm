@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T16:27:15.742111+00:00`
+Generated at: `2026-06-19T16:33:54.094135+00:00`
 
 ## Coverage
 
-Complete: `49`; partial: `1`; missing: `0`.
+Complete: `50`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -36,6 +36,7 @@ Complete: `49`; partial: `1`; missing: `0`.
 | Qwen target model registry | complete | results/qwen_target_model_registry/report.md maps representative official, third-party, downstream, and adapter-pool Qwen candidates to scenarios, eval slices, probes, and same-shape topology gates. |
 | MoE same-shape averaging plan | complete | results/moe_average_plan/report.md maps router/expert probes into same-shape router, shared-module, expert, and adapter averaging actions. |
 | Same-shape checkpoint writer | complete | scripts/write_same_shape_average_checkpoint.py writes same-shape safetensors checkpoints; results/same_shape_writer_smoke/report.md validates Qwen2.5-0.5B base/instruct/coder dry-run compatibility. |
+| Dense sparse-method writer smoke | complete | results/dense_sparse_method_writer_smoke/report.md verifies coordinate-wise TIES-style trim/sign-elect/merge inside the same-shape checkpoint writer. |
 | MoE tensor-rule writer materialization | complete | results/moe_tensor_rule_writer_smoke/report.md writes a tiny MoE-like safetensors checkpoint and verifies tensor-rule, freeze-router, router-bias additive deltas, and non-floating tensor behavior numerically. |
 | MoE combined writer smoke | complete | results/moe_combined_writer_smoke/report.md verifies expert tensor rules, source expert alias remap, freeze-router, and router-bias additive deltas in one same-shape writer call. |
 | MoE packed-expert writer smoke | complete | results/moe_packed_expert_writer_smoke/report.md verifies first-dimension packed expert slice weights and source-expert remaps for Qwen-style packed MoE tensors. |
@@ -231,6 +232,8 @@ Complete: `49`; partial: `1`; missing: `0`.
 | MoE average plan | router plan rows | 0 |
 | MoE average plan | expert plan rows | 0 |
 | same-shape writer smoke | Qwen-compatible tensors checked | 290 |
+| dense sparse-method writer smoke | status | passed |
+| dense sparse-method writer smoke | checked / failed tensors / method rules | 3 / 0 / 1 |
 | MoE tensor-rule writer smoke | status | passed |
 | MoE tensor-rule writer smoke | checked / failed tensors | 7 / 0 |
 | MoE tensor-rule writer smoke | additive bias delta tensors / values | 1 / 2 |

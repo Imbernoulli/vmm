@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import re
 import shutil
@@ -66,6 +67,16 @@ class TensorRule:
     pattern: re.Pattern[str]
     raw_pattern: str
     weights: dict[str, float]
+
+
+@dataclass(frozen=True)
+class TensorMethodRule:
+    pattern: re.Pattern[str]
+    raw_pattern: str
+    method: str
+    density: float
+    drop_rate: float
+    seed: int
 
 
 @dataclass(frozen=True)
@@ -225,7 +236,69 @@ def parse_tensor_rules(raw_items: list[str] | None, source_names: list[str]) -> 
     return rules
 
 
+def parse_tensor_method_rule_options(raw: str) -> dict[str, str]:
+    options: dict[str, str] = {}
+    chunks = [chunk.strip() for chunk in raw.split(",") if chunk.strip()]
+    if not chunks:
+        raise ValueError("Tensor method rule has no method/options")
+    first = chunks[0]
+    if "=" in first:
+        key, value = first.split("=", 1)
+        options[key.strip()] = value.strip()
+    else:
+        options["method"] = first
+    for chunk in chunks[1:]:
+        if "=" not in chunk:
+            raise ValueError(f"Expected KEY=VALUE in tensor method option: {chunk}")
+        key, value = chunk.split("=", 1)
+        options[key.strip()] = value.strip()
+    return options
+
+
+def parse_tensor_method_rules(raw_items: list[str] | None) -> list[TensorMethodRule]:
+    rules: list[TensorMethodRule] = []
+    valid_methods = {"linear", "ties", "dare", "ties_dare"}
+    for item in raw_items or []:
+        if "::" not in item:
+            raise ValueError("Tensor method rules must use PATTERN::METHOD[,density=FLOAT,drop_rate=FLOAT,seed=INT]")
+        pattern, raw_options = item.split("::", 1)
+        options = parse_tensor_method_rule_options(raw_options)
+        method = options.get("method", "").strip()
+        if method not in valid_methods:
+            raise ValueError(f"Unsupported tensor merge method {method!r}; valid methods: {sorted(valid_methods)}")
+        density = float(options.get("density", "1.0"))
+        drop_rate = float(options.get("drop_rate", "0.0"))
+        seed = int(options.get("seed", "0"))
+        if not 0.0 <= density <= 1.0:
+            raise ValueError(f"Tensor method density must be in [0, 1], got {density}")
+        if not 0.0 <= drop_rate <= 1.0:
+            raise ValueError(f"Tensor method drop_rate must be in [0, 1], got {drop_rate}")
+        rules.append(
+            TensorMethodRule(
+                pattern=re.compile(pattern),
+                raw_pattern=pattern,
+                method=method,
+                density=density,
+                drop_rate=drop_rate,
+                seed=seed,
+            )
+        )
+    return rules
+
+
 def load_tensor_rule_files(paths: list[str] | None) -> list[str]:
+    raw_rules: list[str] = []
+    for path in paths or []:
+        with Path(path).open("r", encoding="utf-8") as handle:
+            for line in handle:
+                stripped = line.strip()
+                if not stripped or stripped.startswith("#"):
+                    continue
+                raw_rules.append(stripped)
+    return raw_rules
+
+
+def load_tensor_method_rule_files(paths: list[str] | None) -> list[str]:
     raw_rules: list[str] = []
     for path in paths or []:
         with Path(path).open("r", encoding="utf-8") as handle:
@@ -402,6 +475,13 @@ def choose_weights(
     if freeze_router and is_router_tensor(name):
         return {source: 0.0 for source in default_weights}, "freeze_router"
     return default_weights, "default"
+
+
+def choose_tensor_method(name: str, tensor_method_rules: list[TensorMethodRule]) -> tuple[TensorMethodRule | None, str]:
+    for rule in tensor_method_rules:
+        if rule.pattern.search(name):
+            return rule, f"tensor_method:{rule.raw_pattern}:{rule.method}"
+    return None, "linear"
 
 
 def validate_compatible(
@@ -625,6 +705,36 @@ def tensor_nbytes(shape: tuple[int, ...], dtype: torch.dtype) -> int:
     return shape_numel(shape) * torch.empty((), dtype=dtype).element_size()
 
 
+def stable_tensor_seed(seed: int, tensor_name: str, source_name: str) -> int:
+    payload = f"{seed}:{tensor_name}:{source_name}".encode("utf-8")
+    digest = hashlib.sha256(payload).digest()
+    return int.from_bytes(digest[:8], byteorder="little", signed=False) % (2**31)
+
+
+def topk_mask(delta: torch.Tensor, density: float) -> torch.Tensor:
+    if density >= 1.0:
+        return torch.ones_like(delta, dtype=torch.bool)
+    if density <= 0.0:
+        return torch.zeros_like(delta, dtype=torch.bool)
+    flat = delta.reshape(-1)
+    k = max(1, int(round(flat.numel() * density)))
+    if k >= flat.numel():
+        return torch.ones_like(delta, dtype=torch.bool)
+    threshold = torch.topk(flat.abs(), k=k, largest=True).values[-1]
+    return delta.abs() >= threshold
+
+
+def deterministic_dare_delta(delta: torch.Tensor, drop_rate: float, seed: int) -> torch.Tensor:
+    if drop_rate <= 0.0:
+        return delta
+    if drop_rate >= 1.0:
+        return torch.zeros_like(delta)
+    generator = torch.Generator(device=delta.device)
+    generator.manual_seed(seed)
+    keep = torch.rand(delta.shape, generator=generator, device=delta.device) >= drop_rate
+    return delta * keep.to(delta.dtype) / (1.0 - drop_rate)
+
+
 def apply_tensor_add_deltas(
     name: str,
     tensor: torch.Tensor,
@@ -638,6 +748,58 @@ def apply_tensor_add_deltas(
     for delta in deltas:
         flat[delta.index] = flat[delta.index] + float(delta.delta)
     return updated.reshape_as(tensor), len(deltas)
+
+
+def merge_sparse_task_vectors(
+    name: str,
+    base_tensor: torch.Tensor,
+    source_tensors: dict[str, torch.Tensor],
+    weights: dict[str, float],
+    method_rule: TensorMethodRule | None,
+) -> torch.Tensor:
+    if method_rule is None or method_rule.method == "linear":
+        merged = base_tensor.to(torch.float32)
+        for source_name, weight in weights.items():
+            if abs(weight) <= 1e-12:
+                continue
+            if source_name not in source_tensors:
+                continue
+            source_tensor = source_tensors[source_name]
+            merged = merged + float(weight) * (source_tensor.to(torch.float32) - base_tensor.to(torch.float32))
+        return merged
+
+    base_float = base_tensor.to(torch.float32)
+    weighted_deltas: list[torch.Tensor] = []
+    source_delta_signs: list[torch.Tensor] = []
+    for source_name, weight in weights.items():
+        if abs(weight) <= 1e-12:
+            continue
+        if source_name not in source_tensors:
+            continue
+        delta = source_tensors[source_name].to(torch.float32) - base_float
+        if method_rule.method in {"dare", "ties_dare"}:
+            delta = deterministic_dare_delta(
+                delta,
+                method_rule.drop_rate,
+                stable_tensor_seed(method_rule.seed, name, source_name),
+            )
+        if method_rule.method in {"ties", "ties_dare"}:
+            delta = delta * topk_mask(delta, method_rule.density).to(delta.dtype)
+        weighted_deltas.append(float(weight) * delta)
+        source_delta_signs.append(torch.sign(delta))
+    if not weighted_deltas:
+        return base_float
+    if method_rule.method == "dare":
+        return base_float + torch.stack(weighted_deltas, dim=0).sum(dim=0)
+
+    stacked_weighted = torch.stack(weighted_deltas, dim=0)
+    stacked_signs = torch.stack(source_delta_signs, dim=0)
+    elected_sign = torch.sign(stacked_weighted.sum(dim=0))
+    nonzero_elected = elected_sign != 0
+    sign_match = stacked_signs == elected_sign.unsqueeze(0)
+    keep = sign_match & nonzero_elected.unsqueeze(0)
+    merged_delta = (stacked_weighted * keep.to(stacked_weighted.dtype)).sum(dim=0)
+    return base_float + merged_delta
 
 
 def apply_packed_expert_slice_rules(
@@ -705,6 +867,10 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
     default_weights = parse_weight_map(args.source_weight, source_names)
     raw_tensor_rules = list(args.tensor_rule or []) + load_tensor_rule_files(args.tensor_rule_file)
     tensor_rules = parse_tensor_rules(raw_tensor_rules, source_names)
+    raw_tensor_method_rules = list(getattr(args, "tensor_method_rule", None) or []) + load_tensor_method_rule_files(
+        getattr(args, "tensor_method_rule_file", None)
+    )
+    tensor_method_rules = parse_tensor_method_rules(raw_tensor_method_rules)
     raw_tensor_alias_rules = list(args.source_tensor_alias or []) + load_tensor_alias_files(args.source_tensor_alias_file)
     tensor_alias_rules = parse_tensor_alias_rules(raw_tensor_alias_rules, source_names)
     tensor_add_csv_paths = getattr(args, "tensor_add_csv", None)
@@ -733,6 +899,7 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     rule_counts: dict[str, int] = {}
+    method_counts: dict[str, int] = {}
     floating_tensors = 0
     frozen_tensors = 0
     copied_tensors = 0
@@ -759,6 +926,8 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
                     freeze_router=args.freeze_router,
                 )
                 rule_counts[reason] = rule_counts.get(reason, 0) + 1
+                method_rule, method_reason = choose_tensor_method(name, tensor_method_rules)
+                method_counts[method_reason] = method_counts.get(method_reason, 0) + 1
                 floating_tensors += 1
                 if name in packed_expert_rules:
                     packed_expert_rule_tensors += 1
@@ -808,6 +977,8 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
                 freeze_router=args.freeze_router,
             )
             rule_counts[reason] = rule_counts.get(reason, 0) + 1
+            method_rule, method_reason = choose_tensor_method(name, tensor_method_rules)
+            method_counts[method_reason] = method_counts.get(method_reason, 0) + 1
             floating_tensors += 1
             target_dtype = output_dtype(base_tensor.dtype, args.output_dtype)
             if all(abs(value) <= 1e-12 for value in weights.values()):
@@ -832,7 +1003,7 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
                     frozen_tensors += 1
                 output_tensors[name] = merged.to(dtype=target_dtype)
                 continue
-            merged = base_tensor.to(torch.float32)
+            source_tensors: dict[str, torch.Tensor] = {}
             for source_name, weight in weights.items():
                 if abs(weight) <= 1e-12:
                     continue
@@ -842,7 +1013,8 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
                     if args.allow_missing_source_tensors:
                         continue
                     raise KeyError(f"Missing tensor {source_tensor_name!r} for base tensor {name!r} in source {source_name!r}")
-                merged = merged + float(weight) * (source_tensor.to(torch.float32) - base_tensor.to(torch.float32))
+                source_tensors[source_name] = source_tensor
+            merged = merge_sparse_task_vectors(name, base_tensor, source_tensors, weights, method_rule)
             merged, applied_slices, applied_slice_values = apply_packed_expert_slice_rules(
                 name,
                 base_tensor,
@@ -876,6 +1048,16 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
         "source_summaries": source_summaries,
         "default_weights": default_weights,
         "tensor_rules": [{"pattern": rule.raw_pattern, "weights": rule.weights} for rule in tensor_rules],
+        "tensor_method_rules": [
+            {
+                "pattern": rule.raw_pattern,
+                "method": rule.method,
+                "density": rule.density,
+                "drop_rate": rule.drop_rate,
+                "seed": rule.seed,
+            }
+            for rule in tensor_method_rules
+        ],
         "tensor_alias_rules": [
             {"source": rule.source, "pattern": rule.raw_pattern, "replacement": rule.replacement}
             for rule in tensor_alias_rules
@@ -897,6 +1079,7 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
         "packed_expert_rule_slices": packed_expert_rule_slices,
         "packed_expert_rule_values": packed_expert_rule_values,
         "rule_counts": rule_counts,
+        "method_counts": method_counts,
         "shards": shard_summaries,
         "copied_metadata": copied_metadata,
         "same_shape_constraint": "All output tensors keep base tensor names and shapes; metadata is copied from base when available.",
@@ -921,6 +1104,21 @@ def parse_args() -> argparse.Namespace:
         action="append",
         default=None,
         help="Text file with one PATTERN::SOURCE=WEIGHT,SOURCE=WEIGHT rule per line. Blank lines and # comments are ignored.",
+    )
+    parser.add_argument(
+        "--tensor-method-rule",
+        action="append",
+        default=None,
+        help=(
+            "Regex-specific sparse merge method: PATTERN::ties,density=0.5 or "
+            "PATTERN::ties_dare,density=0.5,drop_rate=0.25,seed=1. First matching rule wins."
+        ),
+    )
+    parser.add_argument(
+        "--tensor-method-rule-file",
+        action="append",
+        default=None,
+        help="Text file with one PATTERN::METHOD[,KEY=VALUE] rule per line. Blank lines and # comments are ignored.",
     )
     parser.add_argument(
         "--source-tensor-alias",

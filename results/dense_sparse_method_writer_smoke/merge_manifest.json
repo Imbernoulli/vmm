@@ -1,0 +1,88 @@
+{
+  "additive_delta_tensors": 0,
+  "additive_delta_values": 0,
+  "base": "TMP/base",
+  "copied_metadata": [
+    "config.json"
+  ],
+  "copied_nonfloating_tensors": 1,
+  "default_weights": {
+    "left": 0.5,
+    "right": 0.5
+  },
+  "dry_run": false,
+  "floating_tensors": 2,
+  "freeze_regex": [],
+  "freeze_router": false,
+  "frozen_tensors": 0,
+  "method_counts": {
+    "linear": 1,
+    "tensor_method:.*mlp\\.up_proj.*:ties": 1
+  },
+  "output_dtype": "base",
+  "packed_expert_rule_csv": [],
+  "packed_expert_rule_slices": 0,
+  "packed_expert_rule_tensors": 0,
+  "packed_expert_rule_values": 0,
+  "packed_expert_slice_rule_summary": {
+    "abs_weight_sum": 0.0,
+    "rule_count": 0,
+    "slice_count": 0,
+    "tensor_count": 0,
+    "tensors": []
+  },
+  "rule_counts": {
+    "default": 2
+  },
+  "same_shape_constraint": "All output tensors keep base tensor names and shapes; metadata is copied from base when available.",
+  "schema_version": 1,
+  "shards": [
+    {
+      "shard": "model.safetensors",
+      "tensors": 3
+    }
+  ],
+  "source_summaries": {
+    "left": {
+      "aliased_tensors": 0,
+      "dtype_mismatches": 0,
+      "extra_tensors": 0,
+      "missing_tensors": 0,
+      "root": "TMP/left",
+      "shape_mismatches": 0,
+      "tensors": 3
+    },
+    "right": {
+      "aliased_tensors": 0,
+      "dtype_mismatches": 0,
+      "extra_tensors": 0,
+      "missing_tensors": 0,
+      "root": "TMP/right",
+      "shape_mismatches": 0,
+      "tensors": 3
+    }
+  },
+  "sources": {
+    "left": "TMP/left",
+    "right": "TMP/right"
+  },
+  "tensor_add_csv": [],
+  "tensor_add_delta_summary": {
+    "abs_delta_sum": 0.0,
+    "delta_count": 0,
+    "max_abs_delta": 0.0,
+    "tensor_count": 0,
+    "tensors": []
+  },
+  "tensor_alias_rules": [],
+  "tensor_method_rules": [
+    {
+      "density": 1.0,
+      "drop_rate": 0.0,
+      "method": "ties",
+      "pattern": ".*mlp\\.up_proj.*",
+      "seed": 0
+    }
+  ],
+  "tensor_rules": []
+}
