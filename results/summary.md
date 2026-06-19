@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T09:55:55.540311+00:00`
+Generated at: `2026-06-19T09:59:59.364384+00:00`
 
 ## Coverage
 
-Complete: `30`; partial: `1`; missing: `0`.
+Complete: `31`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -27,6 +27,7 @@ Complete: `30`; partial: `1`; missing: `0`.
 | Qwen target model registry | complete | results/qwen_target_model_registry/report.md maps representative official, third-party, downstream, and adapter-pool Qwen candidates to scenarios, eval slices, probes, and same-shape topology gates. |
 | MoE same-shape averaging plan | complete | results/moe_average_plan/report.md maps router/expert probes into same-shape router, shared-module, expert, and adapter averaging actions. |
 | Same-shape checkpoint writer | complete | scripts/write_same_shape_average_checkpoint.py writes same-shape safetensors checkpoints; results/same_shape_writer_smoke/report.md validates Qwen2.5-0.5B base/instruct/coder dry-run compatibility. |
+| MoE tensor-rule writer materialization | complete | results/moe_tensor_rule_writer_smoke/report.md writes a tiny MoE-like safetensors checkpoint and verifies tensor-rule, freeze-router, and non-floating tensor behavior numerically. |
 | Checkpoint topology inspection | complete | results/checkpoint_topology_inspect/report.md inspects Qwen MoE/Dense configs and safetensors headers without loading weights. |
 | Average candidate recipes | complete | results/average_candidate_recipes/report.md converts probe decisions into conservative same-shape materialization recipes and skips endpoint-only pseudo-averages. |
 | MoE route-weight recipes | complete | results/moe_route_weight_recipes/report.md converts MoE routing/expert-load probes into tensor-rule files for same-shape checkpoint materialization; current recipe is waiting for real routing probe data. |
@@ -102,6 +103,8 @@ Complete: `30`; partial: `1`; missing: `0`.
 | MoE average plan | router plan rows | 0 |
 | MoE average plan | expert plan rows | 0 |
 | same-shape writer smoke | Qwen-compatible tensors checked | 290 |
+| MoE tensor-rule writer smoke | status | passed |
+| MoE tensor-rule writer smoke | checked / failed tensors | 6 / 0 |
 | checkpoint topology | inspected MoE configs | 1 |
 | average candidate recipes | endpoint-only skips | 1 |
 | average candidate recipes | MoE templates awaiting routing probe | 1 |

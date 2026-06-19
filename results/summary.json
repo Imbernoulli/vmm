@@ -96,6 +96,11 @@
       "status": "complete"
     },
     {
+      "evidence": "results/moe_tensor_rule_writer_smoke/report.md writes a tiny MoE-like safetensors checkpoint and verifies tensor-rule, freeze-router, and non-floating tensor behavior numerically.",
+      "item": "MoE tensor-rule writer materialization",
+      "status": "complete"
+    },
+    {
       "evidence": "results/checkpoint_topology_inspect/report.md inspects Qwen MoE/Dense configs and safetensors headers without loading weights.",
       "item": "Checkpoint topology inspection",
       "status": "complete"
@@ -157,7 +162,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 30,
+    "complete": 31,
     "missing": 0,
     "partial": 1
   },
@@ -1695,6 +1700,45 @@
         }
       }
     },
+    "moe_tensor_rule_writer_smoke": {
+      "checked_tensors": 6,
+      "failed_tensors": 0,
+      "floating_tensors": 5,
+      "frozen_tensors": 2,
+      "manifest_path": "results/moe_tensor_rule_writer_smoke/merge_manifest.json",
+      "report": "results/moe_tensor_rule_writer_smoke/report.md",
+      "rule_counts": {
+        "default": 1,
+        "freeze_router": 1,
+        "tensor_rule:.*experts\\.0\\..*": 1,
+        "tensor_rule:.*experts\\.1\\..*": 1,
+        "tensor_rule:.*self_attn.*": 1
+      },
+      "status": "passed",
+      "summary": {
+        "checked_tensors": 6,
+        "copied_nonfloating_tensors": 1,
+        "failed_tensors": 0,
+        "floating_tensors": 5,
+        "frozen_tensors": 2,
+        "outputs": {
+          "merge_manifest": "results/moe_tensor_rule_writer_smoke/merge_manifest.json",
+          "report": "results/moe_tensor_rule_writer_smoke/report.md",
+          "summary": "results/moe_tensor_rule_writer_smoke/summary.json",
+          "tensor_checks": "results/moe_tensor_rule_writer_smoke/tensor_checks.csv"
+        },
+        "rule_counts": {
+          "default": 1,
+          "freeze_router": 1,
+          "tensor_rule:.*experts\\.0\\..*": 1,
+          "tensor_rule:.*experts\\.1\\..*": 1,
+          "tensor_rule:.*self_attn.*": 1
+        },
+        "schema_version": 1,
+        "status": "passed"
+      },
+      "tensor_checks": "results/moe_tensor_rule_writer_smoke/tensor_checks.csv"
+    },
     "pretrained_vit_transfer_merge": {
       "base": {
         "alpha": 0.0,
@@ -3011,7 +3055,7 @@
       "tasks": "gsm8k,mmlu,safety,humaneval_compile"
     }
   },
-  "generated_at": "2026-06-19T09:55:55.540311+00:00",
+  "generated_at": "2026-06-19T09:59:59.364384+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -3038,6 +3082,7 @@
     "python scripts/build_qwen_target_model_registry.py",
     "PYTHONPATH=src python scripts/build_moe_average_plan.py",
     "python scripts/write_same_shape_average_checkpoint.py --base BASE --source expert=EXPERT --dry-run --output-dir results/same_shape_writer_smoke",
+    "python scripts/smoke_moe_tensor_rule_writer.py --output-dir results/moe_tensor_rule_writer_smoke",
     "python scripts/inspect_checkpoint_topology.py --model NAME=MODEL_PATH --output-dir results/checkpoint_topology_inspect",
     "PYTHONPATH=src python scripts/build_average_candidate_recipes.py",
     "PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code",

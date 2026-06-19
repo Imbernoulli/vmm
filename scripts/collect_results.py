@@ -471,6 +471,24 @@ def summarize_same_shape_writer_smoke() -> dict[str, Any]:
     }
 
 
+def summarize_moe_tensor_rule_writer_smoke() -> dict[str, Any]:
+    summary = read_json("results/moe_tensor_rule_writer_smoke/summary.json")
+    checks = read_csv("results/moe_tensor_rule_writer_smoke/tensor_checks.csv")
+    manifest = read_json("results/moe_tensor_rule_writer_smoke/merge_manifest.json")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "checked_tensors": int(summary.get("checked_tensors", len(checks))),
+        "failed_tensors": int(summary.get("failed_tensors", (~checks["passed"]).sum())),
+        "rule_counts": summary.get("rule_counts", {}),
+        "floating_tensors": int(manifest.get("floating_tensors", 0)),
+        "frozen_tensors": int(manifest.get("frozen_tensors", 0)),
+        "report": rel("results/moe_tensor_rule_writer_smoke/report.md"),
+        "tensor_checks": rel("results/moe_tensor_rule_writer_smoke/tensor_checks.csv"),
+        "manifest_path": rel("results/moe_tensor_rule_writer_smoke/merge_manifest.json"),
+    }
+
+
 def summarize_checkpoint_topology() -> dict[str, Any]:
     summary = read_json("results/checkpoint_topology_inspect/summary.json")
     models = summary.get("models", [])
@@ -855,6 +873,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "scripts/write_same_shape_average_checkpoint.py writes same-shape safetensors checkpoints; results/same_shape_writer_smoke/report.md validates Qwen2.5-0.5B base/instruct/coder dry-run compatibility.",
         },
         {
+            "item": "MoE tensor-rule writer materialization",
+            "status": "complete",
+            "evidence": "results/moe_tensor_rule_writer_smoke/report.md writes a tiny MoE-like safetensors checkpoint and verifies tensor-rule, freeze-router, and non-floating tensor behavior numerically.",
+        },
+        {
             "item": "Checkpoint topology inspection",
             "status": "complete",
             "evidence": "results/checkpoint_topology_inspect/report.md inspects Qwen MoE/Dense configs and safetensors headers without loading weights.",
@@ -938,6 +961,7 @@ def build_summary() -> dict[str, Any]:
         "moe_routing_probe_smoke": summarize_moe_routing_probe_smoke(),
         "moe_average_plan": summarize_moe_average_plan(),
         "same_shape_writer_smoke": summarize_same_shape_writer_smoke(),
+        "moe_tensor_rule_writer_smoke": summarize_moe_tensor_rule_writer_smoke(),
         "checkpoint_topology_inspect": summarize_checkpoint_topology(),
         "average_candidate_recipes": summarize_average_candidate_recipes(),
         "moe_route_weight_recipes": summarize_moe_route_weight_recipes(),
@@ -987,6 +1011,7 @@ def build_summary() -> dict[str, Any]:
             "python scripts/build_qwen_target_model_registry.py",
             "PYTHONPATH=src python scripts/build_moe_average_plan.py",
             "python scripts/write_same_shape_average_checkpoint.py --base BASE --source expert=EXPERT --dry-run --output-dir results/same_shape_writer_smoke",
+            "python scripts/smoke_moe_tensor_rule_writer.py --output-dir results/moe_tensor_rule_writer_smoke",
             "python scripts/inspect_checkpoint_topology.py --model NAME=MODEL_PATH --output-dir results/checkpoint_topology_inspect",
             "PYTHONPATH=src python scripts/build_average_candidate_recipes.py",
             "PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code",
@@ -1025,6 +1050,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     routing_probe_smoke = exp["moe_routing_probe_smoke"]
     moe_average_plan = exp["moe_average_plan"]
     writer_smoke = exp["same_shape_writer_smoke"]
+    moe_tensor_rule_writer_smoke = exp["moe_tensor_rule_writer_smoke"]
     topology = exp["checkpoint_topology_inspect"]
     moe_models = [model for model in topology["models"] if model.get("config", {}).get("is_moe_config")]
     recipes = exp["average_candidate_recipes"]
@@ -1293,6 +1319,14 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| same-shape writer smoke | Qwen-compatible tensors checked | "
                 f"{writer_smoke['floating_tensors']} |"
+            ),
+            (
+                "| MoE tensor-rule writer smoke | status | "
+                f"{moe_tensor_rule_writer_smoke['status']} |"
+            ),
+            (
+                "| MoE tensor-rule writer smoke | checked / failed tensors | "
+                f"{moe_tensor_rule_writer_smoke['checked_tensors']} / {moe_tensor_rule_writer_smoke['failed_tensors']} |"
             ),
             (
                 "| checkpoint topology | inspected MoE configs | "

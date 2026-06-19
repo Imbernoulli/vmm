@@ -1,0 +1,80 @@
+{
+  "base": "TMP/base",
+  "copied_metadata": [
+    "config.json"
+  ],
+  "copied_nonfloating_tensors": 1,
+  "default_weights": {
+    "code": 0.0,
+    "general": 0.0
+  },
+  "dry_run": false,
+  "floating_tensors": 5,
+  "freeze_regex": [],
+  "freeze_router": true,
+  "frozen_tensors": 2,
+  "output_dtype": "base",
+  "rule_counts": {
+    "default": 1,
+    "freeze_router": 1,
+    "tensor_rule:.*experts\\.0\\..*": 1,
+    "tensor_rule:.*experts\\.1\\..*": 1,
+    "tensor_rule:.*self_attn.*": 1
+  },
+  "same_shape_constraint": "All output tensors keep base tensor names and shapes; metadata is copied from base when available.",
+  "schema_version": 1,
+  "shards": [
+    {
+      "shard": "model.safetensors",
+      "tensors": 6
+    }
+  ],
+  "source_summaries": {
+    "code": {
+      "aliased_tensors": 0,
+      "dtype_mismatches": 0,
+      "extra_tensors": 0,
+      "missing_tensors": 0,
+      "root": "TMP/code",
+      "shape_mismatches": 0,
+      "tensors": 6
+    },
+    "general": {
+      "aliased_tensors": 0,
+      "dtype_mismatches": 0,
+      "extra_tensors": 0,
+      "missing_tensors": 0,
+      "root": "TMP/general",
+      "shape_mismatches": 0,
+      "tensors": 6
+    }
+  },
+  "sources": {
+    "code": "TMP/code",
+    "general": "TMP/general"
+  },
+  "tensor_alias_rules": [],
+  "tensor_rules": [
+    {
+      "pattern": ".*self_attn.*",
+      "weights": {
+        "code": 0.75,
+        "general": 0.25
+      }
+    },
+    {
+      "pattern": ".*experts\\.0\\..*",
+      "weights": {
+        "code": 0.25,
+        "general": 0.75
+      }
+    },
+    {
+      "pattern": ".*experts\\.1\\..*",
+      "weights": {
+        "code": 0.75,
+        "general": 0.25
+      }
+    }
+  ]
+}

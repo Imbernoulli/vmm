@@ -811,6 +811,30 @@
       "sha256": "588a01b897f2ab96c9ca62cbc5679e16894ea2424b9b4f56d8c330895bbd2702"
     },
     {
+      "bytes": 1673,
+      "kind": "data",
+      "path": "results/moe_tensor_rule_writer_smoke/merge_manifest.json",
+      "sha256": "526058c6da8e85298d1aaa3c41298066a6bed3ecef193bf2a5e65baa8b9feee6"
+    },
+    {
+      "bytes": 626,
+      "kind": "document",
+      "path": "results/moe_tensor_rule_writer_smoke/report.md",
+      "sha256": "cba417c8d20e3be16e9eb829bd420add6365474d92e24d259a2d5286b051bb4d"
+    },
+    {
+      "bytes": 673,
+      "kind": "data",
+      "path": "results/moe_tensor_rule_writer_smoke/summary.json",
+      "sha256": "2dc165adc89682a04b74e5516396a6756a5f8cd63465ebd646d2c0f9881bc0ba"
+    },
+    {
+      "bytes": 369,
+      "kind": "data",
+      "path": "results/moe_tensor_rule_writer_smoke/tensor_checks.csv",
+      "sha256": "9eb1fea92422e5b280209c4d893d81a22963667694ce7a60f32806ef948d1bb1"
+    },
+    {
       "bytes": 31792,
       "kind": "figure",
       "path": "results/pretrained_vit_transfer_merge/figures/interference_heatmap.png",
@@ -1141,16 +1165,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 125459,
+      "bytes": 127299,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "d2362e38d710b3ae0a58d5d2fbb32bfa0728595ba7f6cfb42ca7ec59e6b6fd3b"
+      "sha256": "dee4a3b255e931afb3b3b9638e30cae1a49826bf27219bd31cbf1df7271fbb67"
     },
     {
-      "bytes": 10540,
+      "bytes": 10895,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "917ae9b995724d729aa3ac1ab22b6acd62d57d257b504bf37c0e7efe7b9675a9"
+      "sha256": "45aaddf7bf37b90f45745071267d3603df6470eb91ec649047ebe80dfbac785f"
     },
     {
       "bytes": 556,
@@ -1405,10 +1429,10 @@
       "sha256": "a1d54b8d275c55bbdc12aa051e4cb6888ce0371ff7698b547c1d7aa17f79c8e4"
     },
     {
-      "bytes": 67403,
+      "bytes": 69378,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "428ddb1bc065b35529eb56793456049da8392c07b02fc0687858080fd1550078"
+      "sha256": "2942e41c54c6048af980de866cede1ce6f331809c1149b186047aab24afe2710"
     },
     {
       "bytes": 17809,
@@ -1525,6 +1549,12 @@
       "sha256": "13ec3f625df73f2aba2d98d27e9fae150c1efbf20126b8358623341689f8568d"
     },
     {
+      "bytes": 8576,
+      "kind": "code",
+      "path": "scripts/smoke_moe_tensor_rule_writer.py",
+      "sha256": "521329eec5de8af355b7977836fbea1918d8aa18b7beaf08ba94a9ddfbbff84e"
+    },
+    {
       "bytes": 24527,
       "kind": "code",
       "path": "scripts/write_same_shape_average_checkpoint.py",
@@ -1549,7 +1579,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T09:55:55.597770+00:00",
+  "generated_at": "2026-06-19T09:59:59.406757+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"
