@@ -1,6 +1,6 @@
 # MoE Same-Shape Average Plan
 
-Generated at: `2026-06-19T03:42:12.435783+00:00`
+Generated at: `2026-06-19T03:52:20.350136+00:00`
 
 这个报告把 Dense/Qwen Average 决策、MoE router probe 和 expert load probe 转成同构 MoE checkpoint 的合并计划。这里的同构约束是硬约束：不增加 experts，不改 router shape，不做运行时 ensemble；所有策略最后都要写回原模型结构。
 
@@ -39,6 +39,10 @@ Generated at: `2026-06-19T03:42:12.435783+00:00`
 - Sub-MoE 方向说明 expert specialization 会造成参数冲突，因此要先按输出相似度/路由频率聚类或匹配，再做 expert-wise average。
 - Expert Merging / layer-wise coefficient 方向说明不同层的重要性不同，因此 shared attention、MLP、router、expert FFN 应分组设权重。
 - MergeME/WEMoE 类方法可以作为上界或启发，但本项目最终仍要压回同构 checkpoint。
+
+## Materialization
+
+选好全局、layer/module、router 和 expert 权重后，用 `scripts/write_same_shape_average_checkpoint.py` 写出 safetensors checkpoint。writer 会先验证 tensor name/shape，再按 `theta_base + sum_i w_i * (theta_i - theta_base)` materialize；对于 MoE，默认建议先 `--freeze-router`，再根据 routing probe 决定是否开放小 lambda router average。
 
 ## Files
 

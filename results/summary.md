@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T03:42:12.593585+00:00`
+Generated at: `2026-06-19T03:53:13.920974+00:00`
 
 ## Coverage
 
-Complete: `16`; partial: `0`; missing: `0`.
+Complete: `17`; partial: `0`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -23,6 +23,7 @@ Complete: `16`; partial: `0`; missing: `0`.
 | Formal LLM benchmark slices | complete | Representative Qwen2.5-1.5B benchmark slices cover MMLU, GSM8K, HumanEval canonical-solution NLL, and BeaverTails safety/refusal NLL. |
 | Probe-guided Average decision report | complete | results/average_decision_report/report.md converts merge grids, conflict probes, and optional MoE routing probes into same-shape average decisions. |
 | MoE same-shape averaging plan | complete | results/moe_average_plan/report.md maps router/expert probes into same-shape router, shared-module, expert, and adapter averaging actions. |
+| Same-shape checkpoint writer | complete | scripts/write_same_shape_average_checkpoint.py writes same-shape safetensors checkpoints; results/same_shape_writer_smoke/report.md validates Qwen2.5-0.5B base/instruct/coder dry-run compatibility. |
 | Interactive explainer UI | complete | Dashboard includes a draggable precomputed merge-plane explorer with task-pair, method, objective, raw/normalized plane, alpha/beta, and lambda controls. |
 
 ## Key Metrics
@@ -59,3 +60,4 @@ Complete: `16`; partial: `0`; missing: `0`.
 | Average decision report | coefficient-search decisions | 2 |
 | MoE average plan | router plan rows | 0 |
 | MoE average plan | expert plan rows | 0 |
+| same-shape writer smoke | Qwen-compatible tensors checked | 290 |

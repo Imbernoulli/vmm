@@ -76,13 +76,18 @@
       "status": "complete"
     },
     {
+      "evidence": "scripts/write_same_shape_average_checkpoint.py writes same-shape safetensors checkpoints; results/same_shape_writer_smoke/report.md validates Qwen2.5-0.5B base/instruct/coder dry-run compatibility.",
+      "item": "Same-shape checkpoint writer",
+      "status": "complete"
+    },
+    {
       "evidence": "Dashboard includes a draggable precomputed merge-plane explorer with task-pair, method, objective, raw/normalized plane, alpha/beta, and lambda controls.",
       "item": "Interactive explainer UI",
       "status": "complete"
     }
   ],
   "coverage_counts": {
-    "complete": 16,
+    "complete": 17,
     "missing": 0,
     "partial": 0
   },
@@ -379,7 +384,7 @@
             "results/qwen_multi_expert_merge"
           ]
         ],
-        "generated_at": "2026-06-19T03:34:02.823366+00:00",
+        "generated_at": "2026-06-19T03:52:20.327871+00:00",
         "router_summaries": [],
         "same_shape_constraint": "Final Average must keep the input model architecture/config/tokenizer/router/expert count unchanged."
       },
@@ -962,7 +967,7 @@
           "global_verdict": "avoid_uniform_average"
         },
         "expert_plan_rows": 0,
-        "generated_at": "2026-06-19T03:42:12.435598+00:00",
+        "generated_at": "2026-06-19T03:52:20.349978+00:00",
         "parameter_plan": [
           {
             "parameter_group": "embedding / lm_head",
@@ -1731,9 +1736,78 @@
         "tokenizer": "/srv/home/bohanlyu/MLS-Bench/vendor/data/qwen2.5-1.5b-instruct",
         "unsafe_examples": 12
       }
+    },
+    "same_shape_writer_smoke": {
+      "dry_run": true,
+      "floating_tensors": 290,
+      "manifest": {
+        "base": "/srv/home/bohanlyu/MLS-Bench/vendor/data/models/Qwen2.5-0.5B",
+        "copied_metadata": [],
+        "copied_nonfloating_tensors": 0,
+        "default_weights": {
+          "coder": 0.0,
+          "instruct": 1.0
+        },
+        "dry_run": true,
+        "floating_tensors": 290,
+        "freeze_regex": [],
+        "freeze_router": true,
+        "frozen_tensors": 0,
+        "output_dtype": "base",
+        "rule_counts": {
+          "default": 290
+        },
+        "same_shape_constraint": "All output tensors keep base tensor names and shapes; metadata is copied from base when available.",
+        "schema_version": 1,
+        "shards": [
+          {
+            "shard": "model.safetensors",
+            "tensors": 290
+          }
+        ],
+        "source_summaries": {
+          "coder": {
+            "extra_tensors": 0,
+            "missing_tensors": 0,
+            "root": "/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen2.5-Coder-0.5B-Instruct/snapshots/ea3f2471cf1b1f0db85067f1ef93848e38e88c25",
+            "shape_mismatches": 0,
+            "tensors": 290
+          },
+          "instruct": {
+            "extra_tensors": 0,
+            "missing_tensors": 0,
+            "root": "/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen2.5-0.5B-Instruct/snapshots/7ae557604adf67be50417f59c2c2f167def9a775",
+            "shape_mismatches": 0,
+            "tensors": 290
+          }
+        },
+        "sources": {
+          "coder": "/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen2.5-Coder-0.5B-Instruct/snapshots/ea3f2471cf1b1f0db85067f1ef93848e38e88c25",
+          "instruct": "/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen2.5-0.5B-Instruct/snapshots/7ae557604adf67be50417f59c2c2f167def9a775"
+        },
+        "tensor_rules": []
+      },
+      "manifest_path": "results/same_shape_writer_smoke/merge_manifest.json",
+      "report": "results/same_shape_writer_smoke/report.md",
+      "source_summaries": {
+        "coder": {
+          "extra_tensors": 0,
+          "missing_tensors": 0,
+          "root": "/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen2.5-Coder-0.5B-Instruct/snapshots/ea3f2471cf1b1f0db85067f1ef93848e38e88c25",
+          "shape_mismatches": 0,
+          "tensors": 290
+        },
+        "instruct": {
+          "extra_tensors": 0,
+          "missing_tensors": 0,
+          "root": "/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen2.5-0.5B-Instruct/snapshots/7ae557604adf67be50417f59c2c2f167def9a775",
+          "shape_mismatches": 0,
+          "tensors": 290
+        }
+      }
     }
   },
-  "generated_at": "2026-06-19T03:42:12.593585+00:00",
+  "generated_at": "2026-06-19T03:53:13.920974+00:00",
   "overall_status": "complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -1751,6 +1825,7 @@
     "PYTHONPATH=src python scripts/run_qwen_multi_expert_merge.py --output-dir results/qwen_multi_expert_merge",
     "PYTHONPATH=src python scripts/build_average_decision_report.py",
     "PYTHONPATH=src python scripts/build_moe_average_plan.py",
+    "python scripts/write_same_shape_average_checkpoint.py --base BASE --source expert=EXPERT --dry-run --output-dir results/same_shape_writer_smoke",
     "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
     "PYTHONPATH=src python scripts/collect_results.py"
   ],

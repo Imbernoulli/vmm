@@ -458,6 +458,18 @@ def summarize_moe_average_plan() -> dict[str, Any]:
     }
 
 
+def summarize_same_shape_writer_smoke() -> dict[str, Any]:
+    manifest = read_json("results/same_shape_writer_smoke/merge_manifest.json")
+    return {
+        "manifest": manifest,
+        "floating_tensors": int(manifest["floating_tensors"]),
+        "dry_run": bool(manifest["dry_run"]),
+        "source_summaries": manifest["source_summaries"],
+        "report": rel("results/same_shape_writer_smoke/report.md"),
+        "manifest_path": rel("results/same_shape_writer_smoke/merge_manifest.json"),
+    }
+
+
 def coverage_checklist() -> list[dict[str, str]]:
     return [
         {
@@ -536,6 +548,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/moe_average_plan/report.md maps router/expert probes into same-shape router, shared-module, expert, and adapter averaging actions.",
         },
         {
+            "item": "Same-shape checkpoint writer",
+            "status": "complete",
+            "evidence": "scripts/write_same_shape_average_checkpoint.py writes same-shape safetensors checkpoints; results/same_shape_writer_smoke/report.md validates Qwen2.5-0.5B base/instruct/coder dry-run compatibility.",
+        },
+        {
             "item": "Interactive explainer UI",
             "status": "complete",
             "evidence": "Dashboard includes a draggable precomputed merge-plane explorer with task-pair, method, objective, raw/normalized plane, alpha/beta, and lambda controls.",
@@ -560,6 +577,7 @@ def build_summary() -> dict[str, Any]:
         "qwen_probe_smoke": summarize_qwen_probe_smoke(),
         "average_decision_report": summarize_average_decision_report(),
         "moe_average_plan": summarize_moe_average_plan(),
+        "same_shape_writer_smoke": summarize_same_shape_writer_smoke(),
     }
     coverage = coverage_checklist()
     counts = {
@@ -590,6 +608,7 @@ def build_summary() -> dict[str, Any]:
             "PYTHONPATH=src python scripts/run_qwen_multi_expert_merge.py --output-dir results/qwen_multi_expert_merge",
             "PYTHONPATH=src python scripts/build_average_decision_report.py",
             "PYTHONPATH=src python scripts/build_moe_average_plan.py",
+            "python scripts/write_same_shape_average_checkpoint.py --base BASE --source expert=EXPERT --dry-run --output-dir results/same_shape_writer_smoke",
             "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
             "PYTHONPATH=src python scripts/collect_results.py",
         ],
@@ -619,6 +638,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen_multi_conflict = qwen_multi["instruct_coder_conflict"] or {}
     average_decision = exp["average_decision_report"]
     moe_average_plan = exp["moe_average_plan"]
+    writer_smoke = exp["same_shape_writer_smoke"]
     coverage_counts = summary["coverage_counts"]
     lines = [
         "# Result Summary",
@@ -764,6 +784,10 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| MoE average plan | expert plan rows | "
                 f"{moe_average_plan['expert_plan_rows']} |"
+            ),
+            (
+                "| same-shape writer smoke | Qwen-compatible tensors checked | "
+                f"{writer_smoke['floating_tensors']} |"
             ),
         ]
     )
