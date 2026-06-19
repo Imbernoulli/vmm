@@ -159,6 +159,14 @@ expert_weight_search_router_calibrated_average,expert_weight_search_router_calib
 expert_weight_search_router_calibrated_average,expert_weight_search_router_calibrated_average,code,0,toy_router,1,198,0.495,227,0.28375
 expert_weight_search_router_calibrated_average,expert_weight_search_router_calibrated_average,code,0,toy_router,2,143,0.3575,206,0.2575
 expert_weight_search_router_calibrated_average,expert_weight_search_router_calibrated_average,code,0,toy_router,3,57,0.1425,246,0.3075
+unified_moe_average,unified_moe_average,general,0,toy_router,0,259,0.6475,314,0.3925
+unified_moe_average,unified_moe_average,general,0,toy_router,1,0,0.0,114,0.1425
+unified_moe_average,unified_moe_average,general,0,toy_router,2,46,0.115,153,0.19125
+unified_moe_average,unified_moe_average,general,0,toy_router,3,95,0.2375,219,0.27375
+unified_moe_average,unified_moe_average,code,0,toy_router,0,0,0.0,80,0.1
+unified_moe_average,unified_moe_average,code,0,toy_router,1,194,0.485,272,0.34
+unified_moe_average,unified_moe_average,code,0,toy_router,2,179,0.4475,272,0.34
+unified_moe_average,unified_moe_average,code,0,toy_router,3,27,0.0675,176,0.22
 route_aware_expert_average,route_aware_expert_average,general,0,toy_router,0,233,0.5825,285,0.35625
 route_aware_expert_average,route_aware_expert_average,general,0,toy_router,1,7,0.0175,121,0.15125
 route_aware_expert_average,route_aware_expert_average,general,0,toy_router,2,39,0.0975,124,0.155

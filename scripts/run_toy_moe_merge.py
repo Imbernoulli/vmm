@@ -420,6 +420,140 @@ def calibrate_router_route_kd_state(
     return cpu_state(model), pd.DataFrame(rows)
 
 
+def calibrate_unified_moe_router_state(
+    template: TinyMoEClassifier,
+    initial_state: dict[str, Tensor],
+    reference_router: TinyMoEClassifier,
+    teacher_loaders: list[tuple[str, TinyMoEClassifier, DataLoader, float]],
+    *,
+    epochs: int,
+    lr: float,
+    dispatch_mode: str,
+    soft_loss_coef: float,
+    dispatch_loss_coef: float,
+    route_kd_coef: float,
+    output_kd_coef: float,
+    top1_loss_coef: float,
+    base_kl_coef: float,
+    load_balance_coef: float,
+    temperature: float,
+    device: torch.device,
+    desc: str,
+) -> tuple[dict[str, Tensor], pd.DataFrame]:
+    model = deepcopy(template)
+    model.load_state_dict(initial_state)
+    model.to(device)
+    reference_router.to(device)
+    reference_router.eval()
+    teachers = []
+    for source_name, teacher, loader, source_weight in teacher_loaders:
+        teacher.to(device)
+        teacher.eval()
+        teachers.append((source_name, teacher, loader, source_weight))
+    for parameter in model.parameters():
+        parameter.requires_grad = False
+    for parameter in model.router.parameters():
+        parameter.requires_grad = True
+    optimizer = torch.optim.AdamW(model.router.parameters(), lr=lr, weight_decay=0.0)
+    rows: list[dict[str, Any]] = []
+    for epoch in tqdm(range(epochs), desc=desc, leave=False):
+        model.train()
+        source_totals = {
+            source_name: {
+                "examples": 0,
+                "soft_ce": 0.0,
+                "dispatch_ce": 0.0,
+                "route_kl": 0.0,
+                "output_kd": 0.0,
+                "top1_ce": 0.0,
+                "base_kl": 0.0,
+                "load_balance": 0.0,
+                "total_loss": 0.0,
+            }
+            for source_name, _teacher, _loader, _weight in teachers
+        }
+        for source_name, teacher, loader, source_weight in teachers:
+            for x, y in loader:
+                x = x.to(device)
+                y = y.to(device)
+                optimizer.zero_grad(set_to_none=True)
+                soft_logits = model.forward_dispatch(x, "soft_all")
+                dispatch_logits = model.forward_dispatch(x, dispatch_mode)
+                student_router_logits = model.router(x)
+                student_router_probs = F.softmax(student_router_logits, dim=-1)
+                with torch.no_grad():
+                    teacher_router_logits = teacher.router(x)
+                    teacher_router_probs = F.softmax(teacher_router_logits, dim=-1)
+                    teacher_top1 = teacher_router_logits.argmax(dim=-1)
+                    teacher_logits = teacher.forward_dispatch(x, "soft_all")
+                    reference_probs = reference_router.router_probs(x)
+
+                soft_ce = F.cross_entropy(soft_logits, y)
+                dispatch_ce = F.cross_entropy(dispatch_logits, y)
+                route_kl = F.kl_div(
+                    F.log_softmax(student_router_logits / temperature, dim=-1),
+                    F.softmax(teacher_router_logits / temperature, dim=-1),
+                    reduction="batchmean",
+                ) * (temperature**2)
+                output_kd = F.kl_div(
+                    F.log_softmax(soft_logits / temperature, dim=-1),
+                    F.softmax(teacher_logits / temperature, dim=-1),
+                    reduction="batchmean",
+                ) * (temperature**2)
+                top1_ce = F.cross_entropy(student_router_logits, teacher_top1)
+                base_kl = F.kl_div(torch.log(student_router_probs.clamp_min(1e-12)), reference_probs, reduction="batchmean")
+                load_balance = load_balance_loss(model, x)
+                task_loss = soft_loss_coef * soft_ce + dispatch_loss_coef * dispatch_ce
+                teacher_loss = route_kd_coef * route_kl + output_kd_coef * output_kd + top1_loss_coef * top1_ce
+                guard_loss = base_kl_coef * base_kl + load_balance_coef * load_balance
+                loss = float(source_weight) * (task_loss + teacher_loss) + guard_loss
+                loss.backward()
+                optimizer.step()
+
+                n = int(x.shape[0])
+                totals = source_totals[source_name]
+                totals["examples"] += n
+                totals["soft_ce"] += float(soft_ce.detach().cpu()) * n
+                totals["dispatch_ce"] += float(dispatch_ce.detach().cpu()) * n
+                totals["route_kl"] += float(route_kl.detach().cpu()) * n
+                totals["output_kd"] += float(output_kd.detach().cpu()) * n
+                totals["top1_ce"] += float(top1_ce.detach().cpu()) * n
+                totals["base_kl"] += float(base_kl.detach().cpu()) * n
+                totals["load_balance"] += float(load_balance.detach().cpu()) * n
+                totals["total_loss"] += float(loss.detach().cpu()) * n
+        for source_name, totals in source_totals.items():
+            examples = max(1, int(totals["examples"]))
+            rows.append(
+                {
+                    "epoch": epoch,
+                    "source": source_name,
+                    "examples": int(totals["examples"]),
+                    "source_weight": float(
+                        next(weight for name, _teacher, _loader, weight in teachers if name == source_name)
+                    ),
+                    "dispatch_mode": dispatch_mode,
+                    "soft_loss_coef": soft_loss_coef,
+                    "dispatch_loss_coef": dispatch_loss_coef,
+                    "route_kd_coef": route_kd_coef,
+                    "output_kd_coef": output_kd_coef,
+                    "top1_loss_coef": top1_loss_coef,
+                    "base_kl_coef": base_kl_coef,
+                    "load_balance_coef": load_balance_coef,
+                    "temperature": temperature,
+                    "soft_ce": totals["soft_ce"] / examples,
+                    "dispatch_ce": totals["dispatch_ce"] / examples,
+                    "route_kl": totals["route_kl"] / examples,
+                    "output_kd": totals["output_kd"] / examples,
+                    "top1_ce": totals["top1_ce"] / examples,
+                    "base_kl": totals["base_kl"] / examples,
+                    "load_balance": totals["load_balance"] / examples,
+                    "total_loss": totals["total_loss"] / examples,
+                    "same_shape_action": "unified_router_objective_expert_aligned_same_shape",
+                }
+            )
+    return cpu_state(model), pd.DataFrame(rows)
+
+
 @torch.no_grad()
 def evaluate(
     model: TinyMoEClassifier,
@@ -1644,6 +1778,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
     expert_search_calibrated = method_metrics[
         method_metrics["method"] == "expert_weight_search_router_calibrated_average"
     ].iloc[0]
+    unified_moe = method_metrics[method_metrics["method"] == "unified_moe_average"].iloc[0]
     route_aware = method_metrics[method_metrics["method"] == "route_aware_expert_average"].iloc[0]
     connectivity = summary["connectivity"]
     dispatch = summary["dispatch_robustness"]
@@ -1674,6 +1809,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
         f"- Matched + router-sweep-selected average worst accuracy: `{sweep_selected['worst_acc']:.3f}`.",
         f"- Expert-weight search average worst accuracy: `{expert_search['worst_acc']:.3f}`.",
         f"- Expert-weight search + router-calibrated worst accuracy: `{expert_search_calibrated['worst_acc']:.3f}`.",
+        f"- Unified expert/router objective worst accuracy: `{unified_moe['worst_acc']:.3f}`.",
         f"- Route-aware expert average worst accuracy: `{route_aware['worst_acc']:.3f}`.",
         f"- Lowest MoE connectivity barrier: `{connectivity['best_path']}` = `{connectivity['best_barrier_worst_loss']:.4f}` worst-loss barrier.",
         f"- Direct unmatched source barrier: `{connectivity['direct_unmatched_barrier_worst_loss']:.4f}`.",
@@ -1719,6 +1855,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
             "- `matched_router_sweep_selected_average` 对 router calibration 的 KL 系数做 sweep，先过 route-overlap guard，再按 calibration worst-loss 选择候选；它把 router overlap/load 和任务精度放到同一个 probe 里。",
             "- `expert_weight_search_average` 在同一个 expert 数和 tensor shape 内，对每个 expert 的 general/code delta 系数做校准集 min-max 坐标搜索；router 仍固定为 base。",
             "- `expert_weight_search_router_calibrated_average` 在 per-expert 系数搜索后，只开放 router 做 guarded calibration。",
+            "- `unified_moe_average` 先用 per-expert source weight search 处理 expert 语义和重要性，再只更新 router；目标同时包含 soft/hard task loss、source route KD、source output KD、base-router KL 和 load-balance surrogate，用来检验这些 probe 能否合成一个统一方法。",
             "- `route_aware_expert_average` 冻结 base router，并按 base router 在 general/code prompt 上的 route mass 给每个 expert 设置 source delta 权重；这对应 route-weight recipes 的 toy 版本。",
             "- 这个实验不是 Qwen3 结果，但它把 MoE merging 的特质从报告落成了可跑的 probe：expert index、router overlap、expert load 和 category route mass 都会影响 average 是否安全。",
             "",
@@ -1744,6 +1881,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
             "- `router_hessian_average.csv`",
             "- `router_kd_trace.csv`",
             "- `router_route_kd_trace.csv`",
+            "- `unified_moe_trace.csv`",
             "- `router_calibration_sweep.csv`",
             "- `toy_moe_merge.png`",
             "- `summary.json`",
@@ -1784,6 +1922,17 @@ def main() -> None:
     parser.add_argument("--router-route-kd-lr", type=float, default=5e-3)
     parser.add_argument("--router-route-kd-temperature", type=float, default=1.0)
     parser.add_argument("--router-route-kd-top1-loss-coef", type=float, default=0.25)
+    parser.add_argument("--unified-router-epochs", type=int, default=8)
+    parser.add_argument("--unified-router-lr", type=float, default=5e-3)
+    parser.add_argument("--unified-router-temperature", type=float, default=1.0)
+    parser.add_argument("--unified-router-dispatch-mode", choices=["hard_top2"], default="hard_top2")
+    parser.add_argument("--unified-router-soft-loss-coef", type=float, default=0.5)
+    parser.add_argument("--unified-router-dispatch-loss-coef", type=float, default=1.0)
+    parser.add_argument("--unified-router-route-kd-coef", type=float, default=1.0)
+    parser.add_argument("--unified-router-output-kd-coef", type=float, default=0.0)
+    parser.add_argument("--unified-router-top1-loss-coef", type=float, default=0.5)
+    parser.add_argument("--unified-router-base-kl-coef", type=float, default=0.25)
+    parser.add_argument("--unified-router-load-balance-coef", type=float, default=0.10)
     parser.add_argument("--router-weight-search-grid", default="0,0.25,0.5,0.75,1.0")
     parser.add_argument("--router-weight-search-max-delta-sum", type=float, default=1.0)
     parser.add_argument("--router-weight-search-min-topk-jaccard", type=float, default=0.80)
@@ -2066,6 +2215,28 @@ def main() -> None:
         device=device,
         desc="calibrate searched expert router",
     )
+    unified_moe_average, unified_moe_trace = calibrate_unified_moe_router_state(
+        template,
+        expert_search,
+        base,
+        [
+            ("general_source", general_model, loaders["general_calib"], 0.5),
+            ("matched_code_source", matched_code, loaders["code_calib"], 0.5),
+        ],
+        epochs=args.unified_router_epochs,
+        lr=args.unified_router_lr,
+        dispatch_mode=args.unified_router_dispatch_mode,
+        soft_loss_coef=args.unified_router_soft_loss_coef,
+        dispatch_loss_coef=args.unified_router_dispatch_loss_coef,
+        route_kd_coef=args.unified_router_route_kd_coef,
+        output_kd_coef=args.unified_router_output_kd_coef,
+        top1_loss_coef=args.unified_router_top1_loss_coef,
+        base_kl_coef=args.unified_router_base_kl_coef,
+        load_balance_coef=args.unified_router_load_balance_coef,
+        temperature=args.unified_router_temperature,
+        device=device,
+        desc="unified expert/router objective",
+    )
 
     methods = [
         MethodState("base", base_state, "mixed-task base before fine-tuning"),
@@ -2144,6 +2315,11 @@ def main() -> None:
             expert_search_router_calibrated,
             "search per-expert source delta weights, then calibrate only the router",
         ),
+        MethodState(
+            "unified_moe_average",
+            unified_moe_average,
+            "search expert source weights, then learn one router objective combining task loss, hard top-k dispatch, route KD, output KD, base-router KL, and load balance",
+        ),
         MethodState("route_aware_expert_average", route_aware, "freeze base router and use route-frequency expert source weights"),
     ]
 
@@ -2218,6 +2394,13 @@ def main() -> None:
             expert_search_router_calibrated,
             "candidate_two_segment",
         ),
+        ConnectivityPath(
+            "via_unified_moe_average",
+            general_state,
+            matched_code_state,
+            unified_moe_average,
+            "candidate_two_segment",
+        ),
     ]
     connectivity_path_metrics, connectivity_summary = evaluate_connectivity_paths(
         template,
@@ -2289,6 +2472,7 @@ def main() -> None:
     router_hessian_average.to_csv(args.output_dir / "router_hessian_average.csv", index=False)
     router_kd_trace.to_csv(args.output_dir / "router_kd_trace.csv", index=False)
     router_route_kd_trace.to_csv(args.output_dir / "router_route_kd_trace.csv", index=False)
+    unified_moe_trace.to_csv(args.output_dir / "unified_moe_trace.csv", index=False)
     router_calibration_sweep.to_csv(args.output_dir / "router_calibration_sweep.csv", index=False)
     plot_results(method_metrics, router_summary, args.output_dir / "toy_moe_merge.png")
     plot_connectivity_paths(connectivity_path_metrics, args.output_dir / "connectivity_paths.png")
@@ -2335,9 +2519,11 @@ def main() -> None:
     expert_search_router_calibrated_row = method_metrics[
         method_metrics["method"] == "expert_weight_search_router_calibrated_average"
     ].iloc[0]
+    unified_moe_row = method_metrics[method_metrics["method"] == "unified_moe_average"].iloc[0]
     route_aware_row = method_metrics[method_metrics["method"] == "route_aware_expert_average"].iloc[0]
     capacity_route_kd = router_capacity[router_capacity["method"] == "matched_router_route_kd_average"]
     capacity_calibrated = router_capacity[router_capacity["method"] == "matched_router_calibrated_average"]
+    capacity_unified = router_capacity[router_capacity["method"] == "unified_moe_average"]
     worst_capacity_row = router_capacity.sort_values("topk_overflow_fraction", ascending=False).iloc[0]
     summary = {
         "schema_version": 1,
@@ -2417,6 +2603,16 @@ def main() -> None:
             )
             if ("matched_router_route_kd_average", "hard_top2") in dispatch_index_keys
             else None,
+            "unified_moe_hard_top1_worst_acc": float(
+                dispatch_index.loc[("unified_moe_average", "hard_top1"), "worst_acc"]
+            )
+            if ("unified_moe_average", "hard_top1") in dispatch_index_keys
+            else None,
+            "unified_moe_hard_top2_worst_acc": float(
+                dispatch_index.loc[("unified_moe_average", "hard_top2"), "worst_acc"]
+            )
+            if ("unified_moe_average", "hard_top2") in dispatch_index_keys
+            else None,
             "matched_router_calibrated_soft_to_hard_top1_worst_acc_delta": float(
                 dispatch_index.loc[("matched_router_calibrated_average", "hard_top1"), "worst_acc"]
                 - dispatch_index.loc[("matched_router_calibrated_average", "soft_all"), "worst_acc"]
@@ -2471,6 +2667,24 @@ def main() -> None:
                 ("matched_router_kd_average", "hard_top2"),
             }.issubset(dispatch_index_keys)
             else None,
+            "unified_moe_minus_route_kd_hard_top2_worst_acc": float(
+                dispatch_index.loc[("unified_moe_average", "hard_top2"), "worst_acc"]
+                - dispatch_index.loc[("matched_router_route_kd_average", "hard_top2"), "worst_acc"]
+            )
+            if {
+                ("unified_moe_average", "hard_top2"),
+                ("matched_router_route_kd_average", "hard_top2"),
+            }.issubset(dispatch_index_keys)
+            else None,
+            "unified_moe_minus_calibrated_hard_top2_worst_acc": float(
+                dispatch_index.loc[("unified_moe_average", "hard_top2"), "worst_acc"]
+                - dispatch_index.loc[("matched_router_calibrated_average", "hard_top2"), "worst_acc"]
+            )
+            if {
+                ("unified_moe_average", "hard_top2"),
+                ("matched_router_calibrated_average", "hard_top2"),
+            }.issubset(dispatch_index_keys)
+            else None,
         },
         "router_capacity": {
             "capacity_factor": args.capacity_factor,
@@ -2488,6 +2702,11 @@ def main() -> None:
             "route_kd_minus_calibrated_max_topk_overflow_fraction": float(
                 capacity_route_kd["topk_overflow_fraction"].max()
                 - capacity_calibrated["topk_overflow_fraction"].max()
+            ),
+            "unified_moe_max_topk_overflow_fraction": float(capacity_unified["topk_overflow_fraction"].max()),
+            "unified_moe_minus_route_kd_max_topk_overflow_fraction": float(
+                capacity_unified["topk_overflow_fraction"].max()
+                - capacity_route_kd["topk_overflow_fraction"].max()
             ),
         },
         "all_weight_average_worst_acc": float(all_avg["worst_acc"]),
@@ -2659,6 +2878,45 @@ def main() -> None:
         "expert_weight_search_router_calibrated_minus_matched_calibrated_worst_acc": float(
             expert_search_router_calibrated_row["worst_acc"] - matched_router_calibrated_row["worst_acc"]
         ),
+        "unified_moe_worst_acc": float(unified_moe_row["worst_acc"]),
+        "unified_moe_minus_expert_search_worst_acc": float(
+            unified_moe_row["worst_acc"] - expert_search_row["worst_acc"]
+        ),
+        "unified_moe_minus_expert_search_router_calibrated_worst_acc": float(
+            unified_moe_row["worst_acc"] - expert_search_router_calibrated_row["worst_acc"]
+        ),
+        "unified_moe_minus_route_kd_worst_acc": float(
+            unified_moe_row["worst_acc"] - matched_router_route_kd_row["worst_acc"]
+        ),
+        "unified_moe": {
+            "epochs": args.unified_router_epochs,
+            "lr": args.unified_router_lr,
+            "temperature": args.unified_router_temperature,
+            "dispatch_mode": args.unified_router_dispatch_mode,
+            "soft_loss_coef": args.unified_router_soft_loss_coef,
+            "dispatch_loss_coef": args.unified_router_dispatch_loss_coef,
+            "route_kd_coef": args.unified_router_route_kd_coef,
+            "output_kd_coef": args.unified_router_output_kd_coef,
+            "top1_loss_coef": args.unified_router_top1_loss_coef,
+            "base_kl_coef": args.unified_router_base_kl_coef,
+            "load_balance_coef": args.unified_router_load_balance_coef,
+            "rows": int(len(unified_moe_trace)),
+            "final_mean_total_loss": float(
+                unified_moe_trace[unified_moe_trace["epoch"] == unified_moe_trace["epoch"].max()][
+                    "total_loss"
+                ].mean()
+            ),
+            "final_mean_route_kl": float(
+                unified_moe_trace[unified_moe_trace["epoch"] == unified_moe_trace["epoch"].max()][
+                    "route_kl"
+                ].mean()
+            ),
+            "final_mean_output_kd": float(
+                unified_moe_trace[unified_moe_trace["epoch"] == unified_moe_trace["epoch"].max()][
+                    "output_kd"
+                ].mean()
+            ),
+        },
         "expert_weight_search": {
             "grid": expert_search_grid,
             "candidate_pair_count": len(expert_search_pairs),
@@ -2692,6 +2950,7 @@ def main() -> None:
             "router_hessian_average": "router_hessian_average.csv",
             "router_kd_trace": "router_kd_trace.csv",
             "router_route_kd_trace": "router_route_kd_trace.csv",
+            "unified_moe_trace": "unified_moe_trace.csv",
             "router_calibration_sweep": "router_calibration_sweep.csv",
             "figure": "toy_moe_merge.png",
             "connectivity_path_metrics": "connectivity_path_metrics.csv",

@@ -10,6 +10,79 @@
   "router_dirs": [],
   "expert_weight_csvs": [],
   "input_summaries": [],
+  "routing_probe_plan_rows": 1,
+  "routing_probe_plan": [
+    {
+      "probe_name": "qwen3_30b_general_vs_code",
+      "model": "Qwen/Qwen3-30B-A3B",
+      "compare_model": "Qwen/Qwen3-Coder-30B-A3B-Instruct",
+      "source_names": "general,code",
+      "prompt_pack": "prompts/qwen_moe_route_probe_prompts.jsonl",
+      "prompt_count": 12,
+      "category_count": 8,
+      "output_dir": "results/moe_routing_probe/qwen3_30b_general_vs_code",
+      "expected_expert_load": "results/moe_routing_probe/qwen3_30b_general_vs_code/expert_load.csv",
+      "expected_route_overlap": "results/moe_routing_probe/qwen3_30b_general_vs_code/route_overlap.csv",
+      "device_map": "auto",
+      "dtype": "bfloat16",
+      "max_length": 768,
+      "use_chat_template": true,
+      "command": "python scripts/probe_moe_routing.py --model Qwen/Qwen3-30B-A3B --compare-model Qwen/Qwen3-Coder-30B-A3B-Instruct --prompts prompts/qwen_moe_route_probe_prompts.jsonl --device-map auto --dtype bfloat16 --max-length 768 --use-chat-template --output-dir results/moe_routing_probe/qwen3_30b_general_vs_code",
+      "next_recipe_command": "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code --source general --source code --category-source agentic_code=code --category-source code=code --category-source finance=general --category-source general=general --category-source legal=general --category-source long_context=general --category-source math=general --category-source safety=general"
+    }
+  ],
+  "category_source_plan_rows": 8,
+  "category_source_plan": [
+    {
+      "category": "agentic_code",
+      "prompt_count": 1,
+      "mapped_source": "code",
+      "mapping_kind": "category_heuristic"
+    },
+    {
+      "category": "code",
+      "prompt_count": 2,
+      "mapped_source": "code",
+      "mapping_kind": "source_name_match"
+    },
+    {
+      "category": "finance",
+      "prompt_count": 1,
+      "mapped_source": "general",
+      "mapping_kind": "fallback"
+    },
+    {
+      "category": "general",
+      "prompt_count": 2,
+      "mapped_source": "general",
+      "mapping_kind": "source_name_match"
+    },
+    {
+      "category": "legal",
+      "prompt_count": 1,
+      "mapped_source": "general",
+      "mapping_kind": "fallback"
+    },
+    {
+      "category": "long_context",
+      "prompt_count": 1,
+      "mapped_source": "general",
+      "mapping_kind": "fallback"
+    },
+    {
+      "category": "math",
+      "prompt_count": 2,
+      "mapped_source": "general",
+      "mapping_kind": "fallback"
+    },
+    {
+      "category": "safety",
+      "prompt_count": 2,
+      "mapped_source": "general",
+      "mapping_kind": "fallback"
+    }
+  ],
+  "prompt_pack": "prompts/qwen_moe_route_probe_prompts.jsonl",
   "anchor_floor": 0.15,
   "min_source_weight": 0.05,
   "low_route_threshold": 0.005,
@@ -35,6 +108,9 @@
     "source_weights": "results/moe_route_weight_recipes/source_weights_by_expert.csv",
     "tensor_rules": "results/moe_route_weight_recipes/tensor_rules.txt",
     "writer_command": "results/moe_route_weight_recipes/writer_command.txt",
+    "routing_probe_plan": "results/moe_route_weight_recipes/routing_probe_plan.csv",
+    "routing_probe_plan_json": "results/moe_route_weight_recipes/routing_probe_plan.json",
+    "category_source_plan": "results/moe_route_weight_recipes/category_source_plan.csv",
     "summary": "results/moe_route_weight_recipes/summary.json",
     "report": "results/moe_route_weight_recipes/report.md"
   }

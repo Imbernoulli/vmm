@@ -516,16 +516,27 @@ def summarize_average_candidate_recipes() -> dict[str, Any]:
 def summarize_moe_route_weight_recipes() -> dict[str, Any]:
     summary = read_json("results/moe_route_weight_recipes/summary.json")
     source_weights = read_csv("results/moe_route_weight_recipes/source_weights_by_expert.csv")
+    routing_probe_plan_path = repo_path("results/moe_route_weight_recipes/routing_probe_plan.csv")
+    category_source_plan_path = repo_path("results/moe_route_weight_recipes/category_source_plan.csv")
+    routing_probe_plan = read_csv(routing_probe_plan_path) if routing_probe_plan_path.exists() else pd.DataFrame()
+    category_source_plan = read_csv(category_source_plan_path) if category_source_plan_path.exists() else pd.DataFrame()
     return {
         "summary": summary,
         "recipe_status": summary.get("recipe_status"),
         "expert_rule_count": int(summary.get("expert_rule_count", 0)),
         "tensor_rule_count": int(summary.get("tensor_rule_count", 0)),
         "source_weights_rows": int(len(source_weights)),
+        "routing_probe_plan_rows": int(len(routing_probe_plan)),
+        "category_source_plan_rows": int(len(category_source_plan)),
+        "routing_probe_models": []
+        if routing_probe_plan.empty
+        else [str(model) for model in routing_probe_plan["model"].tolist()],
         "report": rel("results/moe_route_weight_recipes/report.md"),
         "source_weights": rel("results/moe_route_weight_recipes/source_weights_by_expert.csv"),
         "tensor_rules": rel("results/moe_route_weight_recipes/tensor_rules.txt"),
         "writer_command": rel("results/moe_route_weight_recipes/writer_command.txt"),
+        "routing_probe_plan": rel(routing_probe_plan_path) if routing_probe_plan_path.exists() else None,
+        "category_source_plan": rel(category_source_plan_path) if category_source_plan_path.exists() else None,
         "prompt_pack": rel("prompts/qwen_moe_route_probe_prompts.jsonl"),
     }
 
@@ -580,6 +591,8 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
     router_hessian_average = read_csv("results/toy_moe_merge/router_hessian_average.csv")
     router_kd_trace = read_csv("results/toy_moe_merge/router_kd_trace.csv")
     router_route_kd_trace = read_csv("results/toy_moe_merge/router_route_kd_trace.csv")
+    unified_trace_path = repo_path("results/toy_moe_merge/unified_moe_trace.csv")
+    unified_moe_trace = read_csv(unified_trace_path) if unified_trace_path.exists() else pd.DataFrame()
     selected_router_weight = router_weight_search[
         router_weight_search["selected_by_guarded_calib_worst_loss"].astype(bool)
     ]
@@ -619,6 +632,7 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
         "expert_weight_search_router_calibrated_average": find_method(
             methods, "expert_weight_search_router_calibrated_average"
         ),
+        "unified_moe_average": find_method(methods, "unified_moe_average"),
         "route_aware_expert_average": find_method(methods, "route_aware_expert_average"),
         "matched_router_frozen_minus_all_weight_worst_acc": float(
             summary.get("matched_router_frozen_minus_all_weight_worst_acc", 0.0)
@@ -687,6 +701,14 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
         "expert_weight_search_router_calibrated_minus_matched_calibrated_worst_acc": float(
             summary.get("expert_weight_search_router_calibrated_minus_matched_calibrated_worst_acc", 0.0)
         ),
+        "unified_moe_trace_rows": int(len(unified_moe_trace)),
+        "unified_moe_minus_expert_search_worst_acc": float(
+            summary.get("unified_moe_minus_expert_search_worst_acc", 0.0)
+        ),
+        "unified_moe_minus_expert_search_router_calibrated_worst_acc": float(
+            summary.get("unified_moe_minus_expert_search_router_calibrated_worst_acc", 0.0)
+        ),
+        "unified_moe_minus_route_kd_worst_acc": float(summary.get("unified_moe_minus_route_kd_worst_acc", 0.0)),
         "route_aware_minus_all_weight_worst_acc": float(summary["route_aware_minus_all_weight_worst_acc"]),
         "expert_match_mean_cosine": float(expert_match["output_cosine"].mean()),
         "router_rows": int(len(router_summary)),
@@ -711,6 +733,7 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
         "router_hessian_average": rel("results/toy_moe_merge/router_hessian_average.csv"),
         "router_kd_trace": rel("results/toy_moe_merge/router_kd_trace.csv"),
         "router_route_kd_trace": rel("results/toy_moe_merge/router_route_kd_trace.csv"),
+        "unified_moe_trace": rel(unified_trace_path) if unified_trace_path.exists() else None,
         "router_calibration_sweep": rel("results/toy_moe_merge/router_calibration_sweep.csv"),
         "figure": rel("results/toy_moe_merge/toy_moe_merge.png"),
     }
@@ -1461,6 +1484,14 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(toy_moe['dispatch_robustness']['route_kd_minus_output_kd_hard_top2_worst_acc'])} |"
             ),
             (
+                "| toy MoE unified objective | hard top-2 worst accuracy | "
+                f"{fmt(toy_moe['dispatch_robustness']['unified_moe_hard_top2_worst_acc'])} |"
+            ),
+            (
+                "| toy MoE unified objective | hard top-2 delta vs route-KD | "
+                f"{fmt(toy_moe['dispatch_robustness']['unified_moe_minus_route_kd_hard_top2_worst_acc'])} |"
+            ),
+            (
                 "| toy MoE capacity | max top-k overflow fraction | "
                 f"{fmt(toy_moe['router_capacity']['max_topk_overflow_fraction'])} |"
             ),
@@ -1476,6 +1507,10 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| toy MoE capacity | route-KD minus calibrated overflow | "
                 f"{fmt(toy_moe['router_capacity']['route_kd_minus_calibrated_max_topk_overflow_fraction'])} |"
+            ),
+            (
+                "| toy MoE unified objective | max top-k overflow fraction | "
+                f"{fmt(toy_moe['router_capacity']['unified_moe_max_topk_overflow_fraction'])} |"
             ),
             (
                 "| toy MoE hard dispatch | soft to hard top-1 delta | "
@@ -1508,6 +1543,18 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| toy MoE route-aware merge | expert-weight search + router-calibrated worst accuracy | "
                 f"{fmt(toy_moe['expert_weight_search_router_calibrated_average']['worst_acc'])} |"
+            ),
+            (
+                "| toy MoE unified objective | worst accuracy | "
+                f"{fmt(toy_moe['unified_moe_average']['worst_acc'])} |"
+            ),
+            (
+                "| toy MoE unified objective | delta vs expert-search router-calibrated | "
+                f"{fmt(toy_moe['unified_moe_minus_expert_search_router_calibrated_worst_acc'])} |"
+            ),
+            (
+                "| toy MoE unified objective | delta vs route-KD | "
+                f"{fmt(toy_moe['unified_moe_minus_route_kd_worst_acc'])} |"
             ),
             (
                 "| toy MoE route-aware merge | route-aware average worst accuracy | "

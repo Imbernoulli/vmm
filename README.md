@@ -6,6 +6,8 @@
 
 这里说的 Average 不是 ensemble，也不是把 MoE experts 扩成更多分支；最终目标模型必须和输入模型保持同构，能用同一个 config/tokenizer/model class 直接加载。Probe 的作用是决定哪些模型、层、模块或 experts 可以被平均，以及平均系数应该怎么设。
 
+最新 MoE 机制结果：toy MoE 上，失败主因不是“平均”这个动作本身，而是 expert 语义 index 和 router dispatch 一起漂移。当前统一方法 `unified_moe_average` 先用 per-expert source weight search 处理 expert 语义/重要性，再在同构 checkpoint 内只校准 router，并把 soft task loss、hard top-2 dispatch loss、route/output KD、base-router KL 和 load-balance surrogate 放进同一个 objective。它把 soft worst accuracy 做到 `0.830`，高于 route-KD 的 `0.815`；hard top-2 worst accuracy 做到 `0.738`，高于 route-KD 的 `0.730`。但它的 max top-k overflow 是 `0.080`，比 route-KD 的 `0.0725` 略高，所以当前不是宣称无条件支配，而是把 `unified_moe_average` 作为 sparse/capacity-aware 首选，同时保留 route-KD 在 Pareto frontier 里。
+
 ## 一屏版结论
 
 如果只想先看结果，可以先读这几条：
@@ -26,9 +28,9 @@
 14. **MoE route-aware average 已落到 tensor-rule 文件。** [MoE Route-Weight Recipes](results/moe_route_weight_recipes/report.md) 会把 routing probe 的 `expert_load.csv` 转成 `tensor_rules.txt`，由 checkpoint writer 直接读取；当前状态是 `waiting_for_routing_probe`，说明还缺真实 Qwen3 MoE route probe，不应该假装已经有 expert-wise 权重。
 15. **真实 MoE routing probe CLI 已经补上。** `scripts/probe_moe_routing.py` 会捕获 MoE router hook，输出 `router_summary.csv`、`expert_load.csv`、可选 `route_overlap.csv`，并额外写 `summary.json` 和 `report.md`；[MoE Routing Probe Smoke](results/moe_routing_probe_smoke/report.md) 已验证 tiny MoE 上能抓到 2 个 router 和 6 行 overlap。下一步是把它跑在 Qwen3-30B-A3B / Qwen3-Coder-30B-A3B 上。
 16. **MoE router 先过 readiness gate。** [MoE Routing Readiness](results/moe_routing_readiness/report.md) 会把 `router_summary.csv`、`route_overlap.csv`、`expert_load.csv` 转成 collapse、route drift、top-k 边界脆弱性和 expert load 风险；只有这些风险可控，才考虑开放 router 小 λ 或生成 expert-wise tensor rules。
-17. **Toy MoE 已经复现 expert-index mismatch 风险。** [Toy MoE Route-Aware Merge](results/toy_moe_merge/report.md) 中，直接 all-weight average 的 worst accuracy 是 `0.620`，expert-matched average 是 `0.800`，route-aware expert average 是 `0.790`；这说明 MoE 的 expert 对齐和 route-frequency 权重不是装饰项。
+17. **Toy MoE 已经复现 expert-index mismatch 和 router 漂移风险。** [Toy MoE Route-Aware Merge](results/toy_moe_merge/report.md) 中，直接 all-weight average 的 worst accuracy 是 `0.620`，expert-matched average 是 `0.800`，route-aware expert average 是 `0.790`；进一步的 `unified_moe_average` 在 expert 权重搜索后校准 router，soft worst accuracy 达到 `0.830`，hard top-2 worst accuracy 达到 `0.738`。
 18. **同一个 readiness gate 已能分析多方法 MoE probe。** [Toy MoE Routing Readiness](results/toy_moe_routing_readiness/report.md) 把 toy MoE 的 base、endpoint、all-weight、expert-matched、route-aware 方法分开诊断；其中 `all_weight_average` 的 general slice 触发 `calibrate_router_before_average`，而 expert-matched/route-aware 的 route overlap 接近 `1.0`。
-19. **MoE 方法选择已从“读表”变成自动决策。** [Toy MoE Method Selection](results/toy_moe_method_selection/report.md) 把 worst accuracy 和 routing readiness 合在一起：`all_weight_average` 被判为 `reject_routing_breakdown`，推荐先复评 `expert_matched_average`，并保留 router guard。
+19. **MoE 方法选择已从“读表”变成自动决策。** [Toy MoE Method Selection](results/toy_moe_method_selection/report.md) 把 worst accuracy、routing readiness、hard top-2 dispatch 和 capacity overflow 合在一起：`all_weight_average` 被判为 `reject_routing_breakdown`；soft dispatch 下推荐 `matched_router_calibrated_average`；sparse hard top-2 和 capacity-aware sparse 选择当前推荐 `unified_moe_average`，但 route-KD 仍因 overflow 更低留在 Pareto frontier。
 20. **Expert matching 已能进入 checkpoint materialization。** [Toy MoE Expert Remap Plan](results/toy_moe_expert_remap_plan/report.md) 把 expert-output matching 转成 `source_tensor_aliases.txt`：输出 checkpoint 的 expert index、tensor name 和 shape 不变，只改变某个 source 读取哪个 matched expert tensor；当前 4 个 alias rule 全部 ready，最小 output cosine 为 `0.943`。
 
 核心对象是：
@@ -86,7 +88,7 @@ z 轴 = loss
 
 ## 结论摘要
 
-当前 coverage audit 已完成：`complete = 29`, `partial = 0`, `missing = 0`。完整汇总见 `results/summary.md` 和 `results/summary.json`。
+当前 coverage audit：`complete = 31`, `partial = 1`, `missing = 0`；唯一 partial 是 vLLM hosted downstream eval 还没有可用 endpoint。完整汇总见 `results/summary.md` 和 `results/summary.json`。
 
 主要结论：
 

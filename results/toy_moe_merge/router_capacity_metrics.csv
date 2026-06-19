@@ -39,5 +39,7 @@ expert_weight_search_average,general,toy_router,400,4,2,1.25,125,250,108,0.27,55
 expert_weight_search_average,code,toy_router,400,4,2,1.25,125,250,131,0.3275,20,0.025,1.576,1.08,capacity_overflow_risk
 expert_weight_search_router_calibrated_average,general,toy_router,400,4,2,1.25,125,250,141,0.3525,49,0.06125,2.128,1.196,capacity_overflow_risk
 expert_weight_search_router_calibrated_average,code,toy_router,400,4,2,1.25,125,250,91,0.2275,0,0.0,1.584,0.984,capacity_ok
+unified_moe_average,general,toy_router,400,4,2,1.25,125,250,134,0.335,64,0.08,2.072,1.256,capacity_overflow_risk
+unified_moe_average,code,toy_router,400,4,2,1.25,125,250,123,0.3075,44,0.055,1.552,1.088,capacity_overflow_risk
 route_aware_expert_average,general,toy_router,400,4,2,1.25,125,250,108,0.27,55,0.06875,1.864,1.14,capacity_overflow_risk
 route_aware_expert_average,code,toy_router,400,4,2,1.25,125,250,131,0.3275,20,0.025,1.576,1.08,capacity_overflow_risk

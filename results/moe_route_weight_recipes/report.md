@@ -31,6 +31,25 @@ writer_weight[source, layer, expert] = (1 - anchor_floor) * normalize(route_mass
 
 当前没有真实 `expert_load.csv` 或 explicit expert-weight CSV，因此只生成 shared-module 规则和 writer 模板。下一步需要先跑 MoE routing probe 或传入搜索权重。
 
+## Prompt Category Source Map
+
+| category | prompts | mapped source | mapping |
+| --- | ---: | --- | --- |
+| agentic_code | 1 | code | category_heuristic |
+| code | 2 | code | source_name_match |
+| finance | 1 | general | fallback |
+| general | 2 | general | source_name_match |
+| legal | 1 | general | fallback |
+| long_context | 1 | general | fallback |
+| math | 2 | general | fallback |
+| safety | 2 | general | fallback |
+
+## Routing Probe Plan
+
+| probe | model | compare model | prompts | output |
+| --- | --- | --- | ---: | --- |
+| qwen3_30b_general_vs_code | `Qwen/Qwen3-30B-A3B` | `Qwen/Qwen3-Coder-30B-A3B-Instruct` | 12 | `results/moe_routing_probe/qwen3_30b_general_vs_code` |
+
 ## Writer Dry-Run Command
 
 ```bash
@@ -40,13 +59,13 @@ python scripts/write_same_shape_average_checkpoint.py --base MOE_BASE_OR_ANCHOR_
 ## 需要先跑的 Routing Probe
 
 ```bash
-python scripts/probe_moe_routing.py --model Qwen/Qwen3-30B-A3B --compare-model Qwen/Qwen3-Coder-30B-A3B-Instruct --prompts prompts/qwen_moe_route_probe_prompts.jsonl --device-map auto --dtype bfloat16 --use-chat-template --output-dir results/moe_routing_probe/qwen3_30b_general_vs_code
+python scripts/probe_moe_routing.py --model Qwen/Qwen3-30B-A3B --compare-model Qwen/Qwen3-Coder-30B-A3B-Instruct --prompts prompts/qwen_moe_route_probe_prompts.jsonl --device-map auto --dtype bfloat16 --max-length 768 --use-chat-template --output-dir results/moe_routing_probe/qwen3_30b_general_vs_code
 ```
 
 然后重新生成 route weights：
 
 ```bash
-PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code --source general --source code --category-source general=general --category-source code=code --category-source math=general --category-source safety=general
+PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code --source general --source code --category-source agentic_code=code --category-source code=code --category-source finance=general --category-source general=general --category-source legal=general --category-source long_context=general --category-source math=general --category-source safety=general
 ```
 
 ## Files
@@ -54,4 +73,6 @@ PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --router-dir res
 - `results/moe_route_weight_recipes/source_weights_by_expert.csv`
 - `results/moe_route_weight_recipes/tensor_rules.txt`
 - `results/moe_route_weight_recipes/writer_command.txt`
+- `results/moe_route_weight_recipes/routing_probe_plan.csv`
+- `results/moe_route_weight_recipes/category_source_plan.csv`
 - `results/moe_route_weight_recipes/summary.json`

@@ -3,9 +3,9 @@
 这个报告把 MoE 方法分数和 routing readiness 合在一起，给出是否 materialize 的决策。它的边界是保守的：endpoint 只能作 baseline，低 route-overlap / 低 top-1 agreement 的 average 会被拒绝，能过性能和 routing gate 的方法才进入 checkpoint writer 或下一轮 held-out eval。
 
 - Recommended soft-router method: `matched_router_calibrated_average`
-- Recommended sparse `hard_top2` method: `matched_router_route_kd_average`
-- Capacity-aware sparse `hard_top2` method: `matched_router_kd_average`
-- Sparse accuracy/overflow Pareto frontier: `matched_router_route_kd_average, matched_router_calibrated_average, matched_router_sweep_selected_average, matched_router_kd_average`
+- Recommended sparse `hard_top2` method: `unified_moe_average`
+- Capacity-aware sparse `hard_top2` method: `unified_moe_average`
+- Sparse accuracy/overflow Pareto frontier: `unified_moe_average, matched_router_route_kd_average, matched_router_calibrated_average, matched_router_sweep_selected_average, matched_router_kd_average`
 - Selection status: `has_candidate`
 - Base worst accuracy: `0.775`
 
@@ -15,6 +15,7 @@
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | matched_router_sweep_selected_average | merge_candidate | 0.838 | 0.700 | 0.0600 | 0.839 | 0 | 0.8275 | `candidate_with_router_guard` |
 | matched_router_calibrated_average | merge_candidate | 0.838 | 0.700 | 0.0600 | 0.839 | 0 | 0.8275 | `candidate_with_router_guard` |
+| unified_moe_average | merge_candidate | 0.830 | 0.738 | 0.0800 | 0.831 | 0 | 0.8333 | `candidate_with_router_guard` |
 | expert_weight_search_router_calibrated_average | merge_candidate | 0.828 | 0.688 | 0.0612 | 0.831 | 0 | 0.8308 | `candidate_with_router_guard` |
 | matched_router_topk_calibrated_average | merge_candidate | 0.815 | 0.700 | 0.0700 | 0.825 | 0 | 0.8633 | `candidate_with_router_guard` |
 | matched_router_weight_search_average | merge_candidate | 0.818 | 0.675 | 0.0725 | 0.819 | 0 | 0.97 | `candidate_with_router_guard` |
@@ -44,18 +45,18 @@
 - decision: `candidate_with_router_guard`
 - reason: candidate passes routing-overlap gate after router calibration; keep load-balance and held-out route checks.
 
-如果部署路径使用 `hard_top2` sparse dispatch，优先复评 `matched_router_route_kd_average`。
+如果部署路径使用 `hard_top2` sparse dispatch，优先复评 `unified_moe_average`。
 
-- hard_top2 worst accuracy: `0.730`
-- soft worst accuracy: `0.815`
+- hard_top2 worst accuracy: `0.738`
+- soft worst accuracy: `0.830`
 - decision: `candidate_with_router_guard`
 
-如果同时惩罚 `hard_top2` accuracy loss 和 capacity overflow，当前优先复评 `matched_router_kd_average`。
+如果同时惩罚 `hard_top2` accuracy loss 和 capacity overflow，当前优先复评 `unified_moe_average`。
 
-- capacity-aware score: `0.6475`
-- hard_top2 worst accuracy: `0.685`
-- max top-k overflow fraction: `0.0325`
-- worst overflow category: `code`
+- capacity-aware score: `0.6525`
+- hard_top2 worst accuracy: `0.738`
+- max top-k overflow fraction: `0.0800`
+- worst overflow category: `general`
 
 ## Sparse Pareto Frontier
 
@@ -63,6 +64,7 @@
 
 | method | hard top-2 worst acc | top-k overflow | worst category | soft worst acc |
 | --- | ---: | ---: | --- | ---: |
+| unified_moe_average | 0.738 | 0.0800 | general | 0.830 |
 | matched_router_route_kd_average | 0.730 | 0.0725 | general | 0.815 |
 | matched_router_calibrated_average | 0.700 | 0.0600 | general | 0.838 |
 | matched_router_sweep_selected_average | 0.700 | 0.0600 | general | 0.838 |

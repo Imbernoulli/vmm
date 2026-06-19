@@ -25,6 +25,10 @@ SOURCE_WEIGHT_COLUMNS = [
     "tensor_rule",
     "reason",
 ]
+DEFAULT_PROBE_MODEL = "Qwen/Qwen3-30B-A3B"
+DEFAULT_PROBE_COMPARE_MODEL = "Qwen/Qwen3-Coder-30B-A3B-Instruct"
+DEFAULT_PROBE_PROMPTS = "prompts/qwen_moe_route_probe_prompts.jsonl"
+DEFAULT_PROBE_OUTPUT_DIR = "results/moe_routing_probe/qwen3_30b_general_vs_code"
 
 
 def repo_path(path: str | Path) -> Path:
@@ -75,6 +79,17 @@ def maybe_float(value: Any, default: float = 0.0) -> float:
     return out if math.isfinite(out) else default
 
 
+def read_jsonl_if_exists(path: Path) -> list[dict[str, Any]]:
+    if not path.exists():
+        return []
+    rows = []
+    with path.open("r", encoding="utf-8") as handle:
+        for line in handle:
+            if line.strip():
+                rows.append(json.loads(line))
+    return rows
+
+
 def discover_moe_topology(summary_path: Path, model_name: str | None) -> dict[str, Any] | None:
     if not summary_path.exists() or not summary_path.is_file():
         return None
@@ -99,9 +114,138 @@ def discover_moe_topology(summary_path: Path, model_name: str | None) -> dict[st
 def source_for_category(category: str, category_sources: dict[str, str], source_names: list[str], fallback: str) -> str:
     if category in category_sources:
         return category_sources[category]
+    normalized = category.lower().replace("-", "_")
+    if "code" in source_names and (
+        normalized == "code"
+        or normalized.endswith("_code")
+        or "coding" in normalized
+        or "programming" in normalized
+        or "software" in normalized
+    ):
+        return "code"
     if category in source_names:
         return category
     return fallback
+
+
+def category_mapping_kind(category: str, category_sources: dict[str, str], source_names: list[str], fallback_source: str) -> str:
+    if category in category_sources:
+        return "explicit"
+    source = source_for_category(category, category_sources, source_names, fallback_source)
+    if category in source_names and source == category:
+        return "source_name_match"
+    if source in source_names and source != fallback_source:
+        return "category_heuristic"
+    return "fallback"
+
+
+def build_category_source_plan(
+    *,
+    prompt_path: Path,
+    source_names: list[str],
+    category_sources: dict[str, str],
+    fallback_source: str,
+) -> list[dict[str, Any]]:
+    prompts = read_jsonl_if_exists(prompt_path)
+    counts: dict[str, int] = defaultdict(int)
+    for row in prompts:
+        counts[str(row.get("category", "default"))] += 1
+    rows = []
+    for category, count in sorted(counts.items()):
+        source = source_for_category(category, category_sources, source_names, fallback_source)
+        rows.append(
+            {
+                "category": category,
+                "prompt_count": count,
+                "mapped_source": source,
+                "mapping_kind": category_mapping_kind(category, category_sources, source_names, fallback_source),
+            }
+        )
+    return rows
+
+
+def build_probe_command(
+    *,
+    model: str,
+    compare_model: str | None,
+    prompt_path: Path,
+    output_dir: Path,
+    device_map: str,
+    dtype: str,
+    max_length: int,
+    use_chat_template: bool,
+) -> str:
+    parts = [
+        "python scripts/probe_moe_routing.py",
+        f"--model {model}",
+    ]
+    if compare_model:
+        parts.append(f"--compare-model {compare_model}")
+    parts.extend(
+        [
+            f"--prompts {rel(prompt_path)}",
+            f"--device-map {device_map}",
+            f"--dtype {dtype}",
+            f"--max-length {max_length}",
+        ]
+    )
+    if use_chat_template:
+        parts.append("--use-chat-template")
+    parts.extend([f"--output-dir {rel(output_dir)}"])
+    return " ".join(parts)
+
+
+def build_routing_probe_plan(
+    *,
+    model: str,
+    compare_model: str | None,
+    prompt_path: Path,
+    output_dir: Path,
+    source_names: list[str],
+    category_source_rows: list[dict[str, Any]],
+    device_map: str,
+    dtype: str,
+    max_length: int,
+    use_chat_template: bool,
+) -> list[dict[str, Any]]:
+    category_args = " ".join(
+        f"--category-source {row['category']}={row['mapped_source']}" for row in category_source_rows
+    )
+    command = build_probe_command(
+        model=model,
+        compare_model=compare_model,
+        prompt_path=prompt_path,
+        output_dir=output_dir,
+        device_map=device_map,
+        dtype=dtype,
+        max_length=max_length,
+        use_chat_template=use_chat_template,
+    )
+    return [
+        {
+            "probe_name": output_dir.name,
+            "model": model,
+            "compare_model": compare_model,
+            "source_names": ",".join(source_names),
+            "prompt_pack": rel(prompt_path),
+            "prompt_count": int(sum(row["prompt_count"] for row in category_source_rows)),
+            "category_count": int(len(category_source_rows)),
+            "output_dir": rel(output_dir),
+            "expected_expert_load": rel(output_dir / "expert_load.csv"),
+            "expected_route_overlap": rel(output_dir / "route_overlap.csv") if compare_model else "",
+            "device_map": device_map,
+            "dtype": dtype,
+            "max_length": max_length,
+            "use_chat_template": use_chat_template,
+            "command": command,
+            "next_recipe_command": (
+                "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py "
+                f"--router-dir {rel(output_dir)} "
+                + " ".join(f"--source {source}" for source in source_names)
+                + (f" {category_args}" if category_args else "")
+            ),
+        }
+    ]
 
 
 def layer_id_from_router(router: str, layer_regex: re.Pattern[str]) -> str:
@@ -421,6 +565,37 @@ def build_report(
             )
     else:
         lines.append("当前没有真实 `expert_load.csv` 或 explicit expert-weight CSV，因此只生成 shared-module 规则和 writer 模板。下一步需要先跑 MoE routing probe 或传入搜索权重。")
+    category_source_plan = summary.get("category_source_plan", [])
+    if category_source_plan:
+        lines.extend(
+            [
+                "",
+                "## Prompt Category Source Map",
+                "",
+                "| category | prompts | mapped source | mapping |",
+                "| --- | ---: | --- | --- |",
+            ]
+        )
+        for row in category_source_plan:
+            lines.append(
+                f"| {row['category']} | {int(row['prompt_count'])} | {row['mapped_source']} | {row['mapping_kind']} |"
+            )
+    routing_probe_plan = summary.get("routing_probe_plan", [])
+    if routing_probe_plan:
+        lines.extend(
+            [
+                "",
+                "## Routing Probe Plan",
+                "",
+                "| probe | model | compare model | prompts | output |",
+                "| --- | --- | --- | ---: | --- |",
+            ]
+        )
+        for row in routing_probe_plan:
+            lines.append(
+                f"| {row['probe_name']} | `{row['model']}` | `{row.get('compare_model') or ''}` | "
+                f"{int(row['prompt_count'])} | `{row['output_dir']}` |"
+            )
     lines.extend(
         [
             "",
@@ -433,13 +608,13 @@ def build_report(
             "## 需要先跑的 Routing Probe",
             "",
             "```bash",
-            "python scripts/probe_moe_routing.py --model Qwen/Qwen3-30B-A3B --compare-model Qwen/Qwen3-Coder-30B-A3B-Instruct --prompts prompts/qwen_moe_route_probe_prompts.jsonl --device-map auto --dtype bfloat16 --use-chat-template --output-dir results/moe_routing_probe/qwen3_30b_general_vs_code",
+            routing_probe_plan[0]["command"] if routing_probe_plan else "",
             "```",
             "",
             "然后重新生成 route weights：",
             "",
             "```bash",
-            "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code --source general --source code --category-source general=general --category-source code=code --category-source math=general --category-source safety=general",
+            routing_probe_plan[0]["next_recipe_command"] if routing_probe_plan else "",
             "```",
             "",
             "## Files",
@@ -447,6 +622,8 @@ def build_report(
             f"- `{summary['outputs']['source_weights']}`",
             f"- `{summary['outputs']['tensor_rules']}`",
             f"- `{summary['outputs']['writer_command']}`",
+            f"- `{summary['outputs']['routing_probe_plan']}`",
+            f"- `{summary['outputs']['category_source_plan']}`",
             f"- `{summary['outputs']['summary']}`",
         ]
     )
@@ -473,7 +650,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--topology-summary", default="results/checkpoint_topology_inspect/summary.json")
     parser.add_argument("--topology-model", default=None)
     parser.add_argument("--checkpoint-output-dir", default="results/checkpoints/moe_route_aware_candidate")
+    parser.add_argument("--probe-model", default=DEFAULT_PROBE_MODEL)
+    parser.add_argument("--probe-compare-model", default=DEFAULT_PROBE_COMPARE_MODEL)
+    parser.add_argument("--probe-prompts", default=DEFAULT_PROBE_PROMPTS)
+    parser.add_argument("--probe-output-dir", default=DEFAULT_PROBE_OUTPUT_DIR)
+    parser.add_argument("--probe-device-map", default="auto")
+    parser.add_argument("--probe-dtype", default="bfloat16", choices=["auto", "float16", "bfloat16", "float32"])
+    parser.add_argument("--probe-max-length", type=int, default=768)
+    parser.add_argument("--no-probe-chat-template", dest="probe_chat_template", action="store_false")
     parser.set_defaults(freeze_router=True)
+    parser.set_defaults(probe_chat_template=True)
     return parser.parse_args()
 
 
@@ -493,6 +679,32 @@ def main() -> None:
     output_dir = repo_path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     router_dirs = [repo_path(path) for path in args.router_dir]
+    probe_prompt_path = repo_path(args.probe_prompts)
+    probe_output_dir = repo_path(args.probe_output_dir)
+    category_source_rows = build_category_source_plan(
+        prompt_path=probe_prompt_path,
+        source_names=source_names,
+        category_sources=category_sources,
+        fallback_source=fallback_source,
+    )
+    routing_probe_plan = build_routing_probe_plan(
+        model=args.probe_model,
+        compare_model=args.probe_compare_model,
+        prompt_path=probe_prompt_path,
+        output_dir=probe_output_dir,
+        source_names=source_names,
+        category_source_rows=category_source_rows,
+        device_map=args.probe_device_map,
+        dtype=args.probe_dtype,
+        max_length=args.probe_max_length,
+        use_chat_template=args.probe_chat_template,
+    )
+    pd.DataFrame(category_source_rows).to_csv(output_dir / "category_source_plan.csv", index=False)
+    pd.DataFrame(routing_probe_plan).to_csv(output_dir / "routing_probe_plan.csv", index=False)
+    (output_dir / "routing_probe_plan.json").write_text(
+        json.dumps(routing_probe_plan, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
     layer_regex = re.compile(args.layer_regex)
     expert_weight_csvs = [repo_path(path) for path in args.expert_weight_csv]
     if expert_weight_csvs:
@@ -560,6 +772,11 @@ def main() -> None:
         "router_dirs": [rel(path) for path in router_dirs],
         "expert_weight_csvs": [rel(path) for path in expert_weight_csvs],
         "input_summaries": input_summaries,
+        "routing_probe_plan_rows": len(routing_probe_plan),
+        "routing_probe_plan": routing_probe_plan,
+        "category_source_plan_rows": len(category_source_rows),
+        "category_source_plan": category_source_rows,
+        "prompt_pack": rel(probe_prompt_path),
         "anchor_floor": args.anchor_floor,
         "min_source_weight": args.min_source_weight,
         "low_route_threshold": args.low_route_threshold,
@@ -574,6 +791,9 @@ def main() -> None:
             "source_weights": rel(output_dir / "source_weights_by_expert.csv"),
             "tensor_rules": rel(tensor_rule_file),
             "writer_command": rel(output_dir / "writer_command.txt"),
+            "routing_probe_plan": rel(output_dir / "routing_probe_plan.csv"),
+            "routing_probe_plan_json": rel(output_dir / "routing_probe_plan.json"),
+            "category_source_plan": rel(output_dir / "category_source_plan.csv"),
             "summary": rel(output_dir / "summary.json"),
             "report": rel(output_dir / "report.md"),
         },
