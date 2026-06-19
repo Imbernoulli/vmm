@@ -1,0 +1,136 @@
+{
+  "base_url": "http://127.0.0.1:8100/v1",
+  "best_avg_primary_model": "candidate_qwen_0_5b_sparse_method_bridge",
+  "candidate_query": null,
+  "candidate_table": null,
+  "endpoint_probe": {
+    "base_url": "http://127.0.0.1:8100/v1",
+    "latency_sec": 0.008770465850830078,
+    "model": "candidate_qwen_0_5b_sparse_method_bridge",
+    "models_response": {
+      "data": [
+        {
+          "created": 1781887740,
+          "id": "candidate_qwen_0_5b_sparse_method_bridge",
+          "max_model_len": 32768,
+          "object": "model",
+          "owned_by": "vllm",
+          "parent": null,
+          "permission": [
+            {
+              "allow_create_engine": false,
+              "allow_fine_tuning": false,
+              "allow_logprobs": true,
+              "allow_sampling": true,
+              "allow_search_indices": false,
+              "allow_view": true,
+              "created": 1781887740,
+              "group": null,
+              "id": "modelperm-30aaecf8ea434e79b3d27c7b797641da",
+              "is_blocking": false,
+              "object": "model_permission",
+              "organization": "*"
+            }
+          ],
+          "root": "results/checkpoints/qwen_0_5b_sparse_method_bridge"
+        }
+      ],
+      "object": "list"
+    },
+    "status": "ok"
+  },
+  "eval_plan": [
+    {
+      "candidate_source": "manual_args",
+      "eval_order": 0,
+      "method": "manual_0",
+      "served_model_id": "candidate_qwen_0_5b_sparse_method_bridge"
+    }
+  ],
+  "eval_plan_path": "results/vllm_checkpoint_eval/qwen_0_5b_sparse_method_bridge/eval_plan.csv",
+  "example_source": "datasets",
+  "max_examples_per_task": 64,
+  "metrics": [
+    {
+      "accuracy": null,
+      "compile_ok": null,
+      "compile_rate": null,
+      "correct": null,
+      "examples": 64,
+      "loose_correct": 2.0,
+      "loose_exact": 0.03125,
+      "model": "candidate_qwen_0_5b_sparse_method_bridge",
+      "policy_accuracy": null,
+      "safe_non_refusal_rate": null,
+      "strict_correct": 1.0,
+      "strict_exact": 0.015625,
+      "task": "gsm8k",
+      "unsafe_refusal_rate": null
+    },
+    {
+      "accuracy": 0.21875,
+      "compile_ok": null,
+      "compile_rate": null,
+      "correct": 14.0,
+      "examples": 64,
+      "loose_correct": null,
+      "loose_exact": null,
+      "model": "candidate_qwen_0_5b_sparse_method_bridge",
+      "policy_accuracy": null,
+      "safe_non_refusal_rate": null,
+      "strict_correct": null,
+      "strict_exact": null,
+      "task": "mmlu",
+      "unsafe_refusal_rate": null
+    },
+    {
+      "accuracy": null,
+      "compile_ok": null,
+      "compile_rate": null,
+      "correct": null,
+      "examples": 64,
+      "loose_correct": null,
+      "loose_exact": null,
+      "model": "candidate_qwen_0_5b_sparse_method_bridge",
+      "policy_accuracy": 0.390625,
+      "safe_non_refusal_rate": 0.59375,
+      "strict_correct": null,
+      "strict_exact": null,
+      "task": "safety",
+      "unsafe_refusal_rate": 0.1875
+    },
+    {
+      "accuracy": null,
+      "compile_ok": 0.0,
+      "compile_rate": 0.0,
+      "correct": null,
+      "examples": 64,
+      "loose_correct": null,
+      "loose_exact": null,
+      "model": "candidate_qwen_0_5b_sparse_method_bridge",
+      "policy_accuracy": null,
+      "safe_non_refusal_rate": null,
+      "strict_correct": null,
+      "strict_exact": null,
+      "task": "humaneval_compile",
+      "unsafe_refusal_rate": null
+    }
+  ],
+  "model": "candidate_qwen_0_5b_sparse_method_bridge",
+  "model_count": 1,
+  "model_summary": [
+    {
+      "avg_primary_score": 0.15625,
+      "model": "candidate_qwen_0_5b_sparse_method_bridge",
+      "rank": 1,
+      "task_count": 4,
+      "worst_primary_score": 0.0
+    }
+  ],
+  "models": [
+    "candidate_qwen_0_5b_sparse_method_bridge"
+  ],
+  "schema_version": 1,
+  "status": "complete",
+  "tasks": "gsm8k,mmlu,safety,humaneval_compile"
+}

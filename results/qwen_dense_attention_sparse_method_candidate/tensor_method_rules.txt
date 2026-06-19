@@ -1,0 +1,101 @@
+# PATTERN::METHOD[,KEY=VALUE]
+# First matching method rule wins in write_same_shape_average_checkpoint.py.
+# These exact-tensor rules come from Qwen instruct/coder sign-conflict probes.
+# group=attention; projection=attn_k; sign_conflict=0.485; cosine=0.027; numel=114688
+^model\.layers\.23\.self_attn\.k_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_k; sign_conflict=0.479; cosine=0.015; numel=114688
+^model\.layers\.22\.self_attn\.k_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_k; sign_conflict=0.472; cosine=0.037; numel=114688
+^model\.layers\.17\.self_attn\.k_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_k; sign_conflict=0.471; cosine=0.025; numel=114688
+^model\.layers\.16\.self_attn\.k_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_k; sign_conflict=0.471; cosine=0.044; numel=114688
+^model\.layers\.20\.self_attn\.k_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_k; sign_conflict=0.467; cosine=0.051; numel=114688
+^model\.layers\.21\.self_attn\.k_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_k; sign_conflict=0.466; cosine=0.060; numel=114688
+^model\.layers\.18\.self_attn\.k_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_k; sign_conflict=0.464; cosine=0.066; numel=114688
+^model\.layers\.11\.self_attn\.k_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_k; sign_conflict=0.464; cosine=0.059; numel=114688
+^model\.layers\.13\.self_attn\.k_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_q; sign_conflict=0.462; cosine=0.094; numel=802816
+^model\.layers\.16\.self_attn\.q_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_k; sign_conflict=0.461; cosine=0.077; numel=114688
+^model\.layers\.9\.self_attn\.k_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_q; sign_conflict=0.460; cosine=0.124; numel=802816
+^model\.layers\.22\.self_attn\.q_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_k; sign_conflict=0.459; cosine=0.080; numel=114688
+^model\.layers\.14\.self_attn\.k_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_q; sign_conflict=0.458; cosine=0.136; numel=802816
+^model\.layers\.23\.self_attn\.q_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_k; sign_conflict=0.458; cosine=0.079; numel=114688
+^model\.layers\.5\.self_attn\.k_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_k; sign_conflict=0.457; cosine=0.077; numel=114688
+^model\.layers\.15\.self_attn\.k_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_k; sign_conflict=0.456; cosine=0.083; numel=114688
+^model\.layers\.19\.self_attn\.k_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_k; sign_conflict=0.455; cosine=0.081; numel=114688
+^model\.layers\.4\.self_attn\.k_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_q; sign_conflict=0.455; cosine=0.112; numel=802816
+^model\.layers\.17\.self_attn\.q_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_v; sign_conflict=0.454; cosine=0.117; numel=114688
+^model\.layers\.0\.self_attn\.v_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_k; sign_conflict=0.454; cosine=0.082; numel=114688
+^model\.layers\.7\.self_attn\.k_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_q; sign_conflict=0.454; cosine=0.131; numel=802816
+^model\.layers\.21\.self_attn\.q_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_k; sign_conflict=0.454; cosine=0.089; numel=114688
+^model\.layers\.12\.self_attn\.k_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_q; sign_conflict=0.454; cosine=0.113; numel=802816
+^model\.layers\.13\.self_attn\.q_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_k; sign_conflict=0.453; cosine=0.094; numel=114688
+^model\.layers\.6\.self_attn\.k_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_q; sign_conflict=0.452; cosine=0.125; numel=802816
+^model\.layers\.20\.self_attn\.q_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_k; sign_conflict=0.452; cosine=0.097; numel=114688
+^model\.layers\.3\.self_attn\.k_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_q; sign_conflict=0.452; cosine=0.111; numel=802816
+^model\.layers\.5\.self_attn\.q_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_k; sign_conflict=0.451; cosine=0.098; numel=114688
+^model\.layers\.10\.self_attn\.k_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_q; sign_conflict=0.451; cosine=0.113; numel=802816
+^model\.layers\.18\.self_attn\.q_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_q; sign_conflict=0.451; cosine=0.108; numel=802816
+^model\.layers\.11\.self_attn\.q_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_q; sign_conflict=0.451; cosine=0.119; numel=802816
+^model\.layers\.1\.self_attn\.q_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_q; sign_conflict=0.450; cosine=0.094; numel=802816
+^model\.layers\.4\.self_attn\.q_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_q; sign_conflict=0.450; cosine=0.121; numel=802816
+^model\.layers\.14\.self_attn\.q_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_q; sign_conflict=0.449; cosine=0.128; numel=802816
+^model\.layers\.2\.self_attn\.q_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_q; sign_conflict=0.449; cosine=0.123; numel=802816
+^model\.layers\.7\.self_attn\.q_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_q; sign_conflict=0.449; cosine=0.123; numel=802816
+^model\.layers\.6\.self_attn\.q_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_q; sign_conflict=0.448; cosine=0.121; numel=802816
+^model\.layers\.9\.self_attn\.q_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_q; sign_conflict=0.447; cosine=0.125; numel=802816
+^model\.layers\.12\.self_attn\.q_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_q; sign_conflict=0.447; cosine=0.126; numel=802816
+^model\.layers\.3\.self_attn\.q_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_q; sign_conflict=0.445; cosine=0.130; numel=802816
+^model\.layers\.8\.self_attn\.q_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_q; sign_conflict=0.445; cosine=0.124; numel=802816
+^model\.layers\.15\.self_attn\.q_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_q; sign_conflict=0.445; cosine=0.132; numel=802816
+^model\.layers\.10\.self_attn\.q_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_q; sign_conflict=0.444; cosine=0.145; numel=802816
+^model\.layers\.19\.self_attn\.q_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_v; sign_conflict=0.444; cosine=0.146; numel=114688
+^model\.layers\.22\.self_attn\.v_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_o; sign_conflict=0.443; cosine=0.129; numel=802816
+^model\.layers\.16\.self_attn\.o_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_v; sign_conflict=0.441; cosine=0.144; numel=114688
+^model\.layers\.23\.self_attn\.v_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_o; sign_conflict=0.440; cosine=0.157; numel=802816
+^model\.layers\.3\.self_attn\.o_proj\.weight$::ties,density=0.5
+# group=attention; projection=attn_k; sign_conflict=0.440; cosine=0.128; numel=114688
+^model\.layers\.8\.self_attn\.k_proj\.weight$::ties,density=0.5

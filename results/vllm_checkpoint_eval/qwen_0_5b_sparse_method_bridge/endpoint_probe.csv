@@ -1,0 +1,2 @@
+status,base_url,model,latency_sec,error_type,error
+unavailable,http://127.0.0.1:8100/v1,candidate_qwen_0_5b_sparse_method_bridge,0.007254600524902344,URLError,<urlopen error [Errno 1] Operation not permitted>

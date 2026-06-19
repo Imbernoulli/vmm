@@ -1,0 +1,2 @@
+model,task_count,avg_primary_score,worst_primary_score,rank
+candidate_qwen_0_5b_sparse_method_bridge,4,0.15625,0.0,1

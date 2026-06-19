@@ -1492,8 +1492,7 @@ def summarize_qwen_dense_guarded_candidate(output_dir: str) -> dict[str, Any]:
     }
 
 
-def summarize_qwen_dense_sparse_method_candidate() -> dict[str, Any]:
-    output_dir = "results/qwen_dense_sparse_method_candidate"
+def summarize_qwen_dense_sparse_method_candidate(output_dir: str = "results/qwen_dense_sparse_method_candidate") -> dict[str, Any]:
     summary = read_json(f"{output_dir}/summary.json")
     selected = read_csv(f"{output_dir}/selected_tensors.csv")
     manifest = read_json(f"{output_dir}/dry_run/merge_manifest.json")
@@ -1517,6 +1516,14 @@ def summarize_qwen_dense_sparse_method_candidate() -> dict[str, Any]:
         "dry_run_linear_count": maybe_int(method_counts.get("linear")),
         "dry_run_tensor_method_applied_count": maybe_int(sparse_applied),
         "dry_run_floating_tensors": maybe_int(manifest.get("floating_tensors")),
+        "vllm_eval": summary.get("vllm_eval"),
+        "vllm_avg_primary_score": maybe_float((summary.get("vllm_eval") or {}).get("avg_primary_score")),
+        "vllm_delta_vs_base_bridge_avg_primary": maybe_float(
+            (summary.get("vllm_eval") or {}).get("delta_vs_base_bridge_avg_primary")
+        ),
+        "vllm_delta_vs_uniform_avg_primary": maybe_float(
+            (summary.get("vllm_eval") or {}).get("delta_vs_uniform_avg_primary")
+        ),
         "top_selected_tensors": [clean_row(row) for _, row in selected.head(12).iterrows()],
         "report": rel(f"{output_dir}/report.md"),
         "selected_tensors_path": rel(f"{output_dir}/selected_tensors.csv"),
@@ -1754,7 +1761,7 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "Qwen dense sparse-method candidate",
             "status": "complete",
-            "evidence": "results/qwen_dense_sparse_method_candidate/report.md selects high-conflict attention/MLP tensors from Qwen conflict probes and dry-runs 99 TIES tensor-method rules in the same-shape writer.",
+            "evidence": "results/qwen_dense_sparse_method_candidate/report.md and results/qwen_dense_attention_sparse_method_candidate/report.md compare broad attention+MLP sparse rules against an attention-only sparse rule under real vLLM eval.",
         },
         {
             "item": "vLLM downstream eval contract smoke",
@@ -1980,7 +1987,12 @@ def build_summary() -> dict[str, Any]:
         "qwen_dense_selective_norm_guarded_candidate": summarize_qwen_dense_guarded_candidate(
             "results/qwen_dense_selective_norm_guarded_candidate"
         ),
-        "qwen_dense_sparse_method_candidate": summarize_qwen_dense_sparse_method_candidate(),
+        "qwen_dense_sparse_method_candidate": summarize_qwen_dense_sparse_method_candidate(
+            "results/qwen_dense_sparse_method_candidate"
+        ),
+        "qwen_dense_attention_sparse_method_candidate": summarize_qwen_dense_sparse_method_candidate(
+            "results/qwen_dense_attention_sparse_method_candidate"
+        ),
         "checkpoint_materialization_readiness": summarize_checkpoint_materialization_readiness(),
         "moe_materialization_pipeline_plan": summarize_moe_materialization_pipeline_plan(),
         "probe_gated_unified_average_plan": summarize_probe_gated_unified_average_plan(),
@@ -2034,6 +2046,7 @@ def build_summary() -> dict[str, Any]:
             "PYTHONPATH=src python scripts/build_qwen_dense_module_guarded_candidate.py --output-dir results/qwen_dense_norm_guarded_candidate --variant norm_only",
             "PYTHONPATH=src python scripts/build_qwen_dense_module_guarded_candidate.py --output-dir results/qwen_dense_selective_norm_guarded_candidate --variant selective_norm",
             "PYTHONPATH=src python scripts/build_qwen_dense_sparse_method_candidate.py --output-dir results/qwen_dense_sparse_method_candidate",
+            "PYTHONPATH=src python scripts/build_qwen_dense_sparse_method_candidate.py --output-dir results/qwen_dense_attention_sparse_method_candidate --candidate-id qwen_0_5b_attention_sparse_method_bridge --groups attention",
             "PYTHONPATH=src python scripts/build_average_decision_report.py",
             "python scripts/build_qwen_target_model_registry.py",
             "PYTHONPATH=src python scripts/build_moe_average_plan.py",
@@ -2131,6 +2144,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen_dense_norm_guarded = exp["qwen_dense_norm_guarded_candidate"]
     qwen_dense_selective_norm_guarded = exp["qwen_dense_selective_norm_guarded_candidate"]
     qwen_dense_sparse_method = exp["qwen_dense_sparse_method_candidate"]
+    qwen_dense_attention_sparse_method = exp["qwen_dense_attention_sparse_method_candidate"]
     materialization_readiness = exp["checkpoint_materialization_readiness"]
     moe_pipeline_plan = exp["moe_materialization_pipeline_plan"]
     probe_gated_unified = exp["probe_gated_unified_average_plan"]
@@ -2762,16 +2776,18 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(qwen_dense_selective_norm_guarded['delta_vs_global_bridge_avg_primary'])} |"
             ),
             (
-                "| Qwen dense sparse-method candidate | selected tensors / applied sparse rules / linear tensors | "
+                "| Qwen dense broad sparse-method candidate | selected tensors / applied sparse rules / vLLM avg / delta vs global | "
                 f"{qwen_dense_sparse_method['selected_tensor_count']} / "
                 f"{qwen_dense_sparse_method['dry_run_tensor_method_applied_count']} / "
-                f"{qwen_dense_sparse_method['dry_run_linear_count']} |"
+                f"{fmt(qwen_dense_sparse_method['vllm_avg_primary_score'])} / "
+                f"{fmt(qwen_dense_sparse_method['vllm_delta_vs_base_bridge_avg_primary'])} |"
             ),
             (
-                "| Qwen dense sparse-method candidate | method / density / selected parameter fraction | "
-                f"{qwen_dense_sparse_method['method']} / "
-                f"{fmt(qwen_dense_sparse_method['density'])} / "
-                f"{fmt(qwen_dense_sparse_method['selected_numel_fraction'])} |"
+                "| Qwen dense attention sparse-method candidate | selected tensors / applied sparse rules / vLLM avg / delta vs global | "
+                f"{qwen_dense_attention_sparse_method['selected_tensor_count']} / "
+                f"{qwen_dense_attention_sparse_method['dry_run_tensor_method_applied_count']} / "
+                f"{fmt(qwen_dense_attention_sparse_method['vllm_avg_primary_score'])} / "
+                f"{fmt(qwen_dense_attention_sparse_method['vllm_delta_vs_base_bridge_avg_primary'])} |"
             ),
             (
                 "| checkpoint materialization readiness | status | "

@@ -2,7 +2,7 @@
 
 ## 结论
 
-`qwen_0_5b_sparse_method_bridge` 把已有 global bridge 的 source weights `instruct=0.25`、`coder=1.0` 保留不变，但对 high-conflict attention/MLP tensor 加上 `ties` coordinate rule。
+`qwen_0_5b_sparse_method_bridge` 把已有 global bridge 的 source weights `instruct=0.25`、`coder=1.0` 保留不变，但对 high-conflict attention,mlp tensor 加上 `ties` coordinate rule。
 
 这不是再做模块级 freeze。它对应 TIES/DARE/DELLA/Breadcrumbs 这类 sparse task-vector 机制：先用 probe 找到符号冲突集中的坐标，再在同构 writer 中对这些坐标做 trim/sign-elect/merge。
 
@@ -20,6 +20,26 @@
 | dry-run sparse method tensors | 99 |
 
 Projection counts: `{"attn_k": 21, "attn_o": 2, "attn_q": 23, "attn_v": 3, "mlp_down": 15, "mlp_gate": 22, "mlp_up": 13}`
+
+## vLLM Eval Result
+
+| metric | value |
+| --- | ---: |
+| status | complete |
+| avg primary | 0.156 |
+| worst primary | 0.000 |
+| delta vs global bridge avg | -0.047 |
+| delta vs uniform avg | -0.023 |
+| delta vs best source avg | -0.219 |
+
+| task | primary metric | score | delta vs global bridge | delta vs uniform |
+| --- | --- | ---: | ---: | ---: |
+| gsm8k | strict_exact | 0.016 | -0.047 | 0.016 |
+| mmlu | accuracy | 0.219 | -0.031 | 0.000 |
+| safety | policy_accuracy | 0.391 | -0.109 | -0.109 |
+| humaneval_compile | compile_rate | 0.000 | 0.000 | 0.000 |
+
+Full vLLM report: `results/vllm_checkpoint_eval/qwen_0_5b_sparse_method_bridge/report.md`
 
 ## Selected Tensor Preview
 

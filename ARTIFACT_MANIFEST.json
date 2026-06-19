@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 45212,
+      "bytes": 45566,
       "kind": "document",
       "path": "README.md",
-      "sha256": "db543894206fc617021517c80b2647ad0865e2d2fdba37407a58ed0a6cc82a85"
+      "sha256": "dbf982cb1d38baedeef844e4b314433759eb05bc4ea89099724843b6752763bb"
     },
     {
       "bytes": 33211,
@@ -1267,6 +1267,66 @@
       "sha256": "0b627d0c4076494b141e0611769731059c4f308a3f85500750e69f079b1bc948"
     },
     {
+      "bytes": 14592,
+      "kind": "data",
+      "path": "results/qwen_dense_attention_sparse_method_candidate/dry_run/merge_manifest.json",
+      "sha256": "97166b423e3268b811701714bef8dbccb8912501ddd4694044e38756133019bd"
+    },
+    {
+      "bytes": 699,
+      "kind": "data",
+      "path": "results/qwen_dense_attention_sparse_method_candidate/dry_run_command.txt",
+      "sha256": "8b9332ab2f2ceb45d3c3e85a51702405b2784c6840ef14f8cce98a9f0f002079"
+    },
+    {
+      "bytes": 134,
+      "kind": "data",
+      "path": "results/qwen_dense_attention_sparse_method_candidate/dry_run_stderr.txt",
+      "sha256": "d05969c6775ee7c26e6a8222468acc9e07d3ab0d0f2c79364b6a748d247423c9"
+    },
+    {
+      "bytes": 195,
+      "kind": "data",
+      "path": "results/qwen_dense_attention_sparse_method_candidate/dry_run_stdout.txt",
+      "sha256": "c2a5b698b399938c43e7e8c38244057e48e7abaf09d6a79453a16dd30aa40a9b"
+    },
+    {
+      "bytes": 5614,
+      "kind": "document",
+      "path": "results/qwen_dense_attention_sparse_method_candidate/report.md",
+      "sha256": "810e6f42407f69a1206bb270c73b304454041e4aa17d84d7b1bf29011127dcce"
+    },
+    {
+      "bytes": 8986,
+      "kind": "data",
+      "path": "results/qwen_dense_attention_sparse_method_candidate/selected_tensors.csv",
+      "sha256": "ed9afe698952f25c908ef7cf524e8a3f00df5735a258cf953658a0017363f6d5"
+    },
+    {
+      "bytes": 9732,
+      "kind": "data",
+      "path": "results/qwen_dense_attention_sparse_method_candidate/summary.json",
+      "sha256": "99fd3f2f7b10b032f5b6ac7787fbfd8df4eec6b7fa1e8919e0e05363d324c7e1"
+    },
+    {
+      "bytes": 7567,
+      "kind": "data",
+      "path": "results/qwen_dense_attention_sparse_method_candidate/tensor_method_rules.txt",
+      "sha256": "957c129fa766c56203901cb68bfabb716c5b9d7f36e577b674038953f613a87d"
+    },
+    {
+      "bytes": 623,
+      "kind": "data",
+      "path": "results/qwen_dense_attention_sparse_method_candidate/vllm_commands.json",
+      "sha256": "a7504ef320a93756abd6ba812a358423cdf7890e359d1473ce910ee569fffe98"
+    },
+    {
+      "bytes": 644,
+      "kind": "data",
+      "path": "results/qwen_dense_attention_sparse_method_candidate/writer_command.txt",
+      "sha256": "6dfd1e142d689d2f25705901ec704cd5793c7e3a40b22333ad1bd14e8f963317"
+    },
+    {
       "bytes": 703,
       "kind": "data",
       "path": "results/qwen_dense_module_guarded_candidate/module_conflict.csv",
@@ -1408,7 +1468,7 @@
       "bytes": 134,
       "kind": "data",
       "path": "results/qwen_dense_sparse_method_candidate/dry_run_stderr.txt",
-      "sha256": "d54c19246fbe025f826d9cb2c6dadf31477eeaf7a8c5c50e49ad1d88f456219f"
+      "sha256": "83ff0e33d00f09462e47a19a3082f81571cf3d7fb8cbae74dcfa9ec89fa436fb"
     },
     {
       "bytes": 185,
@@ -1417,10 +1477,10 @@
       "sha256": "c08851f9f74745debc764657e35ce8c082bab57f068ea0942df2e3adede2a1a7"
     },
     {
-      "bytes": 4873,
+      "bytes": 5529,
       "kind": "document",
       "path": "results/qwen_dense_sparse_method_candidate/report.md",
-      "sha256": "c92a5aa7e5873f31d2c6d44bcd86d3df0ba95c2acab4b931c0605e056432601b"
+      "sha256": "481f14932b9e97360042801e01d1f2258f32b9845ef3237030dc44e408e4bb98"
     },
     {
       "bytes": 17630,
@@ -1429,10 +1489,10 @@
       "sha256": "a78f38340e8a050ad5dcc1011eea7dc9bcf6f5c6b7bd8cca5fcaf2d7f8323f73"
     },
     {
-      "bytes": 11619,
+      "bytes": 13453,
       "kind": "data",
       "path": "results/qwen_dense_sparse_method_candidate/summary.json",
-      "sha256": "6ce6fc9d2fc06b6978a7e12675005f13ba1f067c004f7670c5edd3cba5bceb26"
+      "sha256": "d5a03f327b8d6957c3b47dc2e7c9ae23b4335f3df94ca8cf7b61e8585cd3e44f"
     },
     {
       "bytes": 14751,
@@ -1699,16 +1759,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 426014,
+      "bytes": 457612,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "3f32c92a853536bf03b1eb46532d29d7ed15a6055fa60bb4cda41cf4aa9a15ba"
+      "sha256": "2a3f3eea49d9f82c00ab84ef2e4eee470b7f90d143b80f8e89e04497f0c0c2ff"
     },
     {
-      "bytes": 26689,
+      "bytes": 26785,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "2a168f87118d9f1cead4b9f53d47bce613854d68770d6c373a27d58c1059ae1d"
+      "sha256": "77a9342593630f52099ca59f33d4417abc519a082d6347174a5a835d380ed7ec"
     },
     {
       "bytes": 288,
@@ -2175,6 +2235,42 @@
     {
       "bytes": 125,
       "kind": "data",
+      "path": "results/vllm_checkpoint_eval/qwen_0_5b_attention_sparse_method_bridge/eval_plan.csv",
+      "sha256": "3ea2c8d508b9083dc3fa7edc64b327e87216e8896e4ba36a886ebb3ba29627bc"
+    },
+    {
+      "bytes": 520,
+      "kind": "data",
+      "path": "results/vllm_checkpoint_eval/qwen_0_5b_attention_sparse_method_bridge/metrics.csv",
+      "sha256": "8ce91390c878597963710d6d6c682277c93397479c0c02590a16a5f154de3407"
+    },
+    {
+      "bytes": 144278,
+      "kind": "figure",
+      "path": "results/vllm_checkpoint_eval/qwen_0_5b_attention_sparse_method_bridge/metrics.png",
+      "sha256": "6733c4861a684e5fd5aec74781c25ef0e83e954e2bf91133f84ef02b4d412874"
+    },
+    {
+      "bytes": 128,
+      "kind": "data",
+      "path": "results/vllm_checkpoint_eval/qwen_0_5b_attention_sparse_method_bridge/model_summary.csv",
+      "sha256": "80458a94b39054f56306c7a7224c68bad667fa0c2ea48186ac4e925c8c2f1921"
+    },
+    {
+      "bytes": 1086,
+      "kind": "document",
+      "path": "results/vllm_checkpoint_eval/qwen_0_5b_attention_sparse_method_bridge/report.md",
+      "sha256": "8593276639295f40f930a33a27c13f02452348141b6c356a370108d4028bc292"
+    },
+    {
+      "bytes": 3999,
+      "kind": "data",
+      "path": "results/vllm_checkpoint_eval/qwen_0_5b_attention_sparse_method_bridge/summary.json",
+      "sha256": "8af5fe115d65d85f3d755cd10ea0be8f59861283841d6b014c50da1a1f7813ce"
+    },
+    {
+      "bytes": 125,
+      "kind": "data",
       "path": "results/vllm_checkpoint_eval/qwen_0_5b_instruct_coder_uniform_average/eval_plan.csv",
       "sha256": "11a9771b122165aad0d25955518292b3dd3e5fe0079c4ea26c0b84b1c63ca463"
     },
@@ -2357,6 +2453,48 @@
       "kind": "data",
       "path": "results/vllm_checkpoint_eval/qwen_0_5b_selective_norm_guarded_bridge/summary.json",
       "sha256": "18bd877179b4f9ed958d74b46f1979f2c47a53e4f8414addc6753b31fd0cb287"
+    },
+    {
+      "bytes": 209,
+      "kind": "data",
+      "path": "results/vllm_checkpoint_eval/qwen_0_5b_sparse_method_bridge/endpoint_probe.csv",
+      "sha256": "2b104069f5507de611ef9ebbb5f9d214d3b82bddd893796999c7d3923e1105fa"
+    },
+    {
+      "bytes": 115,
+      "kind": "data",
+      "path": "results/vllm_checkpoint_eval/qwen_0_5b_sparse_method_bridge/eval_plan.csv",
+      "sha256": "cf4334c05800ae37e2c41e6c7e92d8ca407b3e803865150edea40450f9315b6d"
+    },
+    {
+      "bytes": 488,
+      "kind": "data",
+      "path": "results/vllm_checkpoint_eval/qwen_0_5b_sparse_method_bridge/metrics.csv",
+      "sha256": "96c573d020ecfa7aebeb6a8bb0d15828a9c5039396dc667ac4a714beffb7e283"
+    },
+    {
+      "bytes": 132949,
+      "kind": "figure",
+      "path": "results/vllm_checkpoint_eval/qwen_0_5b_sparse_method_bridge/metrics.png",
+      "sha256": "1efd9680c3d10afd86c88f66fe8872da38f671e19130d9f5b40f5a4e8527c05e"
+    },
+    {
+      "bytes": 117,
+      "kind": "data",
+      "path": "results/vllm_checkpoint_eval/qwen_0_5b_sparse_method_bridge/model_summary.csv",
+      "sha256": "d7a143b4276f3826a3100d09b0ec2fca58b1e7a8822f1f30490d8a52b6427443"
+    },
+    {
+      "bytes": 1016,
+      "kind": "document",
+      "path": "results/vllm_checkpoint_eval/qwen_0_5b_sparse_method_bridge/report.md",
+      "sha256": "5f620eec3729fc463d603f047785088a149171302525f566cedbabd9525133f7"
+    },
+    {
+      "bytes": 3876,
+      "kind": "data",
+      "path": "results/vllm_checkpoint_eval/qwen_0_5b_sparse_method_bridge/summary.json",
+      "sha256": "0b7b4b1435e79d6f30589366ce4f639adc8a2fe33995cdec6de1e59fc2cff7a8"
     },
     {
       "bytes": 96,
@@ -2683,10 +2821,10 @@
       "sha256": "4394b692604f472831c4d14ca8e70e21de1134977e45d12bc4ae9d9106b774e8"
     },
     {
-      "bytes": 15278,
+      "bytes": 20616,
       "kind": "code",
       "path": "scripts/build_qwen_dense_sparse_method_candidate.py",
-      "sha256": "58f32eb60affc976d05c927918c62682c7c901cdfda20027b0cbcbc18c404e9f"
+      "sha256": "e2717ee1d878e1adb6f077e3b49d4011c6b382d3b212ccf65fdcc1d63a4958cb"
     },
     {
       "bytes": 39783,
@@ -2707,10 +2845,10 @@
       "sha256": "0b0e4be7ec51f0afb74dfdee6e3d8b217da9aac4d965a170bea36c89f1b46abb"
     },
     {
-      "bytes": 167550,
+      "bytes": 168935,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "9e996f36e69ea2ad961dd4a1030c52b5f60447398837c1a67cdc24663d382464"
+      "sha256": "d53b0855ad5107eb5e4446212373b90bf662ed0186de771500b2e103f46b9318"
     },
     {
       "bytes": 19422,
@@ -2887,7 +3025,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T16:44:08.056373+00:00",
+  "generated_at": "2026-06-19T16:59:04.141598+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

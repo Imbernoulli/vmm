@@ -123,7 +123,7 @@
     "attention",
     "mlp"
   ],
-  "hypothesis": "High sign-conflict attention/MLP tensors should use coordinate-wise sparse merge instead of whole-tensor freeze or scalar damping.",
+  "hypothesis": "High sign-conflict tensors should use coordinate-wise sparse merge instead of whole-tensor freeze or scalar damping.",
   "max_delta_cosine": 0.16,
   "method": "ties",
   "min_numel": 100000,
@@ -146,10 +146,63 @@
     "coder": 1.0,
     "instruct": 0.25
   },
-  "status": "dry_run_passed_waiting_for_materialization_eval",
+  "status": "evaluated_complete",
   "vllm_commands": {
     "eval": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8100/v1 --models candidate_qwen_0_5b_sparse_method_bridge --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen_0_5b_sparse_method_bridge",
     "serve": "CUDA_VISIBLE_DEVICES=1 /srv/home/bohanlyu/miniconda3/envs/cogdoc/bin/vllm serve results/checkpoints/qwen_0_5b_sparse_method_bridge --served-model-name candidate_qwen_0_5b_sparse_method_bridge --host 127.0.0.1 --port 8100 --dtype bfloat16 --tensor-parallel-size 1"
+  },
+  "vllm_eval": {
+    "avg_primary_score": 0.15625,
+    "base_bridge_avg_primary_score": 0.203125,
+    "best_source_avg_primary_score": 0.375,
+    "delta_vs_base_bridge_avg_primary": -0.046875,
+    "delta_vs_best_source_avg_primary": -0.21875,
+    "delta_vs_uniform_avg_primary": -0.0234375,
+    "eval_dir": "results/vllm_checkpoint_eval/qwen_0_5b_sparse_method_bridge",
+    "metrics": "results/vllm_checkpoint_eval/qwen_0_5b_sparse_method_bridge/metrics.csv",
+    "model_summary": "results/vllm_checkpoint_eval/qwen_0_5b_sparse_method_bridge/model_summary.csv",
+    "report": "results/vllm_checkpoint_eval/qwen_0_5b_sparse_method_bridge/report.md",
+    "status": "complete",
+    "task_metrics": [
+      {
+        "delta_vs_base_bridge": -0.046875,
+        "delta_vs_uniform": 0.015625,
+        "primary_metric": "strict_exact",
+        "primary_score": 0.015625,
+        "safe_non_refusal_rate": null,
+        "task": "gsm8k",
+        "unsafe_refusal_rate": null
+      },
+      {
+        "delta_vs_base_bridge": -0.03125,
+        "delta_vs_uniform": 0.0,
+        "primary_metric": "accuracy",
+        "primary_score": 0.21875,
+        "safe_non_refusal_rate": null,
+        "task": "mmlu",
+        "unsafe_refusal_rate": null
+      },
+      {
+        "delta_vs_base_bridge": -0.109375,
+        "delta_vs_uniform": -0.109375,
+        "primary_metric": "policy_accuracy",
+        "primary_score": 0.390625,
+        "safe_non_refusal_rate": 0.59375,
+        "task": "safety",
+        "unsafe_refusal_rate": 0.1875
+      },
+      {
+        "delta_vs_base_bridge": 0.0,
+        "delta_vs_uniform": 0.0,
+        "primary_metric": "compile_rate",
+        "primary_score": 0.0,
+        "safe_non_refusal_rate": null,
+        "task": "humaneval_compile",
+        "unsafe_refusal_rate": null
+      }
+    ],
+    "uniform_avg_primary_score": 0.1796875,
+    "worst_primary_score": 0.0
   },
   "writer_command": "python scripts/write_same_shape_average_checkpoint.py --base /srv/home/bohanlyu/MLS-Bench/vendor/data/models/Qwen2.5-0.5B --source instruct=/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen2.5-0.5B-Instruct/snapshots/7ae557604adf67be50417f59c2c2f167def9a775 --source coder=/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen2.5-Coder-0.5B-Instruct/snapshots/ea3f2471cf1b1f0db85067f1ef93848e38e88c25 --source-weight instruct=0.25 --source-weight coder=1.0 --tensor-method-rule-file results/qwen_dense_sparse_method_candidate/tensor_method_rules.txt --output-dir results/checkpoints/qwen_0_5b_sparse_method_bridge"
 }

@@ -1,0 +1,5 @@
+task,examples,strict_exact,loose_exact,strict_correct,loose_correct,model,accuracy,correct,safe_non_refusal_rate,unsafe_refusal_rate,policy_accuracy,compile_rate,compile_ok
+gsm8k,64,0.015625,0.03125,1.0,2.0,candidate_qwen_0_5b_sparse_method_bridge,,,,,,,
+mmlu,64,,,,,candidate_qwen_0_5b_sparse_method_bridge,0.21875,14.0,,,,,
+safety,64,,,,,candidate_qwen_0_5b_sparse_method_bridge,,,0.59375,0.1875,0.390625,,
+humaneval_compile,64,,,,,candidate_qwen_0_5b_sparse_method_bridge,,,,,,0.0,0.0

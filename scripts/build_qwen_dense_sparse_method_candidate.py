@@ -35,6 +35,12 @@ def fmt(value: Any, digits: int = 3) -> str:
     return f"{float(value):.{digits}f}"
 
 
+def maybe_float(value: Any) -> float | None:
+    if value is None:
+        return None
+    return float(value)
+
+
 def shell_quote(value: str | Path) -> str:
     raw = str(value)
     if not raw:
@@ -107,6 +113,80 @@ def build_vllm_commands(output_dir: str, eval_dir: str, served_model: str) -> di
     }
 
 
+def primary_metric(row: dict[str, Any]) -> tuple[str, float | None]:
+    task = str(row.get("task"))
+    if task == "gsm8k":
+        return "strict_exact", maybe_float(row.get("strict_exact"))
+    if task == "mmlu":
+        return "accuracy", maybe_float(row.get("accuracy"))
+    if task == "safety":
+        return "policy_accuracy", maybe_float(row.get("policy_accuracy"))
+    if task == "humaneval_compile":
+        return "compile_rate", maybe_float(row.get("compile_rate"))
+    return "score", None
+
+
+def load_vllm_eval(eval_dir: str, bridge_summary: dict[str, Any]) -> dict[str, Any] | None:
+    eval_root = repo_path(eval_dir)
+    eval_summary_path = eval_root / "summary.json"
+    if not eval_summary_path.exists():
+        return None
+    eval_summary = json.loads(eval_summary_path.read_text(encoding="utf-8"))
+    model_summary = eval_summary.get("model_summary") or []
+    model_row = model_summary[0] if model_summary else {}
+    source_merge_path = repo_path("results/vllm_source_merge_comparison/summary.json")
+    source_merge = json.loads(source_merge_path.read_text(encoding="utf-8")) if source_merge_path.exists() else {}
+    base_eval = bridge_summary.get("vllm_eval") or {}
+    avg_primary = maybe_float(model_row.get("avg_primary_score"))
+    worst_primary = maybe_float(model_row.get("worst_primary_score"))
+    base_bridge_avg = maybe_float(base_eval.get("avg_primary_score"))
+    uniform_avg = maybe_float(source_merge.get("merge_avg_primary_score"))
+    best_source_avg = maybe_float(source_merge.get("best_source_avg_primary_score"))
+    base_tasks = {row.get("task"): row for row in base_eval.get("task_metrics", [])}
+    uniform_tasks = source_merge.get("merge_by_task", {})
+    task_metrics = []
+    for row in eval_summary.get("metrics", []):
+        metric_name, value = primary_metric(row)
+        task = row.get("task")
+        base_task = base_tasks.get(task, {})
+        uniform_task = uniform_tasks.get(task, {})
+        task_metrics.append(
+            {
+                "task": task,
+                "primary_metric": metric_name,
+                "primary_score": value,
+                "delta_vs_base_bridge": None
+                if value is None or base_task.get("primary_score") is None
+                else value - float(base_task["primary_score"]),
+                "delta_vs_uniform": None
+                if value is None or uniform_task.get("primary_score") is None
+                else value - float(uniform_task["primary_score"]),
+                "safe_non_refusal_rate": maybe_float(row.get("safe_non_refusal_rate")),
+                "unsafe_refusal_rate": maybe_float(row.get("unsafe_refusal_rate")),
+            }
+        )
+    return {
+        "status": eval_summary.get("status"),
+        "eval_dir": rel(eval_root),
+        "report": rel(eval_root / "report.md"),
+        "metrics": rel(eval_root / "metrics.csv"),
+        "model_summary": rel(eval_root / "model_summary.csv"),
+        "avg_primary_score": avg_primary,
+        "worst_primary_score": worst_primary,
+        "base_bridge_avg_primary_score": base_bridge_avg,
+        "uniform_avg_primary_score": uniform_avg,
+        "best_source_avg_primary_score": best_source_avg,
+        "delta_vs_base_bridge_avg_primary": None
+        if avg_primary is None or base_bridge_avg is None
+        else avg_primary - base_bridge_avg,
+        "delta_vs_uniform_avg_primary": None if avg_primary is None or uniform_avg is None else avg_primary - uniform_avg,
+        "delta_vs_best_source_avg_primary": None
+        if avg_primary is None or best_source_avg is None
+        else avg_primary - best_source_avg,
+        "task_metrics": task_metrics,
+    }
+
+
 def select_tensors(
     conflict: pd.DataFrame,
     *,
@@ -166,7 +246,7 @@ def write_report(
         (
             f"`{summary['candidate_id']}` 把已有 global bridge 的 source weights "
             f"`instruct={summary['source_weights']['instruct']}`、`coder={summary['source_weights']['coder']}` 保留不变，"
-            f"但对 high-conflict attention/MLP tensor 加上 `{summary['method']}` coordinate rule。"
+            f"但对 high-conflict {','.join(summary['groups'])} tensor 加上 `{summary['method']}` coordinate rule。"
         ),
         "",
         (
@@ -189,11 +269,40 @@ def write_report(
         "",
         "Projection counts: `" + json.dumps(projection_counts, sort_keys=True) + "`",
         "",
-        "## Selected Tensor Preview",
-        "",
-        "| tensor | projection | numel | cosine | sign conflict |",
-        "| --- | --- | ---: | ---: | ---: |",
     ]
+    eval_summary = summary.get("vllm_eval")
+    if eval_summary:
+        lines.extend(
+            [
+                "## vLLM Eval Result",
+                "",
+                "| metric | value |",
+                "| --- | ---: |",
+                f"| status | {eval_summary['status']} |",
+                f"| avg primary | {fmt(eval_summary['avg_primary_score'])} |",
+                f"| worst primary | {fmt(eval_summary['worst_primary_score'])} |",
+                f"| delta vs global bridge avg | {fmt(eval_summary['delta_vs_base_bridge_avg_primary'])} |",
+                f"| delta vs uniform avg | {fmt(eval_summary['delta_vs_uniform_avg_primary'])} |",
+                f"| delta vs best source avg | {fmt(eval_summary['delta_vs_best_source_avg_primary'])} |",
+                "",
+                "| task | primary metric | score | delta vs global bridge | delta vs uniform |",
+                "| --- | --- | ---: | ---: | ---: |",
+            ]
+        )
+        for row in eval_summary["task_metrics"]:
+            lines.append(
+                f"| {row['task']} | {row['primary_metric']} | {fmt(row['primary_score'])} | "
+                f"{fmt(row['delta_vs_base_bridge'])} | {fmt(row['delta_vs_uniform'])} |"
+            )
+        lines.extend(["", f"Full vLLM report: `{eval_summary['report']}`", ""])
+    lines.extend(
+        [
+            "## Selected Tensor Preview",
+            "",
+            "| tensor | projection | numel | cosine | sign conflict |",
+            "| --- | --- | ---: | ---: | ---: |",
+        ]
+    )
     for _, row in selected.head(20).iterrows():
         lines.append(
             f"| `{row['tensor']}` | {row['projection']} | {int(row['numel'])} | "
@@ -326,11 +435,13 @@ def main() -> None:
         "coder": bridge_summary.get("beta"),
     }
     vllm_commands = build_vllm_commands(checkpoint_dir, eval_dir, served_model)
+    vllm_eval = load_vllm_eval(eval_dir, bridge_summary)
+    status = "dry_run_passed_waiting_for_materialization_eval" if dry_run_status == "passed" else "candidate_selected_waiting_for_dry_run"
+    if vllm_eval and vllm_eval.get("status") == "complete":
+        status = "evaluated_complete"
     summary = {
         "schema_version": 1,
-        "status": "dry_run_passed_waiting_for_materialization_eval"
-        if dry_run_status == "passed"
-        else "candidate_selected_waiting_for_dry_run",
+        "status": status,
         "candidate_id": args.candidate_id,
         "method": args.method,
         "density": args.density,
@@ -354,7 +465,8 @@ def main() -> None:
         "writer_command": writer_command,
         "dry_run_command": dry_run_command,
         "vllm_commands": vllm_commands,
-        "hypothesis": "High sign-conflict attention/MLP tensors should use coordinate-wise sparse merge instead of whole-tensor freeze or scalar damping.",
+        "vllm_eval": vllm_eval,
+        "hypothesis": "High sign-conflict tensors should use coordinate-wise sparse merge instead of whole-tensor freeze or scalar damping.",
         "artifacts": {
             "report": rel(output_dir / "report.md"),
             "selected_tensors": rel(selected_path),
