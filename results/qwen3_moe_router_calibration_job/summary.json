@@ -10,6 +10,7 @@
     "report": "results/qwen3_moe_router_calibration_job/report.md",
     "run_script": "results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh",
     "selection": "results/qwen3_moe_router_calibration_selection/summary.json",
+    "source_control_plan": "results/qwen3_moe_router_calibration_job/source_control_plan.csv",
     "stage_plan": "results/qwen3_moe_router_calibration_job/stage_plan.csv",
     "summary": "results/qwen3_moe_router_calibration_job/summary.json"
   },
@@ -22,7 +23,9 @@
   ],
   "run_script_command": "results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh all",
   "schema_version": 1,
-  "stage_count": 15,
+  "source_control_count": 2,
+  "source_controls_ready": true,
+  "stage_count": 17,
   "status": "job_ready_awaiting_gpu",
   "student": "results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate",
   "student_exists": true,

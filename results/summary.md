@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-19T22:14:58.581948+00:00`
+Generated at: `2026-06-19T22:21:27.506155+00:00`
 
 ## Coverage
 
@@ -173,7 +173,8 @@ Complete: `68`; partial: `1`; missing: `0`.
 | Qwen3 MoE router move gate | status / action / allowed layers | router_move_rejected_freeze_router / freeze_router / 0/48 |
 | Qwen3 MoE router move gate | unsafe / calibrate / freeze rows | 499 / 493 / 6 |
 | Qwen3 MoE router move gate | router rel-norm / mean-min top-k Jaccard / min top1 | 0.739 / 0.454-0.242 / 0.069 |
-| Qwen3 MoE router calibration job | status / local GPU / candidates / stages | job_ready_awaiting_gpu / unavailable / 3 / 15 |
+| Qwen3 MoE router calibration job | status / local GPU / candidates / stages | job_ready_awaiting_gpu / unavailable / 3 / 17 |
+| Qwen3 MoE router calibration job | source controls / ready | 2 / True |
 | Qwen3 MoE router calibration job | inputs student / teacher / prompts | True / True / True |
 | Qwen3 MoE router calibration selector | status / selected / eligible | awaiting_baseline_eval / None / 0/3 |
 | Qwen3 MoE router calibration selector | baseline eval / candidate eval / audit | False / False / False |

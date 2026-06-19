@@ -25,6 +25,10 @@ DEFAULT_TOKENIZER = Path(
     "0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe"
 )
 DEFAULT_PROMPTS = Path("prompts/qwen_moe_route_probe_prompts.jsonl")
+DEFAULT_SOURCE_CONTROLS = [
+    ("source_qwen3_30b_instruct", DEFAULT_TOKENIZER),
+    ("source_qwen3_30b_coder", DEFAULT_TEACHER),
+]
 
 
 def repo_path(path: str | Path) -> Path:
@@ -42,6 +46,21 @@ def rel(path: str | Path) -> str:
 
 def shell_join(parts: list[str | Path | int | float]) -> str:
     return " ".join(shlex.quote(str(part)) for part in parts if str(part) != "")
+
+
+def parse_source_control(raw: str) -> tuple[str, Path]:
+    if "=" not in raw:
+        raise ValueError(f"Expected METHOD=CHECKPOINT_PATH, got: {raw}")
+    method, path = raw.split("=", 1)
+    method = method.strip()
+    path = path.strip()
+    if not method or not path:
+        raise ValueError(f"Expected METHOD=CHECKPOINT_PATH, got: {raw}")
+    return method, Path(path)
+
+
+def shell_func_name(value: str) -> str:
+    return "".join(ch if ch.isalnum() else "_" for ch in value).strip("_")
 
 
 def has_safetensors(path: Path) -> bool:
@@ -66,6 +85,33 @@ def cap_label(value: float) -> str:
     text = f"{value:.4f}".rstrip("0").rstrip(".")
     digits = text.replace(".", "")
     return f"cap{digits}"
+
+
+def build_source_control_rows(args: argparse.Namespace) -> list[dict[str, Any]]:
+    raw_controls = args.source_control
+    if raw_controls is None:
+        raw_controls = [f"{method}={path}" for method, path in DEFAULT_SOURCE_CONTROLS]
+
+    rows: list[dict[str, Any]] = []
+    for idx, raw in enumerate(raw_controls):
+        method, checkpoint = parse_source_control(raw)
+        eval_dir = repo_path("results/vllm_checkpoint_eval") / method
+        served_model = f"candidate_{method}"
+        port = int(args.source_start_port) + idx
+        rows.append(
+            {
+                "rank": idx,
+                "method": method,
+                "checkpoint_dir": rel(checkpoint),
+                "checkpoint_exists": has_safetensors(repo_path(checkpoint)),
+                "eval_dir": rel(eval_dir),
+                "served_model": served_model,
+                "port": port,
+                "base_url": f"http://{args.host}:{port}/v1",
+                "purpose": "Source endpoint control for downstream dominance checks.",
+            }
+        )
+    return rows
 
 
 def build_candidate_rows(args: argparse.Namespace, output_dir: Path) -> list[dict[str, Any]]:
@@ -230,6 +276,27 @@ def eval_command(row: dict[str, Any], args: argparse.Namespace) -> str:
     )
 
 
+def source_eval_command(row: dict[str, Any], args: argparse.Namespace) -> str:
+    return shell_join(
+        [
+            "python",
+            "scripts/run_vllm_downstream_eval.py",
+            "--base-url",
+            row["base_url"],
+            "--models",
+            row["served_model"],
+            "--tasks",
+            args.tasks,
+            "--example-source",
+            args.example_source,
+            "--max-examples",
+            args.max_examples,
+            "--output-dir",
+            row["eval_dir"],
+        ]
+    )
+
+
 def baseline_eval_command(args: argparse.Namespace) -> str:
     return shell_join(
         [
@@ -251,19 +318,20 @@ def baseline_eval_command(args: argparse.Namespace) -> str:
     )
 
 
-def select_command(args: argparse.Namespace, output_dir: Path) -> str:
-    return shell_join(
-        [
-            "python",
-            "scripts/select_qwen3_moe_router_calibration_result.py",
-            "--job-dir",
-            output_dir,
-            "--output-dir",
-            repo_path("results/qwen3_moe_router_calibration_selection"),
-            "--baseline-eval-dir",
-            args.baseline_eval_dir,
-        ]
-    )
+def select_command(args: argparse.Namespace, output_dir: Path, source_rows: list[dict[str, Any]]) -> str:
+    parts: list[str | Path | int | float] = [
+        "python",
+        "scripts/select_qwen3_moe_router_calibration_result.py",
+        "--job-dir",
+        output_dir,
+        "--output-dir",
+        repo_path("results/qwen3_moe_router_calibration_selection"),
+        "--baseline-eval-dir",
+        args.baseline_eval_dir,
+    ]
+    for row in source_rows:
+        parts.extend(["--source-eval-dir", row["eval_dir"]])
+    return shell_join(parts)
 
 
 def serve_command(row: dict[str, Any], args: argparse.Namespace) -> str:
@@ -287,7 +355,12 @@ def serve_command(row: dict[str, Any], args: argparse.Namespace) -> str:
     )
 
 
-def build_stage_rows(args: argparse.Namespace, output_dir: Path, candidate_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def build_stage_rows(
+    args: argparse.Namespace,
+    output_dir: Path,
+    source_rows: list[dict[str, Any]],
+    candidate_rows: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
     rows = [
         {
             "stage": "collect_router_cache",
@@ -298,6 +371,17 @@ def build_stage_rows(args: argparse.Namespace, output_dir: Path, candidate_rows:
             "purpose": "Capture student router hidden states and teacher router logits on the shared prompt pack.",
         }
     ]
+    for row in source_rows:
+        rows.append(
+            {
+                "stage": "vllm_eval_source_control",
+                "cap_label": "source",
+                "method": row["method"],
+                "command": source_eval_command(row, args),
+                "expected_output": row["eval_dir"],
+                "purpose": "Run a source endpoint control on the same downstream task set.",
+            }
+        )
     rows.append(
         {
             "stage": "vllm_eval_baseline",
@@ -350,7 +434,7 @@ def build_stage_rows(args: argparse.Namespace, output_dir: Path, candidate_rows:
             "stage": "select_router_calibration_result",
             "cap_label": "all",
             "method": "router_calibration_selection",
-            "command": select_command(args, output_dir),
+            "command": select_command(args, output_dir, source_rows),
             "expected_output": rel(repo_path("results/qwen3_moe_router_calibration_selection") / "summary.json"),
             "purpose": "Select or reject router calibration using matched vLLM scores, router-only audit, and cap gates.",
         }
@@ -358,13 +442,18 @@ def build_stage_rows(args: argparse.Namespace, output_dir: Path, candidate_rows:
     return rows
 
 
-def build_run_script(args: argparse.Namespace, output_dir: Path, candidate_rows: list[dict[str, Any]]) -> str:
+def build_run_script(
+    args: argparse.Namespace,
+    output_dir: Path,
+    source_rows: list[dict[str, Any]],
+    candidate_rows: list[dict[str, Any]],
+) -> str:
     lines = [
         "#!/usr/bin/env bash",
         "set -euo pipefail",
         "",
         "# Generated by scripts/build_qwen3_moe_router_calibration_job.py",
-        "# Usage: results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh [all|collect|baseline|cap001|cap0025|cap005|eval_cap001|eval_cap0025|eval_cap005|select]",
+        "# Usage: results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh [all|collect|sources|baseline|cap001|cap0025|cap005|eval_cap001|eval_cap0025|eval_cap005|select]",
         "",
         f"GPUS=\"${{GPUS:-{args.gpus}}}\"",
         f"HOST=\"${{HOST:-{args.host}}}\"",
@@ -394,6 +483,44 @@ def build_run_script(args: argparse.Namespace, output_dir: Path, candidate_rows:
         f"  {collect_command(args, output_dir)}",
         "}",
         "",
+    ]
+    for row in source_rows:
+        func = "eval_source_" + shell_func_name(str(row["method"]))
+        lines.extend(
+            [
+                f"{func}() {{",
+                f"  CUDA_VISIBLE_DEVICES=\"${{GPUS}}\" vllm serve {shlex.quote(row['checkpoint_dir'])} "
+                f"--served-model-name {shlex.quote(row['served_model'])} --host \"${{HOST}}\" "
+                f"--port {int(row['port'])} --dtype {shlex.quote(args.dtype)} "
+                f"--tensor-parallel-size {int(args.tensor_parallel_size)} "
+                f"> results/qwen3_moe_router_calibration_job/logs/{shell_func_name(str(row['method']))}.serve.log 2>&1 &",
+                "  local serve_pid=$!",
+                "  trap 'stop_server ${serve_pid}' RETURN",
+                f"  wait_for_server {int(row['port'])}",
+                (
+                    "  python scripts/run_vllm_downstream_eval.py "
+                    f"--base-url \"http://${{HOST}}:{int(row['port'])}/v1\" "
+                    f"--models {shlex.quote(row['served_model'])} "
+                    f"--tasks {shlex.quote(args.tasks)} "
+                    f"--example-source {shlex.quote(args.example_source)} "
+                    f"--max-examples {int(args.max_examples)} "
+                    f"--output-dir {shlex.quote(row['eval_dir'])}"
+                ),
+                "}",
+                "",
+            ]
+        )
+    lines.extend(
+        [
+            "eval_sources() {",
+        ]
+    )
+    for row in source_rows:
+        lines.append("  eval_source_" + shell_func_name(str(row["method"])))
+    lines.extend(
+        [
+            "}",
+            "",
         "eval_baseline() {",
         f"  CUDA_VISIBLE_DEVICES=\"${{GPUS}}\" vllm serve {shlex.quote(rel(args.student))} "
         f"--served-model-name {shlex.quote(args.baseline_served_model)} --host \"${{HOST}}\" "
@@ -415,10 +542,11 @@ def build_run_script(args: argparse.Namespace, output_dir: Path, candidate_rows:
         "}",
         "",
         "select_result() {",
-        f"  {select_command(args, output_dir)}",
+        f"  {select_command(args, output_dir, source_rows)}",
         "}",
         "",
-    ]
+        ]
+    )
     for row in candidate_rows:
         label = row["cap_label"]
         lines.extend(
@@ -465,6 +593,7 @@ def build_run_script(args: argparse.Namespace, output_dir: Path, candidate_rows:
         [
             "run_all() {",
             "  collect_cache",
+            "  eval_sources",
             "  eval_baseline",
         ]
     )
@@ -478,9 +607,12 @@ def build_run_script(args: argparse.Namespace, output_dir: Path, candidate_rows:
             "case \"${1:-all}\" in",
             "  all) run_all ;;",
             "  collect) collect_cache ;;",
+            "  sources) eval_sources ;;",
             "  baseline) eval_baseline ;;",
         ]
     )
+    for row in source_rows:
+        lines.append(f"  {row['method']}) eval_source_{shell_func_name(str(row['method']))} ;;")
     for label in labels:
         lines.extend(
             [
@@ -502,7 +634,12 @@ def build_run_script(args: argparse.Namespace, output_dir: Path, candidate_rows:
     return "\n".join(lines)
 
 
-def build_report(summary: dict[str, Any], candidate_rows: list[dict[str, Any]], stage_rows: list[dict[str, Any]]) -> str:
+def build_report(
+    summary: dict[str, Any],
+    source_rows: list[dict[str, Any]],
+    candidate_rows: list[dict[str, Any]],
+    stage_rows: list[dict[str, Any]],
+) -> str:
     lines = [
         "# Qwen3 MoE Router Calibration Job",
         "",
@@ -515,6 +652,7 @@ def build_report(summary: dict[str, Any], candidate_rows: list[dict[str, Any]], 
         f"- Local GPU status: `{summary['local_gpu_status']}`",
         f"- Router caps: `{', '.join(str(item) for item in summary['router_caps'])}`",
         f"- Baseline eval dir: `{summary['baseline_eval_dir']}`",
+        f"- Source control count: `{summary['source_control_count']}`",
         f"- Candidate count: `{summary['candidate_count']}`",
         f"- Selection output: `{summary['outputs']['selection']}`",
         "",
@@ -522,11 +660,24 @@ def build_report(summary: dict[str, Any], candidate_rows: list[dict[str, Any]], 
         "",
         "Direct Instruct/Coder router weight movement was rejected by the router move gate. This job tests a narrower mechanism: keep the best frozen-router expert candidate fixed, then add a small route-KD router delta learned from real hidden states and teacher logits. If downstream scores improve without routing collapse, router calibration becomes a valid next component; otherwise the unified rule keeps router frozen.",
         "",
-        "## Candidates",
+        "## Source Controls",
         "",
-        "| cap | method | checkpoint | port |",
-        "|---:|---|---|---:|",
+        "| method | checkpoint | port | eval output |",
+        "|---|---|---:|---|",
     ]
+    for row in source_rows:
+        lines.append(
+            f"| `{row['method']}` | `{row['checkpoint_dir']}` | {int(row['port'])} | `{row['eval_dir']}` |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Candidates",
+            "",
+            "| cap | method | checkpoint | port |",
+            "|---:|---|---|---:|",
+        ]
+    )
     for row in candidate_rows:
         lines.append(
             f"| {row['router_max_relative_norm']:.3f} | `{row['method']}` | "
@@ -584,6 +735,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--gpus", default="0,1,2,3")
     parser.add_argument("--tensor-parallel-size", type=int, default=4)
     parser.add_argument("--host", default="127.0.0.1")
+    parser.add_argument(
+        "--source-control",
+        action="append",
+        default=None,
+        help="Optional METHOD=CHECKPOINT_PATH source endpoint control. Defaults to Qwen3 Instruct and Coder.",
+    )
+    parser.add_argument("--source-start-port", type=int, default=8100)
     parser.add_argument("--start-port", type=int, default=8108)
     parser.add_argument("--tasks", default="gsm8k,mmlu,safety,humaneval_compile")
     parser.add_argument("--example-source", default="datasets")
@@ -603,11 +761,13 @@ def main() -> None:
         args.router_cap = [0.01, 0.025, 0.05]
     output_dir = repo_path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
+    source_rows = build_source_control_rows(args)
     candidate_rows = build_candidate_rows(args, output_dir)
-    stage_rows = build_stage_rows(args, output_dir, candidate_rows)
+    stage_rows = build_stage_rows(args, output_dir, source_rows, candidate_rows)
     run_script = output_dir / "run_router_calibration_job.sh"
-    run_script.write_text(build_run_script(args, output_dir, candidate_rows), encoding="utf-8")
+    run_script.write_text(build_run_script(args, output_dir, source_rows, candidate_rows), encoding="utf-8")
     run_script.chmod(0o755)
+    pd.DataFrame(source_rows).to_csv(output_dir / "source_control_plan.csv", index=False)
     pd.DataFrame(candidate_rows).to_csv(output_dir / "candidate_plan.csv", index=False)
     pd.DataFrame(stage_rows).to_csv(output_dir / "stage_plan.csv", index=False)
 
@@ -615,12 +775,18 @@ def main() -> None:
     teacher_exists = has_safetensors(repo_path(args.teacher))
     tokenizer_exists = repo_path(args.tokenizer).exists()
     prompts_exists = repo_path(args.prompts).exists()
+    source_controls_ready = all(bool(row["checkpoint_exists"]) for row in source_rows)
     local_gpu_status = gpu_status()
     status = (
         "job_ready_awaiting_gpu"
-        if student_exists and teacher_exists and tokenizer_exists and prompts_exists and local_gpu_status != "available"
+        if student_exists
+        and teacher_exists
+        and tokenizer_exists
+        and prompts_exists
+        and source_controls_ready
+        and local_gpu_status != "available"
         else "job_ready"
-        if student_exists and teacher_exists and tokenizer_exists and prompts_exists
+        if student_exists and teacher_exists and tokenizer_exists and prompts_exists and source_controls_ready
         else "missing_inputs"
     )
     summary = {
@@ -639,11 +805,14 @@ def main() -> None:
         "baseline_eval_dir": rel(args.baseline_eval_dir),
         "baseline_served_model": args.baseline_served_model,
         "baseline_port": int(args.baseline_port),
+        "source_control_count": int(len(source_rows)),
+        "source_controls_ready": source_controls_ready,
         "candidate_count": int(len(candidate_rows)),
         "stage_count": int(len(stage_rows)),
         "run_script_command": rel(run_script) + " all",
         "mechanism": "route_kd_router_delta_after_frozen_router_expert_cap_law_candidate",
         "outputs": {
+            "source_control_plan": rel(output_dir / "source_control_plan.csv"),
             "candidate_plan": rel(output_dir / "candidate_plan.csv"),
             "stage_plan": rel(output_dir / "stage_plan.csv"),
             "run_script": rel(run_script),
@@ -653,7 +822,7 @@ def main() -> None:
         },
     }
     (output_dir / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    (output_dir / "report.md").write_text(build_report(summary, candidate_rows, stage_rows), encoding="utf-8")
+    (output_dir / "report.md").write_text(build_report(summary, source_rows, candidate_rows, stage_rows), encoding="utf-8")
     print(f"Wrote Qwen3 MoE router calibration job to {output_dir.resolve()}")
 
 

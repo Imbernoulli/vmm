@@ -9887,7 +9887,34 @@
         0.05
       ],
       "run_script": "results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh",
-      "stage_count": 15,
+      "source_control_count": 2,
+      "source_control_plan": "results/qwen3_moe_router_calibration_job/source_control_plan.csv",
+      "source_controls_ready": true,
+      "source_rows": [
+        {
+          "base_url": "http://127.0.0.1:8100/v1",
+          "checkpoint_dir": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe",
+          "checkpoint_exists": true,
+          "eval_dir": "results/vllm_checkpoint_eval/source_qwen3_30b_instruct",
+          "method": "source_qwen3_30b_instruct",
+          "port": 8100,
+          "purpose": "Source endpoint control for downstream dominance checks.",
+          "rank": 0,
+          "served_model": "candidate_source_qwen3_30b_instruct"
+        },
+        {
+          "base_url": "http://127.0.0.1:8101/v1",
+          "checkpoint_dir": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-Coder-30B-A3B-Instruct/snapshots/b2cff646eb4bb1d68355c01b18ae02e7cf42d120",
+          "checkpoint_exists": true,
+          "eval_dir": "results/vllm_checkpoint_eval/source_qwen3_30b_coder",
+          "method": "source_qwen3_30b_coder",
+          "port": 8101,
+          "purpose": "Source endpoint control for downstream dominance checks.",
+          "rank": 1,
+          "served_model": "candidate_source_qwen3_30b_coder"
+        }
+      ],
+      "stage_count": 17,
       "stage_plan": "results/qwen3_moe_router_calibration_job/stage_plan.csv",
       "stage_rows": [
         {
@@ -9897,6 +9924,22 @@
           "method": "shared_cache",
           "purpose": "Capture student router hidden states and teacher router logits on the shared prompt pack.",
           "stage": "collect_router_cache"
+        },
+        {
+          "cap_label": "source",
+          "command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8100/v1 --models candidate_source_qwen3_30b_instruct --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/source_qwen3_30b_instruct",
+          "expected_output": "results/vllm_checkpoint_eval/source_qwen3_30b_instruct",
+          "method": "source_qwen3_30b_instruct",
+          "purpose": "Run a source endpoint control on the same downstream task set.",
+          "stage": "vllm_eval_source_control"
+        },
+        {
+          "cap_label": "source",
+          "command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8101/v1 --models candidate_source_qwen3_30b_coder --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/source_qwen3_30b_coder",
+          "expected_output": "results/vllm_checkpoint_eval/source_qwen3_30b_coder",
+          "method": "source_qwen3_30b_coder",
+          "purpose": "Run a source endpoint control on the same downstream task set.",
+          "stage": "vllm_eval_source_control"
         },
         {
           "cap_label": "baseline",
@@ -10004,7 +10047,7 @@
         },
         {
           "cap_label": "all",
-          "command": "python scripts/select_qwen3_moe_router_calibration_result.py --job-dir /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_router_calibration_job --output-dir /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_router_calibration_selection --baseline-eval-dir results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate",
+          "command": "python scripts/select_qwen3_moe_router_calibration_result.py --job-dir /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_router_calibration_job --output-dir /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_router_calibration_selection --baseline-eval-dir results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate --source-eval-dir results/vllm_checkpoint_eval/source_qwen3_30b_instruct --source-eval-dir results/vllm_checkpoint_eval/source_qwen3_30b_coder",
           "expected_output": "results/qwen3_moe_router_calibration_selection/summary.json",
           "method": "router_calibration_selection",
           "purpose": "Select or reject router calibration using matched vLLM scores, router-only audit, and cap gates.",
@@ -10025,6 +10068,7 @@
           "report": "results/qwen3_moe_router_calibration_job/report.md",
           "run_script": "results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh",
           "selection": "results/qwen3_moe_router_calibration_selection/summary.json",
+          "source_control_plan": "results/qwen3_moe_router_calibration_job/source_control_plan.csv",
           "stage_plan": "results/qwen3_moe_router_calibration_job/stage_plan.csv",
           "summary": "results/qwen3_moe_router_calibration_job/summary.json"
         },
@@ -10037,7 +10081,9 @@
         ],
         "run_script_command": "results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh all",
         "schema_version": 1,
-        "stage_count": 15,
+        "source_control_count": 2,
+        "source_controls_ready": true,
+        "stage_count": 17,
         "status": "job_ready_awaiting_gpu",
         "student": "results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate",
         "student_exists": true,
@@ -21454,7 +21500,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-19T22:14:58.581948+00:00",
+  "generated_at": "2026-06-19T22:21:27.506155+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [

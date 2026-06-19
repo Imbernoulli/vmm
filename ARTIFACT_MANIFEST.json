@@ -1915,22 +1915,28 @@
       "sha256": "b80e05112d975ea424456f6a7ee3db03a3cc39324755ff3adf31241a96c26013"
     },
     {
-      "bytes": 4169,
+      "bytes": 5042,
       "kind": "document",
       "path": "results/qwen3_moe_router_calibration_job/report.md",
-      "sha256": "4af906df7800bf1b31ffa04fd6add49746946567d2271e33586f251f752a3e82"
+      "sha256": "90a0be59c15d1bc6c8ccc198e7f25fc5db008952ad5306a5f58d842c7471392c"
     },
     {
-      "bytes": 9912,
+      "bytes": 773,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_job/source_control_plan.csv",
+      "sha256": "51553f20d6def8587f87f6343f02f7ed8fefe2ea040d2969ca0d0a61b0c701bc"
+    },
+    {
+      "bytes": 10959,
       "kind": "data",
       "path": "results/qwen3_moe_router_calibration_job/stage_plan.csv",
-      "sha256": "6dea165ab95328097f8380477e023057ff4be21e188bfba3e2d014a287478f54"
+      "sha256": "ba6fa7d8fd79135175a8fb28f4f65eef37bad3813582c0254d7f1e491eb7d190"
     },
     {
-      "bytes": 1637,
+      "bytes": 1794,
       "kind": "data",
       "path": "results/qwen3_moe_router_calibration_job/summary.json",
-      "sha256": "84ec43c928eef50ae92dc4d344a889e80204f85b00376eae15aeaacceb6729b7"
+      "sha256": "8ddf4911b90baa7d1d18496b2c28a7f777394fad3a39fe109de092e5318597d3"
     },
     {
       "bytes": 4842,
@@ -3121,16 +3127,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 948640,
+      "bytes": 951576,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "54fa6eb3a49bc707d59953c7fa102f30eabc9c5a9c4a8331f2a18ebe498d7d16"
+      "sha256": "7b00559271fd9f1a7c3a6c30204b98e199081bbb030f0b2a976282539ed5f9b7"
     },
     {
-      "bytes": 39384,
+      "bytes": 39458,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "20b34ca25fc9a2dff9e786988ea944368821f21ff928ca5f623d63f428fb1764"
+      "sha256": "a02b5bdbe72d64ea276a4a9fbc4476ff5f0cc9acce1e46ed24850fc6556b565f"
     },
     {
       "bytes": 288,
@@ -4219,10 +4225,10 @@
       "sha256": "1514fc6a95e094a2c82983cd9d1126e2df890f1dd29c34d2955db62737de96fa"
     },
     {
-      "bytes": 25149,
+      "bytes": 31256,
       "kind": "code",
       "path": "scripts/build_qwen3_moe_router_calibration_job.py",
-      "sha256": "ecb70a34c8c38e321d27ac5f21a4106ef1deb35c88b4992c514ef1d0735b35a8"
+      "sha256": "8e90569e95c567b444dc65c63669994e1ebe89ff4d6bd74159fdce72bacd3fa5"
     },
     {
       "bytes": 14811,
@@ -4279,10 +4285,10 @@
       "sha256": "acde2a24b0761d48b0e835dea0eaf7545bae9aedf80da7ba91671a4c699c3b01"
     },
     {
-      "bytes": 265351,
+      "bytes": 266009,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "0d4c0c4068282ed9e09446b9146fb27890cdeb2004aeb726c43a4665e7ddf2d3"
+      "sha256": "64cc907bff7009594ce9ea16c8ec282d59b1e05b50702e38f2f222add7a5e43c"
     },
     {
       "bytes": 16101,
@@ -4519,7 +4525,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T22:14:58.636503+00:00",
+  "generated_at": "2026-06-19T22:21:27.565158+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

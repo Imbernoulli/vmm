@@ -1145,6 +1145,7 @@ def summarize_qwen3_moe_router_move_gate() -> dict[str, Any]:
 def summarize_qwen3_moe_router_calibration_job() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_router_calibration_job")
     summary = read_json(root / "summary.json")
+    source_plan = read_csv(root / "source_control_plan.csv")
     candidate_plan = read_csv(root / "candidate_plan.csv")
     stage_plan = read_csv(root / "stage_plan.csv")
     return {
@@ -1156,12 +1157,16 @@ def summarize_qwen3_moe_router_calibration_job() -> dict[str, Any]:
         "prompts_exists": bool(summary.get("prompts_exists", False)),
         "local_gpu_status": summary.get("local_gpu_status"),
         "router_caps": summary.get("router_caps", []),
+        "source_control_count": int(summary.get("source_control_count", len(source_plan))),
+        "source_controls_ready": bool(summary.get("source_controls_ready", False)),
         "candidate_count": int(summary.get("candidate_count", len(candidate_plan))),
         "stage_count": int(summary.get("stage_count", len(stage_plan))),
         "mechanism": summary.get("mechanism"),
+        "source_rows": [clean_row(row) for _, row in source_plan.iterrows()],
         "candidate_rows": [clean_row(row) for _, row in candidate_plan.iterrows()],
         "stage_rows": [clean_row(row) for _, row in stage_plan.iterrows()],
         "report": rel(root / "report.md"),
+        "source_control_plan": rel(root / "source_control_plan.csv"),
         "candidate_plan": rel(root / "candidate_plan.csv"),
         "stage_plan": rel(root / "stage_plan.csv"),
         "run_script": rel(root / "run_router_calibration_job.sh"),
@@ -3722,6 +3727,11 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_router_calibration_job['local_gpu_status']} / "
                 f"{qwen3_moe_router_calibration_job['candidate_count']} / "
                 f"{qwen3_moe_router_calibration_job['stage_count']} |"
+            ),
+            (
+                "| Qwen3 MoE router calibration job | source controls / ready | "
+                f"{qwen3_moe_router_calibration_job['source_control_count']} / "
+                f"{qwen3_moe_router_calibration_job['source_controls_ready']} |"
             ),
             (
                 "| Qwen3 MoE router calibration job | inputs student / teacher / prompts | "
