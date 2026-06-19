@@ -56,6 +56,7 @@ def source_tensors(offset: float) -> dict[str, torch.Tensor]:
         "model.layers.0.mlp.experts.0.down_proj.weight": torch.full((2, 2), offset + 10.0),
         "model.layers.0.mlp.experts.1.down_proj.weight": torch.full((2, 2), offset + 20.0),
         "model.layers.0.router.weight": torch.full((2, 2), offset + 30.0),
+        "model.layers.0.router.bias": torch.full((2,), offset + 35.0),
         "model.embed_tokens.weight": torch.full((2, 2), offset + 40.0),
         "model.int_buffer": torch.tensor([1, 2], dtype=torch.int64),
     }
@@ -74,6 +75,8 @@ def expected_tensors(base: dict[str, torch.Tensor]) -> dict[str, torch.Tensor]:
             expected[name] = base_tensor + 0.75 * (general[name] - base_tensor) + 0.25 * (code[name] - base_tensor)
         elif "experts.1." in name:
             expected[name] = base_tensor + 0.25 * (general[name] - base_tensor) + 0.75 * (code[name] - base_tensor)
+        elif name == "model.layers.0.router.bias":
+            expected[name] = base_tensor + torch.tensor([-0.5, 0.25], dtype=base_tensor.dtype)
         elif "router" in name:
             expected[name] = base_tensor
         else:
@@ -92,6 +95,15 @@ def build_rule_file(path: Path) -> None:
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def build_tensor_add_csv(path: Path) -> None:
+    lines = [
+        "tensor,index,delta,reason",
+        "model.layers.0.router.bias,0,-0.5,reduce_overloaded_expert_logit",
+        "model.layers.0.router.bias,1,0.25,lift_underused_expert_logit",
+    ]
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
 def run_smoke(output_dir: Path) -> dict[str, Any]:
     output_dir.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="moe_tensor_rule_writer_") as tmp_raw:
@@ -101,12 +113,14 @@ def run_smoke(output_dir: Path) -> dict[str, Any]:
         code_dir = tmp / "code"
         written_dir = tmp / "written"
         rule_file = tmp / "tensor_rules.txt"
+        tensor_add_csv = tmp / "tensor_add.csv"
 
         base = source_tensors(0.0)
         make_checkpoint(base_dir, base)
         make_checkpoint(general_dir, source_tensors(100.0))
         make_checkpoint(code_dir, source_tensors(200.0))
         build_rule_file(rule_file)
+        build_tensor_add_csv(tensor_add_csv)
 
         args = argparse.Namespace(
             base=str(base_dir),
@@ -116,6 +130,7 @@ def run_smoke(output_dir: Path) -> dict[str, Any]:
             tensor_rule_file=[str(rule_file)],
             source_tensor_alias=[],
             source_tensor_alias_file=[],
+            tensor_add_csv=[str(tensor_add_csv)],
             freeze_regex=[],
             freeze_router=True,
             allow_missing_source_tensors=False,
@@ -156,6 +171,7 @@ def run_smoke(output_dir: Path) -> dict[str, Any]:
         stored_manifest = json.loads((written_dir / "merge_manifest.json").read_text(encoding="utf-8"))
         stored_manifest["base"] = "TMP/base"
         stored_manifest["sources"] = {"general": "TMP/general", "code": "TMP/code"}
+        stored_manifest["tensor_add_csv"] = ["TMP/tensor_add.csv"]
         for source_name, source_summary in stored_manifest.get("source_summaries", {}).items():
             source_summary["root"] = f"TMP/{source_name}"
         (output_dir / "merge_manifest.json").write_text(
@@ -171,6 +187,8 @@ def run_smoke(output_dir: Path) -> dict[str, Any]:
         "checked_tensors": int(len(checks)),
         "failed_tensors": int((~checks["passed"]).sum()),
         "rule_counts": manifest.get("rule_counts", {}),
+        "additive_delta_tensors": int(manifest.get("additive_delta_tensors", 0)),
+        "additive_delta_values": int(manifest.get("additive_delta_values", 0)),
         "floating_tensors": int(manifest.get("floating_tensors", 0)),
         "frozen_tensors": int(manifest.get("frozen_tensors", 0)),
         "copied_nonfloating_tensors": int(manifest.get("copied_nonfloating_tensors", 0)),
@@ -186,11 +204,13 @@ def run_smoke(output_dir: Path) -> dict[str, Any]:
         "# MoE Tensor-Rule Writer Smoke",
         "",
         "这个 smoke 构造 tiny MoE-like safetensors checkpoint，调用真实 same-shape writer 写出权重，再逐张量检查 tensor-rule、freeze-router 和非浮点复制是否生效。",
+        "其中 router weight 被 freeze，router bias 通过 `tensor,index,delta` CSV 做 additive correction，用来验证 bias-only load calibration 可以写进同构 checkpoint。",
         "",
         f"- Status: `{summary['status']}`",
         f"- Checked tensors: `{summary['checked_tensors']}`",
         f"- Failed tensors: `{summary['failed_tensors']}`",
         f"- Rule counts: `{json.dumps(summary['rule_counts'], sort_keys=True)}`",
+        f"- Additive deltas: `{summary['additive_delta_values']}` values across `{summary['additive_delta_tensors']}` tensors",
         "",
         "## Files",
         "",

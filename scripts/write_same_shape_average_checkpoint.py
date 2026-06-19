@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import re
 import shutil
@@ -73,6 +74,16 @@ class TensorAliasRule:
     pattern: re.Pattern[str]
     raw_pattern: str
     replacement: str
+
+
+@dataclass(frozen=True)
+class TensorAddDelta:
+    tensor: str
+    index: int
+    delta: float
+    source_path: str
+    line_number: int
+    reason: str
 
 
 def discover_safetensors(model_path: str | Path) -> WeightIndex:
@@ -247,6 +258,41 @@ def load_tensor_alias_files(paths: list[str] | None) -> list[str]:
     return raw_rules
 
 
+def load_tensor_add_csv(paths: list[str] | None) -> dict[str, list[TensorAddDelta]]:
+    deltas: dict[str, list[TensorAddDelta]] = {}
+    for path in paths or []:
+        csv_path = Path(path)
+        with csv_path.open("r", encoding="utf-8", newline="") as handle:
+            reader = csv.DictReader(handle)
+            if reader.fieldnames is None:
+                continue
+            required = {"tensor", "index", "delta"}
+            missing = sorted(required - set(reader.fieldnames))
+            if missing:
+                raise ValueError(f"{csv_path} is missing required columns: {missing}")
+            for line_number, row in enumerate(reader, start=2):
+                tensor = (row.get("tensor") or "").strip()
+                if not tensor:
+                    raise ValueError(f"{csv_path}:{line_number} has an empty tensor name")
+                try:
+                    index = int((row.get("index") or "").strip())
+                    delta = float((row.get("delta") or "").strip())
+                except ValueError as exc:
+                    raise ValueError(f"{csv_path}:{line_number} has invalid index/delta values: {row}") from exc
+                reason = (row.get("reason") or row.get("source") or "").strip()
+                deltas.setdefault(tensor, []).append(
+                    TensorAddDelta(
+                        tensor=tensor,
+                        index=index,
+                        delta=delta,
+                        source_path=str(csv_path),
+                        line_number=line_number,
+                        reason=reason,
+                    )
+                )
+    return deltas
+
+
 def resolve_source_tensor_name(
     source_name: str,
     base_tensor_name: str,
@@ -270,6 +316,13 @@ def output_dtype(base_dtype: torch.dtype, requested: str) -> torch.dtype:
 
 def is_floating_dtype(dtype: torch.dtype) -> bool:
     return torch.is_floating_point(torch.empty((), dtype=dtype))
+
+
+def shape_numel(shape: tuple[int, ...]) -> int:
+    numel = 1
+    for dim in shape:
+        numel *= dim
+    return numel
 
 
 def is_router_tensor(name: str) -> bool:
@@ -359,6 +412,59 @@ def validate_compatible(
     return source_summaries
 
 
+def validate_tensor_add_deltas(base: WeightIndex, deltas_by_tensor: dict[str, list[TensorAddDelta]]) -> dict[str, Any]:
+    errors: list[str] = []
+    tensor_summaries: list[dict[str, Any]] = []
+    delta_count = 0
+    abs_delta_sum = 0.0
+    max_abs_delta = 0.0
+    for tensor, deltas in sorted(deltas_by_tensor.items()):
+        delta_count += len(deltas)
+        if tensor not in base.tensor_info:
+            first = deltas[0]
+            errors.append(f"{first.source_path}:{first.line_number}: tensor {tensor!r} is not present in the base checkpoint")
+            continue
+        info = base.tensor_info[tensor]
+        if not is_floating_dtype(info.dtype):
+            first = deltas[0]
+            errors.append(f"{first.source_path}:{first.line_number}: tensor {tensor!r} is not floating point")
+            continue
+        numel = shape_numel(info.shape)
+        tensor_abs_sum = 0.0
+        tensor_max_abs = 0.0
+        for delta in deltas:
+            if delta.index < 0 or delta.index >= numel:
+                errors.append(
+                    f"{delta.source_path}:{delta.line_number}: index {delta.index} is out of range for "
+                    f"{tensor!r} with shape {info.shape}"
+                )
+                continue
+            abs_value = abs(float(delta.delta))
+            tensor_abs_sum += abs_value
+            tensor_max_abs = max(tensor_max_abs, abs_value)
+        abs_delta_sum += tensor_abs_sum
+        max_abs_delta = max(max_abs_delta, tensor_max_abs)
+        tensor_summaries.append(
+            {
+                "tensor": tensor,
+                "shape": list(info.shape),
+                "dtype": str(info.dtype),
+                "delta_count": len(deltas),
+                "abs_delta_sum": tensor_abs_sum,
+                "max_abs_delta": tensor_max_abs,
+            }
+        )
+    if errors:
+        raise ValueError("Invalid tensor additive deltas:\n" + "\n".join(errors))
+    return {
+        "tensor_count": len(deltas_by_tensor),
+        "delta_count": delta_count,
+        "abs_delta_sum": abs_delta_sum,
+        "max_abs_delta": max_abs_delta,
+        "tensors": tensor_summaries,
+    }
+
+
 def load_tensors(index: WeightIndex, names: list[str]) -> dict[str, torch.Tensor]:
     by_shard: dict[Path, list[str]] = {}
     for name in names:
@@ -372,10 +478,22 @@ def load_tensors(index: WeightIndex, names: list[str]) -> dict[str, torch.Tensor
 
 
 def tensor_nbytes(shape: tuple[int, ...], dtype: torch.dtype) -> int:
-    numel = 1
-    for dim in shape:
-        numel *= dim
-    return numel * torch.empty((), dtype=dtype).element_size()
+    return shape_numel(shape) * torch.empty((), dtype=dtype).element_size()
+
+
+def apply_tensor_add_deltas(
+    name: str,
+    tensor: torch.Tensor,
+    deltas_by_tensor: dict[str, list[TensorAddDelta]],
+) -> tuple[torch.Tensor, int]:
+    deltas = deltas_by_tensor.get(name)
+    if not deltas:
+        return tensor, 0
+    updated = tensor.to(torch.float32).clone()
+    flat = updated.reshape(-1)
+    for delta in deltas:
+        flat[delta.index] = flat[delta.index] + float(delta.delta)
+    return updated.reshape_as(tensor), len(deltas)
 
 
 def copy_metadata(base_root: Path, output_dir: Path) -> list[str]:
@@ -419,6 +537,8 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
     tensor_rules = parse_tensor_rules(raw_tensor_rules, source_names)
     raw_tensor_alias_rules = list(args.source_tensor_alias or []) + load_tensor_alias_files(args.source_tensor_alias_file)
     tensor_alias_rules = parse_tensor_alias_rules(raw_tensor_alias_rules, source_names)
+    tensor_add_csv_paths = getattr(args, "tensor_add_csv", None)
+    tensor_add_deltas = load_tensor_add_csv(tensor_add_csv_paths)
     freeze_patterns = [re.compile(pattern) for pattern in args.freeze_regex]
 
     base = discover_safetensors(args.base)
@@ -429,6 +549,7 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
         strict_names=not args.allow_missing_source_tensors,
         alias_rules=tensor_alias_rules,
     )
+    tensor_add_delta_summary = validate_tensor_add_deltas(base, tensor_add_deltas)
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -437,6 +558,8 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
     floating_tensors = 0
     frozen_tensors = 0
     copied_tensors = 0
+    additive_delta_tensors = 0
+    additive_delta_values = 0
     output_weight_map: dict[str, str] = {}
     shard_summaries = []
 
@@ -457,7 +580,11 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
                 rule_counts[reason] = rule_counts.get(reason, 0) + 1
                 floating_tensors += 1
                 if all(abs(value) <= 1e-12 for value in weights.values()):
-                    frozen_tensors += 1
+                    if name not in tensor_add_deltas:
+                        frozen_tensors += 1
+                if name in tensor_add_deltas:
+                    additive_delta_tensors += 1
+                    additive_delta_values += len(tensor_add_deltas[name])
             shard_summaries.append({"shard": base_shard.name, "tensors": len(names)})
             continue
 
@@ -497,9 +624,15 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
             )
             rule_counts[reason] = rule_counts.get(reason, 0) + 1
             floating_tensors += 1
+            target_dtype = output_dtype(base_tensor.dtype, args.output_dtype)
             if all(abs(value) <= 1e-12 for value in weights.values()):
-                output_tensors[name] = base_tensor.to(dtype=output_dtype(base_tensor.dtype, args.output_dtype))
-                frozen_tensors += 1
+                merged, applied = apply_tensor_add_deltas(name, base_tensor, tensor_add_deltas)
+                if applied:
+                    additive_delta_tensors += 1
+                    additive_delta_values += applied
+                else:
+                    frozen_tensors += 1
+                output_tensors[name] = merged.to(dtype=target_dtype)
                 continue
             merged = base_tensor.to(torch.float32)
             for source_name, weight in weights.items():
@@ -512,7 +645,11 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
                         continue
                     raise KeyError(f"Missing tensor {source_tensor_name!r} for base tensor {name!r} in source {source_name!r}")
                 merged = merged + float(weight) * (source_tensor.to(torch.float32) - base_tensor.to(torch.float32))
-            output_tensors[name] = merged.to(dtype=output_dtype(base_tensor.dtype, args.output_dtype))
+            merged, applied = apply_tensor_add_deltas(name, merged, tensor_add_deltas)
+            if applied:
+                additive_delta_tensors += 1
+                additive_delta_values += applied
+            output_tensors[name] = merged.to(dtype=target_dtype)
 
         if not args.dry_run:
             save_file(output_tensors, str(output_dir / shard_name), metadata={"format": "pt"})
@@ -533,6 +670,8 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
             {"source": rule.source, "pattern": rule.raw_pattern, "replacement": rule.replacement}
             for rule in tensor_alias_rules
         ],
+        "tensor_add_csv": tensor_add_csv_paths or [],
+        "tensor_add_delta_summary": tensor_add_delta_summary,
         "freeze_regex": args.freeze_regex,
         "freeze_router": args.freeze_router,
         "output_dtype": args.output_dtype,
@@ -540,6 +679,8 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
         "floating_tensors": floating_tensors,
         "frozen_tensors": frozen_tensors,
         "copied_nonfloating_tensors": copied_tensors,
+        "additive_delta_tensors": additive_delta_tensors,
+        "additive_delta_values": additive_delta_values,
         "rule_counts": rule_counts,
         "shards": shard_summaries,
         "copied_metadata": copied_metadata,
@@ -577,6 +718,12 @@ def parse_args() -> argparse.Namespace:
         action="append",
         default=None,
         help="Text file with one SOURCE::BASE_REGEX::SOURCE_REPLACEMENT alias rule per line.",
+    )
+    parser.add_argument(
+        "--tensor-add-csv",
+        action="append",
+        default=None,
+        help="CSV with tensor,index,delta rows applied after averaging and before dtype cast. Repeatable.",
     )
     parser.add_argument("--freeze-regex", action="append", default=[], help="Freeze matching tensors to base weights.")
     parser.add_argument("--freeze-router", action="store_true", help="Freeze router/gate tensors, excluding gate_proj/shared_expert_gate.")

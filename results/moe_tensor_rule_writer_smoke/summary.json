@@ -1,8 +1,10 @@
 {
-  "checked_tensors": 6,
+  "additive_delta_tensors": 1,
+  "additive_delta_values": 2,
+  "checked_tensors": 7,
   "copied_nonfloating_tensors": 1,
   "failed_tensors": 0,
-  "floating_tensors": 5,
+  "floating_tensors": 6,
   "frozen_tensors": 2,
   "outputs": {
     "merge_manifest": "results/moe_tensor_rule_writer_smoke/merge_manifest.json",
@@ -12,7 +14,7 @@
   },
   "rule_counts": {
     "default": 1,
-    "freeze_router": 1,
+    "freeze_router": 2,
     "tensor_rule:.*experts\\.0\\..*": 1,
     "tensor_rule:.*experts\\.1\\..*": 1,
     "tensor_rule:.*self_attn.*": 1

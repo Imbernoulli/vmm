@@ -483,6 +483,9 @@ def summarize_moe_tensor_rule_writer_smoke() -> dict[str, Any]:
         "rule_counts": summary.get("rule_counts", {}),
         "floating_tensors": int(manifest.get("floating_tensors", 0)),
         "frozen_tensors": int(manifest.get("frozen_tensors", 0)),
+        "additive_delta_tensors": int(manifest.get("additive_delta_tensors", 0)),
+        "additive_delta_values": int(manifest.get("additive_delta_values", 0)),
+        "tensor_add_delta_summary": manifest.get("tensor_add_delta_summary", {}),
         "report": rel("results/moe_tensor_rule_writer_smoke/report.md"),
         "tensor_checks": rel("results/moe_tensor_rule_writer_smoke/tensor_checks.csv"),
         "manifest_path": rel("results/moe_tensor_rule_writer_smoke/merge_manifest.json"),
@@ -538,6 +541,25 @@ def summarize_moe_route_weight_recipes() -> dict[str, Any]:
         "routing_probe_plan": rel(routing_probe_plan_path) if routing_probe_plan_path.exists() else None,
         "category_source_plan": rel(category_source_plan_path) if category_source_plan_path.exists() else None,
         "prompt_pack": rel("prompts/qwen_moe_route_probe_prompts.jsonl"),
+    }
+
+
+def summarize_moe_router_bias_plan() -> dict[str, Any]:
+    summary = read_json("results/moe_router_bias_plan/summary.json")
+    plan = read_csv("results/moe_router_bias_plan/router_bias_plan.csv")
+    deltas = read_csv("results/moe_router_bias_plan/router_bias_deltas.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "methods": summary.get("methods", []),
+        "router_count": int(summary.get("router_count", 0)),
+        "delta_rows": int(summary.get("delta_rows", len(plan))),
+        "nonzero_delta_rows": int(summary.get("nonzero_delta_rows", len(deltas))),
+        "writer_csv_ready": bool(summary.get("writer_csv_ready", False)),
+        "load_stat": summary.get("load_stat"),
+        "report": rel("results/moe_router_bias_plan/report.md"),
+        "router_bias_plan": rel("results/moe_router_bias_plan/router_bias_plan.csv"),
+        "router_bias_deltas": rel("results/moe_router_bias_plan/router_bias_deltas.csv"),
     }
 
 
@@ -1101,7 +1123,7 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "MoE tensor-rule writer materialization",
             "status": "complete",
-            "evidence": "results/moe_tensor_rule_writer_smoke/report.md writes a tiny MoE-like safetensors checkpoint and verifies tensor-rule, freeze-router, and non-floating tensor behavior numerically.",
+            "evidence": "results/moe_tensor_rule_writer_smoke/report.md writes a tiny MoE-like safetensors checkpoint and verifies tensor-rule, freeze-router, router-bias additive deltas, and non-floating tensor behavior numerically.",
         },
         {
             "item": "Checkpoint topology inspection",
@@ -1117,6 +1139,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "item": "MoE route-weight recipes",
             "status": "complete",
             "evidence": "results/moe_route_weight_recipes/report.md converts MoE routing/expert-load probes into tensor-rule files for same-shape checkpoint materialization; current recipe is waiting for real routing probe data.",
+        },
+        {
+            "item": "MoE router-bias additive capacity plan",
+            "status": "complete",
+            "evidence": "results/moe_router_bias_plan/report.md converts expert_load.csv into writer-ready router-bias additive deltas for same-shape capacity correction.",
         },
         {
             "item": "MoE searched expert-weight recipes",
@@ -1191,6 +1218,7 @@ def build_summary() -> dict[str, Any]:
         "checkpoint_topology_inspect": summarize_checkpoint_topology(),
         "average_candidate_recipes": summarize_average_candidate_recipes(),
         "moe_route_weight_recipes": summarize_moe_route_weight_recipes(),
+        "moe_router_bias_plan": summarize_moe_router_bias_plan(),
         "toy_moe_expert_weight_recipes": summarize_toy_moe_expert_weight_recipes(),
         "moe_routing_readiness": summarize_moe_routing_readiness(),
         "toy_moe_merge": summarize_toy_moe_merge(),
@@ -1248,6 +1276,7 @@ def build_summary() -> dict[str, Any]:
             "PYTHONPATH=src python scripts/build_average_candidate_recipes.py",
             "PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code",
             "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code --source general --source code",
+            "PYTHONPATH=src python scripts/build_moe_router_bias_plan.py --router-dir results/toy_moe_merge --method unified_moe_average --router-bias-template '{router}.bias'",
             "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --output-dir results/toy_moe_expert_weight_recipes --expert-weight-csv results/toy_moe_merge/expert_search_weights_by_expert.csv --source general --source code --checkpoint-output-dir results/checkpoints/toy_moe_expert_weight_candidate --topology-summary ''",
             "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
             "PYTHONPATH=src python scripts/collect_results.py",
@@ -1287,6 +1316,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     moe_models = [model for model in topology["models"] if model.get("config", {}).get("is_moe_config")]
     recipes = exp["average_candidate_recipes"]
     route_weight_recipes = exp["moe_route_weight_recipes"]
+    router_bias_plan = exp["moe_router_bias_plan"]
     toy_expert_weight_recipes = exp["toy_moe_expert_weight_recipes"]
     routing_readiness = exp["moe_routing_readiness"]
     toy_moe = exp["toy_moe_merge"]
@@ -1833,6 +1863,10 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{moe_tensor_rule_writer_smoke['checked_tensors']} / {moe_tensor_rule_writer_smoke['failed_tensors']} |"
             ),
             (
+                "| MoE tensor-rule writer smoke | additive bias delta tensors / values | "
+                f"{moe_tensor_rule_writer_smoke['additive_delta_tensors']} / {moe_tensor_rule_writer_smoke['additive_delta_values']} |"
+            ),
+            (
                 "| checkpoint topology | inspected MoE configs | "
                 f"{len(moe_models)} |"
             ),
@@ -1851,6 +1885,14 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| MoE route-weight recipes | expert tensor rules | "
                 f"{route_weight_recipes['expert_rule_count']} |"
+            ),
+            (
+                "| MoE router-bias plan | status | "
+                f"{router_bias_plan['status']} |"
+            ),
+            (
+                "| MoE router-bias plan | nonzero delta rows | "
+                f"{router_bias_plan['nonzero_delta_rows']} |"
             ),
             (
                 "| MoE searched expert-weight recipes | recipe status | "

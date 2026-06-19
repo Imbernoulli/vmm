@@ -1,0 +1,5 @@
+method,router,layer_id,expert_id,tensor,index,delta,raw_delta,centered_delta,observed_topk_fraction,uniform_topk_fraction,capacity_topk_fraction,capacity_ratio,topk_assignments_total,load_stat,load_quantile,same_shape_action,reason
+unified_moe_average,toy_router,,0,toy_router.bias,0,-0.05298710163542938,-0.05538556748680898,-0.05298710163542938,0.39,0.25,0.3125,1.248,1600.0,worst,0.0,router_bias_additive_capacity_correction,reduce_overloaded_expert_logit
+unified_moe_average,toy_router,,1,toy_router.bias,1,0.0014004605339952374,-0.0009980053173843642,0.0014004605339952374,0.31375,0.25,0.3125,1.004,1600.0,worst,0.0,router_bias_additive_capacity_correction,center_lift_expert_logit
+unified_moe_average,toy_router,,2,toy_router.bias,2,0.004406508775695668,0.0020080429243160666,0.004406508775695668,0.31,0.25,0.3125,0.992,1600.0,worst,0.0,router_bias_additive_capacity_correction,center_lift_expert_logit
+unified_moe_average,toy_router,,3,toy_router.bias,3,0.04718013232573847,0.04478166647435887,0.04718013232573847,0.26125,0.25,0.3125,0.836,1600.0,worst,0.0,router_bias_additive_capacity_correction,center_lift_expert_logit

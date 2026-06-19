@@ -1,4 +1,6 @@
 {
+  "additive_delta_tensors": 1,
+  "additive_delta_values": 2,
   "base": "TMP/base",
   "copied_metadata": [
     "config.json"
@@ -9,14 +11,14 @@
     "general": 0.0
   },
   "dry_run": false,
-  "floating_tensors": 5,
+  "floating_tensors": 6,
   "freeze_regex": [],
   "freeze_router": true,
   "frozen_tensors": 2,
   "output_dtype": "base",
   "rule_counts": {
     "default": 1,
-    "freeze_router": 1,
+    "freeze_router": 2,
     "tensor_rule:.*experts\\.0\\..*": 1,
     "tensor_rule:.*experts\\.1\\..*": 1,
     "tensor_rule:.*self_attn.*": 1
@@ -26,7 +28,7 @@
   "shards": [
     {
       "shard": "model.safetensors",
-      "tensors": 6
+      "tensors": 7
     }
   ],
   "source_summaries": {
@@ -37,7 +39,7 @@
       "missing_tensors": 0,
       "root": "TMP/code",
       "shape_mismatches": 0,
-      "tensors": 6
+      "tensors": 7
     },
     "general": {
       "aliased_tensors": 0,
@@ -46,12 +48,33 @@
       "missing_tensors": 0,
       "root": "TMP/general",
       "shape_mismatches": 0,
-      "tensors": 6
+      "tensors": 7
     }
   },
   "sources": {
     "code": "TMP/code",
     "general": "TMP/general"
+  },
+  "tensor_add_csv": [
+    "TMP/tensor_add.csv"
+  ],
+  "tensor_add_delta_summary": {
+    "abs_delta_sum": 0.75,
+    "delta_count": 2,
+    "max_abs_delta": 0.5,
+    "tensor_count": 1,
+    "tensors": [
+      {
+        "abs_delta_sum": 0.75,
+        "delta_count": 2,
+        "dtype": "torch.float32",
+        "max_abs_delta": 0.5,
+        "shape": [
+          2
+        ],
+        "tensor": "model.layers.0.router.bias"
+      }
+    ]
   },
   "tensor_alias_rules": [],
   "tensor_rules": [

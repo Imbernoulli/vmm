@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T12:36:11.199283+00:00`
+Generated at: `2026-06-19T12:55:03.894128+00:00`
 
 ## Coverage
 
-Complete: `31`; partial: `1`; missing: `0`.
+Complete: `32`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -27,10 +27,11 @@ Complete: `31`; partial: `1`; missing: `0`.
 | Qwen target model registry | complete | results/qwen_target_model_registry/report.md maps representative official, third-party, downstream, and adapter-pool Qwen candidates to scenarios, eval slices, probes, and same-shape topology gates. |
 | MoE same-shape averaging plan | complete | results/moe_average_plan/report.md maps router/expert probes into same-shape router, shared-module, expert, and adapter averaging actions. |
 | Same-shape checkpoint writer | complete | scripts/write_same_shape_average_checkpoint.py writes same-shape safetensors checkpoints; results/same_shape_writer_smoke/report.md validates Qwen2.5-0.5B base/instruct/coder dry-run compatibility. |
-| MoE tensor-rule writer materialization | complete | results/moe_tensor_rule_writer_smoke/report.md writes a tiny MoE-like safetensors checkpoint and verifies tensor-rule, freeze-router, and non-floating tensor behavior numerically. |
+| MoE tensor-rule writer materialization | complete | results/moe_tensor_rule_writer_smoke/report.md writes a tiny MoE-like safetensors checkpoint and verifies tensor-rule, freeze-router, router-bias additive deltas, and non-floating tensor behavior numerically. |
 | Checkpoint topology inspection | complete | results/checkpoint_topology_inspect/report.md inspects Qwen MoE/Dense configs and safetensors headers without loading weights. |
 | Average candidate recipes | complete | results/average_candidate_recipes/report.md converts probe decisions into conservative same-shape materialization recipes and skips endpoint-only pseudo-averages. |
 | MoE route-weight recipes | complete | results/moe_route_weight_recipes/report.md converts MoE routing/expert-load probes into tensor-rule files for same-shape checkpoint materialization; current recipe is waiting for real routing probe data. |
+| MoE router-bias additive capacity plan | complete | results/moe_router_bias_plan/report.md converts expert_load.csv into writer-ready router-bias additive deltas for same-shape capacity correction. |
 | MoE searched expert-weight recipes | complete | results/toy_moe_expert_weight_recipes/report.md converts calibration-searched per-expert source weights into same-shape checkpoint writer tensor rules. |
 | MoE routing readiness diagnostics | complete | results/moe_routing_readiness/report.md turns router_summary, route_overlap, and expert_load CSVs into router collapse, drift, boundary-fragility, and expert-load risk actions. |
 | MoE routing probe CLI | complete | scripts/probe_moe_routing.py captures MoE router hooks and writes router_summary.csv, expert_load.csv, optional route_overlap.csv, summary.json, and report.md; results/moe_routing_probe_smoke/report.md validates the contract on a tiny local MoE. |
@@ -171,12 +172,15 @@ Complete: `31`; partial: `1`; missing: `0`.
 | MoE average plan | expert plan rows | 0 |
 | same-shape writer smoke | Qwen-compatible tensors checked | 290 |
 | MoE tensor-rule writer smoke | status | passed |
-| MoE tensor-rule writer smoke | checked / failed tensors | 6 / 0 |
+| MoE tensor-rule writer smoke | checked / failed tensors | 7 / 0 |
+| MoE tensor-rule writer smoke | additive bias delta tensors / values | 1 / 2 |
 | checkpoint topology | inspected MoE configs | 1 |
 | average candidate recipes | endpoint-only skips | 1 |
 | average candidate recipes | MoE templates awaiting routing probe | 1 |
 | MoE route-weight recipes | recipe status | waiting_for_routing_probe |
 | MoE route-weight recipes | expert tensor rules | 0 |
+| MoE router-bias plan | status | router_bias_delta_ready |
+| MoE router-bias plan | nonzero delta rows | 4 |
 | MoE searched expert-weight recipes | recipe status | explicit_expert_weight_rules_ready |
 | MoE searched expert-weight recipes | expert tensor rules | 4 |
 | MoE routing readiness | readiness status | waiting_for_routing_probe |

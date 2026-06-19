@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 30500,
+      "bytes": 31593,
       "kind": "document",
       "path": "README.md",
-      "sha256": "57a80d67e12e051ebd9684cc4fa61212bc43778079ea973eb31d4ed86a38daba"
+      "sha256": "3da7af0833ab8168f03b86efe031d0cf536828c4613ad54d8f3c28020b9afc1c"
     },
     {
       "bytes": 33211,
@@ -739,6 +739,30 @@
       "sha256": "276498aaf76af7e607940b433424c884adc3178eafd97e8b55e4f8627779c8dd"
     },
     {
+      "bytes": 2327,
+      "kind": "document",
+      "path": "results/moe_router_bias_plan/report.md",
+      "sha256": "dbfe5ddbed3002945185b5f37bc0973b566228972eb3b5917df31c3aed9cb6a8"
+    },
+    {
+      "bytes": 288,
+      "kind": "data",
+      "path": "results/moe_router_bias_plan/router_bias_deltas.csv",
+      "sha256": "ea02b3c8f14ed3c0c817c51a6b1c455ef93bef53f410995366e3d73cade023fd"
+    },
+    {
+      "bytes": 1130,
+      "kind": "data",
+      "path": "results/moe_router_bias_plan/router_bias_plan.csv",
+      "sha256": "b7139c1cd5ca209d776d0cba3fbe10245c5f5fcef17479c947d498f9b4182a78"
+    },
+    {
+      "bytes": 1085,
+      "kind": "data",
+      "path": "results/moe_router_bias_plan/summary.json",
+      "sha256": "8e77d50b122947e898ea890e89dbdd0b3605d960efd9d08013b54067d7ffd325"
+    },
+    {
       "bytes": 1709,
       "kind": "data",
       "path": "results/moe_routing_probe_smoke/compare_expert_load.csv",
@@ -829,28 +853,28 @@
       "sha256": "588a01b897f2ab96c9ca62cbc5679e16894ea2424b9b4f56d8c330895bbd2702"
     },
     {
-      "bytes": 1673,
+      "bytes": 2170,
       "kind": "data",
       "path": "results/moe_tensor_rule_writer_smoke/merge_manifest.json",
-      "sha256": "526058c6da8e85298d1aaa3c41298066a6bed3ecef193bf2a5e65baa8b9feee6"
+      "sha256": "f0b71ebad87a822693069c7c3efc396570f5f68e7ba129262b6064870fc941c0"
     },
     {
-      "bytes": 626,
+      "bytes": 852,
       "kind": "document",
       "path": "results/moe_tensor_rule_writer_smoke/report.md",
-      "sha256": "cba417c8d20e3be16e9eb829bd420add6365474d92e24d259a2d5286b051bb4d"
+      "sha256": "b2a63c9ef084a10f7e765233086c73d5b0ed1eefdcd666d06d116a8d01029f0a"
     },
     {
-      "bytes": 673,
+      "bytes": 734,
       "kind": "data",
       "path": "results/moe_tensor_rule_writer_smoke/summary.json",
-      "sha256": "2dc165adc89682a04b74e5516396a6756a5f8cd63465ebd646d2c0f9881bc0ba"
+      "sha256": "296c44b5031e4c947362df4a9f1f2d4d5ba925dca146002caaaecc157211e5db"
     },
     {
-      "bytes": 369,
+      "bytes": 419,
       "kind": "data",
       "path": "results/moe_tensor_rule_writer_smoke/tensor_checks.csv",
-      "sha256": "9eb1fea92422e5b280209c4d893d81a22963667694ce7a60f32806ef948d1bb1"
+      "sha256": "93e95bf0cf09d9194d4d00999e699f1c6da35eca88248534eaf3ecc40c74a4a7"
     },
     {
       "bytes": 31792,
@@ -1183,16 +1207,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 182794,
+      "bytes": 185675,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "458660e7017b48fa9dc7fe0967b662ad53fd1af77ec2c7bf78e578c9305d79a6"
+      "sha256": "1f8cf7b4e2c1d6413c0d0216e3c09c8b198943fd247ac87f9cf25c485f5ae728"
     },
     {
-      "bytes": 16194,
+      "bytes": 16615,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "1051cf8dc5a31910cc260eb5a782fd55dcf1aff6e664da977b60d3f7a59959e2"
+      "sha256": "02a78d084809488738a2968af9ef64e79983089e54a4614fa5d95499980accc6"
     },
     {
       "bytes": 556,
@@ -1561,16 +1585,22 @@
       "sha256": "f130c709f4b51a287c12a6fc93a53cfee5c8ab1592a8ff847fb58d89b4403793"
     },
     {
+      "bytes": 17656,
+      "kind": "code",
+      "path": "scripts/build_moe_router_bias_plan.py",
+      "sha256": "ad01d594be71d23b5241f6e23ac3a4fc68a91cd2c3a14fdaf081c2fbc74f2653"
+    },
+    {
       "bytes": 39783,
       "kind": "code",
       "path": "scripts/build_qwen_target_model_registry.py",
       "sha256": "a1d54b8d275c55bbdc12aa051e4cb6888ce0371ff7698b547c1d7aa17f79c8e4"
     },
     {
-      "bytes": 99815,
+      "bytes": 102200,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "2926d2cee2f81d01e2c2ef9ffb22057c17b740e99f6864a3f12a33a1a01809d3"
+      "sha256": "1ffb37cdd31edf46455fa1c98aa5df16d3e1922c69a6bfa8cf3370d0fe85c0ac"
     },
     {
       "bytes": 17809,
@@ -1687,16 +1717,16 @@
       "sha256": "13ec3f625df73f2aba2d98d27e9fae150c1efbf20126b8358623341689f8568d"
     },
     {
-      "bytes": 8576,
+      "bytes": 9798,
       "kind": "code",
       "path": "scripts/smoke_moe_tensor_rule_writer.py",
-      "sha256": "521329eec5de8af355b7977836fbea1918d8aa18b7beaf08ba94a9ddfbbff84e"
+      "sha256": "c25fae6a0dd0279fee3ea098a4a135b04ad60115f6917759b89f8d88ab928d32"
     },
     {
-      "bytes": 24527,
+      "bytes": 30417,
       "kind": "code",
       "path": "scripts/write_same_shape_average_checkpoint.py",
-      "sha256": "abdb914a591312ae1f1ab5a01c06c8348d13d3333838444beb6061dd66448d04"
+      "sha256": "5797000c1a1f3b357b3896cc93bf1306597364d10c304234c54c2dd87b4fa8a5"
     },
     {
       "bytes": 123,
@@ -1717,7 +1747,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T12:36:11.202301+00:00",
+  "generated_at": "2026-06-19T12:55:03.935208+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

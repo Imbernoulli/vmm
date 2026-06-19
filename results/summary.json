@@ -96,7 +96,7 @@
       "status": "complete"
     },
     {
-      "evidence": "results/moe_tensor_rule_writer_smoke/report.md writes a tiny MoE-like safetensors checkpoint and verifies tensor-rule, freeze-router, and non-floating tensor behavior numerically.",
+      "evidence": "results/moe_tensor_rule_writer_smoke/report.md writes a tiny MoE-like safetensors checkpoint and verifies tensor-rule, freeze-router, router-bias additive deltas, and non-floating tensor behavior numerically.",
       "item": "MoE tensor-rule writer materialization",
       "status": "complete"
     },
@@ -113,6 +113,11 @@
     {
       "evidence": "results/moe_route_weight_recipes/report.md converts MoE routing/expert-load probes into tensor-rule files for same-shape checkpoint materialization; current recipe is waiting for real routing probe data.",
       "item": "MoE route-weight recipes",
+      "status": "complete"
+    },
+    {
+      "evidence": "results/moe_router_bias_plan/report.md converts expert_load.csv into writer-ready router-bias additive deltas for same-shape capacity correction.",
+      "item": "MoE router-bias additive capacity plan",
       "status": "complete"
     },
     {
@@ -162,7 +167,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 31,
+    "complete": 32,
     "missing": 0,
     "partial": 1
   },
@@ -1667,6 +1672,58 @@
       "tensor_rules": "results/moe_route_weight_recipes/tensor_rules.txt",
       "writer_command": "results/moe_route_weight_recipes/writer_command.txt"
     },
+    "moe_router_bias_plan": {
+      "delta_rows": 4,
+      "load_stat": "worst",
+      "methods": [
+        "unified_moe_average"
+      ],
+      "nonzero_delta_rows": 4,
+      "report": "results/moe_router_bias_plan/report.md",
+      "router_bias_deltas": "results/moe_router_bias_plan/router_bias_deltas.csv",
+      "router_bias_plan": "results/moe_router_bias_plan/router_bias_plan.csv",
+      "router_count": 1,
+      "status": "router_bias_delta_ready",
+      "summary": {
+        "bias_step": 0.25,
+        "capacity_factor": 1.25,
+        "delta_rows": 4,
+        "input_summaries": [
+          {
+            "router_dir": "results/toy_moe_merge",
+            "rows": 224,
+            "status": "loaded"
+          }
+        ],
+        "load_quantile": 0.95,
+        "load_stat": "worst",
+        "max_abs_delta": 0.5,
+        "method_filter": [
+          "unified_moe_average"
+        ],
+        "methods": [
+          "unified_moe_average"
+        ],
+        "nonzero_delta_rows": 4,
+        "outputs": {
+          "report": "results/moe_router_bias_plan/report.md",
+          "router_bias_deltas": "results/moe_router_bias_plan/router_bias_deltas.csv",
+          "router_bias_plan": "results/moe_router_bias_plan/router_bias_plan.csv",
+          "summary": "results/moe_router_bias_plan/summary.json"
+        },
+        "router_bias_template": "{router}.bias",
+        "router_count": 1,
+        "router_dirs": [
+          "results/toy_moe_merge"
+        ],
+        "same_shape_constraint": "The generated CSV only adds scalar deltas to existing router-bias tensors; it does not add experts, layers, or router outputs.",
+        "schema_version": 1,
+        "status": "router_bias_delta_ready",
+        "target_topk_fraction": null,
+        "writer_csv_ready": true
+      },
+      "writer_csv_ready": true
+    },
     "moe_routing_probe_smoke": {
       "expert_load": "results/moe_routing_probe_smoke/expert_load.csv",
       "expert_load_rows": 24,
@@ -1784,25 +1841,29 @@
       }
     },
     "moe_tensor_rule_writer_smoke": {
-      "checked_tensors": 6,
+      "additive_delta_tensors": 1,
+      "additive_delta_values": 2,
+      "checked_tensors": 7,
       "failed_tensors": 0,
-      "floating_tensors": 5,
+      "floating_tensors": 6,
       "frozen_tensors": 2,
       "manifest_path": "results/moe_tensor_rule_writer_smoke/merge_manifest.json",
       "report": "results/moe_tensor_rule_writer_smoke/report.md",
       "rule_counts": {
         "default": 1,
-        "freeze_router": 1,
+        "freeze_router": 2,
         "tensor_rule:.*experts\\.0\\..*": 1,
         "tensor_rule:.*experts\\.1\\..*": 1,
         "tensor_rule:.*self_attn.*": 1
       },
       "status": "passed",
       "summary": {
-        "checked_tensors": 6,
+        "additive_delta_tensors": 1,
+        "additive_delta_values": 2,
+        "checked_tensors": 7,
         "copied_nonfloating_tensors": 1,
         "failed_tensors": 0,
-        "floating_tensors": 5,
+        "floating_tensors": 6,
         "frozen_tensors": 2,
         "outputs": {
           "merge_manifest": "results/moe_tensor_rule_writer_smoke/merge_manifest.json",
@@ -1812,13 +1873,31 @@
         },
         "rule_counts": {
           "default": 1,
-          "freeze_router": 1,
+          "freeze_router": 2,
           "tensor_rule:.*experts\\.0\\..*": 1,
           "tensor_rule:.*experts\\.1\\..*": 1,
           "tensor_rule:.*self_attn.*": 1
         },
         "schema_version": 1,
         "status": "passed"
+      },
+      "tensor_add_delta_summary": {
+        "abs_delta_sum": 0.75,
+        "delta_count": 2,
+        "max_abs_delta": 0.5,
+        "tensor_count": 1,
+        "tensors": [
+          {
+            "abs_delta_sum": 0.75,
+            "delta_count": 2,
+            "dtype": "torch.float32",
+            "max_abs_delta": 0.5,
+            "shape": [
+              2
+            ],
+            "tensor": "model.layers.0.router.bias"
+          }
+        ]
       },
       "tensor_checks": "results/moe_tensor_rule_writer_smoke/tensor_checks.csv"
     },
@@ -4223,7 +4302,7 @@
       "tasks": "gsm8k,mmlu,safety,humaneval_compile"
     }
   },
-  "generated_at": "2026-06-19T12:36:11.199283+00:00",
+  "generated_at": "2026-06-19T12:55:03.894128+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -4255,6 +4334,7 @@
     "PYTHONPATH=src python scripts/build_average_candidate_recipes.py",
     "PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code",
     "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code --source general --source code",
+    "PYTHONPATH=src python scripts/build_moe_router_bias_plan.py --router-dir results/toy_moe_merge --method unified_moe_average --router-bias-template '{router}.bias'",
     "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --output-dir results/toy_moe_expert_weight_recipes --expert-weight-csv results/toy_moe_merge/expert_search_weights_by_expert.csv --source general --source code --checkpoint-output-dir results/checkpoints/toy_moe_expert_weight_candidate --topology-summary ''",
     "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
     "PYTHONPATH=src python scripts/collect_results.py"

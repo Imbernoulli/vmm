@@ -1,11 +1,13 @@
 # MoE Tensor-Rule Writer Smoke
 
 这个 smoke 构造 tiny MoE-like safetensors checkpoint，调用真实 same-shape writer 写出权重，再逐张量检查 tensor-rule、freeze-router 和非浮点复制是否生效。
+其中 router weight 被 freeze，router bias 通过 `tensor,index,delta` CSV 做 additive correction，用来验证 bias-only load calibration 可以写进同构 checkpoint。
 
 - Status: `passed`
-- Checked tensors: `6`
+- Checked tensors: `7`
 - Failed tensors: `0`
-- Rule counts: `{"default": 1, "freeze_router": 1, "tensor_rule:.*experts\\.0\\..*": 1, "tensor_rule:.*experts\\.1\\..*": 1, "tensor_rule:.*self_attn.*": 1}`
+- Rule counts: `{"default": 1, "freeze_router": 2, "tensor_rule:.*experts\\.0\\..*": 1, "tensor_rule:.*experts\\.1\\..*": 1, "tensor_rule:.*self_attn.*": 1}`
+- Additive deltas: `2` values across `1` tensors
 
 ## Files
 

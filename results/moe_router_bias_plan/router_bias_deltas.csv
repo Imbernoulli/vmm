@@ -1,0 +1,5 @@
+tensor,index,delta,reason
+toy_router.bias,0,-0.05298710163542938,reduce_overloaded_expert_logit
+toy_router.bias,1,0.0014004605339952374,center_lift_expert_logit
+toy_router.bias,2,0.004406508775695668,center_lift_expert_logit
+toy_router.bias,3,0.04718013232573847,center_lift_expert_logit
