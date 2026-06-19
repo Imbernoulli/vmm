@@ -49,8 +49,16 @@ unified_route_kd_seed_average,unified_route_kd_seed_average,general,0,toy_router
 unified_route_kd_seed_average,unified_route_kd_seed_average,code,0,toy_router,4,400,2,1.2590569257736206,0.16778366267681122,4,4,0.4775,2.444768185791469
 unified_calibrated_seed_average,unified_calibrated_seed_average,general,0,toy_router,4,400,2,1.2585409879684448,0.15188920497894287,4,4,0.6525,2.419627697189176
 unified_calibrated_seed_average,unified_calibrated_seed_average,code,0,toy_router,4,400,2,1.2859355211257935,0.09929633140563965,4,4,0.485,2.781440121120702
+unified_output_projection_router_kd_seed_average,unified_output_projection_router_kd_seed_average,general,0,toy_router,4,400,2,1.3179839849472046,0.08179470151662827,4,4,0.5375,3.1247688562216136
+unified_output_projection_router_kd_seed_average,unified_output_projection_router_kd_seed_average,code,0,toy_router,4,400,2,1.3150027990341187,0.09218199551105499,4,4,0.445,2.7689258764460765
+unified_output_projection_route_kd_seed_average,unified_output_projection_route_kd_seed_average,general,0,toy_router,4,400,2,1.2555984258651733,0.16177339851856232,4,4,0.6225,2.474662788919691
+unified_output_projection_route_kd_seed_average,unified_output_projection_route_kd_seed_average,code,0,toy_router,4,400,2,1.2590569257736206,0.16778366267681122,4,4,0.4775,2.444768185791469
+unified_output_projection_calibrated_seed_average,unified_output_projection_calibrated_seed_average,general,0,toy_router,4,400,2,1.2590163946151733,0.15113696455955505,4,4,0.65,2.4298179202456995
+unified_output_projection_calibrated_seed_average,unified_output_projection_calibrated_seed_average,code,0,toy_router,4,400,2,1.2856746912002563,0.09823524206876755,4,4,0.4775,2.8359634267162748
 unified_moe_average,unified_moe_average,general,0,toy_router,4,400,2,1.259705901145935,0.15324866771697998,4,4,0.615,2.534849234035036
 unified_moe_average,unified_moe_average,code,0,toy_router,4,400,2,1.2642194032669067,0.15560202300548553,4,4,0.475,2.516032261000805
+unified_output_projection_moe_average,unified_output_projection_moe_average,general,0,toy_router,4,400,2,1.2631274461746216,0.144703209400177,4,4,0.5825,2.581245047469256
+unified_output_projection_moe_average,unified_output_projection_moe_average,code,0,toy_router,4,400,2,1.2618476152420044,0.15561945736408234,4,4,0.455,2.5929624228049546
 unified_moe_bias_capacity_average,unified_moe_bias_capacity_average,general,0,toy_router,4,400,2,1.2683693170547485,0.13767699897289276,4,4,0.5275,2.6770689306000897
 unified_moe_bias_capacity_average,unified_moe_bias_capacity_average,code,0,toy_router,4,400,2,1.2593224048614502,0.14917534589767456,4,4,0.435,2.747527661867477
 route_aware_expert_average,route_aware_expert_average,general,0,toy_router,4,400,2,1.3146744966506958,0.09449800848960876,4,4,0.5825,2.6869657710450916

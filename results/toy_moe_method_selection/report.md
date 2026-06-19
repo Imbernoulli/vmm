@@ -5,7 +5,7 @@
 - Recommended soft-router method: `expert_output_projection_router_calibrated_average`
 - Recommended sparse `hard_top2` method: `unified_moe_average`
 - Capacity-aware sparse `hard_top2` method: `unified_moe_bias_capacity_average`
-- Sparse accuracy/overflow Pareto frontier: `unified_moe_average, unified_moe_bias_capacity_average, matched_router_kd_average`
+- Sparse accuracy/overflow Pareto frontier: `unified_moe_average, unified_output_projection_moe_average, unified_moe_bias_capacity_average, matched_router_kd_average`
 - Selection status: `has_candidate`
 - Base worst accuracy: `0.7325`
 
@@ -14,15 +14,19 @@
 | method | kind | soft worst acc | hard top-2 worst acc | top-k overflow | avg acc | calibrate flags | min top-k Jaccard | decision |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | expert_output_projection_router_calibrated_average | merge_candidate | 0.807 | 0.647 | 0.0550 | 0.835 | 0 | 0.84 | `candidate_with_router_guard` |
+| unified_output_projection_calibrated_seed_average | merge_candidate | 0.807 | 0.647 | 0.0550 | 0.835 | 0 | 0.84 | `candidate_with_router_guard` |
 | expert_weight_search_router_calibrated_average | merge_candidate | 0.802 | 0.642 | 0.0563 | 0.830 | 0 | 0.84 | `candidate_with_router_guard` |
 | unified_calibrated_seed_average | merge_candidate | 0.802 | 0.642 | 0.0563 | 0.830 | 0 | 0.84 | `candidate_with_router_guard` |
 | matched_router_calibrated_average | merge_candidate | 0.797 | 0.665 | 0.0537 | 0.829 | 0 | 0.8367 | `candidate_with_router_guard` |
 | matched_router_sweep_selected_average | merge_candidate | 0.797 | 0.665 | 0.0537 | 0.829 | 0 | 0.8367 | `candidate_with_router_guard` |
+| unified_output_projection_route_kd_seed_average | merge_candidate | 0.795 | 0.680 | 0.0788 | 0.821 | 0 | 0.865 | `candidate_with_router_guard` |
+| unified_output_projection_moe_average | merge_candidate | 0.795 | 0.685 | 0.0700 | 0.829 | 0 | 0.895 | `candidate_with_router_guard` |
 | unified_moe_average | merge_candidate | 0.785 | 0.690 | 0.0775 | 0.823 | 0 | 0.8733 | `candidate_with_router_guard` |
 | unified_route_kd_seed_average | merge_candidate | 0.777 | 0.688 | 0.0788 | 0.816 | 0 | 0.865 | `candidate_with_router_guard` |
 | unified_moe_bias_capacity_average | merge_candidate | 0.770 | 0.682 | 0.0475 | 0.809 | 0 | 0.9217 | `candidate_with_router_guard` |
 | matched_router_route_kd_average | merge_candidate | 0.762 | 0.685 | 0.0788 | 0.805 | 0 | 0.865 | `candidate_with_router_guard` |
 | unified_router_kd_seed_average | merge_candidate | 0.760 | 0.598 | 0.0338 | 0.800 | 0 | 0.8983 | `candidate_with_router_guard` |
+| unified_output_projection_router_kd_seed_average | merge_candidate | 0.760 | 0.608 | 0.0338 | 0.796 | 0 | 0.8983 | `candidate_with_router_guard` |
 | expert_output_projection_average | merge_candidate | 0.757 | 0.635 | 0.0675 | 0.795 | 0 | 1 | `candidate_with_router_guard` |
 | matched_router_topk_calibrated_average | merge_candidate | 0.755 | 0.657 | 0.0788 | 0.792 | 0 | 0.895 | `candidate_with_router_guard` |
 | expert_weight_search_average | merge_candidate | 0.755 | 0.632 | 0.0675 | 0.795 | 0 | 1 | `candidate_with_router_guard` |
@@ -71,6 +75,7 @@
 | method | hard top-2 worst acc | top-k overflow | worst category | soft worst acc |
 | --- | ---: | ---: | --- | ---: |
 | unified_moe_average | 0.690 | 0.0775 | general | 0.785 |
+| unified_output_projection_moe_average | 0.685 | 0.0700 | general | 0.795 |
 | unified_moe_bias_capacity_average | 0.682 | 0.0475 | general | 0.770 |
 | matched_router_kd_average | 0.660 | 0.0338 | code | 0.745 |
 

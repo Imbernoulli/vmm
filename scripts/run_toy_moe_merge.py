@@ -2286,12 +2286,16 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
         method_metrics["method"] == "expert_output_projection_router_calibrated_average"
     ].iloc[0]
     unified_moe = method_metrics[method_metrics["method"] == "unified_moe_average"].iloc[0]
+    unified_output_projection_moe = method_metrics[
+        method_metrics["method"] == "unified_output_projection_moe_average"
+    ].iloc[0]
     unified_bias = method_metrics[method_metrics["method"] == "unified_moe_bias_capacity_average"].iloc[0]
     route_aware = method_metrics[method_metrics["method"] == "route_aware_expert_average"].iloc[0]
     connectivity = summary["connectivity"]
     dispatch = summary["dispatch_robustness"]
     capacity = summary["router_capacity"]
     unified_summary = summary["unified_moe"]
+    unified_output_projection_summary = summary["unified_output_projection_moe"]
     lines = [
         "# Toy MoE Route-Aware Merge",
         "",
@@ -2321,8 +2325,10 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
         f"- Expert output-projection average worst accuracy: `{expert_output_projection['worst_acc']:.3f}`.",
         f"- Expert output-projection + router-calibrated worst accuracy: `{expert_output_projection_calibrated['worst_acc']:.3f}`.",
         f"- Unified expert/router objective worst accuracy: `{unified_moe['worst_acc']:.3f}`.",
+        f"- Unified output-projection expert/router objective worst accuracy: `{unified_output_projection_moe['worst_acc']:.3f}`.",
         f"- Unified + router-bias capacity calibration worst accuracy: `{unified_bias['worst_acc']:.3f}`.",
         f"- Unified router/capacity sweep selected router seed `{unified_summary['selected_router_seed']}` and capacity loss `{unified_summary['selected_capacity_loss_coef']:.3f}` with held-out selection capacity-aware score `{unified_summary['selected_select_capacity_aware_score']:.3f}`.",
+        f"- Unified output-projection sweep selected router seed `{unified_output_projection_summary['selected_router_seed']}` and capacity loss `{unified_output_projection_summary['selected_capacity_loss_coef']:.3f}` with held-out selection capacity-aware score `{unified_output_projection_summary['selected_select_capacity_aware_score']:.3f}`.",
         f"- Route-aware expert average worst accuracy: `{route_aware['worst_acc']:.3f}`.",
         f"- Lowest MoE connectivity barrier: `{connectivity['best_path']}` = `{connectivity['best_barrier_worst_loss']:.4f}` worst-loss barrier.",
         f"- Direct unmatched source barrier: `{connectivity['direct_unmatched_barrier_worst_loss']:.4f}`.",
@@ -2371,6 +2377,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
             "- `expert_output_projection_average` 不用标签分数搜索，而是用 route-conditioned expert output residual 解每个 expert 的 source-delta 权重；它检验 output-space projection 是否能解释 expert merging。",
             "- `expert_output_projection_router_calibrated_average` 在 output-space expert 权重后只校准 router，用来区分 expert 输出拟合和 router dispatch 校准的贡献。",
             "- `unified_moe_average` 先用 per-expert source weight search 处理 expert 语义和重要性，再只更新 router；目标同时包含 soft/hard task loss、source route KD、source output KD、base-router KL、load-balance 和 differentiable capacity-overflow surrogate。router seed 和 capacity loss 系数都不是手工固定，而是在独立 selection split 上按 hard top-2 worst accuracy 减 max overflow 自动选择。",
+            "- `unified_output_projection_moe_average` 把 expert seed 从校准集分数搜索换成 route-conditioned output-space projection，再套同一个 router/capacity selection；它检验 soft-router 最优的 output-projection expert weights 是否能迁移到 hard sparse dispatch。",
             "- `unified_moe_bias_capacity_average` 从 unified 结果出发只训练 router bias，检验全局 expert 负载偏置能否降低 capacity overflow，同时避免重学完整 router 几何。",
             "- `route_aware_expert_average` 冻结 base router，并按 base router 在 general/code prompt 上的 route mass 给每个 expert 设置 source delta 权重；这对应 route-weight recipes 的 toy 版本。",
             "- 这个实验不是 Qwen3 结果，但它把 MoE merging 的特质从报告落成了可跑的 probe：expert index、router overlap、expert load 和 category route mass 都会影响 average 是否安全。",
@@ -2400,6 +2407,8 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
             "- `router_route_kd_trace.csv`",
             "- `unified_moe_trace.csv`",
             "- `unified_moe_capacity_sweep.csv`",
+            "- `unified_output_projection_moe_trace.csv`",
+            "- `unified_output_projection_moe_capacity_sweep.csv`",
             "- `router_bias_capacity_trace.csv`",
             "- `router_bias_capacity_sweep.csv`",
             "- `router_calibration_sweep.csv`",
@@ -2816,6 +2825,46 @@ def main() -> None:
         temperature=args.unified_router_temperature,
         device=device,
     )
+    output_projection_unified_router_initial_states = {
+        "base_router": expert_output_projection,
+        "output_projection_calibrated_router": expert_output_projection_router_calibrated,
+        "router_kd_seed": state_with_router_seed(expert_output_projection, matched_router_kd),
+        "route_kd_seed": state_with_router_seed(expert_output_projection, matched_router_route_kd),
+    }
+    (
+        unified_output_projection_moe_average,
+        unified_output_projection_moe_trace,
+        unified_output_projection_moe_capacity_sweep,
+    ) = sweep_unified_moe_capacity_loss(
+        template,
+        output_projection_unified_router_initial_states,
+        base,
+        [
+            ("general_source", general_model, loaders["general_calib"], 0.5),
+            ("matched_code_source", matched_code, loaders["code_calib"], 0.5),
+        ],
+        loaders,
+        capacity_loss_coefs=unified_capacity_loss_values,
+        epochs=args.unified_router_epochs,
+        lr=args.unified_router_lr,
+        dispatch_mode=args.unified_router_dispatch_mode,
+        soft_loss_coef=args.unified_router_soft_loss_coef,
+        dispatch_loss_coef=args.unified_router_dispatch_loss_coef,
+        route_kd_coef=args.unified_router_route_kd_coef,
+        output_kd_coef=args.unified_router_output_kd_coef,
+        top1_loss_coef=args.unified_router_top1_loss_coef,
+        base_kl_coef=args.unified_router_base_kl_coef,
+        load_balance_coef=args.unified_router_load_balance_coef,
+        capacity_factor=args.capacity_factor,
+        temperature=args.unified_router_temperature,
+        device=device,
+    )
+    selected_output_projection_unified_capacity_row = unified_output_projection_moe_capacity_sweep[
+        unified_output_projection_moe_capacity_sweep["selected_by_select_capacity_aware_score"].astype(bool)
+    ].iloc[0]
+    selected_output_projection_unified_capacity_loss_coef = float(
+        selected_output_projection_unified_capacity_row["capacity_loss_coef"]
+    )
     selected_unified_capacity_row = unified_moe_capacity_sweep[
         unified_moe_capacity_sweep["selected_by_select_capacity_aware_score"].astype(bool)
     ].iloc[0]
@@ -2944,9 +2993,29 @@ def main() -> None:
             "use searched expert weights with a soft-calibrated router seed before unified objective tuning",
         ),
         MethodState(
+            "unified_output_projection_router_kd_seed_average",
+            output_projection_unified_router_initial_states["router_kd_seed"],
+            "use output-projection expert weights with a Router-KD router seed before unified objective tuning",
+        ),
+        MethodState(
+            "unified_output_projection_route_kd_seed_average",
+            output_projection_unified_router_initial_states["route_kd_seed"],
+            "use output-projection expert weights with a route-KD router seed before unified objective tuning",
+        ),
+        MethodState(
+            "unified_output_projection_calibrated_seed_average",
+            output_projection_unified_router_initial_states["output_projection_calibrated_router"],
+            "use output-projection expert weights with a soft-calibrated router seed before unified objective tuning",
+        ),
+        MethodState(
             "unified_moe_average",
             unified_moe_average,
             "search expert source weights, then learn one router objective combining task loss, hard top-k dispatch, route KD, output KD, base-router KL, load balance, and capacity overflow",
+        ),
+        MethodState(
+            "unified_output_projection_moe_average",
+            unified_output_projection_moe_average,
+            "solve expert weights by output-space projection, then learn the same capacity-aware unified router objective",
         ),
         MethodState(
             "unified_moe_bias_capacity_average",
@@ -3041,6 +3110,13 @@ def main() -> None:
             unified_moe_average,
             "candidate_two_segment",
         ),
+        ConnectivityPath(
+            "via_unified_output_projection_moe_average",
+            general_state,
+            matched_code_state,
+            unified_output_projection_moe_average,
+            "candidate_two_segment",
+        ),
     ]
     connectivity_path_metrics, connectivity_summary = evaluate_connectivity_paths(
         template,
@@ -3115,6 +3191,14 @@ def main() -> None:
     router_route_kd_trace.to_csv(args.output_dir / "router_route_kd_trace.csv", index=False)
     unified_moe_trace.to_csv(args.output_dir / "unified_moe_trace.csv", index=False)
     unified_moe_capacity_sweep.to_csv(args.output_dir / "unified_moe_capacity_sweep.csv", index=False)
+    unified_output_projection_moe_trace.to_csv(
+        args.output_dir / "unified_output_projection_moe_trace.csv",
+        index=False,
+    )
+    unified_output_projection_moe_capacity_sweep.to_csv(
+        args.output_dir / "unified_output_projection_moe_capacity_sweep.csv",
+        index=False,
+    )
     router_bias_capacity_trace.to_csv(args.output_dir / "router_bias_capacity_trace.csv", index=False)
     router_bias_capacity_sweep.to_csv(args.output_dir / "router_bias_capacity_sweep.csv", index=False)
     router_calibration_sweep.to_csv(args.output_dir / "router_calibration_sweep.csv", index=False)
@@ -3168,6 +3252,9 @@ def main() -> None:
         method_metrics["method"] == "expert_output_projection_router_calibrated_average"
     ].iloc[0]
     unified_moe_row = method_metrics[method_metrics["method"] == "unified_moe_average"].iloc[0]
+    unified_output_projection_moe_row = method_metrics[
+        method_metrics["method"] == "unified_output_projection_moe_average"
+    ].iloc[0]
     unified_moe_bias_capacity_row = method_metrics[
         method_metrics["method"] == "unified_moe_bias_capacity_average"
     ].iloc[0]
@@ -3175,6 +3262,9 @@ def main() -> None:
     capacity_route_kd = router_capacity[router_capacity["method"] == "matched_router_route_kd_average"]
     capacity_calibrated = router_capacity[router_capacity["method"] == "matched_router_calibrated_average"]
     capacity_unified = router_capacity[router_capacity["method"] == "unified_moe_average"]
+    capacity_unified_output_projection = router_capacity[
+        router_capacity["method"] == "unified_output_projection_moe_average"
+    ]
     capacity_unified_bias = router_capacity[router_capacity["method"] == "unified_moe_bias_capacity_average"]
     worst_capacity_row = router_capacity.sort_values("topk_overflow_fraction", ascending=False).iloc[0]
     summary = {
@@ -3273,6 +3363,16 @@ def main() -> None:
             )
             if ("unified_moe_bias_capacity_average", "hard_top2") in dispatch_index_keys
             else None,
+            "unified_output_projection_moe_hard_top1_worst_acc": float(
+                dispatch_index.loc[("unified_output_projection_moe_average", "hard_top1"), "worst_acc"]
+            )
+            if ("unified_output_projection_moe_average", "hard_top1") in dispatch_index_keys
+            else None,
+            "unified_output_projection_moe_hard_top2_worst_acc": float(
+                dispatch_index.loc[("unified_output_projection_moe_average", "hard_top2"), "worst_acc"]
+            )
+            if ("unified_output_projection_moe_average", "hard_top2") in dispatch_index_keys
+            else None,
             "matched_router_calibrated_soft_to_hard_top1_worst_acc_delta": float(
                 dispatch_index.loc[("matched_router_calibrated_average", "hard_top1"), "worst_acc"]
                 - dispatch_index.loc[("matched_router_calibrated_average", "soft_all"), "worst_acc"]
@@ -3354,6 +3454,15 @@ def main() -> None:
                 ("unified_moe_average", "hard_top2"),
             }.issubset(dispatch_index_keys)
             else None,
+            "unified_output_projection_moe_minus_unified_hard_top2_worst_acc": float(
+                dispatch_index.loc[("unified_output_projection_moe_average", "hard_top2"), "worst_acc"]
+                - dispatch_index.loc[("unified_moe_average", "hard_top2"), "worst_acc"]
+            )
+            if {
+                ("unified_output_projection_moe_average", "hard_top2"),
+                ("unified_moe_average", "hard_top2"),
+            }.issubset(dispatch_index_keys)
+            else None,
         },
         "router_capacity": {
             "capacity_factor": args.capacity_factor,
@@ -3373,6 +3482,13 @@ def main() -> None:
                 - capacity_calibrated["topk_overflow_fraction"].max()
             ),
             "unified_moe_max_topk_overflow_fraction": float(capacity_unified["topk_overflow_fraction"].max()),
+            "unified_output_projection_moe_max_topk_overflow_fraction": float(
+                capacity_unified_output_projection["topk_overflow_fraction"].max()
+            ),
+            "unified_output_projection_moe_minus_unified_max_topk_overflow_fraction": float(
+                capacity_unified_output_projection["topk_overflow_fraction"].max()
+                - capacity_unified["topk_overflow_fraction"].max()
+            ),
             "unified_moe_minus_route_kd_max_topk_overflow_fraction": float(
                 capacity_unified["topk_overflow_fraction"].max()
                 - capacity_route_kd["topk_overflow_fraction"].max()
@@ -3585,6 +3701,13 @@ def main() -> None:
             ),
         },
         "unified_moe_worst_acc": float(unified_moe_row["worst_acc"]),
+        "unified_output_projection_moe_worst_acc": float(unified_output_projection_moe_row["worst_acc"]),
+        "unified_output_projection_moe_minus_unified_worst_acc": float(
+            unified_output_projection_moe_row["worst_acc"] - unified_moe_row["worst_acc"]
+        ),
+        "unified_output_projection_moe_minus_output_projection_router_calibrated_worst_acc": float(
+            unified_output_projection_moe_row["worst_acc"] - expert_output_projection_router_calibrated_row["worst_acc"]
+        ),
         "unified_moe_bias_capacity_worst_acc": float(unified_moe_bias_capacity_row["worst_acc"]),
         "unified_moe_bias_capacity_minus_unified_worst_acc": float(
             unified_moe_bias_capacity_row["worst_acc"] - unified_moe_row["worst_acc"]
@@ -3660,6 +3783,81 @@ def main() -> None:
                 ].mean()
             ),
         },
+        "unified_output_projection_moe": {
+            "expert_seed": "route_conditioned_output_space_projection",
+            "epochs": args.unified_router_epochs,
+            "lr": args.unified_router_lr,
+            "temperature": args.unified_router_temperature,
+            "dispatch_mode": args.unified_router_dispatch_mode,
+            "soft_loss_coef": args.unified_router_soft_loss_coef,
+            "dispatch_loss_coef": args.unified_router_dispatch_loss_coef,
+            "route_kd_coef": args.unified_router_route_kd_coef,
+            "output_kd_coef": args.unified_router_output_kd_coef,
+            "top1_loss_coef": args.unified_router_top1_loss_coef,
+            "base_kl_coef": args.unified_router_base_kl_coef,
+            "load_balance_coef": args.unified_router_load_balance_coef,
+            "router_seed_sweep": list(output_projection_unified_router_initial_states),
+            "selected_router_seed": str(selected_output_projection_unified_capacity_row["router_seed"]),
+            "capacity_loss_sweep": unified_capacity_loss_values,
+            "capacity_loss_coef": selected_output_projection_unified_capacity_loss_coef,
+            "selected_capacity_loss_coef": selected_output_projection_unified_capacity_loss_coef,
+            "selection_metric": "select_hard_top2_worst_acc_minus_max_topk_overflow_fraction",
+            "capacity_sweep_rows": int(len(unified_output_projection_moe_capacity_sweep)),
+            "selected_calib_capacity_aware_score": float(
+                selected_output_projection_unified_capacity_row["calib_capacity_aware_score"]
+            ),
+            "selected_select_capacity_aware_score": float(
+                selected_output_projection_unified_capacity_row["select_capacity_aware_score"]
+            ),
+            "selected_test_capacity_aware_score": float(
+                selected_output_projection_unified_capacity_row["test_capacity_aware_score"]
+            ),
+            "selected_calib_hard_top2_worst_acc": float(
+                selected_output_projection_unified_capacity_row["calib_hard_top2_worst_acc"]
+            ),
+            "selected_select_hard_top2_worst_acc": float(
+                selected_output_projection_unified_capacity_row["select_hard_top2_worst_acc"]
+            ),
+            "selected_test_hard_top2_worst_acc": float(
+                selected_output_projection_unified_capacity_row["test_hard_top2_worst_acc"]
+            ),
+            "selected_calib_max_topk_overflow_fraction": float(
+                selected_output_projection_unified_capacity_row["calib_max_topk_overflow_fraction"]
+            ),
+            "selected_select_max_topk_overflow_fraction": float(
+                selected_output_projection_unified_capacity_row["select_max_topk_overflow_fraction"]
+            ),
+            "selected_test_max_topk_overflow_fraction": float(
+                selected_output_projection_unified_capacity_row["test_max_topk_overflow_fraction"]
+            ),
+            "capacity_factor": args.capacity_factor,
+            "rows": int(len(unified_output_projection_moe_trace)),
+            "final_mean_total_loss": float(
+                unified_output_projection_moe_trace[
+                    unified_output_projection_moe_trace["epoch"] == unified_output_projection_moe_trace["epoch"].max()
+                ]["total_loss"].mean()
+            ),
+            "final_mean_route_kl": float(
+                unified_output_projection_moe_trace[
+                    unified_output_projection_moe_trace["epoch"] == unified_output_projection_moe_trace["epoch"].max()
+                ]["route_kl"].mean()
+            ),
+            "final_mean_output_kd": float(
+                unified_output_projection_moe_trace[
+                    unified_output_projection_moe_trace["epoch"] == unified_output_projection_moe_trace["epoch"].max()
+                ]["output_kd"].mean()
+            ),
+            "final_mean_capacity_overflow": float(
+                unified_output_projection_moe_trace[
+                    unified_output_projection_moe_trace["epoch"] == unified_output_projection_moe_trace["epoch"].max()
+                ]["capacity_overflow"].mean()
+            ),
+            "final_mean_capacity_ratio": float(
+                unified_output_projection_moe_trace[
+                    unified_output_projection_moe_trace["epoch"] == unified_output_projection_moe_trace["epoch"].max()
+                ]["capacity_ratio"].mean()
+            ),
+        },
         "router_bias_capacity": {
             "epochs": args.router_bias_capacity_epochs,
             "lr": args.router_bias_capacity_lr,
@@ -3726,6 +3924,8 @@ def main() -> None:
             "router_route_kd_trace": "router_route_kd_trace.csv",
             "unified_moe_trace": "unified_moe_trace.csv",
             "unified_moe_capacity_sweep": "unified_moe_capacity_sweep.csv",
+            "unified_output_projection_moe_trace": "unified_output_projection_moe_trace.csv",
+            "unified_output_projection_moe_capacity_sweep": "unified_output_projection_moe_capacity_sweep.csv",
             "router_bias_capacity_trace": "router_bias_capacity_trace.csv",
             "router_bias_capacity_sweep": "router_bias_capacity_sweep.csv",
             "router_calibration_sweep": "router_calibration_sweep.csv",

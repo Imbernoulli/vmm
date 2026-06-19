@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-19T14:40:24.285378+00:00`
+Generated at: `2026-06-19T14:49:16.423674+00:00`
 
 ## Coverage
 
@@ -114,6 +114,11 @@ Complete: `39`; partial: `1`; missing: `0`.
 | toy MoE unified objective | capacity-sweep candidates | 24 |
 | toy MoE unified objective | capacity-sweep select score | 0.665 |
 | toy MoE unified objective | capacity-sweep test score | 0.612 |
+| toy MoE unified output-projection objective | worst accuracy | 0.795 |
+| toy MoE unified output-projection objective | hard top-2 worst accuracy | 0.685 |
+| toy MoE unified output-projection objective | delta vs unified hard top-2 | -0.005 |
+| toy MoE unified output-projection objective | capacity-sweep select score | 0.665 |
+| toy MoE unified output-projection objective | selected router seed | router_kd_seed |
 | toy MoE bias capacity | selected capacity loss coef | 1.000 |
 | toy MoE bias capacity | hard top-2 worst accuracy | 0.682 |
 | toy MoE bias capacity | max top-k overflow fraction | 0.048 |
@@ -157,7 +162,7 @@ Complete: `39`; partial: `1`; missing: `0`.
 | toy MoE method selection | recommended hard top-2 worst accuracy | 0.690 |
 | toy MoE method selection | capacity-aware hard top-2 method | unified_moe_bias_capacity_average |
 | toy MoE method selection | capacity-aware top-k overflow | 0.048 |
-| toy MoE method selection | hard top-2 / overflow Pareto methods | unified_moe_average, unified_moe_bias_capacity_average, matched_router_kd_average |
+| toy MoE method selection | hard top-2 / overflow Pareto methods | unified_moe_average, unified_output_projection_moe_average, unified_moe_bias_capacity_average, matched_router_kd_average |
 | toy MoE method selection | all-weight decision | reject_routing_breakdown |
 | toy MoE expert remap plan | remap status | ready |
 | toy MoE expert remap plan | source tensor alias rules | 4 |
