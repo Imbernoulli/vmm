@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-19T09:13:31.558390+00:00`
+Generated at: `2026-06-19T09:28:55.552243+00:00`
 
 ## Coverage
 
@@ -70,7 +70,9 @@ Complete: `29`; partial: `0`; missing: `0`.
 | Qwen multi-expert | instruct/coder weighted conflict | 0.386 |
 | toy MoE route-aware merge | all-weight average worst accuracy | 0.620 |
 | toy MoE route-aware merge | expert-matched average worst accuracy | 0.800 |
+| toy MoE route-aware merge | matched + router-frozen worst accuracy | 0.787 |
 | toy MoE route-aware merge | route-aware average worst accuracy | 0.790 |
+| toy MoE route-aware merge | matched + router-frozen minus all-weight worst accuracy | 0.167 |
 | toy MoE route-aware merge | route-aware minus all-weight worst accuracy | 0.170 |
 | toy MoE routing readiness | readiness status | high_risk_calibrate_router_before_merge |
 | toy MoE routing readiness | all-weight calibrate-router flags | 1 |

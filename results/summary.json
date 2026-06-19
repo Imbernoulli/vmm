@@ -2617,7 +2617,7 @@
       "source_tensor_aliases": "results/toy_moe_expert_remap_plan/source_tensor_aliases.txt",
       "summary": {
         "alias_rule_count": 4,
-        "generated_at": "2026-06-19T04:50:47.316387+00:00",
+        "generated_at": "2026-06-19T09:28:38.669548+00:00",
         "manual_review_count": 0,
         "mean_output_cosine": 0.9773149192333221,
         "min_cosine_threshold": 0.9,
@@ -2678,6 +2678,19 @@
         "worst_loss": 0.6304422187805175
       },
       "figure": "results/toy_moe_merge/toy_moe_merge.png",
+      "matched_router_frozen_average": {
+        "avg_acc": 0.80125,
+        "avg_loss": 0.6185813522338868,
+        "code_acc": 0.7875,
+        "code_loss": 0.633265209197998,
+        "description": "align code experts by output cosine and keep the base router fixed",
+        "general_acc": 0.815,
+        "general_loss": 0.6038974952697754,
+        "method": "matched_router_frozen_average",
+        "worst_acc": 0.7875,
+        "worst_loss": 0.633265209197998
+      },
+      "matched_router_frozen_minus_all_weight_worst_acc": 0.16749999999999998,
       "method_metrics": "results/toy_moe_merge/method_metrics.csv",
       "report": "results/toy_moe_merge/report.md",
       "route_aware_expert_average": {
@@ -2695,7 +2708,7 @@
       "route_aware_minus_all_weight_worst_acc": 0.17000000000000004,
       "route_overlap": "results/toy_moe_merge/route_overlap.csv",
       "route_weights": "results/toy_moe_merge/route_weights_by_expert.csv",
-      "router_rows": 14,
+      "router_rows": 16,
       "router_summary": "results/toy_moe_merge/router_summary.csv",
       "summary": {
         "all_weight_average_worst_acc": 0.62,
@@ -2708,6 +2721,8 @@
           1
         ],
         "expert_match_mean_cosine": 0.9773149192333221,
+        "matched_router_frozen_minus_all_weight_worst_acc": 0.16749999999999998,
+        "matched_router_frozen_worst_acc": 0.7875,
         "n_experts": 4,
         "outputs": {
           "expert_load": "expert_load.csv",
@@ -2761,7 +2776,7 @@
       "report": "results/toy_moe_method_selection/report.md",
       "summary": {
         "base_worst_acc": 0.775,
-        "generated_at": "2026-06-19T04:44:21.521716+00:00",
+        "generated_at": "2026-06-19T09:28:31.763010+00:00",
         "inputs": {
           "method_metrics": "results/toy_moe_merge/method_metrics.csv",
           "router_readiness": "results/toy_moe_routing_readiness/router_readiness.csv"
@@ -2787,18 +2802,18 @@
       },
       "category_specialization": "results/toy_moe_routing_readiness/category_specialization.csv",
       "expert_load_risks": "results/toy_moe_routing_readiness/expert_load_risks.csv",
-      "expert_rows": 56,
+      "expert_rows": 64,
       "readiness_status": "high_risk_calibrate_router_before_merge",
       "report": "results/toy_moe_routing_readiness/report.md",
       "router_readiness": "results/toy_moe_routing_readiness/router_readiness.csv",
-      "router_rows": 14,
-      "specialization_rows": 28,
+      "router_rows": 16,
+      "specialization_rows": 32,
       "summary": {
         "expert_action_counts": {
-          "low_lambda_or_route_frequency_average": 56
+          "low_lambda_or_route_frequency_average": 64
         },
-        "expert_rows": 56,
-        "generated_at": "2026-06-19T04:39:10.686279+00:00",
+        "expert_rows": 64,
+        "generated_at": "2026-06-19T09:28:27.214006+00:00",
         "outputs": {
           "category_specialization": "results/toy_moe_routing_readiness/category_specialization.csv",
           "expert_load_risks": "results/toy_moe_routing_readiness/expert_load_risks.csv",
@@ -2809,19 +2824,19 @@
         "readiness_status": "high_risk_calibrate_router_before_merge",
         "router_action_counts": {
           "calibrate_router_before_average": 3,
-          "freeze_router_and_check_load_balance": 6,
-          "router_probe_passed_for_small_lambda": 5
+          "freeze_router_and_check_load_balance": 7,
+          "router_probe_passed_for_small_lambda": 6
         },
         "router_dirs": [
           "results/toy_moe_merge"
         ],
-        "router_rows": 14,
+        "router_rows": 16,
         "same_shape_constraint": "Readiness actions preserve router shape, expert count, hidden size, tokenizer, and model class.",
         "specialization_action_counts": {
-          "category_specialized_route_weight": 8,
-          "shared_or_mixed_expert": 20
+          "category_specialized_route_weight": 9,
+          "shared_or_mixed_expert": 23
         },
-        "specialization_rows": 28,
+        "specialization_rows": 32,
         "thresholds": {
           "collapse_threshold": 0.5,
           "low_margin_threshold": 0.05,
@@ -2836,7 +2851,7 @@
       }
     }
   },
-  "generated_at": "2026-06-19T09:13:31.558390+00:00",
+  "generated_at": "2026-06-19T09:28:55.552243+00:00",
   "overall_status": "complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [

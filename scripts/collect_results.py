@@ -540,7 +540,11 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
         "best_method": find_method(methods, summary["best_method"]),
         "all_weight_average": find_method(methods, "all_weight_average"),
         "expert_matched_average": find_method(methods, "expert_matched_average"),
+        "matched_router_frozen_average": find_method(methods, "matched_router_frozen_average"),
         "route_aware_expert_average": find_method(methods, "route_aware_expert_average"),
+        "matched_router_frozen_minus_all_weight_worst_acc": float(
+            summary.get("matched_router_frozen_minus_all_weight_worst_acc", 0.0)
+        ),
         "route_aware_minus_all_weight_worst_acc": float(summary["route_aware_minus_all_weight_worst_acc"]),
         "expert_match_mean_cosine": float(expert_match["output_cosine"].mean()),
         "router_rows": int(len(router_summary)),
@@ -1084,8 +1088,16 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(toy_moe['expert_matched_average']['worst_acc'])} |"
             ),
             (
+                "| toy MoE route-aware merge | matched + router-frozen worst accuracy | "
+                f"{fmt(toy_moe['matched_router_frozen_average']['worst_acc'])} |"
+            ),
+            (
                 "| toy MoE route-aware merge | route-aware average worst accuracy | "
                 f"{fmt(toy_moe['route_aware_expert_average']['worst_acc'])} |"
+            ),
+            (
+                "| toy MoE route-aware merge | matched + router-frozen minus all-weight worst accuracy | "
+                f"{fmt(toy_moe['matched_router_frozen_minus_all_weight_worst_acc'])} |"
             ),
             (
                 "| toy MoE route-aware merge | route-aware minus all-weight worst accuracy | "

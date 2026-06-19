@@ -9,6 +9,8 @@
     1
   ],
   "expert_match_mean_cosine": 0.9773149192333221,
+  "matched_router_frozen_minus_all_weight_worst_acc": 0.16749999999999998,
+  "matched_router_frozen_worst_acc": 0.7875,
   "n_experts": 4,
   "outputs": {
     "expert_load": "expert_load.csv",

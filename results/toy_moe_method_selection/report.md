@@ -12,6 +12,7 @@
 | --- | --- | ---: | ---: | ---: | ---: | --- |
 | expert_matched_average | merge_candidate | 0.800 | 0.809 | 0 | 0.98 | `candidate_with_router_guard` |
 | route_aware_expert_average | merge_candidate | 0.790 | 0.799 | 0 | 1 | `candidate_with_router_guard` |
+| matched_router_frozen_average | merge_candidate | 0.787 | 0.801 | 0 | 1 | `candidate_with_router_guard` |
 | router_frozen_average | merge_candidate | 0.615 | 0.652 | 0 | 1 | `reject_underperforms_base` |
 | general_endpoint | endpoint_baseline | 0.780 | 0.796 | 0 | 0.965 | `baseline_only` |
 | code_endpoint_permuted | endpoint_baseline | 0.802 | 0.810 | 2 | 0.2042 | `baseline_only` |

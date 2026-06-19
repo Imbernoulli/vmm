@@ -481,6 +481,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
     best = method_metrics.sort_values(["worst_acc", "avg_acc"], ascending=False).iloc[0]
     all_avg = method_metrics[method_metrics["method"] == "all_weight_average"].iloc[0]
     matched = method_metrics[method_metrics["method"] == "expert_matched_average"].iloc[0]
+    matched_router_frozen = method_metrics[method_metrics["method"] == "matched_router_frozen_average"].iloc[0]
     route_aware = method_metrics[method_metrics["method"] == "route_aware_expert_average"].iloc[0]
     lines = [
         "# Toy MoE Route-Aware Merge",
@@ -494,6 +495,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
         f"- Best method by worst accuracy: `{best['method']}` = `{best['worst_acc']:.3f}`.",
         f"- All-weight average worst accuracy: `{all_avg['worst_acc']:.3f}`.",
         f"- Expert-matched average worst accuracy: `{matched['worst_acc']:.3f}`.",
+        f"- Matched + router-frozen average worst accuracy: `{matched_router_frozen['worst_acc']:.3f}`.",
         f"- Route-aware expert average worst accuracy: `{route_aware['worst_acc']:.3f}`.",
         f"- Recovered expert matching mean cosine: `{summary['expert_match_mean_cosine']:.3f}`.",
         f"- Code source permutation: `{summary['code_source_permutation']}`.",
@@ -515,6 +517,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
             "",
             "- `all_weight_average` 是朴素 baseline：router 和 expert tensors 都按同名 index 平均，因此在 expert permutation 后会暴露 MoE index-alignment 风险。",
             "- `expert_matched_average` 先用 unlabeled calibration input 的 expert-output cosine 做 Hungarian matching，再平均；这对应 Sub-MoE / Expert Merging 里强调的 function-aware expert alignment。",
+            "- `matched_router_frozen_average` 直接验证 MoE 特有假设：先对齐 expert 功能，再固定 token-to-expert dispatch，只平均非 router 权重。",
             "- `route_aware_expert_average` 冻结 base router，并按 base router 在 general/code prompt 上的 route mass 给每个 expert 设置 source delta 权重；这对应 route-weight recipes 的 toy 版本。",
             "- 这个实验不是 Qwen3 结果，但它把 MoE merging 的特质从报告落成了可跑的 probe：expert index、router overlap、expert load 和 category route mass 都会影响 average 是否安全。",
             "",
@@ -620,6 +623,10 @@ def main() -> None:
         if name.startswith("router."):
             router_frozen[name] = base_state[name].clone()
     expert_matched = task_vector_average(base_state, [general_state, matched_code_state], [0.5, 0.5])
+    matched_router_frozen = {name: value.clone() for name, value in expert_matched.items()}
+    for name in matched_router_frozen:
+        if name.startswith("router."):
+            matched_router_frozen[name] = base_state[name].clone()
 
     methods = [
         MethodState("base", base_state, "mixed-task base before fine-tuning"),
@@ -628,6 +635,11 @@ def main() -> None:
         MethodState("all_weight_average", all_average, "average same-name router and expert tensors without expert matching"),
         MethodState("router_frozen_average", router_frozen, "all-weight average but router tensors reset to base"),
         MethodState("expert_matched_average", expert_matched, "align code experts to general source by output cosine before averaging"),
+        MethodState(
+            "matched_router_frozen_average",
+            matched_router_frozen,
+            "align code experts by output cosine and keep the base router fixed",
+        ),
         MethodState("route_aware_expert_average", route_aware, "freeze base router and use route-frequency expert source weights"),
     ]
 
@@ -676,6 +688,7 @@ def main() -> None:
 
     best = method_metrics.sort_values(["worst_acc", "avg_acc"], ascending=False).iloc[0]
     all_avg = method_metrics[method_metrics["method"] == "all_weight_average"].iloc[0]
+    matched_router_frozen_row = method_metrics[method_metrics["method"] == "matched_router_frozen_average"].iloc[0]
     route_aware_row = method_metrics[method_metrics["method"] == "route_aware_expert_average"].iloc[0]
     summary = {
         "schema_version": 1,
@@ -686,6 +699,10 @@ def main() -> None:
         "best_method": str(best["method"]),
         "best_worst_acc": float(best["worst_acc"]),
         "all_weight_average_worst_acc": float(all_avg["worst_acc"]),
+        "matched_router_frozen_worst_acc": float(matched_router_frozen_row["worst_acc"]),
+        "matched_router_frozen_minus_all_weight_worst_acc": float(
+            matched_router_frozen_row["worst_acc"] - all_avg["worst_acc"]
+        ),
         "route_aware_worst_acc": float(route_aware_row["worst_acc"]),
         "route_aware_minus_all_weight_worst_acc": float(route_aware_row["worst_acc"] - all_avg["worst_acc"]),
         "same_shape_constraint": "All methods keep the same TinyMoEClassifier architecture, expert count, router shape, and output classes.",

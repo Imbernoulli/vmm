@@ -11,5 +11,7 @@ router_frozen_average,router_frozen_average,general,0,toy_router,4,400,2,1.31601
 router_frozen_average,router_frozen_average,code,0,toy_router,4,400,2,1.3179583549499512,0.0965285375714302,4,4,0.4925,2.364459685612222
 expert_matched_average,expert_matched_average,general,0,toy_router,4,400,2,1.3112859725952148,0.0945511907339096,4,4,0.6025,2.593437418412376
 expert_matched_average,expert_matched_average,code,0,toy_router,4,400,2,1.3172906637191772,0.09539114683866501,4,4,0.5075,2.4149853809688104
+matched_router_frozen_average,matched_router_frozen_average,general,0,toy_router,4,400,2,1.316019892692566,0.08915641903877258,4,4,0.5825,2.649198972450098
+matched_router_frozen_average,matched_router_frozen_average,code,0,toy_router,4,400,2,1.3179583549499512,0.0965285375714302,4,4,0.4925,2.364459685612222
 route_aware_expert_average,route_aware_expert_average,general,0,toy_router,4,400,2,1.316019892692566,0.08915641903877258,4,4,0.5825,2.649198972450098
 route_aware_expert_average,route_aware_expert_average,code,0,toy_router,4,400,2,1.3179583549499512,0.0965285375714302,4,4,0.4925,2.364459685612222
