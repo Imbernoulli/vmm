@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-19T11:22:42.514438+00:00`
+Generated at: `2026-06-19T11:30:04.562180+00:00`
 
 ## Coverage
 
@@ -21,7 +21,7 @@ Complete: `31`; partial: `1`; missing: `0`.
 | Real Qwen LLM path sweep | complete | Qwen2.5-1.5B base-to-instruct path is evaluated with fixed NLL prompts plus GSM8K, MMLU, and HumanEval benchmark slices. |
 | Multi-expert LLM merge | complete | Qwen2.5-0.5B base, Qwen2.5-0.5B-Instruct, and Qwen2.5-Coder-0.5B-Instruct are evaluated in a two-expert merge plane. |
 | Formal LLM benchmark slices | complete | Representative Qwen2.5-1.5B benchmark slices cover MMLU, GSM8K, HumanEval canonical-solution NLL, and BeaverTails safety/refusal NLL. |
-| vLLM hosted downstream evaluation | partial | scripts/run_vllm_downstream_eval.py compares one or more served model ids through an OpenAI-compatible vLLM endpoint on GSM8K, MMLU, safety, and HumanEval compile slices; current result is endpoint_unavailable until a vLLM server is reachable. |
+| vLLM hosted downstream evaluation | partial | scripts/run_vllm_downstream_eval.py can build a served-model eval plan from the Qwen target registry and evaluate those ids through an OpenAI-compatible vLLM endpoint on GSM8K, MMLU, safety, and HumanEval compile slices; current result is endpoint_unavailable until a vLLM server is reachable. |
 | Probe-guided Average decision report | complete | results/average_decision_report/report.md converts merge grids, conflict probes, and optional MoE routing probes into same-shape average decisions. |
 | Dense/MoE averaging literature matrix | complete | results/model_averaging_literature_review/report.md maps recent model averaging and MoE merging papers to probes, failure signals, and same-shape writer actions. |
 | Qwen target model registry | complete | results/qwen_target_model_registry/report.md maps representative official, third-party, downstream, and adapter-pool Qwen candidates to scenarios, eval slices, probes, and same-shape topology gates. |
@@ -136,6 +136,8 @@ Complete: `31`; partial: `1`; missing: `0`.
 | toy MoE expert remap plan | source tensor alias rules | 4 |
 | toy MoE expert remap plan | min expert-output cosine | 0.943 |
 | vLLM hosted downstream eval | status | endpoint_unavailable |
+| vLLM hosted downstream eval | queued served models | 7 |
+| vLLM hosted downstream eval | candidate table | results/qwen_target_model_registry/model_registry.csv |
 | Average decision report | avoid uniform average decisions | 3 |
 | Average decision report | coefficient-search decisions | 2 |
 | model averaging literature review | sources reviewed | 21 |

@@ -1165,16 +1165,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 154216,
+      "bytes": 164845,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "846d66654ff613a29a76ced61f0b5636c19d88e5a514372c85ebcaad400d51c2"
+      "sha256": "4bb6b1cb046c8a44f1f4f361dc8c2daf242905430a7d8fdc2fd1c267cb1bb6ec"
     },
     {
-      "bytes": 14711,
+      "bytes": 14926,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "20f859f3f4f6e2dc1026e5096a08173410e40291206c69cd16f35e58ed59f48c"
+      "sha256": "ad3a8b379c711af375bffd099f66c23554b5f2f1d9dab3ff54b12528638d9ca1"
     },
     {
       "bytes": 556,
@@ -1435,22 +1435,28 @@
       "sha256": "530993b7fdf1d8c2d8d481853a3b114f3fbcc87de019e009f826b90d292c96ff"
     },
     {
-      "bytes": 190,
+      "bytes": 193,
       "kind": "data",
       "path": "results/vllm_downstream_eval/endpoint_probe.csv",
-      "sha256": "c7bbeaf1727e14d2b35a85165e505877c5a96ae1f40817615be285ac20c9c159"
+      "sha256": "49cd41606a0f6d8cf2b3a17b1af7d2094e7fbb47eadb311bbf92ea5bb5448983"
     },
     {
-      "bytes": 321,
+      "bytes": 2497,
+      "kind": "data",
+      "path": "results/vllm_downstream_eval/eval_plan.csv",
+      "sha256": "9493754e3dbcc277b0890d3550fc38f9689ed5178f8a52693d32ac5ae2a06d5e"
+    },
+    {
+      "bytes": 1460,
       "kind": "document",
       "path": "results/vllm_downstream_eval/report.md",
-      "sha256": "b4081845878e12e7f7f6165f96662541a9cbe62a9adf3133e8de46f5d1e6304c"
+      "sha256": "cc9b43a0d90641789075b783237c7adf5adf39c3ae8ff4854c6aba4312543f53"
     },
     {
-      "bytes": 680,
+      "bytes": 5349,
       "kind": "data",
       "path": "results/vllm_downstream_eval/summary.json",
-      "sha256": "5f6244418ec345a7bba4f75266f4c957454fd0ae867ce33f0c6e497458f6bb3e"
+      "sha256": "02ac1ba4e1f2f7d01a617ad07d4d6ca2d04c2ccd76fea1536f609bfaa07c4633"
     },
     {
       "bytes": 27159,
@@ -1513,10 +1519,10 @@
       "sha256": "a1d54b8d275c55bbdc12aa051e4cb6888ce0371ff7698b547c1d7aa17f79c8e4"
     },
     {
-      "bytes": 89385,
+      "bytes": 90549,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "d5cbb266966c4cf9ac28c815055b0a89cbc851e34e6ae5f8b0ed47e0b83912d4"
+      "sha256": "63bd051ca4e62ce706a95475aa9b32ec4b9d2aa20a57119283cd40ec28a76d14"
     },
     {
       "bytes": 17809,
@@ -1615,10 +1621,10 @@
       "sha256": "09095602c2465b51b9d1f48bd980e3c806ef4be1384c29588653c0ba28f86410"
     },
     {
-      "bytes": 25366,
+      "bytes": 30923,
       "kind": "code",
       "path": "scripts/run_vllm_downstream_eval.py",
-      "sha256": "61b07dc024d3dca4b146acf15b5cafc5b93b235c505c9c116b2b0e81f5a3d867"
+      "sha256": "bf5b52b1818a42a1d3a89a65da4a0e8da813cf0bb467060ac0c53b30b0f3043d"
     },
     {
       "bytes": 25810,
@@ -1663,7 +1669,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T11:22:42.546313+00:00",
+  "generated_at": "2026-06-19T11:30:04.602035+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

@@ -24,6 +24,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
 ANSWER_RE = re.compile(r"####\s*([-+]?\d[\d,]*(?:\.\d+)?)")
 NUMBER_RE = re.compile(r"[-+]?\d[\d,]*(?:\.\d+)?")
 LETTER_RE = re.compile(r"\b([ABCD])\b", re.IGNORECASE)
@@ -31,6 +32,19 @@ REFUSAL_RE = re.compile(
     r"\b(?:can't|cannot|sorry|unable|not able|won't|cannot assist|can't assist|illegal|harmful|unsafe)\b",
     re.IGNORECASE,
 )
+
+
+def repo_path(path: str | Path) -> Path:
+    path = Path(path)
+    return path if path.is_absolute() else REPO_ROOT / path
+
+
+def rel(path: str | Path) -> str:
+    path = repo_path(path)
+    try:
+        return str(path.relative_to(REPO_ROOT))
+    except ValueError:
+        return str(path)
 
 
 BUILTIN_GSM8K = [
@@ -410,14 +424,104 @@ def evaluate_humaneval(config: VllmConfig, examples: list[dict[str, str]], max_t
     return {"task": "humaneval_compile", "examples": n, "compile_rate": compile_ok / max(1, n), "compile_ok": compile_ok}, rows
 
 
-def resolve_models(args: argparse.Namespace) -> list[str]:
-    raw = args.models if args.models else args.model
+def parse_model_list(raw: str | None) -> list[str]:
     if not raw:
-        raise ValueError("Provide --model SERVED_MODEL or --models MODEL_A,MODEL_B.")
-    models = [item.strip() for item in raw.split(",") if item.strip()]
+        return []
+    return [item.strip() for item in raw.split(",") if item.strip()]
+
+
+def build_manual_eval_plan(models: list[str]) -> pd.DataFrame:
+    return pd.DataFrame(
+        [
+            {
+                "eval_order": idx,
+                "candidate_source": "manual_args",
+                "method": f"manual_{idx}",
+                "served_model_id": model,
+            }
+            for idx, model in enumerate(models)
+        ]
+    )
+
+
+def format_model_id(template: str, row: pd.Series) -> str:
+    values = {str(key): "" if pd.isna(value) else value for key, value in row.items()}
+    try:
+        return str(template.format(**values)).strip()
+    except KeyError as exc:
+        raise ValueError(f"Missing candidate-table column for --candidate-model-id-template: {exc}") from exc
+
+
+def load_candidate_eval_plan(args: argparse.Namespace) -> pd.DataFrame:
+    if not args.candidate_table:
+        return pd.DataFrame()
+    candidate_path = repo_path(args.candidate_table)
+    if not candidate_path.exists():
+        raise ValueError(f"Candidate table does not exist: {candidate_path}")
+    table = pd.read_csv(candidate_path)
+    if args.candidate_query:
+        table = table.query(args.candidate_query).copy()
+    if args.max_candidates > 0:
+        table = table.head(args.max_candidates).copy()
+    if args.candidate_method_column not in table:
+        raise ValueError(
+            f"Candidate table {candidate_path} is missing method column {args.candidate_method_column!r}."
+        )
+
+    rows: list[dict[str, Any]] = []
+    if args.baseline_model:
+        rows.append(
+            {
+                "eval_order": 0,
+                "candidate_source": "baseline_arg",
+                "method": "baseline",
+                "served_model_id": args.baseline_model,
+            }
+        )
+    for _, row in table.iterrows():
+        served_model_id = format_model_id(args.candidate_model_id_template, row)
+        if not served_model_id:
+            continue
+        plan_row: dict[str, Any] = {
+            "eval_order": len(rows),
+            "candidate_source": rel(candidate_path),
+            "method": str(row[args.candidate_method_column]),
+            "served_model_id": served_model_id,
+        }
+        for column in (
+            "phase",
+            "priority",
+            "role",
+            "model_id",
+            "decision",
+            "worst_acc",
+            "dispatch_hard_top2_worst_acc",
+            "capacity_max_topk_overflow_fraction",
+            "capacity_worst_category",
+            "min_topk_jaccard",
+            "materialization_status",
+            "eval_focus",
+            "probe_focus",
+        ):
+            if column in row:
+                value = row[column]
+                plan_row[column] = None if pd.isna(value) else value
+        rows.append(plan_row)
+    plan = pd.DataFrame(rows)
+    if plan.empty:
+        raise ValueError("Candidate eval plan is empty after filtering.")
+    return plan
+
+
+def resolve_eval_plan(args: argparse.Namespace) -> pd.DataFrame:
+    raw = args.models if args.models else args.model
+    models = parse_model_list(raw)
     if not models:
-        raise ValueError("Model list is empty.")
-    return models
+        candidate_plan = load_candidate_eval_plan(args)
+        if not candidate_plan.empty:
+            return candidate_plan
+        raise ValueError("Provide --model/--models, or provide --candidate-table with served model ids.")
+    return build_manual_eval_plan(models)
 
 
 def load_task_examples(args: argparse.Namespace, tasks: list[str]) -> dict[str, list[dict[str, Any]]]:
@@ -523,8 +627,33 @@ def plot_metrics(metrics: pd.DataFrame, output_path: Path) -> None:
     plt.close(fig)
 
 
-def write_unavailable(output_dir: Path, args: argparse.Namespace, probe: dict[str, Any], models: list[str]) -> None:
+def write_eval_plan(output_dir: Path, eval_plan: pd.DataFrame) -> None:
+    eval_plan.to_csv(output_dir / "eval_plan.csv", index=False)
+
+
+def write_eval_plan_report_lines(eval_plan: pd.DataFrame) -> list[str]:
+    lines = [
+        "## Eval Plan",
+        "",
+        "| order | method | served model id | source |",
+        "| ---: | --- | --- | --- |",
+    ]
+    for _, row in eval_plan.iterrows():
+        lines.append(
+            f"| {int(row['eval_order'])} | {row['method']} | `{row['served_model_id']}` | {row['candidate_source']} |"
+        )
+    return lines
+
+
+def write_unavailable(
+    output_dir: Path,
+    args: argparse.Namespace,
+    probe: dict[str, Any],
+    models: list[str],
+    eval_plan: pd.DataFrame,
+) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
+    write_eval_plan(output_dir, eval_plan)
     summary = {
         "schema_version": 1,
         "status": "endpoint_unavailable",
@@ -534,6 +663,10 @@ def write_unavailable(output_dir: Path, args: argparse.Namespace, probe: dict[st
         "model_count": len(models),
         "tasks": args.tasks,
         "example_source": args.example_source,
+        "eval_plan": eval_plan.to_dict(orient="records"),
+        "eval_plan_path": str(output_dir / "eval_plan.csv"),
+        "candidate_table": args.candidate_table,
+        "candidate_query": args.candidate_query,
         "endpoint_probe": probe,
         "message": "No OpenAI-compatible vLLM endpoint was reachable from this environment.",
     }
@@ -549,7 +682,9 @@ def write_unavailable(output_dir: Path, args: argparse.Namespace, probe: dict[st
         f"- Error: `{probe.get('error_type')}: {probe.get('error')}`",
         "",
         "Start a vLLM OpenAI-compatible server and rerun this script to produce real downstream task metrics.",
+        "",
     ]
+    report.extend(write_eval_plan_report_lines(eval_plan))
     (output_dir / "report.md").write_text("\n".join(report) + "\n", encoding="utf-8")
 
 
@@ -558,11 +693,13 @@ def write_success(
     args: argparse.Namespace,
     probe: dict[str, Any],
     models: list[str],
+    eval_plan: pd.DataFrame,
     metrics: pd.DataFrame,
     predictions: pd.DataFrame,
 ) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     model_summary = summarize_models(metrics)
+    write_eval_plan(output_dir, eval_plan)
     metrics.to_csv(output_dir / "metrics.csv", index=False)
     predictions.to_csv(output_dir / "predictions.csv", index=False)
     model_summary.to_csv(output_dir / "model_summary.csv", index=False)
@@ -579,6 +716,10 @@ def write_success(
         "tasks": args.tasks,
         "example_source": args.example_source,
         "max_examples_per_task": args.max_examples,
+        "eval_plan": eval_plan.to_dict(orient="records"),
+        "eval_plan_path": str(output_dir / "eval_plan.csv"),
+        "candidate_table": args.candidate_table,
+        "candidate_query": args.candidate_query,
         "endpoint_probe": probe,
         "metrics": metrics.to_dict(orient="records"),
         "model_summary": model_summary.to_dict(orient="records"),
@@ -588,6 +729,8 @@ def write_success(
         "# vLLM Downstream Eval",
         "",
         f"Status: `complete`; models: `{', '.join(models)}`; endpoint: `{args.base_url}`.",
+        "",
+        *write_eval_plan_report_lines(eval_plan),
         "",
         "## Task Metrics",
         "",
@@ -621,6 +764,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--api-key", default="EMPTY")
     parser.add_argument("--model", default=None)
     parser.add_argument("--models", default=None, help="Comma-separated served model ids to evaluate on the same task slice.")
+    parser.add_argument("--candidate-table", default=None, help="CSV table of candidate models or merge methods to evaluate.")
+    parser.add_argument("--candidate-method-column", default="method")
+    parser.add_argument("--candidate-model-id-template", default="{method}")
+    parser.add_argument("--candidate-query", default=None, help="Optional pandas query applied to --candidate-table.")
+    parser.add_argument(
+        "--max-candidates",
+        type=int,
+        default=0,
+        help="Keep the first N candidate rows after filtering; 0 keeps all.",
+    )
+    parser.add_argument("--baseline-model", default=None, help="Optional served baseline model prepended to candidate-table plans.")
     parser.add_argument("--tasks", default="gsm8k,mmlu,safety,humaneval_compile")
     parser.add_argument("--example-source", choices=["datasets", "builtin"], default="datasets")
     parser.add_argument("--output-dir", type=Path, default=Path("results/vllm_downstream_eval"))
@@ -641,9 +795,10 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     try:
-        models = resolve_models(args)
+        eval_plan = resolve_eval_plan(args)
     except ValueError as exc:
         raise SystemExit(str(exc)) from exc
+    models = [str(model) for model in eval_plan["served_model_id"].tolist()]
     probe_config = VllmConfig(
         base_url=args.base_url,
         api_key=args.api_key,
@@ -654,7 +809,7 @@ def main() -> None:
     )
     probe = endpoint_probe(probe_config)
     if probe["status"] != "ok":
-        write_unavailable(args.output_dir, args, probe, models)
+        write_unavailable(args.output_dir, args, probe, models, eval_plan)
         print(f"Endpoint unavailable: {probe.get('error_type')}: {probe.get('error')}")
         if args.allow_unavailable:
             return
@@ -677,7 +832,7 @@ def main() -> None:
         metric_rows.extend(metrics)
         prediction_rows.extend(rows)
 
-    write_success(args.output_dir, args, probe, models, pd.DataFrame(metric_rows), pd.DataFrame(prediction_rows))
+    write_success(args.output_dir, args, probe, models, eval_plan, pd.DataFrame(metric_rows), pd.DataFrame(prediction_rows))
     print(f"Wrote vLLM downstream eval artifacts to {args.output_dir.resolve()}")
 
 

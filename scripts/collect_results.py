@@ -823,6 +823,10 @@ def summarize_vllm_downstream_eval() -> dict[str, Any]:
     model_summary = []
     if model_summary_path.exists():
         model_summary = [clean_row(row) for _, row in read_csv(model_summary_path).iterrows()]
+    eval_plan_path = repo_path("results/vllm_downstream_eval/eval_plan.csv")
+    eval_plan = []
+    if eval_plan_path.exists():
+        eval_plan = [clean_row(row) for _, row in read_csv(eval_plan_path).iterrows()]
     probe = summary.get("endpoint_probe", {})
     return {
         "summary": summary,
@@ -831,6 +835,11 @@ def summarize_vllm_downstream_eval() -> dict[str, Any]:
         "models": summary.get("models", [summary.get("model")] if summary.get("model") else []),
         "model_count": int(summary.get("model_count", 1 if summary.get("model") else 0)),
         "best_avg_primary_model": summary.get("best_avg_primary_model"),
+        "eval_plan": eval_plan,
+        "eval_plan_model_count": len(eval_plan),
+        "eval_plan_path": rel(eval_plan_path) if eval_plan_path.exists() else None,
+        "candidate_table": summary.get("candidate_table"),
+        "candidate_query": summary.get("candidate_query"),
         "base_url": summary.get("base_url"),
         "tasks": summary.get("tasks"),
         "example_source": summary.get("example_source"),
@@ -985,7 +994,7 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "vLLM hosted downstream evaluation",
             "status": "partial",
-            "evidence": "scripts/run_vllm_downstream_eval.py compares one or more served model ids through an OpenAI-compatible vLLM endpoint on GSM8K, MMLU, safety, and HumanEval compile slices; current result is endpoint_unavailable until a vLLM server is reachable.",
+            "evidence": "scripts/run_vllm_downstream_eval.py can build a served-model eval plan from the Qwen target registry and evaluate those ids through an OpenAI-compatible vLLM endpoint on GSM8K, MMLU, safety, and HumanEval compile slices; current result is endpoint_unavailable until a vLLM server is reachable.",
         },
         {
             "item": "Probe-guided Average decision report",
@@ -1144,7 +1153,13 @@ def build_summary() -> dict[str, Any]:
             "PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir results/toy_moe_merge --output-dir results/toy_moe_routing_readiness --topology-summary ''",
             "PYTHONPATH=src python scripts/select_moe_merge_method.py",
             "PYTHONPATH=src python scripts/build_moe_expert_remap_plan.py",
-            "python scripts/run_vllm_downstream_eval.py --models BASE_MODEL,MERGED_MODEL --base-url http://HOST:PORT/v1 --tasks gsm8k,mmlu,safety,humaneval_compile",
+            (
+                "python scripts/run_vllm_downstream_eval.py "
+                "--candidate-table results/qwen_target_model_registry/model_registry.csv "
+                "--candidate-method-column model_id --candidate-model-id-template '{model_id}' "
+                "--candidate-query \"priority == 'p0' and phase in ['dense_7b', 'moe_30b_a3b']\" "
+                "--base-url http://HOST:PORT/v1 --tasks gsm8k,mmlu,safety,humaneval_compile"
+            ),
             "python scripts/build_model_averaging_literature_review.py",
             "python scripts/smoke_moe_routing_probe_contract.py",
             "PYTHONPATH=src python scripts/build_average_decision_report.py",
@@ -1593,6 +1608,14 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| vLLM hosted downstream eval | status | "
                 f"{vllm_eval['status']} |"
+            ),
+            (
+                "| vLLM hosted downstream eval | queued served models | "
+                f"{vllm_eval['eval_plan_model_count']} |"
+            ),
+            (
+                "| vLLM hosted downstream eval | candidate table | "
+                f"{vllm_eval['candidate_table']} |"
             ),
             (
                 "| Average decision report | avoid uniform average decisions | "
