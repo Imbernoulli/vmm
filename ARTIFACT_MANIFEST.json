@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 57341,
+      "bytes": 57246,
       "kind": "document",
       "path": "README.md",
-      "sha256": "051a4f592c3bbbd5be85f9ca697bfa2dbba261ad06b1d3eca9c746d1e80777f7"
+      "sha256": "30a795d40c821e80b3b7a170c9807e41f9c6db042ec26f9869bf8285620cf4bc"
     },
     {
       "bytes": 33211,
@@ -109,22 +109,22 @@
       "sha256": "0d96089876a6d351544e0d393c80824155d324738f462d9e96fb888e41042d5e"
     },
     {
-      "bytes": 7078,
+      "bytes": 8563,
       "kind": "data",
       "path": "results/checkpoint_materialization_readiness/candidate_readiness.csv",
-      "sha256": "2cbd6a33eca855e950ab96e3b8420299f7a7e0bc4bc4fc3ce84cb01c1f4c1dbd"
+      "sha256": "e249cb88cb13aeb20c3e2d319b397c6c54276382cc881a62dc2676c7ae241cdb"
     },
     {
-      "bytes": 2563,
+      "bytes": 2747,
       "kind": "document",
       "path": "results/checkpoint_materialization_readiness/report.md",
-      "sha256": "b6631d3a823fe495acdfc43445e7b26ef82643f6c15603dde933737cb3c25843"
+      "sha256": "1f6c2f70d5d1f71aabf6b23aff79b92f197d39b6dc7f9b52737a25f788fbda8d"
     },
     {
       "bytes": 512,
       "kind": "data",
       "path": "results/checkpoint_materialization_readiness/summary.json",
-      "sha256": "31a76fd7607f1f87c4b956073446d0fee2824cfc0bb1d0330622297ea0b943d5"
+      "sha256": "466b9eadc3f845bbc7fff2d249945b1ea5c36bb9e87873f554527e766e617429"
     },
     {
       "bytes": 311,
@@ -2125,16 +2125,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 568482,
+      "bytes": 576146,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "8fa9c86266fe82008dbf679b958eb5b961af425ff9936d684cd65eca68f99ed1"
+      "sha256": "efdf05ee57bb17583f37ed194b09e0f7531520e876b71a05bc37eaedaa89742c"
     },
     {
       "bytes": 31745,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "e093adfe47ea798f5826475892acd751f226c02a6ef7a38ad8aec46acbfdfab8"
+      "sha256": "e6e49800fb1e6316276cbce3254a04d450b3fd57bac93b726c0538bd4dda0550"
     },
     {
       "bytes": 288,
@@ -2971,22 +2971,22 @@
       "sha256": "0f057962bf8750e9d15152eb1d4265f8cc32ae40d90f56c528c5fc898e29abe7"
     },
     {
-      "bytes": 4387,
+      "bytes": 7781,
       "kind": "data",
       "path": "results/vllm_checkpoint_eval_plan/checkpoint_eval_plan.csv",
-      "sha256": "0825a6ebebf28c7d8b7e0e717b05c36d7ade8256e919dfd2ab1c4dc95fb4d07c"
+      "sha256": "4d96ef6fdabdf0eca99dff024f66a7738727a7f4c41a7e6b9f52d5c44fb5794a"
     },
     {
-      "bytes": 1731,
+      "bytes": 2567,
       "kind": "document",
       "path": "results/vllm_checkpoint_eval_plan/report.md",
-      "sha256": "baf721bc56be79878a85abaec1ca8444b5d91a658556837679a1293ebb139e5d"
+      "sha256": "cd1ed6fbba50b9a3e1dfaad8c5b63911587119e5b3a4dc91c32deabadaeb5c49"
     },
     {
       "bytes": 751,
       "kind": "data",
       "path": "results/vllm_checkpoint_eval_plan/summary.json",
-      "sha256": "818e7dc0b82c153064a3408cd3d76707bd9ae982075867bb239b795bfa85d514"
+      "sha256": "837cecbfbeaba57c1262106e84993e7e40afa0c54d56c8feb13c06d1b60e1e92"
     },
     {
       "bytes": 193,
@@ -3115,10 +3115,10 @@
       "sha256": "373617da0d049ac13d0700fbbd9aa9b680c7ad8d01304170227e1b8c7abfafa7"
     },
     {
-      "bytes": 15949,
+      "bytes": 16189,
       "kind": "code",
       "path": "scripts/build_checkpoint_materialization_readiness.py",
-      "sha256": "4a6e3d2e845836608d0b3355cf293b8338babe609c850e323319c76850ec79c4"
+      "sha256": "4a96040d5b0fd6e047c5c2fb14d6f87b1d5c0f22fd993fa953491ad7ee2215b3"
     },
     {
       "bytes": 64880,
@@ -3211,10 +3211,10 @@
       "sha256": "a1d54b8d275c55bbdc12aa051e4cb6888ce0371ff7698b547c1d7aa17f79c8e4"
     },
     {
-      "bytes": 16764,
+      "bytes": 19092,
       "kind": "code",
       "path": "scripts/build_vllm_checkpoint_eval_plan.py",
-      "sha256": "eeadbfde04e58faac9615f68bef42ca489d9a00c6b23d2ccdfb8a8893ef1e839"
+      "sha256": "629fd1af94eec83a8436117ea28641bcd91c8c99fda8aa48d4b2b135c18759f9"
     },
     {
       "bytes": 17758,
@@ -3439,7 +3439,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T18:35:30.507100+00:00",
+  "generated_at": "2026-06-19T18:51:11.040946+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

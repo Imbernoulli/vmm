@@ -11,6 +11,7 @@ import pandas as pd
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+SAFETENSOR_PATTERNS = ("*.safetensors", "model.safetensors.index.json")
 
 
 def repo_path(path: str | Path) -> Path:
@@ -54,6 +55,17 @@ def read_json_if_exists(path: Path) -> dict[str, Any]:
     if not path.exists() or path.stat().st_size == 0:
         return {}
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def has_safetensors(path: Path) -> bool:
+    if path.is_file() and path.name.endswith(".safetensors"):
+        return True
+    if not path.is_dir():
+        return False
+    for pattern in SAFETENSOR_PATTERNS:
+        if any(path.glob(pattern)):
+            return True
+    return False
 
 
 def load_manual_candidates(raw_candidates: list[str]) -> list[dict[str, Any]]:
@@ -103,6 +115,33 @@ def load_candidate_table(args: argparse.Namespace) -> list[dict[str, Any]]:
 
 def default_candidates() -> list[dict[str, Any]]:
     return [
+        {
+            "candidate_source": "qwen3_source_endpoint",
+            "method": "source_qwen3_30b_instruct",
+            "checkpoint_path": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe",
+            "tensor_parallel_size": 4,
+            "gpu": "0,1,2,3",
+            "materialization_status": "source_checkpoint_ready_if_local_cache_is_complete",
+            "notes": "Source endpoint for Qwen3-30B-A3B-Instruct-2507; compare candidate quality against this anchor on the same vLLM eval tasks.",
+        },
+        {
+            "candidate_source": "qwen3_source_endpoint",
+            "method": "source_qwen3_30b_coder",
+            "checkpoint_path": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-Coder-30B-A3B-Instruct/snapshots/b2cff646eb4bb1d68355c01b18ae02e7cf42d120",
+            "tensor_parallel_size": 4,
+            "gpu": "0,1,2,3",
+            "materialization_status": "source_checkpoint_ready_if_local_cache_is_complete",
+            "notes": "Source endpoint for Qwen3-Coder-30B-A3B-Instruct; needed to measure whether the route-guarded average preserves coding behavior.",
+        },
+        {
+            "candidate_source": "results/qwen3_moe_unified_route_guarded_candidate/writer_command.txt",
+            "method": "qwen3_moe_unified_route_guarded_candidate",
+            "checkpoint_path": "results/checkpoints/qwen3_moe_unified_route_guarded_candidate",
+            "tensor_parallel_size": 4,
+            "gpu": "0,1,2,3",
+            "materialization_status": "checkpoint_missing_until_route_guarded_candidate_materialized",
+            "notes": "Qwen3-30B Instruct/Coder same-shape route-guarded candidate. Writer dry-run is validated; materialize this checkpoint before vLLM eval.",
+        },
         {
             "candidate_source": "local_materialized_dense_baseline",
             "method": "qwen_0_5b_instruct_coder_uniform_average",
@@ -155,6 +194,7 @@ def build_plan_rows(args: argparse.Namespace, candidates: list[dict[str, Any]]) 
         model_summary = eval_summary.get("model_summary", [])
         first_model_summary = model_summary[0] if model_summary else {}
         checkpoint_display = rel(checkpoint)
+        checkpoint_loadable = has_safetensors(checkpoint)
         serve_parts = []
         if gpu:
             serve_parts.append(f"CUDA_VISIBLE_DEVICES={gpu}")
@@ -203,7 +243,7 @@ def build_plan_rows(args: argparse.Namespace, candidates: list[dict[str, Any]]) 
         if args.eval_extra_args:
             eval_parts.extend(shlex.split(args.eval_extra_args))
 
-        status = "ready_to_host" if checkpoint.exists() else "checkpoint_missing_until_materialized"
+        status = "ready_to_host" if checkpoint_loadable else "checkpoint_missing_until_materialized"
         if str(candidate.get("materialization_status", "")).startswith("toy_"):
             status = "not_vllm_loadable_toy_candidate"
         eval_status = str(eval_summary.get("status", "not_run"))
@@ -213,7 +253,7 @@ def build_plan_rows(args: argparse.Namespace, candidates: list[dict[str, Any]]) 
                 "candidate_source": candidate.get("candidate_source", ""),
                 "method": method,
                 "checkpoint_path": checkpoint_display,
-                "checkpoint_exists": checkpoint.exists(),
+                "checkpoint_exists": checkpoint_loadable,
                 "serve_status": status,
                 "served_model_id": served_id,
                 "host": args.host,
@@ -272,7 +312,7 @@ def build_report(summary: dict[str, Any], rows: list[dict[str, Any]]) -> str:
     lines = [
         "# vLLM Checkpoint Eval Plan",
         "",
-        "这个计划把 same-shape checkpoint 候选转成逐个 `vllm serve` 和 `run_vllm_downstream_eval.py` 命令。它不声称已经完成真实性能评测；只有 `serve_status = ready_to_host` 的 checkpoint 才能进入 GPU/vLLM 下游评测。",
+        "这个计划把 source baseline 和 same-shape checkpoint 候选转成逐个 `vllm serve` 和 `run_vllm_downstream_eval.py` 命令。它不声称已经完成真实性能评测；只有 `serve_status = ready_to_host` 且目录内存在 safetensors/index 的模型才能进入 GPU/vLLM 下游评测。",
         "",
         f"- Plan status: `{summary['status']}`",
         f"- Candidate rows: `{summary['candidate_count']}`",
@@ -310,7 +350,7 @@ def build_report(summary: dict[str, Any], rows: list[dict[str, Any]]) -> str:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Build a vLLM serve/eval plan for same-shape checkpoint candidates.")
+    parser = argparse.ArgumentParser(description="Build a vLLM serve/eval plan for source baselines and same-shape checkpoint candidates.")
     parser.add_argument("--output-dir", type=Path, default=Path("results/vllm_checkpoint_eval_plan"))
     parser.add_argument("--candidate", action="append", default=[], help="Candidate METHOD=CHECKPOINT_PATH. Repeatable.")
     parser.add_argument("--candidate-table", default=None, help="Optional CSV with method/checkpoint_path columns.")

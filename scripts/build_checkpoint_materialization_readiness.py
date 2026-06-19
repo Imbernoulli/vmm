@@ -101,6 +101,11 @@ def classify_writer_command(command: str) -> dict[str, Any]:
 def writer_command_candidates() -> list[dict[str, Any]]:
     specs = [
         {
+            "candidate": "qwen3_moe_unified_route_guarded_candidate",
+            "source": "results/qwen3_moe_unified_route_guarded_candidate/writer_command.txt",
+            "loadability": "qwen_moe_if_materialized",
+        },
+        {
             "candidate": "moe_route_aware_candidate",
             "source": "results/moe_route_weight_recipes/writer_command.txt",
             "loadability": "qwen_moe_if_materialized",
