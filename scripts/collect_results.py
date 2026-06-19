@@ -1169,6 +1169,32 @@ def summarize_qwen3_moe_router_calibration_job() -> dict[str, Any]:
     }
 
 
+def summarize_qwen3_moe_router_calibration_selection() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_router_calibration_selection")
+    summary = read_json(root / "summary.json")
+    table = read_csv(root / "selection_table.csv")
+    selection = summary.get("current_selection", {})
+    eligible = table[table["selection_eligible"].astype(bool)] if "selection_eligible" in table else pd.DataFrame()
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "selected_method": selection.get("selected_method"),
+        "selection_reason": selection.get("reason"),
+        "baseline_eval_completed": bool(selection.get("baseline_eval_completed", False)),
+        "candidate_eval_completed": bool(selection.get("candidate_eval_completed", False)),
+        "audit_completed": bool(selection.get("audit_completed", False)),
+        "source_eval_completed": bool(selection.get("source_eval_completed", False)),
+        "eligible_candidate_count": int(selection.get("eligible_candidate_count", len(eligible))),
+        "candidate_count": int(selection.get("candidate_count", len(table))),
+        "best_available_score": None if table.empty else maybe_float(table["selection_score"].max()),
+        "candidate_rows": [clean_row(row) for _, row in table.iterrows()],
+        "report": rel(root / "report.md"),
+        "selection_table": rel(root / "selection_table.csv"),
+        "decision_rules": rel(root / "decision_rules.json"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_qwen3_moe_trust_region_cap_search() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_trust_region_cap_search")
     summary = read_json(root / "summary.json")
@@ -2871,6 +2897,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/qwen3_moe_router_calibration_job/report.md turns the rejected direct-router-move result into a capped route-KD router-calibration sweep job over the searched no-gt-0.65 candidate.",
         },
         {
+            "item": "Qwen3 MoE router calibration result selector",
+            "status": "complete",
+            "evidence": "results/qwen3_moe_router_calibration_selection/report.md accepts a router-calibrated cap only when matched vLLM eval, router-only tensor audit, cap compliance, and source/baseline dominance gates pass.",
+        },
+        {
             "item": "Qwen3 MoE trust-region cap-law search",
             "status": "complete",
             "evidence": "results/qwen3_moe_trust_region_cap_search/report.md searches interpretable expert cap laws over real Qwen3 route-mass, risk-flag, and safetensors-delta probes and emits writer-ready next-candidate rules.",
@@ -2966,6 +2997,7 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_mechanism_eval_gate": summarize_qwen3_moe_mechanism_eval_gate(),
         "qwen3_moe_router_move_gate": summarize_qwen3_moe_router_move_gate(),
         "qwen3_moe_router_calibration_job": summarize_qwen3_moe_router_calibration_job(),
+        "qwen3_moe_router_calibration_selection": summarize_qwen3_moe_router_calibration_selection(),
         "qwen3_moe_trust_region_cap_search": summarize_qwen3_moe_trust_region_cap_search(),
         "toy_moe_routing_readiness": summarize_toy_moe_routing_readiness(),
         "toy_moe_method_selection": summarize_toy_moe_method_selection(),
@@ -3091,6 +3123,8 @@ def build_summary() -> dict[str, Any]:
             "python scripts/build_qwen3_moe_delta_frontier.py --output-dir results/qwen3_moe_delta_frontier",
             "python scripts/build_qwen3_moe_router_move_gate.py --output-dir results/qwen3_moe_router_move_gate",
             "python scripts/build_qwen3_moe_router_calibration_job.py --output-dir results/qwen3_moe_router_calibration_job",
+            "python scripts/select_qwen3_moe_router_calibration_result.py --output-dir results/qwen3_moe_router_calibration_selection",
+            "python scripts/select_qwen3_moe_router_calibration_result.py --smoke --output-dir results/qwen3_moe_router_calibration_selection_smoke",
             "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
             "PYTHONPATH=src python scripts/collect_results.py",
         ],
@@ -3168,6 +3202,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_mechanism_eval_gate = exp["qwen3_moe_mechanism_eval_gate"]
     qwen3_moe_router_move_gate = exp["qwen3_moe_router_move_gate"]
     qwen3_moe_router_calibration_job = exp["qwen3_moe_router_calibration_job"]
+    qwen3_moe_router_calibration_selection = exp["qwen3_moe_router_calibration_selection"]
     qwen3_moe_trust_region_cap_search = exp["qwen3_moe_trust_region_cap_search"]
     selected_unified_capacity = toy_moe.get("unified_moe_capacity_sweep_selected") or {}
     selected_unified_output_projection_capacity = (
@@ -3693,6 +3728,19 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_router_calibration_job['student_exists']} / "
                 f"{qwen3_moe_router_calibration_job['teacher_exists']} / "
                 f"{qwen3_moe_router_calibration_job['prompts_exists']} |"
+            ),
+            (
+                "| Qwen3 MoE router calibration selector | status / selected / eligible | "
+                f"{qwen3_moe_router_calibration_selection['status']} / "
+                f"{qwen3_moe_router_calibration_selection['selected_method']} / "
+                f"{qwen3_moe_router_calibration_selection['eligible_candidate_count']}"
+                f"/{qwen3_moe_router_calibration_selection['candidate_count']} |"
+            ),
+            (
+                "| Qwen3 MoE router calibration selector | baseline eval / candidate eval / audit | "
+                f"{qwen3_moe_router_calibration_selection['baseline_eval_completed']} / "
+                f"{qwen3_moe_router_calibration_selection['candidate_eval_completed']} / "
+                f"{qwen3_moe_router_calibration_selection['audit_completed']} |"
             ),
             (
                 "| Qwen3 MoE cap-law search | searched / frontier / expert groups | "

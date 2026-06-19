@@ -1,0 +1,11 @@
+{
+  "max_final_relative_delta_norm": 0.05,
+  "mean_final_route_kl": 0.06999999999999999,
+  "mean_final_top1_agreement": 0.7999999999999999,
+  "mean_initial_route_kl": 0.12,
+  "mean_initial_top1_agreement": 0.7,
+  "outputs": {
+    "router_delta_safetensors": "results/qwen3_moe_router_calibration_selection_smoke/input_job/delta_cap005/router_delta.safetensors"
+  },
+  "status": "passed"
+}

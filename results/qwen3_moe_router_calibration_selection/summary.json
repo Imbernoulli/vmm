@@ -1,0 +1,79 @@
+{
+  "baseline_audit_status": "passed",
+  "baseline_eval": {
+    "avg_primary_score": null,
+    "eval_completed": false,
+    "eval_dir": "results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate",
+    "eval_exists": false,
+    "eval_status": "not_run",
+    "metrics_path": null,
+    "model": null,
+    "model_summary_path": null,
+    "summary_path": null,
+    "task_gsm8k_score": null,
+    "task_humaneval_compile_score": null,
+    "task_mmlu_score": null,
+    "task_safety_score": null,
+    "task_scores": {},
+    "worst_primary_score": null
+  },
+  "current_selection": {
+    "audit_completed": false,
+    "baseline_eval_completed": false,
+    "candidate_count": 3,
+    "candidate_eval_completed": false,
+    "eligible_candidate_count": 0,
+    "reason": "Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps.",
+    "schema_version": 1,
+    "selected_method": null,
+    "source_eval_completed": false,
+    "status": "awaiting_baseline_eval"
+  },
+  "job_dir": "results/qwen3_moe_router_calibration_job",
+  "outputs": {
+    "decision_rules": "results/qwen3_moe_router_calibration_selection/decision_rules.json",
+    "literature_sources": "results/qwen3_moe_router_calibration_selection/literature_sources.json",
+    "report": "results/qwen3_moe_router_calibration_selection/report.md",
+    "selection_table": "results/qwen3_moe_router_calibration_selection/selection_table.csv",
+    "summary": "results/qwen3_moe_router_calibration_selection/summary.json"
+  },
+  "schema_version": 1,
+  "smoke": false,
+  "source_evals": [
+    {
+      "avg_primary_score": null,
+      "eval_completed": false,
+      "eval_dir": "results/vllm_checkpoint_eval/source_qwen3_30b_instruct",
+      "eval_exists": false,
+      "eval_status": "not_run",
+      "metrics_path": null,
+      "model": null,
+      "model_summary_path": null,
+      "summary_path": null,
+      "task_gsm8k_score": null,
+      "task_humaneval_compile_score": null,
+      "task_mmlu_score": null,
+      "task_safety_score": null,
+      "task_scores": {},
+      "worst_primary_score": null
+    },
+    {
+      "avg_primary_score": null,
+      "eval_completed": false,
+      "eval_dir": "results/vllm_checkpoint_eval/source_qwen3_30b_coder",
+      "eval_exists": false,
+      "eval_status": "not_run",
+      "metrics_path": null,
+      "model": null,
+      "model_summary_path": null,
+      "summary_path": null,
+      "task_gsm8k_score": null,
+      "task_humaneval_compile_score": null,
+      "task_mmlu_score": null,
+      "task_safety_score": null,
+      "task_scores": {},
+      "worst_primary_score": null
+    }
+  ],
+  "status": "awaiting_baseline_eval"
+}

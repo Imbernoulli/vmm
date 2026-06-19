@@ -1,0 +1,13 @@
+{
+  "best_avg_primary_model": "qwen3_moe_searched_no_gt065_max_retention_candidate",
+  "model_summary": [
+    {
+      "avg_primary_score": 0.5,
+      "model": "qwen3_moe_searched_no_gt065_max_retention_candidate",
+      "rank": 1,
+      "task_count": 4,
+      "worst_primary_score": 0.3
+    }
+  ],
+  "status": "complete"
+}

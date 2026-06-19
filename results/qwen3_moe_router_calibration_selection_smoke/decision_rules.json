@@ -1,0 +1,85 @@
+{
+  "acceptance_gates": [
+    "Baseline searched_no_gt065 eval must be complete on the same vLLM task set.",
+    "Every cap candidate must have a materialized delta audit and vLLM eval before final selection.",
+    "The audit must show only router tensors changed, with no shape/dtype mismatch.",
+    "The maximum per-router relative delta norm must stay inside the planned cap.",
+    "Average primary score may not drop more than 0.005.",
+    "Worst primary score may not drop more than 0.01.",
+    "No available task primary score may drop more than 0.02.",
+    "At least one downstream primary/task score must improve by 0.002 or more.",
+    "If source endpoint evals are available, a candidate is rejected when a source dominates it on all available scores."
+  ],
+  "current_selection": {
+    "audit_completed": true,
+    "baseline_eval_completed": true,
+    "candidate_count": 3,
+    "candidate_eval_completed": true,
+    "eligible_candidate_count": 1,
+    "reason": "Selected the router-calibrated cap that improved downstream scores, stayed within cap, changed only router tensors, and was not source dominated.",
+    "schema_version": 1,
+    "selected_method": "smoke_router_calibrated_cap0025",
+    "source_eval_completed": true,
+    "status": "selected_router_calibrated_candidate"
+  },
+  "literature_hooks": [
+    {
+      "key": "model_soups",
+      "mechanism": "Weight averaging is only justified when checkpoints behave as if they are in one low-error basin; the selector therefore rejects router deltas that do not improve downstream scores over the frozen-router baseline.",
+      "title": "Model soups: averaging weights of multiple fine-tuned models improves accuracy without increasing inference time",
+      "url": "https://arxiv.org/abs/2203.05482"
+    },
+    {
+      "key": "fisher_merging",
+      "mechanism": "A local quadratic view motivates small trust-region updates, but the actual acceptance criterion is still held-out downstream behavior.",
+      "title": "Merging Models with Fisher-Weighted Averaging",
+      "url": "https://arxiv.org/abs/2111.09832"
+    },
+    {
+      "key": "ties",
+      "mechanism": "Interference is treated as a measurable signal: the router calibration delta must be sparse in module scope and must not introduce non-router changes.",
+      "title": "TIES-Merging: Resolving Interference When Merging Models",
+      "url": "https://arxiv.org/abs/2306.01708"
+    },
+    {
+      "key": "git_rebasin",
+      "mechanism": "Expert identity and permutation alignment remain upstream gates; this selector only decides whether a small router delta should be added after the frozen-router expert candidate.",
+      "title": "Git Re-Basin: Merging Models modulo Permutation Symmetries",
+      "url": "https://arxiv.org/abs/2209.04836"
+    },
+    {
+      "key": "large_scale_merging",
+      "mechanism": "Large-model merging can work, but endpoint controls are required; router-calibrated candidates are rejected if dominated by source endpoints.",
+      "title": "What Matters for Model Merging at Scale?",
+      "url": "https://arxiv.org/abs/2410.03617"
+    },
+    {
+      "key": "output_space_projection",
+      "mechanism": "The route-KD cache is an output-space calibration signal for routers; this script uses downstream scores to decide whether that local calibration transfers to the full model.",
+      "title": "Model Merging by Output-Space Projection",
+      "url": "https://arxiv.org/abs/2605.29101"
+    }
+  ],
+  "name": "router_calibrated_moe_average_acceptance_gate",
+  "problem_statement": "The target model must stay same-shape with the input Qwen3 MoE checkpoint. Router calibration is not accepted because an algorithm name sounds better; it is accepted only if the mechanism survives matched downstream eval and tensor audit.",
+  "ranking": [
+    "Among accepted candidates, sort by selection_score.",
+    "selection_score = avg_gain + 0.5 * worst_gain + 0.25 * worst_task_gain + 0.05 * route_kl_gain - 0.01 * router_delta_norm.",
+    "Use avg score, worst score, and smaller cap as tie breakers."
+  ],
+  "schema_version": 1,
+  "theory_summary": [
+    {
+      "claim": "Averaging is a local operation in weight space.",
+      "implication": "If the path between checkpoints has a loss barrier or a discrete router flip, a midpoint/delta can be worse even when local curvature looks small."
+    },
+    {
+      "claim": "MoE routers create discontinuous functional changes.",
+      "implication": "A small router weight delta can change expert assignment for many tokens; therefore the default unified method freezes routers unless route-KD calibration gives downstream evidence."
+    },
+    {
+      "claim": "A better unified algorithm needs an abstention rule.",
+      "implication": "When no calibrated cap is non-dominated by the frozen-router baseline/source endpoints, the correct same-shape output is the baseline/no-router-move candidate."
+    }
+  ]
+}

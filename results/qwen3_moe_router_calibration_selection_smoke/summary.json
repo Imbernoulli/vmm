@@ -1,0 +1,94 @@
+{
+  "baseline_audit_status": "passed",
+  "baseline_eval": {
+    "avg_primary_score": 0.5,
+    "eval_completed": true,
+    "eval_dir": "results/qwen3_moe_router_calibration_selection_smoke/input_job/eval_baseline",
+    "eval_exists": true,
+    "eval_status": "complete",
+    "metrics_path": "results/qwen3_moe_router_calibration_selection_smoke/input_job/eval_baseline/metrics.csv",
+    "model": "qwen3_moe_searched_no_gt065_max_retention_candidate",
+    "model_summary_path": "results/qwen3_moe_router_calibration_selection_smoke/input_job/eval_baseline/model_summary.csv",
+    "summary_path": "results/qwen3_moe_router_calibration_selection_smoke/input_job/eval_baseline/summary.json",
+    "task_gsm8k_score": 0.42,
+    "task_humaneval_compile_score": 0.3,
+    "task_mmlu_score": 0.53,
+    "task_safety_score": 0.62,
+    "task_scores": {
+      "gsm8k": 0.42,
+      "humaneval_compile": 0.3,
+      "mmlu": 0.53,
+      "safety": 0.62
+    },
+    "worst_primary_score": 0.3
+  },
+  "current_selection": {
+    "audit_completed": true,
+    "baseline_eval_completed": true,
+    "candidate_count": 3,
+    "candidate_eval_completed": true,
+    "eligible_candidate_count": 1,
+    "reason": "Selected the router-calibrated cap that improved downstream scores, stayed within cap, changed only router tensors, and was not source dominated.",
+    "schema_version": 1,
+    "selected_method": "smoke_router_calibrated_cap0025",
+    "source_eval_completed": true,
+    "status": "selected_router_calibrated_candidate"
+  },
+  "job_dir": "results/qwen3_moe_router_calibration_selection_smoke/input_job",
+  "outputs": {
+    "decision_rules": "results/qwen3_moe_router_calibration_selection_smoke/decision_rules.json",
+    "literature_sources": "results/qwen3_moe_router_calibration_selection_smoke/literature_sources.json",
+    "report": "results/qwen3_moe_router_calibration_selection_smoke/report.md",
+    "selection_table": "results/qwen3_moe_router_calibration_selection_smoke/selection_table.csv",
+    "summary": "results/qwen3_moe_router_calibration_selection_smoke/summary.json"
+  },
+  "schema_version": 1,
+  "smoke": true,
+  "source_evals": [
+    {
+      "avg_primary_score": 0.49,
+      "eval_completed": true,
+      "eval_dir": "results/qwen3_moe_router_calibration_selection_smoke/input_job/eval_source_instruct",
+      "eval_exists": true,
+      "eval_status": "complete",
+      "metrics_path": "results/qwen3_moe_router_calibration_selection_smoke/input_job/eval_source_instruct/metrics.csv",
+      "model": "source_qwen3_30b_instruct",
+      "model_summary_path": "results/qwen3_moe_router_calibration_selection_smoke/input_job/eval_source_instruct/model_summary.csv",
+      "summary_path": "results/qwen3_moe_router_calibration_selection_smoke/input_job/eval_source_instruct/summary.json",
+      "task_gsm8k_score": 0.39,
+      "task_humaneval_compile_score": 0.28,
+      "task_mmlu_score": 0.54,
+      "task_safety_score": 0.62,
+      "task_scores": {
+        "gsm8k": 0.39,
+        "humaneval_compile": 0.28,
+        "mmlu": 0.54,
+        "safety": 0.62
+      },
+      "worst_primary_score": 0.28
+    },
+    {
+      "avg_primary_score": 0.47,
+      "eval_completed": true,
+      "eval_dir": "results/qwen3_moe_router_calibration_selection_smoke/input_job/eval_source_coder",
+      "eval_exists": true,
+      "eval_status": "complete",
+      "metrics_path": "results/qwen3_moe_router_calibration_selection_smoke/input_job/eval_source_coder/metrics.csv",
+      "model": "source_qwen3_30b_coder",
+      "model_summary_path": "results/qwen3_moe_router_calibration_selection_smoke/input_job/eval_source_coder/model_summary.csv",
+      "summary_path": "results/qwen3_moe_router_calibration_selection_smoke/input_job/eval_source_coder/summary.json",
+      "task_gsm8k_score": 0.36,
+      "task_humaneval_compile_score": 0.41,
+      "task_mmlu_score": 0.49,
+      "task_safety_score": 0.55,
+      "task_scores": {
+        "gsm8k": 0.36,
+        "humaneval_compile": 0.41,
+        "mmlu": 0.49,
+        "safety": 0.55
+      },
+      "worst_primary_score": 0.26
+    }
+  ],
+  "status": "selected_router_calibrated_candidate"
+}

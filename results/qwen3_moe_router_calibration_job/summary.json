@@ -1,4 +1,7 @@
 {
+  "baseline_eval_dir": "results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate",
+  "baseline_port": 8107,
+  "baseline_served_model": "baseline_qwen3_moe_searched_no_gt065",
   "candidate_count": 3,
   "local_gpu_status": "unavailable",
   "mechanism": "route_kd_router_delta_after_frozen_router_expert_cap_law_candidate",
@@ -6,6 +9,7 @@
     "candidate_plan": "results/qwen3_moe_router_calibration_job/candidate_plan.csv",
     "report": "results/qwen3_moe_router_calibration_job/report.md",
     "run_script": "results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh",
+    "selection": "results/qwen3_moe_router_calibration_selection/summary.json",
     "stage_plan": "results/qwen3_moe_router_calibration_job/stage_plan.csv",
     "summary": "results/qwen3_moe_router_calibration_job/summary.json"
   },
@@ -18,7 +22,7 @@
   ],
   "run_script_command": "results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh all",
   "schema_version": 1,
-  "stage_count": 13,
+  "stage_count": 15,
   "status": "job_ready_awaiting_gpu",
   "student": "results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate",
   "student_exists": true,
