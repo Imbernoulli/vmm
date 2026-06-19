@@ -2,7 +2,7 @@
 
 这份仓库把 `proposal.md` 里的想法实现成了一个可运行的研究 artifact：从小型图像分类模型开始，逐步扩展到 ViT/pretrained ViT 和 Qwen 系列 LLM，观察模型合并点在任务向量空间中的位置、多个任务 basin 是否重叠，以及合并失败是否和 task-vector interference 有关。
 
-后续 Qwen Dense/MoE 和下游微调模型的实验设计见：[Qwen Dense/MoE 下游微调模型合并实验方案](QWEN_DENSE_MOE_EXPERIMENT_PLAN.md)，结构化目标模型清单见：[Qwen Target Model Registry](results/qwen_target_model_registry/report.md)。Averaging 失败诊断、probe 清单和 MoE route-aware averaging 路线见：[Dense/MoE Model Averaging 的指标、Probe 与优化路线](MODEL_AVERAGING_PROBES_AND_MOE_OPTIMIZATION.md)。当前已有实验的同构 Average 决策汇总见：[Average Decision Report](results/average_decision_report/report.md)，Dense/MoE 文献和 probe 矩阵见：[Model Averaging Literature Review](results/model_averaging_literature_review/report.md)，candidate materialization 选择见：[Average Candidate Recipes](results/average_candidate_recipes/report.md)，MoE 拓扑检查见：[Checkpoint Topology Inspect](results/checkpoint_topology_inspect/report.md)，MoE 参数组计划见：[MoE Same-Shape Average Plan](results/moe_average_plan/report.md)，MoE routing 风险诊断见：[MoE Routing Readiness](results/moe_routing_readiness/report.md)，MoE route-weight tensor rules 见：[MoE Route-Weight Recipes](results/moe_route_weight_recipes/report.md)，MoE router-bias capacity recipe 见：[MoE Router Bias Plan](results/moe_router_bias_plan/report.md)，toy MoE 验证见：[Toy MoE Route-Aware Merge](results/toy_moe_merge/report.md)，toy expert 重排写出计划见：[Toy MoE Expert Remap Plan](results/toy_moe_expert_remap_plan/report.md)，checkpoint 写出器 smoke 见：[Same-Shape Checkpoint Writer Smoke](results/same_shape_writer_smoke/report.md)。
+后续 Qwen Dense/MoE 和下游微调模型的实验设计见：[Qwen Dense/MoE 下游微调模型合并实验方案](QWEN_DENSE_MOE_EXPERIMENT_PLAN.md)，结构化目标模型清单见：[Qwen Target Model Registry](results/qwen_target_model_registry/report.md)。Averaging 失败诊断、probe 清单和 MoE route-aware averaging 路线见：[Dense/MoE Model Averaging 的指标、Probe 与优化路线](MODEL_AVERAGING_PROBES_AND_MOE_OPTIMIZATION.md)。当前已有实验的同构 Average 决策汇总见：[Average Decision Report](results/average_decision_report/report.md)，Dense/MoE 文献和 probe 矩阵见：[Model Averaging Literature Review](results/model_averaging_literature_review/report.md)，candidate materialization 选择见：[Average Candidate Recipes](results/average_candidate_recipes/report.md)，MoE 拓扑检查见：[Checkpoint Topology Inspect](results/checkpoint_topology_inspect/report.md)，MoE 参数组计划见：[MoE Same-Shape Average Plan](results/moe_average_plan/report.md)，MoE routing 风险诊断见：[MoE Routing Readiness](results/moe_routing_readiness/report.md)，MoE route-weight tensor rules 见：[MoE Route-Weight Recipes](results/moe_route_weight_recipes/report.md)，MoE router-bias capacity recipe 见：[MoE Router Bias Plan](results/moe_router_bias_plan/report.md)，checkpoint materialization readiness 见：[Checkpoint Materialization Readiness](results/checkpoint_materialization_readiness/report.md)，toy MoE 验证见：[Toy MoE Route-Aware Merge](results/toy_moe_merge/report.md)，toy expert 重排写出计划见：[Toy MoE Expert Remap Plan](results/toy_moe_expert_remap_plan/report.md)，checkpoint 写出器 smoke 见：[Same-Shape Checkpoint Writer Smoke](results/same_shape_writer_smoke/report.md)。
 
 这里说的 Average 不是 ensemble，也不是把 MoE experts 扩成更多分支；最终目标模型必须和输入模型保持同构，能用同一个 config/tokenizer/model class 直接加载。Probe 的作用是决定哪些模型、层、模块或 experts 可以被平均，以及平均系数应该怎么设。
 
@@ -37,6 +37,7 @@
 21. **Router-bias capacity correction 已落成 recipe。** [MoE Router Bias Plan](results/moe_router_bias_plan/report.md) 用 per prompt/category 的 worst top-k load 生成 writer-ready `router_bias_deltas.csv`；toy `unified_moe_average` 上 expert 0 的 worst top-k fraction 是 `0.3900`，高于 capacity `0.3125`，因此生成 `-0.0530` 的 bias delta，其余 experts 做中心化补偿。真实 Qwen checkpoint 若没有对应 bias tensor，writer 会在校验阶段报错，而不是改变模型结构。
 22. **vLLM 下游评测 harness 已做 HTTP contract smoke。** [vLLM Downstream Eval Contract Smoke](results/vllm_downstream_eval_smoke/smoke_report.md) 启动本地 OpenAI-compatible mock endpoint，通过真实 HTTP 调用 `scripts/run_vllm_downstream_eval.py`，验证 GSM8K、MMLU、safety、HumanEval compile 的请求、解析、打分、排序和产物写出；mock-good 平均主指标 `1.000`，mock-bad 为 `0.000`。真实 GPU/vLLM endpoint 仍然是下一步，不能把这个 smoke 当成真实性能结果。
 23. **同构 checkpoint 的 vLLM 轮测计划已生成。** [vLLM Checkpoint Eval Plan](results/vllm_checkpoint_eval_plan/report.md) 把候选 checkpoint 转成逐个 `vllm serve` 和 `run_vllm_downstream_eval.py` 命令；当前 3 个候选里 `0` 个 ready、`2` 个还缺真实 materialized checkpoint、`1` 个是 toy writer 验证不能 vLLM 加载。也就是说流程已经接上，但真实性能仍必须等 checkpoint 写出后再 host 评测。
+24. **Checkpoint materialization readiness 已单独审计。** [Checkpoint Materialization Readiness](results/checkpoint_materialization_readiness/report.md) 把 writer 命令、placeholder、dry-run、checkpoint 是否存在和 vLLM readiness 放进一张表：当前 5 个候选里 `0` 个已 materialize，`3` 个被 placeholder source path 卡住，`0` 个 ready for vLLM eval。这解释了为什么现在还不能给真实下游分数。
 
 核心对象是：
 
@@ -93,7 +94,7 @@ z 轴 = loss
 
 ## 结论摘要
 
-当前 coverage audit：`complete = 33`, `partial = 1`, `missing = 0`；唯一 partial 是 vLLM hosted downstream eval 还没有可用 endpoint。完整汇总见 `results/summary.md` 和 `results/summary.json`。
+当前 coverage audit：`complete = 34`, `partial = 1`, `missing = 0`；唯一 partial 是 vLLM hosted downstream eval 还没有可用 endpoint。完整汇总见 `results/summary.md` 和 `results/summary.json`。
 
 主要结论：
 

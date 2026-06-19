@@ -990,6 +990,23 @@ def summarize_vllm_checkpoint_eval_plan() -> dict[str, Any]:
     }
 
 
+def summarize_checkpoint_materialization_readiness() -> dict[str, Any]:
+    summary = read_json("results/checkpoint_materialization_readiness/summary.json")
+    readiness = read_csv("results/checkpoint_materialization_readiness/candidate_readiness.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "candidate_count": int(summary.get("candidate_count", len(readiness))),
+        "materialized_count": int(summary.get("materialized_count", 0)),
+        "blocked_by_placeholder_count": int(summary.get("blocked_by_placeholder_count", 0)),
+        "ready_for_vllm_eval_count": int(summary.get("ready_for_vllm_eval_count", 0)),
+        "toy_validation_only_count": int(summary.get("toy_validation_only_count", 0)),
+        "rows": [clean_row(row) for _, row in readiness.iterrows()],
+        "report": rel("results/checkpoint_materialization_readiness/report.md"),
+        "readiness_csv": rel("results/checkpoint_materialization_readiness/candidate_readiness.csv"),
+    }
+
+
 def summarize_model_averaging_literature_review() -> dict[str, Any]:
     summary = read_json("results/model_averaging_literature_review/summary.json")
     methods = read_csv("results/model_averaging_literature_review/method_matrix.csv")
@@ -1144,6 +1161,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/vllm_checkpoint_eval_plan/report.md turns same-shape checkpoint candidates into one-checkpoint-at-a-time vLLM serve/eval commands while keeping missing checkpoints separate from completed metrics.",
         },
         {
+            "item": "Checkpoint materialization readiness audit",
+            "status": "complete",
+            "evidence": "results/checkpoint_materialization_readiness/report.md audits writer commands, placeholders, dry-run outputs, checkpoint existence, and vLLM eval readiness in one table.",
+        },
+        {
             "item": "Probe-guided Average decision report",
             "status": "complete",
             "evidence": "results/average_decision_report/report.md converts merge grids, conflict probes, and optional MoE routing probes into same-shape average decisions.",
@@ -1276,6 +1298,7 @@ def build_summary() -> dict[str, Any]:
         "vllm_downstream_eval": summarize_vllm_downstream_eval(),
         "vllm_downstream_eval_smoke": summarize_vllm_downstream_eval_smoke(),
         "vllm_checkpoint_eval_plan": summarize_vllm_checkpoint_eval_plan(),
+        "checkpoint_materialization_readiness": summarize_checkpoint_materialization_readiness(),
     }
     coverage = coverage_checklist()
     counts = {
@@ -1319,6 +1342,7 @@ def build_summary() -> dict[str, Any]:
             "python scripts/smoke_moe_routing_probe_contract.py",
             "python scripts/smoke_vllm_downstream_eval_contract.py --output-dir results/vllm_downstream_eval_smoke",
             "PYTHONPATH=src python scripts/build_vllm_checkpoint_eval_plan.py --output-dir results/vllm_checkpoint_eval_plan",
+            "PYTHONPATH=src python scripts/build_checkpoint_materialization_readiness.py --output-dir results/checkpoint_materialization_readiness",
             "PYTHONPATH=src python scripts/build_average_decision_report.py",
             "python scripts/build_qwen_target_model_registry.py",
             "PYTHONPATH=src python scripts/build_moe_average_plan.py",
@@ -1380,6 +1404,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     vllm_eval = exp["vllm_downstream_eval"]
     vllm_eval_smoke = exp["vllm_downstream_eval_smoke"]
     vllm_checkpoint_eval_plan = exp["vllm_checkpoint_eval_plan"]
+    materialization_readiness = exp["checkpoint_materialization_readiness"]
     coverage_counts = summary["coverage_counts"]
     lines = [
         "# Result Summary",
@@ -1873,6 +1898,16 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{vllm_checkpoint_eval_plan['ready_to_host_count']} / "
                 f"{vllm_checkpoint_eval_plan['missing_checkpoint_count']} / "
                 f"{vllm_checkpoint_eval_plan['not_vllm_loadable_count']} |"
+            ),
+            (
+                "| checkpoint materialization readiness | status | "
+                f"{materialization_readiness['status']} |"
+            ),
+            (
+                "| checkpoint materialization readiness | materialized / blocked / ready | "
+                f"{materialization_readiness['materialized_count']} / "
+                f"{materialization_readiness['blocked_by_placeholder_count']} / "
+                f"{materialization_readiness['ready_for_vllm_eval_count']} |"
             ),
             (
                 "| Average decision report | avoid uniform average decisions | "

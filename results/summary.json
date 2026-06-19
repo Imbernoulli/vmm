@@ -81,6 +81,11 @@
       "status": "complete"
     },
     {
+      "evidence": "results/checkpoint_materialization_readiness/report.md audits writer commands, placeholders, dry-run outputs, checkpoint existence, and vLLM eval readiness in one table.",
+      "item": "Checkpoint materialization readiness audit",
+      "status": "complete"
+    },
+    {
       "evidence": "results/average_decision_report/report.md converts merge grids, conflict probes, and optional MoE routing probes into same-shape average decisions.",
       "item": "Probe-guided Average decision report",
       "status": "complete"
@@ -177,7 +182,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 34,
+    "complete": 35,
     "missing": 0,
     "partial": 1
   },
@@ -648,6 +653,122 @@
         "avoid_uniform_average": 3,
         "coefficient_search": 2
       }
+    },
+    "checkpoint_materialization_readiness": {
+      "blocked_by_placeholder_count": 3,
+      "candidate_count": 5,
+      "materialized_count": 0,
+      "readiness_csv": "results/checkpoint_materialization_readiness/candidate_readiness.csv",
+      "ready_for_vllm_eval_count": 0,
+      "report": "results/checkpoint_materialization_readiness/report.md",
+      "rows": [
+        {
+          "candidate": "moe_route_aware_candidate",
+          "dry_run_only": true,
+          "end_to_end_status": "blocked_before_materialization",
+          "loadability": "qwen_moe_if_materialized",
+          "next_writer_action": "replace placeholder model paths/route weights, run writer dry-run, then materialize",
+          "placeholder_count": 3,
+          "placeholders": "CODE_MODEL_PATH,GENERAL_MODEL_PATH,MOE_BASE_OR_ANCHOR_PATH",
+          "source_kind": "writer_command",
+          "source_path": "results/moe_route_weight_recipes/writer_command.txt",
+          "vllm_eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8100/v1 --models candidate_moe_route_aware_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/moe_route_aware_candidate",
+          "vllm_eval_output_dir": "results/vllm_checkpoint_eval/moe_route_aware_candidate",
+          "vllm_plan_status": "checkpoint_missing_until_materialized",
+          "writer_command": "python scripts/write_same_shape_average_checkpoint.py --base MOE_BASE_OR_ANCHOR_PATH --source general=GENERAL_MODEL_PATH --source code=CODE_MODEL_PATH --source-weight general=0.0 --source-weight code=0.0 --freeze-router --tensor-rule-file results/moe_route_weight_recipes/tensor_rules.txt --output-dir results/checkpoints/moe_route_aware_candidate --dry-run",
+          "writer_output_dir": "results/checkpoints/moe_route_aware_candidate",
+          "writer_output_exists": false,
+          "writer_status": "blocked_by_placeholder_inputs"
+        },
+        {
+          "candidate": "toy_moe_expert_weight_candidate",
+          "dry_run_only": true,
+          "end_to_end_status": "toy_writer_validation_only",
+          "loadability": "not_vllm_loadable_toy",
+          "next_writer_action": "replace placeholder model paths/route weights, run writer dry-run, then materialize",
+          "placeholder_count": 3,
+          "placeholders": "CODE_MODEL_PATH,GENERAL_MODEL_PATH,MOE_BASE_OR_ANCHOR_PATH",
+          "source_kind": "writer_command",
+          "source_path": "results/toy_moe_expert_weight_recipes/writer_command.txt",
+          "vllm_eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8102/v1 --models candidate_toy_moe_expert_weight_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/toy_moe_expert_weight_candidate",
+          "vllm_eval_output_dir": "results/vllm_checkpoint_eval/toy_moe_expert_weight_candidate",
+          "vllm_plan_status": "not_vllm_loadable_toy_candidate",
+          "writer_command": "python scripts/write_same_shape_average_checkpoint.py --base MOE_BASE_OR_ANCHOR_PATH --source general=GENERAL_MODEL_PATH --source code=CODE_MODEL_PATH --source-weight general=0.0 --source-weight code=0.0 --freeze-router --tensor-rule-file results/toy_moe_expert_weight_recipes/tensor_rules.txt --output-dir results/checkpoints/toy_moe_expert_weight_candidate --dry-run",
+          "writer_output_dir": "results/checkpoints/toy_moe_expert_weight_candidate",
+          "writer_output_exists": false,
+          "writer_status": "blocked_by_placeholder_inputs"
+        },
+        {
+          "candidate": "toy_moe_expert_matched_candidate",
+          "dry_run_only": true,
+          "end_to_end_status": "toy_writer_validation_only",
+          "loadability": "not_vllm_loadable_toy",
+          "next_writer_action": "replace placeholder model paths/route weights, run writer dry-run, then materialize",
+          "placeholder_count": 3,
+          "placeholders": "CODE_MODEL_PATH,GENERAL_MODEL_PATH,MOE_BASE_OR_ANCHOR_PATH",
+          "source_kind": "writer_command",
+          "source_path": "results/toy_moe_expert_remap_plan/writer_command.txt",
+          "vllm_eval_command": null,
+          "vllm_eval_output_dir": null,
+          "vllm_plan_status": "not_in_vllm_plan",
+          "writer_command": "python scripts/write_same_shape_average_checkpoint.py --base MOE_BASE_OR_ANCHOR_PATH --source general=GENERAL_MODEL_PATH --source code=CODE_MODEL_PATH --source-weight general=0.5 --source-weight code=0.5 --freeze-router --source-tensor-alias-file results/toy_moe_expert_remap_plan/source_tensor_aliases.txt --output-dir results/checkpoints/moe_expert_matched_candidate --dry-run # recommended_method=matched_router_calibrated_average",
+          "writer_output_dir": "results/checkpoints/moe_expert_matched_candidate",
+          "writer_output_exists": false,
+          "writer_status": "blocked_by_placeholder_inputs"
+        },
+        {
+          "candidate": "moe_bias_calibrated_candidate",
+          "dry_run_only": false,
+          "end_to_end_status": "needs_checkpoint_materialization",
+          "loadability": "qwen_moe_if_materialized",
+          "next_writer_action": "run write_same_shape_average_checkpoint.py with real MoE sources and --tensor-add-csv results/moe_router_bias_plan/router_bias_deltas.csv",
+          "placeholder_count": 0,
+          "placeholders": null,
+          "source_kind": "router_bias_plan",
+          "source_path": "results/moe_router_bias_plan/summary.json",
+          "vllm_eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8101/v1 --models candidate_moe_bias_calibrated_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/moe_bias_calibrated_candidate",
+          "vllm_eval_output_dir": "results/vllm_checkpoint_eval/moe_bias_calibrated_candidate",
+          "vllm_plan_status": "checkpoint_missing_until_materialized",
+          "writer_command": null,
+          "writer_output_dir": "results/checkpoints/moe_bias_calibrated_candidate",
+          "writer_output_exists": false,
+          "writer_status": "needs_real_moe_source_paths_for_tensor_add_writer"
+        },
+        {
+          "candidate": "qwen_0_5b_writer_compatibility",
+          "dry_run_only": true,
+          "end_to_end_status": "needs_materialization_after_dry_run",
+          "loadability": "qwen_dense_if_materialized",
+          "next_writer_action": "choose a non-rejected dense average coefficient, run writer without --dry-run, then run vLLM eval plan",
+          "placeholder_count": 0,
+          "placeholders": null,
+          "source_kind": "dry_run_manifest",
+          "source_path": "results/same_shape_writer_smoke/merge_manifest.json",
+          "vllm_eval_command": null,
+          "vllm_eval_output_dir": null,
+          "vllm_plan_status": "not_in_vllm_plan",
+          "writer_command": null,
+          "writer_output_dir": "results/same_shape_writer_smoke",
+          "writer_output_exists": false,
+          "writer_status": "dry_run_compatible_no_checkpoint_written"
+        }
+      ],
+      "status": "waiting_for_checkpoint_materialization",
+      "summary": {
+        "blocked_by_placeholder_count": 3,
+        "candidate_count": 5,
+        "materialized_count": 0,
+        "outputs": {
+          "readiness_csv": "results/checkpoint_materialization_readiness/candidate_readiness.csv",
+          "report": "results/checkpoint_materialization_readiness/report.md",
+          "summary": "results/checkpoint_materialization_readiness/summary.json"
+        },
+        "ready_for_vllm_eval_count": 0,
+        "schema_version": 1,
+        "status": "waiting_for_checkpoint_materialization",
+        "toy_validation_only_count": 2
+      },
+      "toy_validation_only_count": 2
     },
     "checkpoint_topology_inspect": {
       "comparisons": [
@@ -4457,7 +4578,7 @@
       "task_rows": 8
     }
   },
-  "generated_at": "2026-06-19T13:08:30.188466+00:00",
+  "generated_at": "2026-06-19T13:14:14.195155+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -4482,6 +4603,7 @@
     "python scripts/smoke_moe_routing_probe_contract.py",
     "python scripts/smoke_vllm_downstream_eval_contract.py --output-dir results/vllm_downstream_eval_smoke",
     "PYTHONPATH=src python scripts/build_vllm_checkpoint_eval_plan.py --output-dir results/vllm_checkpoint_eval_plan",
+    "PYTHONPATH=src python scripts/build_checkpoint_materialization_readiness.py --output-dir results/checkpoint_materialization_readiness",
     "PYTHONPATH=src python scripts/build_average_decision_report.py",
     "python scripts/build_qwen_target_model_registry.py",
     "PYTHONPATH=src python scripts/build_moe_average_plan.py",
