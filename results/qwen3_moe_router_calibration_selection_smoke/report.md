@@ -12,6 +12,7 @@
 - Audit completed: `True`
 - Training completed: `True`
 - Capacity metrics completed: `True`
+- Group validation completed: `True`
 - Eligible candidates: `1/3`
 
 ## Baseline
@@ -22,11 +23,11 @@
 
 ## Candidate Gate
 
-| cap | method | split | selected epoch | KL gap | top1 drop | decision | avg delta | worst delta | worst task delta | router max rel | top1/top-k overflow | top1/top-k increase | load pass | gen pass | router-only | cap pass | score | reason |
-| ---: | --- | --- | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- | ---: | --- |
-| 0.0100 | `smoke_router_calibrated_cap001` | `validation` | 10.0 | 0.0200 | 0.0200 | `reject_or_wait` | 0.0010 | 0.0000 | -0.0010 | 0.0080 | 0.0000/0.0000 | 0.0000/0.0000 | `True` | `True` | `True` | `True` | -0.0018 | `no_downstream_gain` |
-| 0.0250 | `smoke_router_calibrated_cap0025` | `validation` | 10.0 | 0.0200 | 0.0200 | `candidate_eligible` | 0.0150 | 0.0100 | 0.0000 | 0.0220 | 0.0150/0.0200 | 0.0050/0.0150 | `True` | `True` | `True` | `True` | 0.0055 | `passes_all_gates` |
-| 0.0500 | `smoke_router_calibrated_cap005` | `validation` | 10.0 | 0.0200 | 0.0200 | `reject_or_wait` | 0.0250 | 0.0150 | 0.0000 | 0.0710 | 0.0900/0.0400 | 0.0600/0.0250 | `False` | `True` | `False` | `False` | -0.0055 | `top1_capacity_overflow_increase,audit_not_router_only,router_delta_cap_violation` |
+| cap | method | split | groups | selected epoch | KL gap | top1 drop | decision | avg delta | worst delta | worst task delta | router max rel | top1/top-k overflow | top1/top-k increase | load pass | gen pass | group pass | router-only | cap pass | score | reason |
+| ---: | --- | --- | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- | --- | ---: | --- |
+| 0.0100 | `smoke_router_calibrated_cap001` | `group_validation` | 8.0/2.0 | 10.0 | 0.0200 | 0.0200 | `reject_or_wait` | 0.0010 | 0.0000 | -0.0010 | 0.0080 | 0.0000/0.0000 | 0.0000/0.0000 | `True` | `True` | `True` | `True` | `True` | -0.0018 | `no_downstream_gain` |
+| 0.0250 | `smoke_router_calibrated_cap0025` | `group_validation` | 8.0/2.0 | 10.0 | 0.0200 | 0.0200 | `candidate_eligible` | 0.0150 | 0.0100 | 0.0000 | 0.0220 | 0.0150/0.0200 | 0.0050/0.0150 | `True` | `True` | `True` | `True` | `True` | 0.0055 | `passes_all_gates` |
+| 0.0500 | `smoke_router_calibrated_cap005` | `group_validation` | 8.0/2.0 | 10.0 | 0.0200 | 0.0200 | `reject_or_wait` | 0.0250 | 0.0150 | 0.0000 | 0.0710 | 0.0900/0.0400 | 0.0600/0.0250 | `False` | `True` | `True` | `False` | `False` | -0.0055 | `top1_capacity_overflow_increase,audit_not_router_only,router_delta_cap_violation` |
 
 ## Source Controls
 
@@ -45,6 +46,7 @@
 - Both source endpoint evals must be complete unless --allow-missing-source-eval is explicitly set.
 - Every cap candidate must have a materialized delta audit and vLLM eval before final selection.
 - Every cap candidate must have router training metrics with hard top-1/top-k route-load statistics.
+- Router route-KD validation must use group-heldout prompt/batch splits with at least 1 train groups and 1 validation groups, unless --allow-row-validation is explicitly set.
 - The audit must show only router tensors changed, with no shape/dtype mismatch.
 - The maximum per-router relative delta norm must stay inside the planned cap.
 - Hard top-1 route capacity overflow may not exceed 0.1.

@@ -412,6 +412,23 @@ def build_candidate_rows(
         generalization_metrics_ready = (
             bool(training_state["training_summary_exists"]) and route_kl_gap is not None and top1_drop is not None
         )
+        train_group_count = training_state.get("mean_train_group_count")
+        validation_group_count = training_state.get("mean_validation_group_count")
+        group_validation_required = not bool(args.allow_row_validation)
+        group_validation_metrics_ready = (
+            bool(training_state["training_summary_exists"])
+            and training_state.get("selection_split") == "group_validation"
+            and train_group_count is not None
+            and validation_group_count is not None
+        )
+        group_validation_passed = bool(
+            not group_validation_required
+            or (
+                group_validation_metrics_ready
+                and train_group_count >= float(args.min_train_groups)
+                and validation_group_count >= float(args.min_validation_groups)
+            )
+        )
         top1_capacity_passed = (
             top1_overflow is not None and top1_overflow <= float(args.max_top1_capacity_overflow)
         )
@@ -463,6 +480,9 @@ def build_candidate_rows(
             "route_kl_generalizes": route_kl_generalizes,
             "top1_generalizes": top1_generalizes,
             "router_generalization_passed": router_generalization_passed,
+            "group_validation_required": group_validation_required,
+            "group_validation_metrics_ready": group_validation_metrics_ready,
+            "group_validation_passed": group_validation_passed,
         }
 
         deltas = {
@@ -523,6 +543,10 @@ def build_candidate_rows(
             rejection_reasons.append("router_route_kl_validation_gap")
         elif generalization_metrics_ready and not top1_generalizes:
             rejection_reasons.append("router_top1_validation_drop")
+        if training_state["training_summary_exists"] and group_validation_required and not group_validation_metrics_ready:
+            rejection_reasons.append("router_validation_not_group_heldout")
+        elif training_state["training_summary_exists"] and not group_validation_passed:
+            rejection_reasons.append("insufficient_router_validation_groups")
         if not eval_state["eval_completed"]:
             rejection_reasons.append("awaiting_candidate_eval")
         if not audit_state["audit_exists"]:
@@ -548,6 +572,7 @@ def build_candidate_rows(
             and training_passed
             and router_load_capacity_passed
             and router_generalization_passed
+            and group_validation_passed
             and eval_state["eval_completed"]
             and audit_state["audit_passed_for_router_calibration"]
             and preserves_average
@@ -612,6 +637,7 @@ def build_selection(
     audit_complete = bool((table["audit_exists"].astype(bool)).all()) if not table.empty else False
     training_complete = bool((table["training_summary_exists"].astype(bool)).all()) if not table.empty else False
     capacity_metrics_complete = bool((table["capacity_metrics_ready"].astype(bool)).all()) if not table.empty else False
+    group_validation_complete = bool((table["group_validation_passed"].astype(bool)).all()) if not table.empty else False
     source_complete = all(bool(row.get("eval_completed")) for row in source_evals) if source_evals else False
     source_required = not bool(args.allow_missing_source_eval)
     eligible = table[table["selection_eligible"].astype(bool)].copy() if not table.empty else pd.DataFrame()
@@ -624,12 +650,18 @@ def build_selection(
         status = "awaiting_source_eval"
         selected_method = None
         reason = "Run both source endpoint evals before allowing router calibration selection or frozen-router fallback."
-    elif not candidate_eval_complete or not audit_complete or not training_complete or not capacity_metrics_complete:
+    elif (
+        not candidate_eval_complete
+        or not audit_complete
+        or not training_complete
+        or not capacity_metrics_complete
+        or not group_validation_complete
+    ):
         status = "awaiting_router_calibration_eval"
         selected_method = None
         reason = (
             "The cap sweep is not complete; all candidates need router training summaries, hard route-load metrics, "
-            "audit, and matched vLLM downstream eval."
+            "group-heldout validation, audit, and matched vLLM downstream eval."
         )
     elif eligible.empty:
         status = "keep_frozen_router_baseline"
@@ -658,6 +690,7 @@ def build_selection(
         "audit_completed": audit_complete,
         "training_completed": training_complete,
         "capacity_metrics_completed": capacity_metrics_complete,
+        "group_validation_completed": group_validation_complete,
         "source_eval_completed": source_complete,
         "source_eval_required": source_required,
         "eligible_candidate_count": int(len(eligible)),
@@ -696,6 +729,10 @@ def build_decision_rules(args: argparse.Namespace, selection: dict[str, Any]) ->
                 "implication": "A calibrated router delta can only pass selection when its route-KD and top-1 agreement transfer from the training cache to the held-out selection cache.",
             },
             {
+                "claim": "Token-row random validation can leak prompt-specific routing patterns.",
+                "implication": "By default the selector requires group-heldout validation, so every prompt/batch group used for selection is absent from the router-delta training rows.",
+            },
+            {
                 "claim": "A better unified algorithm needs an abstention rule.",
                 "implication": "When no calibrated cap is non-dominated by the frozen-router baseline/source endpoints, the correct same-shape output is the baseline/no-router-move candidate.",
             },
@@ -705,6 +742,11 @@ def build_decision_rules(args: argparse.Namespace, selection: dict[str, Any]) ->
             "Both source endpoint evals must be complete unless --allow-missing-source-eval is explicitly set.",
             "Every cap candidate must have a materialized delta audit and vLLM eval before final selection.",
             "Every cap candidate must have router training metrics with hard top-1/top-k route-load statistics.",
+            (
+                "Router route-KD validation must use group-heldout prompt/batch splits "
+                f"with at least {args.min_train_groups} train groups and {args.min_validation_groups} validation groups, "
+                "unless --allow-row-validation is explicitly set."
+            ),
             "The audit must show only router tensors changed, with no shape/dtype mismatch.",
             "The maximum per-router relative delta norm must stay inside the planned cap.",
             f"Hard top-1 route capacity overflow may not exceed {args.max_top1_capacity_overflow}.",
@@ -760,6 +802,7 @@ def build_report(
         f"- Audit completed: `{selection['audit_completed']}`",
         f"- Training completed: `{selection['training_completed']}`",
         f"- Capacity metrics completed: `{selection['capacity_metrics_completed']}`",
+        f"- Group validation completed: `{selection['group_validation_completed']}`",
         f"- Eligible candidates: `{selection['eligible_candidate_count']}/{selection['candidate_count']}`",
         "",
         "## Baseline",
@@ -775,8 +818,8 @@ def build_report(
         "",
         "## Candidate Gate",
         "",
-        "| cap | method | split | selected epoch | KL gap | top1 drop | decision | avg delta | worst delta | worst task delta | router max rel | top1/top-k overflow | top1/top-k increase | load pass | gen pass | router-only | cap pass | score | reason |",
-        "| ---: | --- | --- | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- | ---: | --- |",
+        "| cap | method | split | groups | selected epoch | KL gap | top1 drop | decision | avg delta | worst delta | worst task delta | router max rel | top1/top-k overflow | top1/top-k increase | load pass | gen pass | group pass | router-only | cap pass | score | reason |",
+        "| ---: | --- | --- | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- | --- | ---: | --- |",
     ]
     for _, row in table.iterrows():
         overflow_text = (
@@ -789,7 +832,9 @@ def build_report(
         )
         lines.append(
             f"| {fmt(row['router_max_relative_norm'])} | `{row['method']}` | "
-            f"`{row.get('selection_split')}` | {fmt(row.get('mean_selected_epoch'), 1)} | "
+            f"`{row.get('selection_split')}` | "
+            f"{fmt(row.get('mean_train_group_count'), 1)}/{fmt(row.get('mean_validation_group_count'), 1)} | "
+            f"{fmt(row.get('mean_selected_epoch'), 1)} | "
             f"{fmt(row.get('max_route_kl_generalization_gap'))} | "
             f"{fmt(row.get('max_top1_generalization_drop'))} | `{row['decision']}` | "
             f"{fmt(row.get('delta_vs_baseline_avg_primary_score'))} | "
@@ -798,6 +843,7 @@ def build_report(
             f"{fmt(row.get('router_max_relative_delta_norm'))} | {overflow_text} | "
             f"{increase_text} | "
             f"`{row.get('router_load_capacity_passed')}` | `{row.get('router_generalization_passed')}` | "
+            f"`{row.get('group_validation_passed')}` | "
             f"`{row.get('router_only_changed')}` | "
             f"`{row.get('cap_passed')}` | {fmt(row.get('selection_score'))} | `{row.get('decision_reason')}` |"
         )
@@ -975,6 +1021,8 @@ def write_training_dir(
     final_top1_overflow: float,
     initial_topk_overflow: float,
     final_topk_overflow: float,
+    *,
+    selection_split: str = "group_validation",
 ) -> None:
     root.mkdir(parents=True, exist_ok=True)
     top1_increase = final_top1_overflow - initial_top1_overflow
@@ -988,7 +1036,7 @@ def write_training_dir(
         "mean_final_top1_agreement": min(0.95, 0.70 + cap * 2),
         "max_final_relative_delta_norm": cap,
         "selection_policy": "capacity_aware",
-        "selection_split": "validation",
+        "selection_split": selection_split,
         "mean_train_samples": 128.0,
         "mean_selection_samples": 32.0,
         "mean_validation_fraction": 0.2,
@@ -1080,9 +1128,57 @@ def write_smoke_inputs(output_dir: Path) -> Path:
     )
 
     specs = [
-        ("cap001", 0.010, 0.008, False, 0.000, 0.000, 0.000, 0.000, 0.501, 0.300, 0.421, 0.529, 0.620, 0.300),
-        ("cap0025", 0.025, 0.022, False, 0.010, 0.015, 0.005, 0.020, 0.515, 0.310, 0.430, 0.535, 0.620, 0.320),
-        ("cap005", 0.050, 0.071, True, 0.030, 0.090, 0.015, 0.040, 0.525, 0.315, 0.435, 0.540, 0.620, 0.340),
+        (
+            "cap001",
+            0.010,
+            0.008,
+            False,
+            "group_validation",
+            0.000,
+            0.000,
+            0.000,
+            0.000,
+            0.501,
+            0.300,
+            0.421,
+            0.529,
+            0.620,
+            0.300,
+        ),
+        (
+            "cap0025",
+            0.025,
+            0.022,
+            False,
+            "group_validation",
+            0.010,
+            0.015,
+            0.005,
+            0.020,
+            0.515,
+            0.310,
+            0.430,
+            0.535,
+            0.620,
+            0.320,
+        ),
+        (
+            "cap005",
+            0.050,
+            0.071,
+            True,
+            "group_validation",
+            0.030,
+            0.090,
+            0.015,
+            0.040,
+            0.525,
+            0.315,
+            0.435,
+            0.540,
+            0.620,
+            0.340,
+        ),
     ]
     candidate_rows = []
     for idx, (
@@ -1090,6 +1186,7 @@ def write_smoke_inputs(output_dir: Path) -> Path:
         cap,
         router_max,
         non_router_changed,
+        selection_split,
         initial_top1_overflow,
         final_top1_overflow,
         initial_topk_overflow,
@@ -1112,6 +1209,7 @@ def write_smoke_inputs(output_dir: Path) -> Path:
             final_top1_overflow,
             initial_topk_overflow,
             final_topk_overflow,
+            selection_split=selection_split,
         )
         write_audit_dir(audit_dir, cap, router_max, non_router_changed=non_router_changed)
         write_eval_dir(
@@ -1257,6 +1355,23 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=0.20,
         help="Reject router-calibrated candidates whose held-out top-1 agreement drops too much below train top-1.",
+    )
+    parser.add_argument(
+        "--min-train-groups",
+        type=int,
+        default=1,
+        help="Minimum group-heldout training groups required for router calibration acceptance.",
+    )
+    parser.add_argument(
+        "--min-validation-groups",
+        type=int,
+        default=1,
+        help="Minimum group-heldout validation groups required for router calibration acceptance.",
+    )
+    parser.add_argument(
+        "--allow-row-validation",
+        action="store_true",
+        help="Debug escape hatch: allow row-level validation splits instead of requiring group-heldout prompt/batch splits.",
     )
     parser.add_argument(
         "--allow-missing-source-eval",

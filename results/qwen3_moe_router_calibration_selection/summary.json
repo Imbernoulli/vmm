@@ -24,6 +24,7 @@
     "candidate_eval_completed": false,
     "capacity_metrics_completed": false,
     "eligible_candidate_count": 0,
+    "group_validation_completed": false,
     "reason": "Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps.",
     "schema_version": 1,
     "selected_method": null,

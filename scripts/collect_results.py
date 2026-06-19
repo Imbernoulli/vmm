@@ -1206,6 +1206,7 @@ def summarize_qwen3_moe_router_calibration_job() -> dict[str, Any]:
         "candidate_count": int(summary.get("candidate_count", len(candidate_plan))),
         "stage_count": int(summary.get("stage_count", len(stage_plan))),
         "mechanism": summary.get("mechanism"),
+        "router_validation_gate": summary.get("router_validation_gate"),
         "source_rows": [clean_row(row) for _, row in source_plan.iterrows()],
         "candidate_rows": [clean_row(row) for _, row in candidate_plan.iterrows()],
         "stage_rows": [clean_row(row) for _, row in stage_plan.iterrows()],
@@ -1235,6 +1236,7 @@ def summarize_qwen3_moe_router_calibration_selection() -> dict[str, Any]:
         "audit_completed": bool(selection.get("audit_completed", False)),
         "training_completed": bool(selection.get("training_completed", False)),
         "capacity_metrics_completed": bool(selection.get("capacity_metrics_completed", False)),
+        "group_validation_completed": bool(selection.get("group_validation_completed", False)),
         "source_eval_completed": bool(selection.get("source_eval_completed", False)),
         "eligible_candidate_count": int(selection.get("eligible_candidate_count", len(eligible))),
         "candidate_count": int(selection.get("candidate_count", len(table))),
@@ -3802,9 +3804,10 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_router_calibration_selection['audit_completed']} |"
             ),
             (
-                "| Qwen3 MoE router calibration selector | training / hard route-load metrics | "
+                "| Qwen3 MoE router calibration selector | training / hard route-load / group validation | "
                 f"{qwen3_moe_router_calibration_selection['training_completed']} / "
-                f"{qwen3_moe_router_calibration_selection['capacity_metrics_completed']} |"
+                f"{qwen3_moe_router_calibration_selection['capacity_metrics_completed']} / "
+                f"{qwen3_moe_router_calibration_selection['group_validation_completed']} |"
             ),
             (
                 "| Qwen3 MoE cap-law search | searched / frontier / expert groups | "

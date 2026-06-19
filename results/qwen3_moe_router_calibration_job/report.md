@@ -11,11 +11,14 @@
 - Baseline eval dir: `results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate`
 - Source control count: `2`
 - Candidate count: `3`
+- Router validation gate: `require_group_heldout_prompt_batch_validation`
 - Selection output: `results/qwen3_moe_router_calibration_selection/summary.json`
 
 ## Why This Ablation
 
 Direct Instruct/Coder router weight movement was rejected by the router move gate. This job tests a narrower mechanism: keep the best frozen-router expert candidate fixed, then add a small route-KD router delta learned from real hidden states and teacher logits. If downstream scores improve without routing collapse, router calibration becomes a valid next component; otherwise the unified rule keeps router frozen.
+
+The selector requires group-heldout route-KD validation by default: prompt/batch groups used for selection must be absent from router-delta training rows. This prevents a row-level random split from overstating router generalization.
 
 ## Source Controls
 

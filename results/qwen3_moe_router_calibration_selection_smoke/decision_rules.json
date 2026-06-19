@@ -4,6 +4,7 @@
     "Both source endpoint evals must be complete unless --allow-missing-source-eval is explicitly set.",
     "Every cap candidate must have a materialized delta audit and vLLM eval before final selection.",
     "Every cap candidate must have router training metrics with hard top-1/top-k route-load statistics.",
+    "Router route-KD validation must use group-heldout prompt/batch splits with at least 1 train groups and 1 validation groups, unless --allow-row-validation is explicitly set.",
     "The audit must show only router tensors changed, with no shape/dtype mismatch.",
     "The maximum per-router relative delta norm must stay inside the planned cap.",
     "Hard top-1 route capacity overflow may not exceed 0.1.",
@@ -25,6 +26,7 @@
     "candidate_eval_completed": true,
     "capacity_metrics_completed": true,
     "eligible_candidate_count": 1,
+    "group_validation_completed": true,
     "reason": "Selected the router-calibrated cap that improved downstream scores, stayed within cap, changed only router tensors, and was not source dominated.",
     "schema_version": 1,
     "selected_method": "smoke_router_calibrated_cap0025",
@@ -99,6 +101,10 @@
     {
       "claim": "Router probes need held-out evidence.",
       "implication": "A calibrated router delta can only pass selection when its route-KD and top-1 agreement transfer from the training cache to the held-out selection cache."
+    },
+    {
+      "claim": "Token-row random validation can leak prompt-specific routing patterns.",
+      "implication": "By default the selector requires group-heldout validation, so every prompt/batch group used for selection is absent from the router-delta training rows."
     },
     {
       "claim": "A better unified algorithm needs an abstention rule.",

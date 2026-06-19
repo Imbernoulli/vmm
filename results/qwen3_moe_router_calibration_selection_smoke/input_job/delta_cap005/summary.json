@@ -46,6 +46,6 @@
   },
   "schema_version": 2,
   "selection_policy": "capacity_aware",
-  "selection_split": "validation",
+  "selection_split": "group_validation",
   "status": "passed"
 }

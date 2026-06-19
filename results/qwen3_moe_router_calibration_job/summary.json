@@ -21,6 +21,7 @@
     0.025,
     0.05
   ],
+  "router_validation_gate": "require_group_heldout_prompt_batch_validation",
   "run_script_command": "results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh all",
   "schema_version": 1,
   "source_control_count": 2,

@@ -29,6 +29,7 @@
     "candidate_eval_completed": true,
     "capacity_metrics_completed": true,
     "eligible_candidate_count": 1,
+    "group_validation_completed": true,
     "reason": "Selected the router-calibrated cap that improved downstream scores, stayed within cap, changed only router tensors, and was not source dominated.",
     "schema_version": 1,
     "selected_method": "smoke_router_calibrated_cap0025",
