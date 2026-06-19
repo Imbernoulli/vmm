@@ -108,10 +108,13 @@ def collect_artifacts() -> list[dict[str, Any]]:
     ]
     suffixes = {".py", ".md", ".csv", ".json", ".jsonl", ".txt", ".png", ".html"}
     excluded_files = {
-        "scripts/fp_moe_real_probe.py",  # incomplete: current OLMoE run did not identify MoE layers
+        "scripts/fp_merge_compare.py",  # incomplete: current run only produced a log
+        "scripts/fp_moe_barrier.py",  # incomplete: current run only produced a log
     }
     excluded_prefixes = {
-        "results/fp_moe_real_probe/",
+        "results/fp_merge_compare_dense/",
+        "results/fp_moe_barrier/",
+        "results/fp_moe_real_probe/olmoe/",
     }
     files: list[Path] = []
     for root in roots:
@@ -1220,6 +1223,40 @@ def summarize_fp_moe_mechanism() -> dict[str, Any]:
     }
 
 
+def summarize_fp_moe_real_probe() -> dict[str, Any]:
+    root = repo_path("results/fp_moe_real_probe")
+    summary = read_json(root / "summary.json")
+    qwen_cross_path = root / "qwen3_instruct_coder" / "cross_correspondence.json"
+    qwen_cross = read_json(qwen_cross_path) if qwen_cross_path.exists() else None
+    return {
+        "summary": summary,
+        "model": summary.get("model"),
+        "n_moe_layers": int(summary.get("n_moe_layers", 0)),
+        "moe_format": summary.get("moe_format"),
+        "num_experts": maybe_int(summary.get("num_experts")),
+        "baseline_nll": maybe_float(summary.get("baseline_nll")),
+        "gauge_permuted_nll": maybe_float(summary.get("gauge_permuted_nll")),
+        "naive_same_name_average_nll": maybe_float(summary.get("naive_sameNAME_average_nll")),
+        "aligned_average_nll": maybe_float(summary.get("aligned_average_nll")),
+        "naive_degradation_vs_baseline": maybe_float(summary.get("naive_degradation_vs_baseline")),
+        "aligned_degradation_vs_baseline": maybe_float(summary.get("aligned_degradation_vs_baseline")),
+        "layers_perm_recovered": maybe_int(summary.get("layers_perm_recovered")),
+        "qwen3_cross": qwen_cross,
+        "qwen3_frac_layers_identity_optimal": None
+        if qwen_cross is None
+        else maybe_float(qwen_cross.get("frac_layers_identity_optimal")),
+        "qwen3_mean_argmax_is_identity_frac": None
+        if qwen_cross is None
+        else maybe_float(qwen_cross.get("mean_argmax_is_identity_frac")),
+        "qwen3_mean_diag_cos": None if qwen_cross is None else maybe_float(qwen_cross.get("mean_diag_cos")),
+        "qwen3_mean_matched_cos": None if qwen_cross is None else maybe_float(qwen_cross.get("mean_matched_cos")),
+        "report": rel(root / "report.md"),
+        "summary_path": rel(root / "summary.json"),
+        "gauge_selfmerge": rel(root / "gauge_selfmerge.json"),
+        "qwen3_cross_correspondence": rel(qwen_cross_path) if qwen_cross_path.exists() else None,
+    }
+
+
 def summarize_toy_moe_routing_readiness() -> dict[str, Any]:
     summary = read_json("results/toy_moe_routing_readiness/summary.json")
     router_readiness = read_csv("results/toy_moe_routing_readiness/router_readiness.csv")
@@ -1985,6 +2022,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/fp_moe_mechanism/report.md isolates function-preserving expert permutation, expert alignment, router calibration, and Fisher ablations with real forward/backward passes.",
         },
         {
+            "item": "Real MoE expert-gauge self-merge probe",
+            "status": "complete",
+            "evidence": "results/fp_moe_real_probe/report.md runs a function-preserving expert/router permutation on a real packed OLMoE checkpoint and shows same-name averaging fails unless expert identity is recovered.",
+        },
+        {
             "item": "Toy MoE multi-method routing readiness",
             "status": "complete",
             "evidence": "results/toy_moe_routing_readiness/report.md applies the generic readiness gate to toy MoE methods and flags all-weight routing drift separately from expert-matched/route-aware variants.",
@@ -2046,6 +2088,7 @@ def build_summary() -> dict[str, Any]:
         "moe_routing_readiness": summarize_moe_routing_readiness(),
         "toy_moe_merge": summarize_toy_moe_merge(),
         "fp_moe_mechanism": summarize_fp_moe_mechanism(),
+        "fp_moe_real_probe": summarize_fp_moe_real_probe(),
         "toy_moe_routing_readiness": summarize_toy_moe_routing_readiness(),
         "toy_moe_method_selection": summarize_toy_moe_method_selection(),
         "toy_moe_expert_remap_plan": summarize_toy_moe_expert_remap_plan(),
@@ -2104,6 +2147,7 @@ def build_summary() -> dict[str, Any]:
             "PYTHONPATH=src python scripts/run_qwen_multi_expert_merge.py --output-dir results/qwen_multi_expert_merge",
             "python scripts/fp_curvature_law.py --out results/fp_curvature_law",
             "python scripts/fp_moe_mechanism.py --out results/fp_moe_mechanism --base-steps 700 --ft-steps 500",
+            "python scripts/fp_moe_real_probe.py --mode gauge_selfmerge --model-a allenai/OLMoE-1B-7B-0924-Instruct --out results/fp_moe_real_probe --n-probe 4 --seqlen 128",
             "PYTHONPATH=src python scripts/run_toy_moe_merge.py --output-dir results/toy_moe_merge --device cpu",
             "PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir results/toy_moe_merge --output-dir results/toy_moe_routing_readiness --topology-summary ''",
             "PYTHONPATH=src python scripts/select_moe_merge_method.py",
@@ -2201,6 +2245,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     routing_readiness = exp["moe_routing_readiness"]
     toy_moe = exp["toy_moe_merge"]
     fp_moe = exp["fp_moe_mechanism"]
+    fp_moe_real = exp["fp_moe_real_probe"]
     selected_unified_capacity = toy_moe.get("unified_moe_capacity_sweep_selected") or {}
     selected_unified_output_projection_capacity = (
         toy_moe.get("unified_output_projection_moe_capacity_sweep_selected") or {}
@@ -2395,6 +2440,25 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| first-principles MoE mechanism | Fisher worst-loss reduction after alignment | "
                 f"{fmt(fp_moe['route_conditioned_fisher'].get('worst_loss_reduction'))} |"
+            ),
+            (
+                "| real MoE gauge self-merge | baseline / same-name / aligned NLL | "
+                f"{fmt(fp_moe_real['baseline_nll'])} / "
+                f"{fmt(fp_moe_real['naive_same_name_average_nll'])} / "
+                f"{fmt(fp_moe_real['aligned_average_nll'])} |"
+            ),
+            (
+                "| real MoE gauge self-merge | same-name degradation vs baseline | "
+                f"{fmt(fp_moe_real['naive_degradation_vs_baseline'])} |"
+            ),
+            (
+                "| real MoE gauge self-merge | recovered expert permutations | "
+                f"{fp_moe_real['layers_perm_recovered']} / {fp_moe_real['n_moe_layers']} |"
+            ),
+            (
+                "| real Qwen3 MoE correspondence | identity-optimal layers / mean diag cosine | "
+                f"{fmt(fp_moe_real['qwen3_frac_layers_identity_optimal'])} / "
+                f"{fmt(fp_moe_real['qwen3_mean_diag_cos'])} |"
             ),
             (
                 "| toy MoE route-aware merge | all-weight average worst accuracy | "

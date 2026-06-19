@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T17:20:25.496468+00:00`
+Generated at: `2026-06-19T17:33:45.008708+00:00`
 
 ## Coverage
 
-Complete: `53`; partial: `1`; missing: `0`.
+Complete: `54`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -58,6 +58,7 @@ Complete: `53`; partial: `1`; missing: `0`.
 | MoE routing probe smoke | complete | results/moe_routing_probe_smoke/report.md proves the routing probe captures two tiny MoE gates and produces router, expert-load, token-route, comparison, and route-overlap CSVs. |
 | Toy MoE route-aware merge | complete | results/toy_moe_merge/report.md runs a small same-shape MoE averaging experiment showing expert-index mismatch and expert-matched/router-calibrated fixes. |
 | First-principles MoE mechanism probe | complete | results/fp_moe_mechanism/report.md isolates function-preserving expert permutation, expert alignment, router calibration, and Fisher ablations with real forward/backward passes. |
+| Real MoE expert-gauge self-merge probe | complete | results/fp_moe_real_probe/report.md runs a function-preserving expert/router permutation on a real packed OLMoE checkpoint and shows same-name averaging fails unless expert identity is recovered. |
 | Toy MoE multi-method routing readiness | complete | results/toy_moe_routing_readiness/report.md applies the generic readiness gate to toy MoE methods and flags all-weight routing drift separately from expert-matched/route-aware variants. |
 | Toy MoE merge method selection | complete | results/toy_moe_method_selection/report.md combines method metrics, routing readiness, and sparse capacity overflow into materialization gates plus a hard-top2/overflow Pareto frontier. |
 | Toy MoE expert remap plan | complete | results/toy_moe_expert_remap_plan/report.md turns expert-output matching into source tensor alias rules for same-shape checkpoint materialization. |
@@ -102,6 +103,10 @@ Complete: `53`; partial: `1`; missing: `0`.
 | first-principles MoE mechanism | same-name to aligned worst loss | 0.511 to 0.125 |
 | first-principles MoE mechanism | aligned + router-calibrated worst loss | 0.110 |
 | first-principles MoE mechanism | Fisher worst-loss reduction after alignment | -0.027 |
+| real MoE gauge self-merge | baseline / same-name / aligned NLL | 4.168 / 9.659 / 4.168 |
+| real MoE gauge self-merge | same-name degradation vs baseline | 5.491 |
+| real MoE gauge self-merge | recovered expert permutations | 16 / 16 |
+| real Qwen3 MoE correspondence | identity-optimal layers / mean diag cosine | 1.000 / 0.183 |
 | toy MoE route-aware merge | all-weight average worst accuracy | 0.545 |
 | toy MoE route-aware merge | expert-matched average worst accuracy | 0.750 |
 | toy MoE connectivity | best path / barrier | direct_matched_general_to_code / 0.000 |

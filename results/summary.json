@@ -251,6 +251,11 @@
       "status": "complete"
     },
     {
+      "evidence": "results/fp_moe_real_probe/report.md runs a function-preserving expert/router permutation on a real packed OLMoE checkpoint and shows same-name averaging fails unless expert identity is recovered.",
+      "item": "Real MoE expert-gauge self-merge probe",
+      "status": "complete"
+    },
+    {
       "evidence": "results/toy_moe_routing_readiness/report.md applies the generic readiness gate to toy MoE methods and flags all-weight routing drift separately from expert-matched/route-aware variants.",
       "item": "Toy MoE multi-method routing readiness",
       "status": "complete"
@@ -272,7 +277,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 53,
+    "complete": 54,
     "missing": 0,
     "partial": 1
   },
@@ -2487,6 +2492,536 @@
         "method": "uniform_same_name_routercal",
         "worst": 0.3293238580226898
       }
+    },
+    "fp_moe_real_probe": {
+      "aligned_average_nll": 4.167833403339536,
+      "aligned_degradation_vs_baseline": 0.0,
+      "baseline_nll": 4.167833403339536,
+      "gauge_permuted_nll": 4.165615952859714,
+      "gauge_selfmerge": "results/fp_moe_real_probe/gauge_selfmerge.json",
+      "layers_perm_recovered": 16,
+      "model": "allenai/OLMoE-1B-7B-0924-Instruct",
+      "moe_format": "packed",
+      "n_moe_layers": 16,
+      "naive_degradation_vs_baseline": 5.490968298724317,
+      "naive_same_name_average_nll": 9.658801702063853,
+      "num_experts": 64,
+      "qwen3_cross": {
+        "base": "Qwen/Qwen3-30B-A3B-Base",
+        "frac_layers_identity_optimal": 1.0,
+        "mean_argmax_is_identity_frac": 1.0,
+        "mean_diag_cos": 0.18304558439801136,
+        "mean_matched_cos": 0.1830455856397748,
+        "mean_offdiag_cos": 0.00013665722265917188,
+        "model_a": "Qwen/Qwen3-30B-A3B-Instruct-2507",
+        "model_b": "Qwen/Qwen3-Coder-30B-A3B-Instruct",
+        "n_layers": 48,
+        "per_layer": [
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.1871880292892456,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.1871880292892456,
+            "n_experts": 128,
+            "offdiag_mean_cos": 3.1437459256267175e-05,
+            "prefix": "model.layers.0.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.18345727026462555,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.18345727026462555,
+            "n_experts": 128,
+            "offdiag_mean_cos": 7.190514588728547e-05,
+            "prefix": "model.layers.1.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.1853054314851761,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.18530544638633728,
+            "n_experts": 128,
+            "offdiag_mean_cos": 9.786965529201552e-05,
+            "prefix": "model.layers.2.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.17905619740486145,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.17905619740486145,
+            "n_experts": 128,
+            "offdiag_mean_cos": 0.00011252770491410047,
+            "prefix": "model.layers.3.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.179531067609787,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.179531067609787,
+            "n_experts": 128,
+            "offdiag_mean_cos": 0.00016572860477026552,
+            "prefix": "model.layers.4.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.18141737580299377,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.18141740560531616,
+            "n_experts": 128,
+            "offdiag_mean_cos": 0.00016432742995675653,
+            "prefix": "model.layers.5.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.18312682211399078,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.18312682211399078,
+            "n_experts": 128,
+            "offdiag_mean_cos": 0.00040408194763585925,
+            "prefix": "model.layers.6.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.18348123133182526,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.18348121643066406,
+            "n_experts": 128,
+            "offdiag_mean_cos": 0.0003917497815564275,
+            "prefix": "model.layers.7.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.18097665905952454,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.18097665905952454,
+            "n_experts": 128,
+            "offdiag_mean_cos": 0.00019480357877910137,
+            "prefix": "model.layers.8.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.18245425820350647,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.18245425820350647,
+            "n_experts": 128,
+            "offdiag_mean_cos": 0.00015392793284263462,
+            "prefix": "model.layers.9.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.1860615611076355,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.1860615313053131,
+            "n_experts": 128,
+            "offdiag_mean_cos": 0.00011448433360783383,
+            "prefix": "model.layers.10.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.18609705567359924,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.18609705567359924,
+            "n_experts": 128,
+            "offdiag_mean_cos": 0.00010634301725076512,
+            "prefix": "model.layers.11.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.1863740086555481,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.1863740235567093,
+            "n_experts": 128,
+            "offdiag_mean_cos": 9.847003821050748e-05,
+            "prefix": "model.layers.12.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.18440833687782288,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.18440836668014526,
+            "n_experts": 128,
+            "offdiag_mean_cos": 7.698221452301368e-05,
+            "prefix": "model.layers.13.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.18269133567810059,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.18269133567810059,
+            "n_experts": 128,
+            "offdiag_mean_cos": 9.235199831891805e-05,
+            "prefix": "model.layers.14.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.18297626078128815,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.18297626078128815,
+            "n_experts": 128,
+            "offdiag_mean_cos": 0.00013220931577961892,
+            "prefix": "model.layers.15.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.18428410589694977,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.18428410589694977,
+            "n_experts": 128,
+            "offdiag_mean_cos": 0.0001856684684753418,
+            "prefix": "model.layers.16.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.18388046324253082,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.18388046324253082,
+            "n_experts": 128,
+            "offdiag_mean_cos": 0.00016848613449838012,
+            "prefix": "model.layers.17.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.1798236072063446,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.1798236221075058,
+            "n_experts": 128,
+            "offdiag_mean_cos": 0.0005118686240166426,
+            "prefix": "model.layers.18.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.1785438358783722,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.17854386568069458,
+            "n_experts": 128,
+            "offdiag_mean_cos": 0.0004397298616822809,
+            "prefix": "model.layers.19.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.1797630339860916,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.1797630488872528,
+            "n_experts": 128,
+            "offdiag_mean_cos": 0.00025505226221866906,
+            "prefix": "model.layers.20.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.1825961172580719,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.1825961172580719,
+            "n_experts": 128,
+            "offdiag_mean_cos": 0.0002463824930600822,
+            "prefix": "model.layers.21.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.18305136263370514,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.18305134773254395,
+            "n_experts": 128,
+            "offdiag_mean_cos": 0.00017503302660770714,
+            "prefix": "model.layers.22.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.18140380084514618,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.18140380084514618,
+            "n_experts": 128,
+            "offdiag_mean_cos": 0.00014305420336313546,
+            "prefix": "model.layers.23.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.18123894929885864,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.18123891949653625,
+            "n_experts": 128,
+            "offdiag_mean_cos": 0.00014817538612987846,
+            "prefix": "model.layers.24.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.18183398246765137,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.18183398246765137,
+            "n_experts": 128,
+            "offdiag_mean_cos": 0.00011534789518918842,
+            "prefix": "model.layers.25.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.18478286266326904,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.18478286266326904,
+            "n_experts": 128,
+            "offdiag_mean_cos": 0.0001217160897795111,
+            "prefix": "model.layers.26.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.1849873811006546,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.1849873661994934,
+            "n_experts": 128,
+            "offdiag_mean_cos": 0.00013404111086856574,
+            "prefix": "model.layers.27.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.18315419554710388,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.1831541806459427,
+            "n_experts": 128,
+            "offdiag_mean_cos": 0.0001349565281998366,
+            "prefix": "model.layers.28.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.18320611119270325,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.18320611119270325,
+            "n_experts": 128,
+            "offdiag_mean_cos": 0.00011406170233385637,
+            "prefix": "model.layers.29.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.18013565242290497,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.18013566732406616,
+            "n_experts": 128,
+            "offdiag_mean_cos": 0.0002272158453706652,
+            "prefix": "model.layers.30.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.1820167750120163,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.1820167750120163,
+            "n_experts": 128,
+            "offdiag_mean_cos": 0.0002280561748193577,
+            "prefix": "model.layers.31.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.18260933458805084,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.18260934948921204,
+            "n_experts": 128,
+            "offdiag_mean_cos": 0.0001295125694014132,
+            "prefix": "model.layers.32.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.18215079605579376,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.18215078115463257,
+            "n_experts": 128,
+            "offdiag_mean_cos": 7.205309520941228e-05,
+            "prefix": "model.layers.33.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.1835022270679474,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.1835022270679474,
+            "n_experts": 128,
+            "offdiag_mean_cos": 6.158567703096196e-05,
+            "prefix": "model.layers.34.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.18421882390975952,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.18421883881092072,
+            "n_experts": 128,
+            "offdiag_mean_cos": 4.070281647727825e-05,
+            "prefix": "model.layers.35.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.18703696131706238,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.18703696131706238,
+            "n_experts": 128,
+            "offdiag_mean_cos": 4.6689092414453626e-05,
+            "prefix": "model.layers.36.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.18727362155914307,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.18727362155914307,
+            "n_experts": 128,
+            "offdiag_mean_cos": 4.939911013934761e-05,
+            "prefix": "model.layers.37.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.18506062030792236,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.18506062030792236,
+            "n_experts": 128,
+            "offdiag_mean_cos": 3.6406938306754455e-05,
+            "prefix": "model.layers.38.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.1863996684551239,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.1863996982574463,
+            "n_experts": 128,
+            "offdiag_mean_cos": 4.3934607674600556e-05,
+            "prefix": "model.layers.39.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.18616560101509094,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.18616557121276855,
+            "n_experts": 128,
+            "offdiag_mean_cos": 4.2332554585300386e-05,
+            "prefix": "model.layers.40.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.18616850674152374,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.18616852164268494,
+            "n_experts": 128,
+            "offdiag_mean_cos": 3.947704681195319e-05,
+            "prefix": "model.layers.41.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.1842833161354065,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.1842833161354065,
+            "n_experts": 128,
+            "offdiag_mean_cos": 3.8619818951701745e-05,
+            "prefix": "model.layers.42.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.17993994057178497,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.17993994057178497,
+            "n_experts": 128,
+            "offdiag_mean_cos": 3.227603156119585e-05,
+            "prefix": "model.layers.43.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.17693255841732025,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.17693254351615906,
+            "n_experts": 128,
+            "offdiag_mean_cos": 3.794586518779397e-05,
+            "prefix": "model.layers.44.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.1787865310907364,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.17878654599189758,
+            "n_experts": 128,
+            "offdiag_mean_cos": 3.601000571507029e-05,
+            "prefix": "model.layers.45.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.17973044514656067,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.17973044514656067,
+            "n_experts": 128,
+            "offdiag_mean_cos": 4.2760464566526935e-05,
+            "prefix": "model.layers.46.mlp"
+          },
+          {
+            "argmax_is_identity_frac": 1.0,
+            "diag_mean_cos": 0.1866239607334137,
+            "hamming_to_identity": 0,
+            "identity_optimal": true,
+            "matched_mean_cos": 0.1866239458322525,
+            "n_experts": 128,
+            "offdiag_mean_cos": 5.179502841201611e-05,
+            "prefix": "model.layers.47.mlp"
+          }
+        ]
+      },
+      "qwen3_cross_correspondence": "results/fp_moe_real_probe/qwen3_instruct_coder/cross_correspondence.json",
+      "qwen3_frac_layers_identity_optimal": 1.0,
+      "qwen3_mean_argmax_is_identity_frac": 1.0,
+      "qwen3_mean_diag_cos": 0.18304558439801136,
+      "qwen3_mean_matched_cos": 0.1830455856397748,
+      "report": "results/fp_moe_real_probe/report.md",
+      "summary": {
+        "aligned_average_nll": 4.167833403339536,
+        "aligned_degradation_vs_baseline": 0.0,
+        "baseline_nll": 4.167833403339536,
+        "gauge_degradation_vs_baseline": -0.002217450479822247,
+        "gauge_permuted_nll": 4.165615952859714,
+        "layers_perm_recovered": 16,
+        "model": "allenai/OLMoE-1B-7B-0924-Instruct",
+        "moe_format": "packed",
+        "n_moe_layers": 16,
+        "naive_degradation_vs_baseline": 5.490968298724317,
+        "naive_sameNAME_average_nll": 9.658801702063853,
+        "num_experts": 64,
+        "num_probe_sequences": 4,
+        "sequence_length": 128
+      },
+      "summary_path": "results/fp_moe_real_probe/summary.json"
     },
     "model_averaging_literature_review": {
       "dense_recommendation": "Treat uniform averaging as a low-barrier baseline; escalate to conflict-aware, importance-aware, or coefficient-learned averages only when probes justify them.",
@@ -10627,7 +11162,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-19T17:20:25.496468+00:00",
+  "generated_at": "2026-06-19T17:33:45.008708+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -10645,6 +11180,7 @@
     "PYTHONPATH=src python scripts/run_qwen_multi_expert_merge.py --output-dir results/qwen_multi_expert_merge",
     "python scripts/fp_curvature_law.py --out results/fp_curvature_law",
     "python scripts/fp_moe_mechanism.py --out results/fp_moe_mechanism --base-steps 700 --ft-steps 500",
+    "python scripts/fp_moe_real_probe.py --mode gauge_selfmerge --model-a allenai/OLMoE-1B-7B-0924-Instruct --out results/fp_moe_real_probe --n-probe 4 --seqlen 128",
     "PYTHONPATH=src python scripts/run_toy_moe_merge.py --output-dir results/toy_moe_merge --device cpu",
     "PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir results/toy_moe_merge --output-dir results/toy_moe_routing_readiness --topology-summary ''",
     "PYTHONPATH=src python scripts/select_moe_merge_method.py",

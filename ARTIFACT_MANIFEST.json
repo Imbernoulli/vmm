@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 47337,
+      "bytes": 48267,
       "kind": "document",
       "path": "README.md",
-      "sha256": "962df636ca55c8dc689f66028a04073ffe9f10dc5ca844b35e25785f8028f554"
+      "sha256": "0c59e883c2c445ade03b5e0e3b826c67c8e51841dab8806403517113554794a1"
     },
     {
       "bytes": 33211,
@@ -761,6 +761,30 @@
       "kind": "data",
       "path": "results/fp_moe_mechanism_identity/summary.json",
       "sha256": "bb456f2bcb942b1c330296036f3aba8981360f124003e8e7dd3c1a0a06d4754c"
+    },
+    {
+      "bytes": 533,
+      "kind": "data",
+      "path": "results/fp_moe_real_probe/gauge_selfmerge.json",
+      "sha256": "e0a591a184c99a716711c4ccc4890587f77e9044fd3a98fa1e63d21bd9fafa75"
+    },
+    {
+      "bytes": 15581,
+      "kind": "data",
+      "path": "results/fp_moe_real_probe/qwen3_instruct_coder/cross_correspondence.json",
+      "sha256": "80145858a3bfdd14a9688b637cb4e677d9d58b3e70fced98c59311cf4be46b39"
+    },
+    {
+      "bytes": 1738,
+      "kind": "document",
+      "path": "results/fp_moe_real_probe/report.md",
+      "sha256": "791053835da91474905bf94073d6ebf346e8a1628bfb91e663f2aeda83406e14"
+    },
+    {
+      "bytes": 533,
+      "kind": "data",
+      "path": "results/fp_moe_real_probe/summary.json",
+      "sha256": "e0a591a184c99a716711c4ccc4890587f77e9044fd3a98fa1e63d21bd9fafa75"
     },
     {
       "bytes": 3046,
@@ -1837,16 +1861,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 481235,
+      "bytes": 501916,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "41b478ab4b867f5b5c6fd6ece6ae73fc3d5e4edafb3dd7e6e8b1026e9273385f"
+      "sha256": "7b2dd2b8de44c28de8a68ed966f84c25df43ed1540cbebe0e01afeee6d81e970"
     },
     {
-      "bytes": 27935,
+      "bytes": 28519,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "1e1e88f6b1f560f0d93de508680a8226859653e57cf6428d7da1ecf0633358c6"
+      "sha256": "02fac5ef9d9377945d8e15c30f9d6ca133ae372dee6530fe3c8956c21b5f4c7f"
     },
     {
       "bytes": 288,
@@ -2923,10 +2947,10 @@
       "sha256": "0b0e4be7ec51f0afb74dfdee6e3d8b217da9aac4d965a170bea36c89f1b46abb"
     },
     {
-      "bytes": 175126,
+      "bytes": 178866,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "5ab3cb1843d37594fcf258d2bbc3ad52e77b1711c01103cfd0f876e7363e0790"
+      "sha256": "d765fe8ea9a07439ae2632b893c29a63af53184532b990483759b4815743229c"
     },
     {
       "bytes": 16101,
@@ -2939,6 +2963,12 @@
       "kind": "code",
       "path": "scripts/fp_moe_mechanism.py",
       "sha256": "e5da6ff9510167816ea27857dd64a70623413c4284c83e95cf9c710021b0e5e2"
+    },
+    {
+      "bytes": 21406,
+      "kind": "code",
+      "path": "scripts/fp_moe_real_probe.py",
+      "sha256": "c26cdf12b2f16d420aca70318d1b76ec3db6a539f50da7af2b344bf24ece8a47"
     },
     {
       "bytes": 19422,
@@ -3115,7 +3145,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T17:20:25.532743+00:00",
+  "generated_at": "2026-06-19T17:33:45.059286+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

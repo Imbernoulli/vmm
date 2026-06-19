@@ -1,0 +1,16 @@
+{
+  "model": "allenai/OLMoE-1B-7B-0924-Instruct",
+  "n_moe_layers": 16,
+  "moe_format": "packed",
+  "num_experts": 64,
+  "num_probe_sequences": 4,
+  "sequence_length": 128,
+  "baseline_nll": 4.167833403339536,
+  "gauge_permuted_nll": 4.165615952859714,
+  "naive_sameNAME_average_nll": 9.658801702063853,
+  "aligned_average_nll": 4.167833403339536,
+  "layers_perm_recovered": 16,
+  "naive_degradation_vs_baseline": 5.490968298724317,
+  "gauge_degradation_vs_baseline": -0.002217450479822247,
+  "aligned_degradation_vs_baseline": 0.0
+}
