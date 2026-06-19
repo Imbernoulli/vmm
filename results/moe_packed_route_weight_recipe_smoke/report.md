@@ -2,16 +2,16 @@
 
 这个报告把 MoE routing/expert-load probe 或显式 expert 权重转成同构 checkpoint writer 可以读取的 tensor-rule 权重。目标不是增加 experts 或做 ensemble，而是在原 expert 数、原 router shape 下，给每个 expert 设置更合理的 source delta 系数。
 
-- Recipe status: `waiting_for_routing_probe`
-- Recipe kind: `route_frequency`
+- Recipe status: `explicit_expert_weight_rules_ready`
+- Recipe kind: `explicit_expert_weights`
 - Sources: `general, code`
-- Router dirs: `results/moe_routing_probe/qwen3_30b_general_vs_code`
-- Expert weight CSVs: `none`
+- Router dirs: `none`
+- Expert weight CSVs: `results/moe_packed_route_weight_recipe_smoke/expert_weights.csv`
 - Expert weight category filter: `none`
-- Expert tensor rules: `0`
-- Packed expert slice rules: `0`
-- Tensor rule file: `results/moe_route_weight_recipes/tensor_rules.txt`
-- Packed expert rule file: `results/moe_route_weight_recipes/packed_expert_rules.csv`
+- Expert tensor rules: `3`
+- Packed expert slice rules: `12`
+- Tensor rule file: `results/moe_packed_route_weight_recipe_smoke/tensor_rules.txt`
+- Packed expert rule file: `results/moe_packed_route_weight_recipe_smoke/packed_expert_rules.csv`
 
 ## 权重规则
 
@@ -32,20 +32,26 @@ writer_weight[source, layer, expert] = (1 - anchor_floor) * normalize(route_mass
 
 ## 当前专家权重摘要
 
-当前没有真实 `expert_load.csv` 或 explicit expert-weight CSV，因此只生成 shared-module 规则和 writer 模板。下一步需要先跑 MoE routing probe 或传入搜索权重。
+Action counts: `{"synthetic_packed_expert_remap_weight": 3}`
+
+| layer | expert | total top-k fraction | dominant source | dominant weight | action |
+| --- | ---: | ---: | --- | ---: | --- |
+| 0 | 0 | 0 | code | 0.75 | `synthetic_packed_expert_remap_weight` |
+| 0 | 1 | 0 | general | 0.9 | `synthetic_packed_expert_remap_weight` |
+| 1 | 0 | 0 | general | 0.5 | `synthetic_packed_expert_remap_weight` |
 
 ## Prompt Category Source Map
 
 | category | prompts | mapped source | mapping |
 | --- | ---: | --- | --- |
-| agentic_code | 1 | code | explicit |
-| code | 2 | code | explicit |
-| finance | 1 | general | explicit |
-| general | 2 | general | explicit |
-| legal | 1 | general | explicit |
-| long_context | 1 | general | explicit |
-| math | 2 | general | explicit |
-| safety | 2 | general | explicit |
+| agentic_code | 1 | code | category_heuristic |
+| code | 2 | code | source_name_match |
+| finance | 1 | general | fallback |
+| general | 2 | general | source_name_match |
+| legal | 1 | general | fallback |
+| long_context | 1 | general | fallback |
+| math | 2 | general | fallback |
+| safety | 2 | general | fallback |
 
 ## Routing Probe Plan
 
@@ -56,7 +62,7 @@ writer_weight[source, layer, expert] = (1 - anchor_floor) * normalize(route_mass
 ## Writer Dry-Run Command
 
 ```bash
-python scripts/write_same_shape_average_checkpoint.py --base MOE_BASE_OR_ANCHOR_PATH --source general=GENERAL_MODEL_PATH --source code=CODE_MODEL_PATH --source-weight general=0.0 --source-weight code=0.0 --freeze-router --tensor-rule-file results/moe_route_weight_recipes/tensor_rules.txt --output-dir results/checkpoints/moe_route_aware_candidate --dry-run
+python scripts/write_same_shape_average_checkpoint.py --base MOE_BASE_OR_ANCHOR_PATH --source general=GENERAL_MODEL_PATH --source code=CODE_MODEL_PATH --source-weight general=0.0 --source-weight code=0.0 --freeze-router --tensor-rule-file results/moe_packed_route_weight_recipe_smoke/tensor_rules.txt --packed-expert-rule-csv results/moe_packed_route_weight_recipe_smoke/packed_expert_rules.csv --output-dir results/checkpoints/moe_packed_route_weight_candidate --dry-run
 ```
 
 ## 需要先跑的 Routing Probe
@@ -73,10 +79,10 @@ PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --router-dir res
 
 ## Files
 
-- `results/moe_route_weight_recipes/source_weights_by_expert.csv`
-- `results/moe_route_weight_recipes/tensor_rules.txt`
-- `results/moe_route_weight_recipes/packed_expert_rules.csv`
-- `results/moe_route_weight_recipes/writer_command.txt`
-- `results/moe_route_weight_recipes/routing_probe_plan.csv`
-- `results/moe_route_weight_recipes/category_source_plan.csv`
-- `results/moe_route_weight_recipes/summary.json`
+- `results/moe_packed_route_weight_recipe_smoke/source_weights_by_expert.csv`
+- `results/moe_packed_route_weight_recipe_smoke/tensor_rules.txt`
+- `results/moe_packed_route_weight_recipe_smoke/packed_expert_rules.csv`
+- `results/moe_packed_route_weight_recipe_smoke/writer_command.txt`
+- `results/moe_packed_route_weight_recipe_smoke/routing_probe_plan.csv`
+- `results/moe_packed_route_weight_recipe_smoke/category_source_plan.csv`
+- `results/moe_packed_route_weight_recipe_smoke/summary.json`

@@ -9,7 +9,9 @@
 - Expert weight CSVs: `results/toy_moe_merge/confidence_blended_expert_weights_by_expert.csv`
 - Expert weight category filter: `none`
 - Expert tensor rules: `4`
+- Packed expert slice rules: `0`
 - Tensor rule file: `results/toy_moe_confidence_blended_recipes/tensor_rules.txt`
+- Packed expert rule file: `results/toy_moe_confidence_blended_recipes/packed_expert_rules.csv`
 
 ## 权重规则
 
@@ -74,6 +76,7 @@ PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --router-dir res
 
 - `results/toy_moe_confidence_blended_recipes/source_weights_by_expert.csv`
 - `results/toy_moe_confidence_blended_recipes/tensor_rules.txt`
+- `results/toy_moe_confidence_blended_recipes/packed_expert_rules.csv`
 - `results/toy_moe_confidence_blended_recipes/writer_command.txt`
 - `results/toy_moe_confidence_blended_recipes/routing_probe_plan.csv`
 - `results/toy_moe_confidence_blended_recipes/category_source_plan.csv`

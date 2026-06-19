@@ -1,0 +1,13 @@
+tensor,output_expert,source,source_expert,weight,reason
+model.language_model.layers.0.mlp.experts.gate_up_proj,0,general,0,0.25,explicit per-expert source weights supplied by calibration/search
+model.language_model.layers.0.mlp.experts.gate_up_proj,0,code,1,0.75,explicit per-expert source weights supplied by calibration/search
+model.language_model.layers.0.mlp.experts.down_proj,0,general,0,0.25,explicit per-expert source weights supplied by calibration/search
+model.language_model.layers.0.mlp.experts.down_proj,0,code,1,0.75,explicit per-expert source weights supplied by calibration/search
+model.language_model.layers.0.mlp.experts.gate_up_proj,1,general,1,0.9,explicit per-expert source weights supplied by calibration/search
+model.language_model.layers.0.mlp.experts.gate_up_proj,1,code,0,0.1,explicit per-expert source weights supplied by calibration/search
+model.language_model.layers.0.mlp.experts.down_proj,1,general,1,0.9,explicit per-expert source weights supplied by calibration/search
+model.language_model.layers.0.mlp.experts.down_proj,1,code,0,0.1,explicit per-expert source weights supplied by calibration/search
+model.language_model.layers.1.mlp.experts.gate_up_proj,0,general,0,0.5,explicit per-expert source weights supplied by calibration/search
+model.language_model.layers.1.mlp.experts.gate_up_proj,0,code,0,0.5,explicit per-expert source weights supplied by calibration/search
+model.language_model.layers.1.mlp.experts.down_proj,0,general,0,0.5,explicit per-expert source weights supplied by calibration/search
+model.language_model.layers.1.mlp.experts.down_proj,0,code,0,0.5,explicit per-expert source weights supplied by calibration/search

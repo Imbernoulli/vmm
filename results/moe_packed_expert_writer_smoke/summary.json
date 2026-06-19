@@ -1,0 +1,60 @@
+{
+  "checked_tensors": 6,
+  "failed_tensors": 0,
+  "outputs": {
+    "merge_manifest": "results/moe_packed_expert_writer_smoke/merge_manifest.json",
+    "report": "results/moe_packed_expert_writer_smoke/report.md",
+    "summary": "results/moe_packed_expert_writer_smoke/summary.json",
+    "tensor_checks": "results/moe_packed_expert_writer_smoke/tensor_checks.csv"
+  },
+  "packed_expert_rule_slices": 3,
+  "packed_expert_rule_tensors": 2,
+  "packed_expert_rule_values": 5,
+  "packed_expert_slice_rule_summary": {
+    "abs_weight_sum": 3.0,
+    "rule_count": 5,
+    "slice_count": 3,
+    "tensor_count": 2,
+    "tensors": [
+      {
+        "abs_weight_sum": 2.0,
+        "packed_expert_count": 2,
+        "rule_count": 3,
+        "shape": [
+          2,
+          2,
+          2
+        ],
+        "slice_count": 2,
+        "sources": [
+          "code",
+          "general"
+        ],
+        "tensor": "model.layers.0.mlp.experts.down_proj.weight"
+      },
+      {
+        "abs_weight_sum": 1.0,
+        "packed_expert_count": 2,
+        "rule_count": 2,
+        "shape": [
+          2,
+          4,
+          2
+        ],
+        "slice_count": 1,
+        "sources": [
+          "code",
+          "general"
+        ],
+        "tensor": "model.layers.0.mlp.experts.gate_up_proj"
+      }
+    ]
+  },
+  "rule_counts": {
+    "default": 3,
+    "freeze_router": 1,
+    "tensor_rule:.*self_attn.*": 1
+  },
+  "schema_version": 1,
+  "status": "passed"
+}

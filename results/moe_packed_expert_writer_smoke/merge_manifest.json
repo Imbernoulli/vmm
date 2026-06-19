@@ -1,0 +1,120 @@
+{
+  "additive_delta_tensors": 0,
+  "additive_delta_values": 0,
+  "base": "TMP/base",
+  "copied_metadata": [
+    "config.json"
+  ],
+  "copied_nonfloating_tensors": 1,
+  "default_weights": {
+    "code": 0.0,
+    "general": 0.0
+  },
+  "dry_run": false,
+  "floating_tensors": 5,
+  "freeze_regex": [],
+  "freeze_router": true,
+  "frozen_tensors": 2,
+  "output_dtype": "base",
+  "packed_expert_rule_csv": [
+    "TMP/packed_expert_rules.csv"
+  ],
+  "packed_expert_rule_slices": 3,
+  "packed_expert_rule_tensors": 2,
+  "packed_expert_rule_values": 5,
+  "packed_expert_slice_rule_summary": {
+    "abs_weight_sum": 3.0,
+    "rule_count": 5,
+    "slice_count": 3,
+    "tensor_count": 2,
+    "tensors": [
+      {
+        "abs_weight_sum": 2.0,
+        "packed_expert_count": 2,
+        "rule_count": 3,
+        "shape": [
+          2,
+          2,
+          2
+        ],
+        "slice_count": 2,
+        "sources": [
+          "code",
+          "general"
+        ],
+        "tensor": "model.layers.0.mlp.experts.down_proj.weight"
+      },
+      {
+        "abs_weight_sum": 1.0,
+        "packed_expert_count": 2,
+        "rule_count": 2,
+        "shape": [
+          2,
+          4,
+          2
+        ],
+        "slice_count": 1,
+        "sources": [
+          "code",
+          "general"
+        ],
+        "tensor": "model.layers.0.mlp.experts.gate_up_proj"
+      }
+    ]
+  },
+  "rule_counts": {
+    "default": 3,
+    "freeze_router": 1,
+    "tensor_rule:.*self_attn.*": 1
+  },
+  "same_shape_constraint": "All output tensors keep base tensor names and shapes; metadata is copied from base when available.",
+  "schema_version": 1,
+  "shards": [
+    {
+      "shard": "model.safetensors",
+      "tensors": 6
+    }
+  ],
+  "source_summaries": {
+    "code": {
+      "aliased_tensors": 0,
+      "dtype_mismatches": 0,
+      "extra_tensors": 0,
+      "missing_tensors": 0,
+      "root": "TMP/code",
+      "shape_mismatches": 0,
+      "tensors": 6
+    },
+    "general": {
+      "aliased_tensors": 0,
+      "dtype_mismatches": 0,
+      "extra_tensors": 0,
+      "missing_tensors": 0,
+      "root": "TMP/general",
+      "shape_mismatches": 0,
+      "tensors": 6
+    }
+  },
+  "sources": {
+    "code": "TMP/code",
+    "general": "TMP/general"
+  },
+  "tensor_add_csv": [],
+  "tensor_add_delta_summary": {
+    "abs_delta_sum": 0.0,
+    "delta_count": 0,
+    "max_abs_delta": 0.0,
+    "tensor_count": 0,
+    "tensors": []
+  },
+  "tensor_alias_rules": [],
+  "tensor_rules": [
+    {
+      "pattern": ".*self_attn.*",
+      "weights": {
+        "code": 0.5,
+        "general": 0.5
+      }
+    }
+  ]
+}

@@ -86,6 +86,18 @@ class TensorAddDelta:
     reason: str
 
 
+@dataclass(frozen=True)
+class PackedExpertSliceRule:
+    tensor: str
+    output_expert: int
+    source: str
+    source_expert: int
+    weight: float
+    source_path: str
+    line_number: int
+    reason: str
+
+
 def discover_safetensors(model_path: str | Path) -> WeightIndex:
     path = Path(model_path)
     if path.is_file() and path.name.endswith(".safetensors"):
@@ -293,6 +305,52 @@ def load_tensor_add_csv(paths: list[str] | None) -> dict[str, list[TensorAddDelt
     return deltas
 
 
+def load_packed_expert_rule_csv(
+    paths: list[str] | None,
+    source_names: list[str],
+) -> dict[str, dict[int, list[PackedExpertSliceRule]]]:
+    rules: dict[str, dict[int, list[PackedExpertSliceRule]]] = {}
+    valid_sources = set(source_names)
+    for path in paths or []:
+        csv_path = Path(path)
+        with csv_path.open("r", encoding="utf-8", newline="") as handle:
+            reader = csv.DictReader(handle)
+            if reader.fieldnames is None:
+                continue
+            required = {"tensor", "output_expert", "source", "source_expert", "weight"}
+            missing = sorted(required - set(reader.fieldnames))
+            if missing:
+                raise ValueError(f"{csv_path} is missing required columns: {missing}")
+            for line_number, row in enumerate(reader, start=2):
+                tensor = (row.get("tensor") or "").strip()
+                source = (row.get("source") or "").strip()
+                if not tensor:
+                    raise ValueError(f"{csv_path}:{line_number} has an empty tensor name")
+                if source not in valid_sources:
+                    raise ValueError(
+                        f"{csv_path}:{line_number} references source {source!r}; known sources: {source_names}"
+                    )
+                try:
+                    output_expert = int((row.get("output_expert") or "").strip())
+                    source_expert = int((row.get("source_expert") or "").strip())
+                    weight = float((row.get("weight") or "").strip())
+                except ValueError as exc:
+                    raise ValueError(f"{csv_path}:{line_number} has invalid expert/weight values: {row}") from exc
+                reason = (row.get("reason") or row.get("source_reason") or "").strip()
+                rule = PackedExpertSliceRule(
+                    tensor=tensor,
+                    output_expert=output_expert,
+                    source=source,
+                    source_expert=source_expert,
+                    weight=weight,
+                    source_path=str(csv_path),
+                    line_number=line_number,
+                    reason=reason,
+                )
+                rules.setdefault(tensor, {}).setdefault(output_expert, []).append(rule)
+    return rules
+
+
 def resolve_source_tensor_name(
     source_name: str,
     base_tensor_name: str,
@@ -465,6 +523,92 @@ def validate_tensor_add_deltas(base: WeightIndex, deltas_by_tensor: dict[str, li
     }
 
 
+def validate_packed_expert_slice_rules(
+    base: WeightIndex,
+    sources: dict[str, WeightIndex],
+    alias_rules: list[TensorAliasRule],
+    rules_by_tensor: dict[str, dict[int, list[PackedExpertSliceRule]]],
+) -> dict[str, Any]:
+    errors: list[str] = []
+    tensor_summaries: list[dict[str, Any]] = []
+    rule_count = 0
+    slice_count = 0
+    abs_weight_sum = 0.0
+    for tensor, rules_by_output in sorted(rules_by_tensor.items()):
+        info = base.tensor_info.get(tensor)
+        if info is None:
+            first = next(iter(next(iter(rules_by_output.values()))))
+            errors.append(f"{first.source_path}:{first.line_number}: tensor {tensor!r} is not present in the base checkpoint")
+            continue
+        if not is_floating_dtype(info.dtype):
+            first = next(iter(next(iter(rules_by_output.values()))))
+            errors.append(f"{first.source_path}:{first.line_number}: tensor {tensor!r} is not floating point")
+            continue
+        if len(info.shape) < 1:
+            first = next(iter(next(iter(rules_by_output.values()))))
+            errors.append(f"{first.source_path}:{first.line_number}: tensor {tensor!r} has no expert dimension")
+            continue
+        packed_expert_count = info.shape[0]
+        tensor_rule_count = 0
+        tensor_abs_weight_sum = 0.0
+        source_names = set()
+        for output_expert, rules in sorted(rules_by_output.items()):
+            slice_count += 1
+            if output_expert < 0 or output_expert >= packed_expert_count:
+                first = rules[0]
+                errors.append(
+                    f"{first.source_path}:{first.line_number}: output_expert {output_expert} is out of range "
+                    f"for {tensor!r} with first dimension {packed_expert_count}"
+                )
+                continue
+            for rule in rules:
+                rule_count += 1
+                tensor_rule_count += 1
+                abs_weight_sum += abs(float(rule.weight))
+                tensor_abs_weight_sum += abs(float(rule.weight))
+                source_names.add(rule.source)
+                source_index = sources[rule.source]
+                source_tensor_name, _ = resolve_source_tensor_name(rule.source, tensor, alias_rules)
+                source_info = source_index.tensor_info.get(source_tensor_name)
+                if source_info is None:
+                    errors.append(
+                        f"{rule.source_path}:{rule.line_number}: source {rule.source!r} does not contain "
+                        f"tensor {source_tensor_name!r} for base tensor {tensor!r}"
+                    )
+                    continue
+                if source_info.shape != info.shape:
+                    errors.append(
+                        f"{rule.source_path}:{rule.line_number}: source tensor {source_tensor_name!r} shape "
+                        f"{source_info.shape} does not match base {tensor!r} shape {info.shape}"
+                    )
+                    continue
+                if rule.source_expert < 0 or rule.source_expert >= source_info.shape[0]:
+                    errors.append(
+                        f"{rule.source_path}:{rule.line_number}: source_expert {rule.source_expert} is out of range "
+                        f"for {source_tensor_name!r} with first dimension {source_info.shape[0]}"
+                    )
+        tensor_summaries.append(
+            {
+                "tensor": tensor,
+                "shape": list(info.shape),
+                "packed_expert_count": int(packed_expert_count),
+                "slice_count": int(len(rules_by_output)),
+                "rule_count": int(tensor_rule_count),
+                "abs_weight_sum": tensor_abs_weight_sum,
+                "sources": sorted(source_names),
+            }
+        )
+    if errors:
+        raise ValueError("Invalid packed expert slice rules:\n" + "\n".join(errors))
+    return {
+        "tensor_count": len(rules_by_tensor),
+        "slice_count": slice_count,
+        "rule_count": rule_count,
+        "abs_weight_sum": abs_weight_sum,
+        "tensors": tensor_summaries,
+    }
+
+
 def load_tensors(index: WeightIndex, names: list[str]) -> dict[str, torch.Tensor]:
     by_shard: dict[Path, list[str]] = {}
     for name in names:
@@ -494,6 +638,32 @@ def apply_tensor_add_deltas(
     for delta in deltas:
         flat[delta.index] = flat[delta.index] + float(delta.delta)
     return updated.reshape_as(tensor), len(deltas)
+
+
+def apply_packed_expert_slice_rules(
+    name: str,
+    base_tensor: torch.Tensor,
+    merged_tensor: torch.Tensor,
+    source_values: dict[str, dict[str, torch.Tensor]],
+    source_name_maps: dict[str, dict[str, str]],
+    rules_by_tensor: dict[str, dict[int, list[PackedExpertSliceRule]]],
+) -> tuple[torch.Tensor, int, int]:
+    rules_by_output = rules_by_tensor.get(name)
+    if not rules_by_output:
+        return merged_tensor, 0, 0
+    updated = merged_tensor.to(torch.float32).clone()
+    base_float = base_tensor.to(torch.float32)
+    applied_values = 0
+    for output_expert, rules in rules_by_output.items():
+        merged_slice = base_float[output_expert].clone()
+        for rule in rules:
+            source_tensor_name = source_name_maps[rule.source][name]
+            source_tensor = source_values[rule.source][source_tensor_name]
+            source_slice = source_tensor[rule.source_expert].to(torch.float32)
+            merged_slice = merged_slice + float(rule.weight) * (source_slice - base_float[output_expert])
+            applied_values += 1
+        updated[output_expert] = merged_slice
+    return updated, len(rules_by_output), applied_values
 
 
 def copy_metadata(base_root: Path, output_dir: Path) -> list[str]:
@@ -539,6 +709,8 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
     tensor_alias_rules = parse_tensor_alias_rules(raw_tensor_alias_rules, source_names)
     tensor_add_csv_paths = getattr(args, "tensor_add_csv", None)
     tensor_add_deltas = load_tensor_add_csv(tensor_add_csv_paths)
+    packed_expert_rule_csv_paths = getattr(args, "packed_expert_rule_csv", None)
+    packed_expert_rules = load_packed_expert_rule_csv(packed_expert_rule_csv_paths, source_names)
     freeze_patterns = [re.compile(pattern) for pattern in args.freeze_regex]
 
     base = discover_safetensors(args.base)
@@ -550,6 +722,12 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
         alias_rules=tensor_alias_rules,
     )
     tensor_add_delta_summary = validate_tensor_add_deltas(base, tensor_add_deltas)
+    packed_expert_slice_rule_summary = validate_packed_expert_slice_rules(
+        base,
+        sources,
+        tensor_alias_rules,
+        packed_expert_rules,
+    )
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -560,6 +738,9 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
     copied_tensors = 0
     additive_delta_tensors = 0
     additive_delta_values = 0
+    packed_expert_rule_tensors = 0
+    packed_expert_rule_slices = 0
+    packed_expert_rule_values = 0
     output_weight_map: dict[str, str] = {}
     shard_summaries = []
 
@@ -579,8 +760,12 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
                 )
                 rule_counts[reason] = rule_counts.get(reason, 0) + 1
                 floating_tensors += 1
+                if name in packed_expert_rules:
+                    packed_expert_rule_tensors += 1
+                    packed_expert_rule_slices += len(packed_expert_rules[name])
+                    packed_expert_rule_values += sum(len(rules) for rules in packed_expert_rules[name].values())
                 if all(abs(value) <= 1e-12 for value in weights.values()):
-                    if name not in tensor_add_deltas:
+                    if name not in tensor_add_deltas and name not in packed_expert_rules:
                         frozen_tensors += 1
                 if name in tensor_add_deltas:
                     additive_delta_tensors += 1
@@ -626,11 +811,24 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
             floating_tensors += 1
             target_dtype = output_dtype(base_tensor.dtype, args.output_dtype)
             if all(abs(value) <= 1e-12 for value in weights.values()):
-                merged, applied = apply_tensor_add_deltas(name, base_tensor, tensor_add_deltas)
+                merged = base_tensor.to(torch.float32)
+                merged, applied_slices, applied_slice_values = apply_packed_expert_slice_rules(
+                    name,
+                    base_tensor,
+                    merged,
+                    source_values,
+                    source_name_maps,
+                    packed_expert_rules,
+                )
+                if applied_slice_values:
+                    packed_expert_rule_tensors += 1
+                    packed_expert_rule_slices += applied_slices
+                    packed_expert_rule_values += applied_slice_values
+                merged, applied = apply_tensor_add_deltas(name, merged, tensor_add_deltas)
                 if applied:
                     additive_delta_tensors += 1
                     additive_delta_values += applied
-                else:
+                elif not applied_slice_values:
                     frozen_tensors += 1
                 output_tensors[name] = merged.to(dtype=target_dtype)
                 continue
@@ -645,6 +843,18 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
                         continue
                     raise KeyError(f"Missing tensor {source_tensor_name!r} for base tensor {name!r} in source {source_name!r}")
                 merged = merged + float(weight) * (source_tensor.to(torch.float32) - base_tensor.to(torch.float32))
+            merged, applied_slices, applied_slice_values = apply_packed_expert_slice_rules(
+                name,
+                base_tensor,
+                merged,
+                source_values,
+                source_name_maps,
+                packed_expert_rules,
+            )
+            if applied_slice_values:
+                packed_expert_rule_tensors += 1
+                packed_expert_rule_slices += applied_slices
+                packed_expert_rule_values += applied_slice_values
             merged, applied = apply_tensor_add_deltas(name, merged, tensor_add_deltas)
             if applied:
                 additive_delta_tensors += 1
@@ -672,6 +882,8 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
         ],
         "tensor_add_csv": tensor_add_csv_paths or [],
         "tensor_add_delta_summary": tensor_add_delta_summary,
+        "packed_expert_rule_csv": packed_expert_rule_csv_paths or [],
+        "packed_expert_slice_rule_summary": packed_expert_slice_rule_summary,
         "freeze_regex": args.freeze_regex,
         "freeze_router": args.freeze_router,
         "output_dtype": args.output_dtype,
@@ -681,6 +893,9 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
         "copied_nonfloating_tensors": copied_tensors,
         "additive_delta_tensors": additive_delta_tensors,
         "additive_delta_values": additive_delta_values,
+        "packed_expert_rule_tensors": packed_expert_rule_tensors,
+        "packed_expert_rule_slices": packed_expert_rule_slices,
+        "packed_expert_rule_values": packed_expert_rule_values,
         "rule_counts": rule_counts,
         "shards": shard_summaries,
         "copied_metadata": copied_metadata,
@@ -724,6 +939,15 @@ def parse_args() -> argparse.Namespace:
         action="append",
         default=None,
         help="CSV with tensor,index,delta rows applied after averaging and before dtype cast. Repeatable.",
+    )
+    parser.add_argument(
+        "--packed-expert-rule-csv",
+        action="append",
+        default=None,
+        help=(
+            "CSV with tensor,output_expert,source,source_expert,weight rows. "
+            "Each row applies a first-dimension packed expert slice delta while keeping tensor names/shapes unchanged."
+        ),
     )
     parser.add_argument("--freeze-regex", action="append", default=[], help="Freeze matching tensors to base weights.")
     parser.add_argument("--freeze-router", action="store_true", help="Freeze router/gate tensors, excluding gate_proj/shared_expert_gate.")

@@ -16,6 +16,17 @@
   "freeze_router": true,
   "frozen_tensors": 2,
   "output_dtype": "base",
+  "packed_expert_rule_csv": [],
+  "packed_expert_rule_slices": 0,
+  "packed_expert_rule_tensors": 0,
+  "packed_expert_rule_values": 0,
+  "packed_expert_slice_rule_summary": {
+    "abs_weight_sum": 0.0,
+    "rule_count": 0,
+    "slice_count": 0,
+    "tensor_count": 0,
+    "tensors": []
+  },
   "rule_counts": {
     "default": 1,
     "freeze_router": 2,

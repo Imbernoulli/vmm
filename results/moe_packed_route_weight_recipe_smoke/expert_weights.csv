@@ -1,0 +1,4 @@
+layer_id,expert_id,weight_general,weight_code,source_expert_general,source_expert_code,same_shape_action
+0,0,0.25,0.75,0,1,synthetic_packed_expert_remap_weight
+0,1,0.90,0.10,1,0,synthetic_packed_expert_remap_weight
+1,0,0.50,0.50,0,0,synthetic_packed_expert_remap_weight

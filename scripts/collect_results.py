@@ -523,6 +523,26 @@ def summarize_moe_combined_writer_smoke() -> dict[str, Any]:
     }
 
 
+def summarize_moe_packed_expert_writer_smoke() -> dict[str, Any]:
+    summary = read_json("results/moe_packed_expert_writer_smoke/summary.json")
+    checks = read_csv("results/moe_packed_expert_writer_smoke/tensor_checks.csv")
+    manifest = read_json("results/moe_packed_expert_writer_smoke/merge_manifest.json")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "checked_tensors": int(summary.get("checked_tensors", len(checks))),
+        "failed_tensors": int(summary.get("failed_tensors", (~checks["passed"]).sum())),
+        "packed_expert_rule_tensors": int(summary.get("packed_expert_rule_tensors", 0)),
+        "packed_expert_rule_slices": int(summary.get("packed_expert_rule_slices", 0)),
+        "packed_expert_rule_values": int(summary.get("packed_expert_rule_values", 0)),
+        "packed_expert_slice_rule_summary": manifest.get("packed_expert_slice_rule_summary", {}),
+        "rule_counts": summary.get("rule_counts", {}),
+        "report": rel("results/moe_packed_expert_writer_smoke/report.md"),
+        "tensor_checks": rel("results/moe_packed_expert_writer_smoke/tensor_checks.csv"),
+        "manifest_path": rel("results/moe_packed_expert_writer_smoke/merge_manifest.json"),
+    }
+
+
 def summarize_checkpoint_topology() -> dict[str, Any]:
     summary = read_json("results/checkpoint_topology_inspect/summary.json")
     models = summary.get("models", [])
@@ -586,6 +606,29 @@ def summarize_moe_route_weight_recipes() -> dict[str, Any]:
         "routing_probe_plan": rel(routing_probe_plan_path) if routing_probe_plan_path.exists() else None,
         "category_source_plan": rel(category_source_plan_path) if category_source_plan_path.exists() else None,
         "prompt_pack": rel("prompts/qwen_moe_route_probe_prompts.jsonl"),
+    }
+
+
+def summarize_moe_packed_route_weight_recipe_smoke() -> dict[str, Any]:
+    root = repo_path("results/moe_packed_route_weight_recipe_smoke")
+    summary = read_json(root / "summary.json")
+    packed_rules = read_csv(root / "packed_expert_rules.csv")
+    source_weights = read_csv(root / "source_weights_by_expert.csv")
+    writer_command = (root / "writer_command.txt").read_text(encoding="utf-8")
+    return {
+        "summary": summary,
+        "recipe_status": summary.get("recipe_status"),
+        "packed_expert_rules_enabled": bool(summary.get("packed_expert_rules_enabled")),
+        "packed_expert_rule_count": int(summary.get("packed_expert_rule_count", len(packed_rules))),
+        "packed_expert_rule_tensor_count": int(summary.get("packed_expert_rule_tensor_count", 0)),
+        "packed_expert_rule_slice_count": int(summary.get("packed_expert_rule_slice_count", 0)),
+        "source_weight_rows": int(len(source_weights)),
+        "topology_model": (summary.get("topology") or {}).get("name"),
+        "writer_command_has_packed_rule": "--packed-expert-rule-csv" in writer_command,
+        "report": rel(root / "report.md"),
+        "source_weights": rel(root / "source_weights_by_expert.csv"),
+        "packed_expert_rules": rel(root / "packed_expert_rules.csv"),
+        "writer_command": rel(root / "writer_command.txt"),
     }
 
 
@@ -1717,6 +1760,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/moe_combined_writer_smoke/report.md verifies expert tensor rules, source expert alias remap, freeze-router, and router-bias additive deltas in one same-shape writer call.",
         },
         {
+            "item": "MoE packed-expert writer smoke",
+            "status": "complete",
+            "evidence": "results/moe_packed_expert_writer_smoke/report.md verifies first-dimension packed expert slice weights and source-expert remaps for Qwen-style packed MoE tensors.",
+        },
+        {
             "item": "MoE layer-wise expert remap smoke",
             "status": "complete",
             "evidence": "results/moe_layerwise_expert_remap_smoke/report.md verifies layer-scoped source tensor alias rules for real multi-layer MoE expert matching.",
@@ -1735,6 +1783,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "item": "MoE route-weight recipes",
             "status": "complete",
             "evidence": "results/moe_route_weight_recipes/report.md converts MoE routing/expert-load probes into tensor-rule files for same-shape checkpoint materialization; current recipe is waiting for real routing probe data.",
+        },
+        {
+            "item": "MoE packed route-weight recipe smoke",
+            "status": "complete",
+            "evidence": "results/moe_packed_route_weight_recipe_smoke/report.md verifies route/expert weights can emit Qwen-style packed_expert_rules.csv with source-expert remap columns.",
         },
         {
             "item": "MoE router-bias additive capacity plan",
@@ -1832,9 +1885,11 @@ def build_summary() -> dict[str, Any]:
         "same_shape_writer_smoke": summarize_same_shape_writer_smoke(),
         "moe_tensor_rule_writer_smoke": summarize_moe_tensor_rule_writer_smoke(),
         "moe_combined_writer_smoke": summarize_moe_combined_writer_smoke(),
+        "moe_packed_expert_writer_smoke": summarize_moe_packed_expert_writer_smoke(),
         "checkpoint_topology_inspect": summarize_checkpoint_topology(),
         "average_candidate_recipes": summarize_average_candidate_recipes(),
         "moe_route_weight_recipes": summarize_moe_route_weight_recipes(),
+        "moe_packed_route_weight_recipe_smoke": summarize_moe_packed_route_weight_recipe_smoke(),
         "moe_router_bias_plan": summarize_moe_router_bias_plan(),
         "moe_confidence_blended_router_bias_plan": summarize_moe_confidence_blended_router_bias_plan(),
         "toy_moe_expert_weight_recipes": summarize_toy_moe_expert_weight_recipes(),
@@ -1920,10 +1975,12 @@ def build_summary() -> dict[str, Any]:
             "python scripts/write_same_shape_average_checkpoint.py --base BASE --source expert=EXPERT --dry-run --output-dir results/same_shape_writer_smoke",
             "python scripts/smoke_moe_tensor_rule_writer.py --output-dir results/moe_tensor_rule_writer_smoke",
             "PYTHONPATH=src python scripts/smoke_moe_combined_writer.py --output-dir results/moe_combined_writer_smoke",
+            "PYTHONPATH=scripts python scripts/smoke_moe_packed_expert_writer.py --output-dir results/moe_packed_expert_writer_smoke",
             "python scripts/inspect_checkpoint_topology.py --model NAME=MODEL_PATH --output-dir results/checkpoint_topology_inspect",
             "PYTHONPATH=src python scripts/build_average_candidate_recipes.py",
             "PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code",
             "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code --source general --source code",
+            "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --output-dir results/moe_packed_route_weight_recipe_smoke --expert-weight-csv results/moe_packed_route_weight_recipe_smoke/expert_weights.csv --source general --source code --topology-summary results/checkpoint_topology_inspect/summary.json --checkpoint-output-dir results/checkpoints/moe_packed_route_weight_candidate",
             "PYTHONPATH=src python scripts/build_moe_router_bias_plan.py --router-dir results/toy_moe_merge --method unified_moe_average --router-bias-template '{router}.bias'",
             "PYTHONPATH=src python scripts/build_moe_router_bias_plan.py --router-dir results/toy_moe_merge --method unified_confidence_blended_moe_average --output-dir results/moe_confidence_blended_router_bias_plan --router-bias-template '{router}.bias'",
             "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --output-dir results/toy_moe_expert_weight_recipes --expert-weight-csv results/toy_moe_merge/expert_search_weights_by_expert.csv --source general --source code --checkpoint-output-dir results/checkpoints/toy_moe_expert_weight_candidate --topology-summary ''",
@@ -1968,10 +2025,12 @@ def build_markdown(summary: dict[str, Any]) -> str:
     writer_smoke = exp["same_shape_writer_smoke"]
     moe_tensor_rule_writer_smoke = exp["moe_tensor_rule_writer_smoke"]
     moe_combined_writer_smoke = exp["moe_combined_writer_smoke"]
+    moe_packed_expert_writer_smoke = exp["moe_packed_expert_writer_smoke"]
     topology = exp["checkpoint_topology_inspect"]
     moe_models = [model for model in topology["models"] if model.get("config", {}).get("is_moe_config")]
     recipes = exp["average_candidate_recipes"]
     route_weight_recipes = exp["moe_route_weight_recipes"]
+    packed_route_recipe_smoke = exp["moe_packed_route_weight_recipe_smoke"]
     router_bias_plan = exp["moe_router_bias_plan"]
     confidence_blended_router_bias_plan = exp["moe_confidence_blended_router_bias_plan"]
     toy_expert_weight_recipes = exp["toy_moe_expert_weight_recipes"]
@@ -2755,6 +2814,21 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{moe_combined_writer_smoke['additive_delta_values']} |"
             ),
             (
+                "| MoE packed-expert writer smoke | status | "
+                f"{moe_packed_expert_writer_smoke['status']} |"
+            ),
+            (
+                "| MoE packed-expert writer smoke | checked / failed tensors | "
+                f"{moe_packed_expert_writer_smoke['checked_tensors']} / "
+                f"{moe_packed_expert_writer_smoke['failed_tensors']} |"
+            ),
+            (
+                "| MoE packed-expert writer smoke | packed rule tensors / slices / values | "
+                f"{moe_packed_expert_writer_smoke['packed_expert_rule_tensors']} / "
+                f"{moe_packed_expert_writer_smoke['packed_expert_rule_slices']} / "
+                f"{moe_packed_expert_writer_smoke['packed_expert_rule_values']} |"
+            ),
+            (
                 "| checkpoint topology | inspected MoE configs | "
                 f"{len(moe_models)} |"
             ),
@@ -2783,6 +2857,16 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| MoE route-weight recipes | expert tensor rules | "
                 f"{route_weight_recipes['expert_rule_count']} |"
+            ),
+            (
+                "| MoE packed route-weight recipe smoke | packed rules / tensors / slices | "
+                f"{packed_route_recipe_smoke['packed_expert_rule_count']} / "
+                f"{packed_route_recipe_smoke['packed_expert_rule_tensor_count']} / "
+                f"{packed_route_recipe_smoke['packed_expert_rule_slice_count']} |"
+            ),
+            (
+                "| MoE packed route-weight recipe smoke | writer command uses packed CSV | "
+                f"{packed_route_recipe_smoke['writer_command_has_packed_rule']} |"
             ),
             (
                 "| MoE router-bias plan | status | "

@@ -25,6 +25,11 @@ SOURCE_WEIGHT_COLUMNS = [
     "tensor_rule",
     "reason",
 ]
+PACKED_EXPERT_RULE_COLUMNS = ["tensor", "output_expert", "source", "source_expert", "weight", "reason"]
+DEFAULT_PACKED_EXPERT_TENSOR_TEMPLATES = [
+    "model.language_model.layers.{layer_id}.mlp.experts.gate_up_proj",
+    "model.language_model.layers.{layer_id}.mlp.experts.down_proj",
+]
 DEFAULT_PROBE_MODEL = "Qwen/Qwen3-30B-A3B"
 DEFAULT_PROBE_COMPARE_MODEL = "Qwen/Qwen3-Coder-30B-A3B-Instruct"
 DEFAULT_PROBE_PROMPTS = "prompts/qwen_moe_route_probe_prompts.jsonl"
@@ -107,6 +112,8 @@ def discover_moe_topology(summary_path: Path, model_name: str | None) -> dict[st
                 "num_experts_per_tok": config.get("num_experts_per_tok"),
                 "active_expert_fraction_per_token": config.get("active_expert_fraction_per_token"),
                 "weights_available": model.get("headers", {}).get("weights_available"),
+                "packed_expert_tensor_count": model.get("headers", {}).get("packed_expert_tensor_count"),
+                "num_experts_with_weights": model.get("headers", {}).get("num_experts_with_weights"),
             }
     return None
 
@@ -448,6 +455,11 @@ def load_explicit_expert_weight_rows(
             for source in source_names:
                 row[f"weight_{source}"] = weights[source]
                 row[f"route_mass_{source}"] = route_masses[source]
+                source_expert_key = f"source_expert_{source}"
+                if source_expert_key in item and not pd.isna(item[source_expert_key]):
+                    row[source_expert_key] = int(item[source_expert_key])
+            if "source_expert" in item and not pd.isna(item["source_expert"]):
+                row["source_expert"] = int(item["source_expert"])
             rows.append(row)
             used_rows += 1
         inputs.append(
@@ -503,10 +515,58 @@ def build_tensor_rules(
     return rules
 
 
+def topology_uses_packed_experts(topology: dict[str, Any] | None) -> bool:
+    if not topology:
+        return False
+    return int(topology.get("packed_expert_tensor_count") or 0) > 0
+
+
+def source_expert_for_row(row: dict[str, Any], source: str, output_expert: int) -> int:
+    explicit_key = f"source_expert_{source}"
+    if explicit_key in row and not pd.isna(row[explicit_key]):
+        return int(row[explicit_key])
+    generic_key = "source_expert"
+    if generic_key in row and not pd.isna(row[generic_key]):
+        return int(row[generic_key])
+    return output_expert
+
+
+def build_packed_expert_rule_rows(
+    *,
+    rows: list[dict[str, Any]],
+    source_names: list[str],
+    tensor_templates: list[str],
+) -> list[dict[str, Any]]:
+    packed_rows: list[dict[str, Any]] = []
+    for row in rows:
+        layer_id = str(row.get("layer_id", ""))
+        if not layer_id:
+            continue
+        output_expert = int(row["expert_id"])
+        for tensor_template in tensor_templates:
+            tensor = tensor_template.format(layer_id=layer_id, expert_id=output_expert)
+            for source in source_names:
+                weight = maybe_float(row.get(f"weight_{source}"))
+                if abs(weight) <= 1e-12:
+                    continue
+                packed_rows.append(
+                    {
+                        "tensor": tensor,
+                        "output_expert": output_expert,
+                        "source": source,
+                        "source_expert": source_expert_for_row(row, source, output_expert),
+                        "weight": weight,
+                        "reason": row.get("reason", ""),
+                    }
+                )
+    return packed_rows
+
+
 def build_writer_command(
     *,
     source_names: list[str],
     tensor_rule_file: Path,
+    packed_expert_rule_file: Path | None,
     output_checkpoint_dir: str,
     freeze_router: bool,
 ) -> str:
@@ -520,13 +580,10 @@ def build_writer_command(
         parts.append(f"--source-weight {source}=0.0")
     if freeze_router:
         parts.append("--freeze-router")
-    parts.extend(
-        [
-            f"--tensor-rule-file {rel(tensor_rule_file)}",
-            f"--output-dir {output_checkpoint_dir}",
-            "--dry-run",
-        ]
-    )
+    parts.append(f"--tensor-rule-file {rel(tensor_rule_file)}")
+    if packed_expert_rule_file:
+        parts.append(f"--packed-expert-rule-csv {rel(packed_expert_rule_file)}")
+    parts.extend([f"--output-dir {output_checkpoint_dir}", "--dry-run"])
     return " ".join(parts)
 
 
@@ -551,7 +608,9 @@ def build_report(
         f"- Expert weight CSVs: `{', '.join(summary.get('expert_weight_csvs', [])) if summary.get('expert_weight_csvs') else 'none'}`",
         f"- Expert weight category filter: `{summary.get('expert_weight_category') or 'none'}`",
         f"- Expert tensor rules: `{summary['expert_rule_count']}`",
+        f"- Packed expert slice rules: `{summary.get('packed_expert_rule_count', 0)}`",
         f"- Tensor rule file: `{rel(tensor_rule_file)}`",
+        f"- Packed expert rule file: `{summary['outputs'].get('packed_expert_rules') or 'none'}`",
         "",
         "## 权重规则",
         "",
@@ -648,6 +707,7 @@ def build_report(
             "",
             f"- `{summary['outputs']['source_weights']}`",
             f"- `{summary['outputs']['tensor_rules']}`",
+            f"- `{summary['outputs']['packed_expert_rules']}`",
             f"- `{summary['outputs']['writer_command']}`",
             f"- `{summary['outputs']['routing_probe_plan']}`",
             f"- `{summary['outputs']['category_source_plan']}`",
@@ -675,6 +735,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--layer-regex", default=r"layers\.(\d+)")
     parser.add_argument("--expert-tensor-pattern-template", default=r".*layers\.{layer_id}\..*experts\.{expert_id}\..*")
     parser.add_argument("--fallback-expert-tensor-pattern-template", default=r".*experts\.{expert_id}\..*")
+    parser.add_argument(
+        "--packed-expert-tensor-template",
+        action="append",
+        default=[],
+        help="Exact packed expert tensor template with {layer_id}, e.g. model.layers.{layer_id}.mlp.experts.down_proj.",
+    )
     parser.add_argument("--topology-summary", default="results/checkpoint_topology_inspect/summary.json")
     parser.add_argument("--topology-model", default=None)
     parser.add_argument("--checkpoint-output-dir", default="results/checkpoints/moe_route_aware_candidate")
@@ -763,29 +829,62 @@ def main() -> None:
             fallback_expert_tensor_pattern_template=args.fallback_expert_tensor_pattern_template,
         )
         recipe_kind = "route_frequency"
+    topology = discover_moe_topology(repo_path(args.topology_summary), args.topology_model)
+    packed_expert_enabled = topology_uses_packed_experts(topology)
+    packed_templates = args.packed_expert_tensor_template or DEFAULT_PACKED_EXPERT_TENSOR_TEMPLATES
+    packed_expert_rows = (
+        build_packed_expert_rule_rows(
+            rows=source_rows,
+            source_names=source_names,
+            tensor_templates=packed_templates,
+        )
+        if packed_expert_enabled
+        else []
+    )
     shared_attention = shared_weights(source_names, args.shared_source_weight)
     shared_mlp = shared_weights(source_names, args.shared_mlp_source_weight) if args.shared_mlp_source_weight else None
     tensor_rules = build_tensor_rules(
-        rows=source_rows,
+        rows=[] if packed_expert_enabled else source_rows,
         source_names=source_names,
         shared_attention_weights=shared_attention,
         shared_mlp_weights=shared_mlp,
-        expert_rule_label="Explicit expert-weight rules." if expert_weight_csvs else "Route-frequency expert rules.",
+        expert_rule_label=(
+            "Packed expert rules are emitted separately in packed_expert_rules.csv."
+            if packed_expert_enabled
+            else "Explicit expert-weight rules."
+            if expert_weight_csvs
+            else "Route-frequency expert rules."
+        ),
     )
 
     tensor_rule_file = output_dir / "tensor_rules.txt"
     tensor_rule_file.write_text("\n".join(tensor_rules) + "\n", encoding="utf-8")
+    packed_expert_rule_file = output_dir / "packed_expert_rules.csv"
+    pd.DataFrame(packed_expert_rows, columns=PACKED_EXPERT_RULE_COLUMNS).to_csv(packed_expert_rule_file, index=False)
     writer_command = build_writer_command(
         source_names=source_names,
         tensor_rule_file=tensor_rule_file,
+        packed_expert_rule_file=packed_expert_rule_file if packed_expert_rows else None,
         output_checkpoint_dir=args.checkpoint_output_dir,
         freeze_router=args.freeze_router,
     )
     (output_dir / "writer_command.txt").write_text(writer_command + "\n", encoding="utf-8")
-    weight_columns = SOURCE_WEIGHT_COLUMNS + [f"weight_{name}" for name in source_names] + [f"route_mass_{name}" for name in source_names]
+    source_expert_columns = sorted(
+        {
+            key
+            for row in source_rows
+            for key in row
+            if key == "source_expert" or key.startswith("source_expert_")
+        }
+    )
+    weight_columns = (
+        SOURCE_WEIGHT_COLUMNS
+        + [f"weight_{name}" for name in source_names]
+        + [f"route_mass_{name}" for name in source_names]
+        + source_expert_columns
+    )
     pd.DataFrame(source_rows, columns=weight_columns).to_csv(output_dir / "source_weights_by_expert.csv", index=False)
 
-    topology = discover_moe_topology(repo_path(args.topology_summary), args.topology_model)
     summary = {
         "recipe_status": (
             "explicit_expert_weight_rules_ready"
@@ -814,12 +913,20 @@ def main() -> None:
         "shared_attention_weights": shared_attention,
         "shared_mlp_weights": shared_mlp,
         "expert_rule_count": len(source_rows),
+        "packed_expert_rules_enabled": packed_expert_enabled,
+        "packed_expert_tensor_templates": packed_templates,
+        "packed_expert_rule_count": len(packed_expert_rows),
+        "packed_expert_rule_tensor_count": int(len({row["tensor"] for row in packed_expert_rows})),
+        "packed_expert_rule_slice_count": int(
+            len({(row["tensor"], row["output_expert"]) for row in packed_expert_rows})
+        ),
         "tensor_rule_count": sum(1 for line in tensor_rules if line and not line.startswith("#")),
         "topology": topology,
         "same_shape_constraint": "Tensor rules only change weights inside the existing model structure; expert count, router shape, tokenizer, and layer count stay fixed.",
         "outputs": {
             "source_weights": rel(output_dir / "source_weights_by_expert.csv"),
             "tensor_rules": rel(tensor_rule_file),
+            "packed_expert_rules": rel(packed_expert_rule_file),
             "writer_command": rel(output_dir / "writer_command.txt"),
             "routing_probe_plan": rel(output_dir / "routing_probe_plan.csv"),
             "routing_probe_plan_json": rel(output_dir / "routing_probe_plan.json"),

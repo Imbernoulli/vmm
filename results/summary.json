@@ -151,6 +151,11 @@
       "status": "complete"
     },
     {
+      "evidence": "results/moe_packed_expert_writer_smoke/report.md verifies first-dimension packed expert slice weights and source-expert remaps for Qwen-style packed MoE tensors.",
+      "item": "MoE packed-expert writer smoke",
+      "status": "complete"
+    },
+    {
       "evidence": "results/moe_layerwise_expert_remap_smoke/report.md verifies layer-scoped source tensor alias rules for real multi-layer MoE expert matching.",
       "item": "MoE layer-wise expert remap smoke",
       "status": "complete"
@@ -168,6 +173,11 @@
     {
       "evidence": "results/moe_route_weight_recipes/report.md converts MoE routing/expert-load probes into tensor-rule files for same-shape checkpoint materialization; current recipe is waiting for real routing probe data.",
       "item": "MoE route-weight recipes",
+      "status": "complete"
+    },
+    {
+      "evidence": "results/moe_packed_route_weight_recipe_smoke/report.md verifies route/expert weights can emit Qwen-style packed_expert_rules.csv with source-expert remap columns.",
+      "item": "MoE packed route-weight recipe smoke",
       "status": "complete"
     },
     {
@@ -242,7 +252,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 47,
+    "complete": 49,
     "missing": 0,
     "partial": 1
   },
@@ -2184,6 +2194,276 @@
       },
       "waiting_or_blocked_count": 6
     },
+    "moe_packed_expert_writer_smoke": {
+      "checked_tensors": 6,
+      "failed_tensors": 0,
+      "manifest_path": "results/moe_packed_expert_writer_smoke/merge_manifest.json",
+      "packed_expert_rule_slices": 3,
+      "packed_expert_rule_tensors": 2,
+      "packed_expert_rule_values": 5,
+      "packed_expert_slice_rule_summary": {
+        "abs_weight_sum": 3.0,
+        "rule_count": 5,
+        "slice_count": 3,
+        "tensor_count": 2,
+        "tensors": [
+          {
+            "abs_weight_sum": 2.0,
+            "packed_expert_count": 2,
+            "rule_count": 3,
+            "shape": [
+              2,
+              2,
+              2
+            ],
+            "slice_count": 2,
+            "sources": [
+              "code",
+              "general"
+            ],
+            "tensor": "model.layers.0.mlp.experts.down_proj.weight"
+          },
+          {
+            "abs_weight_sum": 1.0,
+            "packed_expert_count": 2,
+            "rule_count": 2,
+            "shape": [
+              2,
+              4,
+              2
+            ],
+            "slice_count": 1,
+            "sources": [
+              "code",
+              "general"
+            ],
+            "tensor": "model.layers.0.mlp.experts.gate_up_proj"
+          }
+        ]
+      },
+      "report": "results/moe_packed_expert_writer_smoke/report.md",
+      "rule_counts": {
+        "default": 3,
+        "freeze_router": 1,
+        "tensor_rule:.*self_attn.*": 1
+      },
+      "status": "passed",
+      "summary": {
+        "checked_tensors": 6,
+        "failed_tensors": 0,
+        "outputs": {
+          "merge_manifest": "results/moe_packed_expert_writer_smoke/merge_manifest.json",
+          "report": "results/moe_packed_expert_writer_smoke/report.md",
+          "summary": "results/moe_packed_expert_writer_smoke/summary.json",
+          "tensor_checks": "results/moe_packed_expert_writer_smoke/tensor_checks.csv"
+        },
+        "packed_expert_rule_slices": 3,
+        "packed_expert_rule_tensors": 2,
+        "packed_expert_rule_values": 5,
+        "packed_expert_slice_rule_summary": {
+          "abs_weight_sum": 3.0,
+          "rule_count": 5,
+          "slice_count": 3,
+          "tensor_count": 2,
+          "tensors": [
+            {
+              "abs_weight_sum": 2.0,
+              "packed_expert_count": 2,
+              "rule_count": 3,
+              "shape": [
+                2,
+                2,
+                2
+              ],
+              "slice_count": 2,
+              "sources": [
+                "code",
+                "general"
+              ],
+              "tensor": "model.layers.0.mlp.experts.down_proj.weight"
+            },
+            {
+              "abs_weight_sum": 1.0,
+              "packed_expert_count": 2,
+              "rule_count": 2,
+              "shape": [
+                2,
+                4,
+                2
+              ],
+              "slice_count": 1,
+              "sources": [
+                "code",
+                "general"
+              ],
+              "tensor": "model.layers.0.mlp.experts.gate_up_proj"
+            }
+          ]
+        },
+        "rule_counts": {
+          "default": 3,
+          "freeze_router": 1,
+          "tensor_rule:.*self_attn.*": 1
+        },
+        "schema_version": 1,
+        "status": "passed"
+      },
+      "tensor_checks": "results/moe_packed_expert_writer_smoke/tensor_checks.csv"
+    },
+    "moe_packed_route_weight_recipe_smoke": {
+      "packed_expert_rule_count": 12,
+      "packed_expert_rule_slice_count": 6,
+      "packed_expert_rule_tensor_count": 4,
+      "packed_expert_rules": "results/moe_packed_route_weight_recipe_smoke/packed_expert_rules.csv",
+      "packed_expert_rules_enabled": true,
+      "recipe_status": "explicit_expert_weight_rules_ready",
+      "report": "results/moe_packed_route_weight_recipe_smoke/report.md",
+      "source_weight_rows": 3,
+      "source_weights": "results/moe_packed_route_weight_recipe_smoke/source_weights_by_expert.csv",
+      "summary": {
+        "anchor_floor": 0.15,
+        "category_source_plan": [
+          {
+            "category": "agentic_code",
+            "mapped_source": "code",
+            "mapping_kind": "category_heuristic",
+            "prompt_count": 1
+          },
+          {
+            "category": "code",
+            "mapped_source": "code",
+            "mapping_kind": "source_name_match",
+            "prompt_count": 2
+          },
+          {
+            "category": "finance",
+            "mapped_source": "general",
+            "mapping_kind": "fallback",
+            "prompt_count": 1
+          },
+          {
+            "category": "general",
+            "mapped_source": "general",
+            "mapping_kind": "source_name_match",
+            "prompt_count": 2
+          },
+          {
+            "category": "legal",
+            "mapped_source": "general",
+            "mapping_kind": "fallback",
+            "prompt_count": 1
+          },
+          {
+            "category": "long_context",
+            "mapped_source": "general",
+            "mapping_kind": "fallback",
+            "prompt_count": 1
+          },
+          {
+            "category": "math",
+            "mapped_source": "general",
+            "mapping_kind": "fallback",
+            "prompt_count": 2
+          },
+          {
+            "category": "safety",
+            "mapped_source": "general",
+            "mapping_kind": "fallback",
+            "prompt_count": 2
+          }
+        ],
+        "category_source_plan_rows": 8,
+        "category_sources": {},
+        "expert_rule_count": 3,
+        "expert_weight_category": null,
+        "expert_weight_csvs": [
+          "results/moe_packed_route_weight_recipe_smoke/expert_weights.csv"
+        ],
+        "fallback_source": "general",
+        "freeze_router": true,
+        "input_summaries": [
+          {
+            "category_filter": null,
+            "expert_weight_csv": "results/moe_packed_route_weight_recipe_smoke/expert_weights.csv",
+            "filtered_rows": 3,
+            "rows": 3,
+            "status": "loaded",
+            "used_rows": 3
+          }
+        ],
+        "low_route_threshold": 0.005,
+        "min_source_weight": 0.05,
+        "outputs": {
+          "category_source_plan": "results/moe_packed_route_weight_recipe_smoke/category_source_plan.csv",
+          "packed_expert_rules": "results/moe_packed_route_weight_recipe_smoke/packed_expert_rules.csv",
+          "report": "results/moe_packed_route_weight_recipe_smoke/report.md",
+          "routing_probe_plan": "results/moe_packed_route_weight_recipe_smoke/routing_probe_plan.csv",
+          "routing_probe_plan_json": "results/moe_packed_route_weight_recipe_smoke/routing_probe_plan.json",
+          "source_weights": "results/moe_packed_route_weight_recipe_smoke/source_weights_by_expert.csv",
+          "summary": "results/moe_packed_route_weight_recipe_smoke/summary.json",
+          "tensor_rules": "results/moe_packed_route_weight_recipe_smoke/tensor_rules.txt",
+          "writer_command": "results/moe_packed_route_weight_recipe_smoke/writer_command.txt"
+        },
+        "packed_expert_rule_count": 12,
+        "packed_expert_rule_slice_count": 6,
+        "packed_expert_rule_tensor_count": 4,
+        "packed_expert_rules_enabled": true,
+        "packed_expert_tensor_templates": [
+          "model.language_model.layers.{layer_id}.mlp.experts.gate_up_proj",
+          "model.language_model.layers.{layer_id}.mlp.experts.down_proj"
+        ],
+        "prompt_pack": "prompts/qwen_moe_route_probe_prompts.jsonl",
+        "recipe_kind": "explicit_expert_weights",
+        "recipe_status": "explicit_expert_weight_rules_ready",
+        "router_dirs": [],
+        "routing_probe_plan": [
+          {
+            "category_count": 8,
+            "command": "python scripts/probe_moe_routing.py --model Qwen/Qwen3-30B-A3B --compare-model Qwen/Qwen3-Coder-30B-A3B-Instruct --prompts prompts/qwen_moe_route_probe_prompts.jsonl --device-map auto --dtype bfloat16 --max-length 768 --use-chat-template --output-dir results/moe_routing_probe/qwen3_30b_general_vs_code",
+            "compare_model": "Qwen/Qwen3-Coder-30B-A3B-Instruct",
+            "device_map": "auto",
+            "dtype": "bfloat16",
+            "expected_expert_load": "results/moe_routing_probe/qwen3_30b_general_vs_code/expert_load.csv",
+            "expected_route_overlap": "results/moe_routing_probe/qwen3_30b_general_vs_code/route_overlap.csv",
+            "max_length": 768,
+            "model": "Qwen/Qwen3-30B-A3B",
+            "next_recipe_command": "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code --source general --source code --category-source agentic_code=code --category-source code=code --category-source finance=general --category-source general=general --category-source legal=general --category-source long_context=general --category-source math=general --category-source safety=general",
+            "output_dir": "results/moe_routing_probe/qwen3_30b_general_vs_code",
+            "probe_name": "qwen3_30b_general_vs_code",
+            "prompt_count": 12,
+            "prompt_pack": "prompts/qwen_moe_route_probe_prompts.jsonl",
+            "source_names": "general,code",
+            "use_chat_template": true
+          }
+        ],
+        "routing_probe_plan_rows": 1,
+        "same_shape_constraint": "Tensor rules only change weights inside the existing model structure; expert count, router shape, tokenizer, and layer count stay fixed.",
+        "shared_attention_weights": {
+          "code": 0.5,
+          "general": 0.5
+        },
+        "shared_mlp_weights": null,
+        "source_names": [
+          "general",
+          "code"
+        ],
+        "tensor_rule_count": 1,
+        "topology": {
+          "active_expert_fraction_per_token": 0.03125,
+          "model_type": "qwen3_5_moe",
+          "name": "qwen3_6_35b_a3b",
+          "num_experts": 256,
+          "num_experts_per_tok": 8,
+          "num_experts_with_weights": 256,
+          "num_hidden_layers": 40,
+          "packed_expert_tensor_count": 82,
+          "weights_available": true
+        }
+      },
+      "topology_model": "qwen3_6_35b_a3b",
+      "writer_command": "results/moe_packed_route_weight_recipe_smoke/writer_command.txt",
+      "writer_command_has_packed_rule": true
+    },
     "moe_route_weight_recipes": {
       "category_source_plan": "results/moe_route_weight_recipes/category_source_plan.csv",
       "category_source_plan_rows": 8,
@@ -2277,6 +2557,7 @@
         "min_source_weight": 0.05,
         "outputs": {
           "category_source_plan": "results/moe_route_weight_recipes/category_source_plan.csv",
+          "packed_expert_rules": "results/moe_route_weight_recipes/packed_expert_rules.csv",
           "report": "results/moe_route_weight_recipes/report.md",
           "routing_probe_plan": "results/moe_route_weight_recipes/routing_probe_plan.csv",
           "routing_probe_plan_json": "results/moe_route_weight_recipes/routing_probe_plan.json",
@@ -2285,6 +2566,14 @@
           "tensor_rules": "results/moe_route_weight_recipes/tensor_rules.txt",
           "writer_command": "results/moe_route_weight_recipes/writer_command.txt"
         },
+        "packed_expert_rule_count": 0,
+        "packed_expert_rule_slice_count": 0,
+        "packed_expert_rule_tensor_count": 0,
+        "packed_expert_rules_enabled": true,
+        "packed_expert_tensor_templates": [
+          "model.language_model.layers.{layer_id}.mlp.experts.gate_up_proj",
+          "model.language_model.layers.{layer_id}.mlp.experts.down_proj"
+        ],
         "prompt_pack": "prompts/qwen_moe_route_probe_prompts.jsonl",
         "recipe_kind": "route_frequency",
         "recipe_status": "waiting_for_routing_probe",
@@ -2329,7 +2618,9 @@
           "name": "qwen3_6_35b_a3b",
           "num_experts": 256,
           "num_experts_per_tok": 8,
+          "num_experts_with_weights": 256,
           "num_hidden_layers": 40,
+          "packed_expert_tensor_count": 82,
           "weights_available": true
         }
       },
@@ -5066,6 +5357,7 @@
         "min_source_weight": 0.05,
         "outputs": {
           "category_source_plan": "results/toy_moe_confidence_blended_recipes/category_source_plan.csv",
+          "packed_expert_rules": "results/toy_moe_confidence_blended_recipes/packed_expert_rules.csv",
           "report": "results/toy_moe_confidence_blended_recipes/report.md",
           "routing_probe_plan": "results/toy_moe_confidence_blended_recipes/routing_probe_plan.csv",
           "routing_probe_plan_json": "results/toy_moe_confidence_blended_recipes/routing_probe_plan.json",
@@ -5074,6 +5366,14 @@
           "tensor_rules": "results/toy_moe_confidence_blended_recipes/tensor_rules.txt",
           "writer_command": "results/toy_moe_confidence_blended_recipes/writer_command.txt"
         },
+        "packed_expert_rule_count": 0,
+        "packed_expert_rule_slice_count": 0,
+        "packed_expert_rule_tensor_count": 0,
+        "packed_expert_rules_enabled": false,
+        "packed_expert_tensor_templates": [
+          "model.language_model.layers.{layer_id}.mlp.experts.gate_up_proj",
+          "model.language_model.layers.{layer_id}.mlp.experts.down_proj"
+        ],
         "prompt_pack": "prompts/qwen_moe_route_probe_prompts.jsonl",
         "recipe_kind": "explicit_expert_weights",
         "recipe_status": "explicit_expert_weight_rules_ready",
@@ -8597,7 +8897,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-19T16:12:38.945416+00:00",
+  "generated_at": "2026-06-19T16:27:15.742111+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -8634,10 +8934,12 @@
     "python scripts/write_same_shape_average_checkpoint.py --base BASE --source expert=EXPERT --dry-run --output-dir results/same_shape_writer_smoke",
     "python scripts/smoke_moe_tensor_rule_writer.py --output-dir results/moe_tensor_rule_writer_smoke",
     "PYTHONPATH=src python scripts/smoke_moe_combined_writer.py --output-dir results/moe_combined_writer_smoke",
+    "PYTHONPATH=scripts python scripts/smoke_moe_packed_expert_writer.py --output-dir results/moe_packed_expert_writer_smoke",
     "python scripts/inspect_checkpoint_topology.py --model NAME=MODEL_PATH --output-dir results/checkpoint_topology_inspect",
     "PYTHONPATH=src python scripts/build_average_candidate_recipes.py",
     "PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code",
     "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code --source general --source code",
+    "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --output-dir results/moe_packed_route_weight_recipe_smoke --expert-weight-csv results/moe_packed_route_weight_recipe_smoke/expert_weights.csv --source general --source code --topology-summary results/checkpoint_topology_inspect/summary.json --checkpoint-output-dir results/checkpoints/moe_packed_route_weight_candidate",
     "PYTHONPATH=src python scripts/build_moe_router_bias_plan.py --router-dir results/toy_moe_merge --method unified_moe_average --router-bias-template '{router}.bias'",
     "PYTHONPATH=src python scripts/build_moe_router_bias_plan.py --router-dir results/toy_moe_merge --method unified_confidence_blended_moe_average --output-dir results/moe_confidence_blended_router_bias_plan --router-bias-template '{router}.bias'",
     "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --output-dir results/toy_moe_expert_weight_recipes --expert-weight-csv results/toy_moe_merge/expert_search_weights_by_expert.csv --source general --source code --checkpoint-output-dir results/checkpoints/toy_moe_expert_weight_candidate --topology-summary ''",

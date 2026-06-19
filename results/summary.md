@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T16:12:38.945416+00:00`
+Generated at: `2026-06-19T16:27:15.742111+00:00`
 
 ## Coverage
 
-Complete: `47`; partial: `1`; missing: `0`.
+Complete: `49`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -38,10 +38,12 @@ Complete: `47`; partial: `1`; missing: `0`.
 | Same-shape checkpoint writer | complete | scripts/write_same_shape_average_checkpoint.py writes same-shape safetensors checkpoints; results/same_shape_writer_smoke/report.md validates Qwen2.5-0.5B base/instruct/coder dry-run compatibility. |
 | MoE tensor-rule writer materialization | complete | results/moe_tensor_rule_writer_smoke/report.md writes a tiny MoE-like safetensors checkpoint and verifies tensor-rule, freeze-router, router-bias additive deltas, and non-floating tensor behavior numerically. |
 | MoE combined writer smoke | complete | results/moe_combined_writer_smoke/report.md verifies expert tensor rules, source expert alias remap, freeze-router, and router-bias additive deltas in one same-shape writer call. |
+| MoE packed-expert writer smoke | complete | results/moe_packed_expert_writer_smoke/report.md verifies first-dimension packed expert slice weights and source-expert remaps for Qwen-style packed MoE tensors. |
 | MoE layer-wise expert remap smoke | complete | results/moe_layerwise_expert_remap_smoke/report.md verifies layer-scoped source tensor alias rules for real multi-layer MoE expert matching. |
 | Checkpoint topology inspection | complete | results/checkpoint_topology_inspect/report.md inspects Qwen MoE/Dense configs and safetensors headers without loading weights. |
 | Average candidate recipes | complete | results/average_candidate_recipes/report.md converts probe decisions into conservative same-shape materialization recipes and skips endpoint-only pseudo-averages. |
 | MoE route-weight recipes | complete | results/moe_route_weight_recipes/report.md converts MoE routing/expert-load probes into tensor-rule files for same-shape checkpoint materialization; current recipe is waiting for real routing probe data. |
+| MoE packed route-weight recipe smoke | complete | results/moe_packed_route_weight_recipe_smoke/report.md verifies route/expert weights can emit Qwen-style packed_expert_rules.csv with source-expert remap columns. |
 | MoE router-bias additive capacity plan | complete | results/moe_router_bias_plan/report.md converts expert_load.csv into writer-ready router-bias additive deltas for same-shape capacity correction. |
 | MoE confidence-blended router-bias capacity plan | complete | results/moe_confidence_blended_router_bias_plan/report.md applies the same writer-ready capacity correction to the confidence-blended unified MoE candidate. |
 | MoE searched expert-weight recipes | complete | results/toy_moe_expert_weight_recipes/report.md converts calibration-searched per-expert source weights into same-shape checkpoint writer tensor rules. |
@@ -235,6 +237,9 @@ Complete: `47`; partial: `1`; missing: `0`.
 | MoE combined writer smoke | status | passed |
 | MoE combined writer smoke | checked / failed tensors | 7 / 0 |
 | MoE combined writer smoke | alias rules / aliased tensors / additive values | 2 / 2 / 2 |
+| MoE packed-expert writer smoke | status | passed |
+| MoE packed-expert writer smoke | checked / failed tensors | 6 / 0 |
+| MoE packed-expert writer smoke | packed rule tensors / slices / values | 2 / 3 / 5 |
 | checkpoint topology | inspected MoE configs | 1 |
 | checkpoint topology | primary real MoE source | qwen3_6_35b_a3b / weights=True |
 | checkpoint topology | experts config / packed weights / routed expert bytes | 256 / 256 / 66035122176 |
@@ -242,6 +247,8 @@ Complete: `47`; partial: `1`; missing: `0`.
 | average candidate recipes | MoE templates awaiting routing probe | 1 |
 | MoE route-weight recipes | recipe status | waiting_for_routing_probe |
 | MoE route-weight recipes | expert tensor rules | 0 |
+| MoE packed route-weight recipe smoke | packed rules / tensors / slices | 12 / 4 / 6 |
+| MoE packed route-weight recipe smoke | writer command uses packed CSV | True |
 | MoE router-bias plan | status | router_bias_delta_ready |
 | MoE router-bias plan | nonzero delta rows | 4 |
 | MoE confidence-blended router-bias plan | status | router_bias_delta_ready |
