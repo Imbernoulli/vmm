@@ -846,6 +846,8 @@ def summarize_materialized_delta_audit_dir(path: str) -> dict[str, Any]:
         else float(routed["relative_delta_norm"].max()),
         "routed_tensors_relative_delta_gt_1": int((routed["relative_delta_norm"] > 1.0).sum()) if not routed.empty else 0,
         "routed_tensors_relative_delta_gt_075": int((routed["relative_delta_norm"] > 0.75).sum()) if not routed.empty else 0,
+        "routed_tensors_relative_delta_gt_065": int((routed["relative_delta_norm"] > 0.65).sum()) if not routed.empty else 0,
+        "routed_tensors_relative_delta_gt_06505": int((routed["relative_delta_norm"] > 0.6505).sum()) if not routed.empty else 0,
         "group_rows": [clean_row(row) for _, row in groups.iterrows()],
         "top_layer_rows": [clean_row(row) for _, row in top_layers.iterrows()],
         "top_changed_tensors": summary.get("top_changed_tensors", []),
@@ -875,6 +877,10 @@ def summarize_qwen3_moe_expert_only_delta_audit() -> dict[str, Any]:
 
 def summarize_qwen3_moe_tail_trimmed_delta_audit() -> dict[str, Any]:
     return summarize_materialized_delta_audit_dir("results/qwen3_moe_tail_trimmed_delta_audit")
+
+
+def summarize_qwen3_moe_searched_no_gt065_delta_audit() -> dict[str, Any]:
+    return summarize_materialized_delta_audit_dir("results/qwen3_moe_searched_no_gt065_delta_audit")
 
 
 def summarize_qwen3_moe_tail_trimmed_expert_only_candidate() -> dict[str, Any]:
@@ -943,11 +949,17 @@ def summarize_qwen3_moe_delta_frontier() -> dict[str, Any]:
         "tail_trimmed_total_relative_delta_norm": maybe_float(
             summary.get("tail_trimmed_total_relative_delta_norm")
         ),
+        "searched_no_gt065_total_relative_delta_norm": maybe_float(
+            summary.get("searched_no_gt065_total_relative_delta_norm")
+        ),
         "trust_to_expert_only_relative_norm_reduction": maybe_float(
             summary.get("trust_to_expert_only_relative_norm_reduction")
         ),
         "expert_only_to_tail_trimmed_relative_norm_reduction": maybe_float(
             summary.get("expert_only_to_tail_trimmed_relative_norm_reduction")
+        ),
+        "tail_trimmed_to_searched_no_gt065_relative_norm_delta": maybe_float(
+            summary.get("tail_trimmed_to_searched_no_gt065_relative_norm_delta")
         ),
         "trust_to_expert_only_attention_norm_reduction": maybe_float(
             summary.get("trust_to_expert_only_attention_norm_reduction")
@@ -964,6 +976,13 @@ def summarize_qwen3_moe_delta_frontier() -> dict[str, Any]:
         "expert_only_to_tail_trimmed_routed_gt_075_reduction": int(
             summary.get("expert_only_to_tail_trimmed_routed_gt_075_reduction", 0)
         ),
+        "tail_trimmed_to_searched_no_gt065_routed_gt_065_delta": int(
+            summary.get("tail_trimmed_to_searched_no_gt065_routed_gt_065_delta", 0)
+        ),
+        "tail_trimmed_routed_gt_0_6505": int(summary.get("tail_trimmed_routed_gt_0_6505", 0)),
+        "searched_no_gt065_routed_gt_0_6505": int(
+            summary.get("searched_no_gt065_routed_gt_0_6505", 0)
+        ),
         "expert_only_attention_changed_tensors": int(
             summary.get("expert_only_attention_changed_tensors", 0)
         ),
@@ -972,6 +991,12 @@ def summarize_qwen3_moe_delta_frontier() -> dict[str, Any]:
         ),
         "expert_only_router_changed_tensors": int(summary.get("expert_only_router_changed_tensors", 0)),
         "tail_trimmed_router_changed_tensors": int(summary.get("tail_trimmed_router_changed_tensors", 0)),
+        "searched_no_gt065_attention_changed_tensors": int(
+            summary.get("searched_no_gt065_attention_changed_tensors", 0)
+        ),
+        "searched_no_gt065_router_changed_tensors": int(
+            summary.get("searched_no_gt065_router_changed_tensors", 0)
+        ),
         "next_required_gate": summary.get("next_required_gate"),
         "candidate_rows": [clean_row(row) for _, row in candidates.iterrows()],
         "pairwise_rows": [clean_row(row) for _, row in pairwise.iterrows()],
@@ -2695,7 +2720,12 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "Qwen3 MoE mechanism-gated vLLM eval gate",
             "status": "complete",
-            "evidence": "results/qwen3_moe_mechanism_eval_gate/report.md turns two source endpoints and five same-shape Qwen3 MoE candidates into mechanism tests, a one-model-at-a-time vLLM run script, and endpoint-fallback selection rules.",
+            "evidence": "results/qwen3_moe_mechanism_eval_gate/report.md turns two source endpoints and six same-shape Qwen3 MoE candidates into mechanism tests, a one-model-at-a-time vLLM run script, and endpoint-fallback selection rules.",
+        },
+        {
+            "item": "Qwen3 MoE searched cap-law materialized candidate",
+            "status": "complete",
+            "evidence": "results/qwen3_moe_searched_no_gt065_delta_audit/report.md verifies the materialized searched 0.65 cap-law checkpoint and adds it to the Qwen3 MoE eval gate.",
         },
         {
             "item": "Qwen3 MoE trust-region cap-law search",
@@ -2786,6 +2816,7 @@ def build_summary() -> dict[str, Any]:
             summarize_qwen3_moe_tail_trimmed_expert_only_candidate()
         ),
         "qwen3_moe_tail_trimmed_delta_audit": summarize_qwen3_moe_tail_trimmed_delta_audit(),
+        "qwen3_moe_searched_no_gt065_delta_audit": summarize_qwen3_moe_searched_no_gt065_delta_audit(),
         "qwen3_moe_delta_frontier": summarize_qwen3_moe_delta_frontier(),
         "qwen3_moe_mechanism_eval_gate": summarize_qwen3_moe_mechanism_eval_gate(),
         "qwen3_moe_trust_region_cap_search": summarize_qwen3_moe_trust_region_cap_search(),
@@ -2906,6 +2937,8 @@ def build_summary() -> dict[str, Any]:
             "python scripts/audit_materialized_checkpoint_delta.py --base BASE --candidate EXPERT_ONLY_CANDIDATE --output-dir results/qwen3_moe_expert_only_delta_audit",
             "python scripts/build_qwen3_moe_tail_trimmed_expert_only_candidate.py --output-dir results/qwen3_moe_tail_trimmed_expert_only_candidate",
             "python scripts/audit_materialized_checkpoint_delta.py --base BASE --candidate TAIL_TRIMMED_CANDIDATE --output-dir results/qwen3_moe_tail_trimmed_delta_audit",
+            "bash results/qwen3_moe_trust_region_cap_search/searched_no_gt065_max_retention_writer_command.txt",
+            "python scripts/audit_materialized_checkpoint_delta.py --base BASE --candidate results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate --output-dir results/qwen3_moe_searched_no_gt065_delta_audit",
             "python scripts/build_qwen3_moe_delta_frontier.py --output-dir results/qwen3_moe_delta_frontier",
             "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
             "PYTHONPATH=src python scripts/collect_results.py",
@@ -2977,6 +3010,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_expert_only_delta_audit = exp["qwen3_moe_expert_only_delta_audit"]
     qwen3_moe_tail_trimmed_expert_only_candidate = exp["qwen3_moe_tail_trimmed_expert_only_candidate"]
     qwen3_moe_tail_trimmed_delta_audit = exp["qwen3_moe_tail_trimmed_delta_audit"]
+    qwen3_moe_searched_no_gt065_delta_audit = exp["qwen3_moe_searched_no_gt065_delta_audit"]
     qwen3_moe_delta_frontier = exp["qwen3_moe_delta_frontier"]
     qwen3_moe_mechanism_eval_gate = exp["qwen3_moe_mechanism_eval_gate"]
     qwen3_moe_trust_region_cap_search = exp["qwen3_moe_trust_region_cap_search"]
@@ -3415,6 +3449,20 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_tail_trimmed_delta_audit['routed_tensors_relative_delta_gt_075']} |"
             ),
             (
+                "| Qwen3 MoE searched cap-law delta audit | status / total relative norm / router changed | "
+                f"{qwen3_moe_searched_no_gt065_delta_audit['status']} / "
+                f"{fmt(qwen3_moe_searched_no_gt065_delta_audit['relative_delta_norm'])} / "
+                f"{qwen3_moe_searched_no_gt065_delta_audit['router_changed_tensors']}"
+                f"/{qwen3_moe_searched_no_gt065_delta_audit['router_tensors']} |"
+            ),
+            (
+                "| Qwen3 MoE searched cap-law delta audit | max routed rel-delta / >0.75 / >0.65 / >0.6505 | "
+                f"{fmt(qwen3_moe_searched_no_gt065_delta_audit['max_routed_tensor_relative_delta'])} / "
+                f"{qwen3_moe_searched_no_gt065_delta_audit['routed_tensors_relative_delta_gt_075']} / "
+                f"{qwen3_moe_searched_no_gt065_delta_audit['routed_tensors_relative_delta_gt_065']} / "
+                f"{qwen3_moe_searched_no_gt065_delta_audit['routed_tensors_relative_delta_gt_06505']} |"
+            ),
+            (
                 "| Qwen3 MoE delta frontier | best safety candidate / next required gate | "
                 f"{qwen3_moe_delta_frontier['best_delta_safety_candidate']} / "
                 f"{qwen3_moe_delta_frontier['next_required_gate']} |"
@@ -3434,6 +3482,12 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 "| Qwen3 MoE delta frontier | expert-only->tail-trimmed rel-norm reduction / routed >0.65 reduction | "
                 f"{fmt(qwen3_moe_delta_frontier['expert_only_to_tail_trimmed_relative_norm_reduction'])} / "
                 f"{qwen3_moe_delta_frontier['expert_only_to_tail_trimmed_routed_gt_065_reduction']} |"
+            ),
+            (
+                "| Qwen3 MoE delta frontier | tail-trimmed vs searched rel-norm delta / >0.6505 counts | "
+                f"{fmt(qwen3_moe_delta_frontier['tail_trimmed_to_searched_no_gt065_relative_norm_delta'])} / "
+                f"{qwen3_moe_delta_frontier['tail_trimmed_routed_gt_0_6505']}"
+                f"->{qwen3_moe_delta_frontier['searched_no_gt065_routed_gt_0_6505']} |"
             ),
             (
                 "| Qwen3 MoE mechanism eval gate | status / selection / selected | "

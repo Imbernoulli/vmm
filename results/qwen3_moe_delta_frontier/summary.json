@@ -1,7 +1,7 @@
 {
   "audit_to_trust_routed_gt_075_reduction": 150,
   "best_delta_safety_candidate": "tail_trimmed",
-  "candidate_count": 5,
+  "candidate_count": 6,
   "expert_only_attention_changed_tensors": 0,
   "expert_only_router_changed_tensors": 0,
   "expert_only_to_tail_trimmed_relative_norm_reduction": 0.0028877384914612614,
@@ -90,8 +90,8 @@
       "trust_to_expert_only_reduction": 0.0036081965364015978
     }
   ],
-  "interpretation": "Trust-region rules control the routed-expert delta tail; expert-only freezes attention without changing routed tail risk. Tail-trimmed then reduces the remaining routed tail while preserving the frozen attention/router contract. Attention should therefore be decided by downstream eval, not by delta safety alone.",
-  "next_required_gate": "vllm_downstream_eval_trust_region_vs_expert_only_attention_ablation",
+  "interpretation": "Trust-region rules control the routed-expert delta tail; expert-only freezes attention without changing routed tail risk. Tail-trimmed then reduces the remaining routed tail while preserving the frozen attention/router contract. The searched no-gt-0.65 candidate tests whether the hand-built route/load/category risk penalties can be replaced by a simpler global expert cap. Attention and cap-law complexity should therefore be decided by downstream eval, not by delta safety alone.",
+  "next_required_gate": "vllm_downstream_eval_trust_region_vs_expert_only_tail_trimmed_vs_searched_cap_law",
   "outputs": {
     "candidate_frontier": "results/qwen3_moe_delta_frontier/candidate_delta_frontier.csv",
     "group_frontier": "results/qwen3_moe_delta_frontier/group_delta_frontier.csv",
@@ -103,9 +103,16 @@
   },
   "router_changed_all_candidates": 0,
   "schema_version": 1,
+  "searched_no_gt065_attention_changed_tensors": 0,
+  "searched_no_gt065_routed_gt_0_6505": 0,
+  "searched_no_gt065_router_changed_tensors": 0,
+  "searched_no_gt065_total_relative_delta_norm": 0.2475948491291486,
   "status": "delta_frontier_ready",
   "tail_trimmed_attention_changed_tensors": 0,
+  "tail_trimmed_routed_gt_0_6505": 0,
   "tail_trimmed_router_changed_tensors": 0,
+  "tail_trimmed_to_searched_no_gt065_relative_norm_delta": 0.004449533671788214,
+  "tail_trimmed_to_searched_no_gt065_routed_gt_065_delta": 165,
   "tail_trimmed_total_relative_delta_norm": 0.24314531545736037,
   "trust_region_total_relative_delta_norm": 0.2486605810368496,
   "trust_to_expert_only_attention_norm_reduction": 0.188546444938151,

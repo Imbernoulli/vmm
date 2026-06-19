@@ -179,6 +179,15 @@ def default_candidates() -> list[dict[str, Any]]:
             "notes": "Second-stage routed-expert tail trim from the expert-only candidate. Shared attention and router remain frozen; remaining high-tail expert groups are scaled toward a 0.65 relative-delta cap.",
         },
         {
+            "candidate_source": "results/qwen3_moe_trust_region_cap_search/searched_no_gt065_max_retention_writer_command.txt",
+            "method": "qwen3_moe_searched_no_gt065_max_retention_candidate",
+            "checkpoint_path": "results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate",
+            "tensor_parallel_size": 4,
+            "gpu": "0,1,2,3",
+            "materialization_status": "checkpoint_missing_until_searched_cap_law_candidate_materialized",
+            "notes": "Searched Qwen3 MoE cap-law candidate: freeze router and shared attention, keep source-route-conditioned expert weights, and replace hand-built risk penalties with a simple global 0.65 routed-expert relative-delta cap.",
+        },
+        {
             "candidate_source": "local_materialized_dense_baseline",
             "method": "qwen_0_5b_instruct_coder_uniform_average",
             "checkpoint_path": "results/checkpoints/qwen_0_5b_instruct_coder_uniform_average",

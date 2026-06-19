@@ -61,6 +61,11 @@
       "rule": "Use the 0.65 second-stage expert tail cap only if tail-trimmed matches or beats expert-only on downstream tasks."
     },
     {
+      "gate": "cap_law_simplification",
+      "mechanism": "Internal delta proxies favor the simpler cap, but only downstream eval can tell whether risk penalties preserve useful specialization.",
+      "rule": "Replace hand-built route/load/category risk penalties with the searched global 0.65 cap only if the searched candidate matches or beats tail-trimmed on downstream tasks."
+    },
+    {
       "gate": "endpoint_fallback",
       "mechanism": "A unified algorithm should reject bad averages; same-shape endpoint fallback is still a valid target model.",
       "rule": "If every candidate is Pareto-dominated by a source endpoint, output the best same-shape endpoint/no-average."

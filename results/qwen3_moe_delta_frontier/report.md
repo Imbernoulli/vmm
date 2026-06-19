@@ -4,28 +4,32 @@
 目的不是替代 vLLM 下游评测，而是回答：当前几版规则到底改变了哪些参数组，下一版算法应该把风险预算放在哪里。
 
 - Status: `delta_frontier_ready`
-- Candidates: `5`
+- Candidates: `6`
 - Best delta-safety candidate: `tail_trimmed`
 - Trust-region total relative delta norm: `0.249`
 - Expert-only total relative delta norm: `0.246`
 - Tail-trimmed total relative delta norm: `0.243`
+- Searched no-gt-0.65 total relative delta norm: `0.248`
 - Trust -> expert-only relative norm reduction: `0.003`
 - Expert-only -> tail-trimmed relative norm reduction: `0.003`
+- Tail-trimmed -> searched no-gt-0.65 relative norm delta: `0.004`
+- Tail-trimmed / searched routed tensors >0.6505: `0` / `0`
 - Expert-only attention changed tensors: `0`
 - Tail-trimmed attention changed tensors: `0`
 - Expert-only router changed tensors: `0`
 - Tail-trimmed router changed tensors: `0`
-- Next required gate: `vllm_downstream_eval_trust_region_vs_expert_only_attention_ablation`
+- Next required gate: `vllm_downstream_eval_trust_region_vs_expert_only_tail_trimmed_vs_searched_cap_law`
 
 ## Candidate Frontier
 
-| candidate | total rel | routed rel | attention rel | router changed | max routed rel | routed >1 | routed >0.75 | changed tensors |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| `route_guarded` | 0.286 | 0.293 | 0.189 | 0/48 | 1.327 | 182 | 839 | 10641 |
-| `audit_gated` | 0.264 | 0.270 | 0.189 | 0/48 | 0.750 | 0 | 164 | 10641 |
-| `trust_region` | 0.249 | 0.255 | 0.189 | 0/48 | 0.750 | 0 | 14 | 10641 |
-| `expert_only` | 0.246 | 0.255 | 0.000 | 0/48 | 0.750 | 0 | 14 | 10353 |
-| `tail_trimmed` | 0.243 | 0.252 | 0.000 | 0/48 | 0.650 | 0 | 0 | 10353 |
+| candidate | total rel | routed rel | attention rel | router changed | max routed rel | routed >1 | routed >0.75 | routed >0.65 | routed >0.6505 | changed tensors |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `route_guarded` | 0.286 | 0.293 | 0.189 | 0/48 | 1.327 | 182 | 839 | 1156 | 1156 | 10641 |
+| `audit_gated` | 0.264 | 0.270 | 0.189 | 0/48 | 0.750 | 0 | 164 | 1146 | 1146 | 10641 |
+| `trust_region` | 0.249 | 0.255 | 0.189 | 0/48 | 0.750 | 0 | 14 | 366 | 354 | 10641 |
+| `expert_only` | 0.246 | 0.255 | 0.000 | 0/48 | 0.750 | 0 | 14 | 366 | 354 | 10353 |
+| `tail_trimmed` | 0.243 | 0.252 | 0.000 | 0/48 | 0.650 | 0 | 0 | 80 | 0 | 10353 |
+| `searched_no_gt065` | 0.248 | 0.256 | 0.000 | 0/48 | 0.650 | 0 | 0 | 245 | 0 | 10353 |
 
 ## Pairwise Reductions
 
@@ -35,6 +39,7 @@
 | `audit_gated` | `trust_region` | 0.015 | 0.016 | 0.000 | 0 | 150 | 780 |
 | `trust_region` | `expert_only` | 0.003 | 0.000 | 0.189 | 0 | 0 | 0 |
 | `expert_only` | `tail_trimmed` | 0.003 | 0.003 | 0.000 | 0 | 14 | 286 |
+| `tail_trimmed` | `searched_no_gt065` | -0.004 | -0.005 | 0.000 | 0 | 0 | -165 |
 
 ## Highest Trust-Region Layers
 
@@ -55,9 +60,9 @@
 
 ## Interpretation
 
-Trust-region rules control the routed-expert delta tail; expert-only freezes attention without changing routed tail risk. Tail-trimmed then reduces the remaining routed tail while preserving the frozen attention/router contract. Attention should therefore be decided by downstream eval, not by delta safety alone.
+Trust-region rules control the routed-expert delta tail; expert-only freezes attention without changing routed tail risk. Tail-trimmed then reduces the remaining routed tail while preserving the frozen attention/router contract. The searched no-gt-0.65 candidate tests whether the hand-built route/load/category risk penalties can be replaced by a simpler global expert cap. Attention and cap-law complexity should therefore be decided by downstream eval, not by delta safety alone.
 
-实际含义：trust-region/audit-gated 的价值主要是压 routed expert 的高 relative-delta tail；expert-only 只是把 shared attention 从候选里拿掉，几乎不改变 routed expert 风险；tail-trimmed 才继续压剩余 routed tail。所以 attention 是否保留不能靠 delta safety 判断，必须靠同任务 vLLM 下游结果决定。
+实际含义：trust-region/audit-gated 的价值主要是压 routed expert 的高 relative-delta tail；expert-only 只是把 shared attention 从候选里拿掉，几乎不改变 routed expert 风险；tail-trimmed 才继续压剩余 routed tail。searched no-gt-0.65 则把复杂风险 penalty 换成统一 cap，给下一轮 eval 一个更简单的候选。所以 attention 是否保留、risk penalty 是否保留，都不能靠 delta safety 单独判断，必须靠同任务 vLLM 下游结果决定。
 
 ## Files
 

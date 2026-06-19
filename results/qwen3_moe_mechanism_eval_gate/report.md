@@ -5,8 +5,8 @@
 - Gate status: `awaiting_remote_vllm_eval`
 - Local GPU available: `False` (`nvidia_smi_failed`)
 - Source endpoints: `2`
-- Same-shape candidates: `5`
-- Ready-to-host rows: `7`
+- Same-shape candidates: `6`
+- Ready-to-host rows: `8`
 - Completed Qwen3 eval rows: `0`
 - Current selection status: `awaiting_source_eval`
 - Selected method: `None`
@@ -21,7 +21,8 @@
 3. routed experts 用 source-route-conditioned delta，并按 route/load/category/router-fragility 设 trust region。
 4. shared attention 是否移动只看 trust-region vs expert-only 的同任务 vLLM 结果。
 5. 0.65 tail trim 是否默认启用只看 tail-trimmed vs expert-only 的同任务 vLLM 结果。
-6. 如果所有候选被 source endpoint 支配，输出同构 endpoint/no-average。
+6. hand-built risk penalties 是否保留，只看 searched no-gt-0.65 vs tail-trimmed 的同任务 vLLM 结果。
+7. 如果所有候选被 source endpoint 支配，输出同构 endpoint/no-average。
 ```
 
 一个简化的 expert 规则可以写成：
@@ -43,7 +44,8 @@ cap_g = f(route_load, category_specialization, router_fragility, delta_audit_tai
 | `route_load_trust_region` | `qwen3_moe_audit_gated_candidate` -> `qwen3_moe_trust_region_candidate` | `awaiting_eval` |  |  | 0.015 | 150.000 | Do route/load/category/fragility probes identify the expert groups that need a tighter cap? |
 | `shared_attention_ablation` | `qwen3_moe_trust_region_candidate` -> `qwen3_moe_expert_only_trust_region_candidate` | `awaiting_eval` |  |  | 0.003 | 0.000 | Should the unified MoE rule move shared attention, or keep it fixed? |
 | `second_stage_tail_trim` | `qwen3_moe_expert_only_trust_region_candidate` -> `qwen3_moe_tail_trimmed_expert_only_candidate` | `awaiting_eval` |  |  | 0.003 | 14.000 | Does the stricter 0.65 routed-expert tail cap remove risk without removing ability? |
-| `candidate_vs_sources` | `source_qwen3_30b_instruct` -> `qwen3_moe_tail_trimmed_expert_only_candidate` | `awaiting_eval` |  |  |  |  | Does any same-shape candidate avoid Pareto domination by the two source endpoints? |
+| `risk_penalty_simplification` | `qwen3_moe_tail_trimmed_expert_only_candidate` -> `qwen3_moe_searched_no_gt065_max_retention_candidate` | `awaiting_eval` |  |  | -0.004 | 0.000 | Are hand-built risk penalties necessary after a uniform 0.65 expert cap is enforced? |
+| `candidate_vs_sources` | `source_qwen3_30b_instruct` -> `qwen3_moe_searched_no_gt065_max_retention_candidate` | `awaiting_eval` |  |  |  |  | Does any same-shape candidate avoid Pareto domination by the two source endpoints? |
 
 ## Eval Gate Plan
 
@@ -56,6 +58,7 @@ cap_g = f(route_load, category_specialization, router_fragility, delta_audit_tai
 | 4 | `qwen3_moe_trust_region_candidate` | `candidate` | `ready_to_host` | `not_run` |  |  | 14.000 | 288.000 | route/load/category/router-fragility trust-region caps |
 | 5 | `qwen3_moe_expert_only_trust_region_candidate` | `candidate` | `ready_to_host` | `not_run` |  |  | 14.000 | 0.000 | trust-region experts + frozen shared attention + frozen router |
 | 6 | `qwen3_moe_tail_trimmed_expert_only_candidate` | `candidate` | `ready_to_host` | `not_run` |  |  | 0.000 | 0.000 | expert-only + second-stage routed-expert tail cap at 0.65 |
+| 7 | `qwen3_moe_searched_no_gt065_max_retention_candidate` | `candidate` | `ready_to_host` | `not_run` |  |  | 0.000 | 0.000 | freeze router/attention + source-route expert weights + searched uniform 0.65 cap |
 
 ## Selection State
 
@@ -68,6 +71,7 @@ cap_g = f(route_load, category_specialization, router_fragility, delta_audit_tai
 | `qwen3_moe_trust_region_candidate` | `False` | `` |  |  |  |  |  |  | 0.249 |
 | `qwen3_moe_expert_only_trust_region_candidate` | `False` | `` |  |  |  |  |  |  | 0.246 |
 | `qwen3_moe_tail_trimmed_expert_only_candidate` | `False` | `` |  |  |  |  |  |  | 0.243 |
+| `qwen3_moe_searched_no_gt065_max_retention_candidate` | `False` | `` |  |  |  |  |  |  | 0.248 |
 
 ## How To Run On GPU
 

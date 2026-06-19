@@ -1,6 +1,6 @@
 {
   "best_delta_safety_candidate": "tail_trimmed",
-  "candidate_count": 5,
+  "candidate_count": 6,
   "completed_eval_count": 0,
   "current_selection": {
     "best_source_by_avg": null,
@@ -36,7 +36,7 @@
     "selection_rules": "results/qwen3_moe_mechanism_eval_gate/selection_rules.json",
     "summary": "results/qwen3_moe_mechanism_eval_gate/summary.json"
   },
-  "ready_to_host_count": 7,
+  "ready_to_host_count": 8,
   "schema_version": 1,
   "source_count": 2,
   "status": "awaiting_remote_vllm_eval"

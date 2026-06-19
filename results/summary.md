@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T21:08:45.954032+00:00`
+Generated at: `2026-06-19T21:22:20.221218+00:00`
 
 ## Coverage
 
-Complete: `62`; partial: `1`; missing: `0`.
+Complete: `63`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -65,7 +65,8 @@ Complete: `62`; partial: `1`; missing: `0`.
 | Qwen3 MoE unified average preflight | complete | results/moe_unified_preflight_qwen3_30b/report.md verifies Qwen3-30B Instruct/Coder same-shape config, router tensor contract, routed expert layout, expert identity gate, and the emitted real routing probe command. |
 | Qwen3 MoE real routing readiness | complete | results/moe_routing_readiness/qwen3_30b_instruct_vs_coder/report.md analyzes the real Qwen3-30B Instruct/Coder route overlap and expert load probe, showing direct router averaging is high risk and needs calibration or freeze. |
 | Qwen3 MoE route-guarded unified candidate | complete | results/qwen3_moe_unified_route_guarded_candidate/report.md converts the real Qwen3 route/load probe into source-route-conditioned same-shape tensor rules and a validated writer dry-run command. |
-| Qwen3 MoE mechanism-gated vLLM eval gate | complete | results/qwen3_moe_mechanism_eval_gate/report.md turns two source endpoints and five same-shape Qwen3 MoE candidates into mechanism tests, a one-model-at-a-time vLLM run script, and endpoint-fallback selection rules. |
+| Qwen3 MoE mechanism-gated vLLM eval gate | complete | results/qwen3_moe_mechanism_eval_gate/report.md turns two source endpoints and six same-shape Qwen3 MoE candidates into mechanism tests, a one-model-at-a-time vLLM run script, and endpoint-fallback selection rules. |
+| Qwen3 MoE searched cap-law materialized candidate | complete | results/qwen3_moe_searched_no_gt065_delta_audit/report.md verifies the materialized searched 0.65 cap-law checkpoint and adds it to the Qwen3 MoE eval gate. |
 | Qwen3 MoE trust-region cap-law search | complete | results/qwen3_moe_trust_region_cap_search/report.md searches interpretable expert cap laws over real Qwen3 route-mass, risk-flag, and safetensors-delta probes and emits writer-ready next-candidate rules. |
 | Toy MoE multi-method routing readiness | complete | results/toy_moe_routing_readiness/report.md applies the generic readiness gate to toy MoE methods and flags all-weight routing drift separately from expert-matched/route-aware variants. |
 | Toy MoE merge method selection | complete | results/toy_moe_method_selection/report.md combines method metrics, routing readiness, and sparse capacity overflow into materialization gates plus a hard-top2/overflow Pareto frontier. |
@@ -154,12 +155,15 @@ Complete: `62`; partial: `1`; missing: `0`.
 | Qwen3 MoE tail-trimmed expert-only candidate | estimated rel-norm / routed max / >0.65 | 0.243 / 0.650 / 0 |
 | Qwen3 MoE tail-trimmed delta audit | status / total relative norm / router changed | passed / 0.243 / 0/48 |
 | Qwen3 MoE tail-trimmed delta audit | max routed rel-delta / routed tensors >1.0 / >0.75 | 0.650 / 0 / 0 |
-| Qwen3 MoE delta frontier | best safety candidate / next required gate | tail_trimmed / vllm_downstream_eval_trust_region_vs_expert_only_attention_ablation |
+| Qwen3 MoE searched cap-law delta audit | status / total relative norm / router changed | passed / 0.248 / 0/48 |
+| Qwen3 MoE searched cap-law delta audit | max routed rel-delta / >0.75 / >0.65 / >0.6505 | 0.650 / 0 / 245 / 0 |
+| Qwen3 MoE delta frontier | best safety candidate / next required gate | tail_trimmed / vllm_downstream_eval_trust_region_vs_expert_only_tail_trimmed_vs_searched_cap_law |
 | Qwen3 MoE delta frontier | audit->trust routed >0.75 reduction / trust->expert-only routed >0.75 reduction | 150 / 0 |
 | Qwen3 MoE delta frontier | trust vs expert-only total rel-norm / attention norm reduction | 0.249->0.246 / 0.189 |
 | Qwen3 MoE delta frontier | expert-only->tail-trimmed rel-norm reduction / routed >0.65 reduction | 0.003 / 286 |
+| Qwen3 MoE delta frontier | tail-trimmed vs searched rel-norm delta / >0.6505 counts | 0.004 / 0->0 |
 | Qwen3 MoE mechanism eval gate | status / selection / selected | awaiting_remote_vllm_eval / awaiting_source_eval / None |
-| Qwen3 MoE mechanism eval gate | ready / completed / awaiting tests | 7 / 0 / 6 |
+| Qwen3 MoE mechanism eval gate | ready / completed / awaiting tests | 8 / 0 / 7 |
 | Qwen3 MoE mechanism eval gate | local GPU / best delta-safety candidate | nvidia_smi_failed / tail_trimmed |
 | Qwen3 MoE cap-law search | searched / frontier / expert groups | 432 / 88 / 5243 |
 | Qwen3 MoE cap-law search | current trust vs uniform 0.65 retention | 0.982 / 0.982 |
@@ -278,7 +282,7 @@ Complete: `62`; partial: `1`; missing: `0`.
 | vLLM downstream eval smoke | status | passed |
 | vLLM downstream eval smoke | good / bad avg primary | 1.000 / 0.000 |
 | vLLM checkpoint eval plan | status | hosted_eval_complete |
-| vLLM checkpoint eval plan | ready / missing / not-loadable | 8 / 2 / 1 |
+| vLLM checkpoint eval plan | ready / missing / not-loadable | 9 / 2 / 1 |
 | vLLM hosted eval results | completed eval dirs | 10 |
 | vLLM hosted eval results | best eval avg / worst primary | source_qwen_0_5b_base / 0.375 / 0.094 |
 | vLLM source-vs-merge comparison | status | merge_underperforms_all_sources |
@@ -293,7 +297,7 @@ Complete: `62`; partial: `1`; missing: `0`.
 | Qwen dense broad sparse-method candidate | selected tensors / applied sparse rules / vLLM avg / delta vs global | 99 / 99 / 0.156 / -0.047 |
 | Qwen dense attention sparse-method candidate | selected tensors / applied sparse rules / vLLM avg / delta vs global | 49 / 49 / 0.203 / 0.000 |
 | checkpoint materialization readiness | status | hosted_eval_complete |
-| checkpoint materialization readiness | materialized / blocked / ready / completed | 6 / 4 / 5 / 1 |
+| checkpoint materialization readiness | materialized / blocked / ready / completed | 7 / 4 / 6 / 1 |
 | MoE materialization pipeline | status | waiting_for_real_moe_probe_or_paths |
 | MoE materialization pipeline | current blocking stage | exact_moe_topology |
 | MoE materialization pipeline | ready / waiting gates | 3 / 6 |

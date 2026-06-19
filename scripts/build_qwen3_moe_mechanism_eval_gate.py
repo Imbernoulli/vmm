@@ -25,6 +25,7 @@ CANDIDATE_METHODS = [
     "qwen3_moe_trust_region_candidate",
     "qwen3_moe_expert_only_trust_region_candidate",
     "qwen3_moe_tail_trimmed_expert_only_candidate",
+    "qwen3_moe_searched_no_gt065_max_retention_candidate",
 ]
 
 METHOD_ORDER = SOURCE_METHODS + CANDIDATE_METHODS
@@ -79,6 +80,13 @@ METHOD_META: dict[str, dict[str, str]] = {
         "question": "Does removing the remaining high-tail expert deltas preserve utility while lowering risk?",
         "required_controls": "expert-only; both sources",
     },
+    "qwen3_moe_searched_no_gt065_max_retention_candidate": {
+        "role": "candidate",
+        "short_name": "searched_no_gt065",
+        "mechanism": "freeze router/attention + source-route expert weights + searched uniform 0.65 cap",
+        "question": "Can a simple searched 0.65 cap replace the hand-built route/load/category risk penalties?",
+        "required_controls": "tail-trimmed; expert-only; both sources",
+    },
 }
 
 MECHANISM_TESTS = [
@@ -128,9 +136,18 @@ MECHANISM_TESTS = [
         "fail_signal": "Tail-trimmed loses task scores; the remaining tail contained useful specialization.",
     },
     {
+        "test": "risk_penalty_simplification",
+        "from_method": "qwen3_moe_tail_trimmed_expert_only_candidate",
+        "to_method": "qwen3_moe_searched_no_gt065_max_retention_candidate",
+        "mechanism_question": "Are hand-built risk penalties necessary after a uniform 0.65 expert cap is enforced?",
+        "why_it_matters": "The cap-law search found that a simple 0.65 cap removes the high tail with slightly higher route-mass retention; downstream eval must decide whether the simpler rule keeps ability.",
+        "pass_signal": "Searched no-gt-0.65 matches or beats tail-trimmed; simplify the unified expert cap law.",
+        "fail_signal": "Tail-trimmed beats searched no-gt-0.65; keep route/load/category risk penalties despite the internal proxy result.",
+    },
+    {
         "test": "candidate_vs_sources",
         "from_method": "source_qwen3_30b_instruct",
-        "to_method": "qwen3_moe_tail_trimmed_expert_only_candidate",
+        "to_method": "qwen3_moe_searched_no_gt065_max_retention_candidate",
         "mechanism_question": "Does any same-shape candidate avoid Pareto domination by the two source endpoints?",
         "why_it_matters": "If every candidate is dominated by an endpoint, the correct same-shape output is an endpoint/no-average, not a worse average.",
         "pass_signal": "At least one candidate is non-dominated by both sources and wins on avg/worst/task trade-off.",
@@ -505,7 +522,7 @@ def build_selection(gate: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, Any]]:
         selection = {
             "status": "awaiting_candidate_eval",
             "selected_method": None,
-            "reason": "All five Qwen3 MoE candidates need the same downstream task run before choosing a unified rule.",
+            "reason": "All Qwen3 MoE candidates need the same downstream task run before choosing a unified rule.",
             "completed_candidate_count": int(candidates["eval_completed"].sum()),
             "candidate_count": int(len(candidates)),
         }
@@ -638,6 +655,11 @@ def build_selection_rules(selection: dict[str, Any]) -> dict[str, Any]:
                 "mechanism": "A smaller high-tail cap is safer only if it does not remove useful specialization.",
             },
             {
+                "gate": "cap_law_simplification",
+                "rule": "Replace hand-built route/load/category risk penalties with the searched global 0.65 cap only if the searched candidate matches or beats tail-trimmed on downstream tasks.",
+                "mechanism": "Internal delta proxies favor the simpler cap, but only downstream eval can tell whether risk penalties preserve useful specialization.",
+            },
+            {
                 "gate": "endpoint_fallback",
                 "rule": "If every candidate is Pareto-dominated by a source endpoint, output the best same-shape endpoint/no-average.",
                 "mechanism": "A unified algorithm should reject bad averages; same-shape endpoint fallback is still a valid target model.",
@@ -762,7 +784,8 @@ def build_report(
         "3. routed experts 用 source-route-conditioned delta，并按 route/load/category/router-fragility 设 trust region。",
         "4. shared attention 是否移动只看 trust-region vs expert-only 的同任务 vLLM 结果。",
         "5. 0.65 tail trim 是否默认启用只看 tail-trimmed vs expert-only 的同任务 vLLM 结果。",
-        "6. 如果所有候选被 source endpoint 支配，输出同构 endpoint/no-average。",
+        "6. hand-built risk penalties 是否保留，只看 searched no-gt-0.65 vs tail-trimmed 的同任务 vLLM 结果。",
+        "7. 如果所有候选被 source endpoint 支配，输出同构 endpoint/no-average。",
         "```",
         "",
         "一个简化的 expert 规则可以写成：",
