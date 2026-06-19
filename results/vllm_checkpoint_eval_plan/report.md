@@ -4,9 +4,9 @@
 
 - Plan status: `hosted_eval_complete`
 - Candidate rows: `8`
-- Ready to host: `4`
+- Ready to host: `5`
 - Completed evals: `1`
-- Missing checkpoints: `3`
+- Missing checkpoints: `2`
 - Tasks: `gsm8k,mmlu,safety,humaneval_compile`
 
 ## Plan
@@ -16,7 +16,7 @@
 | 0 | `source_qwen3_30b_instruct` | `ready_to_host` | `not_run` |  |  | `/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe` | 8100 | `results/vllm_checkpoint_eval/source_qwen3_30b_instruct` |
 | 1 | `source_qwen3_30b_coder` | `ready_to_host` | `not_run` |  |  | `/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-Coder-30B-A3B-Instruct/snapshots/b2cff646eb4bb1d68355c01b18ae02e7cf42d120` | 8101 | `results/vllm_checkpoint_eval/source_qwen3_30b_coder` |
 | 2 | `qwen3_moe_unified_route_guarded_candidate` | `ready_to_host` | `not_run` |  |  | `results/checkpoints/qwen3_moe_unified_route_guarded_candidate` | 8102 | `results/vllm_checkpoint_eval/qwen3_moe_unified_route_guarded_candidate` |
-| 3 | `qwen3_moe_audit_gated_candidate` | `checkpoint_missing_until_materialized` | `not_run` |  |  | `results/checkpoints/qwen3_moe_audit_gated_candidate` | 8103 | `results/vllm_checkpoint_eval/qwen3_moe_audit_gated_candidate` |
+| 3 | `qwen3_moe_audit_gated_candidate` | `ready_to_host` | `not_run` |  |  | `results/checkpoints/qwen3_moe_audit_gated_candidate` | 8103 | `results/vllm_checkpoint_eval/qwen3_moe_audit_gated_candidate` |
 | 4 | `qwen_0_5b_instruct_coder_uniform_average` | `ready_to_host` | `complete` | 0.180 | 0.000 | `results/checkpoints/qwen_0_5b_instruct_coder_uniform_average` | 8104 | `results/vllm_checkpoint_eval/qwen_0_5b_instruct_coder_uniform_average` |
 | 5 | `moe_route_aware_candidate` | `checkpoint_missing_until_materialized` | `not_run` |  |  | `results/checkpoints/moe_route_aware_candidate` | 8105 | `results/vllm_checkpoint_eval/moe_route_aware_candidate` |
 | 6 | `moe_bias_calibrated_candidate` | `checkpoint_missing_until_materialized` | `not_run` |  |  | `results/checkpoints/moe_bias_calibrated_candidate` | 8106 | `results/vllm_checkpoint_eval/moe_bias_calibrated_candidate` |

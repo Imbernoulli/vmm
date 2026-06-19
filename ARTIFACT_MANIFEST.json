@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 59521,
+      "bytes": 59901,
       "kind": "document",
       "path": "README.md",
-      "sha256": "431ffc112cc9a7a2336392de45db226d8b70470c310e1ba295af6526910ae574"
+      "sha256": "6a3bb85bef53352ffbea7ea965746b6f7dc45904fbf96886c9eeb8b7c84ebec8"
     },
     {
       "bytes": 33211,
@@ -109,22 +109,22 @@
       "sha256": "0d96089876a6d351544e0d393c80824155d324738f462d9e96fb888e41042d5e"
     },
     {
-      "bytes": 10015,
+      "bytes": 9951,
       "kind": "data",
       "path": "results/checkpoint_materialization_readiness/candidate_readiness.csv",
-      "sha256": "f8c6846a6133ff53379e0cf8d4f1b1450fbaf2d42e36280f92c363eb840f2709"
+      "sha256": "0834480659517240ac82bcd8f88872ae2da40db6a780ae2d41c05d290a2513c0"
     },
     {
-      "bytes": 2984,
+      "bytes": 2921,
       "kind": "document",
       "path": "results/checkpoint_materialization_readiness/report.md",
-      "sha256": "62993ed27015c09008e53ce9d008f4e364819ed0cc1ef4afda63c1667a33d8de"
+      "sha256": "273ee9e543b890ceaef194cf8a3d6ae2d9e957960672b50f0a595d0a0178d179"
     },
     {
       "bytes": 512,
       "kind": "data",
       "path": "results/checkpoint_materialization_readiness/summary.json",
-      "sha256": "a3c172d41aa36ab83e2b64853a55a16ec64759b56c63d4a3b051c1fe712eb06b"
+      "sha256": "eafe033e6e49501ebf0da7b26bce344ddff35fc9264905f830a400b7b4e39c14"
     },
     {
       "bytes": 311,
@@ -1611,6 +1611,36 @@
     {
       "bytes": 560,
       "kind": "data",
+      "path": "results/qwen3_moe_audit_gated_delta_audit/group_delta_summary.csv",
+      "sha256": "3c56c75b4ea75120081212fd22e4b28bbe827c7abe47e03242773707dfaa5416"
+    },
+    {
+      "bytes": 5869,
+      "kind": "data",
+      "path": "results/qwen3_moe_audit_gated_delta_audit/layer_delta_summary.csv",
+      "sha256": "2a9d55a41c9325eb57d94b1835b9c1f10c5ce2e399bd1e5a87ac67acb429ea02"
+    },
+    {
+      "bytes": 5994,
+      "kind": "document",
+      "path": "results/qwen3_moe_audit_gated_delta_audit/report.md",
+      "sha256": "e7028f232f2b52a25eb65d7939e2bfa6bdf73179635c17644db91df729e1bbef"
+    },
+    {
+      "bytes": 8626,
+      "kind": "data",
+      "path": "results/qwen3_moe_audit_gated_delta_audit/summary.json",
+      "sha256": "2efb86ba0e50a84c49062318ec419edc1f0450337b5412d90e13b032e737c9ba"
+    },
+    {
+      "bytes": 4703622,
+      "kind": "data",
+      "path": "results/qwen3_moe_audit_gated_delta_audit/tensor_delta_audit.csv",
+      "sha256": "5ee3b96ebbcbac4cecc882f19503bc91ac83278214714540a915ed1e6f4e4eb5"
+    },
+    {
+      "bytes": 560,
+      "kind": "data",
       "path": "results/qwen3_moe_materialized_delta_audit/group_delta_summary.csv",
       "sha256": "1933b7132cbf3dadf6d994eb1732e9f9c44d2e74331db0b5ffeac10e70295886"
     },
@@ -2185,16 +2215,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 606832,
+      "bytes": 630014,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "f8f49748ba8ff45668e13589fa8410180b13ca06e79da7e4789b870d64429f1e"
+      "sha256": "4ad7c01d5cc477efac93ea5d2988c5a9a4a5a2d19c06a3fdc130fe7626c86ddf"
     },
     {
-      "bytes": 32219,
+      "bytes": 32438,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "b9e35ba3e70a47bc2cfc91c9444233875531b3b83cabad31d222e5c344924dd8"
+      "sha256": "b0b1263a54382c288306841c718bc56cec8a9818a83ba5f0866e72889d270776"
     },
     {
       "bytes": 288,
@@ -3031,22 +3061,22 @@
       "sha256": "0f057962bf8750e9d15152eb1d4265f8cc32ae40d90f56c528c5fc898e29abe7"
     },
     {
-      "bytes": 8911,
+      "bytes": 8886,
       "kind": "data",
       "path": "results/vllm_checkpoint_eval_plan/checkpoint_eval_plan.csv",
-      "sha256": "3b8241c6604b001d0f2abe293957f47bad8ab26935c21c6f7a69964472a9824f"
+      "sha256": "f6086a60fcd5ab0daa38248f2798b8d7973d50265f8e36f0236426ee2d24a146"
     },
     {
-      "bytes": 2797,
+      "bytes": 2773,
       "kind": "document",
       "path": "results/vllm_checkpoint_eval_plan/report.md",
-      "sha256": "87b12f82dafa04e97db5a400cce7b30a479c364ecc8022ddce5cb235104d5461"
+      "sha256": "3493d9436495f8c184c9944f7719a5d624c80f99be339b9d40e421643a79c591"
     },
     {
       "bytes": 751,
       "kind": "data",
       "path": "results/vllm_checkpoint_eval_plan/summary.json",
-      "sha256": "43e4d7ca72c3507d2d5f6be84ad58ae1192519733a8a7bb73f8a54c8540005cf"
+      "sha256": "3b4673df02cd2da67c1d26cee410cd06124177e6f39de34a8c9a09a0266a6984"
     },
     {
       "bytes": 193,
@@ -3295,10 +3325,10 @@
       "sha256": "0b0e4be7ec51f0afb74dfdee6e3d8b217da9aac4d965a170bea36c89f1b46abb"
     },
     {
-      "bytes": 206680,
+      "bytes": 208693,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "3fc9b4bdbd7ee9013ee3cee0821c567badd06811d3f08ff9ae6594fd7aa911c5"
+      "sha256": "595f3354b93cdab7274b8cba5bfc5f04027be98743cdeddfa55578cbfbef76ab"
     },
     {
       "bytes": 16101,
@@ -3511,7 +3541,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T19:11:40.846455+00:00",
+  "generated_at": "2026-06-19T19:23:07.112735+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

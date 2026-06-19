@@ -38,7 +38,7 @@ set -euo pipefail
 # Eval:
 # python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8102/v1 --models candidate_qwen3_moe_unified_route_guarded_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_unified_route_guarded_candidate
 
-# [3] qwen3_moe_audit_gated_candidate - checkpoint_missing_until_materialized
+# [3] qwen3_moe_audit_gated_candidate - ready_to_host
 # Checkpoint: results/checkpoints/qwen3_moe_audit_gated_candidate
 # Serve:
 # CUDA_VISIBLE_DEVICES=0,1,2,3 vllm serve results/checkpoints/qwen3_moe_audit_gated_candidate --served-model-name candidate_qwen3_moe_audit_gated_candidate --host 127.0.0.1 --port 8103 --dtype bfloat16 --tensor-parallel-size 4

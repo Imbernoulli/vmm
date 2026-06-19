@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-19T19:11:40.817589+00:00`
+Generated at: `2026-06-19T19:23:07.075839+00:00`
 
 ## Coverage
 
@@ -133,6 +133,8 @@ Complete: `60`; partial: `1`; missing: `0`.
 | Qwen3 MoE materialized delta audit | changed numel frac / relative delta norm / max abs delta | 0.563 / 0.286 / 1.688 |
 | Qwen3 MoE audit-gated candidate | status / scaled rules / dry-run router hits | audit_gated_rules_ready / 302 / 48 |
 | Qwen3 MoE audit-gated candidate | mean nonbase weight / max audited rel-delta / min scale | 0.201->0.193 / 1.327 / 0.565 |
+| Qwen3 MoE audit-gated delta audit | status / total relative norm / router changed | passed / 0.264 / 0/48 |
+| Qwen3 MoE audit-gated delta audit | max routed rel-delta / routed tensors >1.0 / >0.75 | 0.750 / 0 / 164 |
 | real MoE gauge self-merge | baseline / same-name / aligned NLL | 4.168 / 9.659 / 4.168 |
 | real MoE gauge self-merge | same-name degradation vs baseline | 5.491 |
 | real MoE gauge self-merge | recovered expert permutations | 16 / 16 |
@@ -245,7 +247,7 @@ Complete: `60`; partial: `1`; missing: `0`.
 | vLLM downstream eval smoke | status | passed |
 | vLLM downstream eval smoke | good / bad avg primary | 1.000 / 0.000 |
 | vLLM checkpoint eval plan | status | hosted_eval_complete |
-| vLLM checkpoint eval plan | ready / missing / not-loadable | 4 / 3 / 1 |
+| vLLM checkpoint eval plan | ready / missing / not-loadable | 5 / 2 / 1 |
 | vLLM hosted eval results | completed eval dirs | 10 |
 | vLLM hosted eval results | best eval avg / worst primary | source_qwen_0_5b_base / 0.375 / 0.094 |
 | vLLM source-vs-merge comparison | status | merge_underperforms_all_sources |
@@ -260,7 +262,7 @@ Complete: `60`; partial: `1`; missing: `0`.
 | Qwen dense broad sparse-method candidate | selected tensors / applied sparse rules / vLLM avg / delta vs global | 99 / 99 / 0.156 / -0.047 |
 | Qwen dense attention sparse-method candidate | selected tensors / applied sparse rules / vLLM avg / delta vs global | 49 / 49 / 0.203 / 0.000 |
 | checkpoint materialization readiness | status | hosted_eval_complete |
-| checkpoint materialization readiness | materialized / blocked / ready / completed | 2 / 4 / 1 / 1 |
+| checkpoint materialization readiness | materialized / blocked / ready / completed | 3 / 4 / 2 / 1 |
 | MoE materialization pipeline | status | waiting_for_real_moe_probe_or_paths |
 | MoE materialization pipeline | current blocking stage | exact_moe_topology |
 | MoE materialization pipeline | ready / waiting gates | 3 / 6 |
