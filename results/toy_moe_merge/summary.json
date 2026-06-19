@@ -1,7 +1,7 @@
 {
   "all_weight_average_worst_acc": 0.62,
-  "best_method": "code_endpoint_permuted",
-  "best_worst_acc": 0.8025,
+  "best_method": "matched_router_calibrated_average",
+  "best_worst_acc": 0.8375,
   "code_source_permutation": [
     2,
     0,
@@ -9,6 +9,9 @@
     1
   ],
   "expert_match_mean_cosine": 0.9773149192333221,
+  "matched_router_calibrated_minus_all_weight_worst_acc": 0.21750000000000003,
+  "matched_router_calibrated_minus_frozen_worst_acc": 0.050000000000000044,
+  "matched_router_calibrated_worst_acc": 0.8375,
   "matched_router_frozen_minus_all_weight_worst_acc": 0.16749999999999998,
   "matched_router_frozen_worst_acc": 0.7875,
   "n_experts": 4,
@@ -24,6 +27,12 @@
   },
   "route_aware_minus_all_weight_worst_acc": 0.17000000000000004,
   "route_aware_worst_acc": 0.79,
+  "router_calibration": {
+    "aux_coef": 0.02,
+    "epochs": 8,
+    "kl_coef": 0.25,
+    "lr": 0.005
+  },
   "same_shape_constraint": "All methods keep the same TinyMoEClassifier architecture, expert count, router shape, and output classes.",
   "schema_version": 1,
   "seed": 17

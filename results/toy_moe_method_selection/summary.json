@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-06-19T09:28:31.763010+00:00",
+  "generated_at": "2026-06-19T09:42:49.727116+00:00",
   "selection_status": "has_candidate",
-  "recommended_method": "expert_matched_average",
+  "recommended_method": "matched_router_calibrated_average",
   "recommended_decision": "candidate_with_router_guard",
   "base_worst_acc": 0.775,
   "thresholds": {

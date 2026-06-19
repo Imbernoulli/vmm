@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T09:28:55.552243+00:00`
+Generated at: `2026-06-19T09:42:56.179458+00:00`
 
 ## Coverage
 
-Complete: `29`; partial: `0`; missing: `0`.
+Complete: `29`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -21,6 +21,7 @@ Complete: `29`; partial: `0`; missing: `0`.
 | Real Qwen LLM path sweep | complete | Qwen2.5-1.5B base-to-instruct path is evaluated with fixed NLL prompts plus GSM8K, MMLU, and HumanEval benchmark slices. |
 | Multi-expert LLM merge | complete | Qwen2.5-0.5B base, Qwen2.5-0.5B-Instruct, and Qwen2.5-Coder-0.5B-Instruct are evaluated in a two-expert merge plane. |
 | Formal LLM benchmark slices | complete | Representative Qwen2.5-1.5B benchmark slices cover MMLU, GSM8K, HumanEval canonical-solution NLL, and BeaverTails safety/refusal NLL. |
+| vLLM hosted downstream evaluation | partial | scripts/run_vllm_downstream_eval.py calls an OpenAI-compatible vLLM endpoint for GSM8K, MMLU, safety, and HumanEval compile slices; current result is endpoint_unavailable until a vLLM server is reachable. |
 | Probe-guided Average decision report | complete | results/average_decision_report/report.md converts merge grids, conflict probes, and optional MoE routing probes into same-shape average decisions. |
 | Dense/MoE averaging literature matrix | complete | results/model_averaging_literature_review/report.md maps recent model averaging and MoE merging papers to probes, failure signals, and same-shape writer actions. |
 | Qwen target model registry | complete | results/qwen_target_model_registry/report.md maps representative official, third-party, downstream, and adapter-pool Qwen candidates to scenarios, eval slices, probes, and same-shape topology gates. |
@@ -32,9 +33,9 @@ Complete: `29`; partial: `0`; missing: `0`.
 | MoE routing readiness diagnostics | complete | results/moe_routing_readiness/report.md turns router_summary, route_overlap, and expert_load CSVs into router collapse, drift, boundary-fragility, and expert-load risk actions. |
 | MoE routing probe CLI | complete | scripts/probe_moe_routing.py captures MoE router hooks and writes router_summary.csv, expert_load.csv, optional route_overlap.csv, summary.json, and report.md; results/moe_routing_probe_smoke/report.md validates the contract on a tiny local MoE. |
 | MoE routing probe smoke | complete | results/moe_routing_probe_smoke/report.md proves the routing probe captures two tiny MoE gates and produces router, expert-load, token-route, comparison, and route-overlap CSVs. |
-| Toy MoE route-aware merge | complete | results/toy_moe_merge/report.md runs a small same-shape MoE averaging experiment showing expert-index mismatch and route-aware/expert-matched fixes. |
+| Toy MoE route-aware merge | complete | results/toy_moe_merge/report.md runs a small same-shape MoE averaging experiment showing expert-index mismatch and expert-matched/router-calibrated fixes. |
 | Toy MoE multi-method routing readiness | complete | results/toy_moe_routing_readiness/report.md applies the generic readiness gate to toy MoE methods and flags all-weight routing drift separately from expert-matched/route-aware variants. |
-| Toy MoE merge method selection | complete | results/toy_moe_method_selection/report.md combines method metrics and routing readiness to reject all-weight average and recommend expert-matched averaging with router guard. |
+| Toy MoE merge method selection | complete | results/toy_moe_method_selection/report.md combines method metrics and routing readiness to reject all-weight average and recommend matched router-calibrated averaging with router guard. |
 | Toy MoE expert remap plan | complete | results/toy_moe_expert_remap_plan/report.md turns expert-output matching into source tensor alias rules for same-shape checkpoint materialization. |
 | Interactive explainer UI | complete | Dashboard includes a draggable precomputed merge-plane explorer with task-pair, method, objective, raw/normalized plane, alpha/beta, and lambda controls. |
 
@@ -71,16 +72,19 @@ Complete: `29`; partial: `0`; missing: `0`.
 | toy MoE route-aware merge | all-weight average worst accuracy | 0.620 |
 | toy MoE route-aware merge | expert-matched average worst accuracy | 0.800 |
 | toy MoE route-aware merge | matched + router-frozen worst accuracy | 0.787 |
+| toy MoE route-aware merge | matched + router-calibrated worst accuracy | 0.838 |
 | toy MoE route-aware merge | route-aware average worst accuracy | 0.790 |
 | toy MoE route-aware merge | matched + router-frozen minus all-weight worst accuracy | 0.167 |
+| toy MoE route-aware merge | matched router calibration gain over frozen | 0.050 |
 | toy MoE route-aware merge | route-aware minus all-weight worst accuracy | 0.170 |
 | toy MoE routing readiness | readiness status | high_risk_calibrate_router_before_merge |
 | toy MoE routing readiness | all-weight calibrate-router flags | 1 |
-| toy MoE method selection | recommended method | expert_matched_average |
+| toy MoE method selection | recommended method | matched_router_calibrated_average |
 | toy MoE method selection | all-weight decision | reject_routing_breakdown |
 | toy MoE expert remap plan | remap status | ready |
 | toy MoE expert remap plan | source tensor alias rules | 4 |
 | toy MoE expert remap plan | min expert-output cosine | 0.943 |
+| vLLM hosted downstream eval | status | endpoint_unavailable |
 | Average decision report | avoid uniform average decisions | 3 |
 | Average decision report | coefficient-search decisions | 2 |
 | model averaging literature review | sources reviewed | 21 |

@@ -541,9 +541,16 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
         "all_weight_average": find_method(methods, "all_weight_average"),
         "expert_matched_average": find_method(methods, "expert_matched_average"),
         "matched_router_frozen_average": find_method(methods, "matched_router_frozen_average"),
+        "matched_router_calibrated_average": find_method(methods, "matched_router_calibrated_average"),
         "route_aware_expert_average": find_method(methods, "route_aware_expert_average"),
         "matched_router_frozen_minus_all_weight_worst_acc": float(
             summary.get("matched_router_frozen_minus_all_weight_worst_acc", 0.0)
+        ),
+        "matched_router_calibrated_minus_all_weight_worst_acc": float(
+            summary.get("matched_router_calibrated_minus_all_weight_worst_acc", 0.0)
+        ),
+        "matched_router_calibrated_minus_frozen_worst_acc": float(
+            summary.get("matched_router_calibrated_minus_frozen_worst_acc", 0.0)
         ),
         "route_aware_minus_all_weight_worst_acc": float(summary["route_aware_minus_all_weight_worst_acc"]),
         "expert_match_mean_cosine": float(expert_match["output_cosine"].mean()),
@@ -612,6 +619,41 @@ def summarize_toy_moe_expert_remap_plan() -> dict[str, Any]:
         "expert_remap": rel("results/toy_moe_expert_remap_plan/expert_remap.csv"),
         "source_tensor_aliases": rel("results/toy_moe_expert_remap_plan/source_tensor_aliases.txt"),
         "writer_command": rel("results/toy_moe_expert_remap_plan/writer_command.txt"),
+    }
+
+
+def summarize_vllm_downstream_eval() -> dict[str, Any]:
+    summary_path = repo_path("results/vllm_downstream_eval/summary.json")
+    if not summary_path.exists():
+        return {
+            "status": "missing",
+            "model": None,
+            "base_url": None,
+            "tasks": None,
+            "metrics": [],
+            "error": "results/vllm_downstream_eval/summary.json is missing",
+            "report": None,
+        }
+
+    summary = read_json(summary_path)
+    status = str(summary.get("status", "unknown"))
+    metrics_path = repo_path("results/vllm_downstream_eval/metrics.csv")
+    metrics = []
+    if metrics_path.exists():
+        metrics = [clean_row(row) for _, row in read_csv(metrics_path).iterrows()]
+    probe = summary.get("endpoint_probe", {})
+    return {
+        "summary": summary,
+        "status": status,
+        "model": summary.get("model"),
+        "base_url": summary.get("base_url"),
+        "tasks": summary.get("tasks"),
+        "example_source": summary.get("example_source"),
+        "metrics": metrics,
+        "error": None if status == "complete" else f"{probe.get('error_type')}: {probe.get('error')}",
+        "report": rel("results/vllm_downstream_eval/report.md"),
+        "summary_path": rel(summary_path),
+        "metrics_path": rel(metrics_path) if metrics_path.exists() else None,
     }
 
 
@@ -754,6 +796,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "Representative Qwen2.5-1.5B benchmark slices cover MMLU, GSM8K, HumanEval canonical-solution NLL, and BeaverTails safety/refusal NLL.",
         },
         {
+            "item": "vLLM hosted downstream evaluation",
+            "status": "partial",
+            "evidence": "scripts/run_vllm_downstream_eval.py calls an OpenAI-compatible vLLM endpoint for GSM8K, MMLU, safety, and HumanEval compile slices; current result is endpoint_unavailable until a vLLM server is reachable.",
+        },
+        {
             "item": "Probe-guided Average decision report",
             "status": "complete",
             "evidence": "results/average_decision_report/report.md converts merge grids, conflict probes, and optional MoE routing probes into same-shape average decisions.",
@@ -811,7 +858,7 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "Toy MoE route-aware merge",
             "status": "complete",
-            "evidence": "results/toy_moe_merge/report.md runs a small same-shape MoE averaging experiment showing expert-index mismatch and route-aware/expert-matched fixes.",
+            "evidence": "results/toy_moe_merge/report.md runs a small same-shape MoE averaging experiment showing expert-index mismatch and expert-matched/router-calibrated fixes.",
         },
         {
             "item": "Toy MoE multi-method routing readiness",
@@ -821,7 +868,7 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "Toy MoE merge method selection",
             "status": "complete",
-            "evidence": "results/toy_moe_method_selection/report.md combines method metrics and routing readiness to reject all-weight average and recommend expert-matched averaging with router guard.",
+            "evidence": "results/toy_moe_method_selection/report.md combines method metrics and routing readiness to reject all-weight average and recommend matched router-calibrated averaging with router guard.",
         },
         {
             "item": "Toy MoE expert remap plan",
@@ -865,6 +912,7 @@ def build_summary() -> dict[str, Any]:
         "toy_moe_routing_readiness": summarize_toy_moe_routing_readiness(),
         "toy_moe_method_selection": summarize_toy_moe_method_selection(),
         "toy_moe_expert_remap_plan": summarize_toy_moe_expert_remap_plan(),
+        "vllm_downstream_eval": summarize_vllm_downstream_eval(),
     }
     coverage = coverage_checklist()
     counts = {
@@ -897,6 +945,7 @@ def build_summary() -> dict[str, Any]:
             "PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir results/toy_moe_merge --output-dir results/toy_moe_routing_readiness --topology-summary ''",
             "PYTHONPATH=src python scripts/select_moe_merge_method.py",
             "PYTHONPATH=src python scripts/build_moe_expert_remap_plan.py",
+            "python scripts/run_vllm_downstream_eval.py --model SERVED_MODEL --base-url http://HOST:PORT/v1 --tasks gsm8k,mmlu,safety,humaneval_compile",
             "python scripts/build_model_averaging_literature_review.py",
             "python scripts/smoke_moe_routing_probe_contract.py",
             "PYTHONPATH=src python scripts/build_average_decision_report.py",
@@ -949,6 +998,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     toy_moe_readiness = exp["toy_moe_routing_readiness"]
     toy_moe_selection = exp["toy_moe_method_selection"]
     toy_moe_remap = exp["toy_moe_expert_remap_plan"]
+    vllm_eval = exp["vllm_downstream_eval"]
     coverage_counts = summary["coverage_counts"]
     lines = [
         "# Result Summary",
@@ -1092,12 +1142,20 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(toy_moe['matched_router_frozen_average']['worst_acc'])} |"
             ),
             (
+                "| toy MoE route-aware merge | matched + router-calibrated worst accuracy | "
+                f"{fmt(toy_moe['matched_router_calibrated_average']['worst_acc'])} |"
+            ),
+            (
                 "| toy MoE route-aware merge | route-aware average worst accuracy | "
                 f"{fmt(toy_moe['route_aware_expert_average']['worst_acc'])} |"
             ),
             (
                 "| toy MoE route-aware merge | matched + router-frozen minus all-weight worst accuracy | "
                 f"{fmt(toy_moe['matched_router_frozen_minus_all_weight_worst_acc'])} |"
+            ),
+            (
+                "| toy MoE route-aware merge | matched router calibration gain over frozen | "
+                f"{fmt(toy_moe['matched_router_calibrated_minus_frozen_worst_acc'])} |"
             ),
             (
                 "| toy MoE route-aware merge | route-aware minus all-weight worst accuracy | "
@@ -1130,6 +1188,10 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| toy MoE expert remap plan | min expert-output cosine | "
                 f"{fmt(toy_moe_remap['min_output_cosine'])} |"
+            ),
+            (
+                "| vLLM hosted downstream eval | status | "
+                f"{vllm_eval['status']} |"
             ),
             (
                 "| Average decision report | avoid uniform average decisions | "

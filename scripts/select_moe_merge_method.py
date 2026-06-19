@@ -121,7 +121,14 @@ def decision_for_row(
         )
     score = worst_acc - 0.01 * risk_score - 0.05 * low_overlap_count
     if int(row.get("load_concentration_count", 0) or 0) > 0:
-        reason = "candidate passes routing-overlap gate but should keep router frozen or load-balance checked."
+        if "calibrated" in method:
+            reason = (
+                "candidate passes routing-overlap gate after router calibration; keep load-balance and held-out route checks."
+            )
+        elif "router_frozen" in method:
+            reason = "candidate passes routing-overlap gate with a frozen router; keep load-balance checks."
+        else:
+            reason = "candidate passes routing-overlap gate but needs router/load-balance guard checks."
         return "candidate_with_router_guard", reason, score
     return "candidate_materialize", "candidate passes performance and routing readiness gates.", score
 
@@ -227,7 +234,7 @@ def build_report(
             "- `base` 和 endpoint 只能说明 anchor/source 能力，不算平均结果。",
             "- `calibrate_router_before_average` 计数大于阈值时，拒绝直接 materialize。",
             "- 候选方法必须至少不低于 base worst accuracy 阈值。",
-            "- 通过 route-overlap 但有 load concentration 的方法标为 `candidate_with_router_guard`，表示 materialize 时应 freeze router 或加 load-balance guard。",
+            "- 通过 route-overlap 但有 load concentration 的方法标为 `candidate_with_router_guard`，表示 materialize 后仍需做 load-balance 和 held-out route-overlap 检查。",
             "",
             "## Files",
             "",

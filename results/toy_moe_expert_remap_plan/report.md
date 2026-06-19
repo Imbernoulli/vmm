@@ -3,7 +3,7 @@
 这个报告把 expert-output matching 结果转成 same-shape checkpoint writer 可以读取的 source tensor alias 规则。它解决的是 MoE average 中最实际的一步：输出 checkpoint 的 expert index 不变，但从 source checkpoint 读取已经匹配过的 expert tensor。
 
 - Source with remap: `code`
-- Recommended upstream method: `expert_matched_average`
+- Recommended upstream method: `matched_router_calibrated_average`
 - Remap status: `ready`
 - Alias rules: `4`
 - Min output cosine: `0.9426`
@@ -20,7 +20,7 @@
 ## Writer Dry-Run Command
 
 ```bash
-python scripts/write_same_shape_average_checkpoint.py --base MOE_BASE_OR_ANCHOR_PATH --source general=GENERAL_MODEL_PATH --source code=CODE_MODEL_PATH --source-weight general=0.5 --source-weight code=0.5 --freeze-router --source-tensor-alias-file results/toy_moe_expert_remap_plan/source_tensor_aliases.txt --output-dir results/checkpoints/moe_expert_matched_candidate --dry-run
+python scripts/write_same_shape_average_checkpoint.py --base MOE_BASE_OR_ANCHOR_PATH --source general=GENERAL_MODEL_PATH --source code=CODE_MODEL_PATH --source-weight general=0.5 --source-weight code=0.5 --freeze-router --source-tensor-alias-file results/toy_moe_expert_remap_plan/source_tensor_aliases.txt --output-dir results/checkpoints/moe_expert_matched_candidate --dry-run # recommended_method=matched_router_calibrated_average
 ```
 
 ## Interpretation

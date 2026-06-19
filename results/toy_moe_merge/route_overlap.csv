@@ -11,5 +11,7 @@ base,expert_matched_average,general,0,toy_router,400,0.9800000190734863,0.981666
 base,expert_matched_average,code,0,toy_router,400,0.9800000190734863,0.98
 base,matched_router_frozen_average,general,0,toy_router,400,1.0,1.0
 base,matched_router_frozen_average,code,0,toy_router,400,1.0,1.0
+base,matched_router_calibrated_average,general,0,toy_router,400,0.8924999833106995,0.8816666666666667
+base,matched_router_calibrated_average,code,0,toy_router,400,0.8299999833106995,0.8375
 base,route_aware_expert_average,general,0,toy_router,400,1.0,1.0
 base,route_aware_expert_average,code,0,toy_router,400,1.0,1.0

@@ -147,6 +147,46 @@ def train_model(
             optimizer.step()
 
 
+def calibrate_router_only_state(
+    template: TinyMoEClassifier,
+    initial_state: dict[str, Tensor],
+    reference_router: TinyMoEClassifier,
+    loader: DataLoader,
+    *,
+    epochs: int,
+    lr: float,
+    kl_coef: float,
+    aux_coef: float,
+    device: torch.device,
+    desc: str,
+) -> dict[str, Tensor]:
+    model = deepcopy(template)
+    model.load_state_dict(initial_state)
+    model.to(device)
+    reference_router.to(device)
+    reference_router.eval()
+    for parameter in model.parameters():
+        parameter.requires_grad = False
+    for parameter in model.router.parameters():
+        parameter.requires_grad = True
+    optimizer = torch.optim.AdamW(model.router.parameters(), lr=lr, weight_decay=0.0)
+    for _ in tqdm(range(epochs), desc=desc, leave=False):
+        model.train()
+        for x, y in loader:
+            x = x.to(device)
+            y = y.to(device)
+            optimizer.zero_grad(set_to_none=True)
+            logits = model(x)
+            router_probs = model.router_probs(x)
+            with torch.no_grad():
+                reference_probs = reference_router.router_probs(x)
+            router_kl = F.kl_div(torch.log(router_probs.clamp_min(1e-12)), reference_probs, reduction="batchmean")
+            loss = F.cross_entropy(logits, y) + kl_coef * router_kl + aux_coef * load_balance_loss(model, x)
+            loss.backward()
+            optimizer.step()
+    return cpu_state(model)
+
+
 @torch.no_grad()
 def evaluate(model: TinyMoEClassifier, loader: DataLoader, device: torch.device) -> dict[str, float]:
     model.to(device)
@@ -482,6 +522,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
     all_avg = method_metrics[method_metrics["method"] == "all_weight_average"].iloc[0]
     matched = method_metrics[method_metrics["method"] == "expert_matched_average"].iloc[0]
     matched_router_frozen = method_metrics[method_metrics["method"] == "matched_router_frozen_average"].iloc[0]
+    calibrated = method_metrics[method_metrics["method"] == "matched_router_calibrated_average"].iloc[0]
     route_aware = method_metrics[method_metrics["method"] == "route_aware_expert_average"].iloc[0]
     lines = [
         "# Toy MoE Route-Aware Merge",
@@ -496,6 +537,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
         f"- All-weight average worst accuracy: `{all_avg['worst_acc']:.3f}`.",
         f"- Expert-matched average worst accuracy: `{matched['worst_acc']:.3f}`.",
         f"- Matched + router-frozen average worst accuracy: `{matched_router_frozen['worst_acc']:.3f}`.",
+        f"- Matched + router-calibrated average worst accuracy: `{calibrated['worst_acc']:.3f}`.",
         f"- Route-aware expert average worst accuracy: `{route_aware['worst_acc']:.3f}`.",
         f"- Recovered expert matching mean cosine: `{summary['expert_match_mean_cosine']:.3f}`.",
         f"- Code source permutation: `{summary['code_source_permutation']}`.",
@@ -518,6 +560,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
             "- `all_weight_average` 是朴素 baseline：router 和 expert tensors 都按同名 index 平均，因此在 expert permutation 后会暴露 MoE index-alignment 风险。",
             "- `expert_matched_average` 先用 unlabeled calibration input 的 expert-output cosine 做 Hungarian matching，再平均；这对应 Sub-MoE / Expert Merging 里强调的 function-aware expert alignment。",
             "- `matched_router_frozen_average` 直接验证 MoE 特有假设：先对齐 expert 功能，再固定 token-to-expert dispatch，只平均非 router 权重。",
+            "- `matched_router_calibrated_average` 冻结 matched experts，只用小校准集更新 router，并用 base-router KL 约束防止 dispatch 漂移。",
             "- `route_aware_expert_average` 冻结 base router，并按 base router 在 general/code prompt 上的 route mass 给每个 expert 设置 source delta 权重；这对应 route-weight recipes 的 toy 版本。",
             "- 这个实验不是 Qwen3 结果，但它把 MoE merging 的特质从报告落成了可跑的 probe：expert index、router overlap、expert load 和 category route mass 都会影响 average 是否安全。",
             "",
@@ -549,6 +592,9 @@ def main() -> None:
     parser.add_argument("--finetune-epochs", type=int, default=8)
     parser.add_argument("--lr", type=float, default=2e-3)
     parser.add_argument("--finetune-lr", type=float, default=1e-3)
+    parser.add_argument("--router-calibration-epochs", type=int, default=8)
+    parser.add_argument("--router-calibration-lr", type=float, default=5e-3)
+    parser.add_argument("--router-calibration-kl-coef", type=float, default=0.25)
     parser.add_argument("--weight-decay", type=float, default=1e-4)
     parser.add_argument("--aux-coef", type=float, default=0.02)
     parser.add_argument("--anchor-floor", type=float, default=0.15)
@@ -627,6 +673,18 @@ def main() -> None:
     for name in matched_router_frozen:
         if name.startswith("router."):
             matched_router_frozen[name] = base_state[name].clone()
+    matched_router_calibrated = calibrate_router_only_state(
+        template,
+        matched_router_frozen,
+        base,
+        loaders["mixed_train"],
+        epochs=args.router_calibration_epochs,
+        lr=args.router_calibration_lr,
+        kl_coef=args.router_calibration_kl_coef,
+        aux_coef=args.aux_coef,
+        device=device,
+        desc="calibrate matched router",
+    )
 
     methods = [
         MethodState("base", base_state, "mixed-task base before fine-tuning"),
@@ -639,6 +697,11 @@ def main() -> None:
             "matched_router_frozen_average",
             matched_router_frozen,
             "align code experts by output cosine and keep the base router fixed",
+        ),
+        MethodState(
+            "matched_router_calibrated_average",
+            matched_router_calibrated,
+            "align code experts, freeze non-router tensors, and calibrate only the router",
         ),
         MethodState("route_aware_expert_average", route_aware, "freeze base router and use route-frequency expert source weights"),
     ]
@@ -689,6 +752,7 @@ def main() -> None:
     best = method_metrics.sort_values(["worst_acc", "avg_acc"], ascending=False).iloc[0]
     all_avg = method_metrics[method_metrics["method"] == "all_weight_average"].iloc[0]
     matched_router_frozen_row = method_metrics[method_metrics["method"] == "matched_router_frozen_average"].iloc[0]
+    matched_router_calibrated_row = method_metrics[method_metrics["method"] == "matched_router_calibrated_average"].iloc[0]
     route_aware_row = method_metrics[method_metrics["method"] == "route_aware_expert_average"].iloc[0]
     summary = {
         "schema_version": 1,
@@ -703,6 +767,19 @@ def main() -> None:
         "matched_router_frozen_minus_all_weight_worst_acc": float(
             matched_router_frozen_row["worst_acc"] - all_avg["worst_acc"]
         ),
+        "matched_router_calibrated_worst_acc": float(matched_router_calibrated_row["worst_acc"]),
+        "matched_router_calibrated_minus_all_weight_worst_acc": float(
+            matched_router_calibrated_row["worst_acc"] - all_avg["worst_acc"]
+        ),
+        "matched_router_calibrated_minus_frozen_worst_acc": float(
+            matched_router_calibrated_row["worst_acc"] - matched_router_frozen_row["worst_acc"]
+        ),
+        "router_calibration": {
+            "epochs": args.router_calibration_epochs,
+            "lr": args.router_calibration_lr,
+            "kl_coef": args.router_calibration_kl_coef,
+            "aux_coef": args.aux_coef,
+        },
         "route_aware_worst_acc": float(route_aware_row["worst_acc"]),
         "route_aware_minus_all_weight_worst_acc": float(route_aware_row["worst_acc"] - all_avg["worst_acc"]),
         "same_shape_constraint": "All methods keep the same TinyMoEClassifier architecture, expert count, router shape, and output classes.",

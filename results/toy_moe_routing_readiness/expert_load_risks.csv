@@ -55,6 +55,14 @@ results/toy_moe_merge,matched_router_frozen_average,code,0,toy_router,0,4.0,0.00
 results/toy_moe_merge,matched_router_frozen_average,code,0,toy_router,1,4.0,0.4925,0.27875,1.115,1.97,,low_lambda_or_route_frequency_average,expert load is within the current risk thresholds.
 results/toy_moe_merge,matched_router_frozen_average,code,0,toy_router,2,4.0,0.46,0.29375,1.175,1.84,,low_lambda_or_route_frequency_average,expert load is within the current risk thresholds.
 results/toy_moe_merge,matched_router_frozen_average,code,0,toy_router,3,4.0,0.045,0.3375,1.35,0.18,,low_lambda_or_route_frequency_average,expert load is within the current risk thresholds.
+results/toy_moe_merge,matched_router_calibrated_average,general,0,toy_router,0,4.0,0.665,0.37375,1.495,2.66,,low_lambda_or_route_frequency_average,expert load is within the current risk thresholds.
+results/toy_moe_merge,matched_router_calibrated_average,general,0,toy_router,1,4.0,0.0,0.16375,0.655,0.0,,low_lambda_or_route_frequency_average,expert load is within the current risk thresholds.
+results/toy_moe_merge,matched_router_calibrated_average,general,0,toy_router,2,4.0,0.1025,0.17375,0.695,0.41,,low_lambda_or_route_frequency_average,expert load is within the current risk thresholds.
+results/toy_moe_merge,matched_router_calibrated_average,general,0,toy_router,3,4.0,0.2325,0.28875,1.155,0.93,,low_lambda_or_route_frequency_average,expert load is within the current risk thresholds.
+results/toy_moe_merge,matched_router_calibrated_average,code,0,toy_router,0,4.0,0.0125,0.15375,0.615,0.05,,low_lambda_or_route_frequency_average,expert load is within the current risk thresholds.
+results/toy_moe_merge,matched_router_calibrated_average,code,0,toy_router,1,4.0,0.485,0.2825,1.13,1.94,,low_lambda_or_route_frequency_average,expert load is within the current risk thresholds.
+results/toy_moe_merge,matched_router_calibrated_average,code,0,toy_router,2,4.0,0.3475,0.26125,1.045,1.39,,low_lambda_or_route_frequency_average,expert load is within the current risk thresholds.
+results/toy_moe_merge,matched_router_calibrated_average,code,0,toy_router,3,4.0,0.155,0.3025,1.21,0.62,,low_lambda_or_route_frequency_average,expert load is within the current risk thresholds.
 results/toy_moe_merge,route_aware_expert_average,general,0,toy_router,0,4.0,0.5825,0.35625,1.425,2.33,,low_lambda_or_route_frequency_average,expert load is within the current risk thresholds.
 results/toy_moe_merge,route_aware_expert_average,general,0,toy_router,1,4.0,0.0175,0.15125,0.605,0.07,,low_lambda_or_route_frequency_average,expert load is within the current risk thresholds.
 results/toy_moe_merge,route_aware_expert_average,general,0,toy_router,2,4.0,0.0975,0.155,0.62,0.39,,low_lambda_or_route_frequency_average,expert load is within the current risk thresholds.

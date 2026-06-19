@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-06-19T09:28:38.669548+00:00",
+  "generated_at": "2026-06-19T09:32:01.683722+00:00",
   "source_name": "code",
-  "recommended_method": "expert_matched_average",
+  "recommended_method": "matched_router_calibrated_average",
   "recommended_decision": "candidate_with_router_guard",
   "min_cosine_threshold": 0.9,
   "min_output_cosine": 0.9426236748695374,
