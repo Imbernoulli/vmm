@@ -106,8 +106,13 @@
       "status": "complete"
     },
     {
-      "evidence": "scripts/probe_moe_routing.py captures MoE router hooks and writes router_summary.csv, expert_load.csv, optional route_overlap.csv, summary.json, and report.md for downstream readiness and route-weight recipes.",
+      "evidence": "scripts/probe_moe_routing.py captures MoE router hooks and writes router_summary.csv, expert_load.csv, optional route_overlap.csv, summary.json, and report.md; results/moe_routing_probe_smoke/report.md validates the contract on a tiny local MoE.",
       "item": "MoE routing probe CLI",
+      "status": "complete"
+    },
+    {
+      "evidence": "results/moe_routing_probe_smoke/report.md proves the routing probe captures two tiny MoE gates and produces router, expert-load, token-route, comparison, and route-overlap CSVs.",
+      "item": "MoE routing probe smoke",
       "status": "complete"
     },
     {
@@ -137,7 +142,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 27,
+    "complete": 28,
     "missing": 0,
     "partial": 0
   },
@@ -1566,6 +1571,74 @@
       "tensor_rules": "results/moe_route_weight_recipes/tensor_rules.txt",
       "writer_command": "results/moe_route_weight_recipes/writer_command.txt"
     },
+    "moe_routing_probe_smoke": {
+      "expert_load": "results/moe_routing_probe_smoke/expert_load.csv",
+      "expert_load_rows": 24,
+      "manifest": "results/moe_routing_probe_smoke/manifest.json",
+      "prompt_count": 3,
+      "report": "results/moe_routing_probe_smoke/report.md",
+      "route_overlap": "results/moe_routing_probe_smoke/route_overlap.csv",
+      "route_overlap_rows": 6,
+      "router_count": 2,
+      "router_summary": "results/moe_routing_probe_smoke/router_summary.csv",
+      "router_summary_rows": 6,
+      "summary": {
+        "categories": [
+          "code",
+          "general",
+          "math"
+        ],
+        "category_count": 3,
+        "compare_model": "tiny_moe_right",
+        "compare_router_count": 2,
+        "compare_routers": [
+          "layers.0.mlp.gate",
+          "layers.1.mlp.gate"
+        ],
+        "downstream_consumers": {
+          "average_decision": "scripts/build_average_decision_report.py",
+          "moe_average_plan": "scripts/build_moe_average_plan.py",
+          "readiness": "scripts/analyze_moe_routing_readiness.py",
+          "route_weight_recipes": "scripts/build_moe_route_weight_recipes.py"
+        },
+        "exclude_name_regex": "(gate_proj|shared_expert_gate)",
+        "generated_at": "2026-06-19T05:13:28.179397+00:00",
+        "max_length": 32,
+        "model": "tiny_moe_left",
+        "outputs": {
+          "compare_expert_load": "results/moe_routing_probe_smoke/compare_expert_load.csv",
+          "compare_router_summary": "results/moe_routing_probe_smoke/compare_router_summary.csv",
+          "compare_token_routes": "results/moe_routing_probe_smoke/compare_token_routes.csv",
+          "expert_load": "results/moe_routing_probe_smoke/expert_load.csv",
+          "manifest": "results/moe_routing_probe_smoke/manifest.json",
+          "report": "results/moe_routing_probe_smoke/report.md",
+          "route_overlap": "results/moe_routing_probe_smoke/route_overlap.csv",
+          "router_summary": "results/moe_routing_probe_smoke/router_summary.csv",
+          "summary": "results/moe_routing_probe_smoke/summary.json",
+          "token_routes": "results/moe_routing_probe_smoke/token_routes.csv"
+        },
+        "prompt_count": 3,
+        "router_count": 2,
+        "router_name_regex": "(^|\\.)gate$",
+        "routers": [
+          "layers.0.mlp.gate",
+          "layers.1.mlp.gate"
+        ],
+        "row_counts": {
+          "compare_expert_load": 24,
+          "compare_router_summary": 6,
+          "compare_token_routes": 72,
+          "expert_load": 24,
+          "route_overlap": 6,
+          "router_summary": 6,
+          "token_routes": 72
+        },
+        "top_k": 2,
+        "use_chat_template": false,
+        "write_token_routes": true
+      },
+      "summary_path": "results/moe_routing_probe_smoke/summary.json"
+    },
     "moe_routing_readiness": {
       "category_specialization": "results/moe_routing_readiness/category_specialization.csv",
       "expert_load_risks": "results/moe_routing_readiness/expert_load_risks.csv",
@@ -2675,7 +2748,7 @@
       }
     }
   },
-  "generated_at": "2026-06-19T05:08:04.895061+00:00",
+  "generated_at": "2026-06-19T05:13:35.779200+00:00",
   "overall_status": "complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -2696,6 +2769,7 @@
     "PYTHONPATH=src python scripts/select_moe_merge_method.py",
     "PYTHONPATH=src python scripts/build_moe_expert_remap_plan.py",
     "python scripts/build_model_averaging_literature_review.py",
+    "python scripts/smoke_moe_routing_probe_contract.py",
     "PYTHONPATH=src python scripts/build_average_decision_report.py",
     "PYTHONPATH=src python scripts/build_moe_average_plan.py",
     "python scripts/write_same_shape_average_checkpoint.py --base BASE --source expert=EXPERT --dry-run --output-dir results/same_shape_writer_smoke",

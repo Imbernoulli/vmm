@@ -1,0 +1,19 @@
+{
+  "model": "tiny_moe_left",
+  "compare_model": "tiny_moe_right",
+  "prompts": 3,
+  "top_k": 2,
+  "router_name_regex": "(^|\\.)gate$",
+  "exclude_name_regex": "(gate_proj|shared_expert_gate)",
+  "outputs": {
+    "router_summary": "router_summary.csv",
+    "expert_load": "expert_load.csv",
+    "token_routes": "token_routes.csv",
+    "compare_router_summary": "compare_router_summary.csv",
+    "compare_expert_load": "compare_expert_load.csv",
+    "compare_token_routes": "compare_token_routes.csv",
+    "route_overlap": "route_overlap.csv",
+    "summary": "summary.json",
+    "report": "report.md"
+  }
+}

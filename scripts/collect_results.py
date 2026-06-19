@@ -633,6 +633,24 @@ def summarize_model_averaging_literature_review() -> dict[str, Any]:
     }
 
 
+def summarize_moe_routing_probe_smoke() -> dict[str, Any]:
+    summary = read_json("results/moe_routing_probe_smoke/summary.json")
+    return {
+        "summary": summary,
+        "router_count": int(summary.get("router_count", 0)),
+        "prompt_count": int(summary.get("prompt_count", 0)),
+        "route_overlap_rows": int(summary.get("row_counts", {}).get("route_overlap", 0)),
+        "router_summary_rows": int(summary.get("row_counts", {}).get("router_summary", 0)),
+        "expert_load_rows": int(summary.get("row_counts", {}).get("expert_load", 0)),
+        "report": rel("results/moe_routing_probe_smoke/report.md"),
+        "summary_path": rel("results/moe_routing_probe_smoke/summary.json"),
+        "manifest": rel("results/moe_routing_probe_smoke/manifest.json"),
+        "router_summary": rel("results/moe_routing_probe_smoke/router_summary.csv"),
+        "expert_load": rel("results/moe_routing_probe_smoke/expert_load.csv"),
+        "route_overlap": rel("results/moe_routing_probe_smoke/route_overlap.csv"),
+    }
+
+
 def coverage_checklist() -> list[dict[str, str]]:
     return [
         {
@@ -743,7 +761,12 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "MoE routing probe CLI",
             "status": "complete",
-            "evidence": "scripts/probe_moe_routing.py captures MoE router hooks and writes router_summary.csv, expert_load.csv, optional route_overlap.csv, summary.json, and report.md for downstream readiness and route-weight recipes.",
+            "evidence": "scripts/probe_moe_routing.py captures MoE router hooks and writes router_summary.csv, expert_load.csv, optional route_overlap.csv, summary.json, and report.md; results/moe_routing_probe_smoke/report.md validates the contract on a tiny local MoE.",
+        },
+        {
+            "item": "MoE routing probe smoke",
+            "status": "complete",
+            "evidence": "results/moe_routing_probe_smoke/report.md proves the routing probe captures two tiny MoE gates and produces router, expert-load, token-route, comparison, and route-overlap CSVs.",
         },
         {
             "item": "Toy MoE route-aware merge",
@@ -790,6 +813,7 @@ def build_summary() -> dict[str, Any]:
         "qwen_probe_smoke": summarize_qwen_probe_smoke(),
         "average_decision_report": summarize_average_decision_report(),
         "model_averaging_literature_review": summarize_model_averaging_literature_review(),
+        "moe_routing_probe_smoke": summarize_moe_routing_probe_smoke(),
         "moe_average_plan": summarize_moe_average_plan(),
         "same_shape_writer_smoke": summarize_same_shape_writer_smoke(),
         "checkpoint_topology_inspect": summarize_checkpoint_topology(),
@@ -833,6 +857,7 @@ def build_summary() -> dict[str, Any]:
             "PYTHONPATH=src python scripts/select_moe_merge_method.py",
             "PYTHONPATH=src python scripts/build_moe_expert_remap_plan.py",
             "python scripts/build_model_averaging_literature_review.py",
+            "python scripts/smoke_moe_routing_probe_contract.py",
             "PYTHONPATH=src python scripts/build_average_decision_report.py",
             "PYTHONPATH=src python scripts/build_moe_average_plan.py",
             "python scripts/write_same_shape_average_checkpoint.py --base BASE --source expert=EXPERT --dry-run --output-dir results/same_shape_writer_smoke",
@@ -869,6 +894,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen_multi_conflict = qwen_multi["instruct_coder_conflict"] or {}
     average_decision = exp["average_decision_report"]
     literature_review = exp["model_averaging_literature_review"]
+    routing_probe_smoke = exp["moe_routing_probe_smoke"]
     moe_average_plan = exp["moe_average_plan"]
     writer_smoke = exp["same_shape_writer_smoke"]
     topology = exp["checkpoint_topology_inspect"]
@@ -1069,6 +1095,14 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| model averaging literature review | method / probe / MoE-stage counts | "
                 f"{literature_review['method_family_count']} / {literature_review['probe_count']} / {literature_review['moe_stage_count']} |"
+            ),
+            (
+                "| MoE routing probe smoke | routers / prompts | "
+                f"{routing_probe_smoke['router_count']} / {routing_probe_smoke['prompt_count']} |"
+            ),
+            (
+                "| MoE routing probe smoke | router / expert / overlap rows | "
+                f"{routing_probe_smoke['router_summary_rows']} / {routing_probe_smoke['expert_load_rows']} / {routing_probe_smoke['route_overlap_rows']} |"
             ),
             (
                 "| MoE average plan | router plan rows | "

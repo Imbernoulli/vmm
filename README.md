@@ -23,7 +23,7 @@
 11. **MoE 大模型先做 header/config probe。** [Checkpoint Topology Inspect](results/checkpoint_topology_inspect/report.md) 对本地 Qwen3.5-35B-A3B config 做了不加载权重的拓扑检查：`256` experts、每 token 激活 `8` 个，active fraction `0.03125`；这直接支持 router/expert 分组 average。
 12. **不是每个 best grid 都值得写 checkpoint。** [Average Candidate Recipes](results/average_candidate_recipes/report.md) 明确把当前 Qwen instruct/coder best grid 标成 `skip_endpoint_only`，因为 `alpha=1,beta=0` 只是端点，不是有价值的 average；`0.5/0.5` uniform average 也被 probe 标成负 baseline。
 13. **MoE route-aware average 已落到 tensor-rule 文件。** [MoE Route-Weight Recipes](results/moe_route_weight_recipes/report.md) 会把 routing probe 的 `expert_load.csv` 转成 `tensor_rules.txt`，由 checkpoint writer 直接读取；当前状态是 `waiting_for_routing_probe`，说明还缺真实 Qwen3 MoE route probe，不应该假装已经有 expert-wise 权重。
-14. **真实 MoE routing probe CLI 已经补上。** `scripts/probe_moe_routing.py` 会捕获 MoE router hook，输出 `router_summary.csv`、`expert_load.csv`、可选 `route_overlap.csv`，并额外写 `summary.json` 和 `report.md`；下一步是把它跑在 Qwen3-30B-A3B / Qwen3-Coder-30B-A3B 上。
+14. **真实 MoE routing probe CLI 已经补上。** `scripts/probe_moe_routing.py` 会捕获 MoE router hook，输出 `router_summary.csv`、`expert_load.csv`、可选 `route_overlap.csv`，并额外写 `summary.json` 和 `report.md`；[MoE Routing Probe Smoke](results/moe_routing_probe_smoke/report.md) 已验证 tiny MoE 上能抓到 2 个 router 和 6 行 overlap。下一步是把它跑在 Qwen3-30B-A3B / Qwen3-Coder-30B-A3B 上。
 15. **MoE router 先过 readiness gate。** [MoE Routing Readiness](results/moe_routing_readiness/report.md) 会把 `router_summary.csv`、`route_overlap.csv`、`expert_load.csv` 转成 collapse、route drift、top-k 边界脆弱性和 expert load 风险；只有这些风险可控，才考虑开放 router 小 λ 或生成 expert-wise tensor rules。
 16. **Toy MoE 已经复现 expert-index mismatch 风险。** [Toy MoE Route-Aware Merge](results/toy_moe_merge/report.md) 中，直接 all-weight average 的 worst accuracy 是 `0.620`，expert-matched average 是 `0.800`，route-aware expert average 是 `0.790`；这说明 MoE 的 expert 对齐和 route-frequency 权重不是装饰项。
 17. **同一个 readiness gate 已能分析多方法 MoE probe。** [Toy MoE Routing Readiness](results/toy_moe_routing_readiness/report.md) 把 toy MoE 的 base、endpoint、all-weight、expert-matched、route-aware 方法分开诊断；其中 `all_weight_average` 的 general slice 触发 `calibrate_router_before_average`，而 expert-matched/route-aware 的 route overlap 接近 `1.0`。
@@ -85,7 +85,7 @@ z 轴 = loss
 
 ## 结论摘要
 
-当前 coverage audit 已完成：`complete = 27`, `partial = 0`, `missing = 0`。完整汇总见 `results/summary.md` 和 `results/summary.json`。
+当前 coverage audit 已完成：`complete = 28`, `partial = 0`, `missing = 0`。完整汇总见 `results/summary.md` 和 `results/summary.json`。
 
 主要结论：
 
@@ -116,6 +116,7 @@ z 轴 = loss
 | Qwen multi-expert | 完成 | Qwen2.5-0.5B base + instruct + coder |
 | Dense/MoE averaging literature matrix | 完成 | 21 个来源被整理成方法、probe、MoE 优化 gate 和 writer action |
 | MoE routing probe CLI | 完成 | 真实 MoE router hook probe 已实现，能写 router/expert/overlap CSV 与 summary/report |
+| MoE routing probe smoke | 完成 | tiny MoE 本地验证捕获 2 个 router、6 行 route overlap |
 | Toy MoE expert remap materialization | 完成 | expert-output matching 已转成 source tensor alias rules，保持输出 checkpoint 同构 |
 | dashboard | 完成 | `results/dashboard/index.html` |
 

@@ -1,10 +1,10 @@
 {
   "artifacts": [
     {
-      "bytes": 32498,
+      "bytes": 32602,
       "kind": "document",
       "path": "MODEL_AVERAGING_PROBES_AND_MOE_OPTIMIZATION.md",
-      "sha256": "a2987a4e02015d74c976bf9a4ed4fded0f627e909e77ef111574a474c4a51819"
+      "sha256": "1fd88b1b1f7d4c8ab6232794ecc1ddc2c5ba836d14775714c381d77c82790c17"
     },
     {
       "bytes": 20526,
@@ -13,16 +13,16 @@
       "sha256": "313cfe00a4f762c28f5fe1b881615f93e824f15a3f1ac2440b17d363819b3706"
     },
     {
-      "bytes": 22550,
+      "bytes": 22654,
       "kind": "document",
       "path": "QWEN_DENSE_MOE_EXPERIMENT_PLAN.md",
-      "sha256": "b4ed0fdf33a0c05367c761ed40eb90a2cd7b990502c6460b36eefd5ca3968b19"
+      "sha256": "37c4e5fb16cdaf6959ac68e4e0d47f9beecb7a3da72556e63d4eb9cbad347af2"
     },
     {
-      "bytes": 27136,
+      "bytes": 27372,
       "kind": "document",
       "path": "README.md",
-      "sha256": "b180c93614c78d46b1dcd93358ea190e46915b585bd43d85346d87e30fdec885"
+      "sha256": "097a14b859289902f14335dd814dbe6e718f2aab19f87808596abe46a10e4c43"
     },
     {
       "bytes": 33211,
@@ -721,6 +721,66 @@
       "sha256": "276498aaf76af7e607940b433424c884adc3178eafd97e8b55e4f8627779c8dd"
     },
     {
+      "bytes": 1709,
+      "kind": "data",
+      "path": "results/moe_routing_probe_smoke/compare_expert_load.csv",
+      "sha256": "7d7cfd3e0708f64fe4cc7a65fe58b21864a6617c6a7d6cfefe9952f945d83b1c"
+    },
+    {
+      "bytes": 929,
+      "kind": "data",
+      "path": "results/moe_routing_probe_smoke/compare_router_summary.csv",
+      "sha256": "58e32eb0ce01eca9c346435a0bce9de834286237ca240254b7ff1fe7c1f08819"
+    },
+    {
+      "bytes": 5150,
+      "kind": "data",
+      "path": "results/moe_routing_probe_smoke/compare_token_routes.csv",
+      "sha256": "560f6cbdafe6c8aa061404bbc7ed8c3627fc3345ed0e6e0335230fa0c501bfc9"
+    },
+    {
+      "bytes": 1594,
+      "kind": "data",
+      "path": "results/moe_routing_probe_smoke/expert_load.csv",
+      "sha256": "f2a2d81c1b1055a01d0ad83d9bdaf951cbcb6ba5e38be5b013e8bb90be523456"
+    },
+    {
+      "bytes": 606,
+      "kind": "data",
+      "path": "results/moe_routing_probe_smoke/manifest.json",
+      "sha256": "f3c0412a1976018200b0a7e9f38701bcaaabc958377a512b9d4ccd4e0cf89a0b"
+    },
+    {
+      "bytes": 2132,
+      "kind": "document",
+      "path": "results/moe_routing_probe_smoke/report.md",
+      "sha256": "50640187c1cc90954c21859e2773cdb682b37271e94a758ff20465121a580c07"
+    },
+    {
+      "bytes": 620,
+      "kind": "data",
+      "path": "results/moe_routing_probe_smoke/route_overlap.csv",
+      "sha256": "7f55670b0faa270c1507933a013cdf14615e8eaf394f881afabc6de0b52b744f"
+    },
+    {
+      "bytes": 890,
+      "kind": "data",
+      "path": "results/moe_routing_probe_smoke/router_summary.csv",
+      "sha256": "8a472c93c1d6fe37e4a532253e850a5f4facc1c73f8921930ee6ea2c5683a106"
+    },
+    {
+      "bytes": 1887,
+      "kind": "data",
+      "path": "results/moe_routing_probe_smoke/summary.json",
+      "sha256": "2760528bbd6222d05c32adadc4acd33a39aa718b02ec6d785ec781f152f8879e"
+    },
+    {
+      "bytes": 5078,
+      "kind": "data",
+      "path": "results/moe_routing_probe_smoke/token_routes.csv",
+      "sha256": "41989fd2176ea899a4528a150c151e7db14941f607ae0054423463f83891d5f6"
+    },
+    {
       "bytes": 143,
       "kind": "data",
       "path": "results/moe_routing_readiness/category_specialization.csv",
@@ -1051,16 +1111,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 110159,
+      "bytes": 113368,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "4acd9c93901071509674ad88ac059b9c518e9eadeb35858395d8b01f70acd2f9"
+      "sha256": "f5ef2f748ca237fe24349e8b2352d4ca05eb7f2b5c37d751f31d4c5687c764a1"
     },
     {
-      "bytes": 8268,
+      "bytes": 8653,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "c7f2adb60f9d3103885afda2f38b8cccb94d99c8adcd7429329909c8286fb8b6"
+      "sha256": "901c27b0f2611675503e85e00013647a530ff199086ad11ebfd3c2a9d8534b76"
     },
     {
       "bytes": 556,
@@ -1249,10 +1309,10 @@
       "sha256": "6887b5b682ddce5c8855811f95aed1a7ee64cc11e0805f1e046fcadc2b59228f"
     },
     {
-      "bytes": 54696,
+      "bytes": 56730,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "5bd07ffd9da27fa27610d101b8e2e7928dfb06575aad32817b795807de38e7a9"
+      "sha256": "a4ad06c775592be9f199082b84c2098252b652907d6716b1ccf25ba572977dbe"
     },
     {
       "bytes": 17809,
@@ -1357,6 +1417,12 @@
       "sha256": "2371fcaf455b051421df36be3b4ed373ff491c1ca9554e60662239dc0dd73efb"
     },
     {
+      "bytes": 7229,
+      "kind": "code",
+      "path": "scripts/smoke_moe_routing_probe_contract.py",
+      "sha256": "13ec3f625df73f2aba2d98d27e9fae150c1efbf20126b8358623341689f8568d"
+    },
+    {
       "bytes": 24527,
       "kind": "code",
       "path": "scripts/write_same_shape_average_checkpoint.py",
@@ -1381,7 +1447,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T05:08:04.896890+00:00",
+  "generated_at": "2026-06-19T05:13:35.813829+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

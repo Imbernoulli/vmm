@@ -1,0 +1,7 @@
+left_model,right_model,category,prompt_idx,router,tokens_compared,top1_agreement,topk_jaccard
+tiny_moe_left,tiny_moe_right,code,1,layers.0.mlp.gate,10,0.0,0.06666666666666667
+tiny_moe_left,tiny_moe_right,code,1,layers.1.mlp.gate,10,0.10000000149011612,0.26666666666666666
+tiny_moe_left,tiny_moe_right,general,0,layers.0.mlp.gate,17,0.0,0.17647058823529413
+tiny_moe_left,tiny_moe_right,general,0,layers.1.mlp.gate,17,0.1764705926179886,0.4313725490196078
+tiny_moe_left,tiny_moe_right,math,2,layers.0.mlp.gate,9,0.0,0.1111111111111111
+tiny_moe_left,tiny_moe_right,math,2,layers.1.mlp.gate,9,0.0,0.07407407407407407

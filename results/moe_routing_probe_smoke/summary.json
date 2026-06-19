@@ -1,0 +1,55 @@
+{
+  "generated_at": "2026-06-19T05:13:28.179397+00:00",
+  "model": "tiny_moe_left",
+  "compare_model": "tiny_moe_right",
+  "prompt_count": 3,
+  "categories": [
+    "code",
+    "general",
+    "math"
+  ],
+  "category_count": 3,
+  "router_count": 2,
+  "routers": [
+    "layers.0.mlp.gate",
+    "layers.1.mlp.gate"
+  ],
+  "compare_router_count": 2,
+  "compare_routers": [
+    "layers.0.mlp.gate",
+    "layers.1.mlp.gate"
+  ],
+  "top_k": 2,
+  "max_length": 32,
+  "use_chat_template": false,
+  "write_token_routes": true,
+  "router_name_regex": "(^|\\.)gate$",
+  "exclude_name_regex": "(gate_proj|shared_expert_gate)",
+  "row_counts": {
+    "router_summary": 6,
+    "expert_load": 24,
+    "token_routes": 72,
+    "compare_router_summary": 6,
+    "compare_expert_load": 24,
+    "compare_token_routes": 72,
+    "route_overlap": 6
+  },
+  "outputs": {
+    "router_summary": "results/moe_routing_probe_smoke/router_summary.csv",
+    "expert_load": "results/moe_routing_probe_smoke/expert_load.csv",
+    "token_routes": "results/moe_routing_probe_smoke/token_routes.csv",
+    "compare_router_summary": "results/moe_routing_probe_smoke/compare_router_summary.csv",
+    "compare_expert_load": "results/moe_routing_probe_smoke/compare_expert_load.csv",
+    "compare_token_routes": "results/moe_routing_probe_smoke/compare_token_routes.csv",
+    "route_overlap": "results/moe_routing_probe_smoke/route_overlap.csv",
+    "manifest": "results/moe_routing_probe_smoke/manifest.json",
+    "summary": "results/moe_routing_probe_smoke/summary.json",
+    "report": "results/moe_routing_probe_smoke/report.md"
+  },
+  "downstream_consumers": {
+    "readiness": "scripts/analyze_moe_routing_readiness.py",
+    "route_weight_recipes": "scripts/build_moe_route_weight_recipes.py",
+    "average_decision": "scripts/build_average_decision_report.py",
+    "moe_average_plan": "scripts/build_moe_average_plan.py"
+  }
+}
