@@ -33,6 +33,7 @@
     "dry_run_command": "results/qwen3_moe_trust_region_candidate/dry_run_command.txt",
     "dry_run_manifest": "results/qwen3_moe_trust_region_candidate/dry_run/merge_manifest.json",
     "estimated_tensor_delta": "results/qwen3_moe_trust_region_candidate/estimated_tensor_delta.csv",
+    "materialized_manifest": "results/checkpoints/qwen3_moe_trust_region_candidate/merge_manifest.json",
     "report": "results/qwen3_moe_trust_region_candidate/report.md",
     "summary": "results/qwen3_moe_trust_region_candidate/summary.json",
     "tensor_rules": "results/qwen3_moe_trust_region_candidate/tensor_rules.txt",
@@ -61,6 +62,7 @@
     "instruct": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe"
   },
   "status": "trust_region_rules_ready",
+  "writer_checkpoint_materialized": true,
   "writer_dry_run_expert_tensor_rule_hits": 15729,
   "writer_dry_run_floating_tensors": 18867,
   "writer_dry_run_freeze_router_hits": 48,
@@ -68,5 +70,9 @@
   "writer_dry_run_manifest": "results/qwen3_moe_trust_region_candidate/dry_run/merge_manifest.json",
   "writer_dry_run_shards": 16,
   "writer_dry_run_shared_attention_hits": 288,
-  "writer_dry_run_validated": true
+  "writer_dry_run_validated": true,
+  "writer_materialized_floating_tensors": 18867,
+  "writer_materialized_frozen_tensors": 3603,
+  "writer_materialized_manifest": "results/checkpoints/qwen3_moe_trust_region_candidate/merge_manifest.json",
+  "writer_materialized_shards": 16
 }

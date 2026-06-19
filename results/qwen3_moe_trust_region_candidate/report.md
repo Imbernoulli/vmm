@@ -12,6 +12,7 @@
 - Estimated total relative delta norm: `0.249`
 - Estimated routed tensors >1.0 / >0.75 / >0.65: `0` / `0` / `354`
 - Writer dry-run: `True`; expert/attention/router hits `15729` / `288` / `48`
+- Materialized checkpoint: `True`; shards `16`
 
 ## Risk Flags
 
@@ -102,4 +103,5 @@
 - `results/qwen3_moe_trust_region_candidate/writer_command.txt`
 - `results/qwen3_moe_trust_region_candidate/dry_run_command.txt`
 - `results/qwen3_moe_trust_region_candidate/dry_run/merge_manifest.json`
+- `results/checkpoints/qwen3_moe_trust_region_candidate/merge_manifest.json`
 - `results/qwen3_moe_trust_region_candidate/summary.json`

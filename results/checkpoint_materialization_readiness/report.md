@@ -4,16 +4,16 @@
 
 - Status: `hosted_eval_complete`
 - Candidates: `10`
-- Materialized checkpoints: `3`
+- Materialized checkpoints: `4`
 - Blocked by placeholders: `4`
-- Ready for vLLM eval: `2`
+- Ready for vLLM eval: `3`
 - Completed vLLM evals: `1`
 
 | candidate | writer status | vLLM status | eval status | avg primary | worst primary | end-to-end status | next action |
 | --- | --- | --- | --- | ---: | ---: | --- | --- |
 | `qwen3_moe_unified_route_guarded_candidate` | `materialized_checkpoint_exists` | `ready_to_host` | `not_run` |  |  | `ready_for_vllm_eval` | host_with_vllm_and_run_downstream_eval |
 | `qwen3_moe_audit_gated_candidate` | `materialized_checkpoint_exists` | `ready_to_host` | `not_run` |  |  | `ready_for_vllm_eval` | host_with_vllm_and_run_downstream_eval |
-| `qwen3_moe_trust_region_candidate` | `materialization_command_ready` | `checkpoint_missing_until_materialized` | `not_run` |  |  | `needs_checkpoint_materialization` | run writer command and verify safetensors output |
+| `qwen3_moe_trust_region_candidate` | `materialized_checkpoint_exists` | `ready_to_host` | `not_run` |  |  | `ready_for_vllm_eval` | host_with_vllm_and_run_downstream_eval |
 | `moe_route_aware_candidate` | `blocked_by_placeholder_inputs` | `checkpoint_missing_until_materialized` | `not_run` |  |  | `blocked_before_materialization` | replace placeholder model paths/route weights, run writer dry-run, then materialize |
 | `toy_moe_expert_weight_candidate` | `blocked_by_placeholder_inputs` | `not_vllm_loadable_toy_candidate` | `not_run` |  |  | `toy_writer_validation_only` | replace placeholder model paths/route weights, run writer dry-run, then materialize |
 | `toy_moe_expert_matched_candidate` | `blocked_by_placeholder_inputs` | `not_in_vllm_plan` | `not_run` |  |  | `toy_writer_validation_only` | replace placeholder model paths/route weights, run writer dry-run, then materialize |

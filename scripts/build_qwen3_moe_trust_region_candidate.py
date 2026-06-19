@@ -96,6 +96,25 @@ def summarize_dry_run_manifest(path: Path) -> dict[str, Any]:
     }
 
 
+def summarize_materialized_manifest(path: Path) -> dict[str, Any]:
+    if not path.exists():
+        return {
+            "writer_checkpoint_materialized": False,
+            "writer_materialized_manifest": rel(path),
+            "writer_materialized_floating_tensors": 0,
+            "writer_materialized_frozen_tensors": 0,
+            "writer_materialized_shards": 0,
+        }
+    manifest = read_json(path)
+    return {
+        "writer_checkpoint_materialized": not bool(manifest.get("dry_run", True)),
+        "writer_materialized_manifest": rel(path),
+        "writer_materialized_floating_tensors": int(manifest.get("floating_tensors", 0)),
+        "writer_materialized_frozen_tensors": int(manifest.get("frozen_tensors", 0)),
+        "writer_materialized_shards": int(len(manifest.get("shards") or [])),
+    }
+
+
 def source_names_from_columns(source_weights: pd.DataFrame) -> list[str]:
     return sorted(col.removeprefix("weight_") for col in source_weights.columns if col.startswith("weight_"))
 
@@ -528,6 +547,7 @@ def build_candidate(args: argparse.Namespace) -> dict[str, Any]:
     scaled_beyond_delta = scaled[~scaled["trust_risk_flags"].fillna("").astype(str).str.contains("delta_above_base_cap")]
 
     dry_run_manifest = repo_path(dry_run_output_dir) / "merge_manifest.json"
+    materialized_manifest = repo_path(checkpoint_output_dir) / "merge_manifest.json"
     summary = {
         "schema_version": 1,
         "status": "trust_region_rules_ready",
@@ -551,6 +571,7 @@ def build_candidate(args: argparse.Namespace) -> dict[str, Any]:
         "action_counts": action_counts,
         "risk_flag_counts": {str(key): int(value) for key, value in sorted(flag_counter.items())},
         **summarize_dry_run_manifest(dry_run_manifest),
+        **summarize_materialized_manifest(materialized_manifest),
         **estimated_summary,
         "outputs": {
             "trust_region_source_weights": rel(calibrated_csv),
@@ -559,6 +580,7 @@ def build_candidate(args: argparse.Namespace) -> dict[str, Any]:
             "writer_command": rel(writer_command_path),
             "dry_run_command": rel(dry_run_command_path),
             "dry_run_manifest": rel(dry_run_manifest),
+            "materialized_manifest": rel(materialized_manifest),
             "summary": rel(output_dir / "summary.json"),
             "report": rel(output_dir / "report.md"),
         },
@@ -598,6 +620,10 @@ def build_report(summary: dict[str, Any], calibrated: pd.DataFrame) -> str:
             f"expert/attention/router hits `{summary['writer_dry_run_expert_tensor_rule_hits']}` / "
             f"`{summary['writer_dry_run_shared_attention_hits']}` / "
             f"`{summary['writer_dry_run_freeze_router_hits']}`"
+        ),
+        (
+            f"- Materialized checkpoint: `{summary['writer_checkpoint_materialized']}`; "
+            f"shards `{summary['writer_materialized_shards']}`"
         ),
         "",
         "## Risk Flags",
@@ -673,6 +699,7 @@ def build_report(summary: dict[str, Any], calibrated: pd.DataFrame) -> str:
             f"- `{summary['outputs']['writer_command']}`",
             f"- `{summary['outputs']['dry_run_command']}`",
             f"- `{summary['outputs']['dry_run_manifest']}`",
+            f"- `{summary['outputs']['materialized_manifest']}`",
             f"- `{summary['outputs']['summary']}`",
         ]
     )
