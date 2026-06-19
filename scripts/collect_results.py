@@ -592,6 +592,10 @@ def summarize_toy_moe_output_projection_recipes() -> dict[str, Any]:
     return summarize_toy_moe_recipe_dir("results/toy_moe_output_projection_recipes")
 
 
+def summarize_toy_moe_confidence_blended_recipes() -> dict[str, Any]:
+    return summarize_toy_moe_recipe_dir("results/toy_moe_confidence_blended_recipes")
+
+
 def summarize_moe_routing_readiness() -> dict[str, Any]:
     summary = read_json("results/moe_routing_readiness/summary.json")
     router_readiness = read_csv("results/moe_routing_readiness/router_readiness.csv")
@@ -1596,6 +1600,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/toy_moe_output_projection_recipes/report.md converts route-conditioned output-space expert weights into same-shape checkpoint writer tensor rules.",
         },
         {
+            "item": "MoE confidence-blended expert-weight recipes",
+            "status": "complete",
+            "evidence": "results/toy_moe_confidence_blended_recipes/report.md converts projection-confidence-gated expert weights into same-shape checkpoint writer tensor rules.",
+        },
+        {
             "item": "MoE routing readiness diagnostics",
             "status": "complete",
             "evidence": "results/moe_routing_readiness/report.md turns router_summary, route_overlap, and expert_load CSVs into router collapse, drift, boundary-fragility, and expert-load risk actions.",
@@ -1666,6 +1675,7 @@ def build_summary() -> dict[str, Any]:
         "moe_router_bias_plan": summarize_moe_router_bias_plan(),
         "toy_moe_expert_weight_recipes": summarize_toy_moe_expert_weight_recipes(),
         "toy_moe_output_projection_recipes": summarize_toy_moe_output_projection_recipes(),
+        "toy_moe_confidence_blended_recipes": summarize_toy_moe_confidence_blended_recipes(),
         "moe_routing_readiness": summarize_moe_routing_readiness(),
         "toy_moe_merge": summarize_toy_moe_merge(),
         "toy_moe_routing_readiness": summarize_toy_moe_routing_readiness(),
@@ -1748,6 +1758,7 @@ def build_summary() -> dict[str, Any]:
             "PYTHONPATH=src python scripts/build_moe_router_bias_plan.py --router-dir results/toy_moe_merge --method unified_moe_average --router-bias-template '{router}.bias'",
             "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --output-dir results/toy_moe_expert_weight_recipes --expert-weight-csv results/toy_moe_merge/expert_search_weights_by_expert.csv --source general --source code --checkpoint-output-dir results/checkpoints/toy_moe_expert_weight_candidate --topology-summary ''",
             "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --output-dir results/toy_moe_output_projection_recipes --expert-weight-csv results/toy_moe_merge/expert_output_projection_weights_by_expert.csv --expert-weight-category combined --source general --source code --checkpoint-output-dir results/checkpoints/toy_moe_output_projection_candidate --topology-summary ''",
+            "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --output-dir results/toy_moe_confidence_blended_recipes --expert-weight-csv results/toy_moe_merge/confidence_blended_expert_weights_by_expert.csv --source general --source code --checkpoint-output-dir results/checkpoints/toy_moe_confidence_blended_candidate --topology-summary ''",
             "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
             "PYTHONPATH=src python scripts/collect_results.py",
         ],
@@ -1789,6 +1800,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     router_bias_plan = exp["moe_router_bias_plan"]
     toy_expert_weight_recipes = exp["toy_moe_expert_weight_recipes"]
     toy_output_projection_recipes = exp["toy_moe_output_projection_recipes"]
+    toy_confidence_blended_recipes = exp["toy_moe_confidence_blended_recipes"]
     routing_readiness = exp["moe_routing_readiness"]
     toy_moe = exp["toy_moe_merge"]
     selected_unified_capacity = toy_moe.get("unified_moe_capacity_sweep_selected") or {}
@@ -2546,6 +2558,14 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| MoE output-projection expert-weight recipes | expert tensor rules | "
                 f"{toy_output_projection_recipes['expert_rule_count']} |"
+            ),
+            (
+                "| MoE confidence-blended expert-weight recipes | recipe status | "
+                f"{toy_confidence_blended_recipes['recipe_status']} |"
+            ),
+            (
+                "| MoE confidence-blended expert-weight recipes | expert tensor rules | "
+                f"{toy_confidence_blended_recipes['expert_rule_count']} |"
             ),
             (
                 "| MoE routing readiness | readiness status | "

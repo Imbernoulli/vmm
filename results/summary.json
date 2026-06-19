@@ -166,6 +166,11 @@
       "status": "complete"
     },
     {
+      "evidence": "results/toy_moe_confidence_blended_recipes/report.md converts projection-confidence-gated expert weights into same-shape checkpoint writer tensor rules.",
+      "item": "MoE confidence-blended expert-weight recipes",
+      "status": "complete"
+    },
+    {
       "evidence": "results/moe_routing_readiness/report.md turns router_summary, route_overlap, and expert_load CSVs into router collapse, drift, boundary-fragility, and expert-load risk actions.",
       "item": "MoE routing readiness diagnostics",
       "status": "complete"
@@ -207,7 +212,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 40,
+    "complete": 41,
     "missing": 0,
     "partial": 1
   },
@@ -4282,6 +4287,139 @@
         }
       }
     },
+    "toy_moe_confidence_blended_recipes": {
+      "expert_rule_count": 4,
+      "expert_weight_category": null,
+      "recipe_kind": "explicit_expert_weights",
+      "recipe_status": "explicit_expert_weight_rules_ready",
+      "report": "results/toy_moe_confidence_blended_recipes/report.md",
+      "source_weights": "results/toy_moe_confidence_blended_recipes/source_weights_by_expert.csv",
+      "source_weights_rows": 4,
+      "summary": {
+        "anchor_floor": 0.15,
+        "category_source_plan": [
+          {
+            "category": "agentic_code",
+            "mapped_source": "code",
+            "mapping_kind": "category_heuristic",
+            "prompt_count": 1
+          },
+          {
+            "category": "code",
+            "mapped_source": "code",
+            "mapping_kind": "source_name_match",
+            "prompt_count": 2
+          },
+          {
+            "category": "finance",
+            "mapped_source": "general",
+            "mapping_kind": "fallback",
+            "prompt_count": 1
+          },
+          {
+            "category": "general",
+            "mapped_source": "general",
+            "mapping_kind": "source_name_match",
+            "prompt_count": 2
+          },
+          {
+            "category": "legal",
+            "mapped_source": "general",
+            "mapping_kind": "fallback",
+            "prompt_count": 1
+          },
+          {
+            "category": "long_context",
+            "mapped_source": "general",
+            "mapping_kind": "fallback",
+            "prompt_count": 1
+          },
+          {
+            "category": "math",
+            "mapped_source": "general",
+            "mapping_kind": "fallback",
+            "prompt_count": 2
+          },
+          {
+            "category": "safety",
+            "mapped_source": "general",
+            "mapping_kind": "fallback",
+            "prompt_count": 2
+          }
+        ],
+        "category_source_plan_rows": 8,
+        "category_sources": {},
+        "expert_rule_count": 4,
+        "expert_weight_category": null,
+        "expert_weight_csvs": [
+          "results/toy_moe_merge/confidence_blended_expert_weights_by_expert.csv"
+        ],
+        "fallback_source": "general",
+        "freeze_router": true,
+        "input_summaries": [
+          {
+            "category_filter": null,
+            "expert_weight_csv": "results/toy_moe_merge/confidence_blended_expert_weights_by_expert.csv",
+            "filtered_rows": 4,
+            "rows": 4,
+            "status": "loaded",
+            "used_rows": 4
+          }
+        ],
+        "low_route_threshold": 0.005,
+        "min_source_weight": 0.05,
+        "outputs": {
+          "category_source_plan": "results/toy_moe_confidence_blended_recipes/category_source_plan.csv",
+          "report": "results/toy_moe_confidence_blended_recipes/report.md",
+          "routing_probe_plan": "results/toy_moe_confidence_blended_recipes/routing_probe_plan.csv",
+          "routing_probe_plan_json": "results/toy_moe_confidence_blended_recipes/routing_probe_plan.json",
+          "source_weights": "results/toy_moe_confidence_blended_recipes/source_weights_by_expert.csv",
+          "summary": "results/toy_moe_confidence_blended_recipes/summary.json",
+          "tensor_rules": "results/toy_moe_confidence_blended_recipes/tensor_rules.txt",
+          "writer_command": "results/toy_moe_confidence_blended_recipes/writer_command.txt"
+        },
+        "prompt_pack": "prompts/qwen_moe_route_probe_prompts.jsonl",
+        "recipe_kind": "explicit_expert_weights",
+        "recipe_status": "explicit_expert_weight_rules_ready",
+        "router_dirs": [],
+        "routing_probe_plan": [
+          {
+            "category_count": 8,
+            "command": "python scripts/probe_moe_routing.py --model Qwen/Qwen3-30B-A3B --compare-model Qwen/Qwen3-Coder-30B-A3B-Instruct --prompts prompts/qwen_moe_route_probe_prompts.jsonl --device-map auto --dtype bfloat16 --max-length 768 --use-chat-template --output-dir results/moe_routing_probe/qwen3_30b_general_vs_code",
+            "compare_model": "Qwen/Qwen3-Coder-30B-A3B-Instruct",
+            "device_map": "auto",
+            "dtype": "bfloat16",
+            "expected_expert_load": "results/moe_routing_probe/qwen3_30b_general_vs_code/expert_load.csv",
+            "expected_route_overlap": "results/moe_routing_probe/qwen3_30b_general_vs_code/route_overlap.csv",
+            "max_length": 768,
+            "model": "Qwen/Qwen3-30B-A3B",
+            "next_recipe_command": "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code --source general --source code --category-source agentic_code=code --category-source code=code --category-source finance=general --category-source general=general --category-source legal=general --category-source long_context=general --category-source math=general --category-source safety=general",
+            "output_dir": "results/moe_routing_probe/qwen3_30b_general_vs_code",
+            "probe_name": "qwen3_30b_general_vs_code",
+            "prompt_count": 12,
+            "prompt_pack": "prompts/qwen_moe_route_probe_prompts.jsonl",
+            "source_names": "general,code",
+            "use_chat_template": true
+          }
+        ],
+        "routing_probe_plan_rows": 1,
+        "same_shape_constraint": "Tensor rules only change weights inside the existing model structure; expert count, router shape, tokenizer, and layer count stay fixed.",
+        "shared_attention_weights": {
+          "code": 0.5,
+          "general": 0.5
+        },
+        "shared_mlp_weights": null,
+        "source_names": [
+          "general",
+          "code"
+        ],
+        "tensor_rule_count": 5,
+        "topology": null
+      },
+      "tensor_rule_count": 5,
+      "tensor_rules": "results/toy_moe_confidence_blended_recipes/tensor_rules.txt",
+      "writer_command": "results/toy_moe_confidence_blended_recipes/writer_command.txt"
+    },
     "toy_moe_expert_remap_plan": {
       "alias_rule_count": 4,
       "expert_remap": "results/toy_moe_expert_remap_plan/expert_remap.csv",
@@ -7757,7 +7895,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-19T15:11:19.968579+00:00",
+  "generated_at": "2026-06-19T15:15:04.358807+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -7800,6 +7938,7 @@
     "PYTHONPATH=src python scripts/build_moe_router_bias_plan.py --router-dir results/toy_moe_merge --method unified_moe_average --router-bias-template '{router}.bias'",
     "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --output-dir results/toy_moe_expert_weight_recipes --expert-weight-csv results/toy_moe_merge/expert_search_weights_by_expert.csv --source general --source code --checkpoint-output-dir results/checkpoints/toy_moe_expert_weight_candidate --topology-summary ''",
     "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --output-dir results/toy_moe_output_projection_recipes --expert-weight-csv results/toy_moe_merge/expert_output_projection_weights_by_expert.csv --expert-weight-category combined --source general --source code --checkpoint-output-dir results/checkpoints/toy_moe_output_projection_candidate --topology-summary ''",
+    "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --output-dir results/toy_moe_confidence_blended_recipes --expert-weight-csv results/toy_moe_merge/confidence_blended_expert_weights_by_expert.csv --source general --source code --checkpoint-output-dir results/checkpoints/toy_moe_confidence_blended_candidate --topology-summary ''",
     "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
     "PYTHONPATH=src python scripts/collect_results.py"
   ],

@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 38954,
+      "bytes": 39072,
       "kind": "document",
       "path": "README.md",
-      "sha256": "63bbdc82dc3cd25f13d50f307429ae1495e7b3b31e02480e122a37e842b55458"
+      "sha256": "6767c98fee645bd551bd583af2ae80e86099656edc5c23b77aad1cc2aa168008"
     },
     {
       "bytes": 33211,
@@ -1357,16 +1357,64 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 346562,
+      "bytes": 353152,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "63a5afc73a3af8927393b6759a7521c0a12ae1a41cd405cb5d6c4e3da2816f1b"
+      "sha256": "e4ad09c728555bdf6d1073b256b9836429345c431cbdceee12289f22cf417180"
     },
     {
-      "bytes": 21706,
+      "bytes": 22098,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "20dc06248bda0f1d58d7bd6c736584340d3fbe17ee7331e6212710c86ff6cc06"
+      "sha256": "2522b44fbd36d70178590679abf6d7341f0379e4b99b382c992f9cbe1db491b5"
+    },
+    {
+      "bytes": 288,
+      "kind": "data",
+      "path": "results/toy_moe_confidence_blended_recipes/category_source_plan.csv",
+      "sha256": "01d13ac75a6d33e19d9eac4c36f66b63daab0d044636f52fa806c13b51e0b914"
+    },
+    {
+      "bytes": 4246,
+      "kind": "document",
+      "path": "results/toy_moe_confidence_blended_recipes/report.md",
+      "sha256": "c6787a9fa99cfa85b725fb31d9d9456834f85d52945e9d1e9927ca04e7330260"
+    },
+    {
+      "bytes": 1298,
+      "kind": "data",
+      "path": "results/toy_moe_confidence_blended_recipes/routing_probe_plan.csv",
+      "sha256": "6d14d8b76364f1cff90cba393a2e1d9d4a615f921a5d51e4e0958484c07b2474"
+    },
+    {
+      "bytes": 1459,
+      "kind": "data",
+      "path": "results/toy_moe_confidence_blended_recipes/routing_probe_plan.json",
+      "sha256": "11bde358caeed9687c0854d573cedf0c9fa4b282699c2072359ad18efb7a7ab8"
+    },
+    {
+      "bytes": 1284,
+      "kind": "data",
+      "path": "results/toy_moe_confidence_blended_recipes/source_weights_by_expert.csv",
+      "sha256": "060ea62449865b8f05b712153c5afa8bde6475c38066cc1d79ecdeea9be55878"
+    },
+    {
+      "bytes": 4591,
+      "kind": "data",
+      "path": "results/toy_moe_confidence_blended_recipes/summary.json",
+      "sha256": "3d25af52f64f9de62882068389e18046883164a6ced56a30638dd86ec90d2ed5"
+    },
+    {
+      "bytes": 345,
+      "kind": "data",
+      "path": "results/toy_moe_confidence_blended_recipes/tensor_rules.txt",
+      "sha256": "5e4942203952d479b29e2ddcd64a7a64f7c985105351c143bf97a9705d4d7576"
+    },
+    {
+      "bytes": 379,
+      "kind": "data",
+      "path": "results/toy_moe_confidence_blended_recipes/writer_command.txt",
+      "sha256": "2a6166e2d0fcae820d26b139fa5c1e452dd019a703104dc1db0be868a619c5c5"
     },
     {
       "bytes": 556,
@@ -2287,10 +2335,10 @@
       "sha256": "0b0e4be7ec51f0afb74dfdee6e3d8b217da9aac4d965a170bea36c89f1b46abb"
     },
     {
-      "bytes": 139559,
+      "bytes": 140930,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "f3bb83da239d1f8d29c3589faac4a25297651f364e3c2829e966c501f0fd1464"
+      "sha256": "94ac6873ca868ec8bb9a0ac98731951a55b227f7c22138825c739f510061f3eb"
     },
     {
       "bytes": 17809,
@@ -2443,7 +2491,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T15:11:20.011361+00:00",
+  "generated_at": "2026-06-19T15:15:04.411803+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

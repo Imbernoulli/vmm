@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T15:11:19.968579+00:00`
+Generated at: `2026-06-19T15:15:04.358807+00:00`
 
 ## Coverage
 
-Complete: `40`; partial: `1`; missing: `0`.
+Complete: `41`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -41,6 +41,7 @@ Complete: `40`; partial: `1`; missing: `0`.
 | MoE router-bias additive capacity plan | complete | results/moe_router_bias_plan/report.md converts expert_load.csv into writer-ready router-bias additive deltas for same-shape capacity correction. |
 | MoE searched expert-weight recipes | complete | results/toy_moe_expert_weight_recipes/report.md converts calibration-searched per-expert source weights into same-shape checkpoint writer tensor rules. |
 | MoE output-projection expert-weight recipes | complete | results/toy_moe_output_projection_recipes/report.md converts route-conditioned output-space expert weights into same-shape checkpoint writer tensor rules. |
+| MoE confidence-blended expert-weight recipes | complete | results/toy_moe_confidence_blended_recipes/report.md converts projection-confidence-gated expert weights into same-shape checkpoint writer tensor rules. |
 | MoE routing readiness diagnostics | complete | results/moe_routing_readiness/report.md turns router_summary, route_overlap, and expert_load CSVs into router collapse, drift, boundary-fragility, and expert-load risk actions. |
 | MoE routing probe CLI | complete | scripts/probe_moe_routing.py captures MoE router hooks and writes router_summary.csv, expert_load.csv, optional route_overlap.csv, summary.json, and report.md; results/moe_routing_probe_smoke/report.md validates the contract on a tiny local MoE. |
 | MoE routing probe smoke | complete | results/moe_routing_probe_smoke/report.md proves the routing probe captures two tiny MoE gates and produces router, expert-load, token-route, comparison, and route-overlap CSVs. |
@@ -226,5 +227,7 @@ Complete: `40`; partial: `1`; missing: `0`.
 | MoE searched expert-weight recipes | expert tensor rules | 4 |
 | MoE output-projection expert-weight recipes | recipe status | explicit_expert_weight_rules_ready |
 | MoE output-projection expert-weight recipes | expert tensor rules | 4 |
+| MoE confidence-blended expert-weight recipes | recipe status | explicit_expert_weight_rules_ready |
+| MoE confidence-blended expert-weight recipes | expert tensor rules | 4 |
 | MoE routing readiness | readiness status | waiting_for_routing_probe |
 | MoE routing readiness | router / expert risk rows | 0 / 0 |
