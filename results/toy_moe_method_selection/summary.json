@@ -1,0 +1,20 @@
+{
+  "generated_at": "2026-06-19T04:44:21.521716+00:00",
+  "selection_status": "has_candidate",
+  "recommended_method": "expert_matched_average",
+  "recommended_decision": "candidate_with_router_guard",
+  "base_worst_acc": 0.775,
+  "thresholds": {
+    "min_worst_acc_delta_vs_base": 0.0,
+    "max_calibrate_count": 0
+  },
+  "inputs": {
+    "method_metrics": "results/toy_moe_merge/method_metrics.csv",
+    "router_readiness": "results/toy_moe_routing_readiness/router_readiness.csv"
+  },
+  "outputs": {
+    "method_selection": "results/toy_moe_method_selection/method_selection.csv",
+    "summary": "results/toy_moe_method_selection/summary.json",
+    "report": "results/toy_moe_method_selection/report.md"
+  }
+}

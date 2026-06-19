@@ -1,10 +1,10 @@
 {
   "artifacts": [
     {
-      "bytes": 29827,
+      "bytes": 30302,
       "kind": "document",
       "path": "MODEL_AVERAGING_PROBES_AND_MOE_OPTIMIZATION.md",
-      "sha256": "f72fe46188e4dcfd1ea8a22e1e04db5dd11d833bb100a406ea33a593ab5e5349"
+      "sha256": "e54c548bdc0aeea2ce75d5a2d7f56d00afcb6b0ae7b4cee99678b6882e230df0"
     },
     {
       "bytes": 20526,
@@ -13,16 +13,16 @@
       "sha256": "313cfe00a4f762c28f5fe1b881615f93e824f15a3f1ac2440b17d363819b3706"
     },
     {
-      "bytes": 21552,
+      "bytes": 21661,
       "kind": "document",
       "path": "QWEN_DENSE_MOE_EXPERIMENT_PLAN.md",
-      "sha256": "b7ef9f68cfa935c2521b85aa8ee02ab24404e01d61ff666f844fdbf65ec546dd"
+      "sha256": "d621038534089b732c12635c84eeaad214b83a263418cf90cff9da88598d24ea"
     },
     {
-      "bytes": 25126,
+      "bytes": 25446,
       "kind": "document",
       "path": "README.md",
-      "sha256": "4144d1f74c3d72f0949373e3df9718926743644a0e05fd974c4ef7c20de43383"
+      "sha256": "56455d13789489ec7a2fab790866d3f81c3afe38e7561415923cbdc84d25b630"
     },
     {
       "bytes": 33211,
@@ -1015,16 +1015,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 101316,
+      "bytes": 103985,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "25ce49f28d125ebd74e3f664369dcb3b152b06b8dd76b72b7f1fd22b7aef2e3c"
+      "sha256": "d1b1b302b14815407b961df45898ab78bdb7b5fba057f159be90c8954cdee180"
     },
     {
-      "bytes": 6907,
+      "bytes": 7284,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "e90cdabe0e0a180f89a48d20ceb2de51d8b880c8161bbc5ad0aaf1049d9b8fb8"
+      "sha256": "c7429dbeae0fadba140b17a74fe2bf95889ec8566862ccd0b3b3ad946398c3a5"
     },
     {
       "bytes": 4639,
@@ -1079,6 +1079,24 @@
       "kind": "figure",
       "path": "results/toy_moe_merge/toy_moe_merge.png",
       "sha256": "727297b881f4b85f348992c8218a4dcaed3a0e4456ff17b960aa0bfc18e8690e"
+    },
+    {
+      "bytes": 2768,
+      "kind": "data",
+      "path": "results/toy_moe_method_selection/method_selection.csv",
+      "sha256": "1f6f551418b115669409d71e2d0f039232af3a09f22fb099a11e3bf3ba28c4ca"
+    },
+    {
+      "bytes": 2088,
+      "kind": "document",
+      "path": "results/toy_moe_method_selection/report.md",
+      "sha256": "c2ba62a75ff4067895c398eccf8d655f14c23af02db127ff29f5504239a504c6"
+    },
+    {
+      "bytes": 712,
+      "kind": "data",
+      "path": "results/toy_moe_method_selection/summary.json",
+      "sha256": "9d0151ad2f79248e563f6d87b274d57cd7c8574a8e421caa77143a8eab7e222f"
     },
     {
       "bytes": 6131,
@@ -1153,10 +1171,10 @@
       "sha256": "6887b5b682ddce5c8855811f95aed1a7ee64cc11e0805f1e046fcadc2b59228f"
     },
     {
-      "bytes": 48061,
+      "bytes": 49951,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "3d6f85e2cab98cf3a6ec8e06a29a52e735c2edfa8fe006c41f5f8494fc34e943"
+      "sha256": "08fc42f89dc8f1fcbe3830f48d2a7989a0ede269f41a0c9fd0e04a8bcc3314dd"
     },
     {
       "bytes": 17809,
@@ -1255,6 +1273,12 @@
       "sha256": "73d46c11495f25f4d929e4e9f9d1e25a6597531139d579d6ed54803b00d3c05a"
     },
     {
+      "bytes": 12231,
+      "kind": "code",
+      "path": "scripts/select_moe_merge_method.py",
+      "sha256": "2371fcaf455b051421df36be3b4ed373ff491c1ca9554e60662239dc0dd73efb"
+    },
+    {
       "bytes": 19959,
       "kind": "code",
       "path": "scripts/write_same_shape_average_checkpoint.py",
@@ -1279,7 +1303,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T04:40:31.294767+00:00",
+  "generated_at": "2026-06-19T04:45:34.458078+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

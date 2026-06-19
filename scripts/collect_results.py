@@ -575,6 +575,24 @@ def summarize_toy_moe_routing_readiness() -> dict[str, Any]:
     }
 
 
+def summarize_toy_moe_method_selection() -> dict[str, Any]:
+    summary = read_json("results/toy_moe_method_selection/summary.json")
+    selection = read_csv("results/toy_moe_method_selection/method_selection.csv")
+    recommended_method = summary.get("recommended_method")
+    recommended = selection[selection["method"] == recommended_method]
+    all_weight = selection[selection["method"] == "all_weight_average"]
+    return {
+        "summary": summary,
+        "recommended_method": recommended_method,
+        "recommended_decision": summary.get("recommended_decision"),
+        "recommended_row": clean_row(recommended.iloc[0]) if not recommended.empty else None,
+        "all_weight_decision": None if all_weight.empty else str(all_weight.iloc[0]["decision"]),
+        "all_weight_calibrate_count": 0 if all_weight.empty else int(all_weight.iloc[0]["calibrate_router_count"]),
+        "report": rel("results/toy_moe_method_selection/report.md"),
+        "method_selection": rel("results/toy_moe_method_selection/method_selection.csv"),
+    }
+
+
 def coverage_checklist() -> list[dict[str, str]]:
     return [
         {
@@ -688,6 +706,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/toy_moe_routing_readiness/report.md applies the generic readiness gate to toy MoE methods and flags all-weight routing drift separately from expert-matched/route-aware variants.",
         },
         {
+            "item": "Toy MoE merge method selection",
+            "status": "complete",
+            "evidence": "results/toy_moe_method_selection/report.md combines method metrics and routing readiness to reject all-weight average and recommend expert-matched averaging with router guard.",
+        },
+        {
             "item": "Interactive explainer UI",
             "status": "complete",
             "evidence": "Dashboard includes a draggable precomputed merge-plane explorer with task-pair, method, objective, raw/normalized plane, alpha/beta, and lambda controls.",
@@ -719,6 +742,7 @@ def build_summary() -> dict[str, Any]:
         "moe_routing_readiness": summarize_moe_routing_readiness(),
         "toy_moe_merge": summarize_toy_moe_merge(),
         "toy_moe_routing_readiness": summarize_toy_moe_routing_readiness(),
+        "toy_moe_method_selection": summarize_toy_moe_method_selection(),
     }
     coverage = coverage_checklist()
     counts = {
@@ -749,6 +773,7 @@ def build_summary() -> dict[str, Any]:
             "PYTHONPATH=src python scripts/run_qwen_multi_expert_merge.py --output-dir results/qwen_multi_expert_merge",
             "PYTHONPATH=src python scripts/run_toy_moe_merge.py --output-dir results/toy_moe_merge --device cpu",
             "PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir results/toy_moe_merge --output-dir results/toy_moe_routing_readiness --topology-summary ''",
+            "PYTHONPATH=src python scripts/select_moe_merge_method.py",
             "PYTHONPATH=src python scripts/build_average_decision_report.py",
             "PYTHONPATH=src python scripts/build_moe_average_plan.py",
             "python scripts/write_same_shape_average_checkpoint.py --base BASE --source expert=EXPERT --dry-run --output-dir results/same_shape_writer_smoke",
@@ -793,6 +818,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     routing_readiness = exp["moe_routing_readiness"]
     toy_moe = exp["toy_moe_merge"]
     toy_moe_readiness = exp["toy_moe_routing_readiness"]
+    toy_moe_selection = exp["toy_moe_method_selection"]
     coverage_counts = summary["coverage_counts"]
     lines = [
         "# Result Summary",
@@ -946,6 +972,14 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| toy MoE routing readiness | all-weight calibrate-router flags | "
                 f"{toy_moe_readiness['all_weight_router_actions'].get('calibrate_router_before_average', 0)} |"
+            ),
+            (
+                "| toy MoE method selection | recommended method | "
+                f"{toy_moe_selection['recommended_method']} |"
+            ),
+            (
+                "| toy MoE method selection | all-weight decision | "
+                f"{toy_moe_selection['all_weight_decision']} |"
             ),
             (
                 "| Average decision report | avoid uniform average decisions | "

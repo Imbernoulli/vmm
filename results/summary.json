@@ -111,13 +111,18 @@
       "status": "complete"
     },
     {
+      "evidence": "results/toy_moe_method_selection/report.md combines method metrics and routing readiness to reject all-weight average and recommend expert-matched averaging with router guard.",
+      "item": "Toy MoE merge method selection",
+      "status": "complete"
+    },
+    {
       "evidence": "Dashboard includes a draggable precomputed merge-plane explorer with task-pair, method, objective, raw/normalized plane, alpha/beta, and lambda controls.",
       "item": "Interactive explainer UI",
       "status": "complete"
     }
   ],
   "coverage_counts": {
-    "complete": 23,
+    "complete": 24,
     "missing": 0,
     "partial": 0
   },
@@ -2442,6 +2447,60 @@
         "seed": 17
       }
     },
+    "toy_moe_method_selection": {
+      "all_weight_calibrate_count": 1,
+      "all_weight_decision": "reject_routing_breakdown",
+      "method_selection": "results/toy_moe_method_selection/method_selection.csv",
+      "recommended_decision": "candidate_with_router_guard",
+      "recommended_method": "expert_matched_average",
+      "recommended_row": {
+        "avg_acc": 0.8087500000000001,
+        "avg_loss": 0.6161747264862061,
+        "calibrate_router_count": 0,
+        "code_acc": 0.8,
+        "code_loss": 0.6304422187805175,
+        "decision": "candidate_with_router_guard",
+        "decision_reason": "candidate passes routing-overlap gate but should keep router frozen or load-balance checked.",
+        "description": "align code experts to general source by output cosine before averaging",
+        "general_acc": 0.8175,
+        "general_loss": 0.6019072341918945,
+        "load_concentration_count": 2,
+        "low_overlap_count": 0,
+        "low_top1_agreement_count": 0,
+        "max_risk_score": 1,
+        "mean_risk_score": 1.0,
+        "mean_topk_jaccard": 0.9808333333333334,
+        "method": "expert_matched_average",
+        "method_kind": "merge_candidate",
+        "min_top1_agreement": 0.9800000190734864,
+        "min_topk_jaccard": 0.98,
+        "router_rows": 2,
+        "selection_score": 0.79,
+        "worst_acc": 0.8,
+        "worst_loss": 0.6304422187805175
+      },
+      "report": "results/toy_moe_method_selection/report.md",
+      "summary": {
+        "base_worst_acc": 0.775,
+        "generated_at": "2026-06-19T04:44:21.521716+00:00",
+        "inputs": {
+          "method_metrics": "results/toy_moe_merge/method_metrics.csv",
+          "router_readiness": "results/toy_moe_routing_readiness/router_readiness.csv"
+        },
+        "outputs": {
+          "method_selection": "results/toy_moe_method_selection/method_selection.csv",
+          "report": "results/toy_moe_method_selection/report.md",
+          "summary": "results/toy_moe_method_selection/summary.json"
+        },
+        "recommended_decision": "candidate_with_router_guard",
+        "recommended_method": "expert_matched_average",
+        "selection_status": "has_candidate",
+        "thresholds": {
+          "max_calibrate_count": 0,
+          "min_worst_acc_delta_vs_base": 0.0
+        }
+      }
+    },
     "toy_moe_routing_readiness": {
       "all_weight_router_actions": {
         "calibrate_router_before_average": 1,
@@ -2498,7 +2557,7 @@
       }
     }
   },
-  "generated_at": "2026-06-19T04:40:31.293076+00:00",
+  "generated_at": "2026-06-19T04:45:34.428492+00:00",
   "overall_status": "complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -2516,6 +2575,7 @@
     "PYTHONPATH=src python scripts/run_qwen_multi_expert_merge.py --output-dir results/qwen_multi_expert_merge",
     "PYTHONPATH=src python scripts/run_toy_moe_merge.py --output-dir results/toy_moe_merge --device cpu",
     "PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir results/toy_moe_merge --output-dir results/toy_moe_routing_readiness --topology-summary ''",
+    "PYTHONPATH=src python scripts/select_moe_merge_method.py",
     "PYTHONPATH=src python scripts/build_average_decision_report.py",
     "PYTHONPATH=src python scripts/build_moe_average_plan.py",
     "python scripts/write_same_shape_average_checkpoint.py --base BASE --source expert=EXPERT --dry-run --output-dir results/same_shape_writer_smoke",

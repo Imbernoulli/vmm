@@ -25,6 +25,7 @@
 13. **MoE router 先过 readiness gate。** [MoE Routing Readiness](results/moe_routing_readiness/report.md) 会把 `router_summary.csv`、`route_overlap.csv`、`expert_load.csv` 转成 collapse、route drift、top-k 边界脆弱性和 expert load 风险；只有这些风险可控，才考虑开放 router 小 λ 或生成 expert-wise tensor rules。
 14. **Toy MoE 已经复现 expert-index mismatch 风险。** [Toy MoE Route-Aware Merge](results/toy_moe_merge/report.md) 中，直接 all-weight average 的 worst accuracy 是 `0.620`，expert-matched average 是 `0.800`，route-aware expert average 是 `0.790`；这说明 MoE 的 expert 对齐和 route-frequency 权重不是装饰项。
 15. **同一个 readiness gate 已能分析多方法 MoE probe。** [Toy MoE Routing Readiness](results/toy_moe_routing_readiness/report.md) 把 toy MoE 的 base、endpoint、all-weight、expert-matched、route-aware 方法分开诊断；其中 `all_weight_average` 的 general slice 触发 `calibrate_router_before_average`，而 expert-matched/route-aware 的 route overlap 接近 `1.0`。
+16. **MoE 方法选择已从“读表”变成自动决策。** [Toy MoE Method Selection](results/toy_moe_method_selection/report.md) 把 worst accuracy 和 routing readiness 合在一起：`all_weight_average` 被判为 `reject_routing_breakdown`，推荐先复评 `expert_matched_average`，并保留 router guard。
 
 核心对象是：
 
@@ -81,7 +82,7 @@ z 轴 = loss
 
 ## 结论摘要
 
-当前 coverage audit 已完成：`complete = 23`, `partial = 0`, `missing = 0`。完整汇总见 `results/summary.md` 和 `results/summary.json`。
+当前 coverage audit 已完成：`complete = 24`, `partial = 0`, `missing = 0`。完整汇总见 `results/summary.md` 和 `results/summary.json`。
 
 主要结论：
 

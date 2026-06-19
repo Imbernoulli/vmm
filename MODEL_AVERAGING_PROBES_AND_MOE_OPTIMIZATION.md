@@ -481,6 +481,8 @@ toy MoE 的作用是把这个逻辑先跑通：在保持同构的前提下，cod
 
 更进一步，[Toy MoE Routing Readiness](results/toy_moe_routing_readiness/report.md) 已经把同一个 readiness gate 应用到多方法 probe 上：`code_endpoint_permuted` 和 `all_weight_average` 被标出低 route overlap / 低 top-1 agreement，`expert_matched_average` 和 `route_aware_expert_average` 则保持接近 base 的 routing overlap。也就是说，readiness gate 不只是“等 Qwen 数据”的模板，它已经能解释 toy MoE 里的具体失败模式。
 
+[Toy MoE Method Selection](results/toy_moe_method_selection/report.md) 则把这一步再往前推：它把 method metrics 和 routing readiness 合成 `baseline_only`、`reject_routing_breakdown`、`reject_underperforms_base`、`candidate_with_router_guard` 等决策。当前 toy MoE 中，`all_weight_average` 被拒绝为 routing breakdown，推荐的是 `expert_matched_average`，但要求保留 router guard。这就是后续 Qwen3 MoE 应该复制的决策闭环。
+
 第一批可以直接接 [Qwen Dense/MoE 下游微调模型合并实验方案](QWEN_DENSE_MOE_EXPERIMENT_PLAN.md) 里的 Dense 7B：
 
 ```text
