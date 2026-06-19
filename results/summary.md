@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-19T11:16:57.875515+00:00`
+Generated at: `2026-06-19T11:22:42.514438+00:00`
 
 ## Coverage
 
@@ -37,7 +37,7 @@ Complete: `31`; partial: `1`; missing: `0`.
 | MoE routing probe smoke | complete | results/moe_routing_probe_smoke/report.md proves the routing probe captures two tiny MoE gates and produces router, expert-load, token-route, comparison, and route-overlap CSVs. |
 | Toy MoE route-aware merge | complete | results/toy_moe_merge/report.md runs a small same-shape MoE averaging experiment showing expert-index mismatch and expert-matched/router-calibrated fixes. |
 | Toy MoE multi-method routing readiness | complete | results/toy_moe_routing_readiness/report.md applies the generic readiness gate to toy MoE methods and flags all-weight routing drift separately from expert-matched/route-aware variants. |
-| Toy MoE merge method selection | complete | results/toy_moe_method_selection/report.md combines method metrics and routing readiness to reject all-weight average and recommend matched router-calibrated averaging with router guard. |
+| Toy MoE merge method selection | complete | results/toy_moe_method_selection/report.md combines method metrics, routing readiness, and sparse capacity overflow into materialization gates plus a hard-top2/overflow Pareto frontier. |
 | Toy MoE expert remap plan | complete | results/toy_moe_expert_remap_plan/report.md turns expert-output matching into source tensor alias rules for same-shape checkpoint materialization. |
 | Interactive explainer UI | complete | Dashboard includes a draggable precomputed merge-plane explorer with task-pair, method, objective, raw/normalized plane, alpha/beta, and lambda controls. |
 
@@ -128,6 +128,9 @@ Complete: `31`; partial: `1`; missing: `0`.
 | toy MoE method selection | recommended method | matched_router_calibrated_average |
 | toy MoE method selection | recommended hard top-2 method | matched_router_route_kd_average |
 | toy MoE method selection | recommended hard top-2 worst accuracy | 0.730 |
+| toy MoE method selection | capacity-aware hard top-2 method | matched_router_kd_average |
+| toy MoE method selection | capacity-aware top-k overflow | 0.033 |
+| toy MoE method selection | hard top-2 / overflow Pareto methods | matched_router_route_kd_average, matched_router_calibrated_average, matched_router_sweep_selected_average, matched_router_kd_average |
 | toy MoE method selection | all-weight decision | reject_routing_breakdown |
 | toy MoE expert remap plan | remap status | ready |
 | toy MoE expert remap plan | source tensor alias rules | 4 |

@@ -1,0 +1,5 @@
+method,decision,worst_acc,dispatch_hard_top2_worst_acc,capacity_max_topk_overflow_fraction,capacity_worst_category,capacity_worst_action,capacity_max_topk_capacity_ratio,min_topk_jaccard,mean_risk_score,hard_top2_accuracy_minus_overflow
+matched_router_route_kd_average,candidate_with_router_guard,0.815,0.73,0.0725,general,capacity_overflow_risk,1.232,0.8383333333333333,1.0,0.6575
+matched_router_calibrated_average,candidate_with_router_guard,0.8375,0.7,0.06,general,capacity_overflow_risk,1.192,0.8275,0.5,0.6399999999999999
+matched_router_sweep_selected_average,candidate_with_router_guard,0.8375,0.7,0.06,general,capacity_overflow_risk,1.192,0.8275,0.5,0.6399999999999999
+matched_router_kd_average,candidate_with_router_guard,0.8025,0.685,0.0325,code,capacity_overflow_risk,1.104,0.9016666666666668,0.5,0.6525000000000001

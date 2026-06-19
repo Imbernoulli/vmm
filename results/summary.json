@@ -146,7 +146,7 @@
       "status": "complete"
     },
     {
-      "evidence": "results/toy_moe_method_selection/report.md combines method metrics and routing readiness to reject all-weight average and recommend matched router-calibrated averaging with router guard.",
+      "evidence": "results/toy_moe_method_selection/report.md combines method metrics, routing readiness, and sparse capacity overflow into materialization gates plus a hard-top2/overflow Pareto frontier.",
       "item": "Toy MoE merge method selection",
       "status": "complete"
     },
@@ -3384,6 +3384,14 @@
         "avg_acc": 0.83875,
         "avg_loss": 0.5999638271331788,
         "calibrate_router_count": 0,
+        "capacity_max_top1_capacity_ratio": 2.112,
+        "capacity_max_top1_overflow_fraction": 0.3475,
+        "capacity_max_topk_capacity_ratio": 1.192,
+        "capacity_max_topk_overflow_fraction": 0.06,
+        "capacity_overflow_risk_count": 2,
+        "capacity_rows": 2,
+        "capacity_worst_action": "capacity_overflow_risk",
+        "capacity_worst_category": "general",
         "code_acc": 0.84,
         "code_loss": 0.6125870132446289,
         "decision": "candidate_with_router_guard",
@@ -3409,6 +3417,48 @@
         "worst_acc": 0.8375,
         "worst_loss": 0.6125870132446289
       },
+      "recommended_sparse_capacity_aware_decision": "candidate_with_router_guard",
+      "recommended_sparse_capacity_aware_method": "matched_router_kd_average",
+      "recommended_sparse_capacity_aware_row": {
+        "avg_acc": 0.81125,
+        "avg_loss": 0.6173015689849853,
+        "calibrate_router_count": 0,
+        "capacity_max_top1_capacity_ratio": 1.776,
+        "capacity_max_top1_overflow_fraction": 0.2525,
+        "capacity_max_topk_capacity_ratio": 1.104,
+        "capacity_max_topk_overflow_fraction": 0.0325,
+        "capacity_overflow_risk_count": 2,
+        "capacity_rows": 2,
+        "capacity_worst_action": "capacity_overflow_risk",
+        "capacity_worst_category": "code",
+        "code_acc": 0.8025,
+        "code_loss": 0.6307939147949219,
+        "decision": "candidate_with_router_guard",
+        "decision_reason": "candidate passes routing-overlap gate but needs router/load-balance guard checks.",
+        "description": "align code experts and distill only the router from source model logits on unlabeled calibration inputs",
+        "dispatch_hard_top1_worst_acc": 0.55,
+        "dispatch_hard_top2_worst_acc": 0.685,
+        "dispatch_soft_all_worst_acc": 0.8025,
+        "general_acc": 0.82,
+        "general_loss": 0.6038092231750488,
+        "load_concentration_count": 1,
+        "low_overlap_count": 0,
+        "low_top1_agreement_count": 0,
+        "max_risk_score": 1,
+        "mean_risk_score": 0.5,
+        "mean_topk_jaccard": 0.92,
+        "method": "matched_router_kd_average",
+        "method_kind": "merge_candidate",
+        "min_top1_agreement": 0.9100000262260436,
+        "min_topk_jaccard": 0.9016666666666668,
+        "router_rows": 2,
+        "selection_score": 0.7975,
+        "worst_acc": 0.8025,
+        "worst_loss": 0.6307939147949219
+      },
+      "recommended_sparse_capacity_aware_score": 0.6475000000000001,
+      "recommended_sparse_capacity_aware_topk_overflow_fraction": 0.0325,
+      "recommended_sparse_capacity_aware_worst_acc": 0.685,
       "recommended_sparse_decision": "candidate_with_router_guard",
       "recommended_sparse_dispatch_mode": "hard_top2",
       "recommended_sparse_method": "matched_router_route_kd_average",
@@ -3416,6 +3466,14 @@
         "avg_acc": 0.82125,
         "avg_loss": 0.6071659088134765,
         "calibrate_router_count": 0,
+        "capacity_max_top1_capacity_ratio": 2.056,
+        "capacity_max_top1_overflow_fraction": 0.33,
+        "capacity_max_topk_capacity_ratio": 1.232,
+        "capacity_max_topk_overflow_fraction": 0.0725,
+        "capacity_overflow_risk_count": 2,
+        "capacity_rows": 2,
+        "capacity_worst_action": "capacity_overflow_risk",
+        "capacity_worst_category": "general",
         "code_acc": 0.815,
         "code_loss": 0.623940200805664,
         "decision": "candidate_with_router_guard",
@@ -3443,10 +3501,19 @@
       },
       "recommended_sparse_worst_acc": 0.73,
       "report": "results/toy_moe_method_selection/report.md",
+      "sparse_pareto_frontier": "results/toy_moe_method_selection/sparse_pareto_frontier.csv",
+      "sparse_pareto_frontier_methods": [
+        "matched_router_route_kd_average",
+        "matched_router_calibrated_average",
+        "matched_router_sweep_selected_average",
+        "matched_router_kd_average"
+      ],
+      "sparse_pareto_frontier_rows": 4,
       "summary": {
         "base_worst_acc": 0.775,
-        "generated_at": "2026-06-19T11:16:52.913671+00:00",
+        "generated_at": "2026-06-19T11:22:35.920236+00:00",
         "inputs": {
+          "capacity_metrics": "results/toy_moe_merge/router_capacity_metrics.csv",
           "dispatch_metrics": "results/toy_moe_merge/dispatch_mode_metrics.csv",
           "method_metrics": "results/toy_moe_merge/method_metrics.csv",
           "router_readiness": "results/toy_moe_routing_readiness/router_readiness.csv"
@@ -3454,18 +3521,33 @@
         "outputs": {
           "method_selection": "results/toy_moe_method_selection/method_selection.csv",
           "report": "results/toy_moe_method_selection/report.md",
+          "sparse_pareto_frontier": "results/toy_moe_method_selection/sparse_pareto_frontier.csv",
           "summary": "results/toy_moe_method_selection/summary.json"
         },
         "recommended_decision": "candidate_with_router_guard",
         "recommended_method": "matched_router_calibrated_average",
+        "recommended_sparse_capacity_aware_decision": "candidate_with_router_guard",
+        "recommended_sparse_capacity_aware_method": "matched_router_kd_average",
+        "recommended_sparse_capacity_aware_score": 0.6475000000000001,
+        "recommended_sparse_capacity_aware_topk_overflow_fraction": 0.0325,
+        "recommended_sparse_capacity_aware_worst_acc": 0.685,
         "recommended_sparse_decision": "candidate_with_router_guard",
         "recommended_sparse_dispatch_mode": "hard_top2",
         "recommended_sparse_method": "matched_router_route_kd_average",
         "recommended_sparse_worst_acc": 0.73,
         "selection_status": "has_candidate",
+        "sparse_overflow_penalty": 1.0,
+        "sparse_pareto_frontier_methods": [
+          "matched_router_route_kd_average",
+          "matched_router_calibrated_average",
+          "matched_router_sweep_selected_average",
+          "matched_router_kd_average"
+        ],
+        "sparse_pareto_frontier_rows": 4,
         "thresholds": {
           "max_calibrate_count": 0,
-          "min_worst_acc_delta_vs_base": 0.0
+          "min_worst_acc_delta_vs_base": 0.0,
+          "sparse_overflow_penalty": 1.0
         }
       }
     },
@@ -3567,7 +3649,7 @@
       "tasks": "gsm8k,mmlu,safety,humaneval_compile"
     }
   },
-  "generated_at": "2026-06-19T11:16:57.875515+00:00",
+  "generated_at": "2026-06-19T11:22:42.514438+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [

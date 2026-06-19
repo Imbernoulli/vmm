@@ -739,10 +739,14 @@ def summarize_toy_moe_routing_readiness() -> dict[str, Any]:
 def summarize_toy_moe_method_selection() -> dict[str, Any]:
     summary = read_json("results/toy_moe_method_selection/summary.json")
     selection = read_csv("results/toy_moe_method_selection/method_selection.csv")
+    frontier_path = repo_path("results/toy_moe_method_selection/sparse_pareto_frontier.csv")
+    sparse_frontier = read_csv(frontier_path) if frontier_path.exists() else pd.DataFrame()
     recommended_method = summary.get("recommended_method")
     recommended_sparse_method = summary.get("recommended_sparse_method")
+    recommended_sparse_capacity_aware_method = summary.get("recommended_sparse_capacity_aware_method")
     recommended = selection[selection["method"] == recommended_method]
     sparse_recommended = selection[selection["method"] == recommended_sparse_method]
+    sparse_capacity_recommended = selection[selection["method"] == recommended_sparse_capacity_aware_method]
     all_weight = selection[selection["method"] == "all_weight_average"]
     return {
         "summary": summary,
@@ -754,6 +758,23 @@ def summarize_toy_moe_method_selection() -> dict[str, Any]:
         "recommended_sparse_decision": summary.get("recommended_sparse_decision"),
         "recommended_sparse_worst_acc": maybe_float(summary.get("recommended_sparse_worst_acc")),
         "recommended_sparse_row": clean_row(sparse_recommended.iloc[0]) if not sparse_recommended.empty else None,
+        "recommended_sparse_capacity_aware_method": recommended_sparse_capacity_aware_method,
+        "recommended_sparse_capacity_aware_decision": summary.get("recommended_sparse_capacity_aware_decision"),
+        "recommended_sparse_capacity_aware_score": maybe_float(
+            summary.get("recommended_sparse_capacity_aware_score")
+        ),
+        "recommended_sparse_capacity_aware_worst_acc": maybe_float(
+            summary.get("recommended_sparse_capacity_aware_worst_acc")
+        ),
+        "recommended_sparse_capacity_aware_topk_overflow_fraction": maybe_float(
+            summary.get("recommended_sparse_capacity_aware_topk_overflow_fraction")
+        ),
+        "recommended_sparse_capacity_aware_row": clean_row(sparse_capacity_recommended.iloc[0])
+        if not sparse_capacity_recommended.empty
+        else None,
+        "sparse_pareto_frontier_rows": int(summary.get("sparse_pareto_frontier_rows", len(sparse_frontier))),
+        "sparse_pareto_frontier_methods": list(summary.get("sparse_pareto_frontier_methods", [])),
+        "sparse_pareto_frontier": rel(frontier_path),
         "all_weight_decision": None if all_weight.empty else str(all_weight.iloc[0]["decision"]),
         "all_weight_calibrate_count": 0 if all_weight.empty else int(all_weight.iloc[0]["calibrate_router_count"]),
         "report": rel("results/toy_moe_method_selection/report.md"),
@@ -1044,7 +1065,7 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "Toy MoE merge method selection",
             "status": "complete",
-            "evidence": "results/toy_moe_method_selection/report.md combines method metrics and routing readiness to reject all-weight average and recommend matched router-calibrated averaging with router guard.",
+            "evidence": "results/toy_moe_method_selection/report.md combines method metrics, routing readiness, and sparse capacity overflow into materialization gates plus a hard-top2/overflow Pareto frontier.",
         },
         {
             "item": "Toy MoE expert remap plan",
@@ -1540,6 +1561,18 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| toy MoE method selection | recommended hard top-2 worst accuracy | "
                 f"{fmt(toy_moe_selection['recommended_sparse_worst_acc'])} |"
+            ),
+            (
+                "| toy MoE method selection | capacity-aware hard top-2 method | "
+                f"{toy_moe_selection['recommended_sparse_capacity_aware_method']} |"
+            ),
+            (
+                "| toy MoE method selection | capacity-aware top-k overflow | "
+                f"{fmt(toy_moe_selection['recommended_sparse_capacity_aware_topk_overflow_fraction'])} |"
+            ),
+            (
+                "| toy MoE method selection | hard top-2 / overflow Pareto methods | "
+                f"{', '.join(toy_moe_selection['sparse_pareto_frontier_methods'])} |"
             ),
             (
                 "| toy MoE method selection | all-weight decision | "
