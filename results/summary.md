@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T05:13:35.779200+00:00`
+Generated at: `2026-06-19T09:13:31.558390+00:00`
 
 ## Coverage
 
-Complete: `28`; partial: `0`; missing: `0`.
+Complete: `29`; partial: `0`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -23,6 +23,7 @@ Complete: `28`; partial: `0`; missing: `0`.
 | Formal LLM benchmark slices | complete | Representative Qwen2.5-1.5B benchmark slices cover MMLU, GSM8K, HumanEval canonical-solution NLL, and BeaverTails safety/refusal NLL. |
 | Probe-guided Average decision report | complete | results/average_decision_report/report.md converts merge grids, conflict probes, and optional MoE routing probes into same-shape average decisions. |
 | Dense/MoE averaging literature matrix | complete | results/model_averaging_literature_review/report.md maps recent model averaging and MoE merging papers to probes, failure signals, and same-shape writer actions. |
+| Qwen target model registry | complete | results/qwen_target_model_registry/report.md maps representative official, third-party, downstream, and adapter-pool Qwen candidates to scenarios, eval slices, probes, and same-shape topology gates. |
 | MoE same-shape averaging plan | complete | results/moe_average_plan/report.md maps router/expert probes into same-shape router, shared-module, expert, and adapter averaging actions. |
 | Same-shape checkpoint writer | complete | scripts/write_same_shape_average_checkpoint.py writes same-shape safetensors checkpoints; results/same_shape_writer_smoke/report.md validates Qwen2.5-0.5B base/instruct/coder dry-run compatibility. |
 | Checkpoint topology inspection | complete | results/checkpoint_topology_inspect/report.md inspects Qwen MoE/Dense configs and safetensors headers without loading weights. |
@@ -82,6 +83,10 @@ Complete: `28`; partial: `0`; missing: `0`.
 | Average decision report | coefficient-search decisions | 2 |
 | model averaging literature review | sources reviewed | 21 |
 | model averaging literature review | method / probe / MoE-stage counts | 6 / 6 / 6 |
+| Qwen target model registry | candidate dense / MoE models | 12 / 5 |
+| Qwen target model registry | downstream or third-party candidates | 9 |
+| Qwen target model registry | recommended first scenario | dense_7b_general_code_math_reasoning |
+| Qwen target model registry | manual resolution or selection required | 6 |
 | MoE routing probe smoke | routers / prompts | 2 / 3 |
 | MoE routing probe smoke | router / expert / overlap rows | 6 / 24 / 6 |
 | MoE average plan | router plan rows | 0 |

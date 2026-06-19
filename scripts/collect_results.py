@@ -633,6 +633,37 @@ def summarize_model_averaging_literature_review() -> dict[str, Any]:
     }
 
 
+def summarize_qwen_target_model_registry() -> dict[str, Any]:
+    summary = read_json("results/qwen_target_model_registry/summary.json")
+    models = read_csv("results/qwen_target_model_registry/model_registry.csv")
+    scenarios = read_csv("results/qwen_target_model_registry/scenario_matrix.csv")
+    eval_probes = read_csv("results/qwen_target_model_registry/eval_probe_matrix.csv")
+    first_scenario = summary.get("recommended_first_scenario")
+    first_rows = models[models["scenario"] == first_scenario]
+    moe_scenario = summary.get("recommended_first_moe_scenario")
+    moe_rows = models[models["scenario"] == moe_scenario]
+    return {
+        "summary": summary,
+        "model_count": int(summary.get("model_count", len(models))),
+        "dense_model_count": int(summary.get("dense_model_count", 0)),
+        "moe_model_count": int(summary.get("moe_model_count", 0)),
+        "official_count": int(summary.get("official_count", 0)),
+        "downstream_or_third_party_count": int(summary.get("downstream_or_third_party_count", 0)),
+        "ready_for_topology_inspect_count": int(summary.get("ready_for_topology_inspect_count", 0)),
+        "manual_resolution_or_selection_count": int(summary.get("manual_resolution_or_selection_count", 0)),
+        "scenario_count": int(summary.get("scenario_count", len(scenarios))),
+        "eval_probe_count": int(summary.get("eval_probe_count", len(eval_probes))),
+        "recommended_first_scenario": first_scenario,
+        "recommended_first_models": [str(row["model_id"]) for _, row in first_rows.iterrows() if row["priority"] == "p0"],
+        "recommended_first_moe_scenario": moe_scenario,
+        "recommended_first_moe_models": [str(row["model_id"]) for _, row in moe_rows.iterrows() if row["priority"] == "p0"],
+        "report": rel("results/qwen_target_model_registry/report.md"),
+        "model_registry": rel("results/qwen_target_model_registry/model_registry.csv"),
+        "scenario_matrix": rel("results/qwen_target_model_registry/scenario_matrix.csv"),
+        "eval_probe_matrix": rel("results/qwen_target_model_registry/eval_probe_matrix.csv"),
+    }
+
+
 def summarize_moe_routing_probe_smoke() -> dict[str, Any]:
     summary = read_json("results/moe_routing_probe_smoke/summary.json")
     return {
@@ -729,6 +760,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/model_averaging_literature_review/report.md maps recent model averaging and MoE merging papers to probes, failure signals, and same-shape writer actions.",
         },
         {
+            "item": "Qwen target model registry",
+            "status": "complete",
+            "evidence": "results/qwen_target_model_registry/report.md maps representative official, third-party, downstream, and adapter-pool Qwen candidates to scenarios, eval slices, probes, and same-shape topology gates.",
+        },
+        {
             "item": "MoE same-shape averaging plan",
             "status": "complete",
             "evidence": "results/moe_average_plan/report.md maps router/expert probes into same-shape router, shared-module, expert, and adapter averaging actions.",
@@ -813,6 +849,7 @@ def build_summary() -> dict[str, Any]:
         "qwen_probe_smoke": summarize_qwen_probe_smoke(),
         "average_decision_report": summarize_average_decision_report(),
         "model_averaging_literature_review": summarize_model_averaging_literature_review(),
+        "qwen_target_model_registry": summarize_qwen_target_model_registry(),
         "moe_routing_probe_smoke": summarize_moe_routing_probe_smoke(),
         "moe_average_plan": summarize_moe_average_plan(),
         "same_shape_writer_smoke": summarize_same_shape_writer_smoke(),
@@ -859,6 +896,7 @@ def build_summary() -> dict[str, Any]:
             "python scripts/build_model_averaging_literature_review.py",
             "python scripts/smoke_moe_routing_probe_contract.py",
             "PYTHONPATH=src python scripts/build_average_decision_report.py",
+            "python scripts/build_qwen_target_model_registry.py",
             "PYTHONPATH=src python scripts/build_moe_average_plan.py",
             "python scripts/write_same_shape_average_checkpoint.py --base BASE --source expert=EXPERT --dry-run --output-dir results/same_shape_writer_smoke",
             "python scripts/inspect_checkpoint_topology.py --model NAME=MODEL_PATH --output-dir results/checkpoint_topology_inspect",
@@ -894,6 +932,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen_multi_conflict = qwen_multi["instruct_coder_conflict"] or {}
     average_decision = exp["average_decision_report"]
     literature_review = exp["model_averaging_literature_review"]
+    qwen_registry = exp["qwen_target_model_registry"]
     routing_probe_smoke = exp["moe_routing_probe_smoke"]
     moe_average_plan = exp["moe_average_plan"]
     writer_smoke = exp["same_shape_writer_smoke"]
@@ -1095,6 +1134,22 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| model averaging literature review | method / probe / MoE-stage counts | "
                 f"{literature_review['method_family_count']} / {literature_review['probe_count']} / {literature_review['moe_stage_count']} |"
+            ),
+            (
+                "| Qwen target model registry | candidate dense / MoE models | "
+                f"{qwen_registry['dense_model_count']} / {qwen_registry['moe_model_count']} |"
+            ),
+            (
+                "| Qwen target model registry | downstream or third-party candidates | "
+                f"{qwen_registry['downstream_or_third_party_count']} |"
+            ),
+            (
+                "| Qwen target model registry | recommended first scenario | "
+                f"{qwen_registry['recommended_first_scenario']} |"
+            ),
+            (
+                "| Qwen target model registry | manual resolution or selection required | "
+                f"{qwen_registry['manual_resolution_or_selection_count']} |"
             ),
             (
                 "| MoE routing probe smoke | routers / prompts | "

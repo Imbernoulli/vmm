@@ -76,6 +76,11 @@
       "status": "complete"
     },
     {
+      "evidence": "results/qwen_target_model_registry/report.md maps representative official, third-party, downstream, and adapter-pool Qwen candidates to scenarios, eval slices, probes, and same-shape topology gates.",
+      "item": "Qwen target model registry",
+      "status": "complete"
+    },
+    {
       "evidence": "results/moe_average_plan/report.md maps router/expert probes into same-shape router, shared-module, expert, and adapter averaging actions.",
       "item": "MoE same-shape averaging plan",
       "status": "complete"
@@ -142,7 +147,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 28,
+    "complete": 29,
     "missing": 0,
     "partial": 0
   },
@@ -2407,6 +2412,89 @@
         "unsafe_examples": 12
       }
     },
+    "qwen_target_model_registry": {
+      "dense_model_count": 12,
+      "downstream_or_third_party_count": 9,
+      "eval_probe_count": 9,
+      "eval_probe_matrix": "results/qwen_target_model_registry/eval_probe_matrix.csv",
+      "manual_resolution_or_selection_count": 6,
+      "model_count": 17,
+      "model_registry": "results/qwen_target_model_registry/model_registry.csv",
+      "moe_model_count": 5,
+      "official_count": 8,
+      "ready_for_topology_inspect_count": 11,
+      "recommended_first_models": [
+        "Qwen/Qwen2.5-7B-Instruct",
+        "Qwen/Qwen2.5-Coder-7B-Instruct",
+        "Qwen/Qwen2.5-Math-7B-Instruct",
+        "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B"
+      ],
+      "recommended_first_moe_models": [
+        "Qwen/Qwen3-30B-A3B-Base",
+        "Qwen/Qwen3-30B-A3B",
+        "Qwen/Qwen3-Coder-30B-A3B-Instruct"
+      ],
+      "recommended_first_moe_scenario": "moe_30b_general_code_route_aware",
+      "recommended_first_scenario": "dense_7b_general_code_math_reasoning",
+      "report": "results/qwen_target_model_registry/report.md",
+      "scenario_count": 6,
+      "scenario_matrix": "results/qwen_target_model_registry/scenario_matrix.csv",
+      "summary": {
+        "dense_model_count": 12,
+        "downstream_or_third_party_count": 9,
+        "eval_probe_count": 9,
+        "generated_at": "2026-06-19T09:09:40.294017+00:00",
+        "manual_resolution_or_selection_count": 6,
+        "materialization_status_counts": {
+          "manual_candidate_selection_required": 3,
+          "manual_weight_id_resolution_required": 3,
+          "ready_for_topology_inspect": 11
+        },
+        "model_count": 17,
+        "moe_model_count": 5,
+        "official_count": 8,
+        "phase_counts": {
+          "dense_32b": 6,
+          "dense_7b": 6,
+          "moe_30b_a3b": 5
+        },
+        "ready_for_topology_inspect_count": 11,
+        "recommended_first_models": [
+          "Qwen/Qwen2.5-7B-Instruct",
+          "Qwen/Qwen2.5-Coder-7B-Instruct",
+          "Qwen/Qwen2.5-Math-7B-Instruct",
+          "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B"
+        ],
+        "recommended_first_moe_models": [
+          "Qwen/Qwen3-30B-A3B-Base",
+          "Qwen/Qwen3-30B-A3B",
+          "Qwen/Qwen3-Coder-30B-A3B-Instruct"
+        ],
+        "recommended_first_moe_scenario": "moe_30b_general_code_route_aware",
+        "recommended_first_scenario": "dense_7b_general_code_math_reasoning",
+        "required_next_artifacts": [
+          "topology inspect for every p0 candidate",
+          "endpoint eval table before any averaging",
+          "connectivity/barrier graph before selecting average coefficients",
+          "MoE routing probe on Qwen3-30B-A3B and Qwen3-Coder-30B-A3B before router/expert averaging",
+          "same-shape checkpoint writer dry run followed by held-out eval"
+        ],
+        "scenario_count": 6,
+        "schema_version": 1,
+        "source_type_counts": {
+          "downstream_adapter_finetune_pool": 3,
+          "official_base": 1,
+          "official_base_moe": 1,
+          "official_posttrained": 2,
+          "official_posttrained_moe": 1,
+          "official_specialist": 2,
+          "official_specialist_moe": 1,
+          "paper_downstream_finetune": 3,
+          "third_party_distill": 2,
+          "third_party_sft_rl": 1
+        }
+      }
+    },
     "same_shape_writer_smoke": {
       "dry_run": true,
       "floating_tensors": 290,
@@ -2748,7 +2836,7 @@
       }
     }
   },
-  "generated_at": "2026-06-19T05:13:35.779200+00:00",
+  "generated_at": "2026-06-19T09:13:31.558390+00:00",
   "overall_status": "complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -2771,6 +2859,7 @@
     "python scripts/build_model_averaging_literature_review.py",
     "python scripts/smoke_moe_routing_probe_contract.py",
     "PYTHONPATH=src python scripts/build_average_decision_report.py",
+    "python scripts/build_qwen_target_model_registry.py",
     "PYTHONPATH=src python scripts/build_moe_average_plan.py",
     "python scripts/write_same_shape_average_checkpoint.py --base BASE --source expert=EXPERT --dry-run --output-dir results/same_shape_writer_smoke",
     "python scripts/inspect_checkpoint_topology.py --model NAME=MODEL_PATH --output-dir results/checkpoint_topology_inspect",

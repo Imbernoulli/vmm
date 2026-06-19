@@ -1,0 +1,55 @@
+{
+  "dense_model_count": 12,
+  "downstream_or_third_party_count": 9,
+  "eval_probe_count": 9,
+  "generated_at": "2026-06-19T09:09:40.294017+00:00",
+  "manual_resolution_or_selection_count": 6,
+  "materialization_status_counts": {
+    "manual_candidate_selection_required": 3,
+    "manual_weight_id_resolution_required": 3,
+    "ready_for_topology_inspect": 11
+  },
+  "model_count": 17,
+  "moe_model_count": 5,
+  "official_count": 8,
+  "phase_counts": {
+    "dense_32b": 6,
+    "dense_7b": 6,
+    "moe_30b_a3b": 5
+  },
+  "ready_for_topology_inspect_count": 11,
+  "recommended_first_models": [
+    "Qwen/Qwen2.5-7B-Instruct",
+    "Qwen/Qwen2.5-Coder-7B-Instruct",
+    "Qwen/Qwen2.5-Math-7B-Instruct",
+    "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B"
+  ],
+  "recommended_first_moe_models": [
+    "Qwen/Qwen3-30B-A3B-Base",
+    "Qwen/Qwen3-30B-A3B",
+    "Qwen/Qwen3-Coder-30B-A3B-Instruct"
+  ],
+  "recommended_first_moe_scenario": "moe_30b_general_code_route_aware",
+  "recommended_first_scenario": "dense_7b_general_code_math_reasoning",
+  "required_next_artifacts": [
+    "topology inspect for every p0 candidate",
+    "endpoint eval table before any averaging",
+    "connectivity/barrier graph before selecting average coefficients",
+    "MoE routing probe on Qwen3-30B-A3B and Qwen3-Coder-30B-A3B before router/expert averaging",
+    "same-shape checkpoint writer dry run followed by held-out eval"
+  ],
+  "scenario_count": 6,
+  "schema_version": 1,
+  "source_type_counts": {
+    "downstream_adapter_finetune_pool": 3,
+    "official_base": 1,
+    "official_base_moe": 1,
+    "official_posttrained": 2,
+    "official_posttrained_moe": 1,
+    "official_specialist": 2,
+    "official_specialist_moe": 1,
+    "paper_downstream_finetune": 3,
+    "third_party_distill": 2,
+    "third_party_sft_rl": 1
+  }
+}

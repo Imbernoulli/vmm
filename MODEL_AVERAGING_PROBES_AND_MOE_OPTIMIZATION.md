@@ -1,8 +1,8 @@
 # Dense/MoE Model Averaging 的指标、Probe 与优化路线
 
-更新时间：2026-06-18
+更新时间：2026-06-19
 
-这份文档补充 [Qwen Dense/MoE 下游微调模型合并实验方案](QWEN_DENSE_MOE_EXPERIMENT_PLAN.md)：前一份文档回答“选哪些模型、评什么、怎么评”，这里回答“为了最终做好 Average，应该探测哪些深层信号、这些信号背后的理论解释是什么、以及如何把 probe 结果转化成更好的平均系数或平均前处理”。更结构化的论文到工程规则映射见 [Model Averaging Literature and Probe Matrix](results/model_averaging_literature_review/report.md)。
+这份文档补充 [Qwen Dense/MoE 下游微调模型合并实验方案](QWEN_DENSE_MOE_EXPERIMENT_PLAN.md)：前一份文档回答“选哪些模型、评什么、怎么评”，这里回答“为了最终做好 Average，应该探测哪些深层信号、这些信号背后的理论解释是什么、以及如何把 probe 结果转化成更好的平均系数或平均前处理”。具体候选模型、场景、评测和 probe 已落到 [Qwen Target Model Registry](results/qwen_target_model_registry/report.md)，更结构化的论文到工程规则映射见 [Model Averaging Literature and Probe Matrix](results/model_averaging_literature_review/report.md)。
 
 这里的目标不是机械套一遍 TIES/DARE/RegMean/MoE routing，也不是把多个模型变成运行时 ensemble。这里的 **Average** 采用更严格定义：最终输出必须仍然是一个和输入模型同构的 checkpoint，可被同一个 model class/config/tokenizer 直接加载；dense 模型不能变成 ensemble，MoE 模型不能改变 layer 数、hidden size、router 形状或 expert 数量。如果输入是同构 LoRA/adapters，最终输出也应该是一个同构 adapter，除非明确把 mixture 当作诊断上界。
 
