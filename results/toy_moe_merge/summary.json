@@ -9,13 +9,28 @@
     1
   ],
   "expert_match_mean_cosine": 0.9773149192333221,
+  "expert_matched_dare_minus_matched_average_worst_acc": -0.020000000000000018,
+  "expert_matched_dare_worst_acc": 0.78,
   "expert_matched_regmean_minus_matched_frozen_worst_acc": 0.0050000000000000044,
   "expert_matched_regmean_worst_acc": 0.7925,
+  "expert_matched_ties_dare_minus_matched_average_worst_acc": -0.022500000000000075,
+  "expert_matched_ties_dare_worst_acc": 0.7775,
+  "expert_matched_ties_minus_matched_average_worst_acc": -0.025000000000000022,
+  "expert_matched_ties_worst_acc": 0.775,
   "expert_regmean": {
     "batches": 4,
     "covariance_rows": 16,
     "linear_layers": 8,
     "ridge": 0.0001
+  },
+  "expert_sparse_task_vector": {
+    "dare_drop_rate": 0.25,
+    "dare_seed": 123,
+    "dare_worst_acc": 0.78,
+    "tensor_rows": 48,
+    "ties_dare_worst_acc": 0.7775,
+    "ties_density": 0.5,
+    "ties_worst_acc": 0.775
   },
   "expert_weight_search": {
     "candidate_pair_count": 15,
@@ -53,6 +68,7 @@
     "expert_regmean_covariances": "expert_regmean_covariances.csv",
     "expert_regmean_layers": "expert_regmean_layers.csv",
     "expert_search_weights_by_expert": "expert_search_weights_by_expert.csv",
+    "expert_sparse_task_vectors": "expert_sparse_task_vectors.csv",
     "expert_weight_search_trace": "expert_weight_search_trace.csv",
     "figure": "toy_moe_merge.png",
     "method_metrics": "method_metrics.csv",

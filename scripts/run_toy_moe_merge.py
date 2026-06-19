@@ -522,6 +522,96 @@ def regmean_expert_state(
     return merged, pd.DataFrame(rows)
 
 
+def topk_mask(delta: Tensor, density: float) -> Tensor:
+    if density >= 1.0:
+        return torch.ones_like(delta, dtype=torch.bool)
+    if density <= 0.0:
+        return torch.zeros_like(delta, dtype=torch.bool)
+    flat = delta.abs().reshape(-1)
+    k = max(1, int(math.ceil(flat.numel() * density)))
+    if k >= flat.numel():
+        return torch.ones_like(delta, dtype=torch.bool)
+    threshold = torch.topk(flat, k=k, largest=True).values[-1]
+    return delta.abs() >= threshold
+
+
+def stable_tensor_seed(seed: int, name: str, source_idx: int) -> int:
+    return int(seed + source_idx * 1_000_003 + sum((idx + 1) * ord(ch) for idx, ch in enumerate(name)))
+
+
+def dare_delta(delta: Tensor, drop_rate: float, seed: int) -> Tensor:
+    if drop_rate <= 0.0:
+        return delta.clone()
+    if drop_rate >= 1.0:
+        return torch.zeros_like(delta)
+    generator = torch.Generator(device=delta.device)
+    generator.manual_seed(seed)
+    keep = torch.rand(delta.shape, generator=generator, device=delta.device) >= drop_rate
+    return delta * keep.to(delta.dtype) / (1.0 - drop_rate)
+
+
+def ties_delta(deltas: list[Tensor], density: float) -> Tensor:
+    trimmed = [delta * topk_mask(delta, density).to(delta.dtype) for delta in deltas]
+    stacked = torch.stack(trimmed, dim=0)
+    elected_sign = torch.sign(stacked.sum(dim=0))
+    nonzero_elected = elected_sign != 0
+    sign_match = torch.sign(stacked) == elected_sign.unsqueeze(0)
+    mask = sign_match & nonzero_elected.unsqueeze(0)
+    numerator = (stacked * mask.to(stacked.dtype)).sum(dim=0)
+    denom = mask.sum(dim=0).clamp_min(1).to(stacked.dtype)
+    merged = numerator / denom
+    return torch.where(nonzero_elected, merged, torch.zeros_like(merged))
+
+
+def expert_sparse_task_vector_state(
+    base: dict[str, Tensor],
+    general: dict[str, Tensor],
+    code: dict[str, Tensor],
+    *,
+    mode: str,
+    density: float,
+    drop_rate: float,
+    seed: int,
+) -> tuple[dict[str, Tensor], pd.DataFrame]:
+    out = {name: value.detach().clone() for name, value in base.items()}
+    rows = []
+    for name, base_value in base.items():
+        if name.startswith("router.") or not name.startswith("experts.") or not torch.is_floating_point(base_value):
+            continue
+        source_deltas = [
+            general[name].detach().cpu().to(torch.float32) - base_value.detach().cpu().to(torch.float32),
+            code[name].detach().cpu().to(torch.float32) - base_value.detach().cpu().to(torch.float32),
+        ]
+        deltas = source_deltas
+        if mode in {"dare", "ties_dare"}:
+            deltas = [
+                dare_delta(delta, drop_rate, stable_tensor_seed(seed, name, idx))
+                for idx, delta in enumerate(source_deltas)
+            ]
+        if mode == "ties":
+            merged_delta = ties_delta(deltas, density)
+        elif mode == "dare":
+            merged_delta = torch.stack(deltas, dim=0).mean(dim=0)
+        elif mode == "ties_dare":
+            merged_delta = ties_delta(deltas, density)
+        else:
+            raise ValueError(f"Unknown sparse expert mode: {mode}")
+        out[name] = (base_value.detach().cpu().to(torch.float32) + merged_delta).to(dtype=base_value.dtype)
+        rows.append(
+            {
+                "method": f"expert_matched_{mode}_average",
+                "tensor": name,
+                "density": density if mode in {"ties", "ties_dare"} else 1.0,
+                "drop_rate": drop_rate if mode in {"dare", "ties_dare"} else 0.0,
+                "source_delta_norm_mean": float(torch.stack([delta.norm() for delta in source_deltas]).mean()),
+                "merged_delta_norm": float(merged_delta.norm()),
+                "merged_delta_nonzero_fraction": float((merged_delta != 0).to(torch.float32).mean()),
+                "same_shape_action": "expert_local_sparse_task_vector_merge",
+            }
+        )
+    return out, pd.DataFrame(rows)
+
+
 def evaluate_state(
     template: TinyMoEClassifier,
     state: dict[str, Tensor],
@@ -1035,6 +1125,9 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
     matched = method_metrics[method_metrics["method"] == "expert_matched_average"].iloc[0]
     matched_router_frozen = method_metrics[method_metrics["method"] == "matched_router_frozen_average"].iloc[0]
     expert_regmean = method_metrics[method_metrics["method"] == "expert_matched_regmean_average"].iloc[0]
+    expert_ties = method_metrics[method_metrics["method"] == "expert_matched_ties_average"].iloc[0]
+    expert_dare = method_metrics[method_metrics["method"] == "expert_matched_dare_average"].iloc[0]
+    expert_ties_dare = method_metrics[method_metrics["method"] == "expert_matched_ties_dare_average"].iloc[0]
     router_weight_search = method_metrics[method_metrics["method"] == "matched_router_weight_search_average"].iloc[0]
     calibrated = method_metrics[method_metrics["method"] == "matched_router_calibrated_average"].iloc[0]
     sweep_selected = method_metrics[method_metrics["method"] == "matched_router_sweep_selected_average"].iloc[0]
@@ -1057,6 +1150,9 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
         f"- Expert-matched average worst accuracy: `{matched['worst_acc']:.3f}`.",
         f"- Matched + router-frozen average worst accuracy: `{matched_router_frozen['worst_acc']:.3f}`.",
         f"- Expert-matched RegMean average worst accuracy: `{expert_regmean['worst_acc']:.3f}`.",
+        f"- Expert-matched TIES average worst accuracy: `{expert_ties['worst_acc']:.3f}`.",
+        f"- Expert-matched DARE average worst accuracy: `{expert_dare['worst_acc']:.3f}`.",
+        f"- Expert-matched TIES+DARE average worst accuracy: `{expert_ties_dare['worst_acc']:.3f}`.",
         f"- Matched + router-weight-search average worst accuracy: `{router_weight_search['worst_acc']:.3f}`.",
         f"- Matched + router-calibrated average worst accuracy: `{calibrated['worst_acc']:.3f}`.",
         f"- Matched + router-sweep-selected average worst accuracy: `{sweep_selected['worst_acc']:.3f}`.",
@@ -1085,6 +1181,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
             "- `expert_matched_average` 先用 unlabeled calibration input 的 expert-output cosine 做 Hungarian matching，再平均；这对应 Sub-MoE / Expert Merging 里强调的 function-aware expert alignment。",
             "- `matched_router_frozen_average` 直接验证 MoE 特有假设：先对齐 expert 功能，再固定 token-to-expert dispatch，只平均非 router 权重。",
             "- `expert_matched_regmean_average` 在 expert matching 后只对 expert Linear 层做 activation-covariance RegMean，router 仍固定为 base；这把 Dense RegMean 转成了 MoE expert-local 版本。",
+            "- `expert_matched_ties_average` / `expert_matched_dare_average` / `expert_matched_ties_dare_average` 把 Dense sparse task-vector merging 迁移到 MoE expert 子网；router 不参与稀疏合并。",
             "- `matched_router_weight_search_average` 不做梯度训练，只对 router tensor 的 general/code task-vector 系数做 guarded search；这是 checkpoint-only 的 MoE router probe。",
             "- `matched_router_calibrated_average` 冻结 matched experts，只用小校准集更新 router，并用 base-router KL 约束防止 dispatch 漂移。",
             "- `matched_router_sweep_selected_average` 对 router calibration 的 KL 系数做 sweep，先过 route-overlap guard，再按 calibration worst-loss 选择候选；它把 router overlap/load 和任务精度放到同一个 probe 里。",
@@ -1103,6 +1200,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
             "- `route_weights_by_expert.csv`",
             "- `expert_regmean_covariances.csv`",
             "- `expert_regmean_layers.csv`",
+            "- `expert_sparse_task_vectors.csv`",
             "- `expert_search_weights_by_expert.csv`",
             "- `expert_weight_search_trace.csv`",
             "- `router_weight_search.csv`",
@@ -1139,6 +1237,9 @@ def main() -> None:
     parser.add_argument("--router-weight-search-min-top1-agreement", type=float, default=0.75)
     parser.add_argument("--expert-regmean-batches", type=int, default=4)
     parser.add_argument("--expert-regmean-ridge", type=float, default=1e-4)
+    parser.add_argument("--expert-ties-density", type=float, default=0.5)
+    parser.add_argument("--expert-dare-drop-rate", type=float, default=0.25)
+    parser.add_argument("--expert-dare-seed", type=int, default=123)
     parser.add_argument("--expert-search-grid", default="0,0.25,0.5,0.75,1.0")
     parser.add_argument("--expert-search-passes", type=int, default=2)
     parser.add_argument("--expert-search-prior-penalty", type=float, default=0.02)
@@ -1265,6 +1366,37 @@ def main() -> None:
         ridge=args.expert_regmean_ridge,
         layer_prefix="experts.",
     )
+    expert_matched_ties, expert_ties_rows = expert_sparse_task_vector_state(
+        base_state,
+        general_state,
+        matched_code_state,
+        mode="ties",
+        density=args.expert_ties_density,
+        drop_rate=args.expert_dare_drop_rate,
+        seed=args.expert_dare_seed,
+    )
+    expert_matched_dare, expert_dare_rows = expert_sparse_task_vector_state(
+        base_state,
+        general_state,
+        matched_code_state,
+        mode="dare",
+        density=args.expert_ties_density,
+        drop_rate=args.expert_dare_drop_rate,
+        seed=args.expert_dare_seed,
+    )
+    expert_matched_ties_dare, expert_ties_dare_rows = expert_sparse_task_vector_state(
+        base_state,
+        general_state,
+        matched_code_state,
+        mode="ties_dare",
+        density=args.expert_ties_density,
+        drop_rate=args.expert_dare_drop_rate,
+        seed=args.expert_dare_seed,
+    )
+    expert_sparse_task_vectors = pd.concat(
+        [expert_ties_rows, expert_dare_rows, expert_ties_dare_rows],
+        ignore_index=True,
+    )
     router_weight_search_grid = parse_grid(args.router_weight_search_grid)
     router_weight_search_pairs = candidate_source_pairs(
         router_weight_search_grid,
@@ -1341,6 +1473,21 @@ def main() -> None:
             "align code experts and RegMean-merge only expert linear layers with the base router fixed",
         ),
         MethodState(
+            "expert_matched_ties_average",
+            expert_matched_ties,
+            "align code experts and apply TIES to expert task vectors with the base router fixed",
+        ),
+        MethodState(
+            "expert_matched_dare_average",
+            expert_matched_dare,
+            "align code experts and apply DARE to expert task vectors with the base router fixed",
+        ),
+        MethodState(
+            "expert_matched_ties_dare_average",
+            expert_matched_ties_dare,
+            "align code experts and apply DARE+TIES to expert task vectors with the base router fixed",
+        ),
+        MethodState(
             "matched_router_weight_search_average",
             matched_router_weight_search,
             "align code experts and search router source-delta weights with route guards",
@@ -1411,6 +1558,7 @@ def main() -> None:
     route_weights.to_csv(args.output_dir / "route_weights_by_expert.csv", index=False)
     regmean_covariances.to_csv(args.output_dir / "expert_regmean_covariances.csv", index=False)
     expert_regmean_layers.to_csv(args.output_dir / "expert_regmean_layers.csv", index=False)
+    expert_sparse_task_vectors.to_csv(args.output_dir / "expert_sparse_task_vectors.csv", index=False)
     expert_search_weights.to_csv(args.output_dir / "expert_search_weights_by_expert.csv", index=False)
     expert_search_trace.to_csv(args.output_dir / "expert_weight_search_trace.csv", index=False)
     router_weight_search.to_csv(args.output_dir / "router_weight_search.csv", index=False)
@@ -1419,8 +1567,14 @@ def main() -> None:
 
     best = method_metrics.sort_values(["worst_acc", "avg_acc"], ascending=False).iloc[0]
     all_avg = method_metrics[method_metrics["method"] == "all_weight_average"].iloc[0]
+    expert_matched_row = method_metrics[method_metrics["method"] == "expert_matched_average"].iloc[0]
     matched_router_frozen_row = method_metrics[method_metrics["method"] == "matched_router_frozen_average"].iloc[0]
     expert_matched_regmean_row = method_metrics[method_metrics["method"] == "expert_matched_regmean_average"].iloc[0]
+    expert_matched_ties_row = method_metrics[method_metrics["method"] == "expert_matched_ties_average"].iloc[0]
+    expert_matched_dare_row = method_metrics[method_metrics["method"] == "expert_matched_dare_average"].iloc[0]
+    expert_matched_ties_dare_row = method_metrics[
+        method_metrics["method"] == "expert_matched_ties_dare_average"
+    ].iloc[0]
     matched_router_weight_search_row = method_metrics[
         method_metrics["method"] == "matched_router_weight_search_average"
     ].iloc[0]
@@ -1461,6 +1615,27 @@ def main() -> None:
             "linear_layers": int(len(expert_regmean_layers)),
             "covariance_rows": int(len(regmean_covariances)),
         },
+        "expert_sparse_task_vector": {
+            "ties_density": args.expert_ties_density,
+            "dare_drop_rate": args.expert_dare_drop_rate,
+            "dare_seed": args.expert_dare_seed,
+            "tensor_rows": int(len(expert_sparse_task_vectors)),
+            "ties_worst_acc": float(expert_matched_ties_row["worst_acc"]),
+            "dare_worst_acc": float(expert_matched_dare_row["worst_acc"]),
+            "ties_dare_worst_acc": float(expert_matched_ties_dare_row["worst_acc"]),
+        },
+        "expert_matched_ties_worst_acc": float(expert_matched_ties_row["worst_acc"]),
+        "expert_matched_dare_worst_acc": float(expert_matched_dare_row["worst_acc"]),
+        "expert_matched_ties_dare_worst_acc": float(expert_matched_ties_dare_row["worst_acc"]),
+        "expert_matched_ties_minus_matched_average_worst_acc": float(
+            expert_matched_ties_row["worst_acc"] - expert_matched_row["worst_acc"]
+        ),
+        "expert_matched_dare_minus_matched_average_worst_acc": float(
+            expert_matched_dare_row["worst_acc"] - expert_matched_row["worst_acc"]
+        ),
+        "expert_matched_ties_dare_minus_matched_average_worst_acc": float(
+            expert_matched_ties_dare_row["worst_acc"] - expert_matched_row["worst_acc"]
+        ),
         "router_weight_search": {
             "grid": router_weight_search_grid,
             "candidate_pair_count": len(router_weight_search_pairs),
@@ -1548,6 +1723,7 @@ def main() -> None:
             "route_weights_by_expert": "route_weights_by_expert.csv",
             "expert_regmean_covariances": "expert_regmean_covariances.csv",
             "expert_regmean_layers": "expert_regmean_layers.csv",
+            "expert_sparse_task_vectors": "expert_sparse_task_vectors.csv",
             "expert_search_weights_by_expert": "expert_search_weights_by_expert.csv",
             "expert_weight_search_trace": "expert_weight_search_trace.csv",
             "router_weight_search": "router_weight_search.csv",

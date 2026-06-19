@@ -11,6 +11,9 @@
 - Expert-matched average worst accuracy: `0.800`.
 - Matched + router-frozen average worst accuracy: `0.787`.
 - Expert-matched RegMean average worst accuracy: `0.792`.
+- Expert-matched TIES average worst accuracy: `0.775`.
+- Expert-matched DARE average worst accuracy: `0.780`.
+- Expert-matched TIES+DARE average worst accuracy: `0.777`.
 - Matched + router-weight-search average worst accuracy: `0.818`.
 - Matched + router-calibrated average worst accuracy: `0.838`.
 - Matched + router-sweep-selected average worst accuracy: `0.838`.
@@ -34,8 +37,11 @@
 | expert_matched_regmean_average | 0.823 | 0.792 | 0.792 | 0.617 |
 | route_aware_expert_average | 0.807 | 0.790 | 0.790 | 0.620 |
 | matched_router_frozen_average | 0.815 | 0.787 | 0.787 | 0.619 |
+| expert_matched_dare_average | 0.812 | 0.780 | 0.780 | 0.619 |
 | general_endpoint | 0.812 | 0.780 | 0.780 | 0.615 |
+| expert_matched_ties_dare_average | 0.815 | 0.777 | 0.777 | 0.616 |
 | base | 0.797 | 0.775 | 0.775 | 0.628 |
+| expert_matched_ties_average | 0.810 | 0.775 | 0.775 | 0.618 |
 | all_weight_average | 0.688 | 0.620 | 0.620 | 0.663 |
 | router_frozen_average | 0.690 | 0.615 | 0.615 | 0.666 |
 
@@ -45,6 +51,7 @@
 - `expert_matched_average` 先用 unlabeled calibration input 的 expert-output cosine 做 Hungarian matching，再平均；这对应 Sub-MoE / Expert Merging 里强调的 function-aware expert alignment。
 - `matched_router_frozen_average` 直接验证 MoE 特有假设：先对齐 expert 功能，再固定 token-to-expert dispatch，只平均非 router 权重。
 - `expert_matched_regmean_average` 在 expert matching 后只对 expert Linear 层做 activation-covariance RegMean，router 仍固定为 base；这把 Dense RegMean 转成了 MoE expert-local 版本。
+- `expert_matched_ties_average` / `expert_matched_dare_average` / `expert_matched_ties_dare_average` 把 Dense sparse task-vector merging 迁移到 MoE expert 子网；router 不参与稀疏合并。
 - `matched_router_weight_search_average` 不做梯度训练，只对 router tensor 的 general/code task-vector 系数做 guarded search；这是 checkpoint-only 的 MoE router probe。
 - `matched_router_calibrated_average` 冻结 matched experts，只用小校准集更新 router，并用 base-router KL 约束防止 dispatch 漂移。
 - `matched_router_sweep_selected_average` 对 router calibration 的 KL 系数做 sweep，先过 route-overlap guard，再按 calibration worst-loss 选择候选；它把 router overlap/load 和任务精度放到同一个 probe 里。
@@ -63,6 +70,7 @@
 - `route_weights_by_expert.csv`
 - `expert_regmean_covariances.csv`
 - `expert_regmean_layers.csv`
+- `expert_sparse_task_vectors.csv`
 - `expert_search_weights_by_expert.csv`
 - `expert_weight_search_trace.csv`
 - `router_weight_search.csv`

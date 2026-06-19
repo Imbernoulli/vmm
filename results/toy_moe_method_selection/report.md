@@ -19,6 +19,9 @@
 | expert_matched_regmean_average | merge_candidate | 0.792 | 0.807 | 0 | 1 | `candidate_with_router_guard` |
 | route_aware_expert_average | merge_candidate | 0.790 | 0.799 | 0 | 1 | `candidate_with_router_guard` |
 | matched_router_frozen_average | merge_candidate | 0.787 | 0.801 | 0 | 1 | `candidate_with_router_guard` |
+| expert_matched_dare_average | merge_candidate | 0.780 | 0.796 | 0 | 1 | `candidate_with_router_guard` |
+| expert_matched_ties_dare_average | merge_candidate | 0.777 | 0.796 | 0 | 1 | `candidate_with_router_guard` |
+| expert_matched_ties_average | merge_candidate | 0.775 | 0.792 | 0 | 1 | `candidate_with_router_guard` |
 | router_frozen_average | merge_candidate | 0.615 | 0.652 | 0 | 1 | `reject_underperforms_base` |
 | general_endpoint | endpoint_baseline | 0.780 | 0.796 | 0 | 0.965 | `baseline_only` |
 | code_endpoint_permuted | endpoint_baseline | 0.802 | 0.810 | 2 | 0.2042 | `baseline_only` |

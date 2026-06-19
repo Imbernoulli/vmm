@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-19T10:22:19.627018+00:00`
+Generated at: `2026-06-19T10:26:49.142560+00:00`
 
 ## Coverage
 
@@ -76,6 +76,10 @@ Complete: `31`; partial: `1`; missing: `0`.
 | toy MoE route-aware merge | matched + router-frozen worst accuracy | 0.787 |
 | toy MoE route-aware merge | expert-matched RegMean worst accuracy | 0.792 |
 | toy MoE route-aware merge | expert-matched RegMean delta vs frozen | 0.005 |
+| toy MoE route-aware merge | expert-matched TIES worst accuracy | 0.775 |
+| toy MoE route-aware merge | expert-matched DARE worst accuracy | 0.780 |
+| toy MoE route-aware merge | expert-matched TIES+DARE worst accuracy | 0.777 |
+| toy MoE route-aware merge | best sparse expert delta vs matched average | -0.020 |
 | toy MoE route-aware merge | guarded router-weight selected general/code | 0.00 / 1.00 |
 | toy MoE route-aware merge | guarded router-weight eligible / total | 15 / 15 |
 | toy MoE route-aware merge | matched + router-weight-search worst accuracy | 0.818 |
