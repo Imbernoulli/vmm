@@ -1,0 +1,20 @@
+{
+  "generated_at": "2026-06-19T04:50:47.316387+00:00",
+  "source_name": "code",
+  "recommended_method": "expert_matched_average",
+  "recommended_decision": "candidate_with_router_guard",
+  "min_cosine_threshold": 0.9,
+  "min_output_cosine": 0.9426236748695374,
+  "mean_output_cosine": 0.9773149192333221,
+  "alias_rule_count": 4,
+  "manual_review_count": 0,
+  "remap_status": "ready",
+  "same_shape_constraint": "Output expert indices and tensor names stay unchanged; aliases only remap which source expert tensor is read.",
+  "outputs": {
+    "expert_remap": "results/toy_moe_expert_remap_plan/expert_remap.csv",
+    "source_tensor_aliases": "results/toy_moe_expert_remap_plan/source_tensor_aliases.txt",
+    "writer_command": "results/toy_moe_expert_remap_plan/writer_command.txt",
+    "summary": "results/toy_moe_expert_remap_plan/summary.json",
+    "report": "results/toy_moe_expert_remap_plan/report.md"
+  }
+}

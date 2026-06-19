@@ -593,6 +593,24 @@ def summarize_toy_moe_method_selection() -> dict[str, Any]:
     }
 
 
+def summarize_toy_moe_expert_remap_plan() -> dict[str, Any]:
+    summary = read_json("results/toy_moe_expert_remap_plan/summary.json")
+    remap = read_csv("results/toy_moe_expert_remap_plan/expert_remap.csv")
+    return {
+        "summary": summary,
+        "remap_status": summary.get("remap_status"),
+        "alias_rule_count": int(summary.get("alias_rule_count", 0)),
+        "manual_review_count": int(summary.get("manual_review_count", 0)),
+        "min_output_cosine": maybe_float(summary.get("min_output_cosine")),
+        "mean_output_cosine": maybe_float(summary.get("mean_output_cosine")),
+        "remap_rows": [clean_row(row) for _, row in remap.iterrows()],
+        "report": rel("results/toy_moe_expert_remap_plan/report.md"),
+        "expert_remap": rel("results/toy_moe_expert_remap_plan/expert_remap.csv"),
+        "source_tensor_aliases": rel("results/toy_moe_expert_remap_plan/source_tensor_aliases.txt"),
+        "writer_command": rel("results/toy_moe_expert_remap_plan/writer_command.txt"),
+    }
+
+
 def coverage_checklist() -> list[dict[str, str]]:
     return [
         {
@@ -711,6 +729,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/toy_moe_method_selection/report.md combines method metrics and routing readiness to reject all-weight average and recommend expert-matched averaging with router guard.",
         },
         {
+            "item": "Toy MoE expert remap plan",
+            "status": "complete",
+            "evidence": "results/toy_moe_expert_remap_plan/report.md turns expert-output matching into source tensor alias rules for same-shape checkpoint materialization.",
+        },
+        {
             "item": "Interactive explainer UI",
             "status": "complete",
             "evidence": "Dashboard includes a draggable precomputed merge-plane explorer with task-pair, method, objective, raw/normalized plane, alpha/beta, and lambda controls.",
@@ -743,6 +766,7 @@ def build_summary() -> dict[str, Any]:
         "toy_moe_merge": summarize_toy_moe_merge(),
         "toy_moe_routing_readiness": summarize_toy_moe_routing_readiness(),
         "toy_moe_method_selection": summarize_toy_moe_method_selection(),
+        "toy_moe_expert_remap_plan": summarize_toy_moe_expert_remap_plan(),
     }
     coverage = coverage_checklist()
     counts = {
@@ -774,6 +798,7 @@ def build_summary() -> dict[str, Any]:
             "PYTHONPATH=src python scripts/run_toy_moe_merge.py --output-dir results/toy_moe_merge --device cpu",
             "PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir results/toy_moe_merge --output-dir results/toy_moe_routing_readiness --topology-summary ''",
             "PYTHONPATH=src python scripts/select_moe_merge_method.py",
+            "PYTHONPATH=src python scripts/build_moe_expert_remap_plan.py",
             "PYTHONPATH=src python scripts/build_average_decision_report.py",
             "PYTHONPATH=src python scripts/build_moe_average_plan.py",
             "python scripts/write_same_shape_average_checkpoint.py --base BASE --source expert=EXPERT --dry-run --output-dir results/same_shape_writer_smoke",
@@ -819,6 +844,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     toy_moe = exp["toy_moe_merge"]
     toy_moe_readiness = exp["toy_moe_routing_readiness"]
     toy_moe_selection = exp["toy_moe_method_selection"]
+    toy_moe_remap = exp["toy_moe_expert_remap_plan"]
     coverage_counts = summary["coverage_counts"]
     lines = [
         "# Result Summary",
@@ -980,6 +1006,18 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| toy MoE method selection | all-weight decision | "
                 f"{toy_moe_selection['all_weight_decision']} |"
+            ),
+            (
+                "| toy MoE expert remap plan | remap status | "
+                f"{toy_moe_remap['remap_status']} |"
+            ),
+            (
+                "| toy MoE expert remap plan | source tensor alias rules | "
+                f"{toy_moe_remap['alias_rule_count']} |"
+            ),
+            (
+                "| toy MoE expert remap plan | min expert-output cosine | "
+                f"{fmt(toy_moe_remap['min_output_cosine'])} |"
             ),
             (
                 "| Average decision report | avoid uniform average decisions | "

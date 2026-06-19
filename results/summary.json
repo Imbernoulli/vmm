@@ -116,13 +116,18 @@
       "status": "complete"
     },
     {
+      "evidence": "results/toy_moe_expert_remap_plan/report.md turns expert-output matching into source tensor alias rules for same-shape checkpoint materialization.",
+      "item": "Toy MoE expert remap plan",
+      "status": "complete"
+    },
+    {
       "evidence": "Dashboard includes a draggable precomputed merge-plane explorer with task-pair, method, objective, raw/normalized plane, alpha/beta, and lambda controls.",
       "item": "Interactive explainer UI",
       "status": "complete"
     }
   ],
   "coverage_counts": {
-    "complete": 24,
+    "complete": 25,
     "missing": 0,
     "partial": 0
   },
@@ -2358,6 +2363,79 @@
         }
       }
     },
+    "toy_moe_expert_remap_plan": {
+      "alias_rule_count": 4,
+      "expert_remap": "results/toy_moe_expert_remap_plan/expert_remap.csv",
+      "manual_review_count": 0,
+      "mean_output_cosine": 0.9773149192333221,
+      "min_output_cosine": 0.9426236748695374,
+      "remap_rows": [
+        {
+          "alias_rule": "code::(^|.*\\.)experts\\.0\\.::\\1experts.1.",
+          "base_regex": "(^|.*\\.)experts\\.0\\.",
+          "matched_source_expert": 1,
+          "output_cosine": 0.9956730008125304,
+          "output_expert": 0,
+          "source": "code",
+          "source_replacement": "\\1experts.1.",
+          "status": "use_alias"
+        },
+        {
+          "alias_rule": "code::(^|.*\\.)experts\\.1\\.::\\1experts.3.",
+          "base_regex": "(^|.*\\.)experts\\.1\\.",
+          "matched_source_expert": 3,
+          "output_cosine": 0.9426236748695374,
+          "output_expert": 1,
+          "source": "code",
+          "source_replacement": "\\1experts.3.",
+          "status": "use_alias"
+        },
+        {
+          "alias_rule": "code::(^|.*\\.)experts\\.2\\.::\\1experts.0.",
+          "base_regex": "(^|.*\\.)experts\\.2\\.",
+          "matched_source_expert": 0,
+          "output_cosine": 0.9724326133728028,
+          "output_expert": 2,
+          "source": "code",
+          "source_replacement": "\\1experts.0.",
+          "status": "use_alias"
+        },
+        {
+          "alias_rule": "code::(^|.*\\.)experts\\.3\\.::\\1experts.2.",
+          "base_regex": "(^|.*\\.)experts\\.3\\.",
+          "matched_source_expert": 2,
+          "output_cosine": 0.998530387878418,
+          "output_expert": 3,
+          "source": "code",
+          "source_replacement": "\\1experts.2.",
+          "status": "use_alias"
+        }
+      ],
+      "remap_status": "ready",
+      "report": "results/toy_moe_expert_remap_plan/report.md",
+      "source_tensor_aliases": "results/toy_moe_expert_remap_plan/source_tensor_aliases.txt",
+      "summary": {
+        "alias_rule_count": 4,
+        "generated_at": "2026-06-19T04:50:47.316387+00:00",
+        "manual_review_count": 0,
+        "mean_output_cosine": 0.9773149192333221,
+        "min_cosine_threshold": 0.9,
+        "min_output_cosine": 0.9426236748695374,
+        "outputs": {
+          "expert_remap": "results/toy_moe_expert_remap_plan/expert_remap.csv",
+          "report": "results/toy_moe_expert_remap_plan/report.md",
+          "source_tensor_aliases": "results/toy_moe_expert_remap_plan/source_tensor_aliases.txt",
+          "summary": "results/toy_moe_expert_remap_plan/summary.json",
+          "writer_command": "results/toy_moe_expert_remap_plan/writer_command.txt"
+        },
+        "recommended_decision": "candidate_with_router_guard",
+        "recommended_method": "expert_matched_average",
+        "remap_status": "ready",
+        "same_shape_constraint": "Output expert indices and tensor names stay unchanged; aliases only remap which source expert tensor is read.",
+        "source_name": "code"
+      },
+      "writer_command": "results/toy_moe_expert_remap_plan/writer_command.txt"
+    },
     "toy_moe_merge": {
       "all_weight_average": {
         "avg_acc": 0.65375,
@@ -2557,7 +2635,7 @@
       }
     }
   },
-  "generated_at": "2026-06-19T04:45:34.428492+00:00",
+  "generated_at": "2026-06-19T04:53:32.502933+00:00",
   "overall_status": "complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -2576,6 +2654,7 @@
     "PYTHONPATH=src python scripts/run_toy_moe_merge.py --output-dir results/toy_moe_merge --device cpu",
     "PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir results/toy_moe_merge --output-dir results/toy_moe_routing_readiness --topology-summary ''",
     "PYTHONPATH=src python scripts/select_moe_merge_method.py",
+    "PYTHONPATH=src python scripts/build_moe_expert_remap_plan.py",
     "PYTHONPATH=src python scripts/build_average_decision_report.py",
     "PYTHONPATH=src python scripts/build_moe_average_plan.py",
     "python scripts/write_same_shape_average_checkpoint.py --base BASE --source expert=EXPERT --dry-run --output-dir results/same_shape_writer_smoke",

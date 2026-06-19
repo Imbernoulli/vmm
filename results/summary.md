@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T04:45:34.428492+00:00`
+Generated at: `2026-06-19T04:53:32.502933+00:00`
 
 ## Coverage
 
-Complete: `24`; partial: `0`; missing: `0`.
+Complete: `25`; partial: `0`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -31,6 +31,7 @@ Complete: `24`; partial: `0`; missing: `0`.
 | Toy MoE route-aware merge | complete | results/toy_moe_merge/report.md runs a small same-shape MoE averaging experiment showing expert-index mismatch and route-aware/expert-matched fixes. |
 | Toy MoE multi-method routing readiness | complete | results/toy_moe_routing_readiness/report.md applies the generic readiness gate to toy MoE methods and flags all-weight routing drift separately from expert-matched/route-aware variants. |
 | Toy MoE merge method selection | complete | results/toy_moe_method_selection/report.md combines method metrics and routing readiness to reject all-weight average and recommend expert-matched averaging with router guard. |
+| Toy MoE expert remap plan | complete | results/toy_moe_expert_remap_plan/report.md turns expert-output matching into source tensor alias rules for same-shape checkpoint materialization. |
 | Interactive explainer UI | complete | Dashboard includes a draggable precomputed merge-plane explorer with task-pair, method, objective, raw/normalized plane, alpha/beta, and lambda controls. |
 
 ## Key Metrics
@@ -71,6 +72,9 @@ Complete: `24`; partial: `0`; missing: `0`.
 | toy MoE routing readiness | all-weight calibrate-router flags | 1 |
 | toy MoE method selection | recommended method | expert_matched_average |
 | toy MoE method selection | all-weight decision | reject_routing_breakdown |
+| toy MoE expert remap plan | remap status | ready |
+| toy MoE expert remap plan | source tensor alias rules | 4 |
+| toy MoE expert remap plan | min expert-output cosine | 0.943 |
 | Average decision report | avoid uniform average decisions | 3 |
 | Average decision report | coefficient-search decisions | 2 |
 | MoE average plan | router plan rows | 0 |

@@ -67,6 +67,14 @@ class TensorRule:
     weights: dict[str, float]
 
 
+@dataclass(frozen=True)
+class TensorAliasRule:
+    source: str
+    pattern: re.Pattern[str]
+    raw_pattern: str
+    replacement: str
+
+
 def discover_safetensors(model_path: str | Path) -> WeightIndex:
     path = Path(model_path)
     if path.is_file() and path.name.endswith(".safetensors"):
@@ -206,6 +214,50 @@ def load_tensor_rule_files(paths: list[str] | None) -> list[str]:
     return raw_rules
 
 
+def parse_tensor_alias_rules(raw_items: list[str] | None, source_names: list[str]) -> list[TensorAliasRule]:
+    rules: list[TensorAliasRule] = []
+    for item in raw_items or []:
+        parts = item.split("::", 2)
+        if len(parts) != 3:
+            raise ValueError("Tensor alias rules must use SOURCE::BASE_REGEX::SOURCE_REPLACEMENT syntax")
+        source, pattern, replacement = parts
+        source = source.strip()
+        if source not in source_names:
+            raise ValueError(f"Alias rule references unknown source {source!r}; known sources: {source_names}")
+        rules.append(
+            TensorAliasRule(
+                source=source,
+                pattern=re.compile(pattern),
+                raw_pattern=pattern,
+                replacement=replacement,
+            )
+        )
+    return rules
+
+
+def load_tensor_alias_files(paths: list[str] | None) -> list[str]:
+    raw_rules: list[str] = []
+    for path in paths or []:
+        with Path(path).open("r", encoding="utf-8") as handle:
+            for line in handle:
+                stripped = line.strip()
+                if not stripped or stripped.startswith("#"):
+                    continue
+                raw_rules.append(stripped)
+    return raw_rules
+
+
+def resolve_source_tensor_name(
+    source_name: str,
+    base_tensor_name: str,
+    alias_rules: list[TensorAliasRule],
+) -> tuple[str, str]:
+    for rule in alias_rules:
+        if rule.source == source_name and rule.pattern.search(base_tensor_name):
+            return rule.pattern.sub(rule.replacement, base_tensor_name, count=1), f"tensor_alias:{rule.raw_pattern}"
+    return base_tensor_name, "same_name"
+
+
 def output_dtype(base_dtype: torch.dtype, requested: str) -> torch.dtype:
     if requested == "base":
         return base_dtype
@@ -245,35 +297,61 @@ def validate_compatible(
     base: WeightIndex,
     sources: dict[str, WeightIndex],
     strict_names: bool,
+    alias_rules: list[TensorAliasRule] | None = None,
 ) -> dict[str, Any]:
+    alias_rules = alias_rules or []
     base_names = set(base.tensor_info)
     errors: list[str] = []
     source_summaries: dict[str, Any] = {}
     for source_name, source_index in sources.items():
         source_names = set(source_index.tensor_info)
-        missing = sorted(base_names - source_names)
-        extra = sorted(source_names - base_names)
+        resolved_source_names = set()
+        missing = []
         shape_mismatches = []
-        for name in sorted(base_names & source_names):
-            if base.tensor_info[name].shape != source_index.tensor_info[name].shape:
+        dtype_mismatches = []
+        aliased_tensors = 0
+        for name in sorted(base_names):
+            source_tensor_name, alias_reason = resolve_source_tensor_name(source_name, name, alias_rules)
+            if alias_reason != "same_name":
+                aliased_tensors += 1
+            if source_tensor_name not in source_index.tensor_info:
+                missing.append({"base_tensor": name, "source_tensor": source_tensor_name})
+                continue
+            resolved_source_names.add(source_tensor_name)
+            if base.tensor_info[name].shape != source_index.tensor_info[source_tensor_name].shape:
                 shape_mismatches.append(
                     {
                         "tensor": name,
+                        "source_tensor": source_tensor_name,
                         "base_shape": base.tensor_info[name].shape,
-                        "source_shape": source_index.tensor_info[name].shape,
+                        "source_shape": source_index.tensor_info[source_tensor_name].shape,
                     }
                 )
+            if base.tensor_info[name].dtype != source_index.tensor_info[source_tensor_name].dtype:
+                dtype_mismatches.append(
+                    {
+                        "tensor": name,
+                        "source_tensor": source_tensor_name,
+                        "base_dtype": str(base.tensor_info[name].dtype),
+                        "source_dtype": str(source_index.tensor_info[source_tensor_name].dtype),
+                    }
+                )
+        extra = sorted(source_names - resolved_source_names)
         if strict_names and missing:
-            errors.append(f"{source_name}: missing {len(missing)} base tensors, first={missing[:3]}")
+            errors.append(f"{source_name}: missing {len(missing)} source tensors, first={missing[:3]}")
         if strict_names and extra:
             errors.append(f"{source_name}: has {len(extra)} extra tensors, first={extra[:3]}")
         if shape_mismatches:
             errors.append(f"{source_name}: {len(shape_mismatches)} shape mismatches, first={shape_mismatches[:3]}")
+        if dtype_mismatches:
+            errors.append(f"{source_name}: {len(dtype_mismatches)} dtype mismatches, first={dtype_mismatches[:3]}")
         source_summaries[source_name] = {
             "tensors": len(source_index.tensor_info),
             "missing_tensors": len(missing),
             "extra_tensors": len(extra),
             "shape_mismatches": len(shape_mismatches),
+            "dtype_mismatches": len(dtype_mismatches),
+            "aliased_tensors": aliased_tensors,
             "root": str(source_index.root),
         }
     if errors:
@@ -339,11 +417,18 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
     default_weights = parse_weight_map(args.source_weight, source_names)
     raw_tensor_rules = list(args.tensor_rule or []) + load_tensor_rule_files(args.tensor_rule_file)
     tensor_rules = parse_tensor_rules(raw_tensor_rules, source_names)
+    raw_tensor_alias_rules = list(args.source_tensor_alias or []) + load_tensor_alias_files(args.source_tensor_alias_file)
+    tensor_alias_rules = parse_tensor_alias_rules(raw_tensor_alias_rules, source_names)
     freeze_patterns = [re.compile(pattern) for pattern in args.freeze_regex]
 
     base = discover_safetensors(args.base)
     sources = {name: discover_safetensors(path) for name, path in source_specs}
-    source_summaries = validate_compatible(base, sources, strict_names=not args.allow_missing_source_tensors)
+    source_summaries = validate_compatible(
+        base,
+        sources,
+        strict_names=not args.allow_missing_source_tensors,
+        alias_rules=tensor_alias_rules,
+    )
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -378,7 +463,17 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
 
         base_values = load_tensors(base, names)
         needed_names = [name for name in names if torch.is_floating_point(base_values[name])]
-        source_values = {source_name: load_tensors(index, needed_names) for source_name, index in sources.items()}
+        source_name_maps = {
+            source_name: {
+                base_name: resolve_source_tensor_name(source_name, base_name, tensor_alias_rules)[0]
+                for base_name in needed_names
+            }
+            for source_name in sources
+        }
+        source_values = {
+            source_name: load_tensors(index, sorted(set(source_name_maps[source_name].values())))
+            for source_name, index in sources.items()
+        }
         output_tensors: dict[str, torch.Tensor] = {}
         shard_name = base_shard.name if base.has_index else SAFE_WEIGHTS_NAME
         if base.has_index and len(base.shard_to_tensors) > 1:
@@ -410,11 +505,12 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
             for source_name, weight in weights.items():
                 if abs(weight) <= 1e-12:
                     continue
-                source_tensor = source_values[source_name].get(name)
+                source_tensor_name = source_name_maps[source_name][name]
+                source_tensor = source_values[source_name].get(source_tensor_name)
                 if source_tensor is None:
                     if args.allow_missing_source_tensors:
                         continue
-                    raise KeyError(f"Missing tensor {name!r} in source {source_name!r}")
+                    raise KeyError(f"Missing tensor {source_tensor_name!r} for base tensor {name!r} in source {source_name!r}")
                 merged = merged + float(weight) * (source_tensor.to(torch.float32) - base_tensor.to(torch.float32))
             output_tensors[name] = merged.to(dtype=output_dtype(base_tensor.dtype, args.output_dtype))
 
@@ -433,6 +529,10 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
         "source_summaries": source_summaries,
         "default_weights": default_weights,
         "tensor_rules": [{"pattern": rule.raw_pattern, "weights": rule.weights} for rule in tensor_rules],
+        "tensor_alias_rules": [
+            {"source": rule.source, "pattern": rule.raw_pattern, "replacement": rule.replacement}
+            for rule in tensor_alias_rules
+        ],
         "freeze_regex": args.freeze_regex,
         "freeze_router": args.freeze_router,
         "output_dtype": args.output_dtype,
@@ -465,6 +565,18 @@ def parse_args() -> argparse.Namespace:
         action="append",
         default=None,
         help="Text file with one PATTERN::SOURCE=WEIGHT,SOURCE=WEIGHT rule per line. Blank lines and # comments are ignored.",
+    )
+    parser.add_argument(
+        "--source-tensor-alias",
+        action="append",
+        default=None,
+        help="Remap source tensor names before reading: SOURCE::BASE_REGEX::SOURCE_REPLACEMENT. Useful for expert-index matching.",
+    )
+    parser.add_argument(
+        "--source-tensor-alias-file",
+        action="append",
+        default=None,
+        help="Text file with one SOURCE::BASE_REGEX::SOURCE_REPLACEMENT alias rule per line.",
     )
     parser.add_argument("--freeze-regex", action="append", default=[], help="Freeze matching tensors to base weights.")
     parser.add_argument("--freeze-router", action="store_true", help="Freeze router/gate tensors, excluding gate_proj/shared_expert_gate.")
