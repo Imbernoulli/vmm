@@ -570,6 +570,10 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
     methods = read_csv("results/toy_moe_merge/method_metrics.csv")
     router_summary = read_csv("results/toy_moe_merge/router_summary.csv")
     expert_match = read_csv("results/toy_moe_merge/expert_match.csv")
+    router_weight_search = read_csv("results/toy_moe_merge/router_weight_search.csv")
+    selected_router_weight = router_weight_search[
+        router_weight_search["selected_by_guarded_calib_worst_loss"].astype(bool)
+    ]
     router_calibration_sweep = read_csv("results/toy_moe_merge/router_calibration_sweep.csv")
     selected_router_calibration = router_calibration_sweep[
         router_calibration_sweep["selected_by_guarded_calib_worst_loss"].astype(bool)
@@ -580,6 +584,7 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
         "all_weight_average": find_method(methods, "all_weight_average"),
         "expert_matched_average": find_method(methods, "expert_matched_average"),
         "matched_router_frozen_average": find_method(methods, "matched_router_frozen_average"),
+        "matched_router_weight_search_average": find_method(methods, "matched_router_weight_search_average"),
         "matched_router_calibrated_average": find_method(methods, "matched_router_calibrated_average"),
         "matched_router_sweep_selected_average": find_method(methods, "matched_router_sweep_selected_average"),
         "expert_weight_search_average": find_method(methods, "expert_weight_search_average"),
@@ -596,6 +601,11 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
         "matched_router_calibrated_minus_frozen_worst_acc": float(
             summary.get("matched_router_calibrated_minus_frozen_worst_acc", 0.0)
         ),
+        "router_weight_search_rows": int(len(router_weight_search)),
+        "router_weight_search_eligible_count": int(router_weight_search["eligible_by_route_guard"].sum()),
+        "router_weight_search_selected": clean_row(selected_router_weight.iloc[0])
+        if not selected_router_weight.empty
+        else None,
         "router_calibration_sweep_rows": int(len(router_calibration_sweep)),
         "router_calibration_sweep_eligible_count": int(router_calibration_sweep["eligible_by_route_guard"].sum()),
         "router_calibration_sweep_selected": clean_row(selected_router_calibration.iloc[0])
@@ -619,6 +629,7 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
         "route_weights": rel("results/toy_moe_merge/route_weights_by_expert.csv"),
         "expert_search_weights": rel("results/toy_moe_merge/expert_search_weights_by_expert.csv"),
         "expert_weight_search_trace": rel("results/toy_moe_merge/expert_weight_search_trace.csv"),
+        "router_weight_search": rel("results/toy_moe_merge/router_weight_search.csv"),
         "router_calibration_sweep": rel("results/toy_moe_merge/router_calibration_sweep.csv"),
         "figure": rel("results/toy_moe_merge/toy_moe_merge.png"),
     }
@@ -1214,6 +1225,19 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| toy MoE route-aware merge | matched + router-frozen worst accuracy | "
                 f"{fmt(toy_moe['matched_router_frozen_average']['worst_acc'])} |"
+            ),
+            (
+                "| toy MoE route-aware merge | guarded router-weight selected general/code | "
+                f"{fmt(toy_moe['router_weight_search_selected']['router_weight_general'], 2)} / "
+                f"{fmt(toy_moe['router_weight_search_selected']['router_weight_code'], 2)} |"
+            ),
+            (
+                "| toy MoE route-aware merge | guarded router-weight eligible / total | "
+                f"{toy_moe['router_weight_search_eligible_count']} / {toy_moe['router_weight_search_rows']} |"
+            ),
+            (
+                "| toy MoE route-aware merge | matched + router-weight-search worst accuracy | "
+                f"{fmt(toy_moe['matched_router_weight_search_average']['worst_acc'])} |"
             ),
             (
                 "| toy MoE route-aware merge | matched + router-calibrated worst accuracy | "

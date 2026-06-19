@@ -37,6 +37,7 @@
   "matched_router_frozen_minus_all_weight_worst_acc": 0.16749999999999998,
   "matched_router_frozen_worst_acc": 0.7875,
   "matched_router_sweep_selected_worst_acc": 0.8375,
+  "matched_router_weight_search_worst_acc": 0.8175,
   "n_experts": 4,
   "outputs": {
     "expert_load": "expert_load.csv",
@@ -49,7 +50,8 @@
     "route_overlap": "route_overlap.csv",
     "route_weights_by_expert": "route_weights_by_expert.csv",
     "router_calibration_sweep": "router_calibration_sweep.csv",
-    "router_summary": "router_summary.csv"
+    "router_summary": "router_summary.csv",
+    "router_weight_search": "router_weight_search.csv"
   },
   "route_aware_minus_all_weight_worst_acc": 0.17000000000000004,
   "route_aware_worst_acc": 0.79,
@@ -74,6 +76,25 @@
     "selected_kl_coef": 0.25,
     "selected_minus_fixed_kl_worst_acc": 0.0,
     "selected_test_worst_acc": 0.8375
+  },
+  "router_weight_search": {
+    "candidate_pair_count": 15,
+    "eligible_count": 15,
+    "grid": [
+      0.0,
+      0.25,
+      0.5,
+      0.75,
+      1.0
+    ],
+    "max_delta_sum": 1.0,
+    "min_top1_agreement": 0.75,
+    "min_topk_jaccard": 0.8,
+    "selected_calib_worst_loss": 0.6445709533691406,
+    "selected_minus_frozen_worst_acc": 0.030000000000000027,
+    "selected_test_worst_acc": 0.8175,
+    "selected_weight_code": 1.0,
+    "selected_weight_general": 0.0
   },
   "same_shape_constraint": "All methods keep the same TinyMoEClassifier architecture, expert count, router shape, and output classes.",
   "schema_version": 1,
