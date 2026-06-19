@@ -71,6 +71,11 @@
       "status": "partial"
     },
     {
+      "evidence": "results/vllm_downstream_eval_smoke/smoke_report.md validates the OpenAI-compatible HTTP request, answer parsing, scoring, model ranking, and artifact writing path using a local mock endpoint.",
+      "item": "vLLM downstream eval contract smoke",
+      "status": "complete"
+    },
+    {
       "evidence": "results/average_decision_report/report.md converts merge grids, conflict probes, and optional MoE routing probes into same-shape average decisions.",
       "item": "Probe-guided Average decision report",
       "status": "complete"
@@ -167,7 +172,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 32,
+    "complete": 33,
     "missing": 0,
     "partial": 1
   },
@@ -4300,9 +4305,58 @@
       },
       "summary_path": "results/vllm_downstream_eval/summary.json",
       "tasks": "gsm8k,mmlu,safety,humaneval_compile"
+    },
+    "vllm_downstream_eval_smoke": {
+      "metrics": "results/vllm_downstream_eval_smoke/metrics.csv",
+      "mock_bad_avg_primary_score": 0.0,
+      "mock_good_avg_primary_score": 1.0,
+      "mock_good_rank_1": true,
+      "model_summary": [
+        {
+          "avg_primary_score": 1.0,
+          "model": "mock-good",
+          "rank": 1,
+          "task_count": 4,
+          "worst_primary_score": 1.0
+        },
+        {
+          "avg_primary_score": 0.0,
+          "model": "mock-bad",
+          "rank": 2,
+          "task_count": 4,
+          "worst_primary_score": 0.0
+        }
+      ],
+      "model_summary_path": "results/vllm_downstream_eval_smoke/model_summary.csv",
+      "report": "results/vllm_downstream_eval_smoke/smoke_report.md",
+      "smoke_summary": "results/vllm_downstream_eval_smoke/smoke_summary.json",
+      "status": "passed",
+      "summary": {
+        "base_url": "MOCK_BASE_URL",
+        "checks": {
+          "mock_bad_avg_primary_score": 0.0,
+          "mock_good_avg_primary_score": 1.0,
+          "mock_good_rank_1": true,
+          "passed": true,
+          "status_complete": true,
+          "task_rows": 8
+        },
+        "command": "python scripts/run_vllm_downstream_eval.py --base-url MOCK_BASE_URL --models mock-good,mock-bad --tasks gsm8k,mmlu,safety,humaneval_compile --example-source builtin --max-examples 2 --output-dir results/vllm_downstream_eval_smoke --timeout 10",
+        "outputs": {
+          "eval_summary": "results/vllm_downstream_eval_smoke/summary.json",
+          "metrics": "results/vllm_downstream_eval_smoke/metrics.csv",
+          "model_summary": "results/vllm_downstream_eval_smoke/model_summary.csv",
+          "predictions": "results/vllm_downstream_eval_smoke/predictions.csv",
+          "report": "results/vllm_downstream_eval_smoke/report.md",
+          "smoke_summary": "results/vllm_downstream_eval_smoke/smoke_summary.json"
+        },
+        "schema_version": 1,
+        "status": "passed"
+      },
+      "task_rows": 8
     }
   },
-  "generated_at": "2026-06-19T12:55:03.894128+00:00",
+  "generated_at": "2026-06-19T13:02:20.536629+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -4325,6 +4379,7 @@
     "python scripts/run_vllm_downstream_eval.py --candidate-table results/qwen_target_model_registry/model_registry.csv --candidate-method-column model_id --candidate-model-id-template '{model_id}' --candidate-query \"priority == 'p0' and phase in ['dense_7b', 'moe_30b_a3b']\" --base-url http://HOST:PORT/v1 --tasks gsm8k,mmlu,safety,humaneval_compile",
     "python scripts/build_model_averaging_literature_review.py",
     "python scripts/smoke_moe_routing_probe_contract.py",
+    "python scripts/smoke_vllm_downstream_eval_contract.py --output-dir results/vllm_downstream_eval_smoke",
     "PYTHONPATH=src python scripts/build_average_decision_report.py",
     "python scripts/build_qwen_target_model_registry.py",
     "PYTHONPATH=src python scripts/build_moe_average_plan.py",

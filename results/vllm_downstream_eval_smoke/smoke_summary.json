@@ -1,0 +1,22 @@
+{
+  "base_url": "MOCK_BASE_URL",
+  "checks": {
+    "mock_bad_avg_primary_score": 0.0,
+    "mock_good_avg_primary_score": 1.0,
+    "mock_good_rank_1": true,
+    "passed": true,
+    "status_complete": true,
+    "task_rows": 8
+  },
+  "command": "python scripts/run_vllm_downstream_eval.py --base-url MOCK_BASE_URL --models mock-good,mock-bad --tasks gsm8k,mmlu,safety,humaneval_compile --example-source builtin --max-examples 2 --output-dir results/vllm_downstream_eval_smoke --timeout 10",
+  "outputs": {
+    "eval_summary": "results/vllm_downstream_eval_smoke/summary.json",
+    "metrics": "results/vllm_downstream_eval_smoke/metrics.csv",
+    "model_summary": "results/vllm_downstream_eval_smoke/model_summary.csv",
+    "predictions": "results/vllm_downstream_eval_smoke/predictions.csv",
+    "report": "results/vllm_downstream_eval_smoke/report.md",
+    "smoke_summary": "results/vllm_downstream_eval_smoke/smoke_summary.json"
+  },
+  "schema_version": 1,
+  "status": "passed"
+}

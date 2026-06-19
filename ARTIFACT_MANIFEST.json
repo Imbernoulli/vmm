@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 31593,
+      "bytes": 32117,
       "kind": "document",
       "path": "README.md",
-      "sha256": "3da7af0833ab8168f03b86efe031d0cf536828c4613ad54d8f3c28020b9afc1c"
+      "sha256": "734c9b43a1fbb56922ba84b2e831927207cbb88721279f5bea116fb1964f2b99"
     },
     {
       "bytes": 33211,
@@ -1207,16 +1207,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 185675,
+      "bytes": 188099,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "1f8cf7b4e2c1d6413c0d0216e3c09c8b198943fd247ac87f9cf25c485f5ae728"
+      "sha256": "ee1b9e78e45fe71758f7ea9937442700dc3dd78d0b3143177c8ea3c83eb68224"
     },
     {
-      "bytes": 16615,
+      "bytes": 16981,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "02a78d084809488738a2968af9ef64e79983089e54a4614fa5d95499980accc6"
+      "sha256": "8f71c1bcc5c63d9a36ad39cc9df0568d45b3b302f124698df2b67016dde75ca9"
     },
     {
       "bytes": 556,
@@ -1531,6 +1531,60 @@
       "sha256": "02ac1ba4e1f2f7d01a617ad07d4d6ca2d04c2ccd76fea1536f609bfaa07c4633"
     },
     {
+      "bytes": 116,
+      "kind": "data",
+      "path": "results/vllm_downstream_eval_smoke/eval_plan.csv",
+      "sha256": "2b2325facd37ed837a6238f4515bd87a81230408c2f12ef8f83f4321072054c1"
+    },
+    {
+      "bytes": 491,
+      "kind": "data",
+      "path": "results/vllm_downstream_eval_smoke/metrics.csv",
+      "sha256": "cc57db4a7f2b5da9e429ba727fcc40e98dfaa2d05aa221796671da28ff669d04"
+    },
+    {
+      "bytes": 106872,
+      "kind": "figure",
+      "path": "results/vllm_downstream_eval_smoke/metrics.png",
+      "sha256": "46cbe9205983079a25c3fb4d1e6454a9245ab6de364236668529af374e033b32"
+    },
+    {
+      "bytes": 103,
+      "kind": "data",
+      "path": "results/vllm_downstream_eval_smoke/model_summary.csv",
+      "sha256": "90626c152b19e31824a92f02cbd7890c38fa3226f0d52e6abe8655e1be535d90"
+    },
+    {
+      "bytes": 1460,
+      "kind": "data",
+      "path": "results/vllm_downstream_eval_smoke/predictions.csv",
+      "sha256": "de0e71f11419555cdc6b6991737f881dd72ddeb759b69e443234b7f315ba3a7f"
+    },
+    {
+      "bytes": 1078,
+      "kind": "document",
+      "path": "results/vllm_downstream_eval_smoke/report.md",
+      "sha256": "e2bb0948f1f4c8c41591c81990bff0223d24de4379b5d339511d52eb380061e9"
+    },
+    {
+      "bytes": 536,
+      "kind": "document",
+      "path": "results/vllm_downstream_eval_smoke/smoke_report.md",
+      "sha256": "a5d45a8def5cbe2d9a22d3532929f7ad9d4bc01089e2ff38b8e334276a368667"
+    },
+    {
+      "bytes": 979,
+      "kind": "data",
+      "path": "results/vllm_downstream_eval_smoke/smoke_summary.json",
+      "sha256": "db1edabea083687e5ff52a7f2b916da25b5f9a893fe9cedd4d1e19a06c48e97c"
+    },
+    {
+      "bytes": 4580,
+      "kind": "data",
+      "path": "results/vllm_downstream_eval_smoke/summary.json",
+      "sha256": "e3f83f9e36f373a41a9810826ce0c129e234573815910cda00628da986ce6360"
+    },
+    {
       "bytes": 27159,
       "kind": "code",
       "path": "scripts/analyze_moe_routing_readiness.py",
@@ -1597,10 +1651,10 @@
       "sha256": "a1d54b8d275c55bbdc12aa051e4cb6888ce0371ff7698b547c1d7aa17f79c8e4"
     },
     {
-      "bytes": 102200,
+      "bytes": 104322,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "1ffb37cdd31edf46455fa1c98aa5df16d3e1922c69a6bfa8cf3370d0fe85c0ac"
+      "sha256": "c85765ba3b8825962b2599535dd28dd189f87359e3ecc84616259467dd406960"
     },
     {
       "bytes": 17809,
@@ -1723,6 +1777,12 @@
       "sha256": "c25fae6a0dd0279fee3ea098a4a135b04ad60115f6917759b89f8d88ab928d32"
     },
     {
+      "bytes": 9737,
+      "kind": "code",
+      "path": "scripts/smoke_vllm_downstream_eval_contract.py",
+      "sha256": "5658ca550161fcdd509eaa1793288b0383f79a42e96f55a089df1fae03a2b184"
+    },
+    {
       "bytes": 30417,
       "kind": "code",
       "path": "scripts/write_same_shape_average_checkpoint.py",
@@ -1747,7 +1807,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T12:55:03.935208+00:00",
+  "generated_at": "2026-06-19T13:02:20.567863+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

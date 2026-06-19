@@ -952,6 +952,26 @@ def summarize_vllm_downstream_eval() -> dict[str, Any]:
     }
 
 
+def summarize_vllm_downstream_eval_smoke() -> dict[str, Any]:
+    summary = read_json("results/vllm_downstream_eval_smoke/smoke_summary.json")
+    metrics = read_csv("results/vllm_downstream_eval_smoke/metrics.csv")
+    model_summary = read_csv("results/vllm_downstream_eval_smoke/model_summary.csv")
+    checks = summary.get("checks", {})
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "task_rows": int(checks.get("task_rows", len(metrics))),
+        "mock_good_avg_primary_score": maybe_float(checks.get("mock_good_avg_primary_score")),
+        "mock_bad_avg_primary_score": maybe_float(checks.get("mock_bad_avg_primary_score")),
+        "mock_good_rank_1": bool(checks.get("mock_good_rank_1", False)),
+        "model_summary": [clean_row(row) for _, row in model_summary.iterrows()],
+        "report": rel("results/vllm_downstream_eval_smoke/smoke_report.md"),
+        "metrics": rel("results/vllm_downstream_eval_smoke/metrics.csv"),
+        "model_summary_path": rel("results/vllm_downstream_eval_smoke/model_summary.csv"),
+        "smoke_summary": rel("results/vllm_downstream_eval_smoke/smoke_summary.json"),
+    }
+
+
 def summarize_model_averaging_literature_review() -> dict[str, Any]:
     summary = read_json("results/model_averaging_literature_review/summary.json")
     methods = read_csv("results/model_averaging_literature_review/method_matrix.csv")
@@ -1096,6 +1116,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "scripts/run_vllm_downstream_eval.py can build a served-model eval plan from the Qwen target registry and evaluate those ids through an OpenAI-compatible vLLM endpoint on GSM8K, MMLU, safety, and HumanEval compile slices; current result is endpoint_unavailable until a vLLM server is reachable.",
         },
         {
+            "item": "vLLM downstream eval contract smoke",
+            "status": "complete",
+            "evidence": "results/vllm_downstream_eval_smoke/smoke_report.md validates the OpenAI-compatible HTTP request, answer parsing, scoring, model ranking, and artifact writing path using a local mock endpoint.",
+        },
+        {
             "item": "Probe-guided Average decision report",
             "status": "complete",
             "evidence": "results/average_decision_report/report.md converts merge grids, conflict probes, and optional MoE routing probes into same-shape average decisions.",
@@ -1226,6 +1251,7 @@ def build_summary() -> dict[str, Any]:
         "toy_moe_method_selection": summarize_toy_moe_method_selection(),
         "toy_moe_expert_remap_plan": summarize_toy_moe_expert_remap_plan(),
         "vllm_downstream_eval": summarize_vllm_downstream_eval(),
+        "vllm_downstream_eval_smoke": summarize_vllm_downstream_eval_smoke(),
     }
     coverage = coverage_checklist()
     counts = {
@@ -1267,6 +1293,7 @@ def build_summary() -> dict[str, Any]:
             ),
             "python scripts/build_model_averaging_literature_review.py",
             "python scripts/smoke_moe_routing_probe_contract.py",
+            "python scripts/smoke_vllm_downstream_eval_contract.py --output-dir results/vllm_downstream_eval_smoke",
             "PYTHONPATH=src python scripts/build_average_decision_report.py",
             "python scripts/build_qwen_target_model_registry.py",
             "PYTHONPATH=src python scripts/build_moe_average_plan.py",
@@ -1326,6 +1353,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     toy_moe_selection = exp["toy_moe_method_selection"]
     toy_moe_remap = exp["toy_moe_expert_remap_plan"]
     vllm_eval = exp["vllm_downstream_eval"]
+    vllm_eval_smoke = exp["vllm_downstream_eval_smoke"]
     coverage_counts = summary["coverage_counts"]
     lines = [
         "# Result Summary",
@@ -1801,6 +1829,14 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| vLLM hosted downstream eval | candidate table | "
                 f"{vllm_eval['candidate_table']} |"
+            ),
+            (
+                "| vLLM downstream eval smoke | status | "
+                f"{vllm_eval_smoke['status']} |"
+            ),
+            (
+                "| vLLM downstream eval smoke | good / bad avg primary | "
+                f"{fmt(vllm_eval_smoke['mock_good_avg_primary_score'])} / {fmt(vllm_eval_smoke['mock_bad_avg_primary_score'])} |"
             ),
             (
                 "| Average decision report | avoid uniform average decisions | "

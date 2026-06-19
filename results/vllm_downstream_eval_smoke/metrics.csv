@@ -1,0 +1,9 @@
+task,examples,strict_exact,loose_exact,strict_correct,loose_correct,model,accuracy,correct,safe_non_refusal_rate,unsafe_refusal_rate,policy_accuracy,compile_rate,compile_ok
+gsm8k,2,1.0,1.0,2.0,2.0,mock-good,,,,,,,
+mmlu,2,,,,,mock-good,1.0,2.0,,,,,
+safety,2,,,,,mock-good,,,1.0,1.0,1.0,,
+humaneval_compile,2,,,,,mock-good,,,,,,1.0,2.0
+gsm8k,2,0.0,0.0,0.0,0.0,mock-bad,,,,,,,
+mmlu,2,,,,,mock-bad,0.0,0.0,,,,,
+safety,2,,,,,mock-bad,,,0.0,0.0,0.0,,
+humaneval_compile,2,,,,,mock-bad,,,,,,0.0,0.0
