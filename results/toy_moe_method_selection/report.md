@@ -13,6 +13,7 @@
 | matched_router_sweep_selected_average | merge_candidate | 0.838 | 0.839 | 0 | 0.8275 | `candidate_with_router_guard` |
 | matched_router_calibrated_average | merge_candidate | 0.838 | 0.839 | 0 | 0.8275 | `candidate_with_router_guard` |
 | expert_weight_search_router_calibrated_average | merge_candidate | 0.828 | 0.831 | 0 | 0.8308 | `candidate_with_router_guard` |
+| matched_router_topk_calibrated_average | merge_candidate | 0.815 | 0.825 | 0 | 0.8633 | `candidate_with_router_guard` |
 | matched_router_weight_search_average | merge_candidate | 0.818 | 0.819 | 0 | 0.97 | `candidate_with_router_guard` |
 | expert_weight_search_average | merge_candidate | 0.802 | 0.806 | 0 | 1 | `candidate_with_router_guard` |
 | expert_matched_average | merge_candidate | 0.800 | 0.809 | 0 | 0.98 | `candidate_with_router_guard` |
@@ -23,8 +24,8 @@
 | expert_matched_ties_dare_average | merge_candidate | 0.777 | 0.796 | 0 | 1 | `candidate_with_router_guard` |
 | expert_matched_ties_average | merge_candidate | 0.775 | 0.792 | 0 | 1 | `candidate_with_router_guard` |
 | router_frozen_average | merge_candidate | 0.615 | 0.652 | 0 | 1 | `reject_underperforms_base` |
-| general_endpoint | endpoint_baseline | 0.780 | 0.796 | 0 | 0.965 | `baseline_only` |
 | code_endpoint_permuted | endpoint_baseline | 0.802 | 0.810 | 2 | 0.2042 | `baseline_only` |
+| general_endpoint | endpoint_baseline | 0.780 | 0.796 | 0 | 0.965 | `baseline_only` |
 | base | base_baseline | 0.775 | 0.786 | 0 | n/a | `baseline_only` |
 | all_weight_average | merge_candidate | 0.620 | 0.654 | 1 | 0.4883 | `reject_routing_breakdown` |
 

@@ -14,7 +14,7 @@
     "direct_matched_barrier_worst_loss": 0.0,
     "direct_unmatched_barrier_worst_loss": 0.03273778915405279,
     "matched_minus_unmatched_barrier_worst_loss": -0.03273778915405279,
-    "path_count": 6,
+    "path_count": 7,
     "steps": 21
   },
   "dispatch_robustness": {
@@ -42,12 +42,16 @@
     "matched_router_calibrated_hard_top2_worst_acc": 0.7,
     "matched_router_calibrated_soft_to_hard_top1_worst_acc_delta": -0.27,
     "matched_router_calibrated_soft_to_hard_top2_worst_acc_delta": -0.13750000000000007,
+    "matched_router_topk_calibrated_hard_top1_worst_acc": 0.57,
+    "matched_router_topk_calibrated_hard_top2_worst_acc": 0.7,
     "modes": [
       "soft_all",
       "hard_top1",
       "hard_top2"
     ],
-    "row_count": 51
+    "row_count": 54,
+    "topk_calibrated_minus_soft_calibrated_hard_top1_worst_acc": 0.0024999999999999467,
+    "topk_calibrated_minus_soft_calibrated_hard_top2_worst_acc": 0.0
   },
   "expert_match_mean_cosine": 0.9773149192333221,
   "expert_matched_dare_minus_matched_average_worst_acc": -0.020000000000000018,
@@ -101,6 +105,8 @@
   "matched_router_frozen_minus_all_weight_worst_acc": 0.16749999999999998,
   "matched_router_frozen_worst_acc": 0.7875,
   "matched_router_sweep_selected_worst_acc": 0.8375,
+  "matched_router_topk_calibrated_minus_matched_calibrated_worst_acc": -0.022500000000000075,
+  "matched_router_topk_calibrated_worst_acc": 0.815,
   "matched_router_weight_search_worst_acc": 0.8175,
   "n_experts": 4,
   "outputs": {

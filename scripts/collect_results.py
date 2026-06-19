@@ -602,6 +602,9 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
         "expert_matched_ties_dare_average": find_method(methods, "expert_matched_ties_dare_average"),
         "matched_router_weight_search_average": find_method(methods, "matched_router_weight_search_average"),
         "matched_router_calibrated_average": find_method(methods, "matched_router_calibrated_average"),
+        "matched_router_topk_calibrated_average": find_method(
+            methods, "matched_router_topk_calibrated_average"
+        ),
         "matched_router_sweep_selected_average": find_method(methods, "matched_router_sweep_selected_average"),
         "expert_weight_search_average": find_method(methods, "expert_weight_search_average"),
         "expert_weight_search_router_calibrated_average": find_method(
@@ -616,6 +619,9 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
         ),
         "matched_router_calibrated_minus_frozen_worst_acc": float(
             summary.get("matched_router_calibrated_minus_frozen_worst_acc", 0.0)
+        ),
+        "matched_router_topk_calibrated_minus_matched_calibrated_worst_acc": float(
+            summary.get("matched_router_topk_calibrated_minus_matched_calibrated_worst_acc", 0.0)
         ),
         "expert_matched_regmean_minus_matched_frozen_worst_acc": float(
             summary.get("expert_matched_regmean_minus_matched_frozen_worst_acc", 0.0)
@@ -1327,6 +1333,10 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(toy_moe['matched_router_calibrated_average']['worst_acc'])} |"
             ),
             (
+                "| toy MoE route-aware merge | matched + router-topk-calibrated worst accuracy | "
+                f"{fmt(toy_moe['matched_router_topk_calibrated_average']['worst_acc'])} |"
+            ),
+            (
                 "| toy MoE hard dispatch | matched + router-calibrated hard top-1 worst accuracy | "
                 f"{fmt(toy_moe['dispatch_robustness']['matched_router_calibrated_hard_top1_worst_acc'])} |"
             ),
@@ -1335,8 +1345,16 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(toy_moe['dispatch_robustness']['matched_router_calibrated_hard_top2_worst_acc'])} |"
             ),
             (
+                "| toy MoE hard dispatch | matched + router-topk-calibrated hard top-2 worst accuracy | "
+                f"{fmt(toy_moe['dispatch_robustness']['matched_router_topk_calibrated_hard_top2_worst_acc'])} |"
+            ),
+            (
                 "| toy MoE hard dispatch | soft to hard top-1 delta | "
                 f"{fmt(toy_moe['dispatch_robustness']['matched_router_calibrated_soft_to_hard_top1_worst_acc_delta'])} |"
+            ),
+            (
+                "| toy MoE hard dispatch | top-k vs soft-calibrated hard top-2 delta | "
+                f"{fmt(toy_moe['dispatch_robustness']['topk_calibrated_minus_soft_calibrated_hard_top2_worst_acc'])} |"
             ),
             (
                 "| toy MoE route-aware merge | guarded router-sweep selected KL | "
@@ -1373,6 +1391,10 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| toy MoE route-aware merge | matched router calibration gain over frozen | "
                 f"{fmt(toy_moe['matched_router_calibrated_minus_frozen_worst_acc'])} |"
+            ),
+            (
+                "| toy MoE route-aware merge | top-k router calibration delta vs soft calibration | "
+                f"{fmt(toy_moe['matched_router_topk_calibrated_minus_matched_calibrated_worst_acc'])} |"
             ),
             (
                 "| toy MoE route-aware merge | expert search router-calibrated delta vs matched-calibrated | "

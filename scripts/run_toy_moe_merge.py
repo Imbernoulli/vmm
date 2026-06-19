@@ -217,6 +217,52 @@ def calibrate_router_only_state(
     return cpu_state(model)
 
 
+def calibrate_router_dispatch_aware_state(
+    template: TinyMoEClassifier,
+    initial_state: dict[str, Tensor],
+    reference_router: TinyMoEClassifier,
+    loader: DataLoader,
+    *,
+    epochs: int,
+    lr: float,
+    dispatch_mode: str,
+    dispatch_loss_coef: float,
+    soft_loss_coef: float,
+    kl_coef: float,
+    aux_coef: float,
+    device: torch.device,
+    desc: str,
+) -> dict[str, Tensor]:
+    model = deepcopy(template)
+    model.load_state_dict(initial_state)
+    model.to(device)
+    reference_router.to(device)
+    reference_router.eval()
+    for parameter in model.parameters():
+        parameter.requires_grad = False
+    for parameter in model.router.parameters():
+        parameter.requires_grad = True
+    optimizer = torch.optim.AdamW(model.router.parameters(), lr=lr, weight_decay=0.0)
+    for _ in tqdm(range(epochs), desc=desc, leave=False):
+        model.train()
+        for x, y in loader:
+            x = x.to(device)
+            y = y.to(device)
+            optimizer.zero_grad(set_to_none=True)
+            soft_logits = model.forward_dispatch(x, "soft_all")
+            dispatch_logits = model.forward_dispatch(x, dispatch_mode)
+            router_probs = model.router_probs(x)
+            with torch.no_grad():
+                reference_probs = reference_router.router_probs(x)
+            router_kl = F.kl_div(torch.log(router_probs.clamp_min(1e-12)), reference_probs, reduction="batchmean")
+            loss = dispatch_loss_coef * F.cross_entropy(dispatch_logits, y)
+            loss = loss + soft_loss_coef * F.cross_entropy(soft_logits, y)
+            loss = loss + kl_coef * router_kl + aux_coef * load_balance_loss(model, x)
+            loss.backward()
+            optimizer.step()
+    return cpu_state(model)
+
+
 @torch.no_grad()
 def evaluate(
     model: TinyMoEClassifier,
@@ -1297,6 +1343,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
     expert_ties_dare = method_metrics[method_metrics["method"] == "expert_matched_ties_dare_average"].iloc[0]
     router_weight_search = method_metrics[method_metrics["method"] == "matched_router_weight_search_average"].iloc[0]
     calibrated = method_metrics[method_metrics["method"] == "matched_router_calibrated_average"].iloc[0]
+    topk_calibrated = method_metrics[method_metrics["method"] == "matched_router_topk_calibrated_average"].iloc[0]
     sweep_selected = method_metrics[method_metrics["method"] == "matched_router_sweep_selected_average"].iloc[0]
     expert_search = method_metrics[method_metrics["method"] == "expert_weight_search_average"].iloc[0]
     expert_search_calibrated = method_metrics[
@@ -1324,6 +1371,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
         f"- Expert-matched TIES+DARE average worst accuracy: `{expert_ties_dare['worst_acc']:.3f}`.",
         f"- Matched + router-weight-search average worst accuracy: `{router_weight_search['worst_acc']:.3f}`.",
         f"- Matched + router-calibrated average worst accuracy: `{calibrated['worst_acc']:.3f}`.",
+        f"- Matched + router-topk-calibrated average worst accuracy: `{topk_calibrated['worst_acc']:.3f}`.",
         f"- Matched + router-sweep-selected average worst accuracy: `{sweep_selected['worst_acc']:.3f}`.",
         f"- Expert-weight search average worst accuracy: `{expert_search['worst_acc']:.3f}`.",
         f"- Expert-weight search + router-calibrated worst accuracy: `{expert_search_calibrated['worst_acc']:.3f}`.",
@@ -1333,6 +1381,8 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
         f"- Direct matched source barrier: `{connectivity['direct_matched_barrier_worst_loss']:.4f}`.",
         f"- Matched + router-calibrated hard top-1 worst accuracy: `{dispatch['matched_router_calibrated_hard_top1_worst_acc']:.3f}`.",
         f"- Matched + router-calibrated hard top-2 worst accuracy: `{dispatch['matched_router_calibrated_hard_top2_worst_acc']:.3f}`.",
+        f"- Matched + router-topk-calibrated hard top-2 worst accuracy: `{dispatch['matched_router_topk_calibrated_hard_top2_worst_acc']:.3f}`.",
+        f"- Top-k router calibration delta vs soft router calibration under hard top-2: `{dispatch['topk_calibrated_minus_soft_calibrated_hard_top2_worst_acc']:.3f}`.",
         f"- Recovered expert matching mean cosine: `{summary['expert_match_mean_cosine']:.3f}`.",
         f"- Code source permutation: `{summary['code_source_permutation']}`.",
         "",
@@ -1358,6 +1408,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
             "- `expert_matched_ties_average` / `expert_matched_dare_average` / `expert_matched_ties_dare_average` 把 Dense sparse task-vector merging 迁移到 MoE expert 子网；router 不参与稀疏合并。",
             "- `matched_router_weight_search_average` 不做梯度训练，只对 router tensor 的 general/code task-vector 系数做 guarded search；这是 checkpoint-only 的 MoE router probe。",
             "- `matched_router_calibrated_average` 冻结 matched experts，只用小校准集更新 router，并用 base-router KL 约束防止 dispatch 漂移。",
+            "- `matched_router_topk_calibrated_average` 在 router-only calibration 里显式加入 hard top-2 dispatch loss，用来检验 soft-router 优化是否能迁移到真实 sparse dispatch。",
             "- `matched_router_sweep_selected_average` 对 router calibration 的 KL 系数做 sweep，先过 route-overlap guard，再按 calibration worst-loss 选择候选；它把 router overlap/load 和任务精度放到同一个 probe 里。",
             "- `expert_weight_search_average` 在同一个 expert 数和 tensor shape 内，对每个 expert 的 general/code delta 系数做校准集 min-max 坐标搜索；router 仍固定为 base。",
             "- `expert_weight_search_router_calibrated_average` 在 per-expert 系数搜索后，只开放 router 做 guarded calibration。",
@@ -1409,6 +1460,10 @@ def main() -> None:
     parser.add_argument("--router-calibration-kl-sweep", default="0,0.05,0.25,1.0,4.0")
     parser.add_argument("--router-calibration-sweep-min-topk-jaccard", type=float, default=0.80)
     parser.add_argument("--router-calibration-sweep-min-top1-agreement", type=float, default=0.75)
+    parser.add_argument("--dispatch-router-calibration-mode", choices=["hard_top2"], default="hard_top2")
+    parser.add_argument("--dispatch-router-calibration-loss-coef", type=float, default=1.0)
+    parser.add_argument("--dispatch-router-calibration-soft-loss-coef", type=float, default=0.5)
+    parser.add_argument("--dispatch-router-calibration-kl-coef", type=float, default=0.25)
     parser.add_argument("--router-weight-search-grid", default="0,0.25,0.5,0.75,1.0")
     parser.add_argument("--router-weight-search-max-delta-sum", type=float, default=1.0)
     parser.add_argument("--router-weight-search-min-topk-jaccard", type=float, default=0.80)
@@ -1608,6 +1663,21 @@ def main() -> None:
         device=device,
         desc="calibrate matched router",
     )
+    matched_router_topk_calibrated = calibrate_router_dispatch_aware_state(
+        template,
+        matched_router_frozen,
+        base,
+        loaders["mixed_calib"],
+        epochs=args.router_calibration_epochs,
+        lr=args.router_calibration_lr,
+        dispatch_mode=args.dispatch_router_calibration_mode,
+        dispatch_loss_coef=args.dispatch_router_calibration_loss_coef,
+        soft_loss_coef=args.dispatch_router_calibration_soft_loss_coef,
+        kl_coef=args.dispatch_router_calibration_kl_coef,
+        aux_coef=args.aux_coef,
+        device=device,
+        desc=f"calibrate matched router for {args.dispatch_router_calibration_mode}",
+    )
     router_calibration_kl_values = parse_grid(args.router_calibration_kl_sweep)
     matched_router_sweep_selected, router_calibration_sweep = sweep_router_calibration(
         template,
@@ -1679,6 +1749,11 @@ def main() -> None:
             "align code experts, freeze non-router tensors, and calibrate only the router",
         ),
         MethodState(
+            "matched_router_topk_calibrated_average",
+            matched_router_topk_calibrated,
+            "align code experts and calibrate the router with hard top-k dispatch loss",
+        ),
+        MethodState(
             "matched_router_sweep_selected_average",
             matched_router_sweep_selected,
             "align code experts, then select router calibration KL by calibration worst loss",
@@ -1730,6 +1805,13 @@ def main() -> None:
             general_state,
             matched_code_state,
             matched_router_calibrated,
+            "candidate_two_segment",
+        ),
+        ConnectivityPath(
+            "via_matched_router_topk_calibrated",
+            general_state,
+            matched_code_state,
+            matched_router_topk_calibrated,
             "candidate_two_segment",
         ),
         ConnectivityPath(
@@ -1824,6 +1906,7 @@ def main() -> None:
                 "worst_loss": float(best_dispatch["worst_loss"]),
             }
     dispatch_index = dispatch_mode_metrics.set_index(["method", "dispatch_mode"])
+    dispatch_index_keys = set(dispatch_index.index)
     all_avg = method_metrics[method_metrics["method"] == "all_weight_average"].iloc[0]
     expert_matched_row = method_metrics[method_metrics["method"] == "expert_matched_average"].iloc[0]
     matched_router_frozen_row = method_metrics[method_metrics["method"] == "matched_router_frozen_average"].iloc[0]
@@ -1837,6 +1920,9 @@ def main() -> None:
         method_metrics["method"] == "matched_router_weight_search_average"
     ].iloc[0]
     matched_router_calibrated_row = method_metrics[method_metrics["method"] == "matched_router_calibrated_average"].iloc[0]
+    matched_router_topk_calibrated_row = method_metrics[
+        method_metrics["method"] == "matched_router_topk_calibrated_average"
+    ].iloc[0]
     matched_router_sweep_selected_row = method_metrics[method_metrics["method"] == "matched_router_sweep_selected_average"].iloc[0]
     expert_search_row = method_metrics[method_metrics["method"] == "expert_weight_search_average"].iloc[0]
     expert_search_router_calibrated_row = method_metrics[
@@ -1874,12 +1960,22 @@ def main() -> None:
             "matched_router_calibrated_hard_top1_worst_acc": float(
                 dispatch_index.loc[("matched_router_calibrated_average", "hard_top1"), "worst_acc"]
             )
-            if ("matched_router_calibrated_average", "hard_top1") in dispatch_index.index
+            if ("matched_router_calibrated_average", "hard_top1") in dispatch_index_keys
             else None,
             "matched_router_calibrated_hard_top2_worst_acc": float(
                 dispatch_index.loc[("matched_router_calibrated_average", "hard_top2"), "worst_acc"]
             )
-            if ("matched_router_calibrated_average", "hard_top2") in dispatch_index.index
+            if ("matched_router_calibrated_average", "hard_top2") in dispatch_index_keys
+            else None,
+            "matched_router_topk_calibrated_hard_top1_worst_acc": float(
+                dispatch_index.loc[("matched_router_topk_calibrated_average", "hard_top1"), "worst_acc"]
+            )
+            if ("matched_router_topk_calibrated_average", "hard_top1") in dispatch_index_keys
+            else None,
+            "matched_router_topk_calibrated_hard_top2_worst_acc": float(
+                dispatch_index.loc[("matched_router_topk_calibrated_average", "hard_top2"), "worst_acc"]
+            )
+            if ("matched_router_topk_calibrated_average", "hard_top2") in dispatch_index_keys
             else None,
             "matched_router_calibrated_soft_to_hard_top1_worst_acc_delta": float(
                 dispatch_index.loc[("matched_router_calibrated_average", "hard_top1"), "worst_acc"]
@@ -1888,7 +1984,7 @@ def main() -> None:
             if {
                 ("matched_router_calibrated_average", "hard_top1"),
                 ("matched_router_calibrated_average", "soft_all"),
-            }.issubset(set(dispatch_index.index))
+            }.issubset(dispatch_index_keys)
             else None,
             "matched_router_calibrated_soft_to_hard_top2_worst_acc_delta": float(
                 dispatch_index.loc[("matched_router_calibrated_average", "hard_top2"), "worst_acc"]
@@ -1897,7 +1993,25 @@ def main() -> None:
             if {
                 ("matched_router_calibrated_average", "hard_top2"),
                 ("matched_router_calibrated_average", "soft_all"),
-            }.issubset(set(dispatch_index.index))
+            }.issubset(dispatch_index_keys)
+            else None,
+            "topk_calibrated_minus_soft_calibrated_hard_top1_worst_acc": float(
+                dispatch_index.loc[("matched_router_topk_calibrated_average", "hard_top1"), "worst_acc"]
+                - dispatch_index.loc[("matched_router_calibrated_average", "hard_top1"), "worst_acc"]
+            )
+            if {
+                ("matched_router_topk_calibrated_average", "hard_top1"),
+                ("matched_router_calibrated_average", "hard_top1"),
+            }.issubset(dispatch_index_keys)
+            else None,
+            "topk_calibrated_minus_soft_calibrated_hard_top2_worst_acc": float(
+                dispatch_index.loc[("matched_router_topk_calibrated_average", "hard_top2"), "worst_acc"]
+                - dispatch_index.loc[("matched_router_calibrated_average", "hard_top2"), "worst_acc"]
+            )
+            if {
+                ("matched_router_topk_calibrated_average", "hard_top2"),
+                ("matched_router_calibrated_average", "hard_top2"),
+            }.issubset(dispatch_index_keys)
             else None,
         },
         "all_weight_average_worst_acc": float(all_avg["worst_acc"]),
@@ -1911,6 +2025,10 @@ def main() -> None:
         ),
         "matched_router_calibrated_minus_frozen_worst_acc": float(
             matched_router_calibrated_row["worst_acc"] - matched_router_frozen_row["worst_acc"]
+        ),
+        "matched_router_topk_calibrated_worst_acc": float(matched_router_topk_calibrated_row["worst_acc"]),
+        "matched_router_topk_calibrated_minus_matched_calibrated_worst_acc": float(
+            matched_router_topk_calibrated_row["worst_acc"] - matched_router_calibrated_row["worst_acc"]
         ),
         "expert_matched_regmean_worst_acc": float(expert_matched_regmean_row["worst_acc"]),
         "expert_matched_regmean_minus_matched_frozen_worst_acc": float(

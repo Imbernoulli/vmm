@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-19T10:35:58.019167+00:00`
+Generated at: `2026-06-19T10:43:08.288491+00:00`
 
 ## Coverage
 
@@ -87,9 +87,12 @@ Complete: `31`; partial: `1`; missing: `0`.
 | toy MoE route-aware merge | guarded router-weight eligible / total | 15 / 15 |
 | toy MoE route-aware merge | matched + router-weight-search worst accuracy | 0.818 |
 | toy MoE route-aware merge | matched + router-calibrated worst accuracy | 0.838 |
+| toy MoE route-aware merge | matched + router-topk-calibrated worst accuracy | 0.815 |
 | toy MoE hard dispatch | matched + router-calibrated hard top-1 worst accuracy | 0.568 |
 | toy MoE hard dispatch | matched + router-calibrated hard top-2 worst accuracy | 0.700 |
+| toy MoE hard dispatch | matched + router-topk-calibrated hard top-2 worst accuracy | 0.700 |
 | toy MoE hard dispatch | soft to hard top-1 delta | -0.270 |
+| toy MoE hard dispatch | top-k vs soft-calibrated hard top-2 delta | 0.000 |
 | toy MoE route-aware merge | guarded router-sweep selected KL | 0.25 |
 | toy MoE route-aware merge | guarded router-sweep eligible / total | 3 / 5 |
 | toy MoE route-aware merge | router-sweep selected min top-k Jaccard | 0.828 |
@@ -99,6 +102,7 @@ Complete: `31`; partial: `1`; missing: `0`.
 | toy MoE route-aware merge | route-aware average worst accuracy | 0.790 |
 | toy MoE route-aware merge | matched + router-frozen minus all-weight worst accuracy | 0.167 |
 | toy MoE route-aware merge | matched router calibration gain over frozen | 0.050 |
+| toy MoE route-aware merge | top-k router calibration delta vs soft calibration | -0.023 |
 | toy MoE route-aware merge | expert search router-calibrated delta vs matched-calibrated | -0.010 |
 | toy MoE route-aware merge | route-aware minus all-weight worst accuracy | 0.170 |
 | toy MoE routing readiness | readiness status | high_risk_calibrate_router_before_merge |
