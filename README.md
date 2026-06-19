@@ -2,6 +2,17 @@
 
 这份仓库把 `proposal.md` 里的想法实现成了一个可运行的研究 artifact：从小型图像分类模型开始，逐步扩展到 ViT/pretrained ViT 和 Qwen 系列 LLM，观察模型合并点在任务向量空间中的位置、多个任务 basin 是否重叠，以及合并失败是否和 task-vector interference 有关。
 
+## 一屏版结论
+
+如果只想先看结果，可以先读这几条：
+
+1. **Digits 是最干净的正例。** 低 worst-loss 区域沿着两个任务都能接受的 valley 展开，base、linear average、best grid 都在这个 valley 附近；两个 expert endpoint 各自只擅长一个任务，所以在 worst-loss 图上反而是高处。
+2. **CIFAR-10 是 naive average 失败例。** linear average 没有落到最好的共同区域，validation grid best 明显更靠近低 worst-loss 区域；这说明 merge coefficient 不能总用 `0.5,0.5`。
+3. **Pretrained ViT transfer 是“model soup 直觉”更成立的例子。** shared low-loss basin 更宽，linear average 已经不错，grid best 还能略好一点。
+4. **Qwen instruct/coder multi-expert 是最值得警惕的例子。** `alpha=0.5,beta=0.5` 的 linear average 落在高 worst-NLL ridge 上；instruct endpoint / best 比平均好得多，说明 LLM expert merge 不能只做朴素平均。
+5. **不是所有有效方法都真的在这个二维 plane 上。** base、expert、linear average、task arithmetic、grid point 是 raw task-vector plane 里的点；RegMean、layer-wise task arithmetic 这类方法可能离开这个 plane。展示图里这类点用 `projected` 标记，表示它们只是投影到 `alpha,beta` 平面上看位置。
+6. **这些图看起来有些凸，不是理论假设。** 这只是当前 same-base task-vector slice 和 worst-loss/NLL 指标在选定范围内的形状。Li et al. 那类 loss-landscape 图用的是随机或 filter-normalized 方向，目标是展示局部训练地形；这里的方向是任务语义方向，回答的是 merge 几何，所以图形不必长得一样。
+
 核心对象是：
 
 ```text
@@ -10,6 +21,18 @@ tau_i = theta_i - theta_0
 ```
 
 这里的 `alpha,beta` 是两个任务向量的合并系数。我们在这个平面上评估每个点的 task A / task B loss、accuracy、worst-task 指标，并把常见合并方法投影回同一个空间。
+
+## 怎么读这些图
+
+图里的符号含义如下：
+
+- `alpha`：沿着 expert A task vector 走多远。`alpha=1,beta=0` 通常就是 expert A。
+- `beta`：沿着 expert B task vector 走多远。`alpha=0,beta=1` 通常就是 expert B。
+- 左侧 2D contour map：同一个 `alpha,beta` 网格的俯视图，颜色和等高线表示 `worst_loss` 或 `worst_nll`。颜色越低、等高线数值越低，表示两个任务中最差的那个也更好。
+- 右侧 3D surface：同一份网格数据的 3D 表达。`x/y` 还是 `alpha/beta`，`z` 是 loss 或 NLL。它不是另一个平面，也不是额外的数据。
+- 图上的实心点：base、两个 expert、linear average、best grid 等具体 checkpoint 或 merge 点，它们严格位于 raw task-vector plane。
+- 图上的空心 `projected` 点：方法本身不在这个 raw plane 上，但可以把它投影回 `alpha,beta` 平面看相对位置。Digits 图里的 RegMean 就是这种情况。
+- 2D 和 3D 是同一数据的两种读法：2D 更适合看点的位置和等 loss 线，3D 更适合直观看 basin、ridge、valley 的形状。
 
 ## 先回答：为什么这里说 2D，而不是早期论文那种 3D 图？
 
@@ -23,16 +46,17 @@ y 轴 = 方向 2 的系数
 z 轴 = loss
 ```
 
-也就是说，3D surface 展示的是“二维参数平面上的标量函数”。本项目里的 merge landscape 也是同一类对象，只是二维平面的两个方向不是随机扰动方向，而是有语义的任务向量 `tau_A` 和 `tau_B`。之前 README 主要放的是 2D heatmap/contour，因为它更方便比较方法点、读取具体网格值、叠加 basin 和 dashboard 交互；但从数据结构上，它完全可以渲染成 3D surface。
+也就是说，3D surface 展示的是“二维参数平面上的标量函数”。本项目里的 merge landscape 也是同一类对象，只是二维平面的两个方向不是随机扰动方向，而是有语义的任务向量 `tau_A` 和 `tau_B`。README 里的展示图现在同时给出 2D contour 和 3D surface：前者负责精确读点和等高线，后者负责看几何形状。
 
 所以更准确的说法是：
 
 - 研究空间是二维任务向量平面 `alpha,beta`；
 - 可视化形式可以是 2D heatmap/contour，也可以是 3D surface；
 - 3D surface 的 z 轴通常是 `worst_loss` 或 `worst_nll`；
-- 2D 图更适合精确比较和交互，3D 图更接近经典 loss-landscape 论文的视觉风格。
+- 2D 图更适合精确比较和交互，3D 图更接近经典 loss-landscape 论文的视觉风格；
+- 如果要复现 Li et al. 的 [Visualizing the Loss Landscape of Neural Nets](https://arxiv.org/abs/1712.09913) 那类更“崎岖/非凸”的视觉效果，应当另外取随机或 filter-normalized directions；这会回答“某个模型附近 loss landscape 长什么样”，而不是“两个 task vector 的 merge 几何长什么样”。
 
-下面已经补上了几张 3D surface 图。
+下面这些展示图左侧是 2D contour map，右侧是同一数据的 3D surface。
 
 ![Digits 3D worst-loss surface](results/figures_3d/digits_worst_loss_surface.png)
 
@@ -49,7 +73,7 @@ z 轴 = loss
 主要结论：
 
 1. 合并是否成功，确实可以用“是否落在多个任务共同可接受的 basin 交集附近”来解释。
-2. 小模型上，线性平均、task arithmetic、RegMean、TIES/DARE/Fisher 等方法可以被放到同一个任务向量平面中比较。
+2. 小模型上，线性平均、task arithmetic、TIES/DARE/Fisher 等 on-plane 方法可以直接放到同一个任务向量平面中比较；RegMean、layer-wise task arithmetic 等 off-plane 方法需要标成投影点或单独报告。
 3. 单类 expert surrogate 是一个负结果：十个 digit expert 的多数 pair 很容易 merge，global conflict 指标对 drop 的预测很弱，说明 interference 不能只看全局统计。
 4. 独立随机初始化会制造表面上的 interpolation barrier；简单 hidden-unit alignment 后，loss barrier 从 `0.064` 降到 `0.006`。
 5. CIFAR-10 和 CIFAR100/ViT 证明这个方法不是只适用于 toy MLP。
@@ -113,7 +137,7 @@ interference atlas：
 
 ![Digits interference heatmap](results/digits_merge/figures/interference_heatmap.png)
 
-解释：digits 是这个项目最接近“hero figure”的部分。它显示 base、两个 expert、naive average、task arithmetic、TIES/DARE/Fisher/RegMean 等点在同一任务向量平面中的位置。好的 merge 点通常靠近两个任务都能接受的区域，而不是只靠近某一个 expert。
+解释：digits 是这个项目最接近“hero figure”的部分。展示图里 base、两个 expert、linear average 和 best grid 是 raw task-vector plane 里的点；RegMean 用空心 `projected` 标记，因为它的 `plane_residual` 较大。好的 on-plane merge 点通常靠近两个任务都能接受的区域，而不是只靠近某一个 expert。RegMean 表现更好，但它主要是 off-plane 改进，不能简单解释成“在这个二维平面上移动到了更好位置”。
 
 ## 2. One-Class Expert Surrogate：一个 expert 只学一个类
 
