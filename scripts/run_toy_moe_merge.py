@@ -122,12 +122,21 @@ def concat_datasets(left: TensorDataset, right: TensorDataset) -> TensorDataset:
     return TensorDataset(torch.cat([lx, rx], dim=0), torch.cat([ly, ry], dim=0))
 
 
-def prepare_data(seed: int, n_train_per_category: int, n_test_per_category: int, batch_size: int) -> dict[str, Any]:
+def prepare_data(
+    seed: int,
+    n_train_per_category: int,
+    n_select_per_category: int,
+    n_test_per_category: int,
+    batch_size: int,
+) -> dict[str, Any]:
     general_train = make_category_data("general", n_train_per_category, seed + 1)
     code_train = make_category_data("code", n_train_per_category, seed + 2)
-    general_test = make_category_data("general", n_test_per_category, seed + 3)
-    code_test = make_category_data("code", n_test_per_category, seed + 4)
+    general_select = make_category_data("general", n_select_per_category, seed + 3)
+    code_select = make_category_data("code", n_select_per_category, seed + 4)
+    general_test = make_category_data("general", n_test_per_category, seed + 5)
+    code_test = make_category_data("code", n_test_per_category, seed + 6)
     mixed_train = concat_datasets(general_train, code_train)
+    mixed_select = concat_datasets(general_select, code_select)
     mixed_test = concat_datasets(general_test, code_test)
 
     def loader(dataset: TensorDataset, shuffle: bool) -> DataLoader:
@@ -140,6 +149,9 @@ def prepare_data(seed: int, n_train_per_category: int, n_test_per_category: int,
         "general_calib": loader(general_train, False),
         "code_calib": loader(code_train, False),
         "mixed_calib": loader(mixed_train, False),
+        "general_select": loader(general_select, False),
+        "code_select": loader(code_select, False),
+        "mixed_select": loader(mixed_select, False),
         "general_test": loader(general_test, False),
         "code_test": loader(code_test, False),
         "mixed_test": loader(mixed_test, False),
@@ -776,6 +788,14 @@ def route_aware_state(
     return out
 
 
+def state_with_router_seed(state: dict[str, Tensor], router_seed: dict[str, Tensor]) -> dict[str, Tensor]:
+    out = {name: value.clone() for name, value in state.items()}
+    for name in out:
+        if name.startswith("router."):
+            out[name] = router_seed[name].clone()
+    return out
+
+
 def parse_grid(raw: str) -> list[float]:
     values = sorted({float(item.strip()) for item in raw.split(",") if item.strip()})
     if not values:
@@ -1189,11 +1209,12 @@ def evaluate_state_by_category(
     device: torch.device,
     *,
     split_prefix: str,
+    dispatch_mode: str = "soft_all",
 ) -> dict[str, float]:
     model = deepcopy(template)
     model.load_state_dict(state)
-    general = evaluate(model, loaders[f"general_{split_prefix}"], device)
-    code = evaluate(model, loaders[f"code_{split_prefix}"], device)
+    general = evaluate(model, loaders[f"general_{split_prefix}"], device, dispatch_mode=dispatch_mode)
+    code = evaluate(model, loaders[f"code_{split_prefix}"], device, dispatch_mode=dispatch_mode)
     return {
         f"{split_prefix}_general_loss": general["loss"],
         f"{split_prefix}_code_loss": code["loss"],
@@ -1880,6 +1901,148 @@ def router_capacity_metrics(
     return pd.DataFrame(rows)
 
 
+def evaluate_sparse_capacity_candidate(
+    template: TinyMoEClassifier,
+    state: dict[str, Tensor],
+    loaders: dict[str, DataLoader],
+    device: torch.device,
+    *,
+    method: str,
+    dispatch_mode: str,
+    capacity_factor: float,
+) -> dict[str, Any]:
+    model = deepcopy(template)
+    model.load_state_dict(state)
+    row: dict[str, Any] = {"method": method, "dispatch_mode": dispatch_mode}
+    for split in ("calib", "select", "test"):
+        general = evaluate(model, loaders[f"general_{split}"], device, dispatch_mode=dispatch_mode)
+        code = evaluate(model, loaders[f"code_{split}"], device, dispatch_mode=dispatch_mode)
+        prefix = f"{split}_{dispatch_mode}"
+        row.update(
+            {
+                f"{prefix}_general_loss": general["loss"],
+                f"{prefix}_code_loss": code["loss"],
+                f"{prefix}_avg_loss": 0.5 * (general["loss"] + code["loss"]),
+                f"{prefix}_worst_loss": max(general["loss"], code["loss"]),
+                f"{prefix}_general_acc": general["acc"],
+                f"{prefix}_code_acc": code["acc"],
+                f"{prefix}_avg_acc": 0.5 * (general["acc"] + code["acc"]),
+                f"{prefix}_worst_acc": min(general["acc"], code["acc"]),
+            }
+        )
+        router_rows: list[dict[str, Any]] = []
+        expert_rows: list[dict[str, Any]] = []
+        for category in ("general", "code"):
+            stats = router_stats(model, loaders[f"{category}_{split}"], device, method=method, category=category)
+            router_rows.append(stats["summary_row"])
+            expert_rows.extend(stats["expert_rows"])
+        capacity_rows = router_capacity_metrics(
+            pd.DataFrame(router_rows),
+            pd.DataFrame(expert_rows),
+            capacity_factor=capacity_factor,
+        )
+        max_topk_overflow = float(capacity_rows["topk_overflow_fraction"].max())
+        row.update(
+            {
+                f"{split}_max_topk_overflow_fraction": max_topk_overflow,
+                f"{split}_max_top1_overflow_fraction": float(capacity_rows["top1_overflow_fraction"].max()),
+                f"{split}_max_topk_capacity_ratio": float(capacity_rows["max_topk_capacity_ratio"].max()),
+                f"{split}_capacity_aware_score": float(row[f"{prefix}_worst_acc"] - max_topk_overflow),
+            }
+        )
+    return row
+
+
+def sweep_unified_moe_capacity_loss(
+    template: TinyMoEClassifier,
+    initial_states: dict[str, dict[str, Tensor]],
+    reference_router: TinyMoEClassifier,
+    teacher_loaders: list[tuple[str, TinyMoEClassifier, DataLoader, float]],
+    loaders: dict[str, DataLoader],
+    *,
+    capacity_loss_coefs: list[float],
+    epochs: int,
+    lr: float,
+    dispatch_mode: str,
+    soft_loss_coef: float,
+    dispatch_loss_coef: float,
+    route_kd_coef: float,
+    output_kd_coef: float,
+    top1_loss_coef: float,
+    base_kl_coef: float,
+    load_balance_coef: float,
+    capacity_factor: float,
+    temperature: float,
+    device: torch.device,
+) -> tuple[dict[str, Tensor], pd.DataFrame, pd.DataFrame]:
+    rows: list[dict[str, Any]] = []
+    trace_frames: list[pd.DataFrame] = []
+    states: dict[str, dict[str, Tensor]] = {}
+    for router_seed, initial_state in initial_states.items():
+        for capacity_loss_coef in capacity_loss_coefs:
+            coef_key = f"{capacity_loss_coef:g}"
+            state_key = f"{router_seed}__capacity_{coef_key}"
+            state, trace = calibrate_unified_moe_router_state(
+                template,
+                initial_state,
+                reference_router,
+                teacher_loaders,
+                epochs=epochs,
+                lr=lr,
+                dispatch_mode=dispatch_mode,
+                soft_loss_coef=soft_loss_coef,
+                dispatch_loss_coef=dispatch_loss_coef,
+                route_kd_coef=route_kd_coef,
+                output_kd_coef=output_kd_coef,
+                top1_loss_coef=top1_loss_coef,
+                base_kl_coef=base_kl_coef,
+                load_balance_coef=load_balance_coef,
+                capacity_loss_coef=capacity_loss_coef,
+                capacity_factor=capacity_factor,
+                temperature=temperature,
+                device=device,
+                desc=f"unified {router_seed} capacity={capacity_loss_coef:g}",
+            )
+            states[state_key] = state
+            trace = trace.copy()
+            trace.insert(0, "router_seed", router_seed)
+            trace.insert(1, "sweep_capacity_loss_coef", float(capacity_loss_coef))
+            trace_frames.append(trace)
+            row = evaluate_sparse_capacity_candidate(
+                template,
+                state,
+                loaders,
+                device,
+                method=f"unified_moe_{router_seed}_capacity_{coef_key}",
+                dispatch_mode=dispatch_mode,
+                capacity_factor=capacity_factor,
+            )
+            row.update(
+                {
+                    "router_seed": router_seed,
+                    "state_key": state_key,
+                    "capacity_loss_coef": float(capacity_loss_coef),
+                    "capacity_factor": float(capacity_factor),
+                    "selection_metric": "select_hard_top2_worst_acc_minus_max_topk_overflow_fraction",
+                }
+            )
+            rows.append(row)
+    sweep = pd.DataFrame(rows)
+    score_column = "select_capacity_aware_score"
+    worst_column = f"select_{dispatch_mode}_worst_acc"
+    selected = sweep.sort_values(
+        [score_column, worst_column, "select_max_topk_overflow_fraction", "capacity_loss_coef", "router_seed"],
+        ascending=[False, False, True, True, True],
+    ).iloc[0]
+    selected_key = str(selected["state_key"])
+    sweep["selected_by_select_capacity_aware_score"] = sweep["capacity_loss_coef"].map(
+        lambda _value: False
+    )
+    sweep.loc[sweep["state_key"] == selected_key, "selected_by_select_capacity_aware_score"] = True
+    trace_df = pd.concat(trace_frames, ignore_index=True) if trace_frames else pd.DataFrame()
+    return states[selected_key], trace_df, sweep.sort_values(["router_seed", "capacity_loss_coef"])
+
+
 def plot_results(method_metrics: pd.DataFrame, router_summary: pd.DataFrame, out: Path) -> None:
     fig, axes = plt.subplots(1, 2, figsize=(12.5, 4.5), constrained_layout=True)
     order = method_metrics.sort_values("worst_acc", ascending=False)["method"].tolist()
@@ -1953,6 +2116,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
     connectivity = summary["connectivity"]
     dispatch = summary["dispatch_robustness"]
     capacity = summary["router_capacity"]
+    unified_summary = summary["unified_moe"]
     lines = [
         "# Toy MoE Route-Aware Merge",
         "",
@@ -1982,6 +2146,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
         f"- Expert output-projection average worst accuracy: `{expert_output_projection['worst_acc']:.3f}`.",
         f"- Expert output-projection + router-calibrated worst accuracy: `{expert_output_projection_calibrated['worst_acc']:.3f}`.",
         f"- Unified expert/router objective worst accuracy: `{unified_moe['worst_acc']:.3f}`.",
+        f"- Unified router/capacity sweep selected router seed `{unified_summary['selected_router_seed']}` and capacity loss `{unified_summary['selected_capacity_loss_coef']:.3f}` with held-out selection capacity-aware score `{unified_summary['selected_select_capacity_aware_score']:.3f}`.",
         f"- Route-aware expert average worst accuracy: `{route_aware['worst_acc']:.3f}`.",
         f"- Lowest MoE connectivity barrier: `{connectivity['best_path']}` = `{connectivity['best_barrier_worst_loss']:.4f}` worst-loss barrier.",
         f"- Direct unmatched source barrier: `{connectivity['direct_unmatched_barrier_worst_loss']:.4f}`.",
@@ -2029,7 +2194,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
             "- `expert_weight_search_router_calibrated_average` 在 per-expert 系数搜索后，只开放 router 做 guarded calibration。",
             "- `expert_output_projection_average` 不用标签分数搜索，而是用 route-conditioned expert output residual 解每个 expert 的 source-delta 权重；它检验 output-space projection 是否能解释 expert merging。",
             "- `expert_output_projection_router_calibrated_average` 在 output-space expert 权重后只校准 router，用来区分 expert 输出拟合和 router dispatch 校准的贡献。",
-            "- `unified_moe_average` 先用 per-expert source weight search 处理 expert 语义和重要性，再只更新 router；目标同时包含 soft/hard task loss、source route KD、source output KD、base-router KL、load-balance 和 differentiable capacity-overflow surrogate，用来检验这些 probe 能否合成一个统一方法。",
+            "- `unified_moe_average` 先用 per-expert source weight search 处理 expert 语义和重要性，再只更新 router；目标同时包含 soft/hard task loss、source route KD、source output KD、base-router KL、load-balance 和 differentiable capacity-overflow surrogate。router seed 和 capacity loss 系数都不是手工固定，而是在独立 selection split 上按 hard top-2 worst accuracy 减 max overflow 自动选择。",
             "- `route_aware_expert_average` 冻结 base router，并按 base router 在 general/code prompt 上的 route mass 给每个 expert 设置 source delta 权重；这对应 route-weight recipes 的 toy 版本。",
             "- 这个实验不是 Qwen3 结果，但它把 MoE merging 的特质从报告落成了可跑的 probe：expert index、router overlap、expert load 和 category route mass 都会影响 average 是否安全。",
             "",
@@ -2057,6 +2222,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
             "- `router_kd_trace.csv`",
             "- `router_route_kd_trace.csv`",
             "- `unified_moe_trace.csv`",
+            "- `unified_moe_capacity_sweep.csv`",
             "- `router_calibration_sweep.csv`",
             "- `toy_moe_merge.png`",
             "- `summary.json`",
@@ -2072,6 +2238,7 @@ def main() -> None:
     parser.add_argument("--hidden", type=int, default=16)
     parser.add_argument("--experts", type=int, default=4)
     parser.add_argument("--train-per-category", type=int, default=500)
+    parser.add_argument("--selection-per-category", type=int, default=400)
     parser.add_argument("--test-per-category", type=int, default=400)
     parser.add_argument("--batch-size", type=int, default=256)
     parser.add_argument("--base-epochs", type=int, default=12)
@@ -2109,6 +2276,7 @@ def main() -> None:
     parser.add_argument("--unified-router-base-kl-coef", type=float, default=0.25)
     parser.add_argument("--unified-router-load-balance-coef", type=float, default=0.10)
     parser.add_argument("--unified-router-capacity-loss-coef", type=float, default=0.05)
+    parser.add_argument("--unified-router-capacity-loss-sweep", default="0,0.025,0.05,0.075,0.1,0.25")
     parser.add_argument("--router-weight-search-grid", default="0,0.25,0.5,0.75,1.0")
     parser.add_argument("--router-weight-search-max-delta-sum", type=float, default=1.0)
     parser.add_argument("--router-weight-search-min-topk-jaccard", type=float, default=0.80)
@@ -2144,7 +2312,13 @@ def main() -> None:
     set_seed(args.seed)
     device = torch.device(args.device)
     dispatch_eval_modes = parse_dispatch_modes(args.dispatch_eval_modes)
-    loaders = prepare_data(args.seed, args.train_per_category, args.test_per_category, args.batch_size)
+    loaders = prepare_data(
+        args.seed,
+        args.train_per_category,
+        args.selection_per_category,
+        args.test_per_category,
+        args.batch_size,
+    )
     template = TinyMoEClassifier(hidden=args.hidden, n_experts=args.experts)
 
     base = deepcopy(template)
@@ -2423,14 +2597,27 @@ def main() -> None:
         device=device,
         desc="calibrate output-projected expert router",
     )
-    unified_moe_average, unified_moe_trace = calibrate_unified_moe_router_state(
+    unified_capacity_loss_values = (
+        parse_grid(args.unified_router_capacity_loss_sweep)
+        if args.unified_router_capacity_loss_sweep.strip()
+        else [float(args.unified_router_capacity_loss_coef)]
+    )
+    unified_router_initial_states = {
+        "base_router": expert_search,
+        "expert_search_calibrated_router": expert_search_router_calibrated,
+        "router_kd_seed": state_with_router_seed(expert_search, matched_router_kd),
+        "route_kd_seed": state_with_router_seed(expert_search, matched_router_route_kd),
+    }
+    unified_moe_average, unified_moe_trace, unified_moe_capacity_sweep = sweep_unified_moe_capacity_loss(
         template,
-        expert_search,
+        unified_router_initial_states,
         base,
         [
             ("general_source", general_model, loaders["general_calib"], 0.5),
             ("matched_code_source", matched_code, loaders["code_calib"], 0.5),
         ],
+        loaders,
+        capacity_loss_coefs=unified_capacity_loss_values,
         epochs=args.unified_router_epochs,
         lr=args.unified_router_lr,
         dispatch_mode=args.unified_router_dispatch_mode,
@@ -2441,12 +2628,14 @@ def main() -> None:
         top1_loss_coef=args.unified_router_top1_loss_coef,
         base_kl_coef=args.unified_router_base_kl_coef,
         load_balance_coef=args.unified_router_load_balance_coef,
-        capacity_loss_coef=args.unified_router_capacity_loss_coef,
         capacity_factor=args.capacity_factor,
         temperature=args.unified_router_temperature,
         device=device,
-        desc="unified expert/router objective",
     )
+    selected_unified_capacity_row = unified_moe_capacity_sweep[
+        unified_moe_capacity_sweep["selected_by_select_capacity_aware_score"].astype(bool)
+    ].iloc[0]
+    selected_unified_capacity_loss_coef = float(selected_unified_capacity_row["capacity_loss_coef"])
 
     methods = [
         MethodState("base", base_state, "mixed-task base before fine-tuning"),
@@ -2534,6 +2723,21 @@ def main() -> None:
             "expert_output_projection_router_calibrated_average",
             expert_output_projection_router_calibrated,
             "solve per-expert output-space source delta weights, then calibrate only the router",
+        ),
+        MethodState(
+            "unified_router_kd_seed_average",
+            unified_router_initial_states["router_kd_seed"],
+            "use searched expert weights with a Router-KD router seed before unified objective tuning",
+        ),
+        MethodState(
+            "unified_route_kd_seed_average",
+            unified_router_initial_states["route_kd_seed"],
+            "use searched expert weights with a route-KD router seed before unified objective tuning",
+        ),
+        MethodState(
+            "unified_calibrated_seed_average",
+            unified_router_initial_states["expert_search_calibrated_router"],
+            "use searched expert weights with a soft-calibrated router seed before unified objective tuning",
         ),
         MethodState(
             "unified_moe_average",
@@ -2701,6 +2905,7 @@ def main() -> None:
     router_kd_trace.to_csv(args.output_dir / "router_kd_trace.csv", index=False)
     router_route_kd_trace.to_csv(args.output_dir / "router_route_kd_trace.csv", index=False)
     unified_moe_trace.to_csv(args.output_dir / "unified_moe_trace.csv", index=False)
+    unified_moe_capacity_sweep.to_csv(args.output_dir / "unified_moe_capacity_sweep.csv", index=False)
     router_calibration_sweep.to_csv(args.output_dir / "router_calibration_sweep.csv", index=False)
     plot_results(method_metrics, router_summary, args.output_dir / "toy_moe_merge.png")
     plot_connectivity_paths(connectivity_path_metrics, args.output_dir / "connectivity_paths.png")
@@ -2760,6 +2965,9 @@ def main() -> None:
     summary = {
         "schema_version": 1,
         "seed": args.seed,
+        "train_per_category": args.train_per_category,
+        "selection_per_category": args.selection_per_category,
+        "test_per_category": args.test_per_category,
         "n_experts": args.experts,
         "code_source_permutation": permutation,
         "expert_match_mean_cosine": float(expert_match["output_cosine"].mean()),
@@ -3162,7 +3370,28 @@ def main() -> None:
             "top1_loss_coef": args.unified_router_top1_loss_coef,
             "base_kl_coef": args.unified_router_base_kl_coef,
             "load_balance_coef": args.unified_router_load_balance_coef,
-            "capacity_loss_coef": args.unified_router_capacity_loss_coef,
+            "router_seed_sweep": list(unified_router_initial_states),
+            "selected_router_seed": str(selected_unified_capacity_row["router_seed"]),
+            "capacity_loss_sweep": unified_capacity_loss_values,
+            "capacity_loss_coef": selected_unified_capacity_loss_coef,
+            "selected_capacity_loss_coef": selected_unified_capacity_loss_coef,
+            "selection_metric": "select_hard_top2_worst_acc_minus_max_topk_overflow_fraction",
+            "capacity_sweep_rows": int(len(unified_moe_capacity_sweep)),
+            "selected_calib_capacity_aware_score": float(selected_unified_capacity_row["calib_capacity_aware_score"]),
+            "selected_select_capacity_aware_score": float(selected_unified_capacity_row["select_capacity_aware_score"]),
+            "selected_test_capacity_aware_score": float(selected_unified_capacity_row["test_capacity_aware_score"]),
+            "selected_calib_hard_top2_worst_acc": float(selected_unified_capacity_row["calib_hard_top2_worst_acc"]),
+            "selected_select_hard_top2_worst_acc": float(selected_unified_capacity_row["select_hard_top2_worst_acc"]),
+            "selected_test_hard_top2_worst_acc": float(selected_unified_capacity_row["test_hard_top2_worst_acc"]),
+            "selected_calib_max_topk_overflow_fraction": float(
+                selected_unified_capacity_row["calib_max_topk_overflow_fraction"]
+            ),
+            "selected_select_max_topk_overflow_fraction": float(
+                selected_unified_capacity_row["select_max_topk_overflow_fraction"]
+            ),
+            "selected_test_max_topk_overflow_fraction": float(
+                selected_unified_capacity_row["test_max_topk_overflow_fraction"]
+            ),
             "capacity_factor": args.capacity_factor,
             "rows": int(len(unified_moe_trace)),
             "final_mean_total_loss": float(
@@ -3226,6 +3455,7 @@ def main() -> None:
             "router_kd_trace": "router_kd_trace.csv",
             "router_route_kd_trace": "router_route_kd_trace.csv",
             "unified_moe_trace": "unified_moe_trace.csv",
+            "unified_moe_capacity_sweep": "unified_moe_capacity_sweep.csv",
             "router_calibration_sweep": "router_calibration_sweep.csv",
             "figure": "toy_moe_merge.png",
             "connectivity_path_metrics": "connectivity_path_metrics.csv",

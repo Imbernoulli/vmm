@@ -6,39 +6,40 @@
 
 ## 关键结果
 
-- Best method by worst accuracy: `matched_router_calibrated_average` = `0.838`.
-- All-weight average worst accuracy: `0.620`.
-- Expert-matched average worst accuracy: `0.800`.
-- Matched + router-frozen average worst accuracy: `0.787`.
-- Expert-matched RegMean average worst accuracy: `0.792`.
-- Expert-matched TIES average worst accuracy: `0.775`.
-- Expert-matched DARE average worst accuracy: `0.780`.
-- Expert-matched TIES+DARE average worst accuracy: `0.777`.
-- Matched + router-weight-search average worst accuracy: `0.818`.
-- Matched + Hessian-router average worst accuracy: `0.807`.
-- Matched + Router-KD average worst accuracy: `0.802`.
-- Matched + route-KD average worst accuracy: `0.815`.
-- Matched + router-calibrated average worst accuracy: `0.838`.
-- Matched + router-topk-calibrated average worst accuracy: `0.815`.
-- Matched + router-sweep-selected average worst accuracy: `0.838`.
-- Expert-weight search average worst accuracy: `0.802`.
-- Expert-weight search + router-calibrated worst accuracy: `0.828`.
-- Expert output-projection average worst accuracy: `0.807`.
-- Expert output-projection + router-calibrated worst accuracy: `0.825`.
-- Unified expert/router objective worst accuracy: `0.828`.
-- Route-aware expert average worst accuracy: `0.790`.
+- Best method by worst accuracy: `expert_output_projection_router_calibrated_average` = `0.807`.
+- All-weight average worst accuracy: `0.545`.
+- Expert-matched average worst accuracy: `0.750`.
+- Matched + router-frozen average worst accuracy: `0.743`.
+- Expert-matched RegMean average worst accuracy: `0.750`.
+- Expert-matched TIES average worst accuracy: `0.710`.
+- Expert-matched DARE average worst accuracy: `0.733`.
+- Expert-matched TIES+DARE average worst accuracy: `0.713`.
+- Matched + router-weight-search average worst accuracy: `0.750`.
+- Matched + Hessian-router average worst accuracy: `0.750`.
+- Matched + Router-KD average worst accuracy: `0.745`.
+- Matched + route-KD average worst accuracy: `0.762`.
+- Matched + router-calibrated average worst accuracy: `0.797`.
+- Matched + router-topk-calibrated average worst accuracy: `0.755`.
+- Matched + router-sweep-selected average worst accuracy: `0.797`.
+- Expert-weight search average worst accuracy: `0.755`.
+- Expert-weight search + router-calibrated worst accuracy: `0.802`.
+- Expert output-projection average worst accuracy: `0.757`.
+- Expert output-projection + router-calibrated worst accuracy: `0.807`.
+- Unified expert/router objective worst accuracy: `0.785`.
+- Unified router/capacity sweep selected router seed `router_kd_seed` and capacity loss `0.000` with held-out selection capacity-aware score `0.665`.
+- Route-aware expert average worst accuracy: `0.750`.
 - Lowest MoE connectivity barrier: `direct_matched_general_to_code` = `0.0000` worst-loss barrier.
-- Direct unmatched source barrier: `0.0327`.
+- Direct unmatched source barrier: `0.0341`.
 - Direct matched source barrier: `0.0000`.
-- Matched + router-calibrated hard top-1 worst accuracy: `0.568`.
-- Matched + router-calibrated hard top-2 worst accuracy: `0.700`.
-- Matched + Hessian-router hard top-2 worst accuracy: `0.675`.
-- Matched + Router-KD hard top-2 worst accuracy: `0.685`.
-- Matched + route-KD hard top-2 worst accuracy: `0.730`.
-- Route-KD hard top-2 delta vs router-calibrated: `0.030`.
-- Matched + router-topk-calibrated hard top-2 worst accuracy: `0.700`.
-- Capacity factor `1.25` max top-k overflow fraction: `0.115`.
-- Top-k router calibration delta vs soft router calibration under hard top-2: `0.000`.
+- Matched + router-calibrated hard top-1 worst accuracy: `0.608`.
+- Matched + router-calibrated hard top-2 worst accuracy: `0.665`.
+- Matched + Hessian-router hard top-2 worst accuracy: `0.650`.
+- Matched + Router-KD hard top-2 worst accuracy: `0.660`.
+- Matched + route-KD hard top-2 worst accuracy: `0.685`.
+- Route-KD hard top-2 delta vs router-calibrated: `0.020`.
+- Matched + router-topk-calibrated hard top-2 worst accuracy: `0.657`.
+- Capacity factor `1.25` max top-k overflow fraction: `0.106`.
+- Top-k router calibration delta vs soft router calibration under hard top-2: `-0.008`.
 - Recovered expert matching mean cosine: `0.977`.
 - Code source permutation: `[2, 0, 3, 1]`.
 
@@ -46,30 +47,33 @@
 
 | method | general acc | code acc | worst acc | avg loss |
 | --- | ---: | ---: | ---: | ---: |
-| matched_router_sweep_selected_average | 0.838 | 0.840 | 0.838 | 0.600 |
-| matched_router_calibrated_average | 0.838 | 0.840 | 0.838 | 0.600 |
-| unified_moe_average | 0.828 | 0.838 | 0.828 | 0.605 |
-| expert_weight_search_router_calibrated_average | 0.828 | 0.835 | 0.828 | 0.600 |
-| expert_output_projection_router_calibrated_average | 0.825 | 0.845 | 0.825 | 0.601 |
-| matched_router_weight_search_average | 0.820 | 0.818 | 0.818 | 0.616 |
-| matched_router_topk_calibrated_average | 0.835 | 0.815 | 0.815 | 0.605 |
-| matched_router_route_kd_average | 0.828 | 0.815 | 0.815 | 0.607 |
-| matched_router_hessian_average | 0.818 | 0.807 | 0.807 | 0.616 |
-| expert_output_projection_average | 0.807 | 0.818 | 0.807 | 0.619 |
-| expert_weight_search_average | 0.810 | 0.802 | 0.802 | 0.618 |
-| matched_router_kd_average | 0.820 | 0.802 | 0.802 | 0.617 |
-| code_endpoint_permuted | 0.818 | 0.802 | 0.802 | 0.618 |
-| expert_matched_average | 0.818 | 0.800 | 0.800 | 0.616 |
-| expert_matched_regmean_average | 0.823 | 0.792 | 0.792 | 0.617 |
-| route_aware_expert_average | 0.807 | 0.790 | 0.790 | 0.620 |
-| matched_router_frozen_average | 0.815 | 0.787 | 0.787 | 0.619 |
-| expert_matched_dare_average | 0.812 | 0.780 | 0.780 | 0.619 |
-| general_endpoint | 0.812 | 0.780 | 0.780 | 0.615 |
-| expert_matched_ties_dare_average | 0.815 | 0.777 | 0.777 | 0.616 |
-| base | 0.797 | 0.775 | 0.775 | 0.628 |
-| expert_matched_ties_average | 0.810 | 0.775 | 0.775 | 0.618 |
-| all_weight_average | 0.688 | 0.620 | 0.620 | 0.663 |
-| router_frozen_average | 0.690 | 0.615 | 0.615 | 0.666 |
+| expert_output_projection_router_calibrated_average | 0.863 | 0.807 | 0.807 | 0.603 |
+| expert_weight_search_router_calibrated_average | 0.858 | 0.802 | 0.802 | 0.602 |
+| unified_calibrated_seed_average | 0.858 | 0.802 | 0.802 | 0.602 |
+| matched_router_sweep_selected_average | 0.860 | 0.797 | 0.797 | 0.603 |
+| matched_router_calibrated_average | 0.860 | 0.797 | 0.797 | 0.603 |
+| unified_moe_average | 0.860 | 0.785 | 0.785 | 0.607 |
+| unified_route_kd_seed_average | 0.855 | 0.777 | 0.777 | 0.609 |
+| matched_router_route_kd_average | 0.848 | 0.762 | 0.762 | 0.610 |
+| unified_router_kd_seed_average | 0.840 | 0.760 | 0.760 | 0.621 |
+| expert_output_projection_average | 0.833 | 0.757 | 0.757 | 0.623 |
+| code_endpoint_permuted | 0.850 | 0.757 | 0.757 | 0.620 |
+| matched_router_topk_calibrated_average | 0.830 | 0.755 | 0.755 | 0.609 |
+| expert_weight_search_average | 0.835 | 0.755 | 0.755 | 0.622 |
+| expert_matched_average | 0.833 | 0.750 | 0.750 | 0.621 |
+| expert_matched_regmean_average | 0.820 | 0.750 | 0.750 | 0.620 |
+| matched_router_weight_search_average | 0.835 | 0.750 | 0.750 | 0.621 |
+| matched_router_hessian_average | 0.828 | 0.750 | 0.750 | 0.621 |
+| route_aware_expert_average | 0.830 | 0.750 | 0.750 | 0.623 |
+| matched_router_kd_average | 0.828 | 0.745 | 0.745 | 0.623 |
+| matched_router_frozen_average | 0.828 | 0.743 | 0.743 | 0.624 |
+| base | 0.823 | 0.733 | 0.733 | 0.631 |
+| expert_matched_dare_average | 0.833 | 0.733 | 0.733 | 0.624 |
+| general_endpoint | 0.823 | 0.723 | 0.723 | 0.623 |
+| expert_matched_ties_dare_average | 0.835 | 0.713 | 0.713 | 0.622 |
+| expert_matched_ties_average | 0.828 | 0.710 | 0.710 | 0.624 |
+| router_frozen_average | 0.708 | 0.555 | 0.555 | 0.677 |
+| all_weight_average | 0.703 | 0.545 | 0.545 | 0.674 |
 
 ## Interpretation
 
@@ -89,7 +93,7 @@
 - `expert_weight_search_router_calibrated_average` 在 per-expert 系数搜索后，只开放 router 做 guarded calibration。
 - `expert_output_projection_average` 不用标签分数搜索，而是用 route-conditioned expert output residual 解每个 expert 的 source-delta 权重；它检验 output-space projection 是否能解释 expert merging。
 - `expert_output_projection_router_calibrated_average` 在 output-space expert 权重后只校准 router，用来区分 expert 输出拟合和 router dispatch 校准的贡献。
-- `unified_moe_average` 先用 per-expert source weight search 处理 expert 语义和重要性，再只更新 router；目标同时包含 soft/hard task loss、source route KD、source output KD、base-router KL、load-balance 和 differentiable capacity-overflow surrogate，用来检验这些 probe 能否合成一个统一方法。
+- `unified_moe_average` 先用 per-expert source weight search 处理 expert 语义和重要性，再只更新 router；目标同时包含 soft/hard task loss、source route KD、source output KD、base-router KL、load-balance 和 differentiable capacity-overflow surrogate。router seed 和 capacity loss 系数都不是手工固定，而是在独立 selection split 上按 hard top-2 worst accuracy 减 max overflow 自动选择。
 - `route_aware_expert_average` 冻结 base router，并按 base router 在 general/code prompt 上的 route mass 给每个 expert 设置 source delta 权重；这对应 route-weight recipes 的 toy 版本。
 - 这个实验不是 Qwen3 结果，但它把 MoE merging 的特质从报告落成了可跑的 probe：expert index、router overlap、expert load 和 category route mass 都会影响 average 是否安全。
 
@@ -117,6 +121,7 @@
 - `router_kd_trace.csv`
 - `router_route_kd_trace.csv`
 - `unified_moe_trace.csv`
+- `unified_moe_capacity_sweep.csv`
 - `router_calibration_sweep.csv`
 - `toy_moe_merge.png`
 - `summary.json`

@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-19T12:09:27.262022+00:00`
+Generated at: `2026-06-19T12:27:00.339066+00:00`
 
 ## Coverage
 
@@ -71,76 +71,81 @@ Complete: `31`; partial: `1`; missing: `0`.
 | Qwen multi-expert | best average-NLL method | instruct_expert (3.009) |
 | Qwen multi-expert | linear-average avg / worst NLL | 5.591 / 9.553 |
 | Qwen multi-expert | instruct/coder weighted conflict | 0.386 |
-| toy MoE route-aware merge | all-weight average worst accuracy | 0.620 |
-| toy MoE route-aware merge | expert-matched average worst accuracy | 0.800 |
+| toy MoE route-aware merge | all-weight average worst accuracy | 0.545 |
+| toy MoE route-aware merge | expert-matched average worst accuracy | 0.750 |
 | toy MoE connectivity | best path / barrier | direct_matched_general_to_code / 0.000 |
-| toy MoE connectivity | direct unmatched barrier | 0.033 |
+| toy MoE connectivity | direct unmatched barrier | 0.034 |
 | toy MoE connectivity | direct matched barrier | 0.000 |
-| toy MoE route-aware merge | matched + router-frozen worst accuracy | 0.787 |
-| toy MoE route-aware merge | expert-matched RegMean worst accuracy | 0.792 |
-| toy MoE route-aware merge | expert-matched RegMean delta vs frozen | 0.005 |
-| toy MoE route-aware merge | expert-matched TIES worst accuracy | 0.775 |
-| toy MoE route-aware merge | expert-matched DARE worst accuracy | 0.780 |
-| toy MoE route-aware merge | expert-matched TIES+DARE worst accuracy | 0.777 |
-| toy MoE route-aware merge | best sparse expert delta vs matched average | -0.020 |
+| toy MoE route-aware merge | matched + router-frozen worst accuracy | 0.743 |
+| toy MoE route-aware merge | expert-matched RegMean worst accuracy | 0.750 |
+| toy MoE route-aware merge | expert-matched RegMean delta vs frozen | 0.007 |
+| toy MoE route-aware merge | expert-matched TIES worst accuracy | 0.710 |
+| toy MoE route-aware merge | expert-matched DARE worst accuracy | 0.733 |
+| toy MoE route-aware merge | expert-matched TIES+DARE worst accuracy | 0.713 |
+| toy MoE route-aware merge | best sparse expert delta vs matched average | -0.017 |
 | toy MoE route-aware merge | guarded router-weight selected general/code | 0.00 / 1.00 |
 | toy MoE route-aware merge | guarded router-weight eligible / total | 15 / 15 |
-| toy MoE route-aware merge | matched + router-weight-search worst accuracy | 0.818 |
-| toy MoE route-aware merge | matched + Hessian-router average worst accuracy | 0.807 |
-| toy MoE route-aware merge | matched + Router-KD average worst accuracy | 0.802 |
-| toy MoE route-aware merge | matched + route-KD average worst accuracy | 0.815 |
-| toy MoE route-aware merge | matched + router-calibrated worst accuracy | 0.838 |
-| toy MoE route-aware merge | matched + router-topk-calibrated worst accuracy | 0.815 |
-| toy MoE hard dispatch | matched + router-calibrated hard top-1 worst accuracy | 0.568 |
-| toy MoE hard dispatch | matched + router-calibrated hard top-2 worst accuracy | 0.700 |
-| toy MoE hard dispatch | matched + router-topk-calibrated hard top-2 worst accuracy | 0.700 |
-| toy MoE hard dispatch | matched + Hessian-router hard top-2 worst accuracy | 0.675 |
-| toy MoE hard dispatch | matched + Router-KD hard top-2 worst accuracy | 0.685 |
-| toy MoE hard dispatch | matched + route-KD hard top-2 worst accuracy | 0.730 |
-| toy MoE hard dispatch | route-KD hard top-2 delta vs router-calibrated | 0.030 |
-| toy MoE hard dispatch | route-KD hard top-2 delta vs output-KD | 0.045 |
-| toy MoE unified objective | hard top-2 worst accuracy | 0.735 |
+| toy MoE route-aware merge | matched + router-weight-search worst accuracy | 0.750 |
+| toy MoE route-aware merge | matched + Hessian-router average worst accuracy | 0.750 |
+| toy MoE route-aware merge | matched + Router-KD average worst accuracy | 0.745 |
+| toy MoE route-aware merge | matched + route-KD average worst accuracy | 0.762 |
+| toy MoE route-aware merge | matched + router-calibrated worst accuracy | 0.797 |
+| toy MoE route-aware merge | matched + router-topk-calibrated worst accuracy | 0.755 |
+| toy MoE hard dispatch | matched + router-calibrated hard top-1 worst accuracy | 0.608 |
+| toy MoE hard dispatch | matched + router-calibrated hard top-2 worst accuracy | 0.665 |
+| toy MoE hard dispatch | matched + router-topk-calibrated hard top-2 worst accuracy | 0.657 |
+| toy MoE hard dispatch | matched + Hessian-router hard top-2 worst accuracy | 0.650 |
+| toy MoE hard dispatch | matched + Router-KD hard top-2 worst accuracy | 0.660 |
+| toy MoE hard dispatch | matched + route-KD hard top-2 worst accuracy | 0.685 |
+| toy MoE hard dispatch | route-KD hard top-2 delta vs router-calibrated | 0.020 |
+| toy MoE hard dispatch | route-KD hard top-2 delta vs output-KD | 0.025 |
+| toy MoE unified objective | hard top-2 worst accuracy | 0.690 |
 | toy MoE unified objective | hard top-2 delta vs route-KD | 0.005 |
-| toy MoE capacity | max top-k overflow fraction | 0.115 |
+| toy MoE unified objective | selected capacity loss coef | 0.000 |
+| toy MoE unified objective | selected router seed | router_kd_seed |
+| toy MoE unified objective | capacity-sweep candidates | 24 |
+| toy MoE unified objective | capacity-sweep select score | 0.665 |
+| toy MoE unified objective | capacity-sweep test score | 0.612 |
+| toy MoE capacity | max top-k overflow fraction | 0.106 |
 | toy MoE capacity | worst overflow method/category | all_weight_average / code |
-| toy MoE capacity | route-KD max top-k overflow fraction | 0.072 |
-| toy MoE capacity | route-KD minus calibrated overflow | 0.012 |
-| toy MoE unified objective | max top-k overflow fraction | 0.075 |
-| toy MoE hard dispatch | soft to hard top-1 delta | -0.270 |
-| toy MoE hard dispatch | top-k vs soft-calibrated hard top-2 delta | 0.000 |
+| toy MoE capacity | route-KD max top-k overflow fraction | 0.079 |
+| toy MoE capacity | route-KD minus calibrated overflow | 0.025 |
+| toy MoE unified objective | max top-k overflow fraction | 0.077 |
+| toy MoE hard dispatch | soft to hard top-1 delta | -0.190 |
+| toy MoE hard dispatch | top-k vs soft-calibrated hard top-2 delta | -0.008 |
 | toy MoE route-aware merge | guarded router-sweep selected KL | 0.25 |
 | toy MoE route-aware merge | guarded router-sweep eligible / total | 3 / 5 |
-| toy MoE route-aware merge | router-sweep selected min top-k Jaccard | 0.828 |
-| toy MoE route-aware merge | matched + router-sweep-selected worst accuracy | 0.838 |
-| toy MoE route-aware merge | expert-weight search worst accuracy | 0.802 |
-| toy MoE route-aware merge | expert-weight search + router-calibrated worst accuracy | 0.828 |
-| toy MoE output projection | expert output-projection worst accuracy | 0.807 |
-| toy MoE output projection | output-projection + router-calibrated worst accuracy | 0.825 |
+| toy MoE route-aware merge | router-sweep selected min top-k Jaccard | 0.837 |
+| toy MoE route-aware merge | matched + router-sweep-selected worst accuracy | 0.797 |
+| toy MoE route-aware merge | expert-weight search worst accuracy | 0.755 |
+| toy MoE route-aware merge | expert-weight search + router-calibrated worst accuracy | 0.802 |
+| toy MoE output projection | expert output-projection worst accuracy | 0.757 |
+| toy MoE output projection | output-projection + router-calibrated worst accuracy | 0.807 |
 | toy MoE output projection | mean captured output residual fraction | 0.616 |
-| toy MoE output projection | delta vs matched-calibrated | -0.013 |
-| toy MoE unified objective | worst accuracy | 0.828 |
-| toy MoE unified objective | delta vs expert-search router-calibrated | 0.000 |
-| toy MoE unified objective | delta vs route-KD | 0.013 |
-| toy MoE route-aware merge | route-aware average worst accuracy | 0.790 |
-| toy MoE route-aware merge | matched + router-frozen minus all-weight worst accuracy | 0.167 |
-| toy MoE route-aware merge | matched router calibration gain over frozen | 0.050 |
-| toy MoE route-aware merge | Hessian-router delta vs expert-matched | 0.007 |
-| toy MoE route-aware merge | Hessian-router delta vs router-calibrated | -0.030 |
-| toy MoE route-aware merge | Router-KD delta vs expert-matched | 0.002 |
-| toy MoE route-aware merge | Router-KD delta vs router-calibrated | -0.035 |
-| toy MoE route-aware merge | route-KD delta vs Router-KD | 0.012 |
-| toy MoE route-aware merge | route-KD delta vs router-calibrated | -0.023 |
-| toy MoE route-aware merge | top-k router calibration delta vs soft calibration | -0.023 |
-| toy MoE route-aware merge | expert search router-calibrated delta vs matched-calibrated | -0.010 |
-| toy MoE route-aware merge | route-aware minus all-weight worst accuracy | 0.170 |
+| toy MoE output projection | delta vs matched-calibrated | 0.010 |
+| toy MoE unified objective | worst accuracy | 0.785 |
+| toy MoE unified objective | delta vs expert-search router-calibrated | -0.017 |
+| toy MoE unified objective | delta vs route-KD | 0.023 |
+| toy MoE route-aware merge | route-aware average worst accuracy | 0.750 |
+| toy MoE route-aware merge | matched + router-frozen minus all-weight worst accuracy | 0.198 |
+| toy MoE route-aware merge | matched router calibration gain over frozen | 0.055 |
+| toy MoE route-aware merge | Hessian-router delta vs expert-matched | 0.000 |
+| toy MoE route-aware merge | Hessian-router delta vs router-calibrated | -0.047 |
+| toy MoE route-aware merge | Router-KD delta vs expert-matched | -0.005 |
+| toy MoE route-aware merge | Router-KD delta vs router-calibrated | -0.052 |
+| toy MoE route-aware merge | route-KD delta vs Router-KD | 0.017 |
+| toy MoE route-aware merge | route-KD delta vs router-calibrated | -0.035 |
+| toy MoE route-aware merge | top-k router calibration delta vs soft calibration | -0.042 |
+| toy MoE route-aware merge | expert search router-calibrated delta vs matched-calibrated | 0.005 |
+| toy MoE route-aware merge | route-aware minus all-weight worst accuracy | 0.205 |
 | toy MoE routing readiness | readiness status | high_risk_calibrate_router_before_merge |
 | toy MoE routing readiness | all-weight calibrate-router flags | 1 |
-| toy MoE method selection | recommended method | matched_router_calibrated_average |
+| toy MoE method selection | recommended method | expert_output_projection_router_calibrated_average |
 | toy MoE method selection | recommended hard top-2 method | unified_moe_average |
-| toy MoE method selection | recommended hard top-2 worst accuracy | 0.735 |
-| toy MoE method selection | capacity-aware hard top-2 method | unified_moe_average |
-| toy MoE method selection | capacity-aware top-k overflow | 0.075 |
-| toy MoE method selection | hard top-2 / overflow Pareto methods | unified_moe_average, matched_router_route_kd_average, matched_router_calibrated_average, matched_router_sweep_selected_average, matched_router_kd_average |
+| toy MoE method selection | recommended hard top-2 worst accuracy | 0.690 |
+| toy MoE method selection | capacity-aware hard top-2 method | matched_router_kd_average |
+| toy MoE method selection | capacity-aware top-k overflow | 0.034 |
+| toy MoE method selection | hard top-2 / overflow Pareto methods | unified_moe_average, matched_router_calibrated_average, matched_router_sweep_selected_average, matched_router_kd_average |
 | toy MoE method selection | all-weight decision | reject_routing_breakdown |
 | toy MoE expert remap plan | remap status | ready |
 | toy MoE expert remap plan | source tensor alias rules | 4 |

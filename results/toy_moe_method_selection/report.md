@@ -2,63 +2,66 @@
 
 这个报告把 MoE 方法分数和 routing readiness 合在一起，给出是否 materialize 的决策。它的边界是保守的：endpoint 只能作 baseline，低 route-overlap / 低 top-1 agreement 的 average 会被拒绝，能过性能和 routing gate 的方法才进入 checkpoint writer 或下一轮 held-out eval。
 
-- Recommended soft-router method: `matched_router_calibrated_average`
+- Recommended soft-router method: `expert_output_projection_router_calibrated_average`
 - Recommended sparse `hard_top2` method: `unified_moe_average`
-- Capacity-aware sparse `hard_top2` method: `unified_moe_average`
-- Sparse accuracy/overflow Pareto frontier: `unified_moe_average, matched_router_route_kd_average, matched_router_calibrated_average, matched_router_sweep_selected_average, matched_router_kd_average`
+- Capacity-aware sparse `hard_top2` method: `matched_router_kd_average`
+- Sparse accuracy/overflow Pareto frontier: `unified_moe_average, matched_router_calibrated_average, matched_router_sweep_selected_average, matched_router_kd_average`
 - Selection status: `has_candidate`
-- Base worst accuracy: `0.775`
+- Base worst accuracy: `0.7325`
 
 ## Decision Table
 
 | method | kind | soft worst acc | hard top-2 worst acc | top-k overflow | avg acc | calibrate flags | min top-k Jaccard | decision |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
-| matched_router_calibrated_average | merge_candidate | 0.838 | 0.700 | 0.0600 | 0.839 | 0 | 0.8275 | `candidate_with_router_guard` |
-| matched_router_sweep_selected_average | merge_candidate | 0.838 | 0.700 | 0.0600 | 0.839 | 0 | 0.8275 | `candidate_with_router_guard` |
-| expert_weight_search_router_calibrated_average | merge_candidate | 0.828 | 0.688 | 0.0612 | 0.831 | 0 | 0.8308 | `candidate_with_router_guard` |
-| unified_moe_average | merge_candidate | 0.828 | 0.735 | 0.0750 | 0.833 | 0 | 0.8417 | `candidate_with_router_guard` |
-| expert_output_projection_router_calibrated_average | merge_candidate | 0.825 | 0.675 | 0.0612 | 0.835 | 0 | 0.8333 | `candidate_with_router_guard` |
-| matched_router_topk_calibrated_average | merge_candidate | 0.815 | 0.700 | 0.0700 | 0.825 | 0 | 0.8633 | `candidate_with_router_guard` |
-| matched_router_weight_search_average | merge_candidate | 0.818 | 0.675 | 0.0725 | 0.819 | 0 | 0.97 | `candidate_with_router_guard` |
-| matched_router_route_kd_average | merge_candidate | 0.815 | 0.730 | 0.0725 | 0.821 | 0 | 0.8383 | `candidate_with_router_guard` |
-| expert_output_projection_average | merge_candidate | 0.807 | 0.640 | 0.0688 | 0.812 | 0 | 1 | `candidate_with_router_guard` |
-| matched_router_hessian_average | merge_candidate | 0.807 | 0.675 | 0.0675 | 0.812 | 0 | 0.9683 | `candidate_with_router_guard` |
-| expert_weight_search_average | merge_candidate | 0.802 | 0.660 | 0.0688 | 0.806 | 0 | 1 | `candidate_with_router_guard` |
-| matched_router_kd_average | merge_candidate | 0.802 | 0.685 | 0.0325 | 0.811 | 0 | 0.9017 | `candidate_with_router_guard` |
-| expert_matched_average | merge_candidate | 0.800 | 0.680 | 0.0712 | 0.809 | 0 | 0.98 | `candidate_with_router_guard` |
-| expert_matched_regmean_average | merge_candidate | 0.792 | 0.647 | 0.0688 | 0.807 | 0 | 1 | `candidate_with_router_guard` |
-| route_aware_expert_average | merge_candidate | 0.790 | 0.657 | 0.0688 | 0.799 | 0 | 1 | `candidate_with_router_guard` |
-| matched_router_frozen_average | merge_candidate | 0.787 | 0.677 | 0.0688 | 0.801 | 0 | 1 | `candidate_with_router_guard` |
-| expert_matched_dare_average | merge_candidate | 0.780 | 0.677 | 0.0688 | 0.796 | 0 | 1 | `candidate_with_router_guard` |
-| expert_matched_ties_dare_average | merge_candidate | 0.777 | 0.698 | 0.0688 | 0.796 | 0 | 1 | `candidate_with_router_guard` |
-| expert_matched_ties_average | merge_candidate | 0.775 | 0.698 | 0.0688 | 0.792 | 0 | 1 | `candidate_with_router_guard` |
-| router_frozen_average | merge_candidate | 0.615 | 0.573 | 0.0688 | 0.652 | 0 | 1 | `reject_underperforms_base` |
-| general_endpoint | endpoint_baseline | 0.780 | 0.698 | 0.0675 | 0.796 | 0 | 0.965 | `baseline_only` |
-| code_endpoint_permuted | endpoint_baseline | 0.802 | 0.640 | 0.0725 | 0.810 | 2 | 0.2042 | `baseline_only` |
-| base | base_baseline | 0.775 | 0.623 | 0.0688 | 0.786 | 0 | n/a | `baseline_only` |
-| all_weight_average | merge_candidate | 0.620 | 0.650 | 0.1150 | 0.654 | 1 | 0.4883 | `reject_routing_breakdown` |
+| expert_output_projection_router_calibrated_average | merge_candidate | 0.807 | 0.647 | 0.0550 | 0.835 | 0 | 0.84 | `candidate_with_router_guard` |
+| expert_weight_search_router_calibrated_average | merge_candidate | 0.802 | 0.642 | 0.0563 | 0.830 | 0 | 0.84 | `candidate_with_router_guard` |
+| unified_calibrated_seed_average | merge_candidate | 0.802 | 0.642 | 0.0563 | 0.830 | 0 | 0.84 | `candidate_with_router_guard` |
+| matched_router_sweep_selected_average | merge_candidate | 0.797 | 0.665 | 0.0537 | 0.829 | 0 | 0.8367 | `candidate_with_router_guard` |
+| matched_router_calibrated_average | merge_candidate | 0.797 | 0.665 | 0.0537 | 0.829 | 0 | 0.8367 | `candidate_with_router_guard` |
+| unified_moe_average | merge_candidate | 0.785 | 0.690 | 0.0775 | 0.823 | 0 | 0.8733 | `candidate_with_router_guard` |
+| unified_route_kd_seed_average | merge_candidate | 0.777 | 0.688 | 0.0788 | 0.816 | 0 | 0.865 | `candidate_with_router_guard` |
+| matched_router_route_kd_average | merge_candidate | 0.762 | 0.685 | 0.0788 | 0.805 | 0 | 0.865 | `candidate_with_router_guard` |
+| unified_router_kd_seed_average | merge_candidate | 0.760 | 0.598 | 0.0338 | 0.800 | 0 | 0.8983 | `candidate_with_router_guard` |
+| expert_output_projection_average | merge_candidate | 0.757 | 0.635 | 0.0675 | 0.795 | 0 | 1 | `candidate_with_router_guard` |
+| matched_router_topk_calibrated_average | merge_candidate | 0.755 | 0.657 | 0.0788 | 0.792 | 0 | 0.895 | `candidate_with_router_guard` |
+| expert_weight_search_average | merge_candidate | 0.755 | 0.632 | 0.0675 | 0.795 | 0 | 1 | `candidate_with_router_guard` |
+| route_aware_expert_average | merge_candidate | 0.750 | 0.650 | 0.0675 | 0.790 | 0 | 1 | `candidate_with_router_guard` |
+| matched_router_weight_search_average | merge_candidate | 0.750 | 0.657 | 0.0688 | 0.792 | 0 | 0.965 | `candidate_with_router_guard` |
+| expert_matched_regmean_average | merge_candidate | 0.750 | 0.640 | 0.0675 | 0.785 | 0 | 1 | `candidate_with_router_guard` |
+| expert_matched_average | merge_candidate | 0.750 | 0.652 | 0.0675 | 0.791 | 0 | 0.965 | `candidate_with_router_guard` |
+| matched_router_hessian_average | merge_candidate | 0.750 | 0.650 | 0.0663 | 0.789 | 0 | 0.9633 | `candidate_with_router_guard` |
+| matched_router_kd_average | merge_candidate | 0.745 | 0.660 | 0.0338 | 0.786 | 0 | 0.8983 | `candidate_with_router_guard` |
+| matched_router_frozen_average | merge_candidate | 0.743 | 0.660 | 0.0675 | 0.785 | 0 | 1 | `candidate_with_router_guard` |
+| expert_matched_dare_average | merge_candidate | 0.733 | 0.660 | 0.0675 | 0.782 | 0 | 1 | `candidate_with_router_guard` |
+| expert_matched_ties_dare_average | merge_candidate | 0.713 | 0.662 | 0.0675 | 0.774 | 0 | 1 | `reject_underperforms_base` |
+| expert_matched_ties_average | merge_candidate | 0.710 | 0.655 | 0.0675 | 0.769 | 0 | 1 | `reject_underperforms_base` |
+| router_frozen_average | merge_candidate | 0.555 | 0.507 | 0.0675 | 0.631 | 0 | 1 | `reject_underperforms_base` |
+| general_endpoint | endpoint_baseline | 0.723 | 0.647 | 0.0650 | 0.772 | 0 | 0.9517 | `baseline_only` |
+| code_endpoint_permuted | endpoint_baseline | 0.757 | 0.637 | 0.0688 | 0.804 | 2 | 0.2075 | `baseline_only` |
+| base | base_baseline | 0.733 | 0.615 | 0.0675 | 0.778 | 0 | n/a | `baseline_only` |
+| all_weight_average | merge_candidate | 0.545 | 0.562 | 0.1062 | 0.624 | 1 | 0.475 | `reject_routing_breakdown` |
 
 ## Recommendation
 
-推荐先 materialize/复评 `matched_router_calibrated_average`。
+推荐先 materialize/复评 `expert_output_projection_router_calibrated_average`。
 
-- worst accuracy: `0.838`
-- avg accuracy: `0.839`
+- worst accuracy: `0.807`
+- avg accuracy: `0.835`
 - decision: `candidate_with_router_guard`
 - reason: candidate passes routing-overlap gate after router calibration; keep load-balance and held-out route checks.
 
 如果部署路径使用 `hard_top2` sparse dispatch，优先复评 `unified_moe_average`。
 
-- hard_top2 worst accuracy: `0.735`
-- soft worst accuracy: `0.828`
+- hard_top2 worst accuracy: `0.690`
+- soft worst accuracy: `0.785`
 - decision: `candidate_with_router_guard`
 
-如果同时惩罚 `hard_top2` accuracy loss 和 capacity overflow，当前优先复评 `unified_moe_average`。
+如果同时惩罚 `hard_top2` accuracy loss 和 capacity overflow，当前优先复评 `matched_router_kd_average`。
 
-- capacity-aware score: `0.6550`
-- hard_top2 worst accuracy: `0.735`
-- max top-k overflow fraction: `0.0750`
-- worst overflow category: `general`
+- capacity-aware score: `0.6212`
+- hard_top2 worst accuracy: `0.660`
+- max top-k overflow fraction: `0.0338`
+- worst overflow category: `code`
 
 ## Sparse Pareto Frontier
 
@@ -66,11 +69,10 @@
 
 | method | hard top-2 worst acc | top-k overflow | worst category | soft worst acc |
 | --- | ---: | ---: | --- | ---: |
-| unified_moe_average | 0.735 | 0.0750 | general | 0.828 |
-| matched_router_route_kd_average | 0.730 | 0.0725 | general | 0.815 |
-| matched_router_calibrated_average | 0.700 | 0.0600 | general | 0.838 |
-| matched_router_sweep_selected_average | 0.700 | 0.0600 | general | 0.838 |
-| matched_router_kd_average | 0.685 | 0.0325 | code | 0.802 |
+| unified_moe_average | 0.690 | 0.0775 | general | 0.785 |
+| matched_router_calibrated_average | 0.665 | 0.0537 | general | 0.797 |
+| matched_router_sweep_selected_average | 0.665 | 0.0537 | general | 0.797 |
+| matched_router_kd_average | 0.660 | 0.0338 | code | 0.745 |
 
 ## 规则
 

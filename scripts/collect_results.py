@@ -594,6 +594,17 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
     router_route_kd_trace = read_csv("results/toy_moe_merge/router_route_kd_trace.csv")
     unified_trace_path = repo_path("results/toy_moe_merge/unified_moe_trace.csv")
     unified_moe_trace = read_csv(unified_trace_path) if unified_trace_path.exists() else pd.DataFrame()
+    unified_capacity_sweep_path = repo_path("results/toy_moe_merge/unified_moe_capacity_sweep.csv")
+    unified_moe_capacity_sweep = (
+        read_csv(unified_capacity_sweep_path) if unified_capacity_sweep_path.exists() else pd.DataFrame()
+    )
+    selected_unified_capacity = (
+        unified_moe_capacity_sweep[
+            unified_moe_capacity_sweep["selected_by_select_capacity_aware_score"].astype(bool)
+        ]
+        if not unified_moe_capacity_sweep.empty
+        else pd.DataFrame()
+    )
     selected_router_weight = router_weight_search[
         router_weight_search["selected_by_guarded_calib_worst_loss"].astype(bool)
     ]
@@ -715,6 +726,10 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
             summary.get("expert_output_projection_router_calibrated_minus_matched_calibrated_worst_acc", 0.0)
         ),
         "unified_moe_trace_rows": int(len(unified_moe_trace)),
+        "unified_moe_capacity_sweep_rows": int(len(unified_moe_capacity_sweep)),
+        "unified_moe_capacity_sweep_selected": clean_row(selected_unified_capacity.iloc[0])
+        if not selected_unified_capacity.empty
+        else None,
         "unified_moe_minus_expert_search_worst_acc": float(
             summary.get("unified_moe_minus_expert_search_worst_acc", 0.0)
         ),
@@ -748,6 +763,9 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
         "router_kd_trace": rel("results/toy_moe_merge/router_kd_trace.csv"),
         "router_route_kd_trace": rel("results/toy_moe_merge/router_route_kd_trace.csv"),
         "unified_moe_trace": rel(unified_trace_path) if unified_trace_path.exists() else None,
+        "unified_moe_capacity_sweep": rel(unified_capacity_sweep_path)
+        if unified_capacity_sweep_path.exists()
+        else None,
         "router_calibration_sweep": rel("results/toy_moe_merge/router_calibration_sweep.csv"),
         "figure": rel("results/toy_moe_merge/toy_moe_merge.png"),
     }
@@ -1250,6 +1268,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     toy_expert_weight_recipes = exp["toy_moe_expert_weight_recipes"]
     routing_readiness = exp["moe_routing_readiness"]
     toy_moe = exp["toy_moe_merge"]
+    selected_unified_capacity = toy_moe.get("unified_moe_capacity_sweep_selected") or {}
     toy_moe_readiness = exp["toy_moe_routing_readiness"]
     toy_moe_selection = exp["toy_moe_method_selection"]
     toy_moe_remap = exp["toy_moe_expert_remap_plan"]
@@ -1504,6 +1523,26 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| toy MoE unified objective | hard top-2 delta vs route-KD | "
                 f"{fmt(toy_moe['dispatch_robustness']['unified_moe_minus_route_kd_hard_top2_worst_acc'])} |"
+            ),
+            (
+                "| toy MoE unified objective | selected capacity loss coef | "
+                f"{fmt(selected_unified_capacity.get('capacity_loss_coef'), 3)} |"
+            ),
+            (
+                "| toy MoE unified objective | selected router seed | "
+                f"{selected_unified_capacity.get('router_seed', 'n/a')} |"
+            ),
+            (
+                "| toy MoE unified objective | capacity-sweep candidates | "
+                f"{toy_moe['unified_moe_capacity_sweep_rows']} |"
+            ),
+            (
+                "| toy MoE unified objective | capacity-sweep select score | "
+                f"{fmt(selected_unified_capacity.get('select_capacity_aware_score'))} |"
+            ),
+            (
+                "| toy MoE unified objective | capacity-sweep test score | "
+                f"{fmt(selected_unified_capacity.get('test_capacity_aware_score'))} |"
             ),
             (
                 "| toy MoE capacity | max top-k overflow fraction | "
