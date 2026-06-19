@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 51006,
+      "bytes": 53235,
       "kind": "document",
       "path": "README.md",
-      "sha256": "c04588b1bca993a981d588eada0f5e2d90b49822495e535917a50bdc772065cb"
+      "sha256": "e521a6dee4d57c688a602d528c093142f08984cc05a4b7b4254ee13a1666f01c"
     },
     {
       "bytes": 33211,
@@ -1099,6 +1099,30 @@
       "sha256": "9fd5d9a242c6268eea47556c8f7d462f7858da3cf844419125f816c1f24d739d"
     },
     {
+      "bytes": 3562,
+      "kind": "document",
+      "path": "results/moe_probe_gated_selector/report.md",
+      "sha256": "e290fb2254974f6d1852e5127ab248f5eb018624a0a51372ea368d089eed602c"
+    },
+    {
+      "bytes": 1688,
+      "kind": "data",
+      "path": "results/moe_probe_gated_selector/selector_cases.csv",
+      "sha256": "ed0a16f9f9d66c7eb33c15f2624010dd104b431742b796aa5ad46cd60fe54a59"
+    },
+    {
+      "bytes": 1262,
+      "kind": "data",
+      "path": "results/moe_probe_gated_selector/selector_stages.csv",
+      "sha256": "ea1931af5aa4040f4f554427552cfe687c6729f68a70c1e6e3aec641612fe5cc"
+    },
+    {
+      "bytes": 1214,
+      "kind": "data",
+      "path": "results/moe_probe_gated_selector/summary.json",
+      "sha256": "bc7ed2b28d9eb3960a9450031f67dd4ab319049f9636d2ed7b074b8f0b1dc1cd"
+    },
+    {
       "bytes": 260,
       "kind": "data",
       "path": "results/moe_route_weight_recipes/category_source_plan.csv",
@@ -1903,16 +1927,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 531286,
+      "bytes": 538735,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "77c2fa6d344a8028b56bd314bb5393b17c5c2754472c3b1fd4d6aec99ce539b9"
+      "sha256": "32f604990a0c4a21a2b24f9536e2531da8c4658c2e86ba24574f31b1c0a59bbe"
     },
     {
-      "bytes": 29446,
+      "bytes": 29967,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "6995272d7e219e8665be83f0e98f8120523b7406ce5c3265f0f424776c0d4b4f"
+      "sha256": "62b25e9adce1493154579f25726126bd55d70faa11289275e6a42ad24ee0941f"
     },
     {
       "bytes": 288,
@@ -2935,6 +2959,12 @@
       "sha256": "3dfe98e8a62c92eceeaba15e423ea88a99a8f0d570b8587b4071828c98077505"
     },
     {
+      "bytes": 15804,
+      "kind": "code",
+      "path": "scripts/build_moe_probe_gated_selector.py",
+      "sha256": "42bd839b385ba34b90c905e142a2189741b6cf8ace6645dffdaca059e7950b52"
+    },
+    {
       "bytes": 41247,
       "kind": "code",
       "path": "scripts/build_moe_route_weight_recipes.py",
@@ -2989,10 +3019,10 @@
       "sha256": "0b0e4be7ec51f0afb74dfdee6e3d8b217da9aac4d965a170bea36c89f1b46abb"
     },
     {
-      "bytes": 185321,
+      "bytes": 188012,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "26591833a01a417c00048684aca1992555e843934ac5e7f6a4e89fb6bab218b4"
+      "sha256": "56723ce759ba7ef3e7d03786f670ba3d110049519dabb10f08a9c7632eba40f9"
     },
     {
       "bytes": 16101,
@@ -3199,7 +3229,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T17:53:46.471983+00:00",
+  "generated_at": "2026-06-19T18:00:31.282047+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

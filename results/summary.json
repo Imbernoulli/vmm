@@ -266,6 +266,11 @@
       "status": "complete"
     },
     {
+      "evidence": "results/moe_probe_gated_selector/report.md combines real OLMoE gauge evidence, Qwen3 expert correspondence, and toy route/capacity selection into a same-shape MoE average gate.",
+      "item": "MoE probe-gated selector",
+      "status": "complete"
+    },
+    {
       "evidence": "results/toy_moe_routing_readiness/report.md applies the generic readiness gate to toy MoE methods and flags all-weight routing drift separately from expert-matched/route-aware variants.",
       "item": "Toy MoE multi-method routing readiness",
       "status": "complete"
@@ -287,7 +292,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 56,
+    "complete": 57,
     "missing": 0,
     "partial": 1
   },
@@ -4667,6 +4672,127 @@
       "topology_model": "qwen3_6_35b_a3b",
       "writer_command": "results/moe_packed_route_weight_recipe_smoke/writer_command.txt",
       "writer_command_has_packed_rule": true
+    },
+    "moe_probe_gated_selector": {
+      "case_rows": [
+        {
+          "blocking_probe": "cross_model_expert_correspondence_for_target_pair",
+          "capacity_gate": "not_tested_in_this_probe",
+          "case": "real_olmoe_gauge_selfmerge",
+          "decision": "reject_same_name_average_without_alignment",
+          "evidence": "same-name NLL degradation=5.491; aligned degradation=0.000000; permutation recovery=16/16",
+          "expert_identity_gate": "required",
+          "model_or_pair": "allenai/OLMoE-1B-7B-0924-Instruct",
+          "probe": "function-preserving expert/router permutation",
+          "router_gate": "permute_router_rows_with_experts",
+          "same_shape_action": "match expert identity first; apply any expert remap as source-slice alias, not as a shape change"
+        },
+        {
+          "blocking_probe": "real_qwen3_route_overlap_and_expert_load",
+          "capacity_gate": "expert_load_probe_required",
+          "case": "qwen3_instruct_coder_cross_correspondence",
+          "decision": "identity_expert_average_allowed_with_routing_gate",
+          "evidence": "identity layers=1.000; argmax identity=1.000; diag/offdiag cosine ratio=1339.5",
+          "expert_identity_gate": "identity_mapping_allowed",
+          "model_or_pair": "Qwen/Qwen3-30B-A3B-Instruct-2507 :: Qwen/Qwen3-Coder-30B-A3B-Instruct",
+          "probe": "base-subtracted expert-delta Hungarian correspondence",
+          "router_gate": "routing_probe_required_before_router_average",
+          "same_shape_action": "use identity expert slices first; freeze or small-step router until route overlap/load is measured"
+        },
+        {
+          "blocking_probe": "target_model_generation_or_vllm_eval",
+          "capacity_gate": "pass",
+          "case": "toy_moe_method_selector",
+          "decision": "use_dispatch_aware_selector_not_static_average",
+          "evidence": "all_weight decision=reject_routing_breakdown; soft=expert_output_projection_router_calibrated_average; hard_top2=unified_confidence_blended_route_kd_seed_average; capacity=unified_moe_bias_capacity_average; capacity overflow=0.0475",
+          "expert_identity_gate": "expert_match_or_confidence_blend",
+          "model_or_pair": "synthetic two-domain MoE",
+          "probe": "task loss + route readiness + dispatch + capacity",
+          "router_gate": "calibrate_or_route_kd_with_overlap_guard",
+          "same_shape_action": "select expert weights and router policy by serving mode; never expand expert count"
+        }
+      ],
+      "case_table": "results/moe_probe_gated_selector/selector_cases.csv",
+      "global_moe_gauge_decision": "reject_same_name_average_without_alignment",
+      "next_blocking_probe": "real_qwen3_route_overlap_and_expert_load",
+      "qwen3_argmax_identity_fraction": 1.0,
+      "qwen3_expert_identity_decision": "identity_expert_average_allowed_with_routing_gate",
+      "qwen3_identity_fraction": 1.0,
+      "real_gauge_aligned_degradation": 0.0,
+      "real_gauge_naive_degradation": 5.490968298724317,
+      "report": "results/moe_probe_gated_selector/report.md",
+      "stage_rows": [
+        {
+          "action_if_fail": "do_not_materialize",
+          "action_if_pass": "continue",
+          "gate": "same_shape_config_and_packed_expert_layout",
+          "required_evidence": "tensor names, tensor shapes, router rows, expert dimension, tokenizer/model class",
+          "stage": "topology"
+        },
+        {
+          "action_if_fail": "apply layerwise expert alias/remap before any expert averaging",
+          "action_if_pass": "use identity mapping for Qwen3 pair",
+          "gate": "expert correspondence or gauge self-merge evidence",
+          "required_evidence": "identity-optimal fraction or layerwise Hungarian permutation",
+          "stage": "expert_identity"
+        },
+        {
+          "action_if_fail": "freeze expert source or stay at endpoint/base",
+          "action_if_pass": "confidence-blend searched and output-projection expert weights",
+          "gate": "route-conditioned output or held-out task loss",
+          "required_evidence": "expert captured_fraction, expert load, or per-expert held-out search",
+          "stage": "expert_weighting"
+        },
+        {
+          "action_if_fail": "freeze router and reject router averaging",
+          "action_if_pass": "small-step router calibration, route-KD, or freeze-router policy",
+          "gate": "route overlap, top1 agreement, and router loss",
+          "required_evidence": "router_summary.csv and route_overlap.csv",
+          "stage": "router"
+        },
+        {
+          "action_if_fail": "router-bias capacity correction or reject sparse-serving candidate",
+          "action_if_pass": "pass",
+          "gate": "top-k expert load overflow under serving dispatch",
+          "required_evidence": "expert_load.csv or router_capacity_metrics.csv",
+          "stage": "capacity"
+        },
+        {
+          "action_if_fail": "do_not_publish_candidate_as_average",
+          "action_if_pass": "materialize same-shape checkpoint",
+          "gate": "NLL plus generation/vLLM held-out tasks",
+          "required_evidence": "downstream metrics with endpoints and bad-average baselines",
+          "stage": "behavior_eval"
+        }
+      ],
+      "stage_table": "results/moe_probe_gated_selector/selector_stages.csv",
+      "status": "selector_ready_waiting_for_real_qwen_routing_probe",
+      "summary": {
+        "generated_at": "2026-06-19T17:57:17.415057+00:00",
+        "global_moe_gauge_decision": "reject_same_name_average_without_alignment",
+        "next_blocking_probe": "real_qwen3_route_overlap_and_expert_load",
+        "outputs": {
+          "case_table": "results/moe_probe_gated_selector/selector_cases.csv",
+          "report": "results/moe_probe_gated_selector/report.md",
+          "stage_table": "results/moe_probe_gated_selector/selector_stages.csv",
+          "summary": "results/moe_probe_gated_selector/summary.json"
+        },
+        "qwen3_argmax_identity_fraction": 1.0,
+        "qwen3_expert_identity_decision": "identity_expert_average_allowed_with_routing_gate",
+        "qwen3_identity_fraction": 1.0,
+        "real_gauge_aligned_degradation": 0.0,
+        "real_gauge_naive_degradation": 5.490968298724317,
+        "same_shape_invariant": "No selector stage changes model class, tokenizer, hidden size, router shape, expert count, or tensor shape.",
+        "schema_version": 1,
+        "status": "selector_ready_waiting_for_real_qwen_routing_probe",
+        "toy_capacity_recommendation": "unified_moe_bias_capacity_average",
+        "toy_soft_recommendation": "expert_output_projection_router_calibrated_average",
+        "toy_sparse_recommendation": "unified_confidence_blended_route_kd_seed_average"
+      },
+      "summary_path": "results/moe_probe_gated_selector/summary.json",
+      "toy_capacity_recommendation": "unified_moe_bias_capacity_average",
+      "toy_soft_recommendation": "expert_output_projection_router_calibrated_average",
+      "toy_sparse_recommendation": "unified_confidence_blended_route_kd_seed_average"
     },
     "moe_route_weight_recipes": {
       "category_source_plan": "results/moe_route_weight_recipes/category_source_plan.csv",
@@ -12122,7 +12248,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-19T17:53:46.424544+00:00",
+  "generated_at": "2026-06-19T18:00:31.236720+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -12143,6 +12269,7 @@
     "python scripts/fp_gen_eval.py --instruct Qwen/Qwen2.5-0.5B-Instruct --coder Qwen/Qwen2.5-Coder-0.5B-Instruct --base Qwen/Qwen2.5-0.5B --out results/fp_gen_eval_dense --n-math 2 --n-code 2 --max-new-tokens 8 --device cpu --methods base,instruct,coder,linear,unified",
     "python scripts/fp_moe_mechanism.py --out results/fp_moe_mechanism --base-steps 700 --ft-steps 500",
     "python scripts/fp_moe_real_probe.py --mode gauge_selfmerge --model-a allenai/OLMoE-1B-7B-0924-Instruct --out results/fp_moe_real_probe --n-probe 4 --seqlen 128",
+    "python scripts/build_moe_probe_gated_selector.py",
     "PYTHONPATH=src python scripts/run_toy_moe_merge.py --output-dir results/toy_moe_merge --device cpu",
     "PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir results/toy_moe_merge --output-dir results/toy_moe_routing_readiness --topology-summary ''",
     "PYTHONPATH=src python scripts/select_moe_merge_method.py",

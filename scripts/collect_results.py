@@ -108,9 +108,11 @@ def collect_artifacts() -> list[dict[str, Any]]:
     ]
     suffixes = {".py", ".md", ".csv", ".json", ".jsonl", ".txt", ".png", ".html"}
     excluded_files = {
+        "scripts/fp_make_figures.py",  # stale draft figures with old first-principles numbers
         "scripts/fp_moe_barrier.py",  # incomplete: current run only produced a log
     }
     excluded_prefixes = {
+        "results/fp_figures/",
         "results/fp_gen_eval_moe/",
         "results/fp_moe_barrier/",
         "results/fp_moe_real_probe/olmoe/",
@@ -1336,6 +1338,33 @@ def summarize_fp_moe_real_probe() -> dict[str, Any]:
     }
 
 
+def summarize_moe_probe_gated_selector() -> dict[str, Any]:
+    root = repo_path("results/moe_probe_gated_selector")
+    summary = read_json(root / "summary.json")
+    cases = read_csv(root / "selector_cases.csv")
+    stages = read_csv(root / "selector_stages.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "global_moe_gauge_decision": summary.get("global_moe_gauge_decision"),
+        "qwen3_expert_identity_decision": summary.get("qwen3_expert_identity_decision"),
+        "next_blocking_probe": summary.get("next_blocking_probe"),
+        "real_gauge_naive_degradation": maybe_float(summary.get("real_gauge_naive_degradation")),
+        "real_gauge_aligned_degradation": maybe_float(summary.get("real_gauge_aligned_degradation")),
+        "qwen3_identity_fraction": maybe_float(summary.get("qwen3_identity_fraction")),
+        "qwen3_argmax_identity_fraction": maybe_float(summary.get("qwen3_argmax_identity_fraction")),
+        "toy_soft_recommendation": summary.get("toy_soft_recommendation"),
+        "toy_sparse_recommendation": summary.get("toy_sparse_recommendation"),
+        "toy_capacity_recommendation": summary.get("toy_capacity_recommendation"),
+        "case_rows": [clean_row(row) for _, row in cases.iterrows()],
+        "stage_rows": [clean_row(row) for _, row in stages.iterrows()],
+        "report": rel(root / "report.md"),
+        "summary_path": rel(root / "summary.json"),
+        "case_table": rel(root / "selector_cases.csv"),
+        "stage_table": rel(root / "selector_stages.csv"),
+    }
+
+
 def summarize_toy_moe_routing_readiness() -> dict[str, Any]:
     summary = read_json("results/toy_moe_routing_readiness/summary.json")
     router_readiness = read_csv("results/toy_moe_routing_readiness/router_readiness.csv")
@@ -2116,6 +2145,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/fp_moe_real_probe/report.md runs a function-preserving expert/router permutation on a real packed OLMoE checkpoint and shows same-name averaging fails unless expert identity is recovered.",
         },
         {
+            "item": "MoE probe-gated selector",
+            "status": "complete",
+            "evidence": "results/moe_probe_gated_selector/report.md combines real OLMoE gauge evidence, Qwen3 expert correspondence, and toy route/capacity selection into a same-shape MoE average gate.",
+        },
+        {
             "item": "Toy MoE multi-method routing readiness",
             "status": "complete",
             "evidence": "results/toy_moe_routing_readiness/report.md applies the generic readiness gate to toy MoE methods and flags all-weight routing drift separately from expert-matched/route-aware variants.",
@@ -2180,6 +2214,7 @@ def build_summary() -> dict[str, Any]:
         "toy_moe_merge": summarize_toy_moe_merge(),
         "fp_moe_mechanism": summarize_fp_moe_mechanism(),
         "fp_moe_real_probe": summarize_fp_moe_real_probe(),
+        "moe_probe_gated_selector": summarize_moe_probe_gated_selector(),
         "toy_moe_routing_readiness": summarize_toy_moe_routing_readiness(),
         "toy_moe_method_selection": summarize_toy_moe_method_selection(),
         "toy_moe_expert_remap_plan": summarize_toy_moe_expert_remap_plan(),
@@ -2241,6 +2276,7 @@ def build_summary() -> dict[str, Any]:
             "python scripts/fp_gen_eval.py --instruct Qwen/Qwen2.5-0.5B-Instruct --coder Qwen/Qwen2.5-Coder-0.5B-Instruct --base Qwen/Qwen2.5-0.5B --out results/fp_gen_eval_dense --n-math 2 --n-code 2 --max-new-tokens 8 --device cpu --methods base,instruct,coder,linear,unified",
             "python scripts/fp_moe_mechanism.py --out results/fp_moe_mechanism --base-steps 700 --ft-steps 500",
             "python scripts/fp_moe_real_probe.py --mode gauge_selfmerge --model-a allenai/OLMoE-1B-7B-0924-Instruct --out results/fp_moe_real_probe --n-probe 4 --seqlen 128",
+            "python scripts/build_moe_probe_gated_selector.py",
             "PYTHONPATH=src python scripts/run_toy_moe_merge.py --output-dir results/toy_moe_merge --device cpu",
             "PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir results/toy_moe_merge --output-dir results/toy_moe_routing_readiness --topology-summary ''",
             "PYTHONPATH=src python scripts/select_moe_merge_method.py",
@@ -2341,6 +2377,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     toy_moe = exp["toy_moe_merge"]
     fp_moe = exp["fp_moe_mechanism"]
     fp_moe_real = exp["fp_moe_real_probe"]
+    moe_selector = exp["moe_probe_gated_selector"]
     selected_unified_capacity = toy_moe.get("unified_moe_capacity_sweep_selected") or {}
     selected_unified_output_projection_capacity = (
         toy_moe.get("unified_output_projection_moe_capacity_sweep_selected") or {}
@@ -2559,6 +2596,18 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| first-principles MoE mechanism | Fisher worst-loss reduction after alignment | "
                 f"{fmt(fp_moe['route_conditioned_fisher'].get('worst_loss_reduction'))} |"
+            ),
+            (
+                "| MoE probe-gated selector | global gauge rule | "
+                f"{moe_selector['global_moe_gauge_decision']} |"
+            ),
+            (
+                "| MoE probe-gated selector | Qwen3 expert identity decision | "
+                f"{moe_selector['qwen3_expert_identity_decision']} |"
+            ),
+            (
+                "| MoE probe-gated selector | next blocking probe | "
+                f"{moe_selector['next_blocking_probe']} |"
             ),
             (
                 "| real MoE gauge self-merge | baseline / same-name / aligned NLL | "

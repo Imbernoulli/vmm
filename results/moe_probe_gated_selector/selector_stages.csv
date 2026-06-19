@@ -1,0 +1,7 @@
+stage,gate,required_evidence,action_if_pass,action_if_fail
+topology,same_shape_config_and_packed_expert_layout,"tensor names, tensor shapes, router rows, expert dimension, tokenizer/model class",continue,do_not_materialize
+expert_identity,expert correspondence or gauge self-merge evidence,identity-optimal fraction or layerwise Hungarian permutation,use identity mapping for Qwen3 pair,apply layerwise expert alias/remap before any expert averaging
+expert_weighting,route-conditioned output or held-out task loss,"expert captured_fraction, expert load, or per-expert held-out search",confidence-blend searched and output-projection expert weights,freeze expert source or stay at endpoint/base
+router,"route overlap, top1 agreement, and router loss",router_summary.csv and route_overlap.csv,"small-step router calibration, route-KD, or freeze-router policy",freeze router and reject router averaging
+capacity,top-k expert load overflow under serving dispatch,expert_load.csv or router_capacity_metrics.csv,pass,router-bias capacity correction or reject sparse-serving candidate
+behavior_eval,NLL plus generation/vLLM held-out tasks,downstream metrics with endpoints and bad-average baselines,materialize same-shape checkpoint,do_not_publish_candidate_as_average
