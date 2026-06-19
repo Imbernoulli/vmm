@@ -1,0 +1,7 @@
+parameter_group,trigger,same_shape_average_action
+embedding/lm_head,general retention 下降或 tokenizer 高频 token NLL 上升,freeze anchor 或 Fisher-weighted average，避免全局输出分布漂移。
+attention,layer cosine 同向且 barrier 低,允许普通/task-arithmetic average；系数由 validation min-max objective 选择。
+MLP / dense FFN,weighted sign conflict 高,用 TIES/DELLA/Fisher 风格的 coordinate-wise 权重，冲突坐标降权或回 anchor。
+MoE router,route entropy 低、max top-1 fraction 高或 route overlap 低,首轮 frozen router；之后只校准 router/bias，加入 load-balance 和 route-overlap 约束。
+MoE experts,expert output/activation 相似但 index 不可靠,先 expert matching，再在同 expert 数和同 tensor shape 内做 expert-wise average。
+LoRA/adapters,多个下游用户只发布 adapter,先做 adapter delta/rank/output probe；最终压回一个同构 adapter，mixture 只作上界。

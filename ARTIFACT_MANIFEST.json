@@ -1,10 +1,10 @@
 {
   "artifacts": [
     {
-      "bytes": 23268,
+      "bytes": 23909,
       "kind": "document",
       "path": "MODEL_AVERAGING_PROBES_AND_MOE_OPTIMIZATION.md",
-      "sha256": "ef583a29d3e6f20c71872aeb8b1970fe635b033ae230d4a5840628d296402264"
+      "sha256": "377c7b60ffd6f7f88e2fad0cfb81f1798ebad18d2d8b5d637a157286cd222cbd"
     },
     {
       "bytes": 20526,
@@ -13,16 +13,16 @@
       "sha256": "313cfe00a4f762c28f5fe1b881615f93e824f15a3f1ac2440b17d363819b3706"
     },
     {
-      "bytes": 19276,
+      "bytes": 19511,
       "kind": "document",
       "path": "QWEN_DENSE_MOE_EXPERIMENT_PLAN.md",
-      "sha256": "b27f4d8ca5e2fa854c26b0692a0cb98c7f5ab3df6d34a46da80702a0fe227449"
+      "sha256": "d373354a2dc7cb83e9a1b98131be2d7b24270816c76bd59bf565f329fe84240b"
     },
     {
-      "bytes": 21166,
+      "bytes": 21646,
       "kind": "document",
       "path": "README.md",
-      "sha256": "d4a4667243991146fa1cbf8c61be1261293466c0982539be8cb1a3712833653e"
+      "sha256": "58a09778b6c6ea3f0d36818a8676a84e6bd9fe3ac8d305a2018783e99bd18e55"
     },
     {
       "bytes": 33211,
@@ -59,6 +59,30 @@
       "kind": "data",
       "path": "results/alignment_barrier/summary.json",
       "sha256": "648df5a31a63d01a35da7538d08cdea54ee3bcb15d95352f2867d0bb2ac3f555"
+    },
+    {
+      "bytes": 2847,
+      "kind": "data",
+      "path": "results/average_decision_report/decision_table.csv",
+      "sha256": "f50d98c10c1ca80f9f6374262491b3ee02091a438b379dc59f1bdeff9c523c40"
+    },
+    {
+      "bytes": 957,
+      "kind": "data",
+      "path": "results/average_decision_report/parameter_group_actions.csv",
+      "sha256": "b4bd6fb40de5ec0532c14d5e6ae4d2a4327abb55af1998e22c5366cbc70b0f96"
+    },
+    {
+      "bytes": 4853,
+      "kind": "document",
+      "path": "results/average_decision_report/report.md",
+      "sha256": "b90e8b2e4298592ebce93b07cdd04f8cb844b17eee2bc7db1ad3d8193899a474"
+    },
+    {
+      "bytes": 6145,
+      "kind": "data",
+      "path": "results/average_decision_report/summary.json",
+      "sha256": "b185e9f47601b93145e3fa355cda488dec9403bb8fde238496934be9147cb4ef"
     },
     {
       "bytes": 262391,
@@ -829,16 +853,16 @@
       "sha256": "5c47c20d6a8b1bb7e33da109fb9db23c736fe38ada02e77a43d052782ffebd90"
     },
     {
-      "bytes": 47615,
+      "bytes": 62018,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "93cabb522fa21042d7c30afc6b2732fd558c23ac11f100210fba71e09a5212db"
+      "sha256": "cc6d6d47d8737d9cc665d615aeff3317eabfca1457ec6a0cc5489cfa9a129ae6"
     },
     {
-      "bytes": 3785,
+      "bytes": 4116,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "2aaba81563cef63041235a8a622340ae1e7f7470798f6c1e08074586e1b42d95"
+      "sha256": "2a1b09dd03061982bcde4f877e05cb8535d95572ea7e4c56d68ce460ed3bf5d5"
     },
     {
       "bytes": 13129,
@@ -847,16 +871,22 @@
       "sha256": "a000dde0c943150d587435ab8a6071b2289edd7cd3987396ecb5eded9bae9684"
     },
     {
+      "bytes": 20700,
+      "kind": "code",
+      "path": "scripts/build_average_decision_report.py",
+      "sha256": "373617da0d049ac13d0700fbbd9aa9b680c7ad8d01304170227e1b8c7abfafa7"
+    },
+    {
       "bytes": 64880,
       "kind": "code",
       "path": "scripts/build_dashboard.py",
       "sha256": "66a85c2fb4268b7d551593f659b58f730d3dee02ec1e203bf09cf32648b0afe0"
     },
     {
-      "bytes": 31999,
+      "bytes": 33625,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "ee2bc938118b7b51dddcc75e73d6b463b6b2660c3f1b629f9c5f69d11acf1cf2"
+      "sha256": "3633c4cb0088db7e1d9c2845f1c874e41bc06262f5244827187e237702c06c53"
     },
     {
       "bytes": 15724,
@@ -961,7 +991,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T03:26:04.199619+00:00",
+  "generated_at": "2026-06-19T03:34:02.807666+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

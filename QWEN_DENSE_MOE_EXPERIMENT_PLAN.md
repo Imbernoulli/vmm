@@ -222,6 +222,7 @@ Qwen2.5-7B dense merged assistant
 - merge 方法表：average、task arithmetic、TIES、DARE、DELLA、greedy soup、layer-wise λ。
 - 每个方法的 `avg_score`、`worst_score`、`held-in_retention`、`general_retention`。
 - delta/probe 报告：layer norm、cosine、sign conflict、NLL barrier。
+- Average decision report：把 grid、method、delta conflict、routing probe 汇总成同构 checkpoint 的平均权重建议；输出 `uniform_average_ok`、`coefficient_search`、`structured_average` 或 `avoid_uniform_average`。
 
 ### 推荐的第二轮 MoE 实验
 

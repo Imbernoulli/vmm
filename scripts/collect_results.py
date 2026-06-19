@@ -424,6 +424,23 @@ def summarize_qwen_multi_expert() -> dict[str, Any]:
     }
 
 
+def summarize_average_decision_report() -> dict[str, Any]:
+    summary = read_json("results/average_decision_report/summary.json")
+    decisions = summary.get("decisions", [])
+    verdict_counts: dict[str, int] = {}
+    for row in decisions:
+        verdict = str(row.get("verdict", "unknown"))
+        verdict_counts[verdict] = verdict_counts.get(verdict, 0) + 1
+    return {
+        "summary": summary,
+        "verdict_counts": verdict_counts,
+        "rows": decisions,
+        "report": rel("results/average_decision_report/report.md"),
+        "decision_table": rel("results/average_decision_report/decision_table.csv"),
+        "parameter_group_actions": rel("results/average_decision_report/parameter_group_actions.csv"),
+    }
+
+
 def coverage_checklist() -> list[dict[str, str]]:
     return [
         {
@@ -492,6 +509,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "Representative Qwen2.5-1.5B benchmark slices cover MMLU, GSM8K, HumanEval canonical-solution NLL, and BeaverTails safety/refusal NLL.",
         },
         {
+            "item": "Probe-guided Average decision report",
+            "status": "complete",
+            "evidence": "results/average_decision_report/report.md converts merge grids, conflict probes, and optional MoE routing probes into same-shape average decisions.",
+        },
+        {
             "item": "Interactive explainer UI",
             "status": "complete",
             "evidence": "Dashboard includes a draggable precomputed merge-plane explorer with task-pair, method, objective, raw/normalized plane, alpha/beta, and lambda controls.",
@@ -514,6 +536,7 @@ def build_summary() -> dict[str, Any]:
         "qwen_safety_refusal_slice": summarize_qwen_safety(),
         "qwen_multi_expert_merge": summarize_qwen_multi_expert(),
         "qwen_probe_smoke": summarize_qwen_probe_smoke(),
+        "average_decision_report": summarize_average_decision_report(),
     }
     coverage = coverage_checklist()
     counts = {
@@ -542,6 +565,7 @@ def build_summary() -> dict[str, Any]:
             "PYTHONPATH=src python scripts/run_qwen_humaneval_nll_slice.py --output-dir results/qwen_humaneval_nll_slice",
             "PYTHONPATH=src python scripts/run_qwen_safety_refusal_slice.py --output-dir results/qwen_safety_refusal_slice",
             "PYTHONPATH=src python scripts/run_qwen_multi_expert_merge.py --output-dir results/qwen_multi_expert_merge",
+            "PYTHONPATH=src python scripts/build_average_decision_report.py",
             "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
             "PYTHONPATH=src python scripts/collect_results.py",
         ],
@@ -569,6 +593,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     safety = exp["qwen_safety_refusal_slice"]
     qwen_multi = exp["qwen_multi_expert_merge"]
     qwen_multi_conflict = qwen_multi["instruct_coder_conflict"] or {}
+    average_decision = exp["average_decision_report"]
     coverage_counts = summary["coverage_counts"]
     lines = [
         "# Result Summary",
@@ -698,6 +723,14 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| Qwen multi-expert | instruct/coder weighted conflict | "
                 f"{fmt(qwen_multi_conflict.get('weighted_conflict'))} |"
+            ),
+            (
+                "| Average decision report | avoid uniform average decisions | "
+                f"{average_decision['verdict_counts'].get('avoid_uniform_average', 0)} |"
+            ),
+            (
+                "| Average decision report | coefficient-search decisions | "
+                f"{average_decision['verdict_counts'].get('coefficient_search', 0)} |"
             ),
         ]
     )

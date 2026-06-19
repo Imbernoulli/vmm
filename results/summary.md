@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T03:26:04.197988+00:00`
+Generated at: `2026-06-19T03:34:02.806316+00:00`
 
 ## Coverage
 
-Complete: `14`; partial: `0`; missing: `0`.
+Complete: `15`; partial: `0`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -21,6 +21,7 @@ Complete: `14`; partial: `0`; missing: `0`.
 | Real Qwen LLM path sweep | complete | Qwen2.5-1.5B base-to-instruct path is evaluated with fixed NLL prompts plus GSM8K, MMLU, and HumanEval benchmark slices. |
 | Multi-expert LLM merge | complete | Qwen2.5-0.5B base, Qwen2.5-0.5B-Instruct, and Qwen2.5-Coder-0.5B-Instruct are evaluated in a two-expert merge plane. |
 | Formal LLM benchmark slices | complete | Representative Qwen2.5-1.5B benchmark slices cover MMLU, GSM8K, HumanEval canonical-solution NLL, and BeaverTails safety/refusal NLL. |
+| Probe-guided Average decision report | complete | results/average_decision_report/report.md converts merge grids, conflict probes, and optional MoE routing probes into same-shape average decisions. |
 | Interactive explainer UI | complete | Dashboard includes a draggable precomputed merge-plane explorer with task-pair, method, objective, raw/normalized plane, alpha/beta, and lambda controls. |
 
 ## Key Metrics
@@ -53,3 +54,5 @@ Complete: `14`; partial: `0`; missing: `0`.
 | Qwen multi-expert | best average-NLL method | instruct_expert (3.009) |
 | Qwen multi-expert | linear-average avg / worst NLL | 5.591 / 9.553 |
 | Qwen multi-expert | instruct/coder weighted conflict | 0.386 |
+| Average decision report | avoid uniform average decisions | 3 |
+| Average decision report | coefficient-search decisions | 2 |
