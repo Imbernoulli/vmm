@@ -1,22 +1,28 @@
 {
   "artifacts": [
     {
+      "bytes": 23268,
+      "kind": "document",
+      "path": "MODEL_AVERAGING_PROBES_AND_MOE_OPTIMIZATION.md",
+      "sha256": "ef583a29d3e6f20c71872aeb8b1970fe635b033ae230d4a5840628d296402264"
+    },
+    {
       "bytes": 20526,
       "kind": "document",
       "path": "PAPER.md",
       "sha256": "313cfe00a4f762c28f5fe1b881615f93e824f15a3f1ac2440b17d363819b3706"
     },
     {
-      "bytes": 18651,
+      "bytes": 19276,
       "kind": "document",
       "path": "QWEN_DENSE_MOE_EXPERIMENT_PLAN.md",
-      "sha256": "cc5d25005900d1e6cfebf48067fed7d83952b03f713574bb45fd683056aaa03f"
+      "sha256": "b27f4d8ca5e2fa854c26b0692a0cb98c7f5ab3df6d34a46da80702a0fe227449"
     },
     {
-      "bytes": 20657,
+      "bytes": 21166,
       "kind": "document",
       "path": "README.md",
-      "sha256": "20a3cac3a67193d787af96b4d0d66947542d62ce62aded883f93d7bac036ed3b"
+      "sha256": "d4a4667243991146fa1cbf8c61be1261293466c0982539be8cb1a3712833653e"
     },
     {
       "bytes": 33211,
@@ -826,13 +832,13 @@
       "bytes": 47615,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "5fedc9a0b3aeae335a2e52bbbf816c75c1a5e3fd2931f207b9d2de5a249ae3d1"
+      "sha256": "93cabb522fa21042d7c30afc6b2732fd558c23ac11f100210fba71e09a5212db"
     },
     {
       "bytes": 3785,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "d0eb617f86b9765e58d206b77cc3ba7b3c525ffff273aed7dc6b26737258aec2"
+      "sha256": "2aaba81563cef63041235a8a622340ae1e7f7470798f6c1e08074586e1b42d95"
     },
     {
       "bytes": 13129,
@@ -847,10 +853,16 @@
       "sha256": "66a85c2fb4268b7d551593f659b58f730d3dee02ec1e203bf09cf32648b0afe0"
     },
     {
-      "bytes": 31929,
+      "bytes": 31999,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "58fe910c546330f110b2d2aa15d50279f8019b66a8ba9e6e9ee2a246842b5816"
+      "sha256": "ee2bc938118b7b51dddcc75e73d6b463b6b2660c3f1b629f9c5f69d11acf1cf2"
+    },
+    {
+      "bytes": 15724,
+      "kind": "code",
+      "path": "scripts/probe_moe_routing.py",
+      "sha256": "2142409f477b4a166b12290be8d0ff97f002cf97af98ba4685e7ab6e991b629c"
     },
     {
       "bytes": 9487,
@@ -949,7 +961,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T03:12:15.785179+00:00",
+  "generated_at": "2026-06-19T03:26:04.199619+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

@@ -92,6 +92,7 @@ def collect_artifacts() -> list[dict[str, Any]]:
         REPO_ROOT / "README.md",
         REPO_ROOT / "RESEARCH_REPORT.md",
         REPO_ROOT / "PAPER.md",
+        REPO_ROOT / "MODEL_AVERAGING_PROBES_AND_MOE_OPTIMIZATION.md",
         REPO_ROOT / "QWEN_DENSE_MOE_EXPERIMENT_PLAN.md",
         REPO_ROOT / "proposal.md",
         REPO_ROOT / "src",
