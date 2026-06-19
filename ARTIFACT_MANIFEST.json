@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 41778,
+      "bytes": 42709,
       "kind": "document",
       "path": "README.md",
-      "sha256": "646d37c69fa397ea9e55703784862226f76e2f49abc71035f375804e2948abe2"
+      "sha256": "897fd5b83fc2b7c53ff283f394da127db7e23719c33a8bc6091ab1a8f3c0aacb"
     },
     {
       "bytes": 33211,
@@ -1075,6 +1075,36 @@
       "sha256": "cc09abed22adb97cbe8418801d1284e1fe480ac3f1a4dc2c55a5752f8b197047"
     },
     {
+      "bytes": 1804,
+      "kind": "data",
+      "path": "results/probe_gated_unified_average_plan/dense_mechanism_contrasts.csv",
+      "sha256": "e4edeb23ffb7d2949c8e07d9847534b55c990104cc39c85fbf6adbb7091f37dc"
+    },
+    {
+      "bytes": 2634,
+      "kind": "data",
+      "path": "results/probe_gated_unified_average_plan/intervention_plan.csv",
+      "sha256": "ce4c04d2365b2c9df597e7c6d9ada0dbbe9c58cd74ea567aedf7d0308f47391f"
+    },
+    {
+      "bytes": 2600,
+      "kind": "data",
+      "path": "results/probe_gated_unified_average_plan/moe_mechanism_contrasts.csv",
+      "sha256": "721a1a7e35fc168872789579ff64d7501f35154fe219ebb6b5d841065f5ae4cb"
+    },
+    {
+      "bytes": 4696,
+      "kind": "document",
+      "path": "results/probe_gated_unified_average_plan/report.md",
+      "sha256": "58875a1a6dca7066f04a3e0eb3d671a1c32ed4c1ae76cc7c4b16cd0b28ae9f46"
+    },
+    {
+      "bytes": 1192,
+      "kind": "data",
+      "path": "results/probe_gated_unified_average_plan/summary.json",
+      "sha256": "200597da3794944d190cf5a4da20c0ba2573773bb77e6d0f5c0a130163087ab0"
+    },
+    {
       "bytes": 4952,
       "kind": "data",
       "path": "results/probe_guided_dense_average_candidate/candidate_scores.csv",
@@ -1477,16 +1507,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 372515,
+      "bytes": 386899,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "b1f41e18bc4400fe06f6b0aaffe45b8d51ee2bbb4df25169a8021a34f98ab24a"
+      "sha256": "72481afea21e17220769fcf4692d6802da7928e0ca579d5c256814d1470f0fc0"
     },
     {
-      "bytes": 24202,
+      "bytes": 24884,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "746347310d10712dddd549b65f8d9193814d51c17e61cfc29793bb1549175cf4"
+      "sha256": "227ffc6c19e16325163b62431334b6164179b81c55a11559db866f1ffd4e0f89"
     },
     {
       "bytes": 288,
@@ -2437,6 +2467,12 @@
       "sha256": "ad01d594be71d23b5241f6e23ac3a4fc68a91cd2c3a14fdaf081c2fbc74f2653"
     },
     {
+      "bytes": 20784,
+      "kind": "code",
+      "path": "scripts/build_probe_gated_unified_average_plan.py",
+      "sha256": "5ad6a07e7dc1b419a0876a42a7edc4afdfe7694ff5b3a154661707d46cc12a99"
+    },
+    {
       "bytes": 16919,
       "kind": "code",
       "path": "scripts/build_probe_guided_dense_average_candidate.py",
@@ -2467,10 +2503,10 @@
       "sha256": "0b0e4be7ec51f0afb74dfdee6e3d8b217da9aac4d965a170bea36c89f1b46abb"
     },
     {
-      "bytes": 151496,
+      "bytes": 154929,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "f22d5a13166e3437fbca4a29132ad998abe1dab20cb25625d6420615b670c46b"
+      "sha256": "73ac4a6e2b7ec3f00e3b564b181ad306427914f5b04cefb22331bc287c5edb98"
     },
     {
       "bytes": 17809,
@@ -2635,7 +2671,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T15:53:27.267361+00:00",
+  "generated_at": "2026-06-19T16:01:56.283817+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

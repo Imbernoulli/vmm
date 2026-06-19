@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T15:53:27.223057+00:00`
+Generated at: `2026-06-19T16:01:56.235801+00:00`
 
 ## Coverage
 
-Complete: `46`; partial: `1`; missing: `0`.
+Complete: `47`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -30,6 +30,7 @@ Complete: `46`; partial: `1`; missing: `0`.
 | vLLM checkpoint eval plan | complete | results/vllm_checkpoint_eval_plan/report.md turns same-shape checkpoint candidates into one-checkpoint-at-a-time vLLM serve/eval commands while keeping missing checkpoints separate from completed metrics. |
 | Checkpoint materialization readiness audit | complete | results/checkpoint_materialization_readiness/report.md audits writer commands, placeholders, dry-run outputs, checkpoint existence, and vLLM eval readiness in one table. |
 | MoE materialization pipeline plan | complete | results/moe_materialization_pipeline_plan/report.md connects Qwen MoE target selection, topology, routing probe, readiness, route weights, expert remap, router-bias deltas, checkpoint writer, and vLLM eval gates. |
+| Probe-gated unified average plan | complete | results/probe_gated_unified_average_plan/report.md turns Dense vLLM ablations and toy MoE mechanism contrasts into a same-shape intervention gate rather than a static method ranking. |
 | Probe-guided Average decision report | complete | results/average_decision_report/report.md converts merge grids, conflict probes, and optional MoE routing probes into same-shape average decisions. |
 | Dense/MoE averaging literature matrix | complete | results/model_averaging_literature_review/report.md maps recent model averaging and MoE merging papers to probes, failure signals, and same-shape writer actions. |
 | Qwen target model registry | complete | results/qwen_target_model_registry/report.md maps representative official, third-party, downstream, and adapter-pool Qwen candidates to scenarios, eval slices, probes, and same-shape topology gates. |
@@ -211,6 +212,10 @@ Complete: `46`; partial: `1`; missing: `0`.
 | MoE materialization pipeline | status | waiting_for_real_moe_probe_or_paths |
 | MoE materialization pipeline | current blocking stage | exact_moe_topology |
 | MoE materialization pipeline | ready / waiting gates | 3 / 7 |
+| probe-gated unified average | dense default action | probe_guided_global_bridge_only |
+| probe-gated unified average | dense bridge delta / module-guard delta | 0.023 / -0.043 |
+| probe-gated unified average | MoE default action | expert_identity_plus_confidence_blended_expert_weights_plus_guarded_router_plus_capacity_gate |
+| probe-gated unified average | MoE expert gain / overflow delta / real blocker | 0.205 / -0.029 / exact_moe_topology |
 | Average decision report | avoid uniform average decisions | 3 |
 | Average decision report | coefficient-search decisions | 2 |
 | model averaging literature review | sources reviewed | 22 |

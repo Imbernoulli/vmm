@@ -111,6 +111,11 @@
       "status": "complete"
     },
     {
+      "evidence": "results/probe_gated_unified_average_plan/report.md turns Dense vLLM ablations and toy MoE mechanism contrasts into a same-shape intervention gate rather than a static method ranking.",
+      "item": "Probe-gated unified average plan",
+      "status": "complete"
+    },
+    {
       "evidence": "results/average_decision_report/report.md converts merge grids, conflict probes, and optional MoE routing probes into same-shape average decisions.",
       "item": "Probe-guided Average decision report",
       "status": "complete"
@@ -237,7 +242,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 46,
+    "complete": 47,
     "missing": 0,
     "partial": 1
   },
@@ -2521,6 +2526,240 @@
         "object_norm": 0.1374574303627014,
         "sign_conflict": 0.800000011920929,
         "weighted_conflict": 0.8317997455596924
+      }
+    },
+    "probe_gated_unified_average_plan": {
+      "dense_bridge_avg_primary_delta_vs_uniform": 0.0234375,
+      "dense_contrasts": [
+        {
+          "action": "reject_uniform_average",
+          "avg_primary_delta": -0.1953125,
+          "baseline": "source_qwen_0_5b_base",
+          "candidate": "qwen_0_5b_instruct_coder_uniform_average",
+          "contrast": "uniform_average_vs_best_source",
+          "interpretation": "Uniform Dense averaging is not a safe default when task skills are not in the same low-loss basin.",
+          "mechanism": "midpoint ridge and endpoint skill mismatch",
+          "probe_delta": null,
+          "worst_primary_delta": -0.09375
+        },
+        {
+          "action": "keep_global_probe_guided_bridge_as_dense_baseline",
+          "avg_primary_delta": 0.0234375,
+          "baseline": "qwen_0_5b_instruct_coder_uniform_average",
+          "candidate": "qwen_0_5b_probe_guided_bridge_a025_b100",
+          "contrast": "probe_guided_bridge_vs_uniform",
+          "interpretation": "Global coefficient search transfers from NLL probe to a small vLLM gain, but still does not beat the best source.",
+          "mechanism": "validation NLL selects a coder-anchored bridge away from the midpoint ridge",
+          "probe_delta": 1.920978920132507,
+          "worst_primary_delta": 0.0
+        },
+        {
+          "action": "reject_aggressive_module_guard",
+          "avg_primary_delta": -0.04296875,
+          "baseline": "qwen_0_5b_probe_guided_bridge_a025_b100",
+          "candidate": "qwen_0_5b_module_guarded_bridge",
+          "contrast": "aggressive_module_guard_vs_global_bridge",
+          "interpretation": "A high conflict score identifies a mechanism, but the intervention must be narrower than a whole-module rule.",
+          "mechanism": "module-level conflict is too coarse; freezing anchors and damping MLP removes useful adaptation",
+          "probe_delta": null,
+          "worst_primary_delta": null
+        },
+        {
+          "action": "hold_norm_guard_for_targeted_ablation_only",
+          "avg_primary_delta": 0.0,
+          "baseline": "qwen_0_5b_probe_guided_bridge_a025_b100",
+          "candidate": "qwen_0_5b_norm_guarded_bridge",
+          "contrast": "norm_only_guard_vs_global_bridge",
+          "interpretation": "Norm freezing is neutral on aggregate here, so it should remain an ablation knob rather than a default.",
+          "mechanism": "normalization deltas shift task distribution rather than uniformly improving all tasks",
+          "probe_delta": null,
+          "worst_primary_delta": null
+        },
+        {
+          "action": "reject_static_high_conflict_tensor_freeze",
+          "avg_primary_delta": -0.01171875,
+          "baseline": "qwen_0_5b_probe_guided_bridge_a025_b100",
+          "candidate": "qwen_0_5b_selective_norm_guarded_bridge",
+          "contrast": "selective_norm_guard_vs_global_bridge",
+          "interpretation": "Freezing only extreme sign-conflict norm tensors hurts the real endpoint score.",
+          "mechanism": "highest-conflict norm tensors are not sufficient causal levers",
+          "probe_delta": null,
+          "worst_primary_delta": null
+        }
+      ],
+      "dense_default_action": "probe_guided_global_bridge_only",
+      "dense_mechanism_contrasts": "results/probe_gated_unified_average_plan/dense_mechanism_contrasts.csv",
+      "dense_module_guard_delta_vs_bridge": -0.04296875,
+      "intervention_plan": [
+        {
+          "decision": "enabled_for_dense_baseline",
+          "evidence": "bridge avg primary delta vs uniform = 0.023",
+          "same_shape_action": "write base + 0.25 * instruct_delta + 1.0 * coder_delta",
+          "stage": "dense_global_coefficients",
+          "trigger": "uniform midpoint underperforms probe-selected bridge",
+          "why": "NLL barrier probe predicted the midpoint ridge and the vLLM eval confirmed a positive average-score delta."
+        },
+        {
+          "decision": "rejected_as_default",
+          "evidence": "module-guard delta vs bridge = -0.043",
+          "same_shape_action": "do not freeze full embedding/norm groups or damp all MLP tensors by default",
+          "stage": "dense_module_freeze_guard",
+          "trigger": "module conflict looks high",
+          "why": "The broad module action removed useful adaptation even though the conflict probe was real."
+        },
+        {
+          "decision": "rejected_as_default",
+          "evidence": "selective-norm delta vs bridge = -0.012",
+          "same_shape_action": "only use static tensor freezes inside a scored ablation sweep",
+          "stage": "dense_static_tensor_freeze",
+          "trigger": "highest-conflict norm tensors",
+          "why": "The targeted high-conflict norm freeze did not improve held-out endpoint behavior."
+        },
+        {
+          "decision": "required_for_moe",
+          "evidence": "expert matching soft worst-acc gain = 0.205",
+          "same_shape_action": "generate layer-scoped source_tensor_aliases before expert averaging",
+          "stage": "moe_expert_identity",
+          "trigger": "expert output cosine or route behavior shows index mismatch",
+          "why": "MoE experts are not exchangeable by tensor name; matching recovers the largest failure component."
+        },
+        {
+          "decision": "enabled_for_moe",
+          "evidence": "captured_fraction min/mean/max = 0.238/0.616/0.957",
+          "same_shape_action": "blend search weights and output-projection weights per expert using captured_fraction",
+          "stage": "moe_expert_weights",
+          "trigger": "per-expert projection captured_fraction is heterogeneous",
+          "why": "Projection is highly reliable for some experts and unreliable for others, so a single expert-weight rule is too coarse."
+        },
+        {
+          "decision": "guarded_calibration_required",
+          "evidence": "matched router calibration soft worst-acc gain = 0.055",
+          "same_shape_action": "freeze, KD-calibrate, or small-lambda calibrate router only after route overlap checks",
+          "stage": "moe_router",
+          "trigger": "expert weights changed or route overlap is below guard threshold",
+          "why": "Router prior and expert weights must be calibrated together; blind router averaging is not a valid default."
+        },
+        {
+          "decision": "capacity_gate_not_unconditional",
+          "evidence": "confidence-blended bias-capacity overflow delta = -0.029",
+          "same_shape_action": "write router-bias deltas only when overflow reduction is worth the accuracy cost",
+          "stage": "moe_capacity",
+          "trigger": "top-k load overflow exceeds capacity budget",
+          "why": "Capacity overflow is separate from NLL/accuracy; optimizing only accuracy leaves dispatch infeasible under sparse serving."
+        },
+        {
+          "decision": "blocked_until_real_probe",
+          "evidence": "current blocking stage = exact_moe_topology",
+          "same_shape_action": "do not emit final Qwen MoE writer command until exact headers and real routing probe exist",
+          "stage": "real_qwen_moe_materialization",
+          "trigger": "all probe-gated MoE components need real Qwen topology and routing inputs",
+          "why": "Toy/template writer readiness is not evidence that the real Qwen MoE tensors and routes are ready."
+        }
+      ],
+      "intervention_plan_csv": "results/probe_gated_unified_average_plan/intervention_plan.csv",
+      "moe_capacity_topk_overflow_delta": -0.028749999999999998,
+      "moe_contrasts": [
+        {
+          "action": "apply_layerwise_expert_alias_or_matching_before_expert_average",
+          "baseline": "all_weight_average",
+          "candidate": "expert_matched_average",
+          "contrast": "expert_identity_alignment",
+          "expert_match_mean_cosine": 0.9766365140676498,
+          "hard_top2_worst_acc_delta": 0.0899999999999999,
+          "interpretation": "Most of the toy MoE failure is recovered by matching expert output behavior before averaging.",
+          "mechanism": "same-name expert tensors are semantically permuted",
+          "projection_captured_fraction_max": 0.9573736432462014,
+          "projection_captured_fraction_mean": 0.6164101996956941,
+          "projection_captured_fraction_min": 0.2382508114036843,
+          "soft_worst_acc_delta": 0.2049999999999999,
+          "topk_overflow_delta": -0.0387499999999999
+        },
+        {
+          "action": "calibrate_or_distill_router_under_route_overlap_guard",
+          "baseline": "matched_router_frozen_average",
+          "candidate": "matched_router_calibrated_average",
+          "contrast": "router_calibration_after_matching",
+          "expert_match_mean_cosine": 0.9766365140676498,
+          "hard_top2_worst_acc_delta": 0.005,
+          "interpretation": "A frozen router is safer than naive router averaging, but held-out router calibration adds measurable soft accuracy.",
+          "mechanism": "expert weights and router dispatch must be co-calibrated",
+          "projection_captured_fraction_max": 0.9573736432462014,
+          "projection_captured_fraction_mean": 0.6164101996956941,
+          "projection_captured_fraction_min": 0.2382508114036843,
+          "soft_worst_acc_delta": 0.0549999999999999,
+          "topk_overflow_delta": -0.01375
+        },
+        {
+          "action": "use_projection_when_captured_fraction_is_high",
+          "baseline": "expert_weight_search_router_calibrated_average",
+          "candidate": "expert_output_projection_router_calibrated_average",
+          "contrast": "route_conditioned_output_projection",
+          "expert_match_mean_cosine": 0.9766365140676498,
+          "hard_top2_worst_acc_delta": 0.005,
+          "interpretation": "Output-space projection gives the best soft-router score, but it is less robust under hard sparse dispatch.",
+          "mechanism": "expert source weights should explain routed output residuals, not only parameter deltas",
+          "projection_captured_fraction_max": 0.9573736432462014,
+          "projection_captured_fraction_mean": 0.6164101996956941,
+          "projection_captured_fraction_min": 0.2382508114036843,
+          "soft_worst_acc_delta": 0.005,
+          "topk_overflow_delta": -0.00125
+        },
+        {
+          "action": "blend_projection_with_search_using_expert_captured_fraction",
+          "baseline": "unified_output_projection_moe_average",
+          "candidate": "unified_confidence_blended_moe_average",
+          "contrast": "projection_confidence_blend",
+          "expert_match_mean_cosine": 0.9766365140676498,
+          "hard_top2_worst_acc_delta": 0.0049999999999998,
+          "interpretation": "Confidence blending trades a small soft loss for better hard top-2 sparse accuracy.",
+          "mechanism": "projection is reliable for some experts and over-moves others",
+          "projection_captured_fraction_max": 0.9573736432462014,
+          "projection_captured_fraction_mean": 0.6164101996956941,
+          "projection_captured_fraction_min": 0.2382508114036843,
+          "soft_worst_acc_delta": -0.005,
+          "topk_overflow_delta": 0.0062499999999999
+        },
+        {
+          "action": "apply_router_bias_delta_when_overflow_is_above_capacity_budget",
+          "baseline": "unified_confidence_blended_moe_average",
+          "candidate": "unified_confidence_blended_bias_capacity_average",
+          "contrast": "capacity_bias_correction",
+          "expert_match_mean_cosine": 0.9766365140676498,
+          "hard_top2_worst_acc_delta": -0.0099999999999998,
+          "interpretation": "Bias-only capacity correction sharply reduces overflow but costs some accuracy; keep it as a capacity gate.",
+          "mechanism": "top-k capacity overflow is a separate failure mode from task loss",
+          "projection_captured_fraction_max": 0.9573736432462014,
+          "projection_captured_fraction_mean": 0.6164101996956941,
+          "projection_captured_fraction_min": 0.2382508114036843,
+          "soft_worst_acc_delta": -0.02,
+          "topk_overflow_delta": -0.0287499999999999
+        }
+      ],
+      "moe_default_action": "expert_identity_plus_confidence_blended_expert_weights_plus_guarded_router_plus_capacity_gate",
+      "moe_expert_identity_soft_worst_acc_gain": 0.20499999999999996,
+      "moe_mechanism_contrasts": "results/probe_gated_unified_average_plan/moe_mechanism_contrasts.csv",
+      "real_qwen_moe_blocker": "exact_moe_topology",
+      "report": "results/probe_gated_unified_average_plan/report.md",
+      "status": "plan_ready_real_moe_waiting_for_probe",
+      "summary": {
+        "dense_bridge_avg_primary_delta_vs_uniform": 0.0234375,
+        "dense_default_action": "probe_guided_global_bridge_only",
+        "dense_module_guard_delta_vs_bridge": -0.04296875,
+        "generated_at": "2026-06-19T15:59:26.758013+00:00",
+        "moe_capacity_topk_overflow_delta": -0.028749999999999998,
+        "moe_default_action": "expert_identity_plus_confidence_blended_expert_weights_plus_guarded_router_plus_capacity_gate",
+        "moe_expert_identity_soft_worst_acc_gain": 0.20499999999999996,
+        "outputs": {
+          "dense_mechanism_contrasts": "results/probe_gated_unified_average_plan/dense_mechanism_contrasts.csv",
+          "intervention_plan": "results/probe_gated_unified_average_plan/intervention_plan.csv",
+          "moe_mechanism_contrasts": "results/probe_gated_unified_average_plan/moe_mechanism_contrasts.csv",
+          "report": "results/probe_gated_unified_average_plan/report.md",
+          "summary": "results/probe_gated_unified_average_plan/summary.json"
+        },
+        "real_qwen_moe_blocker": "exact_moe_topology",
+        "same_shape_invariant": "No stage changes tokenizer, model class, tensor names, tensor shapes, router shape, or expert count.",
+        "schema_version": 1,
+        "status": "plan_ready_real_moe_waiting_for_probe"
       }
     },
     "probe_guided_dense_average_candidate": {
@@ -8230,7 +8469,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-19T15:53:27.223057+00:00",
+  "generated_at": "2026-06-19T16:01:56.235801+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -8279,6 +8518,7 @@
     "PYTHONPATH=src python scripts/build_moe_combined_materialization_recipe.py",
     "PYTHONPATH=src python scripts/build_checkpoint_materialization_readiness.py --output-dir results/checkpoint_materialization_readiness",
     "PYTHONPATH=src python scripts/build_moe_materialization_pipeline_plan.py --output-dir results/moe_materialization_pipeline_plan",
+    "PYTHONPATH=src python scripts/build_probe_gated_unified_average_plan.py --output-dir results/probe_gated_unified_average_plan",
     "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
     "PYTHONPATH=src python scripts/collect_results.py"
   ],

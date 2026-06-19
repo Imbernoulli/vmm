@@ -1448,6 +1448,31 @@ def summarize_moe_materialization_pipeline_plan() -> dict[str, Any]:
     }
 
 
+def summarize_probe_gated_unified_average_plan() -> dict[str, Any]:
+    summary = read_json("results/probe_gated_unified_average_plan/summary.json")
+    dense = read_csv("results/probe_gated_unified_average_plan/dense_mechanism_contrasts.csv")
+    moe = read_csv("results/probe_gated_unified_average_plan/moe_mechanism_contrasts.csv")
+    plan = read_csv("results/probe_gated_unified_average_plan/intervention_plan.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "dense_default_action": summary.get("dense_default_action"),
+        "dense_bridge_avg_primary_delta_vs_uniform": float(summary.get("dense_bridge_avg_primary_delta_vs_uniform", 0.0)),
+        "dense_module_guard_delta_vs_bridge": float(summary.get("dense_module_guard_delta_vs_bridge", 0.0)),
+        "moe_default_action": summary.get("moe_default_action"),
+        "moe_expert_identity_soft_worst_acc_gain": float(summary.get("moe_expert_identity_soft_worst_acc_gain", 0.0)),
+        "moe_capacity_topk_overflow_delta": float(summary.get("moe_capacity_topk_overflow_delta", 0.0)),
+        "real_qwen_moe_blocker": summary.get("real_qwen_moe_blocker"),
+        "dense_contrasts": [clean_row(row) for _, row in dense.iterrows()],
+        "moe_contrasts": [clean_row(row) for _, row in moe.iterrows()],
+        "intervention_plan": [clean_row(row) for _, row in plan.iterrows()],
+        "report": rel("results/probe_gated_unified_average_plan/report.md"),
+        "dense_mechanism_contrasts": rel("results/probe_gated_unified_average_plan/dense_mechanism_contrasts.csv"),
+        "moe_mechanism_contrasts": rel("results/probe_gated_unified_average_plan/moe_mechanism_contrasts.csv"),
+        "intervention_plan_csv": rel("results/probe_gated_unified_average_plan/intervention_plan.csv"),
+    }
+
+
 def summarize_model_averaging_literature_review() -> dict[str, Any]:
     summary = read_json("results/model_averaging_literature_review/summary.json")
     methods = read_csv("results/model_averaging_literature_review/method_matrix.csv")
@@ -1632,6 +1657,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/moe_materialization_pipeline_plan/report.md connects Qwen MoE target selection, topology, routing probe, readiness, route weights, expert remap, router-bias deltas, checkpoint writer, and vLLM eval gates.",
         },
         {
+            "item": "Probe-gated unified average plan",
+            "status": "complete",
+            "evidence": "results/probe_gated_unified_average_plan/report.md turns Dense vLLM ablations and toy MoE mechanism contrasts into a same-shape intervention gate rather than a static method ranking.",
+        },
+        {
             "item": "Probe-guided Average decision report",
             "status": "complete",
             "evidence": "results/average_decision_report/report.md converts merge grids, conflict probes, and optional MoE routing probes into same-shape average decisions.",
@@ -1814,6 +1844,7 @@ def build_summary() -> dict[str, Any]:
         ),
         "checkpoint_materialization_readiness": summarize_checkpoint_materialization_readiness(),
         "moe_materialization_pipeline_plan": summarize_moe_materialization_pipeline_plan(),
+        "probe_gated_unified_average_plan": summarize_probe_gated_unified_average_plan(),
     }
     coverage = coverage_checklist()
     counts = {
@@ -1881,6 +1912,7 @@ def build_summary() -> dict[str, Any]:
             "PYTHONPATH=src python scripts/build_moe_combined_materialization_recipe.py",
             "PYTHONPATH=src python scripts/build_checkpoint_materialization_readiness.py --output-dir results/checkpoint_materialization_readiness",
             "PYTHONPATH=src python scripts/build_moe_materialization_pipeline_plan.py --output-dir results/moe_materialization_pipeline_plan",
+            "PYTHONPATH=src python scripts/build_probe_gated_unified_average_plan.py --output-dir results/probe_gated_unified_average_plan",
             "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
             "PYTHONPATH=src python scripts/collect_results.py",
         ],
@@ -1954,6 +1986,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen_dense_selective_norm_guarded = exp["qwen_dense_selective_norm_guarded_candidate"]
     materialization_readiness = exp["checkpoint_materialization_readiness"]
     moe_pipeline_plan = exp["moe_materialization_pipeline_plan"]
+    probe_gated_unified = exp["probe_gated_unified_average_plan"]
     coverage_counts = summary["coverage_counts"]
     lines = [
         "# Result Summary",
@@ -2603,6 +2636,25 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| MoE materialization pipeline | ready / waiting gates | "
                 f"{moe_pipeline_plan['ready_or_complete_count']} / {moe_pipeline_plan['waiting_or_blocked_count']} |"
+            ),
+            (
+                "| probe-gated unified average | dense default action | "
+                f"{probe_gated_unified['dense_default_action']} |"
+            ),
+            (
+                "| probe-gated unified average | dense bridge delta / module-guard delta | "
+                f"{probe_gated_unified['dense_bridge_avg_primary_delta_vs_uniform']:.3f} / "
+                f"{probe_gated_unified['dense_module_guard_delta_vs_bridge']:.3f} |"
+            ),
+            (
+                "| probe-gated unified average | MoE default action | "
+                f"{probe_gated_unified['moe_default_action']} |"
+            ),
+            (
+                "| probe-gated unified average | MoE expert gain / overflow delta / real blocker | "
+                f"{probe_gated_unified['moe_expert_identity_soft_worst_acc_gain']:.3f} / "
+                f"{probe_gated_unified['moe_capacity_topk_overflow_delta']:.3f} / "
+                f"{probe_gated_unified['real_qwen_moe_blocker']} |"
             ),
             (
                 "| Average decision report | avoid uniform average decisions | "
