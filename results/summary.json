@@ -86,13 +86,18 @@
       "status": "complete"
     },
     {
+      "evidence": "results/average_candidate_recipes/report.md converts probe decisions into conservative same-shape materialization recipes and skips endpoint-only pseudo-averages.",
+      "item": "Average candidate recipes",
+      "status": "complete"
+    },
+    {
       "evidence": "Dashboard includes a draggable precomputed merge-plane explorer with task-pair, method, objective, raw/normalized plane, alpha/beta, and lambda controls.",
       "item": "Interactive explainer UI",
       "status": "complete"
     }
   ],
   "coverage_counts": {
-    "complete": 18,
+    "complete": 19,
     "missing": 0,
     "partial": 0
   },
@@ -116,6 +121,172 @@
         "seed_a": 101,
         "seed_b": 202,
         "steps": 41
+      }
+    },
+    "average_candidate_recipes": {
+      "recipes": "results/average_candidate_recipes/candidate_recipes.csv",
+      "report": "results/average_candidate_recipes/report.md",
+      "rows": [
+        {
+          "alpha": 0.35,
+          "beta": 0.35,
+          "candidate": "best_grid_same_shape_average",
+          "experiment": "digits",
+          "reason": "probe \u8bc1\u636e\u652f\u6301 coefficient-selected \u540c\u6784\u5e73\u5747\u3002",
+          "source": "average_decision_report",
+          "status": "candidate_weighted_average",
+          "writer_command": null
+        },
+        {
+          "alpha": 0.125,
+          "beta": 0.275,
+          "candidate": "best_grid_same_shape_average",
+          "experiment": "cifar10",
+          "reason": "uniform average \u88ab\u5426\u5b9a\uff0c\u4f46 validation grid \u627e\u5230\u4e86 interior \u540c\u6784\u5e73\u5747\u7cfb\u6570\u3002",
+          "source": "average_decision_report",
+          "status": "candidate_interior_weighted_average",
+          "writer_command": null
+        },
+        {
+          "alpha": 0.03125,
+          "beta": 0.03125,
+          "candidate": "best_grid_same_shape_average",
+          "experiment": "cifar100_vit",
+          "reason": "uniform average \u88ab\u5426\u5b9a\uff0c\u4f46 validation grid \u627e\u5230\u4e86 interior \u540c\u6784\u5e73\u5747\u7cfb\u6570\u3002",
+          "source": "average_decision_report",
+          "status": "candidate_interior_weighted_average",
+          "writer_command": null
+        },
+        {
+          "alpha": 0.35,
+          "beta": 0.125,
+          "candidate": "best_grid_same_shape_average",
+          "experiment": "pretrained_vit",
+          "reason": "probe \u8bc1\u636e\u652f\u6301 coefficient-selected \u540c\u6784\u5e73\u5747\u3002",
+          "source": "average_decision_report",
+          "status": "candidate_weighted_average",
+          "writer_command": null
+        },
+        {
+          "alpha": 1.0,
+          "beta": 0.0,
+          "candidate": "best_grid_endpoint",
+          "experiment": "qwen_instruct_coder",
+          "reason": "best grid \u662f\u7aef\u70b9\uff1bmaterialize \u53ea\u4f1a\u590d\u5236\u4e00\u4e2a source delta\uff0c\u4e0d\u662f\u6709\u4ef7\u503c\u7684 average\u3002",
+          "source": "qwen_multi_expert_merge",
+          "status": "skip_endpoint_only",
+          "writer_command": null
+        },
+        {
+          "alpha": 0.5,
+          "beta": 0.5,
+          "candidate": "uniform_average_baseline",
+          "experiment": "qwen_instruct_coder",
+          "reason": "\u5f53\u524d probe \u663e\u793a linear average \u843d\u5728\u9ad8 worst-NLL ridge \u4e0a\uff1b\u53ea\u4fdd\u7559\u4f5c\u8d1f baseline\u3002",
+          "source": "qwen_multi_expert_merge",
+          "status": "skip_rejected_by_probe",
+          "writer_command": null
+        },
+        {
+          "alpha": null,
+          "beta": null,
+          "candidate": "router_frozen_route_aware_average",
+          "experiment": "qwen_moe_template",
+          "reason": "\u9700\u8981\u771f\u5b9e MoE routing/expert-load probe \u586b\u5165 expert-wise route weights\uff1b\u4fdd\u6301 router frozen \u548c\u8f93\u51fa\u7ed3\u6784\u4e0d\u53d8\u3002",
+          "source": "moe_average_plan",
+          "status": "template_waiting_for_routing_probe",
+          "writer_command": "python scripts/write_same_shape_average_checkpoint.py --base MOE_ANCHOR_PATH --source general=MOE_GENERAL_PATH --source code=MOE_CODE_PATH --source-weight general=0.0 --source-weight code=0.0 --freeze-router --tensor-rule '.*self_attn.*::general=0.5,code=0.5' --tensor-rule '.*experts.*::general=ROUTE_WEIGHT_GENERAL,code=ROUTE_WEIGHT_CODE' --output-dir results/checkpoints/moe_route_aware_candidate --dry-run"
+        }
+      ],
+      "status_counts": {
+        "candidate_interior_weighted_average": 2,
+        "candidate_weighted_average": 2,
+        "skip_endpoint_only": 1,
+        "skip_rejected_by_probe": 1,
+        "template_waiting_for_routing_probe": 1
+      },
+      "summary": {
+        "dry_run_commands": true,
+        "rows": [
+          {
+            "alpha": 0.35,
+            "beta": 0.35,
+            "candidate": "best_grid_same_shape_average",
+            "experiment": "digits",
+            "reason": "probe \u8bc1\u636e\u652f\u6301 coefficient-selected \u540c\u6784\u5e73\u5747\u3002",
+            "source": "average_decision_report",
+            "status": "candidate_weighted_average",
+            "writer_command": ""
+          },
+          {
+            "alpha": 0.125,
+            "beta": 0.275,
+            "candidate": "best_grid_same_shape_average",
+            "experiment": "cifar10",
+            "reason": "uniform average \u88ab\u5426\u5b9a\uff0c\u4f46 validation grid \u627e\u5230\u4e86 interior \u540c\u6784\u5e73\u5747\u7cfb\u6570\u3002",
+            "source": "average_decision_report",
+            "status": "candidate_interior_weighted_average",
+            "writer_command": ""
+          },
+          {
+            "alpha": 0.03125,
+            "beta": 0.03125,
+            "candidate": "best_grid_same_shape_average",
+            "experiment": "cifar100_vit",
+            "reason": "uniform average \u88ab\u5426\u5b9a\uff0c\u4f46 validation grid \u627e\u5230\u4e86 interior \u540c\u6784\u5e73\u5747\u7cfb\u6570\u3002",
+            "source": "average_decision_report",
+            "status": "candidate_interior_weighted_average",
+            "writer_command": ""
+          },
+          {
+            "alpha": 0.35,
+            "beta": 0.125,
+            "candidate": "best_grid_same_shape_average",
+            "experiment": "pretrained_vit",
+            "reason": "probe \u8bc1\u636e\u652f\u6301 coefficient-selected \u540c\u6784\u5e73\u5747\u3002",
+            "source": "average_decision_report",
+            "status": "candidate_weighted_average",
+            "writer_command": ""
+          },
+          {
+            "alpha": 1.0,
+            "beta": 0.0,
+            "candidate": "best_grid_endpoint",
+            "experiment": "qwen_instruct_coder",
+            "reason": "best grid \u662f\u7aef\u70b9\uff1bmaterialize \u53ea\u4f1a\u590d\u5236\u4e00\u4e2a source delta\uff0c\u4e0d\u662f\u6709\u4ef7\u503c\u7684 average\u3002",
+            "source": "qwen_multi_expert_merge",
+            "status": "skip_endpoint_only",
+            "writer_command": ""
+          },
+          {
+            "alpha": 0.5,
+            "beta": 0.5,
+            "candidate": "uniform_average_baseline",
+            "experiment": "qwen_instruct_coder",
+            "reason": "\u5f53\u524d probe \u663e\u793a linear average \u843d\u5728\u9ad8 worst-NLL ridge \u4e0a\uff1b\u53ea\u4fdd\u7559\u4f5c\u8d1f baseline\u3002",
+            "source": "qwen_multi_expert_merge",
+            "status": "skip_rejected_by_probe",
+            "writer_command": ""
+          },
+          {
+            "alpha": null,
+            "beta": null,
+            "candidate": "router_frozen_route_aware_average",
+            "experiment": "qwen_moe_template",
+            "reason": "\u9700\u8981\u771f\u5b9e MoE routing/expert-load probe \u586b\u5165 expert-wise route weights\uff1b\u4fdd\u6301 router frozen \u548c\u8f93\u51fa\u7ed3\u6784\u4e0d\u53d8\u3002",
+            "source": "moe_average_plan",
+            "status": "template_waiting_for_routing_probe",
+            "writer_command": "python scripts/write_same_shape_average_checkpoint.py --base MOE_ANCHOR_PATH --source general=MOE_GENERAL_PATH --source code=MOE_CODE_PATH --source-weight general=0.0 --source-weight code=0.0 --freeze-router --tensor-rule '.*self_attn.*::general=0.5,code=0.5' --tensor-rule '.*experts.*::general=ROUTE_WEIGHT_GENERAL,code=ROUTE_WEIGHT_CODE' --output-dir results/checkpoints/moe_route_aware_candidate --dry-run"
+          }
+        ],
+        "same_shape_constraint": "Recipes only target same-shape checkpoints; MoE templates keep router/expert counts unchanged.",
+        "status_counts": {
+          "candidate_interior_weighted_average": 2,
+          "candidate_weighted_average": 2,
+          "skip_endpoint_only": 1,
+          "skip_rejected_by_probe": 1,
+          "template_waiting_for_routing_probe": 1
+        }
       }
     },
     "average_decision_report": {
@@ -2056,7 +2227,7 @@
       }
     }
   },
-  "generated_at": "2026-06-19T04:00:07.062211+00:00",
+  "generated_at": "2026-06-19T04:08:10.895067+00:00",
   "overall_status": "complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -2076,6 +2247,7 @@
     "PYTHONPATH=src python scripts/build_moe_average_plan.py",
     "python scripts/write_same_shape_average_checkpoint.py --base BASE --source expert=EXPERT --dry-run --output-dir results/same_shape_writer_smoke",
     "python scripts/inspect_checkpoint_topology.py --model NAME=MODEL_PATH --output-dir results/checkpoint_topology_inspect",
+    "PYTHONPATH=src python scripts/build_average_candidate_recipes.py",
     "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
     "PYTHONPATH=src python scripts/collect_results.py"
   ],

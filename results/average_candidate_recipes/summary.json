@@ -1,0 +1,83 @@
+{
+  "rows": [
+    {
+      "experiment": "digits",
+      "candidate": "best_grid_same_shape_average",
+      "status": "candidate_weighted_average",
+      "alpha": 0.35,
+      "beta": 0.35,
+      "writer_command": "",
+      "reason": "probe 证据支持 coefficient-selected 同构平均。",
+      "source": "average_decision_report"
+    },
+    {
+      "experiment": "cifar10",
+      "candidate": "best_grid_same_shape_average",
+      "status": "candidate_interior_weighted_average",
+      "alpha": 0.125,
+      "beta": 0.275,
+      "writer_command": "",
+      "reason": "uniform average 被否定，但 validation grid 找到了 interior 同构平均系数。",
+      "source": "average_decision_report"
+    },
+    {
+      "experiment": "cifar100_vit",
+      "candidate": "best_grid_same_shape_average",
+      "status": "candidate_interior_weighted_average",
+      "alpha": 0.03125,
+      "beta": 0.03125,
+      "writer_command": "",
+      "reason": "uniform average 被否定，但 validation grid 找到了 interior 同构平均系数。",
+      "source": "average_decision_report"
+    },
+    {
+      "experiment": "pretrained_vit",
+      "candidate": "best_grid_same_shape_average",
+      "status": "candidate_weighted_average",
+      "alpha": 0.35,
+      "beta": 0.125,
+      "writer_command": "",
+      "reason": "probe 证据支持 coefficient-selected 同构平均。",
+      "source": "average_decision_report"
+    },
+    {
+      "experiment": "qwen_instruct_coder",
+      "candidate": "best_grid_endpoint",
+      "status": "skip_endpoint_only",
+      "alpha": 1.0,
+      "beta": 0.0,
+      "writer_command": "",
+      "reason": "best grid 是端点；materialize 只会复制一个 source delta，不是有价值的 average。",
+      "source": "qwen_multi_expert_merge"
+    },
+    {
+      "experiment": "qwen_instruct_coder",
+      "candidate": "uniform_average_baseline",
+      "status": "skip_rejected_by_probe",
+      "alpha": 0.5,
+      "beta": 0.5,
+      "writer_command": "",
+      "reason": "当前 probe 显示 linear average 落在高 worst-NLL ridge 上；只保留作负 baseline。",
+      "source": "qwen_multi_expert_merge"
+    },
+    {
+      "experiment": "qwen_moe_template",
+      "candidate": "router_frozen_route_aware_average",
+      "status": "template_waiting_for_routing_probe",
+      "alpha": null,
+      "beta": null,
+      "writer_command": "python scripts/write_same_shape_average_checkpoint.py --base MOE_ANCHOR_PATH --source general=MOE_GENERAL_PATH --source code=MOE_CODE_PATH --source-weight general=0.0 --source-weight code=0.0 --freeze-router --tensor-rule '.*self_attn.*::general=0.5,code=0.5' --tensor-rule '.*experts.*::general=ROUTE_WEIGHT_GENERAL,code=ROUTE_WEIGHT_CODE' --output-dir results/checkpoints/moe_route_aware_candidate --dry-run",
+      "reason": "需要真实 MoE routing/expert-load probe 填入 expert-wise route weights；保持 router frozen 和输出结构不变。",
+      "source": "moe_average_plan"
+    }
+  ],
+  "status_counts": {
+    "candidate_weighted_average": 2,
+    "candidate_interior_weighted_average": 2,
+    "skip_endpoint_only": 1,
+    "skip_rejected_by_probe": 1,
+    "template_waiting_for_routing_probe": 1
+  },
+  "dry_run_commands": true,
+  "same_shape_constraint": "Recipes only target same-shape checkpoints; MoE templates keep router/expert counts unchanged."
+}

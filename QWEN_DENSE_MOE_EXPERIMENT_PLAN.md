@@ -224,6 +224,7 @@ Qwen2.5-7B dense merged assistant
 - delta/probe 报告：layer norm、cosine、sign conflict、NLL barrier。
 - Checkpoint topology inspect：只读 config/safetensors header，确认 model_type、hidden size、layer count、expert 数、每 token 激活专家数、router/expert tensor 分组，以及候选模型是否同构。
 - Average decision report：把 grid、method、delta conflict、routing probe 汇总成同构 checkpoint 的平均权重建议；输出 `uniform_average_ok`、`coefficient_search`、`structured_average` 或 `avoid_uniform_average`。
+- Average candidate recipes：把 decision report 转成 `materialize`、`skip_endpoint_only`、`skip_rejected_by_probe`、`template_waiting_for_routing_probe`，避免把端点或失败的 uniform average 当作最终结果。
 - MoE same-shape average plan：把 router entropy/load/overlap 和 expert route frequency 转成 router/shared/expert/adapter 的参数组平均策略；最终仍输出同 expert 数、同 router shape 的 MoE checkpoint。
 - Same-shape checkpoint：用 `scripts/write_same_shape_average_checkpoint.py` 把选好的全局/layer/module/router/expert 权重写成 safetensors，再在 held-out slice 上评测；不能只停在图和 CSV。
 

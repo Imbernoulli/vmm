@@ -1,0 +1,8 @@
+experiment,candidate,status,alpha,beta,writer_command,reason,source
+digits,best_grid_same_shape_average,candidate_weighted_average,0.35,0.35,,probe 证据支持 coefficient-selected 同构平均。,average_decision_report
+cifar10,best_grid_same_shape_average,candidate_interior_weighted_average,0.125,0.275,,uniform average 被否定，但 validation grid 找到了 interior 同构平均系数。,average_decision_report
+cifar100_vit,best_grid_same_shape_average,candidate_interior_weighted_average,0.03125,0.03125,,uniform average 被否定，但 validation grid 找到了 interior 同构平均系数。,average_decision_report
+pretrained_vit,best_grid_same_shape_average,candidate_weighted_average,0.35,0.125,,probe 证据支持 coefficient-selected 同构平均。,average_decision_report
+qwen_instruct_coder,best_grid_endpoint,skip_endpoint_only,1.0,0.0,,best grid 是端点；materialize 只会复制一个 source delta，不是有价值的 average。,qwen_multi_expert_merge
+qwen_instruct_coder,uniform_average_baseline,skip_rejected_by_probe,0.5,0.5,,当前 probe 显示 linear average 落在高 worst-NLL ridge 上；只保留作负 baseline。,qwen_multi_expert_merge
+qwen_moe_template,router_frozen_route_aware_average,template_waiting_for_routing_probe,,,"python scripts/write_same_shape_average_checkpoint.py --base MOE_ANCHOR_PATH --source general=MOE_GENERAL_PATH --source code=MOE_CODE_PATH --source-weight general=0.0 --source-weight code=0.0 --freeze-router --tensor-rule '.*self_attn.*::general=0.5,code=0.5' --tensor-rule '.*experts.*::general=ROUTE_WEIGHT_GENERAL,code=ROUTE_WEIGHT_CODE' --output-dir results/checkpoints/moe_route_aware_candidate --dry-run",需要真实 MoE routing/expert-load probe 填入 expert-wise route weights；保持 router frozen 和输出结构不变。,moe_average_plan

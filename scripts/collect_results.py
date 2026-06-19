@@ -482,6 +482,18 @@ def summarize_checkpoint_topology() -> dict[str, Any]:
     }
 
 
+def summarize_average_candidate_recipes() -> dict[str, Any]:
+    summary = read_json("results/average_candidate_recipes/summary.json")
+    recipes = read_csv("results/average_candidate_recipes/candidate_recipes.csv")
+    return {
+        "summary": summary,
+        "status_counts": summary.get("status_counts", {}),
+        "rows": [clean_row(row) for _, row in recipes.iterrows()],
+        "report": rel("results/average_candidate_recipes/report.md"),
+        "recipes": rel("results/average_candidate_recipes/candidate_recipes.csv"),
+    }
+
+
 def coverage_checklist() -> list[dict[str, str]]:
     return [
         {
@@ -570,6 +582,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/checkpoint_topology_inspect/report.md inspects Qwen MoE/Dense configs and safetensors headers without loading weights.",
         },
         {
+            "item": "Average candidate recipes",
+            "status": "complete",
+            "evidence": "results/average_candidate_recipes/report.md converts probe decisions into conservative same-shape materialization recipes and skips endpoint-only pseudo-averages.",
+        },
+        {
             "item": "Interactive explainer UI",
             "status": "complete",
             "evidence": "Dashboard includes a draggable precomputed merge-plane explorer with task-pair, method, objective, raw/normalized plane, alpha/beta, and lambda controls.",
@@ -596,6 +613,7 @@ def build_summary() -> dict[str, Any]:
         "moe_average_plan": summarize_moe_average_plan(),
         "same_shape_writer_smoke": summarize_same_shape_writer_smoke(),
         "checkpoint_topology_inspect": summarize_checkpoint_topology(),
+        "average_candidate_recipes": summarize_average_candidate_recipes(),
     }
     coverage = coverage_checklist()
     counts = {
@@ -628,6 +646,7 @@ def build_summary() -> dict[str, Any]:
             "PYTHONPATH=src python scripts/build_moe_average_plan.py",
             "python scripts/write_same_shape_average_checkpoint.py --base BASE --source expert=EXPERT --dry-run --output-dir results/same_shape_writer_smoke",
             "python scripts/inspect_checkpoint_topology.py --model NAME=MODEL_PATH --output-dir results/checkpoint_topology_inspect",
+            "PYTHONPATH=src python scripts/build_average_candidate_recipes.py",
             "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
             "PYTHONPATH=src python scripts/collect_results.py",
         ],
@@ -660,6 +679,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     writer_smoke = exp["same_shape_writer_smoke"]
     topology = exp["checkpoint_topology_inspect"]
     moe_models = [model for model in topology["models"] if model.get("config", {}).get("is_moe_config")]
+    recipes = exp["average_candidate_recipes"]
     coverage_counts = summary["coverage_counts"]
     lines = [
         "# Result Summary",
@@ -813,6 +833,14 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| checkpoint topology | inspected MoE configs | "
                 f"{len(moe_models)} |"
+            ),
+            (
+                "| average candidate recipes | endpoint-only skips | "
+                f"{recipes['status_counts'].get('skip_endpoint_only', 0)} |"
+            ),
+            (
+                "| average candidate recipes | MoE templates awaiting routing probe | "
+                f"{recipes['status_counts'].get('template_waiting_for_routing_probe', 0)} |"
             ),
         ]
     )

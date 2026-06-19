@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T04:00:07.062211+00:00`
+Generated at: `2026-06-19T04:08:10.895067+00:00`
 
 ## Coverage
 
-Complete: `18`; partial: `0`; missing: `0`.
+Complete: `19`; partial: `0`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -25,6 +25,7 @@ Complete: `18`; partial: `0`; missing: `0`.
 | MoE same-shape averaging plan | complete | results/moe_average_plan/report.md maps router/expert probes into same-shape router, shared-module, expert, and adapter averaging actions. |
 | Same-shape checkpoint writer | complete | scripts/write_same_shape_average_checkpoint.py writes same-shape safetensors checkpoints; results/same_shape_writer_smoke/report.md validates Qwen2.5-0.5B base/instruct/coder dry-run compatibility. |
 | Checkpoint topology inspection | complete | results/checkpoint_topology_inspect/report.md inspects Qwen MoE/Dense configs and safetensors headers without loading weights. |
+| Average candidate recipes | complete | results/average_candidate_recipes/report.md converts probe decisions into conservative same-shape materialization recipes and skips endpoint-only pseudo-averages. |
 | Interactive explainer UI | complete | Dashboard includes a draggable precomputed merge-plane explorer with task-pair, method, objective, raw/normalized plane, alpha/beta, and lambda controls. |
 
 ## Key Metrics
@@ -63,3 +64,5 @@ Complete: `18`; partial: `0`; missing: `0`.
 | MoE average plan | expert plan rows | 0 |
 | same-shape writer smoke | Qwen-compatible tensors checked | 290 |
 | checkpoint topology | inspected MoE configs | 1 |
+| average candidate recipes | endpoint-only skips | 1 |
+| average candidate recipes | MoE templates awaiting routing probe | 1 |
