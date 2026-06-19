@@ -3,10 +3,10 @@
 这个计划把 source baseline 和 same-shape checkpoint 候选转成逐个 `vllm serve` 和 `run_vllm_downstream_eval.py` 命令。它不声称已经完成真实性能评测；只有 `serve_status = ready_to_host` 且目录内存在 safetensors/index 的模型才能进入 GPU/vLLM 下游评测。
 
 - Plan status: `hosted_eval_complete`
-- Candidate rows: `8`
+- Candidate rows: `9`
 - Ready to host: `5`
 - Completed evals: `1`
-- Missing checkpoints: `2`
+- Missing checkpoints: `3`
 - Tasks: `gsm8k,mmlu,safety,humaneval_compile`
 
 ## Plan
@@ -17,10 +17,11 @@
 | 1 | `source_qwen3_30b_coder` | `ready_to_host` | `not_run` |  |  | `/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-Coder-30B-A3B-Instruct/snapshots/b2cff646eb4bb1d68355c01b18ae02e7cf42d120` | 8101 | `results/vllm_checkpoint_eval/source_qwen3_30b_coder` |
 | 2 | `qwen3_moe_unified_route_guarded_candidate` | `ready_to_host` | `not_run` |  |  | `results/checkpoints/qwen3_moe_unified_route_guarded_candidate` | 8102 | `results/vllm_checkpoint_eval/qwen3_moe_unified_route_guarded_candidate` |
 | 3 | `qwen3_moe_audit_gated_candidate` | `ready_to_host` | `not_run` |  |  | `results/checkpoints/qwen3_moe_audit_gated_candidate` | 8103 | `results/vllm_checkpoint_eval/qwen3_moe_audit_gated_candidate` |
-| 4 | `qwen_0_5b_instruct_coder_uniform_average` | `ready_to_host` | `complete` | 0.180 | 0.000 | `results/checkpoints/qwen_0_5b_instruct_coder_uniform_average` | 8104 | `results/vllm_checkpoint_eval/qwen_0_5b_instruct_coder_uniform_average` |
-| 5 | `moe_route_aware_candidate` | `checkpoint_missing_until_materialized` | `not_run` |  |  | `results/checkpoints/moe_route_aware_candidate` | 8105 | `results/vllm_checkpoint_eval/moe_route_aware_candidate` |
-| 6 | `moe_bias_calibrated_candidate` | `checkpoint_missing_until_materialized` | `not_run` |  |  | `results/checkpoints/moe_bias_calibrated_candidate` | 8106 | `results/vllm_checkpoint_eval/moe_bias_calibrated_candidate` |
-| 7 | `toy_moe_expert_weight_candidate` | `not_vllm_loadable_toy_candidate` | `not_run` |  |  | `results/checkpoints/toy_moe_expert_weight_candidate` | 8107 | `results/vllm_checkpoint_eval/toy_moe_expert_weight_candidate` |
+| 4 | `qwen3_moe_trust_region_candidate` | `checkpoint_missing_until_materialized` | `not_run` |  |  | `results/checkpoints/qwen3_moe_trust_region_candidate` | 8104 | `results/vllm_checkpoint_eval/qwen3_moe_trust_region_candidate` |
+| 5 | `qwen_0_5b_instruct_coder_uniform_average` | `ready_to_host` | `complete` | 0.180 | 0.000 | `results/checkpoints/qwen_0_5b_instruct_coder_uniform_average` | 8105 | `results/vllm_checkpoint_eval/qwen_0_5b_instruct_coder_uniform_average` |
+| 6 | `moe_route_aware_candidate` | `checkpoint_missing_until_materialized` | `not_run` |  |  | `results/checkpoints/moe_route_aware_candidate` | 8106 | `results/vllm_checkpoint_eval/moe_route_aware_candidate` |
+| 7 | `moe_bias_calibrated_candidate` | `checkpoint_missing_until_materialized` | `not_run` |  |  | `results/checkpoints/moe_bias_calibrated_candidate` | 8107 | `results/vllm_checkpoint_eval/moe_bias_calibrated_candidate` |
+| 8 | `toy_moe_expert_weight_candidate` | `not_vllm_loadable_toy_candidate` | `not_run` |  |  | `results/checkpoints/toy_moe_expert_weight_candidate` | 8108 | `results/vllm_checkpoint_eval/toy_moe_expert_weight_candidate` |
 
 ## Commands
 

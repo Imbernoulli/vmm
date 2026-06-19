@@ -111,6 +111,11 @@ def writer_command_candidates() -> list[dict[str, Any]]:
             "loadability": "qwen_moe_if_materialized",
         },
         {
+            "candidate": "qwen3_moe_trust_region_candidate",
+            "source": "results/qwen3_moe_trust_region_candidate/writer_command.txt",
+            "loadability": "qwen_moe_if_materialized",
+        },
+        {
             "candidate": "moe_route_aware_candidate",
             "source": "results/moe_route_weight_recipes/writer_command.txt",
             "loadability": "qwen_moe_if_materialized",

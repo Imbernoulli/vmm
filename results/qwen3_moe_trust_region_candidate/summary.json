@@ -1,0 +1,72 @@
+{
+  "action_counts": {
+    "keep_route_weight_rule": 420,
+    "keep_with_moe_risk_monitor": 4418,
+    "scale_nonbase_delta_to_moe_trust_region": 405
+  },
+  "base": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe",
+  "base_sources": [
+    "instruct"
+  ],
+  "base_target_relative_delta": 0.75,
+  "estimated_changed_tensors": 10641,
+  "estimated_relative_delta_norm": 0.24866057214705822,
+  "estimated_routed_tensor_max_relative_delta": 0.75,
+  "estimated_routed_tensors_relative_delta_gt_065": 354,
+  "estimated_routed_tensors_relative_delta_gt_075": 0,
+  "estimated_routed_tensors_relative_delta_gt_1": 0,
+  "estimated_total_base_norm": 4134.366931524763,
+  "estimated_total_delta_norm": 1028.054046658825,
+  "expert_rule_count": 5243,
+  "max_effective_nonbase_weight": 0.85,
+  "max_expected_relative_delta_after_scale": 0.75,
+  "max_original_effective_nonbase_weight": 0.85,
+  "max_route_audit_relative_delta_before_scale": 1.327236932104148,
+  "mean_effective_nonbase_weight": 0.1855856955897571,
+  "mean_original_effective_nonbase_weight": 0.2007622635337222,
+  "min_trust_delta_scale": 0.4848777016857155,
+  "min_trust_target_relative_delta": 0.6,
+  "nonbase_sources": [
+    "coder"
+  ],
+  "outputs": {
+    "dry_run_command": "results/qwen3_moe_trust_region_candidate/dry_run_command.txt",
+    "dry_run_manifest": "results/qwen3_moe_trust_region_candidate/dry_run/merge_manifest.json",
+    "estimated_tensor_delta": "results/qwen3_moe_trust_region_candidate/estimated_tensor_delta.csv",
+    "report": "results/qwen3_moe_trust_region_candidate/report.md",
+    "summary": "results/qwen3_moe_trust_region_candidate/summary.json",
+    "tensor_rules": "results/qwen3_moe_trust_region_candidate/tensor_rules.txt",
+    "trust_region_source_weights": "results/qwen3_moe_trust_region_candidate/trust_region_source_weights_by_expert.csv",
+    "writer_command": "results/qwen3_moe_trust_region_candidate/writer_command.txt"
+  },
+  "risk_flag_counts": {
+    "category_source_mismatch": 152,
+    "delta_above_base_cap": 302,
+    "fragile_router_layer": 2632,
+    "high_load_expert": 1650,
+    "high_load_weight_limit": 62,
+    "low_route_evidence": 984,
+    "shared_mixed_expert": 2218,
+    "shared_weight_limit": 1
+  },
+  "scaled_beyond_delta_cap_count": 103,
+  "scaled_expert_rule_count": 405,
+  "schema_version": 1,
+  "source_names": [
+    "coder",
+    "instruct"
+  ],
+  "source_paths": {
+    "coder": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-Coder-30B-A3B-Instruct/snapshots/b2cff646eb4bb1d68355c01b18ae02e7cf42d120",
+    "instruct": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe"
+  },
+  "status": "trust_region_rules_ready",
+  "writer_dry_run_expert_tensor_rule_hits": 15729,
+  "writer_dry_run_floating_tensors": 18867,
+  "writer_dry_run_freeze_router_hits": 48,
+  "writer_dry_run_frozen_tensors": 3603,
+  "writer_dry_run_manifest": "results/qwen3_moe_trust_region_candidate/dry_run/merge_manifest.json",
+  "writer_dry_run_shards": 16,
+  "writer_dry_run_shared_attention_hits": 288,
+  "writer_dry_run_validated": true
+}

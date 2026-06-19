@@ -3,7 +3,7 @@
 这个 audit 把 same-shape writer 命令、router-bias plan、dry-run manifest 和 vLLM eval plan 串起来。目标是区分三件事：方法是否有 recipe、checkpoint 是否已经写出、是否可以进入真实 vLLM 下游评测。
 
 - Status: `hosted_eval_complete`
-- Candidates: `9`
+- Candidates: `10`
 - Materialized checkpoints: `3`
 - Blocked by placeholders: `4`
 - Ready for vLLM eval: `2`
@@ -13,6 +13,7 @@
 | --- | --- | --- | --- | ---: | ---: | --- | --- |
 | `qwen3_moe_unified_route_guarded_candidate` | `materialized_checkpoint_exists` | `ready_to_host` | `not_run` |  |  | `ready_for_vllm_eval` | host_with_vllm_and_run_downstream_eval |
 | `qwen3_moe_audit_gated_candidate` | `materialized_checkpoint_exists` | `ready_to_host` | `not_run` |  |  | `ready_for_vllm_eval` | host_with_vllm_and_run_downstream_eval |
+| `qwen3_moe_trust_region_candidate` | `materialization_command_ready` | `checkpoint_missing_until_materialized` | `not_run` |  |  | `needs_checkpoint_materialization` | run writer command and verify safetensors output |
 | `moe_route_aware_candidate` | `blocked_by_placeholder_inputs` | `checkpoint_missing_until_materialized` | `not_run` |  |  | `blocked_before_materialization` | replace placeholder model paths/route weights, run writer dry-run, then materialize |
 | `toy_moe_expert_weight_candidate` | `blocked_by_placeholder_inputs` | `not_vllm_loadable_toy_candidate` | `not_run` |  |  | `toy_writer_validation_only` | replace placeholder model paths/route weights, run writer dry-run, then materialize |
 | `toy_moe_expert_matched_candidate` | `blocked_by_placeholder_inputs` | `not_in_vllm_plan` | `not_run` |  |  | `toy_writer_validation_only` | replace placeholder model paths/route weights, run writer dry-run, then materialize |
