@@ -4,13 +4,17 @@
 目的不是替代 vLLM 下游评测，而是回答：当前几版规则到底改变了哪些参数组，下一版算法应该把风险预算放在哪里。
 
 - Status: `delta_frontier_ready`
-- Candidates: `4`
-- Best delta-safety candidate: `expert_only`
+- Candidates: `5`
+- Best delta-safety candidate: `tail_trimmed`
 - Trust-region total relative delta norm: `0.249`
 - Expert-only total relative delta norm: `0.246`
+- Tail-trimmed total relative delta norm: `0.243`
 - Trust -> expert-only relative norm reduction: `0.003`
+- Expert-only -> tail-trimmed relative norm reduction: `0.003`
 - Expert-only attention changed tensors: `0`
+- Tail-trimmed attention changed tensors: `0`
 - Expert-only router changed tensors: `0`
+- Tail-trimmed router changed tensors: `0`
 - Next required gate: `vllm_downstream_eval_trust_region_vs_expert_only_attention_ablation`
 
 ## Candidate Frontier
@@ -21,14 +25,16 @@
 | `audit_gated` | 0.264 | 0.270 | 0.189 | 0/48 | 0.750 | 0 | 164 | 10641 |
 | `trust_region` | 0.249 | 0.255 | 0.189 | 0/48 | 0.750 | 0 | 14 | 10641 |
 | `expert_only` | 0.246 | 0.255 | 0.000 | 0/48 | 0.750 | 0 | 14 | 10353 |
+| `tail_trimmed` | 0.243 | 0.252 | 0.000 | 0/48 | 0.650 | 0 | 0 | 10353 |
 
 ## Pairwise Reductions
 
-| from | to | total rel reduction | routed rel reduction | attention rel reduction | routed >1 reduction | routed >0.75 reduction |
-| --- | --- | ---: | ---: | ---: | ---: | ---: |
-| `route_guarded` | `audit_gated` | 0.022 | 0.023 | 0.000 | 182 | 675 |
-| `audit_gated` | `trust_region` | 0.015 | 0.016 | 0.000 | 0 | 150 |
-| `trust_region` | `expert_only` | 0.003 | 0.000 | 0.189 | 0 | 0 |
+| from | to | total rel reduction | routed rel reduction | attention rel reduction | routed >1 reduction | routed >0.75 reduction | routed >0.65 reduction |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `route_guarded` | `audit_gated` | 0.022 | 0.023 | 0.000 | 182 | 675 | 10 |
+| `audit_gated` | `trust_region` | 0.015 | 0.016 | 0.000 | 0 | 150 | 780 |
+| `trust_region` | `expert_only` | 0.003 | 0.000 | 0.189 | 0 | 0 | 0 |
+| `expert_only` | `tail_trimmed` | 0.003 | 0.003 | 0.000 | 0 | 14 | 286 |
 
 ## Highest Trust-Region Layers
 
@@ -49,9 +55,9 @@
 
 ## Interpretation
 
-Trust-region rules control the routed-expert delta tail; expert-only freezes attention without changing routed tail risk. Attention should therefore be decided by downstream eval, not by delta safety alone.
+Trust-region rules control the routed-expert delta tail; expert-only freezes attention without changing routed tail risk. Tail-trimmed then reduces the remaining routed tail while preserving the frozen attention/router contract. Attention should therefore be decided by downstream eval, not by delta safety alone.
 
-实际含义：trust-region/audit-gated 的价值主要是压 routed expert 的高 relative-delta tail；expert-only 只是把 shared attention 从候选里拿掉，几乎不改变 routed expert 风险。所以 attention 是否保留不能靠 delta safety 判断，必须靠同任务 vLLM 下游结果决定。
+实际含义：trust-region/audit-gated 的价值主要是压 routed expert 的高 relative-delta tail；expert-only 只是把 shared attention 从候选里拿掉，几乎不改变 routed expert 风险；tail-trimmed 才继续压剩余 routed tail。所以 attention 是否保留不能靠 delta safety 判断，必须靠同任务 vLLM 下游结果决定。
 
 ## Files
 

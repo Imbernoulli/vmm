@@ -36,6 +36,12 @@ DEFAULT_CANDIDATES = [
         "audit_dir": "results/qwen3_moe_expert_only_delta_audit",
         "rule": "trust_region_experts_freeze_attention",
     },
+    {
+        "candidate": "tail_trimmed",
+        "method": "qwen3_moe_tail_trimmed_expert_only_candidate",
+        "audit_dir": "results/qwen3_moe_tail_trimmed_delta_audit",
+        "rule": "expert_only_second_stage_tail_cap_0_65",
+    },
 ]
 THRESHOLDS = [1.0, 0.75, 0.65, 0.5]
 
@@ -167,6 +173,8 @@ def build_pairwise(candidate_rows: pd.DataFrame) -> pd.DataFrame:
                 - int(after["routed_tensors_gt_1_0"]),
                 "routed_gt_075_reduction": int(before["routed_tensors_gt_0_75"])
                 - int(after["routed_tensors_gt_0_75"]),
+                "routed_gt_065_reduction": int(before["routed_tensors_gt_0_65"])
+                - int(after["routed_tensors_gt_0_65"]),
                 "changed_tensors_reduction": int(before["changed_tensors"]) - int(after["changed_tensors"]),
             }
         )
@@ -223,6 +231,7 @@ def build_summary(
     ).iloc[0]
     trust = candidate_rows[candidate_rows["candidate"] == "trust_region"].iloc[0]
     expert = candidate_rows[candidate_rows["candidate"] == "expert_only"].iloc[0]
+    tail = candidate_rows[candidate_rows["candidate"] == "tail_trimmed"].iloc[0]
     route_to_trust = pairwise_rows[
         (pairwise_rows["from_candidate"] == "audit_gated")
         & (pairwise_rows["to_candidate"] == "trust_region")
@@ -230,6 +239,10 @@ def build_summary(
     trust_to_expert = pairwise_rows[
         (pairwise_rows["from_candidate"] == "trust_region")
         & (pairwise_rows["to_candidate"] == "expert_only")
+    ]
+    expert_to_tail = pairwise_rows[
+        (pairwise_rows["from_candidate"] == "expert_only")
+        & (pairwise_rows["to_candidate"] == "tail_trimmed")
     ]
     return {
         "schema_version": 1,
@@ -239,10 +252,16 @@ def build_summary(
         "router_changed_all_candidates": int(candidate_rows["router_changed_tensors"].sum()),
         "trust_region_total_relative_delta_norm": float(trust["total_relative_delta_norm"]),
         "expert_only_total_relative_delta_norm": float(expert["total_relative_delta_norm"]),
+        "tail_trimmed_total_relative_delta_norm": float(tail["total_relative_delta_norm"]),
         "expert_only_attention_changed_tensors": int(expert["attention_changed_tensors"]),
+        "tail_trimmed_attention_changed_tensors": int(tail["attention_changed_tensors"]),
         "expert_only_router_changed_tensors": int(expert["router_changed_tensors"]),
+        "tail_trimmed_router_changed_tensors": int(tail["router_changed_tensors"]),
         "trust_to_expert_only_relative_norm_reduction": float(
             trust["total_relative_delta_norm"] - expert["total_relative_delta_norm"]
+        ),
+        "expert_only_to_tail_trimmed_relative_norm_reduction": float(
+            expert["total_relative_delta_norm"] - tail["total_relative_delta_norm"]
         ),
         "trust_to_expert_only_attention_norm_reduction": float(
             trust["attention_relative_delta_norm"] - expert["attention_relative_delta_norm"]
@@ -250,6 +269,12 @@ def build_summary(
         "trust_to_expert_only_routed_gt_075_reduction": 0
         if trust_to_expert.empty
         else int(trust_to_expert.iloc[0]["routed_gt_075_reduction"]),
+        "expert_only_to_tail_trimmed_routed_gt_065_reduction": 0
+        if expert_to_tail.empty
+        else int(expert_to_tail.iloc[0].get("routed_gt_065_reduction", 0)),
+        "expert_only_to_tail_trimmed_routed_gt_075_reduction": 0
+        if expert_to_tail.empty
+        else int(expert_to_tail.iloc[0]["routed_gt_075_reduction"]),
         "audit_to_trust_routed_gt_075_reduction": 0
         if route_to_trust.empty
         else int(route_to_trust.iloc[0]["routed_gt_075_reduction"]),
@@ -260,8 +285,9 @@ def build_summary(
         "next_required_gate": "vllm_downstream_eval_trust_region_vs_expert_only_attention_ablation",
         "interpretation": (
             "Trust-region rules control the routed-expert delta tail; expert-only freezes attention "
-            "without changing routed tail risk. Attention should therefore be decided by downstream eval, "
-            "not by delta safety alone."
+            "without changing routed tail risk. Tail-trimmed then reduces the remaining routed tail "
+            "while preserving the frozen attention/router contract. Attention should therefore be decided "
+            "by downstream eval, not by delta safety alone."
         ),
         "outputs": {
             "candidate_frontier": rel(output_dir / "candidate_delta_frontier.csv"),
@@ -292,9 +318,13 @@ def build_report(
         f"- Best delta-safety candidate: `{summary['best_delta_safety_candidate']}`",
         f"- Trust-region total relative delta norm: `{fmt(summary['trust_region_total_relative_delta_norm'])}`",
         f"- Expert-only total relative delta norm: `{fmt(summary['expert_only_total_relative_delta_norm'])}`",
+        f"- Tail-trimmed total relative delta norm: `{fmt(summary['tail_trimmed_total_relative_delta_norm'])}`",
         f"- Trust -> expert-only relative norm reduction: `{fmt(summary['trust_to_expert_only_relative_norm_reduction'])}`",
+        f"- Expert-only -> tail-trimmed relative norm reduction: `{fmt(summary['expert_only_to_tail_trimmed_relative_norm_reduction'])}`",
         f"- Expert-only attention changed tensors: `{summary['expert_only_attention_changed_tensors']}`",
+        f"- Tail-trimmed attention changed tensors: `{summary['tail_trimmed_attention_changed_tensors']}`",
         f"- Expert-only router changed tensors: `{summary['expert_only_router_changed_tensors']}`",
+        f"- Tail-trimmed router changed tensors: `{summary['tail_trimmed_router_changed_tensors']}`",
         f"- Next required gate: `{summary['next_required_gate']}`",
         "",
         "## Candidate Frontier",
@@ -319,8 +349,8 @@ def build_report(
             "",
             "## Pairwise Reductions",
             "",
-            "| from | to | total rel reduction | routed rel reduction | attention rel reduction | routed >1 reduction | routed >0.75 reduction |",
-            "| --- | --- | ---: | ---: | ---: | ---: | ---: |",
+            "| from | to | total rel reduction | routed rel reduction | attention rel reduction | routed >1 reduction | routed >0.75 reduction | routed >0.65 reduction |",
+            "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |",
         ]
     )
     for _, row in pairwise_rows.iterrows():
@@ -331,7 +361,8 @@ def build_report(
             f"{fmt(float(row['routed_relative_delta_norm_reduction']))} | "
             f"{fmt(float(row['attention_relative_delta_norm_reduction']))} | "
             f"{int(row['routed_gt_1_reduction'])} | "
-            f"{int(row['routed_gt_075_reduction'])} |"
+            f"{int(row['routed_gt_075_reduction'])} | "
+            f"{int(row.get('routed_gt_065_reduction', 0))} |"
         )
     lines.extend(
         [
@@ -360,7 +391,8 @@ def build_report(
             summary["interpretation"],
             "",
             "实际含义：trust-region/audit-gated 的价值主要是压 routed expert 的高 relative-delta tail；"
-            "expert-only 只是把 shared attention 从候选里拿掉，几乎不改变 routed expert 风险。"
+            "expert-only 只是把 shared attention 从候选里拿掉，几乎不改变 routed expert 风险；"
+            "tail-trimmed 才继续压剩余 routed tail。"
             "所以 attention 是否保留不能靠 delta safety 判断，必须靠同任务 vLLM 下游结果决定。",
             "",
             "## Files",

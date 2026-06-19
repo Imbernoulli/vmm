@@ -873,6 +873,56 @@ def summarize_qwen3_moe_expert_only_delta_audit() -> dict[str, Any]:
     return summarize_materialized_delta_audit_dir("results/qwen3_moe_expert_only_delta_audit")
 
 
+def summarize_qwen3_moe_tail_trimmed_delta_audit() -> dict[str, Any]:
+    return summarize_materialized_delta_audit_dir("results/qwen3_moe_tail_trimmed_delta_audit")
+
+
+def summarize_qwen3_moe_tail_trimmed_expert_only_candidate() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_tail_trimmed_expert_only_candidate")
+    summary = read_json(root / "summary.json")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "target_cap": maybe_float(summary.get("target_cap")),
+        "expert_group_count": int(summary.get("expert_group_count", 0)),
+        "scaled_expert_group_count": int(summary.get("scaled_expert_group_count", 0)),
+        "rule_count": int(summary.get("rule_count", 0)),
+        "scaled_rule_count": int(summary.get("scaled_rule_count", 0)),
+        "min_delta_scale": maybe_float(summary.get("min_delta_scale")),
+        "mean_delta_scale_scaled_groups": maybe_float(summary.get("mean_delta_scale_scaled_groups")),
+        "source_total_relative_delta_norm": maybe_float(summary.get("source_total_relative_delta_norm")),
+        "estimated_total_relative_delta_norm": maybe_float(summary.get("estimated_total_relative_delta_norm")),
+        "estimated_routed_max_relative_delta": maybe_float(summary.get("estimated_routed_max_relative_delta")),
+        "estimated_routed_p99_relative_delta": maybe_float(summary.get("estimated_routed_p99_relative_delta")),
+        "estimated_routed_tensors_gt_1": int(summary.get("estimated_routed_tensors_gt_1", 0)),
+        "estimated_routed_tensors_gt_075": int(summary.get("estimated_routed_tensors_gt_075", 0)),
+        "estimated_routed_tensors_gt_065": int(summary.get("estimated_routed_tensors_gt_065", 0)),
+        "writer_dry_run_validated": bool(summary.get("writer_dry_run_validated", False)),
+        "writer_dry_run_floating_tensors": int(summary.get("writer_dry_run_floating_tensors", 0)),
+        "writer_dry_run_frozen_tensors": int(summary.get("writer_dry_run_frozen_tensors", 0)),
+        "writer_dry_run_expert_tensor_rule_hits": int(
+            summary.get("writer_dry_run_expert_tensor_rule_hits", 0)
+        ),
+        "writer_dry_run_shared_attention_hits": int(
+            summary.get("writer_dry_run_shared_attention_hits", 0)
+        ),
+        "writer_dry_run_freeze_router_hits": int(summary.get("writer_dry_run_freeze_router_hits", 0)),
+        "writer_materialized_validated": bool(summary.get("writer_materialized_validated", False)),
+        "writer_materialized_shards": int(summary.get("writer_materialized_shards", 0)),
+        "report": rel(root / "report.md"),
+        "expert_tail_scales": rel(root / "expert_tail_scales.csv"),
+        "tail_trimmed_rules": rel(root / "tail_trimmed_rules.csv"),
+        "tensor_rules": rel(root / "tensor_rules.txt"),
+        "writer_command": rel(root / "writer_command.txt"),
+        "dry_run_command": rel(root / "dry_run_command.txt"),
+        "dry_run_manifest": rel(root / "dry_run" / "merge_manifest.json"),
+        "materialized_manifest": rel(
+            repo_path("results/checkpoints/qwen3_moe_tail_trimmed_expert_only_candidate/merge_manifest.json")
+        ),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_qwen3_moe_delta_frontier() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_delta_frontier")
     summary = read_json(root / "summary.json")
@@ -890,8 +940,14 @@ def summarize_qwen3_moe_delta_frontier() -> dict[str, Any]:
         "expert_only_total_relative_delta_norm": maybe_float(
             summary.get("expert_only_total_relative_delta_norm")
         ),
+        "tail_trimmed_total_relative_delta_norm": maybe_float(
+            summary.get("tail_trimmed_total_relative_delta_norm")
+        ),
         "trust_to_expert_only_relative_norm_reduction": maybe_float(
             summary.get("trust_to_expert_only_relative_norm_reduction")
+        ),
+        "expert_only_to_tail_trimmed_relative_norm_reduction": maybe_float(
+            summary.get("expert_only_to_tail_trimmed_relative_norm_reduction")
         ),
         "trust_to_expert_only_attention_norm_reduction": maybe_float(
             summary.get("trust_to_expert_only_attention_norm_reduction")
@@ -902,10 +958,20 @@ def summarize_qwen3_moe_delta_frontier() -> dict[str, Any]:
         "trust_to_expert_only_routed_gt_075_reduction": int(
             summary.get("trust_to_expert_only_routed_gt_075_reduction", 0)
         ),
+        "expert_only_to_tail_trimmed_routed_gt_065_reduction": int(
+            summary.get("expert_only_to_tail_trimmed_routed_gt_065_reduction", 0)
+        ),
+        "expert_only_to_tail_trimmed_routed_gt_075_reduction": int(
+            summary.get("expert_only_to_tail_trimmed_routed_gt_075_reduction", 0)
+        ),
         "expert_only_attention_changed_tensors": int(
             summary.get("expert_only_attention_changed_tensors", 0)
         ),
+        "tail_trimmed_attention_changed_tensors": int(
+            summary.get("tail_trimmed_attention_changed_tensors", 0)
+        ),
         "expert_only_router_changed_tensors": int(summary.get("expert_only_router_changed_tensors", 0)),
+        "tail_trimmed_router_changed_tensors": int(summary.get("tail_trimmed_router_changed_tensors", 0)),
         "next_required_gate": summary.get("next_required_gate"),
         "candidate_rows": [clean_row(row) for _, row in candidates.iterrows()],
         "pairwise_rows": [clean_row(row) for _, row in pairwise.iterrows()],
@@ -2632,6 +2698,10 @@ def build_summary() -> dict[str, Any]:
             summarize_qwen3_moe_expert_only_trust_region_candidate()
         ),
         "qwen3_moe_expert_only_delta_audit": summarize_qwen3_moe_expert_only_delta_audit(),
+        "qwen3_moe_tail_trimmed_expert_only_candidate": (
+            summarize_qwen3_moe_tail_trimmed_expert_only_candidate()
+        ),
+        "qwen3_moe_tail_trimmed_delta_audit": summarize_qwen3_moe_tail_trimmed_delta_audit(),
         "qwen3_moe_delta_frontier": summarize_qwen3_moe_delta_frontier(),
         "toy_moe_routing_readiness": summarize_toy_moe_routing_readiness(),
         "toy_moe_method_selection": summarize_toy_moe_method_selection(),
@@ -2748,6 +2818,8 @@ def build_summary() -> dict[str, Any]:
             "python scripts/validate_qwen3_moe_trust_region_delta.py --output-dir results/qwen3_moe_trust_region_delta_validation",
             "python scripts/build_qwen3_moe_expert_only_trust_region_candidate.py --output-dir results/qwen3_moe_expert_only_trust_region_candidate",
             "python scripts/audit_materialized_checkpoint_delta.py --base BASE --candidate EXPERT_ONLY_CANDIDATE --output-dir results/qwen3_moe_expert_only_delta_audit",
+            "python scripts/build_qwen3_moe_tail_trimmed_expert_only_candidate.py --output-dir results/qwen3_moe_tail_trimmed_expert_only_candidate",
+            "python scripts/audit_materialized_checkpoint_delta.py --base BASE --candidate TAIL_TRIMMED_CANDIDATE --output-dir results/qwen3_moe_tail_trimmed_delta_audit",
             "python scripts/build_qwen3_moe_delta_frontier.py --output-dir results/qwen3_moe_delta_frontier",
             "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
             "PYTHONPATH=src python scripts/collect_results.py",
@@ -2817,6 +2889,8 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_trust_region_delta_validation = exp["qwen3_moe_trust_region_delta_validation"]
     qwen3_moe_expert_only_trust_region_candidate = exp["qwen3_moe_expert_only_trust_region_candidate"]
     qwen3_moe_expert_only_delta_audit = exp["qwen3_moe_expert_only_delta_audit"]
+    qwen3_moe_tail_trimmed_expert_only_candidate = exp["qwen3_moe_tail_trimmed_expert_only_candidate"]
+    qwen3_moe_tail_trimmed_delta_audit = exp["qwen3_moe_tail_trimmed_delta_audit"]
     qwen3_moe_delta_frontier = exp["qwen3_moe_delta_frontier"]
     selected_unified_capacity = toy_moe.get("unified_moe_capacity_sweep_selected") or {}
     selected_unified_output_projection_capacity = (
@@ -3228,6 +3302,31 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_expert_only_delta_audit['routed_tensors_relative_delta_gt_075']} |"
             ),
             (
+                "| Qwen3 MoE tail-trimmed expert-only candidate | status / target cap / scaled groups | "
+                f"{qwen3_moe_tail_trimmed_expert_only_candidate['status']} / "
+                f"{fmt(qwen3_moe_tail_trimmed_expert_only_candidate['target_cap'])} / "
+                f"{qwen3_moe_tail_trimmed_expert_only_candidate['scaled_expert_group_count']} |"
+            ),
+            (
+                "| Qwen3 MoE tail-trimmed expert-only candidate | estimated rel-norm / routed max / >0.65 | "
+                f"{fmt(qwen3_moe_tail_trimmed_expert_only_candidate['estimated_total_relative_delta_norm'])} / "
+                f"{fmt(qwen3_moe_tail_trimmed_expert_only_candidate['estimated_routed_max_relative_delta'])} / "
+                f"{qwen3_moe_tail_trimmed_expert_only_candidate['estimated_routed_tensors_gt_065']} |"
+            ),
+            (
+                "| Qwen3 MoE tail-trimmed delta audit | status / total relative norm / router changed | "
+                f"{qwen3_moe_tail_trimmed_delta_audit['status']} / "
+                f"{fmt(qwen3_moe_tail_trimmed_delta_audit['relative_delta_norm'])} / "
+                f"{qwen3_moe_tail_trimmed_delta_audit['router_changed_tensors']}"
+                f"/{qwen3_moe_tail_trimmed_delta_audit['router_tensors']} |"
+            ),
+            (
+                "| Qwen3 MoE tail-trimmed delta audit | max routed rel-delta / routed tensors >1.0 / >0.75 | "
+                f"{fmt(qwen3_moe_tail_trimmed_delta_audit['max_routed_tensor_relative_delta'])} / "
+                f"{qwen3_moe_tail_trimmed_delta_audit['routed_tensors_relative_delta_gt_1']} / "
+                f"{qwen3_moe_tail_trimmed_delta_audit['routed_tensors_relative_delta_gt_075']} |"
+            ),
+            (
                 "| Qwen3 MoE delta frontier | best safety candidate / next required gate | "
                 f"{qwen3_moe_delta_frontier['best_delta_safety_candidate']} / "
                 f"{qwen3_moe_delta_frontier['next_required_gate']} |"
@@ -3242,6 +3341,11 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(qwen3_moe_delta_frontier['trust_region_total_relative_delta_norm'])}"
                 f"->{fmt(qwen3_moe_delta_frontier['expert_only_total_relative_delta_norm'])} / "
                 f"{fmt(qwen3_moe_delta_frontier['trust_to_expert_only_attention_norm_reduction'])} |"
+            ),
+            (
+                "| Qwen3 MoE delta frontier | expert-only->tail-trimmed rel-norm reduction / routed >0.65 reduction | "
+                f"{fmt(qwen3_moe_delta_frontier['expert_only_to_tail_trimmed_relative_norm_reduction'])} / "
+                f"{qwen3_moe_delta_frontier['expert_only_to_tail_trimmed_routed_gt_065_reduction']} |"
             ),
             (
                 "| real MoE gauge self-merge | baseline / same-name / aligned NLL | "

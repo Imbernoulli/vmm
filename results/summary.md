@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-19T20:22:23.639609+00:00`
+Generated at: `2026-06-19T20:38:12.397537+00:00`
 
 ## Coverage
 
@@ -148,9 +148,14 @@ Complete: `60`; partial: `1`; missing: `0`.
 | Qwen3 MoE expert-only ablation | frozen tensors / expert / attention hits | 3891 / 15729 / 288 |
 | Qwen3 MoE expert-only delta audit | status / total relative norm / router changed | passed / 0.246 / 0/48 |
 | Qwen3 MoE expert-only delta audit | max routed rel-delta / routed tensors >1.0 / >0.75 | 0.750 / 0 / 14 |
-| Qwen3 MoE delta frontier | best safety candidate / next required gate | expert_only / vllm_downstream_eval_trust_region_vs_expert_only_attention_ablation |
+| Qwen3 MoE tail-trimmed expert-only candidate | status / target cap / scaled groups | tail_trimmed_rules_ready / 0.650 / 140 |
+| Qwen3 MoE tail-trimmed expert-only candidate | estimated rel-norm / routed max / >0.65 | 0.243 / 0.650 / 0 |
+| Qwen3 MoE tail-trimmed delta audit | status / total relative norm / router changed | passed / 0.243 / 0/48 |
+| Qwen3 MoE tail-trimmed delta audit | max routed rel-delta / routed tensors >1.0 / >0.75 | 0.650 / 0 / 0 |
+| Qwen3 MoE delta frontier | best safety candidate / next required gate | tail_trimmed / vllm_downstream_eval_trust_region_vs_expert_only_attention_ablation |
 | Qwen3 MoE delta frontier | audit->trust routed >0.75 reduction / trust->expert-only routed >0.75 reduction | 150 / 0 |
 | Qwen3 MoE delta frontier | trust vs expert-only total rel-norm / attention norm reduction | 0.249->0.246 / 0.189 |
+| Qwen3 MoE delta frontier | expert-only->tail-trimmed rel-norm reduction / routed >0.65 reduction | 0.003 / 286 |
 | real MoE gauge self-merge | baseline / same-name / aligned NLL | 4.168 / 9.659 / 4.168 |
 | real MoE gauge self-merge | same-name degradation vs baseline | 5.491 |
 | real MoE gauge self-merge | recovered expert permutations | 16 / 16 |
@@ -263,7 +268,7 @@ Complete: `60`; partial: `1`; missing: `0`.
 | vLLM downstream eval smoke | status | passed |
 | vLLM downstream eval smoke | good / bad avg primary | 1.000 / 0.000 |
 | vLLM checkpoint eval plan | status | hosted_eval_complete |
-| vLLM checkpoint eval plan | ready / missing / not-loadable | 7 / 2 / 1 |
+| vLLM checkpoint eval plan | ready / missing / not-loadable | 8 / 2 / 1 |
 | vLLM hosted eval results | completed eval dirs | 10 |
 | vLLM hosted eval results | best eval avg / worst primary | source_qwen_0_5b_base / 0.375 / 0.094 |
 | vLLM source-vs-merge comparison | status | merge_underperforms_all_sources |
@@ -278,7 +283,7 @@ Complete: `60`; partial: `1`; missing: `0`.
 | Qwen dense broad sparse-method candidate | selected tensors / applied sparse rules / vLLM avg / delta vs global | 99 / 99 / 0.156 / -0.047 |
 | Qwen dense attention sparse-method candidate | selected tensors / applied sparse rules / vLLM avg / delta vs global | 49 / 49 / 0.203 / 0.000 |
 | checkpoint materialization readiness | status | hosted_eval_complete |
-| checkpoint materialization readiness | materialized / blocked / ready / completed | 5 / 4 / 4 / 1 |
+| checkpoint materialization readiness | materialized / blocked / ready / completed | 6 / 4 / 5 / 1 |
 | MoE materialization pipeline | status | waiting_for_real_moe_probe_or_paths |
 | MoE materialization pipeline | current blocking stage | exact_moe_topology |
 | MoE materialization pipeline | ready / waiting gates | 3 / 6 |
