@@ -80,7 +80,7 @@ def artifact_kind(path: Path) -> str:
         return "code"
     if path.suffix in {".md", ".html"}:
         return "document"
-    if path.suffix in {".csv", ".json"}:
+    if path.suffix in {".csv", ".json", ".jsonl", ".txt"}:
         return "data"
     if path.suffix in {".png", ".jpg", ".jpeg", ".svg"}:
         return "figure"
@@ -95,11 +95,12 @@ def collect_artifacts() -> list[dict[str, Any]]:
         REPO_ROOT / "MODEL_AVERAGING_PROBES_AND_MOE_OPTIMIZATION.md",
         REPO_ROOT / "QWEN_DENSE_MOE_EXPERIMENT_PLAN.md",
         REPO_ROOT / "proposal.md",
+        REPO_ROOT / "prompts",
         REPO_ROOT / "src",
         REPO_ROOT / "scripts",
         REPO_ROOT / "results",
     ]
-    suffixes = {".py", ".md", ".csv", ".json", ".png", ".html"}
+    suffixes = {".py", ".md", ".csv", ".json", ".jsonl", ".txt", ".png", ".html"}
     files: list[Path] = []
     for root in roots:
         if not root.exists():
@@ -494,6 +495,23 @@ def summarize_average_candidate_recipes() -> dict[str, Any]:
     }
 
 
+def summarize_moe_route_weight_recipes() -> dict[str, Any]:
+    summary = read_json("results/moe_route_weight_recipes/summary.json")
+    source_weights = read_csv("results/moe_route_weight_recipes/source_weights_by_expert.csv")
+    return {
+        "summary": summary,
+        "recipe_status": summary.get("recipe_status"),
+        "expert_rule_count": int(summary.get("expert_rule_count", 0)),
+        "tensor_rule_count": int(summary.get("tensor_rule_count", 0)),
+        "source_weights_rows": int(len(source_weights)),
+        "report": rel("results/moe_route_weight_recipes/report.md"),
+        "source_weights": rel("results/moe_route_weight_recipes/source_weights_by_expert.csv"),
+        "tensor_rules": rel("results/moe_route_weight_recipes/tensor_rules.txt"),
+        "writer_command": rel("results/moe_route_weight_recipes/writer_command.txt"),
+        "prompt_pack": rel("prompts/qwen_moe_route_probe_prompts.jsonl"),
+    }
+
+
 def coverage_checklist() -> list[dict[str, str]]:
     return [
         {
@@ -587,6 +605,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/average_candidate_recipes/report.md converts probe decisions into conservative same-shape materialization recipes and skips endpoint-only pseudo-averages.",
         },
         {
+            "item": "MoE route-weight recipes",
+            "status": "complete",
+            "evidence": "results/moe_route_weight_recipes/report.md converts MoE routing/expert-load probes into tensor-rule files for same-shape checkpoint materialization; current recipe is waiting for real routing probe data.",
+        },
+        {
             "item": "Interactive explainer UI",
             "status": "complete",
             "evidence": "Dashboard includes a draggable precomputed merge-plane explorer with task-pair, method, objective, raw/normalized plane, alpha/beta, and lambda controls.",
@@ -614,6 +637,7 @@ def build_summary() -> dict[str, Any]:
         "same_shape_writer_smoke": summarize_same_shape_writer_smoke(),
         "checkpoint_topology_inspect": summarize_checkpoint_topology(),
         "average_candidate_recipes": summarize_average_candidate_recipes(),
+        "moe_route_weight_recipes": summarize_moe_route_weight_recipes(),
     }
     coverage = coverage_checklist()
     counts = {
@@ -647,6 +671,7 @@ def build_summary() -> dict[str, Any]:
             "python scripts/write_same_shape_average_checkpoint.py --base BASE --source expert=EXPERT --dry-run --output-dir results/same_shape_writer_smoke",
             "python scripts/inspect_checkpoint_topology.py --model NAME=MODEL_PATH --output-dir results/checkpoint_topology_inspect",
             "PYTHONPATH=src python scripts/build_average_candidate_recipes.py",
+            "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code --source general --source code",
             "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
             "PYTHONPATH=src python scripts/collect_results.py",
         ],
@@ -680,6 +705,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     topology = exp["checkpoint_topology_inspect"]
     moe_models = [model for model in topology["models"] if model.get("config", {}).get("is_moe_config")]
     recipes = exp["average_candidate_recipes"]
+    route_weight_recipes = exp["moe_route_weight_recipes"]
     coverage_counts = summary["coverage_counts"]
     lines = [
         "# Result Summary",
@@ -841,6 +867,14 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| average candidate recipes | MoE templates awaiting routing probe | "
                 f"{recipes['status_counts'].get('template_waiting_for_routing_probe', 0)} |"
+            ),
+            (
+                "| MoE route-weight recipes | recipe status | "
+                f"{route_weight_recipes['recipe_status']} |"
+            ),
+            (
+                "| MoE route-weight recipes | expert tensor rules | "
+                f"{route_weight_recipes['expert_rule_count']} |"
             ),
         ]
     )

@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T04:08:10.895067+00:00`
+Generated at: `2026-06-19T04:17:05.672981+00:00`
 
 ## Coverage
 
-Complete: `19`; partial: `0`; missing: `0`.
+Complete: `20`; partial: `0`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -26,6 +26,7 @@ Complete: `19`; partial: `0`; missing: `0`.
 | Same-shape checkpoint writer | complete | scripts/write_same_shape_average_checkpoint.py writes same-shape safetensors checkpoints; results/same_shape_writer_smoke/report.md validates Qwen2.5-0.5B base/instruct/coder dry-run compatibility. |
 | Checkpoint topology inspection | complete | results/checkpoint_topology_inspect/report.md inspects Qwen MoE/Dense configs and safetensors headers without loading weights. |
 | Average candidate recipes | complete | results/average_candidate_recipes/report.md converts probe decisions into conservative same-shape materialization recipes and skips endpoint-only pseudo-averages. |
+| MoE route-weight recipes | complete | results/moe_route_weight_recipes/report.md converts MoE routing/expert-load probes into tensor-rule files for same-shape checkpoint materialization; current recipe is waiting for real routing probe data. |
 | Interactive explainer UI | complete | Dashboard includes a draggable precomputed merge-plane explorer with task-pair, method, objective, raw/normalized plane, alpha/beta, and lambda controls. |
 
 ## Key Metrics
@@ -66,3 +67,5 @@ Complete: `19`; partial: `0`; missing: `0`.
 | checkpoint topology | inspected MoE configs | 1 |
 | average candidate recipes | endpoint-only skips | 1 |
 | average candidate recipes | MoE templates awaiting routing probe | 1 |
+| MoE route-weight recipes | recipe status | waiting_for_routing_probe |
+| MoE route-weight recipes | expert tensor rules | 0 |

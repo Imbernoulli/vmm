@@ -1,0 +1,48 @@
+{
+  "recipe_status": "waiting_for_routing_probe",
+  "source_names": [
+    "general",
+    "code"
+  ],
+  "category_sources": {
+    "general": "general",
+    "code": "code",
+    "math": "general",
+    "safety": "general",
+    "finance": "general",
+    "legal": "general",
+    "agentic_code": "code",
+    "long_context": "general"
+  },
+  "fallback_source": "general",
+  "router_dirs": [],
+  "input_summaries": [],
+  "anchor_floor": 0.15,
+  "min_source_weight": 0.05,
+  "low_route_threshold": 0.005,
+  "freeze_router": true,
+  "shared_attention_weights": {
+    "general": 0.5,
+    "code": 0.5
+  },
+  "shared_mlp_weights": null,
+  "expert_rule_count": 0,
+  "tensor_rule_count": 1,
+  "topology": {
+    "name": "qwen3_5_35b_a3b",
+    "model_type": "qwen3_5_moe",
+    "num_hidden_layers": 40,
+    "num_experts": 256,
+    "num_experts_per_tok": 8,
+    "active_expert_fraction_per_token": 0.03125,
+    "weights_available": false
+  },
+  "same_shape_constraint": "Tensor rules only change weights inside the existing model structure; expert count, router shape, tokenizer, and layer count stay fixed.",
+  "outputs": {
+    "source_weights": "results/moe_route_weight_recipes/source_weights_by_expert.csv",
+    "tensor_rules": "results/moe_route_weight_recipes/tensor_rules.txt",
+    "writer_command": "results/moe_route_weight_recipes/writer_command.txt",
+    "summary": "results/moe_route_weight_recipes/summary.json",
+    "report": "results/moe_route_weight_recipes/report.md"
+  }
+}

@@ -194,6 +194,18 @@ def parse_tensor_rules(raw_items: list[str] | None, source_names: list[str]) -> 
     return rules
 
 
+def load_tensor_rule_files(paths: list[str] | None) -> list[str]:
+    raw_rules: list[str] = []
+    for path in paths or []:
+        with Path(path).open("r", encoding="utf-8") as handle:
+            for line in handle:
+                stripped = line.strip()
+                if not stripped or stripped.startswith("#"):
+                    continue
+                raw_rules.append(stripped)
+    return raw_rules
+
+
 def output_dtype(base_dtype: torch.dtype, requested: str) -> torch.dtype:
     if requested == "base":
         return base_dtype
@@ -325,7 +337,8 @@ def write_average_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
     if len(source_names) != len(set(source_names)):
         raise ValueError(f"Source names must be unique: {source_names}")
     default_weights = parse_weight_map(args.source_weight, source_names)
-    tensor_rules = parse_tensor_rules(args.tensor_rule, source_names)
+    raw_tensor_rules = list(args.tensor_rule or []) + load_tensor_rule_files(args.tensor_rule_file)
+    tensor_rules = parse_tensor_rules(raw_tensor_rules, source_names)
     freeze_patterns = [re.compile(pattern) for pattern in args.freeze_regex]
 
     base = discover_safetensors(args.base)
@@ -446,6 +459,12 @@ def parse_args() -> argparse.Namespace:
         action="append",
         default=None,
         help="Regex-specific weights: PATTERN::SOURCE=WEIGHT,SOURCE=WEIGHT. First matching rule wins.",
+    )
+    parser.add_argument(
+        "--tensor-rule-file",
+        action="append",
+        default=None,
+        help="Text file with one PATTERN::SOURCE=WEIGHT,SOURCE=WEIGHT rule per line. Blank lines and # comments are ignored.",
     )
     parser.add_argument("--freeze-regex", action="append", default=[], help="Freeze matching tensors to base weights.")
     parser.add_argument("--freeze-router", action="store_true", help="Freeze router/gate tensors, excluding gate_proj/shared_expert_gate.")

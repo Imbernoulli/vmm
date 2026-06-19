@@ -91,13 +91,18 @@
       "status": "complete"
     },
     {
+      "evidence": "results/moe_route_weight_recipes/report.md converts MoE routing/expert-load probes into tensor-rule files for same-shape checkpoint materialization; current recipe is waiting for real routing probe data.",
+      "item": "MoE route-weight recipes",
+      "status": "complete"
+    },
+    {
       "evidence": "Dashboard includes a draggable precomputed merge-plane explorer with task-pair, method, objective, raw/normalized plane, alpha/beta, and lambda controls.",
       "item": "Interactive explainer UI",
       "status": "complete"
     }
   ],
   "coverage_counts": {
-    "complete": 19,
+    "complete": 20,
     "missing": 0,
     "partial": 0
   },
@@ -1437,6 +1442,65 @@
         }
       }
     },
+    "moe_route_weight_recipes": {
+      "expert_rule_count": 0,
+      "prompt_pack": "prompts/qwen_moe_route_probe_prompts.jsonl",
+      "recipe_status": "waiting_for_routing_probe",
+      "report": "results/moe_route_weight_recipes/report.md",
+      "source_weights": "results/moe_route_weight_recipes/source_weights_by_expert.csv",
+      "source_weights_rows": 0,
+      "summary": {
+        "anchor_floor": 0.15,
+        "category_sources": {
+          "agentic_code": "code",
+          "code": "code",
+          "finance": "general",
+          "general": "general",
+          "legal": "general",
+          "long_context": "general",
+          "math": "general",
+          "safety": "general"
+        },
+        "expert_rule_count": 0,
+        "fallback_source": "general",
+        "freeze_router": true,
+        "input_summaries": [],
+        "low_route_threshold": 0.005,
+        "min_source_weight": 0.05,
+        "outputs": {
+          "report": "results/moe_route_weight_recipes/report.md",
+          "source_weights": "results/moe_route_weight_recipes/source_weights_by_expert.csv",
+          "summary": "results/moe_route_weight_recipes/summary.json",
+          "tensor_rules": "results/moe_route_weight_recipes/tensor_rules.txt",
+          "writer_command": "results/moe_route_weight_recipes/writer_command.txt"
+        },
+        "recipe_status": "waiting_for_routing_probe",
+        "router_dirs": [],
+        "same_shape_constraint": "Tensor rules only change weights inside the existing model structure; expert count, router shape, tokenizer, and layer count stay fixed.",
+        "shared_attention_weights": {
+          "code": 0.5,
+          "general": 0.5
+        },
+        "shared_mlp_weights": null,
+        "source_names": [
+          "general",
+          "code"
+        ],
+        "tensor_rule_count": 1,
+        "topology": {
+          "active_expert_fraction_per_token": 0.03125,
+          "model_type": "qwen3_5_moe",
+          "name": "qwen3_5_35b_a3b",
+          "num_experts": 256,
+          "num_experts_per_tok": 8,
+          "num_hidden_layers": 40,
+          "weights_available": false
+        }
+      },
+      "tensor_rule_count": 1,
+      "tensor_rules": "results/moe_route_weight_recipes/tensor_rules.txt",
+      "writer_command": "results/moe_route_weight_recipes/writer_command.txt"
+    },
     "pretrained_vit_transfer_merge": {
       "base": {
         "alpha": 0.0,
@@ -2227,7 +2291,7 @@
       }
     }
   },
-  "generated_at": "2026-06-19T04:08:10.895067+00:00",
+  "generated_at": "2026-06-19T04:17:05.672981+00:00",
   "overall_status": "complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -2248,6 +2312,7 @@
     "python scripts/write_same_shape_average_checkpoint.py --base BASE --source expert=EXPERT --dry-run --output-dir results/same_shape_writer_smoke",
     "python scripts/inspect_checkpoint_topology.py --model NAME=MODEL_PATH --output-dir results/checkpoint_topology_inspect",
     "PYTHONPATH=src python scripts/build_average_candidate_recipes.py",
+    "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code --source general --source code",
     "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
     "PYTHONPATH=src python scripts/collect_results.py"
   ],

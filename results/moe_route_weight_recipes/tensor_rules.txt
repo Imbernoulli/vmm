@@ -1,0 +1,3 @@
+# Shared attention rule. Keep before expert rules because writer uses first match.
+.*self_attn.*::general=0.5,code=0.5
+# Expert rules are omitted until routing probe expert_load.csv is available.
