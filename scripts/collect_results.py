@@ -598,11 +598,22 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
     unified_moe_capacity_sweep = (
         read_csv(unified_capacity_sweep_path) if unified_capacity_sweep_path.exists() else pd.DataFrame()
     )
+    router_bias_trace_path = repo_path("results/toy_moe_merge/router_bias_capacity_trace.csv")
+    router_bias_capacity_trace = read_csv(router_bias_trace_path) if router_bias_trace_path.exists() else pd.DataFrame()
+    router_bias_sweep_path = repo_path("results/toy_moe_merge/router_bias_capacity_sweep.csv")
+    router_bias_capacity_sweep = read_csv(router_bias_sweep_path) if router_bias_sweep_path.exists() else pd.DataFrame()
     selected_unified_capacity = (
         unified_moe_capacity_sweep[
             unified_moe_capacity_sweep["selected_by_select_capacity_aware_score"].astype(bool)
         ]
         if not unified_moe_capacity_sweep.empty
+        else pd.DataFrame()
+    )
+    selected_router_bias_capacity = (
+        router_bias_capacity_sweep[
+            router_bias_capacity_sweep["selected_by_select_capacity_aware_score"].astype(bool)
+        ]
+        if not router_bias_capacity_sweep.empty
         else pd.DataFrame()
     )
     selected_router_weight = router_weight_search[
@@ -649,6 +660,7 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
             methods, "expert_output_projection_router_calibrated_average"
         ),
         "unified_moe_average": find_method(methods, "unified_moe_average"),
+        "unified_moe_bias_capacity_average": find_method(methods, "unified_moe_bias_capacity_average"),
         "route_aware_expert_average": find_method(methods, "route_aware_expert_average"),
         "matched_router_frozen_minus_all_weight_worst_acc": float(
             summary.get("matched_router_frozen_minus_all_weight_worst_acc", 0.0)
@@ -730,6 +742,14 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
         "unified_moe_capacity_sweep_selected": clean_row(selected_unified_capacity.iloc[0])
         if not selected_unified_capacity.empty
         else None,
+        "router_bias_capacity_trace_rows": int(len(router_bias_capacity_trace)),
+        "router_bias_capacity_sweep_rows": int(len(router_bias_capacity_sweep)),
+        "router_bias_capacity_sweep_selected": clean_row(selected_router_bias_capacity.iloc[0])
+        if not selected_router_bias_capacity.empty
+        else None,
+        "unified_moe_bias_capacity_minus_unified_worst_acc": float(
+            summary.get("unified_moe_bias_capacity_minus_unified_worst_acc", 0.0)
+        ),
         "unified_moe_minus_expert_search_worst_acc": float(
             summary.get("unified_moe_minus_expert_search_worst_acc", 0.0)
         ),
@@ -766,6 +786,8 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
         "unified_moe_capacity_sweep": rel(unified_capacity_sweep_path)
         if unified_capacity_sweep_path.exists()
         else None,
+        "router_bias_capacity_trace": rel(router_bias_trace_path) if router_bias_trace_path.exists() else None,
+        "router_bias_capacity_sweep": rel(router_bias_sweep_path) if router_bias_sweep_path.exists() else None,
         "router_calibration_sweep": rel("results/toy_moe_merge/router_calibration_sweep.csv"),
         "figure": rel("results/toy_moe_merge/toy_moe_merge.png"),
     }
@@ -1269,6 +1291,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     routing_readiness = exp["moe_routing_readiness"]
     toy_moe = exp["toy_moe_merge"]
     selected_unified_capacity = toy_moe.get("unified_moe_capacity_sweep_selected") or {}
+    selected_router_bias_capacity = toy_moe.get("router_bias_capacity_sweep_selected") or {}
     toy_moe_readiness = exp["toy_moe_routing_readiness"]
     toy_moe_selection = exp["toy_moe_method_selection"]
     toy_moe_remap = exp["toy_moe_expert_remap_plan"]
@@ -1543,6 +1566,22 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| toy MoE unified objective | capacity-sweep test score | "
                 f"{fmt(selected_unified_capacity.get('test_capacity_aware_score'))} |"
+            ),
+            (
+                "| toy MoE bias capacity | selected capacity loss coef | "
+                f"{fmt(selected_router_bias_capacity.get('capacity_loss_coef'), 3)} |"
+            ),
+            (
+                "| toy MoE bias capacity | hard top-2 worst accuracy | "
+                f"{fmt(toy_moe['dispatch_robustness'].get('unified_moe_bias_capacity_hard_top2_worst_acc'))} |"
+            ),
+            (
+                "| toy MoE bias capacity | max top-k overflow fraction | "
+                f"{fmt(toy_moe['router_capacity'].get('unified_moe_bias_capacity_max_topk_overflow_fraction'))} |"
+            ),
+            (
+                "| toy MoE bias capacity | capacity-sweep test score | "
+                f"{fmt(selected_router_bias_capacity.get('test_capacity_aware_score'))} |"
             ),
             (
                 "| toy MoE capacity | max top-k overflow fraction | "

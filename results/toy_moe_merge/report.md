@@ -26,6 +26,7 @@
 - Expert output-projection average worst accuracy: `0.757`.
 - Expert output-projection + router-calibrated worst accuracy: `0.807`.
 - Unified expert/router objective worst accuracy: `0.785`.
+- Unified + router-bias capacity calibration worst accuracy: `0.770`.
 - Unified router/capacity sweep selected router seed `router_kd_seed` and capacity loss `0.000` with held-out selection capacity-aware score `0.665`.
 - Route-aware expert average worst accuracy: `0.750`.
 - Lowest MoE connectivity barrier: `direct_matched_general_to_code` = `0.0000` worst-loss barrier.
@@ -50,25 +51,26 @@
 | expert_output_projection_router_calibrated_average | 0.863 | 0.807 | 0.807 | 0.603 |
 | expert_weight_search_router_calibrated_average | 0.858 | 0.802 | 0.802 | 0.602 |
 | unified_calibrated_seed_average | 0.858 | 0.802 | 0.802 | 0.602 |
-| matched_router_sweep_selected_average | 0.860 | 0.797 | 0.797 | 0.603 |
 | matched_router_calibrated_average | 0.860 | 0.797 | 0.797 | 0.603 |
+| matched_router_sweep_selected_average | 0.860 | 0.797 | 0.797 | 0.603 |
 | unified_moe_average | 0.860 | 0.785 | 0.785 | 0.607 |
 | unified_route_kd_seed_average | 0.855 | 0.777 | 0.777 | 0.609 |
+| unified_moe_bias_capacity_average | 0.848 | 0.770 | 0.770 | 0.609 |
 | matched_router_route_kd_average | 0.848 | 0.762 | 0.762 | 0.610 |
 | unified_router_kd_seed_average | 0.840 | 0.760 | 0.760 | 0.621 |
-| expert_output_projection_average | 0.833 | 0.757 | 0.757 | 0.623 |
 | code_endpoint_permuted | 0.850 | 0.757 | 0.757 | 0.620 |
-| matched_router_topk_calibrated_average | 0.830 | 0.755 | 0.755 | 0.609 |
+| expert_output_projection_average | 0.833 | 0.757 | 0.757 | 0.623 |
 | expert_weight_search_average | 0.835 | 0.755 | 0.755 | 0.622 |
-| expert_matched_average | 0.833 | 0.750 | 0.750 | 0.621 |
-| expert_matched_regmean_average | 0.820 | 0.750 | 0.750 | 0.620 |
+| matched_router_topk_calibrated_average | 0.830 | 0.755 | 0.755 | 0.609 |
 | matched_router_weight_search_average | 0.835 | 0.750 | 0.750 | 0.621 |
+| expert_matched_regmean_average | 0.820 | 0.750 | 0.750 | 0.620 |
+| expert_matched_average | 0.833 | 0.750 | 0.750 | 0.621 |
 | matched_router_hessian_average | 0.828 | 0.750 | 0.750 | 0.621 |
 | route_aware_expert_average | 0.830 | 0.750 | 0.750 | 0.623 |
 | matched_router_kd_average | 0.828 | 0.745 | 0.745 | 0.623 |
 | matched_router_frozen_average | 0.828 | 0.743 | 0.743 | 0.624 |
-| base | 0.823 | 0.733 | 0.733 | 0.631 |
 | expert_matched_dare_average | 0.833 | 0.733 | 0.733 | 0.624 |
+| base | 0.823 | 0.733 | 0.733 | 0.631 |
 | general_endpoint | 0.823 | 0.723 | 0.723 | 0.623 |
 | expert_matched_ties_dare_average | 0.835 | 0.713 | 0.713 | 0.622 |
 | expert_matched_ties_average | 0.828 | 0.710 | 0.710 | 0.624 |
@@ -94,6 +96,7 @@
 - `expert_output_projection_average` 不用标签分数搜索，而是用 route-conditioned expert output residual 解每个 expert 的 source-delta 权重；它检验 output-space projection 是否能解释 expert merging。
 - `expert_output_projection_router_calibrated_average` 在 output-space expert 权重后只校准 router，用来区分 expert 输出拟合和 router dispatch 校准的贡献。
 - `unified_moe_average` 先用 per-expert source weight search 处理 expert 语义和重要性，再只更新 router；目标同时包含 soft/hard task loss、source route KD、source output KD、base-router KL、load-balance 和 differentiable capacity-overflow surrogate。router seed 和 capacity loss 系数都不是手工固定，而是在独立 selection split 上按 hard top-2 worst accuracy 减 max overflow 自动选择。
+- `unified_moe_bias_capacity_average` 从 unified 结果出发只训练 router bias，检验全局 expert 负载偏置能否降低 capacity overflow，同时避免重学完整 router 几何。
 - `route_aware_expert_average` 冻结 base router，并按 base router 在 general/code prompt 上的 route mass 给每个 expert 设置 source delta 权重；这对应 route-weight recipes 的 toy 版本。
 - 这个实验不是 Qwen3 结果，但它把 MoE merging 的特质从报告落成了可跑的 probe：expert index、router overlap、expert load 和 category route mass 都会影响 average 是否安全。
 
@@ -122,6 +125,8 @@
 - `router_route_kd_trace.csv`
 - `unified_moe_trace.csv`
 - `unified_moe_capacity_sweep.csv`
+- `router_bias_capacity_trace.csv`
+- `router_bias_capacity_sweep.csv`
 - `router_calibration_sweep.csv`
 - `toy_moe_merge.png`
 - `summary.json`

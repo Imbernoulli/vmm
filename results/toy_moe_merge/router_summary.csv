@@ -51,5 +51,7 @@ unified_calibrated_seed_average,unified_calibrated_seed_average,general,0,toy_ro
 unified_calibrated_seed_average,unified_calibrated_seed_average,code,0,toy_router,4,400,2,1.2859355211257935,0.09929633140563965,4,4,0.485,2.781440121120702
 unified_moe_average,unified_moe_average,general,0,toy_router,4,400,2,1.259705901145935,0.15324866771697998,4,4,0.615,2.534849234035036
 unified_moe_average,unified_moe_average,code,0,toy_router,4,400,2,1.2642194032669067,0.15560202300548553,4,4,0.475,2.516032261000805
+unified_moe_bias_capacity_average,unified_moe_bias_capacity_average,general,0,toy_router,4,400,2,1.2683693170547485,0.13767699897289276,4,4,0.5275,2.6770689306000897
+unified_moe_bias_capacity_average,unified_moe_bias_capacity_average,code,0,toy_router,4,400,2,1.2593224048614502,0.14917534589767456,4,4,0.435,2.747527661867477
 route_aware_expert_average,route_aware_expert_average,general,0,toy_router,4,400,2,1.3146744966506958,0.09449800848960876,4,4,0.5825,2.6869657710450916
 route_aware_expert_average,route_aware_expert_average,code,0,toy_router,4,400,2,1.31105637550354,0.10457494854927063,4,4,0.4825,2.4189625442488043

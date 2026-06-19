@@ -49,5 +49,7 @@ base,unified_calibrated_seed_average,general,0,toy_router,400,0.887499988079071,
 base,unified_calibrated_seed_average,code,0,toy_router,400,0.8324999809265137,0.84
 base,unified_moe_average,general,0,toy_router,400,0.9200000166893005,0.89
 base,unified_moe_average,code,0,toy_router,400,0.9750000238418579,0.8733333333333333
+base,unified_moe_bias_capacity_average,general,0,toy_router,400,0.9100000262260437,0.9216666666666667
+base,unified_moe_bias_capacity_average,code,0,toy_router,400,0.9200000166893005,0.9483333333333333
 base,route_aware_expert_average,general,0,toy_router,400,1.0,1.0
 base,route_aware_expert_average,code,0,toy_router,400,1.0,1.0

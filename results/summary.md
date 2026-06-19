@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-19T12:27:00.339066+00:00`
+Generated at: `2026-06-19T12:36:11.199283+00:00`
 
 ## Coverage
 
@@ -106,6 +106,10 @@ Complete: `31`; partial: `1`; missing: `0`.
 | toy MoE unified objective | capacity-sweep candidates | 24 |
 | toy MoE unified objective | capacity-sweep select score | 0.665 |
 | toy MoE unified objective | capacity-sweep test score | 0.612 |
+| toy MoE bias capacity | selected capacity loss coef | 1.000 |
+| toy MoE bias capacity | hard top-2 worst accuracy | 0.682 |
+| toy MoE bias capacity | max top-k overflow fraction | 0.048 |
+| toy MoE bias capacity | capacity-sweep test score | 0.635 |
 | toy MoE capacity | max top-k overflow fraction | 0.106 |
 | toy MoE capacity | worst overflow method/category | all_weight_average / code |
 | toy MoE capacity | route-KD max top-k overflow fraction | 0.079 |
@@ -143,9 +147,9 @@ Complete: `31`; partial: `1`; missing: `0`.
 | toy MoE method selection | recommended method | expert_output_projection_router_calibrated_average |
 | toy MoE method selection | recommended hard top-2 method | unified_moe_average |
 | toy MoE method selection | recommended hard top-2 worst accuracy | 0.690 |
-| toy MoE method selection | capacity-aware hard top-2 method | matched_router_kd_average |
-| toy MoE method selection | capacity-aware top-k overflow | 0.034 |
-| toy MoE method selection | hard top-2 / overflow Pareto methods | unified_moe_average, matched_router_calibrated_average, matched_router_sweep_selected_average, matched_router_kd_average |
+| toy MoE method selection | capacity-aware hard top-2 method | unified_moe_bias_capacity_average |
+| toy MoE method selection | capacity-aware top-k overflow | 0.048 |
+| toy MoE method selection | hard top-2 / overflow Pareto methods | unified_moe_average, unified_moe_bias_capacity_average, matched_router_kd_average |
 | toy MoE method selection | all-weight decision | reject_routing_breakdown |
 | toy MoE expert remap plan | remap status | ready |
 | toy MoE expert remap plan | source tensor alias rules | 4 |

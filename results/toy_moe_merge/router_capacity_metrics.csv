@@ -51,5 +51,7 @@ unified_calibrated_seed_average,general,toy_router,400,4,2,1.25,125,250,136,0.34
 unified_calibrated_seed_average,code,toy_router,400,4,2,1.25,125,250,91,0.2275,0,0.0,1.552,0.96,capacity_ok
 unified_moe_average,general,toy_router,400,4,2,1.25,125,250,121,0.3025,62,0.0775,1.968,1.248,capacity_overflow_risk
 unified_moe_average,code,toy_router,400,4,2,1.25,125,250,119,0.2975,1,0.00125,1.52,1.004,capacity_overflow_risk
+unified_moe_bias_capacity_average,general,toy_router,400,4,2,1.25,125,250,105,0.2625,38,0.0475,1.688,1.152,capacity_overflow_risk
+unified_moe_bias_capacity_average,code,toy_router,400,4,2,1.25,125,250,95,0.2375,0,0.0,1.392,0.988,capacity_ok
 route_aware_expert_average,general,toy_router,400,4,2,1.25,125,250,108,0.27,54,0.0675,1.864,1.184,capacity_overflow_risk
 route_aware_expert_average,code,toy_router,400,4,2,1.25,125,250,127,0.3175,19,0.02375,1.544,1.076,capacity_overflow_risk

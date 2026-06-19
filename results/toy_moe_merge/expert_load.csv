@@ -207,6 +207,14 @@ unified_moe_average,unified_moe_average,code,0,toy_router,0,1,0.0025,100,0.125
 unified_moe_average,unified_moe_average,code,0,toy_router,1,179,0.4475,251,0.31375
 unified_moe_average,unified_moe_average,code,0,toy_router,2,190,0.475,248,0.31
 unified_moe_average,unified_moe_average,code,0,toy_router,3,30,0.075,201,0.25125
+unified_moe_bias_capacity_average,unified_moe_bias_capacity_average,general,0,toy_router,0,211,0.5275,288,0.36
+unified_moe_bias_capacity_average,unified_moe_bias_capacity_average,general,0,toy_router,1,4,0.01,129,0.16125
+unified_moe_bias_capacity_average,unified_moe_bias_capacity_average,general,0,toy_router,2,41,0.1025,136,0.17
+unified_moe_bias_capacity_average,unified_moe_bias_capacity_average,general,0,toy_router,3,144,0.36,247,0.30875
+unified_moe_bias_capacity_average,unified_moe_bias_capacity_average,code,0,toy_router,0,1,0.0025,73,0.09125
+unified_moe_bias_capacity_average,unified_moe_bias_capacity_average,code,0,toy_router,1,171,0.4275,237,0.29625
+unified_moe_bias_capacity_average,unified_moe_bias_capacity_average,code,0,toy_router,2,174,0.435,243,0.30375
+unified_moe_bias_capacity_average,unified_moe_bias_capacity_average,code,0,toy_router,3,54,0.135,247,0.30875
 route_aware_expert_average,route_aware_expert_average,general,0,toy_router,0,233,0.5825,296,0.37
 route_aware_expert_average,route_aware_expert_average,general,0,toy_router,1,10,0.025,130,0.1625
 route_aware_expert_average,route_aware_expert_average,general,0,toy_router,2,37,0.0925,116,0.145
