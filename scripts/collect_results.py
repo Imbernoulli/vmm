@@ -570,6 +570,8 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
     methods = read_csv("results/toy_moe_merge/method_metrics.csv")
     router_summary = read_csv("results/toy_moe_merge/router_summary.csv")
     expert_match = read_csv("results/toy_moe_merge/expert_match.csv")
+    expert_regmean_layers = read_csv("results/toy_moe_merge/expert_regmean_layers.csv")
+    expert_regmean_covariances = read_csv("results/toy_moe_merge/expert_regmean_covariances.csv")
     router_weight_search = read_csv("results/toy_moe_merge/router_weight_search.csv")
     selected_router_weight = router_weight_search[
         router_weight_search["selected_by_guarded_calib_worst_loss"].astype(bool)
@@ -584,6 +586,7 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
         "all_weight_average": find_method(methods, "all_weight_average"),
         "expert_matched_average": find_method(methods, "expert_matched_average"),
         "matched_router_frozen_average": find_method(methods, "matched_router_frozen_average"),
+        "expert_matched_regmean_average": find_method(methods, "expert_matched_regmean_average"),
         "matched_router_weight_search_average": find_method(methods, "matched_router_weight_search_average"),
         "matched_router_calibrated_average": find_method(methods, "matched_router_calibrated_average"),
         "matched_router_sweep_selected_average": find_method(methods, "matched_router_sweep_selected_average"),
@@ -601,6 +604,11 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
         "matched_router_calibrated_minus_frozen_worst_acc": float(
             summary.get("matched_router_calibrated_minus_frozen_worst_acc", 0.0)
         ),
+        "expert_matched_regmean_minus_matched_frozen_worst_acc": float(
+            summary.get("expert_matched_regmean_minus_matched_frozen_worst_acc", 0.0)
+        ),
+        "expert_regmean_layers": int(len(expert_regmean_layers)),
+        "expert_regmean_covariance_rows": int(len(expert_regmean_covariances)),
         "router_weight_search_rows": int(len(router_weight_search)),
         "router_weight_search_eligible_count": int(router_weight_search["eligible_by_route_guard"].sum()),
         "router_weight_search_selected": clean_row(selected_router_weight.iloc[0])
@@ -627,6 +635,8 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
         "route_overlap": rel("results/toy_moe_merge/route_overlap.csv"),
         "expert_match": rel("results/toy_moe_merge/expert_match.csv"),
         "route_weights": rel("results/toy_moe_merge/route_weights_by_expert.csv"),
+        "expert_regmean_layers_file": rel("results/toy_moe_merge/expert_regmean_layers.csv"),
+        "expert_regmean_covariances": rel("results/toy_moe_merge/expert_regmean_covariances.csv"),
         "expert_search_weights": rel("results/toy_moe_merge/expert_search_weights_by_expert.csv"),
         "expert_weight_search_trace": rel("results/toy_moe_merge/expert_weight_search_trace.csv"),
         "router_weight_search": rel("results/toy_moe_merge/router_weight_search.csv"),
@@ -1225,6 +1235,14 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| toy MoE route-aware merge | matched + router-frozen worst accuracy | "
                 f"{fmt(toy_moe['matched_router_frozen_average']['worst_acc'])} |"
+            ),
+            (
+                "| toy MoE route-aware merge | expert-matched RegMean worst accuracy | "
+                f"{fmt(toy_moe['expert_matched_regmean_average']['worst_acc'])} |"
+            ),
+            (
+                "| toy MoE route-aware merge | expert-matched RegMean delta vs frozen | "
+                f"{fmt(toy_moe['expert_matched_regmean_minus_matched_frozen_worst_acc'])} |"
             ),
             (
                 "| toy MoE route-aware merge | guarded router-weight selected general/code | "

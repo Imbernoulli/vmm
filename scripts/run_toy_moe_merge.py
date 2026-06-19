@@ -409,6 +409,119 @@ def expert_coeff_state(
     return out
 
 
+@torch.no_grad()
+def collect_linear_covariances(
+    model: nn.Module,
+    loader: DataLoader,
+    device: torch.device,
+    max_batches: int,
+    *,
+    layer_prefix: str,
+) -> tuple[dict[str, Tensor], pd.DataFrame]:
+    model.to(device)
+    model.eval()
+    covariances: dict[str, Tensor] = {}
+    counts: dict[str, int] = {}
+    handles = []
+
+    def hook_for(name: str):
+        def hook(_module: nn.Module, inputs: tuple[Tensor, ...], _output: Tensor) -> None:
+            x = inputs[0].detach()
+            x = x.reshape(-1, x.shape[-1]).to(torch.float64).cpu()
+            ones = torch.ones((x.shape[0], 1), dtype=x.dtype)
+            augmented = torch.cat([x, ones], dim=1)
+            if name not in covariances:
+                covariances[name] = torch.zeros((augmented.shape[1], augmented.shape[1]), dtype=torch.float64)
+            covariances[name] = covariances[name] + augmented.T @ augmented
+            counts[name] = counts.get(name, 0) + int(augmented.shape[0])
+
+        return hook
+
+    for name, module in model.named_modules():
+        if isinstance(module, nn.Linear) and name.startswith(layer_prefix):
+            handles.append(module.register_forward_hook(hook_for(name)))
+
+    batches = 0
+    for x, _y in loader:
+        model(x.to(device))
+        batches += 1
+        if batches >= max_batches:
+            break
+
+    for handle in handles:
+        handle.remove()
+
+    rows = []
+    for name, cov in sorted(covariances.items()):
+        rows.append(
+            {
+                "layer": name,
+                "examples": counts[name],
+                "augmented_dim": int(cov.shape[0]),
+                "trace": float(torch.trace(cov)),
+                "condition": float(torch.linalg.cond(cov + torch.eye(cov.shape[0], dtype=cov.dtype) * 1e-8)),
+            }
+        )
+    return covariances, pd.DataFrame(rows)
+
+
+def regmean_expert_state(
+    initial_state: dict[str, Tensor],
+    source_states: list[dict[str, Tensor]],
+    covariances: list[dict[str, Tensor]],
+    *,
+    ridge: float,
+    layer_prefix: str,
+) -> tuple[dict[str, Tensor], pd.DataFrame]:
+    merged = {name: value.detach().clone() for name, value in initial_state.items()}
+    rows = []
+    linear_layers = sorted(
+        {
+            name.rsplit(".", 1)[0]
+            for name in initial_state
+            if name.startswith(layer_prefix) and name.endswith(".weight")
+        }
+    )
+    for layer in linear_layers:
+        weight_name = f"{layer}.weight"
+        bias_name = f"{layer}.bias"
+        if bias_name not in initial_state:
+            continue
+        if not all(layer in cov for cov in covariances):
+            continue
+        if not all(weight_name in state and bias_name in state for state in source_states):
+            continue
+
+        denom = None
+        numerator = None
+        for state, cov_by_layer in zip(source_states, covariances, strict=True):
+            cov = cov_by_layer[layer].to(torch.float64)
+            weight = state[weight_name].detach().cpu().to(torch.float64)
+            bias = state[bias_name].detach().cpu().to(torch.float64).reshape(-1, 1)
+            augmented_weight = torch.cat([weight, bias], dim=1)
+            denom = cov if denom is None else denom + cov
+            part = augmented_weight @ cov
+            numerator = part if numerator is None else numerator + part
+
+        assert denom is not None and numerator is not None
+        dim = denom.shape[0]
+        ridge_value = ridge * float(torch.trace(denom)) / max(1, dim)
+        system = denom + torch.eye(dim, dtype=torch.float64) * max(ridge_value, ridge)
+        merged_augmented = torch.linalg.solve(system.T, numerator.T).T
+        merged[weight_name] = merged_augmented[:, :-1].to(dtype=initial_state[weight_name].dtype)
+        merged[bias_name] = merged_augmented[:, -1].to(dtype=initial_state[bias_name].dtype)
+        rows.append(
+            {
+                "layer": layer,
+                "out_features": int(merged[weight_name].shape[0]),
+                "in_features": int(merged[weight_name].shape[1]),
+                "ridge_value": float(max(ridge_value, ridge)),
+                "same_shape_action": "regmean_expert_linear_layer",
+            }
+        )
+    return merged, pd.DataFrame(rows)
+
+
 def evaluate_state(
     template: TinyMoEClassifier,
     state: dict[str, Tensor],
@@ -921,6 +1034,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
     all_avg = method_metrics[method_metrics["method"] == "all_weight_average"].iloc[0]
     matched = method_metrics[method_metrics["method"] == "expert_matched_average"].iloc[0]
     matched_router_frozen = method_metrics[method_metrics["method"] == "matched_router_frozen_average"].iloc[0]
+    expert_regmean = method_metrics[method_metrics["method"] == "expert_matched_regmean_average"].iloc[0]
     router_weight_search = method_metrics[method_metrics["method"] == "matched_router_weight_search_average"].iloc[0]
     calibrated = method_metrics[method_metrics["method"] == "matched_router_calibrated_average"].iloc[0]
     sweep_selected = method_metrics[method_metrics["method"] == "matched_router_sweep_selected_average"].iloc[0]
@@ -942,6 +1056,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
         f"- All-weight average worst accuracy: `{all_avg['worst_acc']:.3f}`.",
         f"- Expert-matched average worst accuracy: `{matched['worst_acc']:.3f}`.",
         f"- Matched + router-frozen average worst accuracy: `{matched_router_frozen['worst_acc']:.3f}`.",
+        f"- Expert-matched RegMean average worst accuracy: `{expert_regmean['worst_acc']:.3f}`.",
         f"- Matched + router-weight-search average worst accuracy: `{router_weight_search['worst_acc']:.3f}`.",
         f"- Matched + router-calibrated average worst accuracy: `{calibrated['worst_acc']:.3f}`.",
         f"- Matched + router-sweep-selected average worst accuracy: `{sweep_selected['worst_acc']:.3f}`.",
@@ -969,6 +1084,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
             "- `all_weight_average` 是朴素 baseline：router 和 expert tensors 都按同名 index 平均，因此在 expert permutation 后会暴露 MoE index-alignment 风险。",
             "- `expert_matched_average` 先用 unlabeled calibration input 的 expert-output cosine 做 Hungarian matching，再平均；这对应 Sub-MoE / Expert Merging 里强调的 function-aware expert alignment。",
             "- `matched_router_frozen_average` 直接验证 MoE 特有假设：先对齐 expert 功能，再固定 token-to-expert dispatch，只平均非 router 权重。",
+            "- `expert_matched_regmean_average` 在 expert matching 后只对 expert Linear 层做 activation-covariance RegMean，router 仍固定为 base；这把 Dense RegMean 转成了 MoE expert-local 版本。",
             "- `matched_router_weight_search_average` 不做梯度训练，只对 router tensor 的 general/code task-vector 系数做 guarded search；这是 checkpoint-only 的 MoE router probe。",
             "- `matched_router_calibrated_average` 冻结 matched experts，只用小校准集更新 router，并用 base-router KL 约束防止 dispatch 漂移。",
             "- `matched_router_sweep_selected_average` 对 router calibration 的 KL 系数做 sweep，先过 route-overlap guard，再按 calibration worst-loss 选择候选；它把 router overlap/load 和任务精度放到同一个 probe 里。",
@@ -985,6 +1101,8 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
             "- `route_overlap.csv`",
             "- `expert_match.csv`",
             "- `route_weights_by_expert.csv`",
+            "- `expert_regmean_covariances.csv`",
+            "- `expert_regmean_layers.csv`",
             "- `expert_search_weights_by_expert.csv`",
             "- `expert_weight_search_trace.csv`",
             "- `router_weight_search.csv`",
@@ -1019,6 +1137,8 @@ def main() -> None:
     parser.add_argument("--router-weight-search-max-delta-sum", type=float, default=1.0)
     parser.add_argument("--router-weight-search-min-topk-jaccard", type=float, default=0.80)
     parser.add_argument("--router-weight-search-min-top1-agreement", type=float, default=0.75)
+    parser.add_argument("--expert-regmean-batches", type=int, default=4)
+    parser.add_argument("--expert-regmean-ridge", type=float, default=1e-4)
     parser.add_argument("--expert-search-grid", default="0,0.25,0.5,0.75,1.0")
     parser.add_argument("--expert-search-passes", type=int, default=2)
     parser.add_argument("--expert-search-prior-penalty", type=float, default=0.02)
@@ -1121,6 +1241,30 @@ def main() -> None:
     for name in matched_router_frozen:
         if name.startswith("router."):
             matched_router_frozen[name] = base_state[name].clone()
+    general_cov, general_cov_rows = collect_linear_covariances(
+        general_model,
+        loaders["general_calib"],
+        device,
+        args.expert_regmean_batches,
+        layer_prefix="experts.",
+    )
+    code_cov, code_cov_rows = collect_linear_covariances(
+        matched_code,
+        loaders["code_calib"],
+        device,
+        args.expert_regmean_batches,
+        layer_prefix="experts.",
+    )
+    general_cov_rows.insert(0, "source", "general")
+    code_cov_rows.insert(0, "source", "code_matched")
+    regmean_covariances = pd.concat([general_cov_rows, code_cov_rows], ignore_index=True)
+    expert_matched_regmean, expert_regmean_layers = regmean_expert_state(
+        matched_router_frozen,
+        [general_state, matched_code_state],
+        [general_cov, code_cov],
+        ridge=args.expert_regmean_ridge,
+        layer_prefix="experts.",
+    )
     router_weight_search_grid = parse_grid(args.router_weight_search_grid)
     router_weight_search_pairs = candidate_source_pairs(
         router_weight_search_grid,
@@ -1192,6 +1336,11 @@ def main() -> None:
             "align code experts by output cosine and keep the base router fixed",
         ),
         MethodState(
+            "expert_matched_regmean_average",
+            expert_matched_regmean,
+            "align code experts and RegMean-merge only expert linear layers with the base router fixed",
+        ),
+        MethodState(
             "matched_router_weight_search_average",
             matched_router_weight_search,
             "align code experts and search router source-delta weights with route guards",
@@ -1260,6 +1409,8 @@ def main() -> None:
     route_overlap_df.to_csv(args.output_dir / "route_overlap.csv", index=False)
     expert_match.to_csv(args.output_dir / "expert_match.csv", index=False)
     route_weights.to_csv(args.output_dir / "route_weights_by_expert.csv", index=False)
+    regmean_covariances.to_csv(args.output_dir / "expert_regmean_covariances.csv", index=False)
+    expert_regmean_layers.to_csv(args.output_dir / "expert_regmean_layers.csv", index=False)
     expert_search_weights.to_csv(args.output_dir / "expert_search_weights_by_expert.csv", index=False)
     expert_search_trace.to_csv(args.output_dir / "expert_weight_search_trace.csv", index=False)
     router_weight_search.to_csv(args.output_dir / "router_weight_search.csv", index=False)
@@ -1269,6 +1420,7 @@ def main() -> None:
     best = method_metrics.sort_values(["worst_acc", "avg_acc"], ascending=False).iloc[0]
     all_avg = method_metrics[method_metrics["method"] == "all_weight_average"].iloc[0]
     matched_router_frozen_row = method_metrics[method_metrics["method"] == "matched_router_frozen_average"].iloc[0]
+    expert_matched_regmean_row = method_metrics[method_metrics["method"] == "expert_matched_regmean_average"].iloc[0]
     matched_router_weight_search_row = method_metrics[
         method_metrics["method"] == "matched_router_weight_search_average"
     ].iloc[0]
@@ -1299,6 +1451,16 @@ def main() -> None:
         "matched_router_calibrated_minus_frozen_worst_acc": float(
             matched_router_calibrated_row["worst_acc"] - matched_router_frozen_row["worst_acc"]
         ),
+        "expert_matched_regmean_worst_acc": float(expert_matched_regmean_row["worst_acc"]),
+        "expert_matched_regmean_minus_matched_frozen_worst_acc": float(
+            expert_matched_regmean_row["worst_acc"] - matched_router_frozen_row["worst_acc"]
+        ),
+        "expert_regmean": {
+            "batches": args.expert_regmean_batches,
+            "ridge": args.expert_regmean_ridge,
+            "linear_layers": int(len(expert_regmean_layers)),
+            "covariance_rows": int(len(regmean_covariances)),
+        },
         "router_weight_search": {
             "grid": router_weight_search_grid,
             "candidate_pair_count": len(router_weight_search_pairs),
@@ -1384,6 +1546,8 @@ def main() -> None:
             "route_overlap": "route_overlap.csv",
             "expert_match": "expert_match.csv",
             "route_weights_by_expert": "route_weights_by_expert.csv",
+            "expert_regmean_covariances": "expert_regmean_covariances.csv",
+            "expert_regmean_layers": "expert_regmean_layers.csv",
             "expert_search_weights_by_expert": "expert_search_weights_by_expert.csv",
             "expert_weight_search_trace": "expert_weight_search_trace.csv",
             "router_weight_search": "router_weight_search.csv",

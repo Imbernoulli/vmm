@@ -1,0 +1,9 @@
+layer,out_features,in_features,ridge_value,same_shape_action
+experts.0.0,16,4,0.0801607858087291,regmean_expert_linear_layer
+experts.0.2,2,16,0.029223077633474596,regmean_expert_linear_layer
+experts.1.0,16,4,0.0801607858087291,regmean_expert_linear_layer
+experts.1.2,2,16,0.02534429019061324,regmean_expert_linear_layer
+experts.2.0,16,4,0.0801607858087291,regmean_expert_linear_layer
+experts.2.2,2,16,0.028310560034687897,regmean_expert_linear_layer
+experts.3.0,16,4,0.0801607858087291,regmean_expert_linear_layer
+experts.3.2,2,16,0.024217373743185645,regmean_expert_linear_layer
