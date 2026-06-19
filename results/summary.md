@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-19T19:02:03.763019+00:00`
+Generated at: `2026-06-19T19:11:40.817589+00:00`
 
 ## Coverage
 
@@ -131,6 +131,8 @@ Complete: `60`; partial: `1`; missing: `0`.
 | Qwen3 MoE route-guarded candidate | manifest expert / attention / router hits | 15729 / 288 / 48 |
 | Qwen3 MoE materialized delta audit | status / changed tensors / router changed | passed / 10641 / 0/48 |
 | Qwen3 MoE materialized delta audit | changed numel frac / relative delta norm / max abs delta | 0.563 / 0.286 / 1.688 |
+| Qwen3 MoE audit-gated candidate | status / scaled rules / dry-run router hits | audit_gated_rules_ready / 302 / 48 |
+| Qwen3 MoE audit-gated candidate | mean nonbase weight / max audited rel-delta / min scale | 0.201->0.193 / 1.327 / 0.565 |
 | real MoE gauge self-merge | baseline / same-name / aligned NLL | 4.168 / 9.659 / 4.168 |
 | real MoE gauge self-merge | same-name degradation vs baseline | 5.491 |
 | real MoE gauge self-merge | recovered expert permutations | 16 / 16 |
@@ -243,7 +245,7 @@ Complete: `60`; partial: `1`; missing: `0`.
 | vLLM downstream eval smoke | status | passed |
 | vLLM downstream eval smoke | good / bad avg primary | 1.000 / 0.000 |
 | vLLM checkpoint eval plan | status | hosted_eval_complete |
-| vLLM checkpoint eval plan | ready / missing / not-loadable | 4 / 2 / 1 |
+| vLLM checkpoint eval plan | ready / missing / not-loadable | 4 / 3 / 1 |
 | vLLM hosted eval results | completed eval dirs | 10 |
 | vLLM hosted eval results | best eval avg / worst primary | source_qwen_0_5b_base / 0.375 / 0.094 |
 | vLLM source-vs-merge comparison | status | merge_underperforms_all_sources |

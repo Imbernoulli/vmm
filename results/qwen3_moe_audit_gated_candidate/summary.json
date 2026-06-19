@@ -1,0 +1,41 @@
+{
+  "action_counts": {
+    "keep_route_weight_rule": 4941,
+    "scale_nonbase_delta_to_relative_norm_cap": 302
+  },
+  "base": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe",
+  "base_sources": [
+    "instruct"
+  ],
+  "expert_rule_count": 5243,
+  "freeze_scale_threshold": 0.0,
+  "frozen_by_audit_cap_count": 0,
+  "max_audit_relative_delta_before_cap": 1.327236932104148,
+  "max_effective_nonbase_weight": 0.85,
+  "max_original_effective_nonbase_weight": 0.85,
+  "mean_effective_nonbase_weight": 0.1926118680401001,
+  "mean_original_effective_nonbase_weight": 0.2007622635337222,
+  "min_audit_delta_scale": 0.5650837328727586,
+  "nonbase_sources": [
+    "coder"
+  ],
+  "outputs": {
+    "audit_gated_source_weights": "results/qwen3_moe_audit_gated_candidate/audit_gated_source_weights_by_expert.csv",
+    "report": "results/qwen3_moe_audit_gated_candidate/report.md",
+    "summary": "results/qwen3_moe_audit_gated_candidate/summary.json",
+    "tensor_rules": "results/qwen3_moe_audit_gated_candidate/tensor_rules.txt",
+    "writer_command": "results/qwen3_moe_audit_gated_candidate/writer_command.txt"
+  },
+  "scaled_expert_rule_count": 302,
+  "schema_version": 1,
+  "source_names": [
+    "coder",
+    "instruct"
+  ],
+  "source_paths": {
+    "coder": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-Coder-30B-A3B-Instruct/snapshots/b2cff646eb4bb1d68355c01b18ae02e7cf42d120",
+    "instruct": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe"
+  },
+  "status": "audit_gated_rules_ready",
+  "target_max_relative_delta": 0.75
+}

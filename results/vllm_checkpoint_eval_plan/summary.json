@@ -1,8 +1,8 @@
 {
-  "candidate_count": 7,
+  "candidate_count": 8,
   "completed_eval_count": 1,
   "example_source": "datasets",
-  "missing_checkpoint_count": 2,
+  "missing_checkpoint_count": 3,
   "not_vllm_loadable_count": 1,
   "outputs": {
     "plan_csv": "results/vllm_checkpoint_eval_plan/checkpoint_eval_plan.csv",

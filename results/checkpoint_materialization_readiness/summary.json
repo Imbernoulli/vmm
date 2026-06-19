@@ -1,6 +1,6 @@
 {
   "blocked_by_placeholder_count": 4,
-  "candidate_count": 8,
+  "candidate_count": 9,
   "completed_vllm_eval_count": 1,
   "materialized_count": 2,
   "outputs": {

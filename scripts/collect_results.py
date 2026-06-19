@@ -850,6 +850,42 @@ def summarize_qwen3_moe_materialized_delta_audit() -> dict[str, Any]:
     }
 
 
+def summarize_qwen3_moe_audit_gated_candidate() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_audit_gated_candidate")
+    summary = read_json(root / "summary.json")
+    weights = read_csv(root / "audit_gated_source_weights_by_expert.csv")
+    manifest_path = repo_path("results/checkpoints/qwen3_moe_audit_gated_candidate/merge_manifest.json")
+    manifest = read_json(manifest_path) if manifest_path.exists() else {}
+    rule_counts = manifest.get("rule_counts", {})
+    expert_tensor_rule_hits = sum(
+        int(count) for key, count in rule_counts.items() if str(key).startswith("tensor_rule:.*layers\\.")
+    )
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "expert_rule_count": int(summary.get("expert_rule_count", len(weights))),
+        "scaled_expert_rule_count": int(summary.get("scaled_expert_rule_count", 0)),
+        "frozen_by_audit_cap_count": int(summary.get("frozen_by_audit_cap_count", 0)),
+        "mean_original_effective_nonbase_weight": maybe_float(summary.get("mean_original_effective_nonbase_weight")),
+        "mean_effective_nonbase_weight": maybe_float(summary.get("mean_effective_nonbase_weight")),
+        "max_audit_relative_delta_before_cap": maybe_float(summary.get("max_audit_relative_delta_before_cap")),
+        "min_audit_delta_scale": maybe_float(summary.get("min_audit_delta_scale")),
+        "action_counts": summary.get("action_counts", {}),
+        "writer_dry_run_passed": bool(manifest.get("dry_run", False)),
+        "writer_dry_run_floating_tensors": int(manifest.get("floating_tensors", 0)),
+        "writer_dry_run_frozen_tensors": int(manifest.get("frozen_tensors", 0)),
+        "writer_dry_run_expert_tensor_rule_hits": expert_tensor_rule_hits,
+        "writer_dry_run_shared_attention_hits": int(rule_counts.get("tensor_rule:.*self_attn.*", 0)),
+        "writer_dry_run_freeze_router_hits": int(rule_counts.get("freeze_router", 0)),
+        "report": rel(root / "report.md"),
+        "audit_gated_source_weights": rel(root / "audit_gated_source_weights_by_expert.csv"),
+        "tensor_rules": rel(root / "tensor_rules.txt"),
+        "writer_command": rel(root / "writer_command.txt"),
+        "manifest": rel(manifest_path) if manifest_path.exists() else None,
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_average_candidate_recipes() -> dict[str, Any]:
     summary = read_json("results/average_candidate_recipes/summary.json")
     recipes = read_csv("results/average_candidate_recipes/candidate_recipes.csv")
@@ -2388,6 +2424,7 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_routing_readiness": summarize_qwen3_moe_routing_readiness(),
         "qwen3_moe_route_guarded_candidate": summarize_qwen3_moe_route_guarded_candidate(),
         "qwen3_moe_materialized_delta_audit": summarize_qwen3_moe_materialized_delta_audit(),
+        "qwen3_moe_audit_gated_candidate": summarize_qwen3_moe_audit_gated_candidate(),
         "toy_moe_routing_readiness": summarize_toy_moe_routing_readiness(),
         "toy_moe_method_selection": summarize_toy_moe_method_selection(),
         "toy_moe_expert_remap_plan": summarize_toy_moe_expert_remap_plan(),
@@ -2496,6 +2533,7 @@ def build_summary() -> dict[str, Any]:
             "PYTHONPATH=src python scripts/build_moe_materialization_pipeline_plan.py --output-dir results/moe_materialization_pipeline_plan",
             "PYTHONPATH=src python scripts/build_probe_gated_unified_average_plan.py --output-dir results/probe_gated_unified_average_plan",
             "python scripts/audit_materialized_checkpoint_delta.py --base BASE --candidate CANDIDATE --output-dir results/qwen3_moe_materialized_delta_audit",
+            "python scripts/build_qwen3_moe_audit_gated_candidate.py --output-dir results/qwen3_moe_audit_gated_candidate",
             "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
             "PYTHONPATH=src python scripts/collect_results.py",
         ],
@@ -2557,6 +2595,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_routing_readiness = exp["qwen3_moe_routing_readiness"]
     qwen3_moe_route_guarded_candidate = exp["qwen3_moe_route_guarded_candidate"]
     qwen3_moe_materialized_delta_audit = exp["qwen3_moe_materialized_delta_audit"]
+    qwen3_moe_audit_gated_candidate = exp["qwen3_moe_audit_gated_candidate"]
     selected_unified_capacity = toy_moe.get("unified_moe_capacity_sweep_selected") or {}
     selected_unified_output_projection_capacity = (
         toy_moe.get("unified_output_projection_moe_capacity_sweep_selected") or {}
@@ -2859,6 +2898,19 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(qwen3_moe_materialized_delta_audit['changed_numel_fraction'])} / "
                 f"{fmt(qwen3_moe_materialized_delta_audit['relative_delta_norm'])} / "
                 f"{fmt(qwen3_moe_materialized_delta_audit['max_abs_delta'])} |"
+            ),
+            (
+                "| Qwen3 MoE audit-gated candidate | status / scaled rules / dry-run router hits | "
+                f"{qwen3_moe_audit_gated_candidate['status']} / "
+                f"{qwen3_moe_audit_gated_candidate['scaled_expert_rule_count']} / "
+                f"{qwen3_moe_audit_gated_candidate['writer_dry_run_freeze_router_hits']} |"
+            ),
+            (
+                "| Qwen3 MoE audit-gated candidate | mean nonbase weight / max audited rel-delta / min scale | "
+                f"{fmt(qwen3_moe_audit_gated_candidate['mean_original_effective_nonbase_weight'])}"
+                f"->{fmt(qwen3_moe_audit_gated_candidate['mean_effective_nonbase_weight'])} / "
+                f"{fmt(qwen3_moe_audit_gated_candidate['max_audit_relative_delta_before_cap'])} / "
+                f"{fmt(qwen3_moe_audit_gated_candidate['min_audit_delta_scale'])} |"
             ),
             (
                 "| real MoE gauge self-merge | baseline / same-name / aligned NLL | "
