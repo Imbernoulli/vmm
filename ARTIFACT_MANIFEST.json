@@ -1963,10 +1963,10 @@
       "sha256": "7742e8e98bdb4c6ac2fbc4f91621c3594dd38ce216f831a786bf95ab48c8dce3"
     },
     {
-      "bytes": 2870,
+      "bytes": 2914,
       "kind": "data",
       "path": "results/qwen3_moe_router_calibration_selection/summary.json",
-      "sha256": "930eefe49beae737a569e102cd3ad84d75053763fc3d0b079a210fad725ec283"
+      "sha256": "07489ba67be507888e5c0e14f377d1f3b15e73bb2ee94cc9b86e0dd544a11178"
     },
     {
       "bytes": 7159,
@@ -2221,10 +2221,10 @@
       "sha256": "cbb83dfc3623d20ae5f11f61609561498813172daaed9bc3d16f469fe90a4e71"
     },
     {
-      "bytes": 4719,
+      "bytes": 4763,
       "kind": "data",
       "path": "results/qwen3_moe_router_calibration_selection_row_validation_negative_smoke/summary.json",
-      "sha256": "84e5c8754069313b12ee547458a2cf3d6618ec94a5263257a21bfc214c4d82d0"
+      "sha256": "a3c6f48af939a0987e4efcb3c6f7e4877d89d0da1ae696b3e2a248d650e0edbd"
     },
     {
       "bytes": 7167,
@@ -2479,10 +2479,268 @@
       "sha256": "b1173634a09889d4dd7e25f5accddbb81922907d44caa743972b12bf28e623ef"
     },
     {
-      "bytes": 4300,
+      "bytes": 4344,
       "kind": "data",
       "path": "results/qwen3_moe_router_calibration_selection_smoke/summary.json",
-      "sha256": "08d6fb0e6c40ac66d852f51088b072b01195e1af46b43e5d33248db591f4fa4f"
+      "sha256": "f8e265f50ca9dc628d950ecd1b3952edb6a65e8f277a87a9fd9481e382b5a390"
+    },
+    {
+      "bytes": 7132,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/decision_rules.json",
+      "sha256": "fa556d468c5a46c299cca79b5873a211218b30572687ff97a46546b547145d92"
+    },
+    {
+      "bytes": 107,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/audit_cap001/group_delta_summary.csv",
+      "sha256": "4ef4b41275de318b83d8e4f41e4196f4b6875366ba53374612f45298427dfaa7"
+    },
+    {
+      "bytes": 41,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/audit_cap001/layer_delta_summary.csv",
+      "sha256": "f14f66246bbd632dec66148f3562e2eaf8c7f78738d3f3c634859bc53ca65260"
+    },
+    {
+      "bytes": 405,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/audit_cap001/summary.json",
+      "sha256": "bb5c9c3a4732e16e67c504ec0a730f2e41482bf407b3dcd8723bc5ad4d5bcd6f"
+    },
+    {
+      "bytes": 372,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/audit_cap001/tensor_delta_audit.csv",
+      "sha256": "b2dcddc88defcfece1d64dcc324c7f0970630a011affe9082af9092f55149596"
+    },
+    {
+      "bytes": 122,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/audit_cap0025/group_delta_summary.csv",
+      "sha256": "181f7bcbf77fbc8496d2efb0fcccfe28f479e3517e2e85c0df2e2dd11a568b28"
+    },
+    {
+      "bytes": 41,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/audit_cap0025/layer_delta_summary.csv",
+      "sha256": "f14f66246bbd632dec66148f3562e2eaf8c7f78738d3f3c634859bc53ca65260"
+    },
+    {
+      "bytes": 420,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/audit_cap0025/summary.json",
+      "sha256": "a9fc7a284f5f4b412518b4a9967e5f341bd65e6d6caae8321149640724c84065"
+    },
+    {
+      "bytes": 529,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/audit_cap0025/tensor_delta_audit.csv",
+      "sha256": "21fcbedd8786befb4f9ef5378b633320c9bc049d90b14d0e2f5ee5092f20569e"
+    },
+    {
+      "bytes": 134,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/audit_cap005/group_delta_summary.csv",
+      "sha256": "c99ac8f62f63339d427bee286a8d6d27afd3642063de80f23133ad88177e622e"
+    },
+    {
+      "bytes": 41,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/audit_cap005/layer_delta_summary.csv",
+      "sha256": "1258f2627e0b946008d56ca36348fddd0d28600df063b41dc6b1b2fe26bb8a93"
+    },
+    {
+      "bytes": 586,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/audit_cap005/summary.json",
+      "sha256": "ce6a4ff581f6f721e36e0b918fffc69d28c140778e753b264fe1f66c440a2683"
+    },
+    {
+      "bytes": 490,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/audit_cap005/tensor_delta_audit.csv",
+      "sha256": "6d658627123a103a00050f5fc2d0a961fed3b419d12ba883bdb2221585966de3"
+    },
+    {
+      "bytes": 1469,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/candidate_plan.csv",
+      "sha256": "e7c01a940f01070109c1fbc9b0194eaca9529f6d0fdc5597eb143a22ed99540e"
+    },
+    {
+      "bytes": 2097,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/delta_cap001/summary.json",
+      "sha256": "59b2737dcf3c2a840e5415a1228b8c00ce9cca73c11cea5821285e49f7c57398"
+    },
+    {
+      "bytes": 23,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/delta_cap001/training_trace.csv",
+      "sha256": "e8b26f1fef44d96f1c3f962e6922b54feb1914c86342c0d60bd7c1c7f0ee6b1f"
+    },
+    {
+      "bytes": 2192,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/delta_cap0025/summary.json",
+      "sha256": "bb54bd9164a42a6da257ae24fe8fa3919943036253abc3222251aa25052ae5ee"
+    },
+    {
+      "bytes": 23,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/delta_cap0025/training_trace.csv",
+      "sha256": "e8b26f1fef44d96f1c3f962e6922b54feb1914c86342c0d60bd7c1c7f0ee6b1f"
+    },
+    {
+      "bytes": 2182,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/delta_cap005/summary.json",
+      "sha256": "599bac5c4e39c574189aa8dee601981e6586aab1676793991883a321409069bc"
+    },
+    {
+      "bytes": 23,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/delta_cap005/training_trace.csv",
+      "sha256": "e8b26f1fef44d96f1c3f962e6922b54feb1914c86342c0d60bd7c1c7f0ee6b1f"
+    },
+    {
+      "bytes": 354,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/eval_baseline/metrics.csv",
+      "sha256": "3676b03245d8a92138652fd5801de5713138ce00ec82f862440484c2facf5554"
+    },
+    {
+      "bytes": 124,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/eval_baseline/model_summary.csv",
+      "sha256": "86ec5fd8994161c00b37a2f81e813cb7dbc5bc3b92873cde47d1109df8a2c3ae"
+    },
+    {
+      "bytes": 323,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/eval_baseline/summary.json",
+      "sha256": "42b216e2b26d1a84fddcae639c578b5c4074271b7d864c71cc46df0a3b6f0de0"
+    },
+    {
+      "bytes": 272,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/eval_cap001/metrics.csv",
+      "sha256": "f667837bcdbd95eb86d18eca7f97984249e00a21bb9bc3c1a1c2a881752d3418"
+    },
+    {
+      "bytes": 105,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/eval_cap001/model_summary.csv",
+      "sha256": "f7b5d120978df4d9fd926c63f8923865e295e2120cb4e661c99e1ad001b5f9d9"
+    },
+    {
+      "bytes": 283,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/eval_cap001/summary.json",
+      "sha256": "d931b087493cb0792633fe8ef3254856ea875919dec6b0c2a8e419f29716dd13"
+    },
+    {
+      "bytes": 276,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/eval_cap0025/metrics.csv",
+      "sha256": "1b3540c0d5e8caa48cf39fa9aca5681a3e3401bf9e0f8e9703d562487de276e9"
+    },
+    {
+      "bytes": 107,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/eval_cap0025/model_summary.csv",
+      "sha256": "d8fc0ab2b06b5f1a04efe0206664fbfda0239dcbfa714a8e658529dd40840415"
+    },
+    {
+      "bytes": 286,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/eval_cap0025/summary.json",
+      "sha256": "a7c06a8f8b3303173ebadbbb96df9741224bdd647591662c9b7a0eb9d6770661"
+    },
+    {
+      "bytes": 272,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/eval_cap005/metrics.csv",
+      "sha256": "36b29da108c7a83e100002587586bf6923f067c164ac35fd82dfff1c40fbb740"
+    },
+    {
+      "bytes": 107,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/eval_cap005/model_summary.csv",
+      "sha256": "de2b43eef7b10110ebea3ad4f29e15cda4c3c3c7b9918eab6b3153885d7ae82a"
+    },
+    {
+      "bytes": 285,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/eval_cap005/summary.json",
+      "sha256": "c2e87ed438d66b3c526c7d2de74af23f203e6058a9b6e4ce5cddbd20161abc97"
+    },
+    {
+      "bytes": 239,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/eval_source_coder/metrics.csv",
+      "sha256": "6facf69834525338c7abec3cd4828a7156a488008b227185b91543ceaf897809"
+    },
+    {
+      "bytes": 97,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/eval_source_coder/model_summary.csv",
+      "sha256": "fd4be1dbba7c354e2ef8af6c20cab7053dd89f8e29da25ad3c84f5dab096771c"
+    },
+    {
+      "bytes": 267,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/eval_source_coder/summary.json",
+      "sha256": "06be6f4109b99750046008e854ef0375c5e34a4fd3ee48b453f3429f8362f610"
+    },
+    {
+      "bytes": 251,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/eval_source_instruct/metrics.csv",
+      "sha256": "e1f428a79ad0f6996a5f66ea25e4ed157090de4f2a65cfb09df533eace268941"
+    },
+    {
+      "bytes": 100,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/eval_source_instruct/model_summary.csv",
+      "sha256": "4946eca0a4f0cb02380800c9c4a98c4857d2a62a9ed04a3f0d758d24bb4fbc4c"
+    },
+    {
+      "bytes": 273,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/eval_source_instruct/summary.json",
+      "sha256": "a0bee09630f8780aa57d03b7556bd2da000612b0358a0e9217fa210d30191143"
+    },
+    {
+      "bytes": 442,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/summary.json",
+      "sha256": "3c374fa76a439c33267a1f01fd2d77b4096cd9cfa5efb0dde15c5ef49d437be2"
+    },
+    {
+      "bytes": 2075,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/literature_sources.json",
+      "sha256": "7fb8f444b1e915eb84b68d618e3cbc20dad81aedc9fb43ad83fd3efa249a27a1"
+    },
+    {
+      "bytes": 6689,
+      "kind": "document",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/report.md",
+      "sha256": "8a49189b115ddb74f4386775af2bce4144426765e37097e477cce3e547869985"
+    },
+    {
+      "bytes": 9074,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/selection_table.csv",
+      "sha256": "51de3d373d8f3033dc1858d82e15e83b7c46e033c501b58c1ba642497b783c18"
+    },
+    {
+      "bytes": 4767,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/summary.json",
+      "sha256": "3e78722943bee62dba6438f1a8dde7792bccf11883ff2de3bcbc47d2da7e45d1"
     },
     {
       "bytes": 11586,
@@ -3385,16 +3643,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 992433,
+      "bytes": 1018900,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "a488f25bb4bbe35ad878cd3d130869078a92e0f9c7e23e3c121e824f0bf56d81"
+      "sha256": "d9154bf9953906ae9e86aecf729ecb17db6d0c2c800aaa84005931ab7fdd2b9e"
     },
     {
-      "bytes": 40703,
+      "bytes": 41001,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "4eed593c0ecc3ad875bb21c31fddaf31f950da59e962a9d1b67810acef857a21"
+      "sha256": "59393abdde2501c6d2a59316500df4c5f73082d767f0c015dfb5fa4494a5782e"
     },
     {
       "bytes": 288,
@@ -4543,10 +4801,10 @@
       "sha256": "cd588bc1804013f4043bd95c245b066dbae86bfd3e3f9c18317ef33eb506f123"
     },
     {
-      "bytes": 276125,
+      "bytes": 277838,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "16a2dcd2a7de9439c4e15f66a6cc7b1cf4cd2d97557c1b5f67b2bdfb504e6bf7"
+      "sha256": "bdc93e8a08a7d51e7790e9004f7100f733e81e93c2808d064301bdf5c6e4b587"
     },
     {
       "bytes": 16101,
@@ -4699,10 +4957,10 @@
       "sha256": "db053e7a0691ec45cb8f4dd82cce68e2a3c445f1ad470e2327e6483ffc17427f"
     },
     {
-      "bytes": 64510,
+      "bytes": 65552,
       "kind": "code",
       "path": "scripts/select_qwen3_moe_router_calibration_result.py",
-      "sha256": "e6b978eaeaf9f8cd948d7ca1d5aa00c5b2cf81fd84d144a3396d7ce07bdd1530"
+      "sha256": "5d9c89b1e3c122dd75a644a8cf4b3b61a8d434b864e93b5aa93a0cc3b45f1e55"
     },
     {
       "bytes": 7980,
@@ -4783,7 +5041,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T23:19:32.012904+00:00",
+  "generated_at": "2026-06-19T23:22:09.923908+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

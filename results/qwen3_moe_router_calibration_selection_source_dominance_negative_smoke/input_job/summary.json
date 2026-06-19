@@ -1,0 +1,9 @@
+{
+  "baseline_eval_dir": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/eval_baseline",
+  "candidate_count": 3,
+  "source_eval_dirs": [
+    "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/eval_source_instruct",
+    "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/eval_source_coder"
+  ],
+  "status": "smoke_ready"
+}

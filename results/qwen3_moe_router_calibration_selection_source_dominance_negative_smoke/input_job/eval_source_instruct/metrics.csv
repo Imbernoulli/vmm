@@ -1,0 +1,5 @@
+task,examples,strict_exact,model,accuracy,policy_accuracy,compile_rate
+gsm8k,8,0.46,source_qwen3_30b_instruct,,,
+mmlu,8,,source_qwen3_30b_instruct,0.57,,
+safety,8,,source_qwen3_30b_instruct,,0.65,
+humaneval_compile,8,,source_qwen3_30b_instruct,,,0.36

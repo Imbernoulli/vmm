@@ -1082,7 +1082,12 @@ def write_training_dir(
     )
 
 
-def write_smoke_inputs(output_dir: Path, *, row_validation_negative: bool = False) -> Path:
+def write_smoke_inputs(
+    output_dir: Path,
+    *,
+    row_validation_negative: bool = False,
+    source_dominance_negative: bool = False,
+) -> Path:
     job_dir = output_dir / "input_job"
     if job_dir.exists():
         shutil.rmtree(job_dir)
@@ -1102,17 +1107,29 @@ def write_smoke_inputs(output_dir: Path, *, row_validation_negative: bool = Fals
         },
     )
     source_eval_dirs = [job_dir / "eval_source_instruct", job_dir / "eval_source_coder"]
-    write_eval_dir(
-        source_eval_dirs[0],
-        "source_qwen3_30b_instruct",
+    instruct_source_scores = (
         {
+            "avg_primary_score": 0.550,
+            "worst_primary_score": 0.360,
+            "task_gsm8k_score": 0.460,
+            "task_mmlu_score": 0.570,
+            "task_safety_score": 0.650,
+            "task_humaneval_compile_score": 0.360,
+        }
+        if source_dominance_negative
+        else {
             "avg_primary_score": 0.490,
             "worst_primary_score": 0.280,
             "task_gsm8k_score": 0.390,
             "task_mmlu_score": 0.540,
             "task_safety_score": 0.620,
             "task_humaneval_compile_score": 0.280,
-        },
+        }
+    )
+    write_eval_dir(
+        source_eval_dirs[0],
+        "source_qwen3_30b_instruct",
+        instruct_source_scores,
     )
     write_eval_dir(
         source_eval_dirs[1],
@@ -1258,8 +1275,19 @@ def write_smoke_inputs(output_dir: Path, *, row_validation_negative: bool = Fals
 def run_selection(args: argparse.Namespace) -> dict[str, Any]:
     output_dir = repo_path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    if args.smoke or args.row_validation_negative_smoke:
-        args.job_dir = write_smoke_inputs(output_dir, row_validation_negative=args.row_validation_negative_smoke)
+    smoke_modes = [
+        bool(args.smoke),
+        bool(args.row_validation_negative_smoke),
+        bool(args.source_dominance_negative_smoke),
+    ]
+    if sum(smoke_modes) > 1:
+        raise ValueError("Use only one smoke mode at a time.")
+    if any(smoke_modes):
+        args.job_dir = write_smoke_inputs(
+            output_dir,
+            row_validation_negative=args.row_validation_negative_smoke,
+            source_dominance_negative=args.source_dominance_negative_smoke,
+        )
         args.baseline_eval_dir = args.job_dir / "eval_baseline"
         args.source_eval_dir = [args.job_dir / "eval_source_instruct", args.job_dir / "eval_source_coder"]
 
@@ -1287,8 +1315,9 @@ def run_selection(args: argparse.Namespace) -> dict[str, Any]:
     summary = {
         "schema_version": 1,
         "status": selection["status"],
-        "smoke": bool(args.smoke or args.row_validation_negative_smoke),
+        "smoke": any(smoke_modes),
         "row_validation_negative_smoke": bool(args.row_validation_negative_smoke),
+        "source_dominance_negative_smoke": bool(args.source_dominance_negative_smoke),
         "job_dir": rel(args.job_dir),
         "baseline_eval": baseline_eval,
         "baseline_audit_status": baseline_audit.get("status") if baseline_audit else "not_available",
@@ -1379,6 +1408,11 @@ def parse_args() -> argparse.Namespace:
         "--row-validation-negative-smoke",
         action="store_true",
         help="Build a complete smoke job with row-level validation splits; default selection should reject it.",
+    )
+    parser.add_argument(
+        "--source-dominance-negative-smoke",
+        action="store_true",
+        help="Build a complete smoke job where a source endpoint dominates otherwise valid router-calibrated candidates.",
     )
     parser.add_argument(
         "--allow-missing-source-eval",

@@ -1,0 +1,38 @@
+[
+  {
+    "key": "model_soups",
+    "mechanism": "Weight averaging is only justified when checkpoints behave as if they are in one low-error basin; the selector therefore rejects router deltas that do not improve downstream scores over the frozen-router baseline.",
+    "title": "Model soups: averaging weights of multiple fine-tuned models improves accuracy without increasing inference time",
+    "url": "https://arxiv.org/abs/2203.05482"
+  },
+  {
+    "key": "fisher_merging",
+    "mechanism": "A local quadratic view motivates small trust-region updates, but the actual acceptance criterion is still held-out downstream behavior.",
+    "title": "Merging Models with Fisher-Weighted Averaging",
+    "url": "https://arxiv.org/abs/2111.09832"
+  },
+  {
+    "key": "ties",
+    "mechanism": "Interference is treated as a measurable signal: the router calibration delta must be sparse in module scope and must not introduce non-router changes.",
+    "title": "TIES-Merging: Resolving Interference When Merging Models",
+    "url": "https://arxiv.org/abs/2306.01708"
+  },
+  {
+    "key": "git_rebasin",
+    "mechanism": "Expert identity and permutation alignment remain upstream gates; this selector only decides whether a small router delta should be added after the frozen-router expert candidate.",
+    "title": "Git Re-Basin: Merging Models modulo Permutation Symmetries",
+    "url": "https://arxiv.org/abs/2209.04836"
+  },
+  {
+    "key": "large_scale_merging",
+    "mechanism": "Large-model merging can work, but endpoint controls are required; router-calibrated candidates are rejected if dominated by source endpoints.",
+    "title": "What Matters for Model Merging at Scale?",
+    "url": "https://arxiv.org/abs/2410.03617"
+  },
+  {
+    "key": "output_space_projection",
+    "mechanism": "The route-KD cache is an output-space calibration signal for routers; this script uses downstream scores to decide whether that local calibration transfers to the full model.",
+    "title": "Model Merging by Output-Space Projection",
+    "url": "https://arxiv.org/abs/2605.29101"
+  }
+]

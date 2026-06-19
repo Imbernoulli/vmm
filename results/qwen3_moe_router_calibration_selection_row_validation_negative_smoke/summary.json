@@ -49,6 +49,7 @@
   "row_validation_negative_smoke": true,
   "schema_version": 1,
   "smoke": true,
+  "source_dominance_negative_smoke": false,
   "source_evals": [
     {
       "avg_primary_score": 0.49,

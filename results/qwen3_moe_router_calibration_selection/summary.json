@@ -44,6 +44,7 @@
   "row_validation_negative_smoke": false,
   "schema_version": 1,
   "smoke": false,
+  "source_dominance_negative_smoke": false,
   "source_evals": [
     {
       "avg_primary_score": null,
