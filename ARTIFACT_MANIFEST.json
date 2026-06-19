@@ -7,10 +7,10 @@
       "sha256": "313cfe00a4f762c28f5fe1b881615f93e824f15a3f1ac2440b17d363819b3706"
     },
     {
-      "bytes": 11132,
+      "bytes": 17085,
       "kind": "document",
       "path": "README.md",
-      "sha256": "7ddefa152cb4c05731fd1ac826cf0f1f229cbc94e7b7f63e207536c0da1d1efc"
+      "sha256": "1d6595754b8dc4dea2816e6a8704952537e50b1a7580f59f1bf7bda48ac1e192"
     },
     {
       "bytes": 33211,
@@ -505,6 +505,30 @@
       "sha256": "47f4b1067de55c9a809945be11b521b68f948ab4ddd91ff9e2720ca023d3bb6e"
     },
     {
+      "bytes": 329865,
+      "kind": "figure",
+      "path": "results/figures_3d/cifar10_worst_loss_surface.png",
+      "sha256": "adb25c67e3fc8e70359d09567a5d025ba5e21194ea35603fcf5c9996f22f7cd1"
+    },
+    {
+      "bytes": 395972,
+      "kind": "figure",
+      "path": "results/figures_3d/digits_worst_loss_surface.png",
+      "sha256": "28906546a7e2114fc60fc8e1b577844d73d76bbbe9a3476baa83b1b65f5e9288"
+    },
+    {
+      "bytes": 291364,
+      "kind": "figure",
+      "path": "results/figures_3d/pretrained_vit_worst_loss_surface.png",
+      "sha256": "1bbf9b023abd4a8ab188d5b8ba2475b54821290dcb6e6734e27242403b0fe8d1"
+    },
+    {
+      "bytes": 212191,
+      "kind": "figure",
+      "path": "results/figures_3d/qwen_multi_worst_nll_surface.png",
+      "sha256": "b1a75f544e1f40c1a6235cca84adf70127f325a5251c3a2b95d13096a41722d0"
+    },
+    {
       "bytes": 31792,
       "kind": "figure",
       "path": "results/pretrained_vit_transfer_merge/figures/interference_heatmap.png",
@@ -796,13 +820,19 @@
       "bytes": 47615,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "d7f154e9555c5fdef197e6c4015853f2c799611e454fee58f87429a5a919c9fd"
+      "sha256": "04d632626207afa5d8fb334e9efe221ef395ca75706de0d68c035f6de34ca171"
     },
     {
       "bytes": 3785,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "e672986b6229087cb46695d69c2f805bd906a661ff135330c0f0653480493bab"
+      "sha256": "34ffdb9584e892851e8a6706fe78367a2846ecf7f6579e745365b7c785ce9456"
+    },
+    {
+      "bytes": 5504,
+      "kind": "code",
+      "path": "scripts/build_3d_figures.py",
+      "sha256": "7561455d6fdb168b0209c19e7db9727603ed482d32bf1cf9d1eb56388bcc89cc"
     },
     {
       "bytes": 64880,
@@ -913,7 +943,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-18T21:47:49.333693+00:00",
+  "generated_at": "2026-06-19T02:44:26.647530+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"
