@@ -1,0 +1,8 @@
+actual_mean,expected_mean,max_abs_error,passed,tensor
+40.0,40.0,0.0,True,model.embed_tokens.weight
+,,0.0,True,model.int_buffer
+198.0,198.0,0.0,True,model.layers.0.mlp.experts.0.down_proj.weight
+147.0,147.0,0.0,True,model.layers.0.mlp.experts.1.down_proj.weight
+34.875,34.875,0.0,True,model.layers.0.router.bias
+30.0,30.0,0.0,True,model.layers.0.router.weight
+151.0,151.0,0.0,True,model.layers.0.self_attn.q_proj.weight

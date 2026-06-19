@@ -1,0 +1,114 @@
+{
+  "additive_delta_tensors": 1,
+  "additive_delta_values": 2,
+  "base": "TMP/base",
+  "copied_metadata": [
+    "config.json"
+  ],
+  "copied_nonfloating_tensors": 1,
+  "default_weights": {
+    "code": 0.0,
+    "general": 0.0
+  },
+  "dry_run": false,
+  "floating_tensors": 6,
+  "freeze_regex": [],
+  "freeze_router": true,
+  "frozen_tensors": 2,
+  "output_dtype": "base",
+  "rule_counts": {
+    "default": 1,
+    "freeze_router": 2,
+    "tensor_rule:.*experts\\.0\\..*": 1,
+    "tensor_rule:.*experts\\.1\\..*": 1,
+    "tensor_rule:.*self_attn.*": 1
+  },
+  "same_shape_constraint": "All output tensors keep base tensor names and shapes; metadata is copied from base when available.",
+  "schema_version": 1,
+  "shards": [
+    {
+      "shard": "model.safetensors",
+      "tensors": 7
+    }
+  ],
+  "source_summaries": {
+    "code": {
+      "aliased_tensors": 2,
+      "dtype_mismatches": 0,
+      "extra_tensors": 0,
+      "missing_tensors": 0,
+      "root": "TMP/code",
+      "shape_mismatches": 0,
+      "tensors": 7
+    },
+    "general": {
+      "aliased_tensors": 0,
+      "dtype_mismatches": 0,
+      "extra_tensors": 0,
+      "missing_tensors": 0,
+      "root": "TMP/general",
+      "shape_mismatches": 0,
+      "tensors": 7
+    }
+  },
+  "sources": {
+    "code": "TMP/code",
+    "general": "TMP/general"
+  },
+  "tensor_add_csv": [
+    "TMP/router_bias_delta.csv"
+  ],
+  "tensor_add_delta_summary": {
+    "abs_delta_sum": 0.5,
+    "delta_count": 2,
+    "max_abs_delta": 0.375,
+    "tensor_count": 1,
+    "tensors": [
+      {
+        "abs_delta_sum": 0.5,
+        "delta_count": 2,
+        "dtype": "torch.float32",
+        "max_abs_delta": 0.375,
+        "shape": [
+          2
+        ],
+        "tensor": "model.layers.0.router.bias"
+      }
+    ]
+  },
+  "tensor_alias_rules": [
+    {
+      "pattern": "(^|.*\\.)experts\\.0\\.",
+      "replacement": "\\1experts.1.",
+      "source": "code"
+    },
+    {
+      "pattern": "(^|.*\\.)experts\\.1\\.",
+      "replacement": "\\1experts.0.",
+      "source": "code"
+    }
+  ],
+  "tensor_rules": [
+    {
+      "pattern": ".*self_attn.*",
+      "weights": {
+        "code": 0.5,
+        "general": 0.5
+      }
+    },
+    {
+      "pattern": ".*experts\\.0\\..*",
+      "weights": {
+        "code": 0.8,
+        "general": 0.2
+      }
+    },
+    {
+      "pattern": ".*experts\\.1\\..*",
+      "weights": {
+        "code": 0.3,
+        "general": 0.7
+      }
+    }
+  ]
+}

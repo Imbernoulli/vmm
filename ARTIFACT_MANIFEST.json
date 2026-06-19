@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 40166,
+      "bytes": 40468,
       "kind": "document",
       "path": "README.md",
-      "sha256": "1c2aa2486d26ea766df3cb06fc96f361350ab02f2662595349284dddf021e820"
+      "sha256": "2fe7587c3b39688a1109490bf1c7db3f85ba2529a1eb4c0bdfa5f782d26e495b"
     },
     {
       "bytes": 33211,
@@ -707,6 +707,30 @@
       "kind": "data",
       "path": "results/moe_average_plan/summary.json",
       "sha256": "22be3c0f561aee877f1af8f7260719d78ec2b2da063647dad810be748d9c7eba"
+    },
+    {
+      "bytes": 2411,
+      "kind": "data",
+      "path": "results/moe_combined_writer_smoke/merge_manifest.json",
+      "sha256": "66f935e34c3dba437c71b259efa49cdf61798603138a5387f892f398377fd52a"
+    },
+    {
+      "bytes": 741,
+      "kind": "document",
+      "path": "results/moe_combined_writer_smoke/report.md",
+      "sha256": "8303ba94c4b3d58e49a6bb2ae3349d58d77a269ded7c7ba823b8dc431754a649"
+    },
+    {
+      "bytes": 726,
+      "kind": "data",
+      "path": "results/moe_combined_writer_smoke/summary.json",
+      "sha256": "fc90b7a833e1883ea5c10ae176cb8d2113d91af8bf8de4a90bd9d171a1843221"
+    },
+    {
+      "bytes": 419,
+      "kind": "data",
+      "path": "results/moe_combined_writer_smoke/tensor_checks.csv",
+      "sha256": "9ae91f2d1d027792e9c86b7a0402c6af95ce7fd52e0bf62950ff1d61ee4789a1"
     },
     {
       "bytes": 1831,
@@ -1399,16 +1423,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 360335,
+      "bytes": 362335,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "a824b9b2af310945b3bf584c18ecc25bdbdeaab84350e7cac741a96ebea7627f"
+      "sha256": "6c4b710107b46b026c8f60e38b00b2e456dcfd931c5af4d5e70cd21fd3860540"
     },
     {
-      "bytes": 22886,
+      "bytes": 23313,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "cf7264a4ea654126b9be51625a6906a5fa7456a777ae86256ec4787bfcd9600c"
+      "sha256": "66f97796fd7b5daca5173241f809c3bb2d1e6fe18b14d3bc0c65ffbe63e2a6e7"
     },
     {
       "bytes": 288,
@@ -2383,10 +2407,10 @@
       "sha256": "0b0e4be7ec51f0afb74dfdee6e3d8b217da9aac4d965a170bea36c89f1b46abb"
     },
     {
-      "bytes": 144224,
+      "bytes": 146854,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "87d7f7e6181e46d22056412e3a23b9c46768b1ae2628322f86b94b5af611ab28"
+      "sha256": "6afc00402e3fcfa2d8c2c9371b2f0c99d0c2aa747c00c37ceef8d960403607c8"
     },
     {
       "bytes": 17809,
@@ -2497,6 +2521,12 @@
       "sha256": "db053e7a0691ec45cb8f4dd82cce68e2a3c445f1ad470e2327e6483ffc17427f"
     },
     {
+      "bytes": 10629,
+      "kind": "code",
+      "path": "scripts/smoke_moe_combined_writer.py",
+      "sha256": "863f830128d3ced819d82110c8213bea2c46290fcee5bd9969757d5383866278"
+    },
+    {
       "bytes": 7229,
       "kind": "code",
       "path": "scripts/smoke_moe_routing_probe_contract.py",
@@ -2539,7 +2569,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T15:31:14.865867+00:00",
+  "generated_at": "2026-06-19T15:36:37.837766+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

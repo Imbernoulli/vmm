@@ -1,0 +1,24 @@
+{
+  "additive_delta_tensors": 1,
+  "additive_delta_values": 2,
+  "checked_tensors": 7,
+  "code_aliased_tensors": 2,
+  "failed_tensors": 0,
+  "outputs": {
+    "merge_manifest": "results/moe_combined_writer_smoke/merge_manifest.json",
+    "report": "results/moe_combined_writer_smoke/report.md",
+    "summary": "results/moe_combined_writer_smoke/summary.json",
+    "tensor_checks": "results/moe_combined_writer_smoke/tensor_checks.csv"
+  },
+  "rule_counts": {
+    "default": 1,
+    "freeze_router": 2,
+    "tensor_rule:.*experts\\.0\\..*": 1,
+    "tensor_rule:.*experts\\.1\\..*": 1,
+    "tensor_rule:.*self_attn.*": 1
+  },
+  "schema_version": 1,
+  "status": "passed",
+  "tensor_alias_rule_count": 2,
+  "tensor_rule_count": 3
+}
