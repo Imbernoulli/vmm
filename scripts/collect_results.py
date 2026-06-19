@@ -568,6 +568,7 @@ def summarize_moe_routing_readiness() -> dict[str, Any]:
 def summarize_toy_moe_merge() -> dict[str, Any]:
     summary = read_json("results/toy_moe_merge/summary.json")
     methods = read_csv("results/toy_moe_merge/method_metrics.csv")
+    connectivity = read_csv("results/toy_moe_merge/connectivity_summary.csv")
     router_summary = read_csv("results/toy_moe_merge/router_summary.csv")
     expert_match = read_csv("results/toy_moe_merge/expert_match.csv")
     expert_regmean_layers = read_csv("results/toy_moe_merge/expert_regmean_layers.csv")
@@ -584,6 +585,11 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
     return {
         "summary": summary,
         "best_method": find_method(methods, summary["best_method"]),
+        "connectivity_summary_rows": int(len(connectivity)),
+        "connectivity_best": clean_row(connectivity.sort_values("barrier_worst_loss").iloc[0])
+        if not connectivity.empty
+        else None,
+        "connectivity": summary.get("connectivity", {}),
         "all_weight_average": find_method(methods, "all_weight_average"),
         "expert_matched_average": find_method(methods, "expert_matched_average"),
         "matched_router_frozen_average": find_method(methods, "matched_router_frozen_average"),
@@ -644,6 +650,9 @@ def summarize_toy_moe_merge() -> dict[str, Any]:
         "router_rows": int(len(router_summary)),
         "report": rel("results/toy_moe_merge/report.md"),
         "method_metrics": rel("results/toy_moe_merge/method_metrics.csv"),
+        "connectivity_summary": rel("results/toy_moe_merge/connectivity_summary.csv"),
+        "connectivity_path_metrics": rel("results/toy_moe_merge/connectivity_path_metrics.csv"),
+        "connectivity_figure": rel("results/toy_moe_merge/connectivity_paths.png"),
         "router_summary": rel("results/toy_moe_merge/router_summary.csv"),
         "expert_load": rel("results/toy_moe_merge/expert_load.csv"),
         "route_overlap": rel("results/toy_moe_merge/route_overlap.csv"),
@@ -1255,6 +1264,18 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| toy MoE route-aware merge | expert-matched average worst accuracy | "
                 f"{fmt(toy_moe['expert_matched_average']['worst_acc'])} |"
+            ),
+            (
+                "| toy MoE connectivity | best path / barrier | "
+                f"{toy_moe['connectivity']['best_path']} / {fmt(toy_moe['connectivity']['best_barrier_worst_loss'])} |"
+            ),
+            (
+                "| toy MoE connectivity | direct unmatched barrier | "
+                f"{fmt(toy_moe['connectivity']['direct_unmatched_barrier_worst_loss'])} |"
+            ),
+            (
+                "| toy MoE connectivity | direct matched barrier | "
+                f"{fmt(toy_moe['connectivity']['direct_matched_barrier_worst_loss'])} |"
             ),
             (
                 "| toy MoE route-aware merge | matched + router-frozen worst accuracy | "

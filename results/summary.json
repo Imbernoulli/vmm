@@ -2664,7 +2664,7 @@
       "source_tensor_aliases": "results/toy_moe_expert_remap_plan/source_tensor_aliases.txt",
       "summary": {
         "alias_rule_count": 4,
-        "generated_at": "2026-06-19T10:26:42.484372+00:00",
+        "generated_at": "2026-06-19T10:31:08.901313+00:00",
         "manual_review_count": 0,
         "mean_output_cosine": 0.9773149192333221,
         "min_cosine_threshold": 0.9,
@@ -2762,6 +2762,31 @@
         "worst_acc": 0.8375,
         "worst_loss": 0.6125870132446289
       },
+      "connectivity": {
+        "best_barrier_worst_loss": 0.0,
+        "best_path": "direct_matched_general_to_code",
+        "direct_matched_barrier_worst_loss": 0.0,
+        "direct_unmatched_barrier_worst_loss": 0.03273778915405279,
+        "matched_minus_unmatched_barrier_worst_loss": -0.03273778915405279,
+        "path_count": 6,
+        "steps": 21
+      },
+      "connectivity_best": {
+        "barrier_worst_loss": 0.0,
+        "endpoint_worst_loss": 0.635798454284668,
+        "kind": "direct_matched",
+        "max_avg_loss": 0.6179901218414307,
+        "max_worst_loss": 0.635798454284668,
+        "midpoint_worst_acc": 0.8,
+        "midpoint_worst_loss": 0.6304422187805175,
+        "min_worst_acc": 0.78,
+        "path": "direct_matched_general_to_code",
+        "steps": 21
+      },
+      "connectivity_figure": "results/toy_moe_merge/connectivity_paths.png",
+      "connectivity_path_metrics": "results/toy_moe_merge/connectivity_path_metrics.csv",
+      "connectivity_summary": "results/toy_moe_merge/connectivity_summary.csv",
+      "connectivity_summary_rows": 6,
       "expert_load": "results/toy_moe_merge/expert_load.csv",
       "expert_match": "results/toy_moe_merge/expert_match.csv",
       "expert_match_mean_cosine": 0.9773149192333221,
@@ -3002,6 +3027,15 @@
           3,
           1
         ],
+        "connectivity": {
+          "best_barrier_worst_loss": 0.0,
+          "best_path": "direct_matched_general_to_code",
+          "direct_matched_barrier_worst_loss": 0.0,
+          "direct_unmatched_barrier_worst_loss": 0.03273778915405279,
+          "matched_minus_unmatched_barrier_worst_loss": -0.03273778915405279,
+          "path_count": 6,
+          "steps": 21
+        },
         "expert_match_mean_cosine": 0.9773149192333221,
         "expert_matched_dare_minus_matched_average_worst_acc": -0.020000000000000018,
         "expert_matched_dare_worst_acc": 0.78,
@@ -3057,6 +3091,9 @@
         "matched_router_weight_search_worst_acc": 0.8175,
         "n_experts": 4,
         "outputs": {
+          "connectivity_figure": "connectivity_paths.png",
+          "connectivity_path_metrics": "connectivity_path_metrics.csv",
+          "connectivity_summary": "connectivity_summary.csv",
           "expert_load": "expert_load.csv",
           "expert_match": "expert_match.csv",
           "expert_regmean_covariances": "expert_regmean_covariances.csv",
@@ -3156,7 +3193,7 @@
       "report": "results/toy_moe_method_selection/report.md",
       "summary": {
         "base_worst_acc": 0.775,
-        "generated_at": "2026-06-19T10:26:42.365260+00:00",
+        "generated_at": "2026-06-19T10:31:08.920033+00:00",
         "inputs": {
           "method_metrics": "results/toy_moe_merge/method_metrics.csv",
           "router_readiness": "results/toy_moe_routing_readiness/router_readiness.csv"
@@ -3193,7 +3230,7 @@
           "low_lambda_or_route_frequency_average": 136
         },
         "expert_rows": 136,
-        "generated_at": "2026-06-19T10:26:36.478428+00:00",
+        "generated_at": "2026-06-19T10:31:00.127581+00:00",
         "outputs": {
           "category_specialization": "results/toy_moe_routing_readiness/category_specialization.csv",
           "expert_load_risks": "results/toy_moe_routing_readiness/expert_load_risks.csv",
@@ -3273,7 +3310,7 @@
       "tasks": "gsm8k,mmlu,safety,humaneval_compile"
     }
   },
-  "generated_at": "2026-06-19T10:26:49.142560+00:00",
+  "generated_at": "2026-06-19T10:31:15.050323+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [

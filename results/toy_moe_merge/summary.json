@@ -8,6 +8,15 @@
     3,
     1
   ],
+  "connectivity": {
+    "best_barrier_worst_loss": 0.0,
+    "best_path": "direct_matched_general_to_code",
+    "direct_matched_barrier_worst_loss": 0.0,
+    "direct_unmatched_barrier_worst_loss": 0.03273778915405279,
+    "matched_minus_unmatched_barrier_worst_loss": -0.03273778915405279,
+    "path_count": 6,
+    "steps": 21
+  },
   "expert_match_mean_cosine": 0.9773149192333221,
   "expert_matched_dare_minus_matched_average_worst_acc": -0.020000000000000018,
   "expert_matched_dare_worst_acc": 0.78,
@@ -63,6 +72,9 @@
   "matched_router_weight_search_worst_acc": 0.8175,
   "n_experts": 4,
   "outputs": {
+    "connectivity_figure": "connectivity_paths.png",
+    "connectivity_path_metrics": "connectivity_path_metrics.csv",
+    "connectivity_summary": "connectivity_summary.csv",
     "expert_load": "expert_load.csv",
     "expert_match": "expert_match.csv",
     "expert_regmean_covariances": "expert_regmean_covariances.csv",

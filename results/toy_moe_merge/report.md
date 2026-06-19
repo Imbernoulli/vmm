@@ -20,6 +20,9 @@
 - Expert-weight search average worst accuracy: `0.802`.
 - Expert-weight search + router-calibrated worst accuracy: `0.828`.
 - Route-aware expert average worst accuracy: `0.790`.
+- Lowest MoE connectivity barrier: `direct_matched_general_to_code` = `0.0000` worst-loss barrier.
+- Direct unmatched source barrier: `0.0327`.
+- Direct matched source barrier: `0.0000`.
 - Recovered expert matching mean cosine: `0.977`.
 - Code source permutation: `[2, 0, 3, 1]`.
 
@@ -68,6 +71,9 @@
 - `route_overlap.csv`
 - `expert_match.csv`
 - `route_weights_by_expert.csv`
+- `connectivity_path_metrics.csv`
+- `connectivity_summary.csv`
+- `connectivity_paths.png`
 - `expert_regmean_covariances.csv`
 - `expert_regmean_layers.csv`
 - `expert_sparse_task_vectors.csv`

@@ -65,6 +65,15 @@ class MethodState:
     description: str
 
 
+@dataclass(frozen=True)
+class ConnectivityPath:
+    name: str
+    left: dict[str, Tensor]
+    right: dict[str, Tensor]
+    candidate: dict[str, Tensor] | None
+    kind: str
+
+
 def set_seed(seed: int) -> None:
     random.seed(seed)
     np.random.seed(seed)
@@ -230,6 +239,18 @@ def task_vector_average(base: dict[str, Tensor], sources: list[dict[str, Tensor]
         for source, weight in zip(sources, weights):
             value = value + float(weight) * (source[name].to(torch.float32) - base[name].to(torch.float32))
         out[name] = value.to(dtype=base[name].dtype)
+    return out
+
+
+def interpolate_states(left: dict[str, Tensor], right: dict[str, Tensor], t: float) -> dict[str, Tensor]:
+    out: dict[str, Tensor] = {}
+    for name, left_value in left.items():
+        right_value = right[name]
+        if torch.is_floating_point(left_value):
+            value = (1.0 - t) * left_value.to(torch.float32) + t * right_value.to(torch.float32)
+            out[name] = value.to(dtype=left_value.dtype)
+        else:
+            out[name] = left_value.clone()
     return out
 
 
@@ -955,6 +976,66 @@ def search_router_source_weights(
     return states[selected_pair], search.sort_values(["router_weight_general", "router_weight_code"])
 
 
+def state_on_connectivity_path(path: ConnectivityPath, t: float) -> tuple[dict[str, Tensor], str, float]:
+    if path.candidate is None:
+        return interpolate_states(path.left, path.right, t), "direct", t
+    if t <= 0.5:
+        local_t = 2.0 * t
+        return interpolate_states(path.left, path.candidate, local_t), "left_to_candidate", local_t
+    local_t = 2.0 * t - 1.0
+    return interpolate_states(path.candidate, path.right, local_t), "candidate_to_right", local_t
+
+
+def evaluate_connectivity_paths(
+    template: TinyMoEClassifier,
+    paths: list[ConnectivityPath],
+    loaders: dict[str, DataLoader],
+    device: torch.device,
+    *,
+    steps: int,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    metric_rows = []
+    grid = np.linspace(0.0, 1.0, steps)
+    for path in paths:
+        for t in grid:
+            state, segment, local_t = state_on_connectivity_path(path, float(t))
+            metrics = evaluate_state_by_category(template, state, loaders, device, split_prefix="test")
+            metric_rows.append(
+                {
+                    "path": path.name,
+                    "kind": path.kind,
+                    "t": float(t),
+                    "segment": segment,
+                    "local_t": float(local_t),
+                    **metrics,
+                }
+            )
+    metrics_df = pd.DataFrame(metric_rows)
+    summary_rows = []
+    for path_name, group in metrics_df.groupby("path", sort=False):
+        group = group.sort_values("t")
+        start = group.iloc[0]
+        end = group.iloc[-1]
+        midpoint = group.iloc[(group["t"] - 0.5).abs().argmin()]
+        endpoint_worst_loss = max(float(start["test_worst_loss"]), float(end["test_worst_loss"]))
+        max_worst_loss = float(group["test_worst_loss"].max())
+        summary_rows.append(
+            {
+                "path": path_name,
+                "kind": str(group.iloc[0]["kind"]),
+                "steps": int(len(group)),
+                "endpoint_worst_loss": endpoint_worst_loss,
+                "max_worst_loss": max_worst_loss,
+                "barrier_worst_loss": max_worst_loss - endpoint_worst_loss,
+                "midpoint_worst_loss": float(midpoint["test_worst_loss"]),
+                "midpoint_worst_acc": float(midpoint["test_worst_acc"]),
+                "min_worst_acc": float(group["test_worst_acc"].min()),
+                "max_avg_loss": float(group["test_avg_loss"].max()),
+            }
+        )
+    return metrics_df, pd.DataFrame(summary_rows).sort_values("barrier_worst_loss")
+
+
 @torch.no_grad()
 def router_stats(
     model: TinyMoEClassifier,
@@ -1119,6 +1200,25 @@ def plot_results(method_metrics: pd.DataFrame, router_summary: pd.DataFrame, out
     plt.close(fig)
 
 
+def plot_connectivity_paths(path_metrics: pd.DataFrame, out: Path) -> None:
+    fig, ax = plt.subplots(figsize=(10.5, 5.2), constrained_layout=True)
+    order = (
+        path_metrics.groupby("path")["test_worst_loss"]
+        .max()
+        .sort_values()
+        .index.tolist()
+    )
+    for path in order:
+        group = path_metrics[path_metrics["path"] == path].sort_values("t")
+        ax.plot(group["t"], group["test_worst_loss"], marker="o", markersize=2.5, linewidth=1.2, label=path)
+    ax.set_xlabel("path coordinate t")
+    ax.set_ylabel("worst-category loss")
+    ax.set_title("MoE source/candidate connectivity")
+    ax.legend(fontsize=7, ncols=2)
+    fig.savefig(out, dpi=180)
+    plt.close(fig)
+
+
 def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.DataFrame) -> None:
     best = method_metrics.sort_values(["worst_acc", "avg_acc"], ascending=False).iloc[0]
     all_avg = method_metrics[method_metrics["method"] == "all_weight_average"].iloc[0]
@@ -1136,6 +1236,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
         method_metrics["method"] == "expert_weight_search_router_calibrated_average"
     ].iloc[0]
     route_aware = method_metrics[method_metrics["method"] == "route_aware_expert_average"].iloc[0]
+    connectivity = summary["connectivity"]
     lines = [
         "# Toy MoE Route-Aware Merge",
         "",
@@ -1159,6 +1260,9 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
         f"- Expert-weight search average worst accuracy: `{expert_search['worst_acc']:.3f}`.",
         f"- Expert-weight search + router-calibrated worst accuracy: `{expert_search_calibrated['worst_acc']:.3f}`.",
         f"- Route-aware expert average worst accuracy: `{route_aware['worst_acc']:.3f}`.",
+        f"- Lowest MoE connectivity barrier: `{connectivity['best_path']}` = `{connectivity['best_barrier_worst_loss']:.4f}` worst-loss barrier.",
+        f"- Direct unmatched source barrier: `{connectivity['direct_unmatched_barrier_worst_loss']:.4f}`.",
+        f"- Direct matched source barrier: `{connectivity['direct_matched_barrier_worst_loss']:.4f}`.",
         f"- Recovered expert matching mean cosine: `{summary['expert_match_mean_cosine']:.3f}`.",
         f"- Code source permutation: `{summary['code_source_permutation']}`.",
         "",
@@ -1198,6 +1302,9 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
             "- `route_overlap.csv`",
             "- `expert_match.csv`",
             "- `route_weights_by_expert.csv`",
+            "- `connectivity_path_metrics.csv`",
+            "- `connectivity_summary.csv`",
+            "- `connectivity_paths.png`",
             "- `expert_regmean_covariances.csv`",
             "- `expert_regmean_layers.csv`",
             "- `expert_sparse_task_vectors.csv`",
@@ -1251,6 +1358,7 @@ def main() -> None:
     parser.add_argument("--aux-coef", type=float, default=0.02)
     parser.add_argument("--anchor-floor", type=float, default=0.15)
     parser.add_argument("--match-batches", type=int, default=6)
+    parser.add_argument("--connectivity-steps", type=int, default=21)
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     args = parser.parse_args()
 
@@ -1515,6 +1623,58 @@ def main() -> None:
         MethodState("route_aware_expert_average", route_aware, "freeze base router and use route-frequency expert source weights"),
     ]
 
+    connectivity_paths = [
+        ConnectivityPath(
+            "direct_unmatched_general_to_code",
+            general_state,
+            code_permuted_state,
+            None,
+            "direct_unmatched",
+        ),
+        ConnectivityPath(
+            "direct_matched_general_to_code",
+            general_state,
+            matched_code_state,
+            None,
+            "direct_matched",
+        ),
+        ConnectivityPath(
+            "via_expert_matched_average",
+            general_state,
+            matched_code_state,
+            expert_matched,
+            "candidate_two_segment",
+        ),
+        ConnectivityPath(
+            "via_matched_router_weight_search",
+            general_state,
+            matched_code_state,
+            matched_router_weight_search,
+            "candidate_two_segment",
+        ),
+        ConnectivityPath(
+            "via_matched_router_calibrated",
+            general_state,
+            matched_code_state,
+            matched_router_calibrated,
+            "candidate_two_segment",
+        ),
+        ConnectivityPath(
+            "via_expert_weight_search_router_calibrated",
+            general_state,
+            matched_code_state,
+            expert_search_router_calibrated,
+            "candidate_two_segment",
+        ),
+    ]
+    connectivity_path_metrics, connectivity_summary = evaluate_connectivity_paths(
+        template,
+        connectivity_paths,
+        loaders,
+        device,
+        steps=args.connectivity_steps,
+    )
+
     method_rows: list[dict[str, Any]] = []
     router_rows: list[dict[str, Any]] = []
     expert_rows: list[dict[str, Any]] = []
@@ -1551,6 +1711,8 @@ def main() -> None:
     route_overlap_df = pd.DataFrame(overlap_rows)
 
     method_metrics.to_csv(args.output_dir / "method_metrics.csv", index=False)
+    connectivity_path_metrics.to_csv(args.output_dir / "connectivity_path_metrics.csv", index=False)
+    connectivity_summary.to_csv(args.output_dir / "connectivity_summary.csv", index=False)
     router_summary.to_csv(args.output_dir / "router_summary.csv", index=False)
     expert_load.to_csv(args.output_dir / "expert_load.csv", index=False)
     route_overlap_df.to_csv(args.output_dir / "route_overlap.csv", index=False)
@@ -1564,8 +1726,11 @@ def main() -> None:
     router_weight_search.to_csv(args.output_dir / "router_weight_search.csv", index=False)
     router_calibration_sweep.to_csv(args.output_dir / "router_calibration_sweep.csv", index=False)
     plot_results(method_metrics, router_summary, args.output_dir / "toy_moe_merge.png")
+    plot_connectivity_paths(connectivity_path_metrics, args.output_dir / "connectivity_paths.png")
 
     best = method_metrics.sort_values(["worst_acc", "avg_acc"], ascending=False).iloc[0]
+    best_connectivity = connectivity_summary.iloc[0]
+    connectivity_by_path = connectivity_summary.set_index("path")
     all_avg = method_metrics[method_metrics["method"] == "all_weight_average"].iloc[0]
     expert_matched_row = method_metrics[method_metrics["method"] == "expert_matched_average"].iloc[0]
     matched_router_frozen_row = method_metrics[method_metrics["method"] == "matched_router_frozen_average"].iloc[0]
@@ -1593,6 +1758,22 @@ def main() -> None:
         "expert_match_mean_cosine": float(expert_match["output_cosine"].mean()),
         "best_method": str(best["method"]),
         "best_worst_acc": float(best["worst_acc"]),
+        "connectivity": {
+            "steps": args.connectivity_steps,
+            "best_path": str(best_connectivity["path"]),
+            "best_barrier_worst_loss": float(best_connectivity["barrier_worst_loss"]),
+            "direct_unmatched_barrier_worst_loss": float(
+                connectivity_by_path.loc["direct_unmatched_general_to_code", "barrier_worst_loss"]
+            ),
+            "direct_matched_barrier_worst_loss": float(
+                connectivity_by_path.loc["direct_matched_general_to_code", "barrier_worst_loss"]
+            ),
+            "matched_minus_unmatched_barrier_worst_loss": float(
+                connectivity_by_path.loc["direct_matched_general_to_code", "barrier_worst_loss"]
+                - connectivity_by_path.loc["direct_unmatched_general_to_code", "barrier_worst_loss"]
+            ),
+            "path_count": int(len(connectivity_summary)),
+        },
         "all_weight_average_worst_acc": float(all_avg["worst_acc"]),
         "matched_router_frozen_worst_acc": float(matched_router_frozen_row["worst_acc"]),
         "matched_router_frozen_minus_all_weight_worst_acc": float(
@@ -1729,6 +1910,9 @@ def main() -> None:
             "router_weight_search": "router_weight_search.csv",
             "router_calibration_sweep": "router_calibration_sweep.csv",
             "figure": "toy_moe_merge.png",
+            "connectivity_path_metrics": "connectivity_path_metrics.csv",
+            "connectivity_summary": "connectivity_summary.csv",
+            "connectivity_figure": "connectivity_paths.png",
             "report": "report.md",
         },
     }

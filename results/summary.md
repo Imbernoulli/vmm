@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-19T10:26:49.142560+00:00`
+Generated at: `2026-06-19T10:31:15.050323+00:00`
 
 ## Coverage
 
@@ -73,6 +73,9 @@ Complete: `31`; partial: `1`; missing: `0`.
 | Qwen multi-expert | instruct/coder weighted conflict | 0.386 |
 | toy MoE route-aware merge | all-weight average worst accuracy | 0.620 |
 | toy MoE route-aware merge | expert-matched average worst accuracy | 0.800 |
+| toy MoE connectivity | best path / barrier | direct_matched_general_to_code / 0.000 |
+| toy MoE connectivity | direct unmatched barrier | 0.033 |
+| toy MoE connectivity | direct matched barrier | 0.000 |
 | toy MoE route-aware merge | matched + router-frozen worst accuracy | 0.787 |
 | toy MoE route-aware merge | expert-matched RegMean worst accuracy | 0.792 |
 | toy MoE route-aware merge | expert-matched RegMean delta vs frozen | 0.005 |
