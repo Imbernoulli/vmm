@@ -11,6 +11,7 @@
 - Expert-matched average worst accuracy: `0.800`.
 - Matched + router-frozen average worst accuracy: `0.787`.
 - Matched + router-calibrated average worst accuracy: `0.838`.
+- Matched + router-sweep-selected average worst accuracy: `0.838`.
 - Expert-weight search average worst accuracy: `0.802`.
 - Expert-weight search + router-calibrated worst accuracy: `0.828`.
 - Route-aware expert average worst accuracy: `0.790`.
@@ -21,6 +22,7 @@
 
 | method | general acc | code acc | worst acc | avg loss |
 | --- | ---: | ---: | ---: | ---: |
+| matched_router_sweep_selected_average | 0.838 | 0.840 | 0.838 | 0.600 |
 | matched_router_calibrated_average | 0.838 | 0.840 | 0.838 | 0.600 |
 | expert_weight_search_router_calibrated_average | 0.828 | 0.835 | 0.828 | 0.600 |
 | code_endpoint_permuted | 0.818 | 0.802 | 0.802 | 0.618 |
@@ -39,6 +41,7 @@
 - `expert_matched_average` 先用 unlabeled calibration input 的 expert-output cosine 做 Hungarian matching，再平均；这对应 Sub-MoE / Expert Merging 里强调的 function-aware expert alignment。
 - `matched_router_frozen_average` 直接验证 MoE 特有假设：先对齐 expert 功能，再固定 token-to-expert dispatch，只平均非 router 权重。
 - `matched_router_calibrated_average` 冻结 matched experts，只用小校准集更新 router，并用 base-router KL 约束防止 dispatch 漂移。
+- `matched_router_sweep_selected_average` 对 router calibration 的 KL 系数做 sweep，先过 route-overlap guard，再按 calibration worst-loss 选择候选；它把 router overlap/load 和任务精度放到同一个 probe 里。
 - `expert_weight_search_average` 在同一个 expert 数和 tensor shape 内，对每个 expert 的 general/code delta 系数做校准集 min-max 坐标搜索；router 仍固定为 base。
 - `expert_weight_search_router_calibrated_average` 在 per-expert 系数搜索后，只开放 router 做 guarded calibration。
 - `route_aware_expert_average` 冻结 base router，并按 base router 在 general/code prompt 上的 route mass 给每个 expert 设置 source delta 权重；这对应 route-weight recipes 的 toy 版本。
@@ -54,5 +57,6 @@
 - `route_weights_by_expert.csv`
 - `expert_search_weights_by_expert.csv`
 - `expert_weight_search_trace.csv`
+- `router_calibration_sweep.csv`
 - `toy_moe_merge.png`
 - `summary.json`

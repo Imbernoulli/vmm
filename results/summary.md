@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-19T09:59:59.364384+00:00`
+Generated at: `2026-06-19T10:05:50.308379+00:00`
 
 ## Coverage
 
@@ -75,6 +75,10 @@ Complete: `31`; partial: `1`; missing: `0`.
 | toy MoE route-aware merge | expert-matched average worst accuracy | 0.800 |
 | toy MoE route-aware merge | matched + router-frozen worst accuracy | 0.787 |
 | toy MoE route-aware merge | matched + router-calibrated worst accuracy | 0.838 |
+| toy MoE route-aware merge | guarded router-sweep selected KL | 0.25 |
+| toy MoE route-aware merge | guarded router-sweep eligible / total | 3 / 5 |
+| toy MoE route-aware merge | router-sweep selected min top-k Jaccard | 0.828 |
+| toy MoE route-aware merge | matched + router-sweep-selected worst accuracy | 0.838 |
 | toy MoE route-aware merge | expert-weight search worst accuracy | 0.802 |
 | toy MoE route-aware merge | expert-weight search + router-calibrated worst accuracy | 0.828 |
 | toy MoE route-aware merge | route-aware average worst accuracy | 0.790 |

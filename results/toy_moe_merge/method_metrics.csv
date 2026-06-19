@@ -7,6 +7,7 @@ router_frozen_average,all-weight average but router tensors reset to base,0.6517
 expert_matched_average,align code experts to general source by output cosine before averaging,0.6019072341918945,0.6304422187805175,0.8175,0.8,0.6161747264862061,0.6304422187805175,0.8087500000000001,0.8
 matched_router_frozen_average,align code experts by output cosine and keep the base router fixed,0.6038974952697754,0.633265209197998,0.815,0.7875,0.6185813522338868,0.633265209197998,0.80125,0.7875
 matched_router_calibrated_average,"align code experts, freeze non-router tensors, and calibrate only the router",0.5873406410217286,0.6125870132446289,0.8375,0.84,0.5999638271331788,0.6125870132446289,0.83875,0.8375
+matched_router_sweep_selected_average,"align code experts, then select router calibration KL by calibration worst loss",0.5873406410217286,0.6125870132446289,0.8375,0.84,0.5999638271331788,0.6125870132446289,0.83875,0.8375
 expert_weight_search_average,search per-expert source delta weights on the calibration set with the base router fixed,0.6045808792114258,0.6323366737365723,0.81,0.8025,0.618458776473999,0.6323366737365723,0.80625,0.8025
 expert_weight_search_router_calibrated_average,"search per-expert source delta weights, then calibrate only the router",0.5873327827453614,0.6131016731262207,0.8275,0.835,0.600217227935791,0.6131016731262207,0.83125,0.8275
 route_aware_expert_average,freeze base router and use route-frequency expert source weights,0.6051702117919922,0.6338796043395996,0.8075,0.79,0.6195249080657959,0.6338796043395996,0.7987500000000001,0.79

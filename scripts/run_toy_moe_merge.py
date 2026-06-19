@@ -420,6 +420,30 @@ def evaluate_state(
     return evaluate(model, loader, device)
 
 
+def evaluate_state_by_category(
+    template: TinyMoEClassifier,
+    state: dict[str, Tensor],
+    loaders: dict[str, DataLoader],
+    device: torch.device,
+    *,
+    split_prefix: str,
+) -> dict[str, float]:
+    model = deepcopy(template)
+    model.load_state_dict(state)
+    general = evaluate(model, loaders[f"general_{split_prefix}"], device)
+    code = evaluate(model, loaders[f"code_{split_prefix}"], device)
+    return {
+        f"{split_prefix}_general_loss": general["loss"],
+        f"{split_prefix}_code_loss": code["loss"],
+        f"{split_prefix}_avg_loss": 0.5 * (general["loss"] + code["loss"]),
+        f"{split_prefix}_worst_loss": max(general["loss"], code["loss"]),
+        f"{split_prefix}_general_acc": general["acc"],
+        f"{split_prefix}_code_acc": code["acc"],
+        f"{split_prefix}_avg_acc": 0.5 * (general["acc"] + code["acc"]),
+        f"{split_prefix}_worst_acc": min(general["acc"], code["acc"]),
+    }
+
+
 def search_expert_source_weights(
     template: TinyMoEClassifier,
     base: dict[str, Tensor],
@@ -539,6 +563,86 @@ def search_expert_source_weights(
             }
         )
     return state, pd.DataFrame(rows), pd.DataFrame(trace_rows)
+
+
+def sweep_router_calibration(
+    template: TinyMoEClassifier,
+    initial_state: dict[str, Tensor],
+    reference_router: TinyMoEClassifier,
+    base_model: TinyMoEClassifier,
+    loaders: dict[str, DataLoader],
+    *,
+    kl_values: list[float],
+    epochs: int,
+    lr: float,
+    aux_coef: float,
+    min_topk_jaccard: float,
+    min_top1_agreement: float,
+    device: torch.device,
+) -> tuple[dict[str, Tensor], pd.DataFrame]:
+    rows: list[dict[str, Any]] = []
+    states: dict[str, dict[str, Tensor]] = {}
+    for kl_coef in kl_values:
+        kl_key = f"{kl_coef:g}"
+        state = calibrate_router_only_state(
+            template,
+            initial_state,
+            reference_router,
+            loaders["mixed_calib"],
+            epochs=epochs,
+            lr=lr,
+            kl_coef=kl_coef,
+            aux_coef=aux_coef,
+            device=device,
+            desc=f"sweep router kl={kl_coef:g}",
+        )
+        states[kl_key] = state
+        metrics = {
+            "kl_coef": kl_coef,
+            **evaluate_state_by_category(template, state, loaders, device, split_prefix="calib"),
+            **evaluate_state_by_category(template, state, loaders, device, split_prefix="test"),
+        }
+        model = deepcopy(template)
+        model.load_state_dict(state)
+        overlaps = [
+            route_overlap(
+                base_model,
+                model,
+                loaders[f"{category}_test"],
+                device,
+                left_name="base",
+                right_name=f"router_sweep_kl_{kl_key}",
+                category=category,
+            )
+            for category in ("general", "code")
+        ]
+        router_summaries = [
+            router_stats(model, loaders[f"{category}_test"], device, method=f"router_sweep_kl_{kl_key}", category=category)[
+                "summary_row"
+            ]
+            for category in ("general", "code")
+        ]
+        metrics.update(
+            {
+                "min_test_top1_agreement": min(float(item["top1_agreement"]) for item in overlaps),
+                "min_test_topk_jaccard": min(float(item["topk_jaccard"]) for item in overlaps),
+                "max_test_top1_fraction": max(float(item["max_top1_fraction"]) for item in router_summaries),
+                "mean_test_router_entropy": float(np.mean([item["router_entropy_mean"] for item in router_summaries])),
+            }
+        )
+        rows.append(metrics)
+    sweep = pd.DataFrame(rows)
+    sweep["eligible_by_route_guard"] = (
+        (sweep["min_test_topk_jaccard"] >= min_topk_jaccard)
+        & (sweep["min_test_top1_agreement"] >= min_top1_agreement)
+    )
+    candidate_rows = sweep[sweep["eligible_by_route_guard"]]
+    if candidate_rows.empty:
+        candidate_rows = sweep
+    candidate_rows = candidate_rows.sort_values(["calib_worst_loss", "calib_avg_loss", "kl_coef"], ascending=[True, True, True])
+    selected_key = f"{float(candidate_rows.iloc[0]['kl_coef']):g}"
+    sweep["selected_by_guarded_calib_worst_loss"] = sweep["kl_coef"].map(lambda value: f"{float(value):g}" == selected_key)
+    return states[selected_key], sweep.sort_values("kl_coef")
 
 
 @torch.no_grad()
@@ -711,6 +815,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
     matched = method_metrics[method_metrics["method"] == "expert_matched_average"].iloc[0]
     matched_router_frozen = method_metrics[method_metrics["method"] == "matched_router_frozen_average"].iloc[0]
     calibrated = method_metrics[method_metrics["method"] == "matched_router_calibrated_average"].iloc[0]
+    sweep_selected = method_metrics[method_metrics["method"] == "matched_router_sweep_selected_average"].iloc[0]
     expert_search = method_metrics[method_metrics["method"] == "expert_weight_search_average"].iloc[0]
     expert_search_calibrated = method_metrics[
         method_metrics["method"] == "expert_weight_search_router_calibrated_average"
@@ -730,6 +835,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
         f"- Expert-matched average worst accuracy: `{matched['worst_acc']:.3f}`.",
         f"- Matched + router-frozen average worst accuracy: `{matched_router_frozen['worst_acc']:.3f}`.",
         f"- Matched + router-calibrated average worst accuracy: `{calibrated['worst_acc']:.3f}`.",
+        f"- Matched + router-sweep-selected average worst accuracy: `{sweep_selected['worst_acc']:.3f}`.",
         f"- Expert-weight search average worst accuracy: `{expert_search['worst_acc']:.3f}`.",
         f"- Expert-weight search + router-calibrated worst accuracy: `{expert_search_calibrated['worst_acc']:.3f}`.",
         f"- Route-aware expert average worst accuracy: `{route_aware['worst_acc']:.3f}`.",
@@ -755,6 +861,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
             "- `expert_matched_average` 先用 unlabeled calibration input 的 expert-output cosine 做 Hungarian matching，再平均；这对应 Sub-MoE / Expert Merging 里强调的 function-aware expert alignment。",
             "- `matched_router_frozen_average` 直接验证 MoE 特有假设：先对齐 expert 功能，再固定 token-to-expert dispatch，只平均非 router 权重。",
             "- `matched_router_calibrated_average` 冻结 matched experts，只用小校准集更新 router，并用 base-router KL 约束防止 dispatch 漂移。",
+            "- `matched_router_sweep_selected_average` 对 router calibration 的 KL 系数做 sweep，先过 route-overlap guard，再按 calibration worst-loss 选择候选；它把 router overlap/load 和任务精度放到同一个 probe 里。",
             "- `expert_weight_search_average` 在同一个 expert 数和 tensor shape 内，对每个 expert 的 general/code delta 系数做校准集 min-max 坐标搜索；router 仍固定为 base。",
             "- `expert_weight_search_router_calibrated_average` 在 per-expert 系数搜索后，只开放 router 做 guarded calibration。",
             "- `route_aware_expert_average` 冻结 base router，并按 base router 在 general/code prompt 上的 route mass 给每个 expert 设置 source delta 权重；这对应 route-weight recipes 的 toy 版本。",
@@ -770,6 +877,7 @@ def write_report(out_dir: Path, summary: dict[str, Any], method_metrics: pd.Data
             "- `route_weights_by_expert.csv`",
             "- `expert_search_weights_by_expert.csv`",
             "- `expert_weight_search_trace.csv`",
+            "- `router_calibration_sweep.csv`",
             "- `toy_moe_merge.png`",
             "- `summary.json`",
         ]
@@ -793,6 +901,9 @@ def main() -> None:
     parser.add_argument("--router-calibration-epochs", type=int, default=8)
     parser.add_argument("--router-calibration-lr", type=float, default=5e-3)
     parser.add_argument("--router-calibration-kl-coef", type=float, default=0.25)
+    parser.add_argument("--router-calibration-kl-sweep", default="0,0.05,0.25,1.0,4.0")
+    parser.add_argument("--router-calibration-sweep-min-topk-jaccard", type=float, default=0.80)
+    parser.add_argument("--router-calibration-sweep-min-top1-agreement", type=float, default=0.75)
     parser.add_argument("--expert-search-grid", default="0,0.25,0.5,0.75,1.0")
     parser.add_argument("--expert-search-passes", type=int, default=2)
     parser.add_argument("--expert-search-prior-penalty", type=float, default=0.02)
@@ -907,6 +1018,21 @@ def main() -> None:
         device=device,
         desc="calibrate matched router",
     )
+    router_calibration_kl_values = parse_grid(args.router_calibration_kl_sweep)
+    matched_router_sweep_selected, router_calibration_sweep = sweep_router_calibration(
+        template,
+        matched_router_frozen,
+        base,
+        base,
+        loaders,
+        kl_values=router_calibration_kl_values,
+        epochs=args.router_calibration_epochs,
+        lr=args.router_calibration_lr,
+        aux_coef=args.aux_coef,
+        min_topk_jaccard=args.router_calibration_sweep_min_topk_jaccard,
+        min_top1_agreement=args.router_calibration_sweep_min_top1_agreement,
+        device=device,
+    )
     expert_search_router_calibrated = calibrate_router_only_state(
         template,
         expert_search,
@@ -936,6 +1062,11 @@ def main() -> None:
             "matched_router_calibrated_average",
             matched_router_calibrated,
             "align code experts, freeze non-router tensors, and calibrate only the router",
+        ),
+        MethodState(
+            "matched_router_sweep_selected_average",
+            matched_router_sweep_selected,
+            "align code experts, then select router calibration KL by calibration worst loss",
         ),
         MethodState(
             "expert_weight_search_average",
@@ -993,12 +1124,14 @@ def main() -> None:
     route_weights.to_csv(args.output_dir / "route_weights_by_expert.csv", index=False)
     expert_search_weights.to_csv(args.output_dir / "expert_search_weights_by_expert.csv", index=False)
     expert_search_trace.to_csv(args.output_dir / "expert_weight_search_trace.csv", index=False)
+    router_calibration_sweep.to_csv(args.output_dir / "router_calibration_sweep.csv", index=False)
     plot_results(method_metrics, router_summary, args.output_dir / "toy_moe_merge.png")
 
     best = method_metrics.sort_values(["worst_acc", "avg_acc"], ascending=False).iloc[0]
     all_avg = method_metrics[method_metrics["method"] == "all_weight_average"].iloc[0]
     matched_router_frozen_row = method_metrics[method_metrics["method"] == "matched_router_frozen_average"].iloc[0]
     matched_router_calibrated_row = method_metrics[method_metrics["method"] == "matched_router_calibrated_average"].iloc[0]
+    matched_router_sweep_selected_row = method_metrics[method_metrics["method"] == "matched_router_sweep_selected_average"].iloc[0]
     expert_search_row = method_metrics[method_metrics["method"] == "expert_weight_search_average"].iloc[0]
     expert_search_router_calibrated_row = method_metrics[
         method_metrics["method"] == "expert_weight_search_router_calibrated_average"
@@ -1030,6 +1163,27 @@ def main() -> None:
             "kl_coef": args.router_calibration_kl_coef,
             "aux_coef": args.aux_coef,
         },
+        "router_calibration_sweep": {
+            "kl_values": router_calibration_kl_values,
+            "min_topk_jaccard": args.router_calibration_sweep_min_topk_jaccard,
+            "min_top1_agreement": args.router_calibration_sweep_min_top1_agreement,
+            "eligible_count": int(router_calibration_sweep["eligible_by_route_guard"].sum()),
+            "selected_kl_coef": float(
+                router_calibration_sweep[router_calibration_sweep["selected_by_guarded_calib_worst_loss"]].iloc[0][
+                    "kl_coef"
+                ]
+            ),
+            "selected_calib_worst_loss": float(
+                router_calibration_sweep[router_calibration_sweep["selected_by_guarded_calib_worst_loss"]].iloc[0][
+                    "calib_worst_loss"
+                ]
+            ),
+            "selected_test_worst_acc": float(matched_router_sweep_selected_row["worst_acc"]),
+            "selected_minus_fixed_kl_worst_acc": float(
+                matched_router_sweep_selected_row["worst_acc"] - matched_router_calibrated_row["worst_acc"]
+            ),
+        },
+        "matched_router_sweep_selected_worst_acc": float(matched_router_sweep_selected_row["worst_acc"]),
         "expert_weight_search_worst_acc": float(expert_search_row["worst_acc"]),
         "expert_weight_search_router_calibrated_worst_acc": float(expert_search_router_calibrated_row["worst_acc"]),
         "expert_weight_search_router_calibrated_minus_all_weight_worst_acc": float(
@@ -1062,6 +1216,7 @@ def main() -> None:
             "route_weights_by_expert": "route_weights_by_expert.csv",
             "expert_search_weights_by_expert": "expert_search_weights_by_expert.csv",
             "expert_weight_search_trace": "expert_weight_search_trace.csv",
+            "router_calibration_sweep": "router_calibration_sweep.csv",
             "figure": "toy_moe_merge.png",
             "report": "report.md",
         },

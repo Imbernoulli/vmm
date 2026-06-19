@@ -36,6 +36,7 @@
   "matched_router_calibrated_worst_acc": 0.8375,
   "matched_router_frozen_minus_all_weight_worst_acc": 0.16749999999999998,
   "matched_router_frozen_worst_acc": 0.7875,
+  "matched_router_sweep_selected_worst_acc": 0.8375,
   "n_experts": 4,
   "outputs": {
     "expert_load": "expert_load.csv",
@@ -47,6 +48,7 @@
     "report": "report.md",
     "route_overlap": "route_overlap.csv",
     "route_weights_by_expert": "route_weights_by_expert.csv",
+    "router_calibration_sweep": "router_calibration_sweep.csv",
     "router_summary": "router_summary.csv"
   },
   "route_aware_minus_all_weight_worst_acc": 0.17000000000000004,
@@ -56,6 +58,22 @@
     "epochs": 8,
     "kl_coef": 0.25,
     "lr": 0.005
+  },
+  "router_calibration_sweep": {
+    "eligible_count": 3,
+    "kl_values": [
+      0.0,
+      0.05,
+      0.25,
+      1.0,
+      4.0
+    ],
+    "min_top1_agreement": 0.75,
+    "min_topk_jaccard": 0.8,
+    "selected_calib_worst_loss": 0.6279638671875,
+    "selected_kl_coef": 0.25,
+    "selected_minus_fixed_kl_worst_acc": 0.0,
+    "selected_test_worst_acc": 0.8375
   },
   "same_shape_constraint": "All methods keep the same TinyMoEClassifier architecture, expert count, router shape, and output classes.",
   "schema_version": 1,
