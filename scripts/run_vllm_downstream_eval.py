@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import ast
 import json
+import os
 import re
 import sys
 import time
@@ -13,6 +14,8 @@ from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any
+
+os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
 import matplotlib
 
@@ -407,6 +410,92 @@ def evaluate_humaneval(config: VllmConfig, examples: list[dict[str, str]], max_t
     return {"task": "humaneval_compile", "examples": n, "compile_rate": compile_ok / max(1, n), "compile_ok": compile_ok}, rows
 
 
+def resolve_models(args: argparse.Namespace) -> list[str]:
+    raw = args.models if args.models else args.model
+    if not raw:
+        raise ValueError("Provide --model SERVED_MODEL or --models MODEL_A,MODEL_B.")
+    models = [item.strip() for item in raw.split(",") if item.strip()]
+    if not models:
+        raise ValueError("Model list is empty.")
+    return models
+
+
+def load_task_examples(args: argparse.Namespace, tasks: list[str]) -> dict[str, list[dict[str, Any]]]:
+    examples: dict[str, list[dict[str, Any]]] = {}
+    if "gsm8k" in tasks:
+        examples["gsm8k"] = load_gsm8k_examples(args.example_source, args.max_examples, args.seed)
+    if "mmlu" in tasks:
+        examples["mmlu"] = load_mmlu_examples(args.example_source, args.max_examples, args.seed, args.subjects)
+    if "safety" in tasks:
+        examples["safety"] = load_safety_examples(args.example_source, args.max_examples, args.seed)
+    if "humaneval_compile" in tasks:
+        examples["humaneval_compile"] = load_humaneval_examples(args.example_source, args.max_examples, args.seed)
+    return examples
+
+
+def evaluate_model(
+    config: VllmConfig,
+    task_examples: dict[str, list[dict[str, Any]]],
+    args: argparse.Namespace,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    metric_rows: list[dict[str, Any]] = []
+    prediction_rows: list[dict[str, Any]] = []
+
+    def add_model(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        for row in rows:
+            row["model"] = config.model
+        return rows
+
+    if "gsm8k" in task_examples:
+        metrics, rows = evaluate_gsm8k(config, task_examples["gsm8k"], args.max_tokens_gsm8k)
+        metrics["model"] = config.model
+        metric_rows.append(metrics)
+        prediction_rows.extend(add_model(rows))
+    if "mmlu" in task_examples:
+        metrics, rows = evaluate_mmlu(config, task_examples["mmlu"], args.max_tokens_mmlu)
+        metrics["model"] = config.model
+        metric_rows.append(metrics)
+        prediction_rows.extend(add_model(rows))
+    if "safety" in task_examples:
+        metrics, rows = evaluate_safety(config, task_examples["safety"], args.max_tokens_safety)
+        metrics["model"] = config.model
+        metric_rows.append(metrics)
+        prediction_rows.extend(add_model(rows))
+    if "humaneval_compile" in task_examples:
+        metrics, rows = evaluate_humaneval(config, task_examples["humaneval_compile"], args.max_tokens_humaneval)
+        metrics["model"] = config.model
+        metric_rows.append(metrics)
+        prediction_rows.extend(add_model(rows))
+    return metric_rows, prediction_rows
+
+
+def primary_metric(row: pd.Series | dict[str, Any]) -> tuple[str, float]:
+    for candidate in ("strict_exact", "accuracy", "policy_accuracy", "compile_rate"):
+        value = row.get(candidate)
+        if value is not None and pd.notna(value):
+            return candidate, float(value)
+    return "score", 0.0
+
+
+def summarize_models(metrics: pd.DataFrame) -> pd.DataFrame:
+    if metrics.empty or "model" not in metrics:
+        return pd.DataFrame(columns=["model", "task_count", "avg_primary_score", "worst_primary_score", "rank"])
+    rows = []
+    for model, group in metrics.groupby("model", sort=False):
+        scores = [primary_metric(row)[1] for _, row in group.iterrows()]
+        rows.append(
+            {
+                "model": model,
+                "task_count": int(len(group)),
+                "avg_primary_score": float(sum(scores) / max(1, len(scores))),
+                "worst_primary_score": float(min(scores)) if scores else 0.0,
+            }
+        )
+    summary = pd.DataFrame(rows).sort_values(["avg_primary_score", "worst_primary_score"], ascending=False)
+    summary["rank"] = range(1, len(summary) + 1)
+    return summary
+
+
 def plot_metrics(metrics: pd.DataFrame, output_path: Path) -> None:
     numeric_cols = []
     for column in ("strict_exact", "accuracy", "policy_accuracy", "compile_rate"):
@@ -421,7 +510,8 @@ def plot_metrics(metrics: pd.DataFrame, output_path: Path) -> None:
             value = row.get(col)
             if pd.notna(value):
                 values.append(float(value))
-                labels.append(f"{row['task']}:{col}")
+                model_prefix = f"{row['model']}:" if "model" in row and pd.notna(row["model"]) else ""
+                labels.append(f"{model_prefix}{row['task']}:{col}")
     fig, ax = plt.subplots(figsize=(9.5, 4.0), constrained_layout=True)
     ax.bar(range(len(values)), values, color="#2a9d8f")
     ax.set_xticks(range(len(values)))
@@ -433,13 +523,15 @@ def plot_metrics(metrics: pd.DataFrame, output_path: Path) -> None:
     plt.close(fig)
 
 
-def write_unavailable(output_dir: Path, args: argparse.Namespace, probe: dict[str, Any]) -> None:
+def write_unavailable(output_dir: Path, args: argparse.Namespace, probe: dict[str, Any], models: list[str]) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     summary = {
         "schema_version": 1,
         "status": "endpoint_unavailable",
         "base_url": args.base_url,
-        "model": args.model,
+        "model": models[0],
+        "models": models,
+        "model_count": len(models),
         "tasks": args.tasks,
         "example_source": args.example_source,
         "endpoint_probe": probe,
@@ -453,7 +545,7 @@ def write_unavailable(output_dir: Path, args: argparse.Namespace, probe: dict[st
         "Status: `endpoint_unavailable`.",
         "",
         f"- Base URL: `{args.base_url}`",
-        f"- Model: `{args.model}`",
+        f"- Models: `{', '.join(models)}`",
         f"- Error: `{probe.get('error_type')}: {probe.get('error')}`",
         "",
         "Start a vLLM OpenAI-compatible server and rerun this script to produce real downstream task metrics.",
@@ -461,41 +553,65 @@ def write_unavailable(output_dir: Path, args: argparse.Namespace, probe: dict[st
     (output_dir / "report.md").write_text("\n".join(report) + "\n", encoding="utf-8")
 
 
-def write_success(output_dir: Path, args: argparse.Namespace, probe: dict[str, Any], metrics: pd.DataFrame, predictions: pd.DataFrame) -> None:
+def write_success(
+    output_dir: Path,
+    args: argparse.Namespace,
+    probe: dict[str, Any],
+    models: list[str],
+    metrics: pd.DataFrame,
+    predictions: pd.DataFrame,
+) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
+    model_summary = summarize_models(metrics)
     metrics.to_csv(output_dir / "metrics.csv", index=False)
     predictions.to_csv(output_dir / "predictions.csv", index=False)
+    model_summary.to_csv(output_dir / "model_summary.csv", index=False)
     plot_metrics(metrics, output_dir / "metrics.png")
+    best_model = None if model_summary.empty else str(model_summary.iloc[0]["model"])
     summary = {
         "schema_version": 1,
         "status": "complete",
         "base_url": args.base_url,
-        "model": args.model,
+        "model": models[0],
+        "models": models,
+        "model_count": len(models),
+        "best_avg_primary_model": best_model,
         "tasks": args.tasks,
         "example_source": args.example_source,
         "max_examples_per_task": args.max_examples,
         "endpoint_probe": probe,
         "metrics": metrics.to_dict(orient="records"),
+        "model_summary": model_summary.to_dict(orient="records"),
     }
     (output_dir / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     lines = [
         "# vLLM Downstream Eval",
         "",
-        f"Status: `complete`; model: `{args.model}`; endpoint: `{args.base_url}`.",
+        f"Status: `complete`; models: `{', '.join(models)}`; endpoint: `{args.base_url}`.",
         "",
-        "| task | examples | primary metric | value |",
-        "| --- | ---: | --- | ---: |",
+        "## Task Metrics",
+        "",
+        "| model | task | examples | primary metric | value |",
+        "| --- | --- | ---: | --- | ---: |",
     ]
     for _, row in metrics.iterrows():
-        metric_name = "score"
-        value = 0.0
-        for candidate in ("strict_exact", "accuracy", "policy_accuracy", "compile_rate"):
-            if candidate in row and pd.notna(row[candidate]):
-                metric_name = candidate
-                value = float(row[candidate])
-                break
-        lines.append(f"| {row['task']} | {int(row['examples'])} | {metric_name} | {value:.3f} |")
-    lines.extend(["", "Files: `metrics.csv`, `predictions.csv`, `metrics.png`, `summary.json`."])
+        metric_name, value = primary_metric(row)
+        lines.append(f"| {row['model']} | {row['task']} | {int(row['examples'])} | {metric_name} | {value:.3f} |")
+    lines.extend(
+        [
+            "",
+            "## Model Summary",
+            "",
+            "| rank | model | task count | avg primary | worst primary |",
+            "| ---: | --- | ---: | ---: | ---: |",
+        ]
+    )
+    for _, row in model_summary.iterrows():
+        lines.append(
+            f"| {int(row['rank'])} | {row['model']} | {int(row['task_count'])} | "
+            f"{float(row['avg_primary_score']):.3f} | {float(row['worst_primary_score']):.3f} |"
+        )
+    lines.extend(["", "Files: `metrics.csv`, `predictions.csv`, `model_summary.csv`, `metrics.png`, `summary.json`."])
     (output_dir / "report.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
@@ -503,7 +619,8 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Evaluate a vLLM OpenAI-compatible endpoint on small downstream task slices.")
     parser.add_argument("--base-url", default="http://127.0.0.1:8000/v1")
     parser.add_argument("--api-key", default="EMPTY")
-    parser.add_argument("--model", required=True)
+    parser.add_argument("--model", default=None)
+    parser.add_argument("--models", default=None, help="Comma-separated served model ids to evaluate on the same task slice.")
     parser.add_argument("--tasks", default="gsm8k,mmlu,safety,humaneval_compile")
     parser.add_argument("--example-source", choices=["datasets", "builtin"], default="datasets")
     parser.add_argument("--output-dir", type=Path, default=Path("results/vllm_downstream_eval"))
@@ -523,43 +640,44 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    config = VllmConfig(
+    try:
+        models = resolve_models(args)
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from exc
+    probe_config = VllmConfig(
         base_url=args.base_url,
         api_key=args.api_key,
-        model=args.model,
+        model=models[0],
         timeout=args.timeout,
         temperature=args.temperature,
         top_p=args.top_p,
     )
-    probe = endpoint_probe(config)
+    probe = endpoint_probe(probe_config)
     if probe["status"] != "ok":
-        write_unavailable(args.output_dir, args, probe)
+        write_unavailable(args.output_dir, args, probe, models)
         print(f"Endpoint unavailable: {probe.get('error_type')}: {probe.get('error')}")
         if args.allow_unavailable:
             return
         raise SystemExit(2)
 
     tasks = [task.strip() for task in args.tasks.split(",") if task.strip()]
+    task_examples = load_task_examples(args, tasks)
     metric_rows: list[dict[str, Any]] = []
     prediction_rows: list[dict[str, Any]] = []
-    if "gsm8k" in tasks:
-        metrics, rows = evaluate_gsm8k(config, load_gsm8k_examples(args.example_source, args.max_examples, args.seed), args.max_tokens_gsm8k)
-        metric_rows.append(metrics)
-        prediction_rows.extend(rows)
-    if "mmlu" in tasks:
-        metrics, rows = evaluate_mmlu(config, load_mmlu_examples(args.example_source, args.max_examples, args.seed, args.subjects), args.max_tokens_mmlu)
-        metric_rows.append(metrics)
-        prediction_rows.extend(rows)
-    if "safety" in tasks:
-        metrics, rows = evaluate_safety(config, load_safety_examples(args.example_source, args.max_examples, args.seed), args.max_tokens_safety)
-        metric_rows.append(metrics)
-        prediction_rows.extend(rows)
-    if "humaneval_compile" in tasks:
-        metrics, rows = evaluate_humaneval(config, load_humaneval_examples(args.example_source, args.max_examples, args.seed), args.max_tokens_humaneval)
-        metric_rows.append(metrics)
+    for model_name in models:
+        config = VllmConfig(
+            base_url=args.base_url,
+            api_key=args.api_key,
+            model=model_name,
+            timeout=args.timeout,
+            temperature=args.temperature,
+            top_p=args.top_p,
+        )
+        metrics, rows = evaluate_model(config, task_examples, args)
+        metric_rows.extend(metrics)
         prediction_rows.extend(rows)
 
-    write_success(args.output_dir, args, probe, pd.DataFrame(metric_rows), pd.DataFrame(prediction_rows))
+    write_success(args.output_dir, args, probe, models, pd.DataFrame(metric_rows), pd.DataFrame(prediction_rows))
     print(f"Wrote vLLM downstream eval artifacts to {args.output_dir.resolve()}")
 
 

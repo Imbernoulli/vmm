@@ -720,19 +720,28 @@ def summarize_vllm_downstream_eval() -> dict[str, Any]:
     metrics = []
     if metrics_path.exists():
         metrics = [clean_row(row) for _, row in read_csv(metrics_path).iterrows()]
+    model_summary_path = repo_path("results/vllm_downstream_eval/model_summary.csv")
+    model_summary = []
+    if model_summary_path.exists():
+        model_summary = [clean_row(row) for _, row in read_csv(model_summary_path).iterrows()]
     probe = summary.get("endpoint_probe", {})
     return {
         "summary": summary,
         "status": status,
         "model": summary.get("model"),
+        "models": summary.get("models", [summary.get("model")] if summary.get("model") else []),
+        "model_count": int(summary.get("model_count", 1 if summary.get("model") else 0)),
+        "best_avg_primary_model": summary.get("best_avg_primary_model"),
         "base_url": summary.get("base_url"),
         "tasks": summary.get("tasks"),
         "example_source": summary.get("example_source"),
         "metrics": metrics,
+        "model_summary": model_summary,
         "error": None if status == "complete" else f"{probe.get('error_type')}: {probe.get('error')}",
         "report": rel("results/vllm_downstream_eval/report.md"),
         "summary_path": rel(summary_path),
         "metrics_path": rel(metrics_path) if metrics_path.exists() else None,
+        "model_summary_path": rel(model_summary_path) if model_summary_path.exists() else None,
     }
 
 
@@ -877,7 +886,7 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "vLLM hosted downstream evaluation",
             "status": "partial",
-            "evidence": "scripts/run_vllm_downstream_eval.py calls an OpenAI-compatible vLLM endpoint for GSM8K, MMLU, safety, and HumanEval compile slices; current result is endpoint_unavailable until a vLLM server is reachable.",
+            "evidence": "scripts/run_vllm_downstream_eval.py compares one or more served model ids through an OpenAI-compatible vLLM endpoint on GSM8K, MMLU, safety, and HumanEval compile slices; current result is endpoint_unavailable until a vLLM server is reachable.",
         },
         {
             "item": "Probe-guided Average decision report",
@@ -1036,7 +1045,7 @@ def build_summary() -> dict[str, Any]:
             "PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir results/toy_moe_merge --output-dir results/toy_moe_routing_readiness --topology-summary ''",
             "PYTHONPATH=src python scripts/select_moe_merge_method.py",
             "PYTHONPATH=src python scripts/build_moe_expert_remap_plan.py",
-            "python scripts/run_vllm_downstream_eval.py --model SERVED_MODEL --base-url http://HOST:PORT/v1 --tasks gsm8k,mmlu,safety,humaneval_compile",
+            "python scripts/run_vllm_downstream_eval.py --models BASE_MODEL,MERGED_MODEL --base-url http://HOST:PORT/v1 --tasks gsm8k,mmlu,safety,humaneval_compile",
             "python scripts/build_model_averaging_literature_review.py",
             "python scripts/smoke_moe_routing_probe_contract.py",
             "PYTHONPATH=src python scripts/build_average_decision_report.py",

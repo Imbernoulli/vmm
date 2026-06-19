@@ -4,13 +4,18 @@
     "base_url": "http://127.0.0.1:8000/v1",
     "error": "<urlopen error [Errno 111] Connection refused>",
     "error_type": "URLError",
-    "latency_sec": 0.0067632198333740234,
+    "latency_sec": 0.007048368453979492,
     "model": "Qwen/Qwen2.5-7B-Instruct",
     "status": "unavailable"
   },
   "example_source": "builtin",
   "message": "No OpenAI-compatible vLLM endpoint was reachable from this environment.",
   "model": "Qwen/Qwen2.5-7B-Instruct",
+  "model_count": 2,
+  "models": [
+    "Qwen/Qwen2.5-7B-Instruct",
+    "MERGED_CANDIDATE"
+  ],
   "schema_version": 1,
   "status": "endpoint_unavailable",
   "tasks": "gsm8k,mmlu,safety,humaneval_compile"

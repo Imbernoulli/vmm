@@ -66,7 +66,7 @@
       "status": "complete"
     },
     {
-      "evidence": "scripts/run_vllm_downstream_eval.py calls an OpenAI-compatible vLLM endpoint for GSM8K, MMLU, safety, and HumanEval compile slices; current result is endpoint_unavailable until a vLLM server is reachable.",
+      "evidence": "scripts/run_vllm_downstream_eval.py compares one or more served model ids through an OpenAI-compatible vLLM endpoint on GSM8K, MMLU, safety, and HumanEval compile slices; current result is endpoint_unavailable until a vLLM server is reachable.",
       "item": "vLLM hosted downstream evaluation",
       "status": "partial"
     },
@@ -3175,11 +3175,19 @@
     },
     "vllm_downstream_eval": {
       "base_url": "http://127.0.0.1:8000/v1",
+      "best_avg_primary_model": null,
       "error": "URLError: <urlopen error [Errno 111] Connection refused>",
       "example_source": "builtin",
       "metrics": [],
       "metrics_path": null,
       "model": "Qwen/Qwen2.5-7B-Instruct",
+      "model_count": 2,
+      "model_summary": [],
+      "model_summary_path": null,
+      "models": [
+        "Qwen/Qwen2.5-7B-Instruct",
+        "MERGED_CANDIDATE"
+      ],
       "report": "results/vllm_downstream_eval/report.md",
       "status": "endpoint_unavailable",
       "summary": {
@@ -3188,13 +3196,18 @@
           "base_url": "http://127.0.0.1:8000/v1",
           "error": "<urlopen error [Errno 111] Connection refused>",
           "error_type": "URLError",
-          "latency_sec": 0.0067632198333740234,
+          "latency_sec": 0.007048368453979492,
           "model": "Qwen/Qwen2.5-7B-Instruct",
           "status": "unavailable"
         },
         "example_source": "builtin",
         "message": "No OpenAI-compatible vLLM endpoint was reachable from this environment.",
         "model": "Qwen/Qwen2.5-7B-Instruct",
+        "model_count": 2,
+        "models": [
+          "Qwen/Qwen2.5-7B-Instruct",
+          "MERGED_CANDIDATE"
+        ],
         "schema_version": 1,
         "status": "endpoint_unavailable",
         "tasks": "gsm8k,mmlu,safety,humaneval_compile"
@@ -3203,7 +3216,7 @@
       "tasks": "gsm8k,mmlu,safety,humaneval_compile"
     }
   },
-  "generated_at": "2026-06-19T10:16:42.435953+00:00",
+  "generated_at": "2026-06-19T10:22:19.627018+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -3223,7 +3236,7 @@
     "PYTHONPATH=src python scripts/analyze_moe_routing_readiness.py --router-dir results/toy_moe_merge --output-dir results/toy_moe_routing_readiness --topology-summary ''",
     "PYTHONPATH=src python scripts/select_moe_merge_method.py",
     "PYTHONPATH=src python scripts/build_moe_expert_remap_plan.py",
-    "python scripts/run_vllm_downstream_eval.py --model SERVED_MODEL --base-url http://HOST:PORT/v1 --tasks gsm8k,mmlu,safety,humaneval_compile",
+    "python scripts/run_vllm_downstream_eval.py --models BASE_MODEL,MERGED_MODEL --base-url http://HOST:PORT/v1 --tasks gsm8k,mmlu,safety,humaneval_compile",
     "python scripts/build_model_averaging_literature_review.py",
     "python scripts/smoke_moe_routing_probe_contract.py",
     "PYTHONPATH=src python scripts/build_average_decision_report.py",

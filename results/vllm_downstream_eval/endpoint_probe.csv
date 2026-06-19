@@ -1,2 +1,2 @@
 status,base_url,model,latency_sec,error_type,error
-unavailable,http://127.0.0.1:8000/v1,Qwen/Qwen2.5-7B-Instruct,0.0067632198333740234,URLError,<urlopen error [Errno 111] Connection refused>
+unavailable,http://127.0.0.1:8000/v1,Qwen/Qwen2.5-7B-Instruct,0.007048368453979492,URLError,<urlopen error [Errno 111] Connection refused>
