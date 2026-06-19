@@ -1,0 +1,22 @@
+# PATTERN::instruct=WEIGHT,coder=WEIGHT
+# First matching rule wins in write_same_shape_average_checkpoint.py.
+# group=selective_norm:model.layers.0.post_attention_layernorm.weight; reason=freeze only extreme-conflict norm tensor selected by sign-conflict probe
+model\.layers\.0\.post_attention_layernorm\.weight::instruct=0.0,coder=0.0
+# group=selective_norm:model.layers.2.post_attention_layernorm.weight; reason=freeze only extreme-conflict norm tensor selected by sign-conflict probe
+model\.layers\.2\.post_attention_layernorm\.weight::instruct=0.0,coder=0.0
+# group=selective_norm:model.layers.3.post_attention_layernorm.weight; reason=freeze only extreme-conflict norm tensor selected by sign-conflict probe
+model\.layers\.3\.post_attention_layernorm\.weight::instruct=0.0,coder=0.0
+# group=selective_norm:model.layers.6.post_attention_layernorm.weight; reason=freeze only extreme-conflict norm tensor selected by sign-conflict probe
+model\.layers\.6\.post_attention_layernorm\.weight::instruct=0.0,coder=0.0
+# group=selective_norm:model.layers.4.post_attention_layernorm.weight; reason=freeze only extreme-conflict norm tensor selected by sign-conflict probe
+model\.layers\.4\.post_attention_layernorm\.weight::instruct=0.0,coder=0.0
+# group=selective_norm:model.layers.5.post_attention_layernorm.weight; reason=freeze only extreme-conflict norm tensor selected by sign-conflict probe
+model\.layers\.5\.post_attention_layernorm\.weight::instruct=0.0,coder=0.0
+# group=norm_anchor; reason=keep the global bridge on non-extreme norm anchors
+(model\.norm\.weight|model\.layers\.[0-9]+\.(input_layernorm|post_attention_layernorm)\.weight)::instruct=0.25,coder=1.0
+# group=embedding_anchor; reason=keep the global bridge on token embeddings for lexical/task adaptation
+model\.embed_tokens\.weight::instruct=0.25,coder=1.0
+# group=attention; reason=keep the NLL-selected bridge on attention tensors
+model\.layers\.[0-9]+\.self_attn\..*::instruct=0.25,coder=1.0
+# group=mlp; reason=keep the global bridge on MLP tensors while isolating only extreme norm conflict
+model\.layers\.[0-9]+\.mlp\..*::instruct=0.25,coder=1.0

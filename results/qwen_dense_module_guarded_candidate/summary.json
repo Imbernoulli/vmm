@@ -1,0 +1,160 @@
+{
+  "artifacts": {
+    "module_conflict": "results/qwen_dense_module_guarded_candidate/module_conflict.csv",
+    "report": "results/qwen_dense_module_guarded_candidate/report.md",
+    "tensor_conflict": "results/qwen_dense_module_guarded_candidate/tensor_conflict.csv",
+    "tensor_rules": "results/qwen_dense_module_guarded_candidate/tensor_rules.txt",
+    "vllm_commands": "results/qwen_dense_module_guarded_candidate/vllm_commands.json",
+    "writer_command": "results/qwen_dense_module_guarded_candidate/writer_command.txt"
+  },
+  "candidate_id": "qwen_0_5b_module_guarded_bridge",
+  "checkpoint_output_dir": "results/checkpoints/qwen_0_5b_module_guarded_bridge",
+  "hypothesis": "Freeze distribution anchors and damp high-conflict MLP deltas while keeping the NLL-selected attention bridge.",
+  "module_summary": [
+    {
+      "coder_delta_l2": 391.18693300356335,
+      "delta_cosine": 0.14164567569465497,
+      "delta_l2_ratio_instruct_over_coder": 0.07037563822452512,
+      "group": "mlp",
+      "instruct_delta_l2": 27.53003007522032,
+      "mean_tensor_cosine": 0.14390965097297176,
+      "numel": 313786368,
+      "sign_conflict_rate": 0.44229469405951655,
+      "tensor_count": 72
+    },
+    {
+      "coder_delta_l2": 221.05794984008153,
+      "delta_cosine": 0.14156229831370962,
+      "delta_l2_ratio_instruct_over_coder": 0.09192990372111534,
+      "group": "embedding_anchor",
+      "instruct_delta_l2": 20.32183604558584,
+      "mean_tensor_cosine": 0.14156229831370962,
+      "numel": 136134656,
+      "sign_conflict_rate": 0.44771652759434627,
+      "tensor_count": 1
+    },
+    {
+      "coder_delta_l2": 184.53246729950524,
+      "delta_cosine": 0.13792698135605322,
+      "delta_l2_ratio_instruct_over_coder": 0.06354417418233141,
+      "group": "attention",
+      "instruct_delta_l2": 11.725963244375135,
+      "mean_tensor_cosine": 0.14419845185310967,
+      "numel": 44067840,
+      "sign_conflict_rate": 0.44201286039010734,
+      "tensor_count": 168
+    },
+    {
+      "coder_delta_l2": 41.55284537707339,
+      "delta_cosine": 0.09007268321446049,
+      "delta_l2_ratio_instruct_over_coder": 0.08436215941395497,
+      "group": "norm_anchor",
+      "instruct_delta_l2": 3.5054877658040873,
+      "mean_tensor_cosine": -0.16386610937056742,
+      "numel": 43904,
+      "sign_conflict_rate": 0.4408308961751677,
+      "tensor_count": 49
+    }
+  ],
+  "rules": [
+    {
+      "coder_weight": 0.0,
+      "group": "embedding_anchor",
+      "instruct_weight": 0.0,
+      "reason": "freeze token embedding distribution anchor to base",
+      "regex": "model\\.embed_tokens\\.weight"
+    },
+    {
+      "coder_weight": 0.0,
+      "group": "norm_anchor",
+      "instruct_weight": 0.0,
+      "reason": "freeze normalization anchors to avoid global activation scale drift",
+      "regex": "(model\\.norm\\.weight|model\\.layers\\.[0-9]+\\.(input_layernorm|post_attention_layernorm)\\.weight)"
+    },
+    {
+      "coder_weight": 1.0,
+      "group": "attention",
+      "instruct_weight": 0.25,
+      "reason": "keep the NLL-selected bridge on attention tensors",
+      "regex": "model\\.layers\\.[0-9]+\\.self_attn\\..*"
+    },
+    {
+      "coder_weight": 0.75,
+      "group": "mlp",
+      "instruct_weight": 0.25,
+      "reason": "dampen MLP coder delta when module conflict is nontrivial",
+      "regex": "model\\.layers\\.[0-9]+\\.mlp\\..*"
+    }
+  ],
+  "schema_version": 1,
+  "served_model": "candidate_qwen_0_5b_module_guarded_bridge",
+  "status": "evaluated_complete",
+  "variant": "module_guarded",
+  "vllm_commands": {
+    "eval": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8100/v1 --models candidate_qwen_0_5b_module_guarded_bridge --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen_0_5b_module_guarded_bridge",
+    "serve": "CUDA_VISIBLE_DEVICES=1 /srv/home/bohanlyu/miniconda3/envs/cogdoc/bin/vllm serve results/checkpoints/qwen_0_5b_module_guarded_bridge --served-model-name candidate_qwen_0_5b_module_guarded_bridge --host 127.0.0.1 --port 8100 --dtype bfloat16 --tensor-parallel-size 1"
+  },
+  "vllm_eval": {
+    "avg_primary_score": 0.16015625,
+    "best_source_avg_primary_score": 0.375,
+    "best_source_display_name": "Qwen2.5-0.5B Base",
+    "best_source_model": "source_qwen_0_5b_base",
+    "delta_vs_best_source_avg_primary": -0.21484375,
+    "delta_vs_global_bridge_avg_primary": -0.04296875,
+    "eval_dir": "results/vllm_checkpoint_eval/qwen_0_5b_module_guarded_bridge",
+    "global_bridge_avg_primary_score": 0.203125,
+    "metrics": "results/vllm_checkpoint_eval/qwen_0_5b_module_guarded_bridge/metrics.csv",
+    "model_summary": "results/vllm_checkpoint_eval/qwen_0_5b_module_guarded_bridge/model_summary.csv",
+    "report": "results/vllm_checkpoint_eval/qwen_0_5b_module_guarded_bridge/report.md",
+    "status": "complete",
+    "task_metrics": [
+      {
+        "delta_vs_global_bridge": -0.0625,
+        "delta_vs_uniform": 0.0,
+        "global_bridge_primary_score": 0.0625,
+        "primary_metric": "strict_exact",
+        "primary_score": 0.0,
+        "safe_non_refusal_rate": null,
+        "task": "gsm8k",
+        "uniform_primary_score": 0.0,
+        "unsafe_refusal_rate": null
+      },
+      {
+        "delta_vs_global_bridge": -0.109375,
+        "delta_vs_uniform": -0.078125,
+        "global_bridge_primary_score": 0.25,
+        "primary_metric": "accuracy",
+        "primary_score": 0.140625,
+        "safe_non_refusal_rate": null,
+        "task": "mmlu",
+        "uniform_primary_score": 0.21875,
+        "unsafe_refusal_rate": null
+      },
+      {
+        "delta_vs_global_bridge": -0.015625,
+        "delta_vs_uniform": -0.015625,
+        "global_bridge_primary_score": 0.5,
+        "primary_metric": "policy_accuracy",
+        "primary_score": 0.484375,
+        "safe_non_refusal_rate": 0.9375,
+        "task": "safety",
+        "uniform_primary_score": 0.5,
+        "unsafe_refusal_rate": 0.03125
+      },
+      {
+        "delta_vs_global_bridge": 0.015625,
+        "delta_vs_uniform": 0.015625,
+        "global_bridge_primary_score": 0.0,
+        "primary_metric": "compile_rate",
+        "primary_score": 0.015625,
+        "safe_non_refusal_rate": null,
+        "task": "humaneval_compile",
+        "uniform_primary_score": 0.0,
+        "unsafe_refusal_rate": null
+      }
+    ],
+    "worst_primary_score": 0.0
+  },
+  "vllm_eval_output_dir": "results/vllm_checkpoint_eval/qwen_0_5b_module_guarded_bridge",
+  "writer_command": "python scripts/write_same_shape_average_checkpoint.py --base /srv/home/bohanlyu/MLS-Bench/vendor/data/models/Qwen2.5-0.5B --source instruct=/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen2.5-0.5B-Instruct/snapshots/7ae557604adf67be50417f59c2c2f167def9a775 --source coder=/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen2.5-Coder-0.5B-Instruct/snapshots/ea3f2471cf1b1f0db85067f1ef93848e38e88c25 --source-weight instruct=0.0 --source-weight coder=0.0 --tensor-rule-file results/qwen_dense_module_guarded_candidate/tensor_rules.txt --output-dir results/checkpoints/qwen_0_5b_module_guarded_bridge"
+}

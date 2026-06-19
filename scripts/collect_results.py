@@ -1100,6 +1100,41 @@ def summarize_probe_guided_dense_average_candidate() -> dict[str, Any]:
     }
 
 
+def summarize_qwen_dense_guarded_candidate(output_dir: str) -> dict[str, Any]:
+    summary = read_json(f"{output_dir}/summary.json")
+    module_summary = read_csv(f"{output_dir}/module_conflict.csv")
+    eval_summary = summary.get("vllm_eval") or {}
+    module_rows = [clean_row(row) for _, row in module_summary.iterrows()]
+    modules_by_group = {str(row["group"]): row for row in module_rows}
+    norm_anchor = modules_by_group.get("norm_anchor", {})
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "candidate_id": summary.get("candidate_id"),
+        "variant": summary.get("variant"),
+        "checkpoint_output_dir": summary.get("checkpoint_output_dir"),
+        "vllm_eval_status": eval_summary.get("status"),
+        "vllm_avg_primary_score": maybe_float(eval_summary.get("avg_primary_score")) if eval_summary else None,
+        "vllm_worst_primary_score": maybe_float(eval_summary.get("worst_primary_score")) if eval_summary else None,
+        "delta_vs_global_bridge_avg_primary": maybe_float(eval_summary.get("delta_vs_global_bridge_avg_primary"))
+        if eval_summary
+        else None,
+        "delta_vs_best_source_avg_primary": maybe_float(eval_summary.get("delta_vs_best_source_avg_primary"))
+        if eval_summary
+        else None,
+        "task_metrics": eval_summary.get("task_metrics", []),
+        "module_rows": module_rows,
+        "modules_by_group": modules_by_group,
+        "norm_anchor_mean_tensor_cosine": maybe_float(norm_anchor.get("mean_tensor_cosine")),
+        "norm_anchor_sign_conflict_rate": maybe_float(norm_anchor.get("sign_conflict_rate")),
+        "report": rel(f"{output_dir}/report.md"),
+        "tensor_conflict": rel(f"{output_dir}/tensor_conflict.csv"),
+        "module_conflict": rel(f"{output_dir}/module_conflict.csv"),
+        "tensor_rules": rel(f"{output_dir}/tensor_rules.txt"),
+        "writer_command": rel(f"{output_dir}/writer_command.txt"),
+    }
+
+
 def summarize_checkpoint_materialization_readiness() -> dict[str, Any]:
     summary = read_json("results/checkpoint_materialization_readiness/summary.json")
     readiness = read_csv("results/checkpoint_materialization_readiness/candidate_readiness.csv")
@@ -1277,6 +1312,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/probe_guided_dense_average_candidate/report.md selects a non-uniform Qwen instruct/coder bridge from the NLL grid, materializes the same-shape checkpoint locally, and records its real vLLM downstream eval.",
         },
         {
+            "item": "Qwen dense module-wise guard ablation vLLM eval",
+            "status": "complete",
+            "evidence": "results/qwen_dense_module_guarded_candidate/report.md, results/qwen_dense_norm_guarded_candidate/report.md, and results/qwen_dense_selective_norm_guarded_candidate/report.md compare module-level, norm-only, and selective-norm tensor-rule variants against the global bridge under the same vLLM downstream tasks.",
+        },
+        {
             "item": "vLLM downstream eval contract smoke",
             "status": "complete",
             "evidence": "results/vllm_downstream_eval_smoke/smoke_report.md validates the OpenAI-compatible HTTP request, answer parsing, scoring, model ranking, and artifact writing path using a local mock endpoint.",
@@ -1427,6 +1467,15 @@ def build_summary() -> dict[str, Any]:
         "vllm_checkpoint_eval_results": summarize_vllm_checkpoint_eval_results(),
         "vllm_source_merge_comparison": summarize_vllm_source_merge_comparison(),
         "probe_guided_dense_average_candidate": summarize_probe_guided_dense_average_candidate(),
+        "qwen_dense_module_guarded_candidate": summarize_qwen_dense_guarded_candidate(
+            "results/qwen_dense_module_guarded_candidate"
+        ),
+        "qwen_dense_norm_guarded_candidate": summarize_qwen_dense_guarded_candidate(
+            "results/qwen_dense_norm_guarded_candidate"
+        ),
+        "qwen_dense_selective_norm_guarded_candidate": summarize_qwen_dense_guarded_candidate(
+            "results/qwen_dense_selective_norm_guarded_candidate"
+        ),
         "checkpoint_materialization_readiness": summarize_checkpoint_materialization_readiness(),
     }
     coverage = coverage_checklist()
@@ -1473,6 +1522,9 @@ def build_summary() -> dict[str, Any]:
             "PYTHONPATH=src python scripts/build_vllm_checkpoint_eval_plan.py --output-dir results/vllm_checkpoint_eval_plan",
             "PYTHONPATH=src python scripts/build_vllm_source_merge_comparison.py --output-dir results/vllm_source_merge_comparison",
             "PYTHONPATH=src python scripts/build_probe_guided_dense_average_candidate.py --output-dir results/probe_guided_dense_average_candidate",
+            "PYTHONPATH=src python scripts/build_qwen_dense_module_guarded_candidate.py --output-dir results/qwen_dense_module_guarded_candidate --variant module_guarded",
+            "PYTHONPATH=src python scripts/build_qwen_dense_module_guarded_candidate.py --output-dir results/qwen_dense_norm_guarded_candidate --variant norm_only",
+            "PYTHONPATH=src python scripts/build_qwen_dense_module_guarded_candidate.py --output-dir results/qwen_dense_selective_norm_guarded_candidate --variant selective_norm",
             "PYTHONPATH=src python scripts/build_checkpoint_materialization_readiness.py --output-dir results/checkpoint_materialization_readiness",
             "PYTHONPATH=src python scripts/build_average_decision_report.py",
             "python scripts/build_qwen_target_model_registry.py",
@@ -1539,6 +1591,9 @@ def build_markdown(summary: dict[str, Any]) -> str:
     vllm_checkpoint_best = vllm_checkpoint_eval_results.get("best_result") or {}
     vllm_source_merge = exp["vllm_source_merge_comparison"]
     probe_guided_dense = exp["probe_guided_dense_average_candidate"]
+    qwen_dense_module_guarded = exp["qwen_dense_module_guarded_candidate"]
+    qwen_dense_norm_guarded = exp["qwen_dense_norm_guarded_candidate"]
+    qwen_dense_selective_norm_guarded = exp["qwen_dense_selective_norm_guarded_candidate"]
     materialization_readiness = exp["checkpoint_materialization_readiness"]
     coverage_counts = summary["coverage_counts"]
     lines = [
@@ -2068,6 +2123,26 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(probe_guided_dense['vllm_avg_primary_score'])} / "
                 f"{fmt(probe_guided_dense['delta_vs_uniform_avg_primary'])} / "
                 f"{fmt(probe_guided_dense['delta_vs_best_source_avg_primary'])} |"
+            ),
+            (
+                "| Qwen dense guard probe | norm mean tensor cosine / sign conflict | "
+                f"{fmt(qwen_dense_module_guarded['norm_anchor_mean_tensor_cosine'])} / "
+                f"{fmt(qwen_dense_module_guarded['norm_anchor_sign_conflict_rate'])} |"
+            ),
+            (
+                "| Qwen dense guard ablation | module-guarded vLLM avg / delta vs global bridge | "
+                f"{fmt(qwen_dense_module_guarded['vllm_avg_primary_score'])} / "
+                f"{fmt(qwen_dense_module_guarded['delta_vs_global_bridge_avg_primary'])} |"
+            ),
+            (
+                "| Qwen dense guard ablation | norm-only vLLM avg / delta vs global bridge | "
+                f"{fmt(qwen_dense_norm_guarded['vllm_avg_primary_score'])} / "
+                f"{fmt(qwen_dense_norm_guarded['delta_vs_global_bridge_avg_primary'])} |"
+            ),
+            (
+                "| Qwen dense guard ablation | selective-norm vLLM avg / delta vs global bridge | "
+                f"{fmt(qwen_dense_selective_norm_guarded['vllm_avg_primary_score'])} / "
+                f"{fmt(qwen_dense_selective_norm_guarded['delta_vs_global_bridge_avg_primary'])} |"
             ),
             (
                 "| checkpoint materialization readiness | status | "

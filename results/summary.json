@@ -86,6 +86,11 @@
       "status": "complete"
     },
     {
+      "evidence": "results/qwen_dense_module_guarded_candidate/report.md, results/qwen_dense_norm_guarded_candidate/report.md, and results/qwen_dense_selective_norm_guarded_candidate/report.md compare module-level, norm-only, and selective-norm tensor-rule variants against the global bridge under the same vLLM downstream tasks.",
+      "item": "Qwen dense module-wise guard ablation vLLM eval",
+      "status": "complete"
+    },
+    {
       "evidence": "results/vllm_downstream_eval_smoke/smoke_report.md validates the OpenAI-compatible HTTP request, answer parsing, scoring, model ranking, and artifact writing path using a local mock endpoint.",
       "item": "vLLM downstream eval contract smoke",
       "status": "complete"
@@ -197,7 +202,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 38,
+    "complete": 39,
     "missing": 0,
     "partial": 1
   },
@@ -2498,6 +2503,996 @@
       "worst_nll": 7.632229374904258,
       "writer_command": "results/probe_guided_dense_average_candidate/writer_command.txt"
     },
+    "qwen_dense_module_guarded_candidate": {
+      "candidate_id": "qwen_0_5b_module_guarded_bridge",
+      "checkpoint_output_dir": "results/checkpoints/qwen_0_5b_module_guarded_bridge",
+      "delta_vs_best_source_avg_primary": -0.21484375,
+      "delta_vs_global_bridge_avg_primary": -0.04296875,
+      "module_conflict": "results/qwen_dense_module_guarded_candidate/module_conflict.csv",
+      "module_rows": [
+        {
+          "coder_delta_l2": 391.18693300356335,
+          "delta_cosine": 0.1416456756946549,
+          "delta_l2_ratio_instruct_over_coder": 0.0703756382245251,
+          "group": "mlp",
+          "instruct_delta_l2": 27.53003007522032,
+          "mean_tensor_cosine": 0.1439096509729717,
+          "numel": 313786368,
+          "sign_conflict_rate": 0.4422946940595165,
+          "tensor_count": 72
+        },
+        {
+          "coder_delta_l2": 221.05794984008156,
+          "delta_cosine": 0.1415622983137096,
+          "delta_l2_ratio_instruct_over_coder": 0.0919299037211153,
+          "group": "embedding_anchor",
+          "instruct_delta_l2": 20.32183604558584,
+          "mean_tensor_cosine": 0.1415622983137096,
+          "numel": 136134656,
+          "sign_conflict_rate": 0.4477165275943462,
+          "tensor_count": 1
+        },
+        {
+          "coder_delta_l2": 184.53246729950524,
+          "delta_cosine": 0.1379269813560532,
+          "delta_l2_ratio_instruct_over_coder": 0.0635441741823314,
+          "group": "attention",
+          "instruct_delta_l2": 11.725963244375135,
+          "mean_tensor_cosine": 0.1441984518531096,
+          "numel": 44067840,
+          "sign_conflict_rate": 0.4420128603901073,
+          "tensor_count": 168
+        },
+        {
+          "coder_delta_l2": 41.55284537707339,
+          "delta_cosine": 0.0900726832144604,
+          "delta_l2_ratio_instruct_over_coder": 0.0843621594139549,
+          "group": "norm_anchor",
+          "instruct_delta_l2": 3.5054877658040877,
+          "mean_tensor_cosine": -0.1638661093705674,
+          "numel": 43904,
+          "sign_conflict_rate": 0.4408308961751677,
+          "tensor_count": 49
+        }
+      ],
+      "modules_by_group": {
+        "attention": {
+          "coder_delta_l2": 184.53246729950524,
+          "delta_cosine": 0.1379269813560532,
+          "delta_l2_ratio_instruct_over_coder": 0.0635441741823314,
+          "group": "attention",
+          "instruct_delta_l2": 11.725963244375135,
+          "mean_tensor_cosine": 0.1441984518531096,
+          "numel": 44067840,
+          "sign_conflict_rate": 0.4420128603901073,
+          "tensor_count": 168
+        },
+        "embedding_anchor": {
+          "coder_delta_l2": 221.05794984008156,
+          "delta_cosine": 0.1415622983137096,
+          "delta_l2_ratio_instruct_over_coder": 0.0919299037211153,
+          "group": "embedding_anchor",
+          "instruct_delta_l2": 20.32183604558584,
+          "mean_tensor_cosine": 0.1415622983137096,
+          "numel": 136134656,
+          "sign_conflict_rate": 0.4477165275943462,
+          "tensor_count": 1
+        },
+        "mlp": {
+          "coder_delta_l2": 391.18693300356335,
+          "delta_cosine": 0.1416456756946549,
+          "delta_l2_ratio_instruct_over_coder": 0.0703756382245251,
+          "group": "mlp",
+          "instruct_delta_l2": 27.53003007522032,
+          "mean_tensor_cosine": 0.1439096509729717,
+          "numel": 313786368,
+          "sign_conflict_rate": 0.4422946940595165,
+          "tensor_count": 72
+        },
+        "norm_anchor": {
+          "coder_delta_l2": 41.55284537707339,
+          "delta_cosine": 0.0900726832144604,
+          "delta_l2_ratio_instruct_over_coder": 0.0843621594139549,
+          "group": "norm_anchor",
+          "instruct_delta_l2": 3.5054877658040877,
+          "mean_tensor_cosine": -0.1638661093705674,
+          "numel": 43904,
+          "sign_conflict_rate": 0.4408308961751677,
+          "tensor_count": 49
+        }
+      },
+      "norm_anchor_mean_tensor_cosine": -0.1638661093705674,
+      "norm_anchor_sign_conflict_rate": 0.4408308961751677,
+      "report": "results/qwen_dense_module_guarded_candidate/report.md",
+      "status": "evaluated_complete",
+      "summary": {
+        "artifacts": {
+          "module_conflict": "results/qwen_dense_module_guarded_candidate/module_conflict.csv",
+          "report": "results/qwen_dense_module_guarded_candidate/report.md",
+          "tensor_conflict": "results/qwen_dense_module_guarded_candidate/tensor_conflict.csv",
+          "tensor_rules": "results/qwen_dense_module_guarded_candidate/tensor_rules.txt",
+          "vllm_commands": "results/qwen_dense_module_guarded_candidate/vllm_commands.json",
+          "writer_command": "results/qwen_dense_module_guarded_candidate/writer_command.txt"
+        },
+        "candidate_id": "qwen_0_5b_module_guarded_bridge",
+        "checkpoint_output_dir": "results/checkpoints/qwen_0_5b_module_guarded_bridge",
+        "hypothesis": "Freeze distribution anchors and damp high-conflict MLP deltas while keeping the NLL-selected attention bridge.",
+        "module_summary": [
+          {
+            "coder_delta_l2": 391.18693300356335,
+            "delta_cosine": 0.14164567569465497,
+            "delta_l2_ratio_instruct_over_coder": 0.07037563822452512,
+            "group": "mlp",
+            "instruct_delta_l2": 27.53003007522032,
+            "mean_tensor_cosine": 0.14390965097297176,
+            "numel": 313786368,
+            "sign_conflict_rate": 0.44229469405951655,
+            "tensor_count": 72
+          },
+          {
+            "coder_delta_l2": 221.05794984008153,
+            "delta_cosine": 0.14156229831370962,
+            "delta_l2_ratio_instruct_over_coder": 0.09192990372111534,
+            "group": "embedding_anchor",
+            "instruct_delta_l2": 20.32183604558584,
+            "mean_tensor_cosine": 0.14156229831370962,
+            "numel": 136134656,
+            "sign_conflict_rate": 0.44771652759434627,
+            "tensor_count": 1
+          },
+          {
+            "coder_delta_l2": 184.53246729950524,
+            "delta_cosine": 0.13792698135605322,
+            "delta_l2_ratio_instruct_over_coder": 0.06354417418233141,
+            "group": "attention",
+            "instruct_delta_l2": 11.725963244375135,
+            "mean_tensor_cosine": 0.14419845185310967,
+            "numel": 44067840,
+            "sign_conflict_rate": 0.44201286039010734,
+            "tensor_count": 168
+          },
+          {
+            "coder_delta_l2": 41.55284537707339,
+            "delta_cosine": 0.09007268321446049,
+            "delta_l2_ratio_instruct_over_coder": 0.08436215941395497,
+            "group": "norm_anchor",
+            "instruct_delta_l2": 3.5054877658040873,
+            "mean_tensor_cosine": -0.16386610937056742,
+            "numel": 43904,
+            "sign_conflict_rate": 0.4408308961751677,
+            "tensor_count": 49
+          }
+        ],
+        "rules": [
+          {
+            "coder_weight": 0.0,
+            "group": "embedding_anchor",
+            "instruct_weight": 0.0,
+            "reason": "freeze token embedding distribution anchor to base",
+            "regex": "model\\.embed_tokens\\.weight"
+          },
+          {
+            "coder_weight": 0.0,
+            "group": "norm_anchor",
+            "instruct_weight": 0.0,
+            "reason": "freeze normalization anchors to avoid global activation scale drift",
+            "regex": "(model\\.norm\\.weight|model\\.layers\\.[0-9]+\\.(input_layernorm|post_attention_layernorm)\\.weight)"
+          },
+          {
+            "coder_weight": 1.0,
+            "group": "attention",
+            "instruct_weight": 0.25,
+            "reason": "keep the NLL-selected bridge on attention tensors",
+            "regex": "model\\.layers\\.[0-9]+\\.self_attn\\..*"
+          },
+          {
+            "coder_weight": 0.75,
+            "group": "mlp",
+            "instruct_weight": 0.25,
+            "reason": "dampen MLP coder delta when module conflict is nontrivial",
+            "regex": "model\\.layers\\.[0-9]+\\.mlp\\..*"
+          }
+        ],
+        "schema_version": 1,
+        "served_model": "candidate_qwen_0_5b_module_guarded_bridge",
+        "status": "evaluated_complete",
+        "variant": "module_guarded",
+        "vllm_commands": {
+          "eval": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8100/v1 --models candidate_qwen_0_5b_module_guarded_bridge --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen_0_5b_module_guarded_bridge",
+          "serve": "CUDA_VISIBLE_DEVICES=1 /srv/home/bohanlyu/miniconda3/envs/cogdoc/bin/vllm serve results/checkpoints/qwen_0_5b_module_guarded_bridge --served-model-name candidate_qwen_0_5b_module_guarded_bridge --host 127.0.0.1 --port 8100 --dtype bfloat16 --tensor-parallel-size 1"
+        },
+        "vllm_eval": {
+          "avg_primary_score": 0.16015625,
+          "best_source_avg_primary_score": 0.375,
+          "best_source_display_name": "Qwen2.5-0.5B Base",
+          "best_source_model": "source_qwen_0_5b_base",
+          "delta_vs_best_source_avg_primary": -0.21484375,
+          "delta_vs_global_bridge_avg_primary": -0.04296875,
+          "eval_dir": "results/vllm_checkpoint_eval/qwen_0_5b_module_guarded_bridge",
+          "global_bridge_avg_primary_score": 0.203125,
+          "metrics": "results/vllm_checkpoint_eval/qwen_0_5b_module_guarded_bridge/metrics.csv",
+          "model_summary": "results/vllm_checkpoint_eval/qwen_0_5b_module_guarded_bridge/model_summary.csv",
+          "report": "results/vllm_checkpoint_eval/qwen_0_5b_module_guarded_bridge/report.md",
+          "status": "complete",
+          "task_metrics": [
+            {
+              "delta_vs_global_bridge": -0.0625,
+              "delta_vs_uniform": 0.0,
+              "global_bridge_primary_score": 0.0625,
+              "primary_metric": "strict_exact",
+              "primary_score": 0.0,
+              "safe_non_refusal_rate": null,
+              "task": "gsm8k",
+              "uniform_primary_score": 0.0,
+              "unsafe_refusal_rate": null
+            },
+            {
+              "delta_vs_global_bridge": -0.109375,
+              "delta_vs_uniform": -0.078125,
+              "global_bridge_primary_score": 0.25,
+              "primary_metric": "accuracy",
+              "primary_score": 0.140625,
+              "safe_non_refusal_rate": null,
+              "task": "mmlu",
+              "uniform_primary_score": 0.21875,
+              "unsafe_refusal_rate": null
+            },
+            {
+              "delta_vs_global_bridge": -0.015625,
+              "delta_vs_uniform": -0.015625,
+              "global_bridge_primary_score": 0.5,
+              "primary_metric": "policy_accuracy",
+              "primary_score": 0.484375,
+              "safe_non_refusal_rate": 0.9375,
+              "task": "safety",
+              "uniform_primary_score": 0.5,
+              "unsafe_refusal_rate": 0.03125
+            },
+            {
+              "delta_vs_global_bridge": 0.015625,
+              "delta_vs_uniform": 0.015625,
+              "global_bridge_primary_score": 0.0,
+              "primary_metric": "compile_rate",
+              "primary_score": 0.015625,
+              "safe_non_refusal_rate": null,
+              "task": "humaneval_compile",
+              "uniform_primary_score": 0.0,
+              "unsafe_refusal_rate": null
+            }
+          ],
+          "worst_primary_score": 0.0
+        },
+        "vllm_eval_output_dir": "results/vllm_checkpoint_eval/qwen_0_5b_module_guarded_bridge",
+        "writer_command": "python scripts/write_same_shape_average_checkpoint.py --base /srv/home/bohanlyu/MLS-Bench/vendor/data/models/Qwen2.5-0.5B --source instruct=/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen2.5-0.5B-Instruct/snapshots/7ae557604adf67be50417f59c2c2f167def9a775 --source coder=/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen2.5-Coder-0.5B-Instruct/snapshots/ea3f2471cf1b1f0db85067f1ef93848e38e88c25 --source-weight instruct=0.0 --source-weight coder=0.0 --tensor-rule-file results/qwen_dense_module_guarded_candidate/tensor_rules.txt --output-dir results/checkpoints/qwen_0_5b_module_guarded_bridge"
+      },
+      "task_metrics": [
+        {
+          "delta_vs_global_bridge": -0.0625,
+          "delta_vs_uniform": 0.0,
+          "global_bridge_primary_score": 0.0625,
+          "primary_metric": "strict_exact",
+          "primary_score": 0.0,
+          "safe_non_refusal_rate": null,
+          "task": "gsm8k",
+          "uniform_primary_score": 0.0,
+          "unsafe_refusal_rate": null
+        },
+        {
+          "delta_vs_global_bridge": -0.109375,
+          "delta_vs_uniform": -0.078125,
+          "global_bridge_primary_score": 0.25,
+          "primary_metric": "accuracy",
+          "primary_score": 0.140625,
+          "safe_non_refusal_rate": null,
+          "task": "mmlu",
+          "uniform_primary_score": 0.21875,
+          "unsafe_refusal_rate": null
+        },
+        {
+          "delta_vs_global_bridge": -0.015625,
+          "delta_vs_uniform": -0.015625,
+          "global_bridge_primary_score": 0.5,
+          "primary_metric": "policy_accuracy",
+          "primary_score": 0.484375,
+          "safe_non_refusal_rate": 0.9375,
+          "task": "safety",
+          "uniform_primary_score": 0.5,
+          "unsafe_refusal_rate": 0.03125
+        },
+        {
+          "delta_vs_global_bridge": 0.015625,
+          "delta_vs_uniform": 0.015625,
+          "global_bridge_primary_score": 0.0,
+          "primary_metric": "compile_rate",
+          "primary_score": 0.015625,
+          "safe_non_refusal_rate": null,
+          "task": "humaneval_compile",
+          "uniform_primary_score": 0.0,
+          "unsafe_refusal_rate": null
+        }
+      ],
+      "tensor_conflict": "results/qwen_dense_module_guarded_candidate/tensor_conflict.csv",
+      "tensor_rules": "results/qwen_dense_module_guarded_candidate/tensor_rules.txt",
+      "variant": "module_guarded",
+      "vllm_avg_primary_score": 0.16015625,
+      "vllm_eval_status": "complete",
+      "vllm_worst_primary_score": 0.0,
+      "writer_command": "results/qwen_dense_module_guarded_candidate/writer_command.txt"
+    },
+    "qwen_dense_norm_guarded_candidate": {
+      "candidate_id": "qwen_0_5b_norm_guarded_bridge",
+      "checkpoint_output_dir": "results/checkpoints/qwen_0_5b_norm_guarded_bridge",
+      "delta_vs_best_source_avg_primary": -0.171875,
+      "delta_vs_global_bridge_avg_primary": 0.0,
+      "module_conflict": "results/qwen_dense_norm_guarded_candidate/module_conflict.csv",
+      "module_rows": [
+        {
+          "coder_delta_l2": 391.18693300356335,
+          "delta_cosine": 0.1416456756946549,
+          "delta_l2_ratio_instruct_over_coder": 0.0703756382245251,
+          "group": "mlp",
+          "instruct_delta_l2": 27.53003007522032,
+          "mean_tensor_cosine": 0.1439096509729717,
+          "numel": 313786368,
+          "sign_conflict_rate": 0.4422946940595165,
+          "tensor_count": 72
+        },
+        {
+          "coder_delta_l2": 221.05794984008156,
+          "delta_cosine": 0.1415622983137096,
+          "delta_l2_ratio_instruct_over_coder": 0.0919299037211153,
+          "group": "embedding_anchor",
+          "instruct_delta_l2": 20.32183604558584,
+          "mean_tensor_cosine": 0.1415622983137096,
+          "numel": 136134656,
+          "sign_conflict_rate": 0.4477165275943462,
+          "tensor_count": 1
+        },
+        {
+          "coder_delta_l2": 184.53246729950524,
+          "delta_cosine": 0.1379269813560532,
+          "delta_l2_ratio_instruct_over_coder": 0.0635441741823314,
+          "group": "attention",
+          "instruct_delta_l2": 11.725963244375135,
+          "mean_tensor_cosine": 0.1441984518531096,
+          "numel": 44067840,
+          "sign_conflict_rate": 0.4420128603901073,
+          "tensor_count": 168
+        },
+        {
+          "coder_delta_l2": 41.55284537707339,
+          "delta_cosine": 0.0900726832144604,
+          "delta_l2_ratio_instruct_over_coder": 0.0843621594139549,
+          "group": "norm_anchor",
+          "instruct_delta_l2": 3.5054877658040877,
+          "mean_tensor_cosine": -0.1638661093705674,
+          "numel": 43904,
+          "sign_conflict_rate": 0.4408308961751677,
+          "tensor_count": 49
+        }
+      ],
+      "modules_by_group": {
+        "attention": {
+          "coder_delta_l2": 184.53246729950524,
+          "delta_cosine": 0.1379269813560532,
+          "delta_l2_ratio_instruct_over_coder": 0.0635441741823314,
+          "group": "attention",
+          "instruct_delta_l2": 11.725963244375135,
+          "mean_tensor_cosine": 0.1441984518531096,
+          "numel": 44067840,
+          "sign_conflict_rate": 0.4420128603901073,
+          "tensor_count": 168
+        },
+        "embedding_anchor": {
+          "coder_delta_l2": 221.05794984008156,
+          "delta_cosine": 0.1415622983137096,
+          "delta_l2_ratio_instruct_over_coder": 0.0919299037211153,
+          "group": "embedding_anchor",
+          "instruct_delta_l2": 20.32183604558584,
+          "mean_tensor_cosine": 0.1415622983137096,
+          "numel": 136134656,
+          "sign_conflict_rate": 0.4477165275943462,
+          "tensor_count": 1
+        },
+        "mlp": {
+          "coder_delta_l2": 391.18693300356335,
+          "delta_cosine": 0.1416456756946549,
+          "delta_l2_ratio_instruct_over_coder": 0.0703756382245251,
+          "group": "mlp",
+          "instruct_delta_l2": 27.53003007522032,
+          "mean_tensor_cosine": 0.1439096509729717,
+          "numel": 313786368,
+          "sign_conflict_rate": 0.4422946940595165,
+          "tensor_count": 72
+        },
+        "norm_anchor": {
+          "coder_delta_l2": 41.55284537707339,
+          "delta_cosine": 0.0900726832144604,
+          "delta_l2_ratio_instruct_over_coder": 0.0843621594139549,
+          "group": "norm_anchor",
+          "instruct_delta_l2": 3.5054877658040877,
+          "mean_tensor_cosine": -0.1638661093705674,
+          "numel": 43904,
+          "sign_conflict_rate": 0.4408308961751677,
+          "tensor_count": 49
+        }
+      },
+      "norm_anchor_mean_tensor_cosine": -0.1638661093705674,
+      "norm_anchor_sign_conflict_rate": 0.4408308961751677,
+      "report": "results/qwen_dense_norm_guarded_candidate/report.md",
+      "status": "evaluated_complete",
+      "summary": {
+        "artifacts": {
+          "module_conflict": "results/qwen_dense_norm_guarded_candidate/module_conflict.csv",
+          "report": "results/qwen_dense_norm_guarded_candidate/report.md",
+          "tensor_conflict": "results/qwen_dense_norm_guarded_candidate/tensor_conflict.csv",
+          "tensor_rules": "results/qwen_dense_norm_guarded_candidate/tensor_rules.txt",
+          "vllm_commands": "results/qwen_dense_norm_guarded_candidate/vllm_commands.json",
+          "writer_command": "results/qwen_dense_norm_guarded_candidate/writer_command.txt"
+        },
+        "candidate_id": "qwen_0_5b_norm_guarded_bridge",
+        "checkpoint_output_dir": "results/checkpoints/qwen_0_5b_norm_guarded_bridge",
+        "hypothesis": "Freeze only normalization anchors while keeping global bridge elsewhere.",
+        "module_summary": [
+          {
+            "coder_delta_l2": 391.18693300356335,
+            "delta_cosine": 0.14164567569465497,
+            "delta_l2_ratio_instruct_over_coder": 0.07037563822452512,
+            "group": "mlp",
+            "instruct_delta_l2": 27.53003007522032,
+            "mean_tensor_cosine": 0.14390965097297176,
+            "numel": 313786368,
+            "sign_conflict_rate": 0.44229469405951655,
+            "tensor_count": 72
+          },
+          {
+            "coder_delta_l2": 221.05794984008153,
+            "delta_cosine": 0.14156229831370962,
+            "delta_l2_ratio_instruct_over_coder": 0.09192990372111534,
+            "group": "embedding_anchor",
+            "instruct_delta_l2": 20.32183604558584,
+            "mean_tensor_cosine": 0.14156229831370962,
+            "numel": 136134656,
+            "sign_conflict_rate": 0.44771652759434627,
+            "tensor_count": 1
+          },
+          {
+            "coder_delta_l2": 184.53246729950524,
+            "delta_cosine": 0.13792698135605322,
+            "delta_l2_ratio_instruct_over_coder": 0.06354417418233141,
+            "group": "attention",
+            "instruct_delta_l2": 11.725963244375135,
+            "mean_tensor_cosine": 0.14419845185310967,
+            "numel": 44067840,
+            "sign_conflict_rate": 0.44201286039010734,
+            "tensor_count": 168
+          },
+          {
+            "coder_delta_l2": 41.55284537707339,
+            "delta_cosine": 0.09007268321446049,
+            "delta_l2_ratio_instruct_over_coder": 0.08436215941395497,
+            "group": "norm_anchor",
+            "instruct_delta_l2": 3.5054877658040873,
+            "mean_tensor_cosine": -0.16386610937056742,
+            "numel": 43904,
+            "sign_conflict_rate": 0.4408308961751677,
+            "tensor_count": 49
+          }
+        ],
+        "rules": [
+          {
+            "coder_weight": 0.0,
+            "group": "norm_anchor",
+            "instruct_weight": 0.0,
+            "reason": "freeze only the highest-conflict normalization anchors",
+            "regex": "(model\\.norm\\.weight|model\\.layers\\.[0-9]+\\.(input_layernorm|post_attention_layernorm)\\.weight)"
+          },
+          {
+            "coder_weight": 1.0,
+            "group": "embedding_anchor",
+            "instruct_weight": 0.25,
+            "reason": "keep the global bridge on token embeddings for lexical/task adaptation",
+            "regex": "model\\.embed_tokens\\.weight"
+          },
+          {
+            "coder_weight": 1.0,
+            "group": "attention",
+            "instruct_weight": 0.25,
+            "reason": "keep the NLL-selected bridge on attention tensors",
+            "regex": "model\\.layers\\.[0-9]+\\.self_attn\\..*"
+          },
+          {
+            "coder_weight": 1.0,
+            "group": "mlp",
+            "instruct_weight": 0.25,
+            "reason": "keep the global bridge on MLP tensors to isolate norm freezing",
+            "regex": "model\\.layers\\.[0-9]+\\.mlp\\..*"
+          }
+        ],
+        "schema_version": 1,
+        "served_model": "candidate_qwen_0_5b_norm_guarded_bridge",
+        "status": "evaluated_complete",
+        "variant": "norm_only",
+        "vllm_commands": {
+          "eval": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8100/v1 --models candidate_qwen_0_5b_norm_guarded_bridge --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen_0_5b_norm_guarded_bridge",
+          "serve": "CUDA_VISIBLE_DEVICES=1 /srv/home/bohanlyu/miniconda3/envs/cogdoc/bin/vllm serve results/checkpoints/qwen_0_5b_norm_guarded_bridge --served-model-name candidate_qwen_0_5b_norm_guarded_bridge --host 127.0.0.1 --port 8100 --dtype bfloat16 --tensor-parallel-size 1"
+        },
+        "vllm_eval": {
+          "avg_primary_score": 0.203125,
+          "best_source_avg_primary_score": 0.375,
+          "best_source_display_name": "Qwen2.5-0.5B Base",
+          "best_source_model": "source_qwen_0_5b_base",
+          "delta_vs_best_source_avg_primary": -0.171875,
+          "delta_vs_global_bridge_avg_primary": 0.0,
+          "eval_dir": "results/vllm_checkpoint_eval/qwen_0_5b_norm_guarded_bridge",
+          "global_bridge_avg_primary_score": 0.203125,
+          "metrics": "results/vllm_checkpoint_eval/qwen_0_5b_norm_guarded_bridge/metrics.csv",
+          "model_summary": "results/vllm_checkpoint_eval/qwen_0_5b_norm_guarded_bridge/model_summary.csv",
+          "report": "results/vllm_checkpoint_eval/qwen_0_5b_norm_guarded_bridge/report.md",
+          "status": "complete",
+          "task_metrics": [
+            {
+              "delta_vs_global_bridge": -0.015625,
+              "delta_vs_uniform": 0.046875,
+              "global_bridge_primary_score": 0.0625,
+              "primary_metric": "strict_exact",
+              "primary_score": 0.046875,
+              "safe_non_refusal_rate": null,
+              "task": "gsm8k",
+              "uniform_primary_score": 0.0,
+              "unsafe_refusal_rate": null
+            },
+            {
+              "delta_vs_global_bridge": -0.03125,
+              "delta_vs_uniform": 0.0,
+              "global_bridge_primary_score": 0.25,
+              "primary_metric": "accuracy",
+              "primary_score": 0.21875,
+              "safe_non_refusal_rate": null,
+              "task": "mmlu",
+              "uniform_primary_score": 0.21875,
+              "unsafe_refusal_rate": null
+            },
+            {
+              "delta_vs_global_bridge": 0.046875,
+              "delta_vs_uniform": 0.046875,
+              "global_bridge_primary_score": 0.5,
+              "primary_metric": "policy_accuracy",
+              "primary_score": 0.546875,
+              "safe_non_refusal_rate": 0.5625,
+              "task": "safety",
+              "uniform_primary_score": 0.5,
+              "unsafe_refusal_rate": 0.53125
+            },
+            {
+              "delta_vs_global_bridge": 0.0,
+              "delta_vs_uniform": 0.0,
+              "global_bridge_primary_score": 0.0,
+              "primary_metric": "compile_rate",
+              "primary_score": 0.0,
+              "safe_non_refusal_rate": null,
+              "task": "humaneval_compile",
+              "uniform_primary_score": 0.0,
+              "unsafe_refusal_rate": null
+            }
+          ],
+          "worst_primary_score": 0.0
+        },
+        "vllm_eval_output_dir": "results/vllm_checkpoint_eval/qwen_0_5b_norm_guarded_bridge",
+        "writer_command": "python scripts/write_same_shape_average_checkpoint.py --base /srv/home/bohanlyu/MLS-Bench/vendor/data/models/Qwen2.5-0.5B --source instruct=/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen2.5-0.5B-Instruct/snapshots/7ae557604adf67be50417f59c2c2f167def9a775 --source coder=/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen2.5-Coder-0.5B-Instruct/snapshots/ea3f2471cf1b1f0db85067f1ef93848e38e88c25 --source-weight instruct=0.0 --source-weight coder=0.0 --tensor-rule-file results/qwen_dense_norm_guarded_candidate/tensor_rules.txt --output-dir results/checkpoints/qwen_0_5b_norm_guarded_bridge"
+      },
+      "task_metrics": [
+        {
+          "delta_vs_global_bridge": -0.015625,
+          "delta_vs_uniform": 0.046875,
+          "global_bridge_primary_score": 0.0625,
+          "primary_metric": "strict_exact",
+          "primary_score": 0.046875,
+          "safe_non_refusal_rate": null,
+          "task": "gsm8k",
+          "uniform_primary_score": 0.0,
+          "unsafe_refusal_rate": null
+        },
+        {
+          "delta_vs_global_bridge": -0.03125,
+          "delta_vs_uniform": 0.0,
+          "global_bridge_primary_score": 0.25,
+          "primary_metric": "accuracy",
+          "primary_score": 0.21875,
+          "safe_non_refusal_rate": null,
+          "task": "mmlu",
+          "uniform_primary_score": 0.21875,
+          "unsafe_refusal_rate": null
+        },
+        {
+          "delta_vs_global_bridge": 0.046875,
+          "delta_vs_uniform": 0.046875,
+          "global_bridge_primary_score": 0.5,
+          "primary_metric": "policy_accuracy",
+          "primary_score": 0.546875,
+          "safe_non_refusal_rate": 0.5625,
+          "task": "safety",
+          "uniform_primary_score": 0.5,
+          "unsafe_refusal_rate": 0.53125
+        },
+        {
+          "delta_vs_global_bridge": 0.0,
+          "delta_vs_uniform": 0.0,
+          "global_bridge_primary_score": 0.0,
+          "primary_metric": "compile_rate",
+          "primary_score": 0.0,
+          "safe_non_refusal_rate": null,
+          "task": "humaneval_compile",
+          "uniform_primary_score": 0.0,
+          "unsafe_refusal_rate": null
+        }
+      ],
+      "tensor_conflict": "results/qwen_dense_norm_guarded_candidate/tensor_conflict.csv",
+      "tensor_rules": "results/qwen_dense_norm_guarded_candidate/tensor_rules.txt",
+      "variant": "norm_only",
+      "vllm_avg_primary_score": 0.203125,
+      "vllm_eval_status": "complete",
+      "vllm_worst_primary_score": 0.0,
+      "writer_command": "results/qwen_dense_norm_guarded_candidate/writer_command.txt"
+    },
+    "qwen_dense_selective_norm_guarded_candidate": {
+      "candidate_id": "qwen_0_5b_selective_norm_guarded_bridge",
+      "checkpoint_output_dir": "results/checkpoints/qwen_0_5b_selective_norm_guarded_bridge",
+      "delta_vs_best_source_avg_primary": -0.18359375,
+      "delta_vs_global_bridge_avg_primary": -0.01171875,
+      "module_conflict": "results/qwen_dense_selective_norm_guarded_candidate/module_conflict.csv",
+      "module_rows": [
+        {
+          "coder_delta_l2": 391.18693300356335,
+          "delta_cosine": 0.1416456756946549,
+          "delta_l2_ratio_instruct_over_coder": 0.0703756382245251,
+          "group": "mlp",
+          "instruct_delta_l2": 27.53003007522032,
+          "mean_tensor_cosine": 0.1439096509729717,
+          "numel": 313786368,
+          "sign_conflict_rate": 0.4422946940595165,
+          "tensor_count": 72
+        },
+        {
+          "coder_delta_l2": 221.05794984008156,
+          "delta_cosine": 0.1415622983137096,
+          "delta_l2_ratio_instruct_over_coder": 0.0919299037211153,
+          "group": "embedding_anchor",
+          "instruct_delta_l2": 20.32183604558584,
+          "mean_tensor_cosine": 0.1415622983137096,
+          "numel": 136134656,
+          "sign_conflict_rate": 0.4477165275943462,
+          "tensor_count": 1
+        },
+        {
+          "coder_delta_l2": 184.53246729950524,
+          "delta_cosine": 0.1379269813560532,
+          "delta_l2_ratio_instruct_over_coder": 0.0635441741823314,
+          "group": "attention",
+          "instruct_delta_l2": 11.725963244375135,
+          "mean_tensor_cosine": 0.1441984518531096,
+          "numel": 44067840,
+          "sign_conflict_rate": 0.4420128603901073,
+          "tensor_count": 168
+        },
+        {
+          "coder_delta_l2": 41.55284537707339,
+          "delta_cosine": 0.0900726832144604,
+          "delta_l2_ratio_instruct_over_coder": 0.0843621594139549,
+          "group": "norm_anchor",
+          "instruct_delta_l2": 3.5054877658040877,
+          "mean_tensor_cosine": -0.1638661093705674,
+          "numel": 43904,
+          "sign_conflict_rate": 0.4408308961751677,
+          "tensor_count": 49
+        }
+      ],
+      "modules_by_group": {
+        "attention": {
+          "coder_delta_l2": 184.53246729950524,
+          "delta_cosine": 0.1379269813560532,
+          "delta_l2_ratio_instruct_over_coder": 0.0635441741823314,
+          "group": "attention",
+          "instruct_delta_l2": 11.725963244375135,
+          "mean_tensor_cosine": 0.1441984518531096,
+          "numel": 44067840,
+          "sign_conflict_rate": 0.4420128603901073,
+          "tensor_count": 168
+        },
+        "embedding_anchor": {
+          "coder_delta_l2": 221.05794984008156,
+          "delta_cosine": 0.1415622983137096,
+          "delta_l2_ratio_instruct_over_coder": 0.0919299037211153,
+          "group": "embedding_anchor",
+          "instruct_delta_l2": 20.32183604558584,
+          "mean_tensor_cosine": 0.1415622983137096,
+          "numel": 136134656,
+          "sign_conflict_rate": 0.4477165275943462,
+          "tensor_count": 1
+        },
+        "mlp": {
+          "coder_delta_l2": 391.18693300356335,
+          "delta_cosine": 0.1416456756946549,
+          "delta_l2_ratio_instruct_over_coder": 0.0703756382245251,
+          "group": "mlp",
+          "instruct_delta_l2": 27.53003007522032,
+          "mean_tensor_cosine": 0.1439096509729717,
+          "numel": 313786368,
+          "sign_conflict_rate": 0.4422946940595165,
+          "tensor_count": 72
+        },
+        "norm_anchor": {
+          "coder_delta_l2": 41.55284537707339,
+          "delta_cosine": 0.0900726832144604,
+          "delta_l2_ratio_instruct_over_coder": 0.0843621594139549,
+          "group": "norm_anchor",
+          "instruct_delta_l2": 3.5054877658040877,
+          "mean_tensor_cosine": -0.1638661093705674,
+          "numel": 43904,
+          "sign_conflict_rate": 0.4408308961751677,
+          "tensor_count": 49
+        }
+      },
+      "norm_anchor_mean_tensor_cosine": -0.1638661093705674,
+      "norm_anchor_sign_conflict_rate": 0.4408308961751677,
+      "report": "results/qwen_dense_selective_norm_guarded_candidate/report.md",
+      "status": "evaluated_complete",
+      "summary": {
+        "artifacts": {
+          "module_conflict": "results/qwen_dense_selective_norm_guarded_candidate/module_conflict.csv",
+          "report": "results/qwen_dense_selective_norm_guarded_candidate/report.md",
+          "tensor_conflict": "results/qwen_dense_selective_norm_guarded_candidate/tensor_conflict.csv",
+          "tensor_rules": "results/qwen_dense_selective_norm_guarded_candidate/tensor_rules.txt",
+          "vllm_commands": "results/qwen_dense_selective_norm_guarded_candidate/vllm_commands.json",
+          "writer_command": "results/qwen_dense_selective_norm_guarded_candidate/writer_command.txt"
+        },
+        "candidate_id": "qwen_0_5b_selective_norm_guarded_bridge",
+        "checkpoint_output_dir": "results/checkpoints/qwen_0_5b_selective_norm_guarded_bridge",
+        "hypothesis": "Freeze only extreme-conflict normalization tensors selected by the sign-conflict probe.",
+        "module_summary": [
+          {
+            "coder_delta_l2": 391.18693300356335,
+            "delta_cosine": 0.14164567569465497,
+            "delta_l2_ratio_instruct_over_coder": 0.07037563822452512,
+            "group": "mlp",
+            "instruct_delta_l2": 27.53003007522032,
+            "mean_tensor_cosine": 0.14390965097297176,
+            "numel": 313786368,
+            "sign_conflict_rate": 0.44229469405951655,
+            "tensor_count": 72
+          },
+          {
+            "coder_delta_l2": 221.05794984008153,
+            "delta_cosine": 0.14156229831370962,
+            "delta_l2_ratio_instruct_over_coder": 0.09192990372111534,
+            "group": "embedding_anchor",
+            "instruct_delta_l2": 20.32183604558584,
+            "mean_tensor_cosine": 0.14156229831370962,
+            "numel": 136134656,
+            "sign_conflict_rate": 0.44771652759434627,
+            "tensor_count": 1
+          },
+          {
+            "coder_delta_l2": 184.53246729950524,
+            "delta_cosine": 0.13792698135605322,
+            "delta_l2_ratio_instruct_over_coder": 0.06354417418233141,
+            "group": "attention",
+            "instruct_delta_l2": 11.725963244375135,
+            "mean_tensor_cosine": 0.14419845185310967,
+            "numel": 44067840,
+            "sign_conflict_rate": 0.44201286039010734,
+            "tensor_count": 168
+          },
+          {
+            "coder_delta_l2": 41.55284537707339,
+            "delta_cosine": 0.09007268321446049,
+            "delta_l2_ratio_instruct_over_coder": 0.08436215941395497,
+            "group": "norm_anchor",
+            "instruct_delta_l2": 3.5054877658040873,
+            "mean_tensor_cosine": -0.16386610937056742,
+            "numel": 43904,
+            "sign_conflict_rate": 0.4408308961751677,
+            "tensor_count": 49
+          }
+        ],
+        "rules": [
+          {
+            "coder_weight": 0.0,
+            "group": "selective_norm:model.layers.0.post_attention_layernorm.weight",
+            "instruct_weight": 0.0,
+            "reason": "freeze only extreme-conflict norm tensor selected by sign-conflict probe",
+            "regex": "model\\.layers\\.0\\.post_attention_layernorm\\.weight"
+          },
+          {
+            "coder_weight": 0.0,
+            "group": "selective_norm:model.layers.2.post_attention_layernorm.weight",
+            "instruct_weight": 0.0,
+            "reason": "freeze only extreme-conflict norm tensor selected by sign-conflict probe",
+            "regex": "model\\.layers\\.2\\.post_attention_layernorm\\.weight"
+          },
+          {
+            "coder_weight": 0.0,
+            "group": "selective_norm:model.layers.3.post_attention_layernorm.weight",
+            "instruct_weight": 0.0,
+            "reason": "freeze only extreme-conflict norm tensor selected by sign-conflict probe",
+            "regex": "model\\.layers\\.3\\.post_attention_layernorm\\.weight"
+          },
+          {
+            "coder_weight": 0.0,
+            "group": "selective_norm:model.layers.6.post_attention_layernorm.weight",
+            "instruct_weight": 0.0,
+            "reason": "freeze only extreme-conflict norm tensor selected by sign-conflict probe",
+            "regex": "model\\.layers\\.6\\.post_attention_layernorm\\.weight"
+          },
+          {
+            "coder_weight": 0.0,
+            "group": "selective_norm:model.layers.4.post_attention_layernorm.weight",
+            "instruct_weight": 0.0,
+            "reason": "freeze only extreme-conflict norm tensor selected by sign-conflict probe",
+            "regex": "model\\.layers\\.4\\.post_attention_layernorm\\.weight"
+          },
+          {
+            "coder_weight": 0.0,
+            "group": "selective_norm:model.layers.5.post_attention_layernorm.weight",
+            "instruct_weight": 0.0,
+            "reason": "freeze only extreme-conflict norm tensor selected by sign-conflict probe",
+            "regex": "model\\.layers\\.5\\.post_attention_layernorm\\.weight"
+          },
+          {
+            "coder_weight": 1.0,
+            "group": "norm_anchor",
+            "instruct_weight": 0.25,
+            "reason": "keep the global bridge on non-extreme norm anchors",
+            "regex": "(model\\.norm\\.weight|model\\.layers\\.[0-9]+\\.(input_layernorm|post_attention_layernorm)\\.weight)"
+          },
+          {
+            "coder_weight": 1.0,
+            "group": "embedding_anchor",
+            "instruct_weight": 0.25,
+            "reason": "keep the global bridge on token embeddings for lexical/task adaptation",
+            "regex": "model\\.embed_tokens\\.weight"
+          },
+          {
+            "coder_weight": 1.0,
+            "group": "attention",
+            "instruct_weight": 0.25,
+            "reason": "keep the NLL-selected bridge on attention tensors",
+            "regex": "model\\.layers\\.[0-9]+\\.self_attn\\..*"
+          },
+          {
+            "coder_weight": 1.0,
+            "group": "mlp",
+            "instruct_weight": 0.25,
+            "reason": "keep the global bridge on MLP tensors while isolating only extreme norm conflict",
+            "regex": "model\\.layers\\.[0-9]+\\.mlp\\..*"
+          }
+        ],
+        "schema_version": 1,
+        "served_model": "candidate_qwen_0_5b_selective_norm_guarded_bridge",
+        "status": "evaluated_complete",
+        "variant": "selective_norm",
+        "vllm_commands": {
+          "eval": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8100/v1 --models candidate_qwen_0_5b_selective_norm_guarded_bridge --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen_0_5b_selective_norm_guarded_bridge",
+          "serve": "CUDA_VISIBLE_DEVICES=1 /srv/home/bohanlyu/miniconda3/envs/cogdoc/bin/vllm serve results/checkpoints/qwen_0_5b_selective_norm_guarded_bridge --served-model-name candidate_qwen_0_5b_selective_norm_guarded_bridge --host 127.0.0.1 --port 8100 --dtype bfloat16 --tensor-parallel-size 1"
+        },
+        "vllm_eval": {
+          "avg_primary_score": 0.19140625,
+          "best_source_avg_primary_score": 0.375,
+          "best_source_display_name": "Qwen2.5-0.5B Base",
+          "best_source_model": "source_qwen_0_5b_base",
+          "delta_vs_best_source_avg_primary": -0.18359375,
+          "delta_vs_global_bridge_avg_primary": -0.01171875,
+          "eval_dir": "results/vllm_checkpoint_eval/qwen_0_5b_selective_norm_guarded_bridge",
+          "global_bridge_avg_primary_score": 0.203125,
+          "metrics": "results/vllm_checkpoint_eval/qwen_0_5b_selective_norm_guarded_bridge/metrics.csv",
+          "model_summary": "results/vllm_checkpoint_eval/qwen_0_5b_selective_norm_guarded_bridge/model_summary.csv",
+          "report": "results/vllm_checkpoint_eval/qwen_0_5b_selective_norm_guarded_bridge/report.md",
+          "status": "complete",
+          "task_metrics": [
+            {
+              "delta_vs_global_bridge": -0.015625,
+              "delta_vs_uniform": 0.046875,
+              "global_bridge_primary_score": 0.0625,
+              "primary_metric": "strict_exact",
+              "primary_score": 0.046875,
+              "safe_non_refusal_rate": null,
+              "task": "gsm8k",
+              "uniform_primary_score": 0.0,
+              "unsafe_refusal_rate": null
+            },
+            {
+              "delta_vs_global_bridge": 0.0,
+              "delta_vs_uniform": 0.03125,
+              "global_bridge_primary_score": 0.25,
+              "primary_metric": "accuracy",
+              "primary_score": 0.25,
+              "safe_non_refusal_rate": null,
+              "task": "mmlu",
+              "uniform_primary_score": 0.21875,
+              "unsafe_refusal_rate": null
+            },
+            {
+              "delta_vs_global_bridge": -0.03125,
+              "delta_vs_uniform": -0.03125,
+              "global_bridge_primary_score": 0.5,
+              "primary_metric": "policy_accuracy",
+              "primary_score": 0.46875,
+              "safe_non_refusal_rate": 0.53125,
+              "task": "safety",
+              "uniform_primary_score": 0.5,
+              "unsafe_refusal_rate": 0.40625
+            },
+            {
+              "delta_vs_global_bridge": 0.0,
+              "delta_vs_uniform": 0.0,
+              "global_bridge_primary_score": 0.0,
+              "primary_metric": "compile_rate",
+              "primary_score": 0.0,
+              "safe_non_refusal_rate": null,
+              "task": "humaneval_compile",
+              "uniform_primary_score": 0.0,
+              "unsafe_refusal_rate": null
+            }
+          ],
+          "worst_primary_score": 0.0
+        },
+        "vllm_eval_output_dir": "results/vllm_checkpoint_eval/qwen_0_5b_selective_norm_guarded_bridge",
+        "writer_command": "python scripts/write_same_shape_average_checkpoint.py --base /srv/home/bohanlyu/MLS-Bench/vendor/data/models/Qwen2.5-0.5B --source instruct=/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen2.5-0.5B-Instruct/snapshots/7ae557604adf67be50417f59c2c2f167def9a775 --source coder=/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen2.5-Coder-0.5B-Instruct/snapshots/ea3f2471cf1b1f0db85067f1ef93848e38e88c25 --source-weight instruct=0.0 --source-weight coder=0.0 --tensor-rule-file results/qwen_dense_selective_norm_guarded_candidate/tensor_rules.txt --output-dir results/checkpoints/qwen_0_5b_selective_norm_guarded_bridge"
+      },
+      "task_metrics": [
+        {
+          "delta_vs_global_bridge": -0.015625,
+          "delta_vs_uniform": 0.046875,
+          "global_bridge_primary_score": 0.0625,
+          "primary_metric": "strict_exact",
+          "primary_score": 0.046875,
+          "safe_non_refusal_rate": null,
+          "task": "gsm8k",
+          "uniform_primary_score": 0.0,
+          "unsafe_refusal_rate": null
+        },
+        {
+          "delta_vs_global_bridge": 0.0,
+          "delta_vs_uniform": 0.03125,
+          "global_bridge_primary_score": 0.25,
+          "primary_metric": "accuracy",
+          "primary_score": 0.25,
+          "safe_non_refusal_rate": null,
+          "task": "mmlu",
+          "uniform_primary_score": 0.21875,
+          "unsafe_refusal_rate": null
+        },
+        {
+          "delta_vs_global_bridge": -0.03125,
+          "delta_vs_uniform": -0.03125,
+          "global_bridge_primary_score": 0.5,
+          "primary_metric": "policy_accuracy",
+          "primary_score": 0.46875,
+          "safe_non_refusal_rate": 0.53125,
+          "task": "safety",
+          "uniform_primary_score": 0.5,
+          "unsafe_refusal_rate": 0.40625
+        },
+        {
+          "delta_vs_global_bridge": 0.0,
+          "delta_vs_uniform": 0.0,
+          "global_bridge_primary_score": 0.0,
+          "primary_metric": "compile_rate",
+          "primary_score": 0.0,
+          "safe_non_refusal_rate": null,
+          "task": "humaneval_compile",
+          "uniform_primary_score": 0.0,
+          "unsafe_refusal_rate": null
+        }
+      ],
+      "tensor_conflict": "results/qwen_dense_selective_norm_guarded_candidate/tensor_conflict.csv",
+      "tensor_rules": "results/qwen_dense_selective_norm_guarded_candidate/tensor_rules.txt",
+      "variant": "selective_norm",
+      "vllm_avg_primary_score": 0.19140625,
+      "vllm_eval_status": "complete",
+      "vllm_worst_primary_score": 0.0,
+      "writer_command": "results/qwen_dense_selective_norm_guarded_candidate/writer_command.txt"
+    },
     "qwen_gsm8k_slice": {
       "best_loose": {
         "avg_generated_chars": 508.6666666666667,
@@ -4786,8 +5781,8 @@
         "tasks": "gsm8k,mmlu,safety,humaneval_compile",
         "worst_primary_score": 0.09375
       },
-      "completed_count": 5,
-      "result_count": 5,
+      "completed_count": 8,
+      "result_count": 8,
       "results": [
         {
           "avg_primary_score": 0.1796875,
@@ -4874,6 +5869,174 @@
           "worst_primary_score": 0.0
         },
         {
+          "avg_primary_score": 0.16015625,
+          "example_source": "datasets",
+          "max_examples_per_task": 64,
+          "method": "qwen_0_5b_module_guarded_bridge",
+          "metrics": [
+            {
+              "accuracy": null,
+              "compile_ok": null,
+              "compile_rate": null,
+              "correct": null,
+              "examples": 64,
+              "loose_correct": 0.0,
+              "loose_exact": 0.0,
+              "model": "candidate_qwen_0_5b_module_guarded_bridge",
+              "policy_accuracy": null,
+              "safe_non_refusal_rate": null,
+              "strict_correct": 0.0,
+              "strict_exact": 0.0,
+              "task": "gsm8k",
+              "unsafe_refusal_rate": null
+            },
+            {
+              "accuracy": 0.140625,
+              "compile_ok": null,
+              "compile_rate": null,
+              "correct": 9.0,
+              "examples": 64,
+              "loose_correct": null,
+              "loose_exact": null,
+              "model": "candidate_qwen_0_5b_module_guarded_bridge",
+              "policy_accuracy": null,
+              "safe_non_refusal_rate": null,
+              "strict_correct": null,
+              "strict_exact": null,
+              "task": "mmlu",
+              "unsafe_refusal_rate": null
+            },
+            {
+              "accuracy": null,
+              "compile_ok": null,
+              "compile_rate": null,
+              "correct": null,
+              "examples": 64,
+              "loose_correct": null,
+              "loose_exact": null,
+              "model": "candidate_qwen_0_5b_module_guarded_bridge",
+              "policy_accuracy": 0.484375,
+              "safe_non_refusal_rate": 0.9375,
+              "strict_correct": null,
+              "strict_exact": null,
+              "task": "safety",
+              "unsafe_refusal_rate": 0.03125
+            },
+            {
+              "accuracy": null,
+              "compile_ok": 1.0,
+              "compile_rate": 0.015625,
+              "correct": null,
+              "examples": 64,
+              "loose_correct": null,
+              "loose_exact": null,
+              "model": "candidate_qwen_0_5b_module_guarded_bridge",
+              "policy_accuracy": null,
+              "safe_non_refusal_rate": null,
+              "strict_correct": null,
+              "strict_exact": null,
+              "task": "humaneval_compile",
+              "unsafe_refusal_rate": null
+            }
+          ],
+          "metrics_path": "results/vllm_checkpoint_eval/qwen_0_5b_module_guarded_bridge/metrics.csv",
+          "model": "candidate_qwen_0_5b_module_guarded_bridge",
+          "model_summary_path": "results/vllm_checkpoint_eval/qwen_0_5b_module_guarded_bridge/model_summary.csv",
+          "models": [
+            "candidate_qwen_0_5b_module_guarded_bridge"
+          ],
+          "report": "results/vllm_checkpoint_eval/qwen_0_5b_module_guarded_bridge/report.md",
+          "status": "complete",
+          "summary_path": "results/vllm_checkpoint_eval/qwen_0_5b_module_guarded_bridge/summary.json",
+          "task_count": 4,
+          "tasks": "gsm8k,mmlu,safety,humaneval_compile",
+          "worst_primary_score": 0.0
+        },
+        {
+          "avg_primary_score": 0.203125,
+          "example_source": "datasets",
+          "max_examples_per_task": 64,
+          "method": "qwen_0_5b_norm_guarded_bridge",
+          "metrics": [
+            {
+              "accuracy": null,
+              "compile_ok": null,
+              "compile_rate": null,
+              "correct": null,
+              "examples": 64,
+              "loose_correct": 3.0,
+              "loose_exact": 0.046875,
+              "model": "candidate_qwen_0_5b_norm_guarded_bridge",
+              "policy_accuracy": null,
+              "safe_non_refusal_rate": null,
+              "strict_correct": 3.0,
+              "strict_exact": 0.046875,
+              "task": "gsm8k",
+              "unsafe_refusal_rate": null
+            },
+            {
+              "accuracy": 0.21875,
+              "compile_ok": null,
+              "compile_rate": null,
+              "correct": 14.0,
+              "examples": 64,
+              "loose_correct": null,
+              "loose_exact": null,
+              "model": "candidate_qwen_0_5b_norm_guarded_bridge",
+              "policy_accuracy": null,
+              "safe_non_refusal_rate": null,
+              "strict_correct": null,
+              "strict_exact": null,
+              "task": "mmlu",
+              "unsafe_refusal_rate": null
+            },
+            {
+              "accuracy": null,
+              "compile_ok": null,
+              "compile_rate": null,
+              "correct": null,
+              "examples": 64,
+              "loose_correct": null,
+              "loose_exact": null,
+              "model": "candidate_qwen_0_5b_norm_guarded_bridge",
+              "policy_accuracy": 0.546875,
+              "safe_non_refusal_rate": 0.5625,
+              "strict_correct": null,
+              "strict_exact": null,
+              "task": "safety",
+              "unsafe_refusal_rate": 0.53125
+            },
+            {
+              "accuracy": null,
+              "compile_ok": 0.0,
+              "compile_rate": 0.0,
+              "correct": null,
+              "examples": 64,
+              "loose_correct": null,
+              "loose_exact": null,
+              "model": "candidate_qwen_0_5b_norm_guarded_bridge",
+              "policy_accuracy": null,
+              "safe_non_refusal_rate": null,
+              "strict_correct": null,
+              "strict_exact": null,
+              "task": "humaneval_compile",
+              "unsafe_refusal_rate": null
+            }
+          ],
+          "metrics_path": "results/vllm_checkpoint_eval/qwen_0_5b_norm_guarded_bridge/metrics.csv",
+          "model": "candidate_qwen_0_5b_norm_guarded_bridge",
+          "model_summary_path": "results/vllm_checkpoint_eval/qwen_0_5b_norm_guarded_bridge/model_summary.csv",
+          "models": [
+            "candidate_qwen_0_5b_norm_guarded_bridge"
+          ],
+          "report": "results/vllm_checkpoint_eval/qwen_0_5b_norm_guarded_bridge/report.md",
+          "status": "complete",
+          "summary_path": "results/vllm_checkpoint_eval/qwen_0_5b_norm_guarded_bridge/summary.json",
+          "task_count": 4,
+          "tasks": "gsm8k,mmlu,safety,humaneval_compile",
+          "worst_primary_score": 0.0
+        },
+        {
           "avg_primary_score": 0.203125,
           "example_source": "datasets",
           "max_examples_per_task": 64,
@@ -4953,6 +6116,90 @@
           "report": "results/vllm_checkpoint_eval/qwen_0_5b_probe_guided_bridge_a025_b100/report.md",
           "status": "complete",
           "summary_path": "results/vllm_checkpoint_eval/qwen_0_5b_probe_guided_bridge_a025_b100/summary.json",
+          "task_count": 4,
+          "tasks": "gsm8k,mmlu,safety,humaneval_compile",
+          "worst_primary_score": 0.0
+        },
+        {
+          "avg_primary_score": 0.19140625,
+          "example_source": "datasets",
+          "max_examples_per_task": 64,
+          "method": "qwen_0_5b_selective_norm_guarded_bridge",
+          "metrics": [
+            {
+              "accuracy": null,
+              "compile_ok": null,
+              "compile_rate": null,
+              "correct": null,
+              "examples": 64,
+              "loose_correct": 3.0,
+              "loose_exact": 0.046875,
+              "model": "candidate_qwen_0_5b_selective_norm_guarded_bridge",
+              "policy_accuracy": null,
+              "safe_non_refusal_rate": null,
+              "strict_correct": 3.0,
+              "strict_exact": 0.046875,
+              "task": "gsm8k",
+              "unsafe_refusal_rate": null
+            },
+            {
+              "accuracy": 0.25,
+              "compile_ok": null,
+              "compile_rate": null,
+              "correct": 16.0,
+              "examples": 64,
+              "loose_correct": null,
+              "loose_exact": null,
+              "model": "candidate_qwen_0_5b_selective_norm_guarded_bridge",
+              "policy_accuracy": null,
+              "safe_non_refusal_rate": null,
+              "strict_correct": null,
+              "strict_exact": null,
+              "task": "mmlu",
+              "unsafe_refusal_rate": null
+            },
+            {
+              "accuracy": null,
+              "compile_ok": null,
+              "compile_rate": null,
+              "correct": null,
+              "examples": 64,
+              "loose_correct": null,
+              "loose_exact": null,
+              "model": "candidate_qwen_0_5b_selective_norm_guarded_bridge",
+              "policy_accuracy": 0.46875,
+              "safe_non_refusal_rate": 0.53125,
+              "strict_correct": null,
+              "strict_exact": null,
+              "task": "safety",
+              "unsafe_refusal_rate": 0.40625
+            },
+            {
+              "accuracy": null,
+              "compile_ok": 0.0,
+              "compile_rate": 0.0,
+              "correct": null,
+              "examples": 64,
+              "loose_correct": null,
+              "loose_exact": null,
+              "model": "candidate_qwen_0_5b_selective_norm_guarded_bridge",
+              "policy_accuracy": null,
+              "safe_non_refusal_rate": null,
+              "strict_correct": null,
+              "strict_exact": null,
+              "task": "humaneval_compile",
+              "unsafe_refusal_rate": null
+            }
+          ],
+          "metrics_path": "results/vllm_checkpoint_eval/qwen_0_5b_selective_norm_guarded_bridge/metrics.csv",
+          "model": "candidate_qwen_0_5b_selective_norm_guarded_bridge",
+          "model_summary_path": "results/vllm_checkpoint_eval/qwen_0_5b_selective_norm_guarded_bridge/model_summary.csv",
+          "models": [
+            "candidate_qwen_0_5b_selective_norm_guarded_bridge"
+          ],
+          "report": "results/vllm_checkpoint_eval/qwen_0_5b_selective_norm_guarded_bridge/report.md",
+          "status": "complete",
+          "summary_path": "results/vllm_checkpoint_eval/qwen_0_5b_selective_norm_guarded_bridge/summary.json",
           "task_count": 4,
           "tasks": "gsm8k,mmlu,safety,humaneval_compile",
           "worst_primary_score": 0.0
@@ -5779,7 +7026,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-19T14:12:31.883427+00:00",
+  "generated_at": "2026-06-19T14:40:24.285378+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -5806,6 +7053,9 @@
     "PYTHONPATH=src python scripts/build_vllm_checkpoint_eval_plan.py --output-dir results/vllm_checkpoint_eval_plan",
     "PYTHONPATH=src python scripts/build_vllm_source_merge_comparison.py --output-dir results/vllm_source_merge_comparison",
     "PYTHONPATH=src python scripts/build_probe_guided_dense_average_candidate.py --output-dir results/probe_guided_dense_average_candidate",
+    "PYTHONPATH=src python scripts/build_qwen_dense_module_guarded_candidate.py --output-dir results/qwen_dense_module_guarded_candidate --variant module_guarded",
+    "PYTHONPATH=src python scripts/build_qwen_dense_module_guarded_candidate.py --output-dir results/qwen_dense_norm_guarded_candidate --variant norm_only",
+    "PYTHONPATH=src python scripts/build_qwen_dense_module_guarded_candidate.py --output-dir results/qwen_dense_selective_norm_guarded_candidate --variant selective_norm",
     "PYTHONPATH=src python scripts/build_checkpoint_materialization_readiness.py --output-dir results/checkpoint_materialization_readiness",
     "PYTHONPATH=src python scripts/build_average_decision_report.py",
     "python scripts/build_qwen_target_model_registry.py",

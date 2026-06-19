@@ -1,0 +1,10 @@
+# PATTERN::instruct=WEIGHT,coder=WEIGHT
+# First matching rule wins in write_same_shape_average_checkpoint.py.
+# group=embedding_anchor; reason=freeze token embedding distribution anchor to base
+model\.embed_tokens\.weight::instruct=0.0,coder=0.0
+# group=norm_anchor; reason=freeze normalization anchors to avoid global activation scale drift
+(model\.norm\.weight|model\.layers\.[0-9]+\.(input_layernorm|post_attention_layernorm)\.weight)::instruct=0.0,coder=0.0
+# group=attention; reason=keep the NLL-selected bridge on attention tensors
+model\.layers\.[0-9]+\.self_attn\..*::instruct=0.25,coder=1.0
+# group=mlp; reason=dampen MLP coder delta when module conflict is nontrivial
+model\.layers\.[0-9]+\.mlp\..*::instruct=0.25,coder=0.75

@@ -1,0 +1,2 @@
+model,task_count,avg_primary_score,worst_primary_score,rank
+candidate_qwen_0_5b_module_guarded_bridge,4,0.16015625,0.0,1

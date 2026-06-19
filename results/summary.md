@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T14:12:31.883427+00:00`
+Generated at: `2026-06-19T14:40:24.285378+00:00`
 
 ## Coverage
 
-Complete: `38`; partial: `1`; missing: `0`.
+Complete: `39`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -25,6 +25,7 @@ Complete: `38`; partial: `1`; missing: `0`.
 | Materialized checkpoint vLLM hosted eval | complete | results/vllm_checkpoint_eval/qwen_0_5b_instruct_coder_uniform_average/report.md contains a real vLLM-hosted GSM8K/MMLU/safety/HumanEval compile eval for the materialized Qwen2.5-0.5B uniform-average checkpoint. |
 | Qwen source-vs-merge vLLM comparison | complete | results/vllm_source_merge_comparison/report.md compares Qwen2.5-0.5B base/instruct/coder source endpoints against the materialized uniform-average checkpoint under the same vLLM downstream tasks. |
 | Probe-guided dense average candidate vLLM eval | complete | results/probe_guided_dense_average_candidate/report.md selects a non-uniform Qwen instruct/coder bridge from the NLL grid, materializes the same-shape checkpoint locally, and records its real vLLM downstream eval. |
+| Qwen dense module-wise guard ablation vLLM eval | complete | results/qwen_dense_module_guarded_candidate/report.md, results/qwen_dense_norm_guarded_candidate/report.md, and results/qwen_dense_selective_norm_guarded_candidate/report.md compare module-level, norm-only, and selective-norm tensor-rule variants against the global bridge under the same vLLM downstream tasks. |
 | vLLM downstream eval contract smoke | complete | results/vllm_downstream_eval_smoke/smoke_report.md validates the OpenAI-compatible HTTP request, answer parsing, scoring, model ranking, and artifact writing path using a local mock endpoint. |
 | vLLM checkpoint eval plan | complete | results/vllm_checkpoint_eval_plan/report.md turns same-shape checkpoint candidates into one-checkpoint-at-a-time vLLM serve/eval commands while keeping missing checkpoints separate from completed metrics. |
 | Checkpoint materialization readiness audit | complete | results/checkpoint_materialization_readiness/report.md audits writer commands, placeholders, dry-run outputs, checkpoint existence, and vLLM eval readiness in one table. |
@@ -168,13 +169,17 @@ Complete: `38`; partial: `1`; missing: `0`.
 | vLLM downstream eval smoke | good / bad avg primary | 1.000 / 0.000 |
 | vLLM checkpoint eval plan | status | hosted_eval_complete |
 | vLLM checkpoint eval plan | ready / missing / not-loadable | 1 / 2 / 1 |
-| vLLM hosted eval results | completed eval dirs | 5 |
+| vLLM hosted eval results | completed eval dirs | 8 |
 | vLLM hosted eval results | best eval avg / worst primary | source_qwen_0_5b_base / 0.375 / 0.094 |
 | vLLM source-vs-merge comparison | status | merge_underperforms_all_sources |
 | vLLM source-vs-merge comparison | best source / merge avg / delta | Qwen2.5-0.5B Base / 0.180 / -0.195 |
 | vLLM source-vs-merge comparison | merge rank / source endpoints better | 4 / 3 |
 | probe-guided dense average | selected alpha / beta | 0.250 / 1.000 |
 | probe-guided dense average | vLLM avg / delta vs uniform / delta vs best source | 0.203 / 0.023 / -0.172 |
+| Qwen dense guard probe | norm mean tensor cosine / sign conflict | -0.164 / 0.441 |
+| Qwen dense guard ablation | module-guarded vLLM avg / delta vs global bridge | 0.160 / -0.043 |
+| Qwen dense guard ablation | norm-only vLLM avg / delta vs global bridge | 0.203 / 0.000 |
+| Qwen dense guard ablation | selective-norm vLLM avg / delta vs global bridge | 0.191 / -0.012 |
 | checkpoint materialization readiness | status | hosted_eval_complete |
 | checkpoint materialization readiness | materialized / blocked / ready / completed | 1 / 3 / 0 / 1 |
 | Average decision report | avoid uniform average decisions | 3 |

@@ -1,0 +1,4 @@
+{
+  "eval": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8100/v1 --models candidate_qwen_0_5b_module_guarded_bridge --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen_0_5b_module_guarded_bridge",
+  "serve": "CUDA_VISIBLE_DEVICES=1 /srv/home/bohanlyu/miniconda3/envs/cogdoc/bin/vllm serve results/checkpoints/qwen_0_5b_module_guarded_bridge --served-model-name candidate_qwen_0_5b_module_guarded_bridge --host 127.0.0.1 --port 8100 --dtype bfloat16 --tensor-parallel-size 1"
+}
