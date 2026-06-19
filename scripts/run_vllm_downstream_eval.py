@@ -47,6 +47,18 @@ def rel(path: str | Path) -> str:
         return str(path)
 
 
+def json_safe(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {str(key): json_safe(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [json_safe(item) for item in value]
+    if pd.isna(value):
+        return None
+    if hasattr(value, "item"):
+        return value.item()
+    return value
+
+
 BUILTIN_GSM8K = [
     {"question": "Jan has 3 apples and buys 4 more. How many apples does Jan have?", "gold": "7"},
     {"question": "A box has 12 pencils. Tom takes 5. How many pencils remain?", "gold": "7"},
@@ -670,7 +682,10 @@ def write_unavailable(
         "endpoint_probe": probe,
         "message": "No OpenAI-compatible vLLM endpoint was reachable from this environment.",
     }
-    (output_dir / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    (output_dir / "summary.json").write_text(
+        json.dumps(json_safe(summary), indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
     pd.DataFrame([probe]).to_csv(output_dir / "endpoint_probe.csv", index=False)
     report = [
         "# vLLM Downstream Eval",
@@ -724,7 +739,10 @@ def write_success(
         "metrics": metrics.to_dict(orient="records"),
         "model_summary": model_summary.to_dict(orient="records"),
     }
-    (output_dir / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    (output_dir / "summary.json").write_text(
+        json.dumps(json_safe(summary), indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
     lines = [
         "# vLLM Downstream Eval",
         "",

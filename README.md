@@ -10,6 +10,8 @@
 
 这个结果也解释了为什么不能只机械套一个低-overflow router：`unified_router_kd_seed_average` 把 Router-KD router 直接接到 expert-search 权重上后，hard top-2 code accuracy 只有 `0.5975`，说明 router prior 和 expert 权重必须共同校准。output-space projection probe 也更新为正向结果：它按 base router route probability 给 expert 输出残差加权，mean captured fraction 是 `0.616`；`expert_output_projection_router_calibrated_average` soft worst accuracy 达到 `0.8075`，是当前 soft-router 最优，但 hard top-2 worst accuracy 只有 `0.6475`，因此还不能替代 sparse dispatch / capacity-aware 目标。
 
+最新真实 vLLM 结果：本地已把 `qwen_0_5b_instruct_coder_uniform_average` 作为 materialized same-shape checkpoint 用 vLLM host，并在 GSM8K、MMLU、safety、HumanEval compile 各 `64` 个样本上跑完下游评测。结果是负 baseline：GSM8K strict exact `0.000`、MMLU accuracy `0.219`、safety policy accuracy `0.500`、HumanEval compile rate `0.000`，avg primary `0.180`、worst primary `0.000`。这说明 0.5/0.5 Dense uniform average 不只是 probe 上可疑，真实 endpoint 评测也很差；后续必须比较 source endpoints 和 probe-guided / MoE-specific candidates。
+
 ## 一屏版结论
 
 如果只想先看结果，可以先读这几条：
@@ -35,9 +37,9 @@
 19. **MoE 方法选择已从“读表”变成自动决策。** [Toy MoE Method Selection](results/toy_moe_method_selection/report.md) 把 worst accuracy、routing readiness、hard top-2 dispatch 和 capacity overflow 合在一起：`all_weight_average` 被判为 `reject_routing_breakdown`；soft dispatch 下推荐 `expert_output_projection_router_calibrated_average`；sparse hard top-2 推荐 `unified_moe_average`；严格 capacity-aware sparse 推荐 `unified_moe_bias_capacity_average`，并把 unified、bias-capacity unified、Router-KD 留在 hard top-2 / overflow Pareto frontier。
 20. **Expert matching 已能进入 checkpoint materialization。** [Toy MoE Expert Remap Plan](results/toy_moe_expert_remap_plan/report.md) 把 expert-output matching 转成 `source_tensor_aliases.txt`：输出 checkpoint 的 expert index、tensor name 和 shape 不变，只改变某个 source 读取哪个 matched expert tensor；当前 4 个 alias rule 全部 ready，最小 output cosine 为 `0.943`。
 21. **Router-bias capacity correction 已落成 recipe。** [MoE Router Bias Plan](results/moe_router_bias_plan/report.md) 用 per prompt/category 的 worst top-k load 生成 writer-ready `router_bias_deltas.csv`；toy `unified_moe_average` 上 expert 0 的 worst top-k fraction 是 `0.3900`，高于 capacity `0.3125`，因此生成 `-0.0530` 的 bias delta，其余 experts 做中心化补偿。真实 Qwen checkpoint 若没有对应 bias tensor，writer 会在校验阶段报错，而不是改变模型结构。
-22. **vLLM 下游评测 harness 已做 HTTP contract smoke。** [vLLM Downstream Eval Contract Smoke](results/vllm_downstream_eval_smoke/smoke_report.md) 启动本地 OpenAI-compatible mock endpoint，通过真实 HTTP 调用 `scripts/run_vllm_downstream_eval.py`，验证 GSM8K、MMLU、safety、HumanEval compile 的请求、解析、打分、排序和产物写出；mock-good 平均主指标 `1.000`，mock-bad 为 `0.000`。真实 GPU/vLLM endpoint 仍然是下一步，不能把这个 smoke 当成真实性能结果。
-23. **同构 checkpoint 的 vLLM 轮测计划已生成。** [vLLM Checkpoint Eval Plan](results/vllm_checkpoint_eval_plan/report.md) 把候选 checkpoint 转成逐个 `vllm serve` 和 `run_vllm_downstream_eval.py` 命令；当前 4 个候选里 `1` 个 ready、`2` 个还缺真实 materialized checkpoint、`1` 个是 toy writer 验证不能 vLLM 加载。这个 ready checkpoint 是 `qwen_0_5b_instruct_coder_uniform_average`，它是本地 ignored artifact 和 uniform-average 负 baseline，不是推荐算法。
-24. **Checkpoint materialization readiness 已单独审计。** [Checkpoint Materialization Readiness](results/checkpoint_materialization_readiness/report.md) 把 writer 命令、placeholder、dry-run、checkpoint 是否存在和 vLLM readiness 放进一张表：当前 6 个候选里 `1` 个已 materialize，`3` 个被 placeholder source path 卡住，`1` 个 ready for vLLM eval。现在不能给真实下游分数的原因已经收窄为：还没有实际启动 vLLM 跑 GSM8K/MMLU/safety/HumanEval，而不是没有任何可 host checkpoint。
+22. **vLLM 下游评测 harness 已通过 mock 和真实 endpoint。** [vLLM Downstream Eval Contract Smoke](results/vllm_downstream_eval_smoke/smoke_report.md) 验证 HTTP contract；[Materialized Checkpoint vLLM Eval](results/vllm_checkpoint_eval/qwen_0_5b_instruct_coder_uniform_average/report.md) 则是真实 vLLM-hosted checkpoint 评测，不是 mock。
+23. **Dense uniform average 的真实下游表现是负结果。** `qwen_0_5b_instruct_coder_uniform_average` 在每任务 `64` 样本上得到 GSM8K `0.000`、MMLU `0.219`、safety `0.500`、HumanEval compile `0.000`，avg primary `0.180`、worst primary `0.000`。这和前面 Qwen multi-expert plane 里 `0.5/0.5` 高 NLL ridge 一致。
+24. **Checkpoint materialization readiness 已推进到 hosted eval complete。** [Checkpoint Materialization Readiness](results/checkpoint_materialization_readiness/report.md) 现在显示 6 个候选里 `1` 个已 materialize 且 `1` 个完成 vLLM eval，`3` 个仍被 placeholder source path 卡住；[vLLM Checkpoint Eval Plan](results/vllm_checkpoint_eval_plan/report.md) 显示 4 个 checkpoint 候选里 `1` 个 eval complete、`2` 个缺 materialized checkpoint、`1` 个 toy 不可加载。
 
 核心对象是：
 
@@ -94,7 +96,7 @@ z 轴 = loss
 
 ## 结论摘要
 
-当前 coverage audit：`complete = 35`, `partial = 1`, `missing = 0`；唯一 partial 是 vLLM hosted downstream eval 还没有真实跑完。现在已有 1 个本地 materialized checkpoint 可 host，但还没有得到 GPU/vLLM 下游任务分数。完整汇总见 `results/summary.md` 和 `results/summary.json`。
+当前 coverage audit：`complete = 36`, `partial = 1`, `missing = 0`；唯一 partial 是 generic target-registry vLLM eval 还没有跑完，但 materialized checkpoint 的真实 vLLM eval 已完成。完整汇总见 `results/summary.md` 和 `results/summary.json`。
 
 主要结论：
 
@@ -106,6 +108,7 @@ z 轴 = loss
 6. pretrained ViT-B/16 frozen-backbone transfer 提供了更接近大规模视觉模型的证据：linear average worst accuracy `0.763`，grid best `0.783`。
 7. Qwen2.5-1.5B base-to-instruct 路径上，`lambda=0.75` 在多个 slice 上表现稳定，MMLU 小切片达到 `18/24 = 0.750`。
 8. Qwen2.5-0.5B instruct+coder multi-expert merge 显示，简单平均会明显退化：linear average avg/worst NLL 为 `5.591 / 9.553`，而 instruct endpoint avg NLL 为 `3.009`。
+9. Qwen2.5-0.5B instruct/coder 的 materialized `0.5/0.5` Dense uniform average 已用 vLLM 跑完真实下游评测，avg primary 只有 `0.180`，worst primary 为 `0.000`，因此它只能作为负 baseline。
 
 ## 研究覆盖
 

@@ -1,5 +1,6 @@
 {
   "candidate_count": 4,
+  "completed_eval_count": 1,
   "example_source": "datasets",
   "missing_checkpoint_count": 2,
   "not_vllm_loadable_count": 1,
@@ -12,6 +13,6 @@
   "ready_to_host_count": 1,
   "same_shape_constraint": "The plan evaluates one materialized checkpoint at a time through vLLM; it does not use ensembles or change model structure.",
   "schema_version": 1,
-  "status": "ready_to_host",
+  "status": "hosted_eval_complete",
   "tasks": "gsm8k,mmlu,safety,humaneval_compile"
 }

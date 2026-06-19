@@ -116,6 +116,8 @@ def collect_artifacts() -> list[dict[str, Any]]:
         relative = rel(path)
         if "/checkpoints/" in relative or relative.endswith(".pt"):
             continue
+        if relative.endswith("/predictions.csv"):
+            continue
         stat = path.stat()
         artifacts.append(
             {
@@ -980,6 +982,7 @@ def summarize_vllm_checkpoint_eval_plan() -> dict[str, Any]:
         "status": summary.get("status"),
         "candidate_count": int(summary.get("candidate_count", len(plan))),
         "ready_to_host_count": int(summary.get("ready_to_host_count", 0)),
+        "completed_eval_count": int(summary.get("completed_eval_count", 0)),
         "missing_checkpoint_count": int(summary.get("missing_checkpoint_count", 0)),
         "not_vllm_loadable_count": int(summary.get("not_vllm_loadable_count", 0)),
         "tasks": summary.get("tasks"),
@@ -987,6 +990,50 @@ def summarize_vllm_checkpoint_eval_plan() -> dict[str, Any]:
         "report": rel("results/vllm_checkpoint_eval_plan/report.md"),
         "plan_csv": rel("results/vllm_checkpoint_eval_plan/checkpoint_eval_plan.csv"),
         "shell_script": rel("results/vllm_checkpoint_eval_plan/serve_and_eval_commands.sh"),
+    }
+
+
+def summarize_vllm_checkpoint_eval_results() -> dict[str, Any]:
+    root = repo_path("results/vllm_checkpoint_eval")
+    if not root.exists():
+        return {"completed_count": 0, "results": [], "best_result": None}
+    results = []
+    for summary_path in sorted(root.glob("*/summary.json")):
+        output_dir = summary_path.parent
+        summary = read_json(summary_path)
+        metrics_path = output_dir / "metrics.csv"
+        model_summary_path = output_dir / "model_summary.csv"
+        metrics = read_csv(metrics_path) if metrics_path.exists() else pd.DataFrame()
+        model_summary = read_csv(model_summary_path) if model_summary_path.exists() else pd.DataFrame()
+        first_model = clean_row(model_summary.iloc[0]) if not model_summary.empty else {}
+        results.append(
+            {
+                "method": output_dir.name,
+                "status": summary.get("status"),
+                "model": summary.get("model"),
+                "models": summary.get("models", []),
+                "example_source": summary.get("example_source"),
+                "max_examples_per_task": summary.get("max_examples_per_task"),
+                "tasks": summary.get("tasks"),
+                "avg_primary_score": maybe_float(first_model.get("avg_primary_score")),
+                "worst_primary_score": maybe_float(first_model.get("worst_primary_score")),
+                "task_count": int(first_model.get("task_count", len(metrics)) or 0),
+                "metrics": [clean_row(row) for _, row in metrics.iterrows()],
+                "report": rel(output_dir / "report.md"),
+                "summary_path": rel(summary_path),
+                "metrics_path": rel(metrics_path) if metrics_path.exists() else None,
+                "model_summary_path": rel(model_summary_path) if model_summary_path.exists() else None,
+            }
+        )
+    completed = [row for row in results if row["status"] == "complete"]
+    best = None
+    if completed:
+        best = max(completed, key=lambda row: (row.get("avg_primary_score") or 0.0, row.get("worst_primary_score") or 0.0))
+    return {
+        "completed_count": len(completed),
+        "result_count": len(results),
+        "results": results,
+        "best_result": best,
     }
 
 
@@ -1000,6 +1047,7 @@ def summarize_checkpoint_materialization_readiness() -> dict[str, Any]:
         "materialized_count": int(summary.get("materialized_count", 0)),
         "blocked_by_placeholder_count": int(summary.get("blocked_by_placeholder_count", 0)),
         "ready_for_vllm_eval_count": int(summary.get("ready_for_vllm_eval_count", 0)),
+        "completed_vllm_eval_count": int(summary.get("completed_vllm_eval_count", 0)),
         "toy_validation_only_count": int(summary.get("toy_validation_only_count", 0)),
         "rows": [clean_row(row) for _, row in readiness.iterrows()],
         "report": rel("results/checkpoint_materialization_readiness/report.md"),
@@ -1148,7 +1196,12 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "vLLM hosted downstream evaluation",
             "status": "partial",
-            "evidence": "scripts/run_vllm_downstream_eval.py can build a served-model eval plan from the Qwen target registry and evaluate those ids through an OpenAI-compatible vLLM endpoint on GSM8K, MMLU, safety, and HumanEval compile slices; current result is endpoint_unavailable until a vLLM server is reachable.",
+            "evidence": "scripts/run_vllm_downstream_eval.py can build a served-model eval plan from the Qwen target registry; the generic registry run remains endpoint_unavailable, while checkpoint-specific hosted eval is tracked separately.",
+        },
+        {
+            "item": "Materialized checkpoint vLLM hosted eval",
+            "status": "complete",
+            "evidence": "results/vllm_checkpoint_eval/qwen_0_5b_instruct_coder_uniform_average/report.md contains a real vLLM-hosted GSM8K/MMLU/safety/HumanEval compile eval for the materialized Qwen2.5-0.5B uniform-average checkpoint.",
         },
         {
             "item": "vLLM downstream eval contract smoke",
@@ -1298,6 +1351,7 @@ def build_summary() -> dict[str, Any]:
         "vllm_downstream_eval": summarize_vllm_downstream_eval(),
         "vllm_downstream_eval_smoke": summarize_vllm_downstream_eval_smoke(),
         "vllm_checkpoint_eval_plan": summarize_vllm_checkpoint_eval_plan(),
+        "vllm_checkpoint_eval_results": summarize_vllm_checkpoint_eval_results(),
         "checkpoint_materialization_readiness": summarize_checkpoint_materialization_readiness(),
     }
     coverage = coverage_checklist()
@@ -1404,6 +1458,8 @@ def build_markdown(summary: dict[str, Any]) -> str:
     vllm_eval = exp["vllm_downstream_eval"]
     vllm_eval_smoke = exp["vllm_downstream_eval_smoke"]
     vllm_checkpoint_eval_plan = exp["vllm_checkpoint_eval_plan"]
+    vllm_checkpoint_eval_results = exp["vllm_checkpoint_eval_results"]
+    vllm_checkpoint_best = vllm_checkpoint_eval_results.get("best_result") or {}
     materialization_readiness = exp["checkpoint_materialization_readiness"]
     coverage_counts = summary["coverage_counts"]
     lines = [
@@ -1900,14 +1956,25 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{vllm_checkpoint_eval_plan['not_vllm_loadable_count']} |"
             ),
             (
+                "| vLLM checkpoint eval results | completed checkpoints | "
+                f"{vllm_checkpoint_eval_results['completed_count']} |"
+            ),
+            (
+                "| vLLM checkpoint eval results | best checkpoint avg / worst primary | "
+                f"{vllm_checkpoint_best.get('method')} / "
+                f"{fmt(vllm_checkpoint_best.get('avg_primary_score'))} / "
+                f"{fmt(vllm_checkpoint_best.get('worst_primary_score'))} |"
+            ),
+            (
                 "| checkpoint materialization readiness | status | "
                 f"{materialization_readiness['status']} |"
             ),
             (
-                "| checkpoint materialization readiness | materialized / blocked / ready | "
+                "| checkpoint materialization readiness | materialized / blocked / ready / completed | "
                 f"{materialization_readiness['materialized_count']} / "
                 f"{materialization_readiness['blocked_by_placeholder_count']} / "
-                f"{materialization_readiness['ready_for_vllm_eval_count']} |"
+                f"{materialization_readiness['ready_for_vllm_eval_count']} / "
+                f"{materialization_readiness['completed_vllm_eval_count']} |"
             ),
             (
                 "| Average decision report | avoid uniform average decisions | "

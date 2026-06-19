@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T13:22:12.039965+00:00`
+Generated at: `2026-06-19T13:39:11.698171+00:00`
 
 ## Coverage
 
-Complete: `35`; partial: `1`; missing: `0`.
+Complete: `36`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -21,7 +21,8 @@ Complete: `35`; partial: `1`; missing: `0`.
 | Real Qwen LLM path sweep | complete | Qwen2.5-1.5B base-to-instruct path is evaluated with fixed NLL prompts plus GSM8K, MMLU, and HumanEval benchmark slices. |
 | Multi-expert LLM merge | complete | Qwen2.5-0.5B base, Qwen2.5-0.5B-Instruct, and Qwen2.5-Coder-0.5B-Instruct are evaluated in a two-expert merge plane. |
 | Formal LLM benchmark slices | complete | Representative Qwen2.5-1.5B benchmark slices cover MMLU, GSM8K, HumanEval canonical-solution NLL, and BeaverTails safety/refusal NLL. |
-| vLLM hosted downstream evaluation | partial | scripts/run_vllm_downstream_eval.py can build a served-model eval plan from the Qwen target registry and evaluate those ids through an OpenAI-compatible vLLM endpoint on GSM8K, MMLU, safety, and HumanEval compile slices; current result is endpoint_unavailable until a vLLM server is reachable. |
+| vLLM hosted downstream evaluation | partial | scripts/run_vllm_downstream_eval.py can build a served-model eval plan from the Qwen target registry; the generic registry run remains endpoint_unavailable, while checkpoint-specific hosted eval is tracked separately. |
+| Materialized checkpoint vLLM hosted eval | complete | results/vllm_checkpoint_eval/qwen_0_5b_instruct_coder_uniform_average/report.md contains a real vLLM-hosted GSM8K/MMLU/safety/HumanEval compile eval for the materialized Qwen2.5-0.5B uniform-average checkpoint. |
 | vLLM downstream eval contract smoke | complete | results/vllm_downstream_eval_smoke/smoke_report.md validates the OpenAI-compatible HTTP request, answer parsing, scoring, model ranking, and artifact writing path using a local mock endpoint. |
 | vLLM checkpoint eval plan | complete | results/vllm_checkpoint_eval_plan/report.md turns same-shape checkpoint candidates into one-checkpoint-at-a-time vLLM serve/eval commands while keeping missing checkpoints separate from completed metrics. |
 | Checkpoint materialization readiness audit | complete | results/checkpoint_materialization_readiness/report.md audits writer commands, placeholders, dry-run outputs, checkpoint existence, and vLLM eval readiness in one table. |
@@ -163,10 +164,12 @@ Complete: `35`; partial: `1`; missing: `0`.
 | vLLM hosted downstream eval | candidate table | results/qwen_target_model_registry/model_registry.csv |
 | vLLM downstream eval smoke | status | passed |
 | vLLM downstream eval smoke | good / bad avg primary | 1.000 / 0.000 |
-| vLLM checkpoint eval plan | status | ready_to_host |
+| vLLM checkpoint eval plan | status | hosted_eval_complete |
 | vLLM checkpoint eval plan | ready / missing / not-loadable | 1 / 2 / 1 |
-| checkpoint materialization readiness | status | ready_for_vllm_eval |
-| checkpoint materialization readiness | materialized / blocked / ready | 1 / 3 / 1 |
+| vLLM checkpoint eval results | completed checkpoints | 1 |
+| vLLM checkpoint eval results | best checkpoint avg / worst primary | qwen_0_5b_instruct_coder_uniform_average / 0.180 / 0.000 |
+| checkpoint materialization readiness | status | hosted_eval_complete |
+| checkpoint materialization readiness | materialized / blocked / ready / completed | 1 / 3 / 0 / 1 |
 | Average decision report | avoid uniform average decisions | 3 |
 | Average decision report | coefficient-search decisions | 2 |
 | model averaging literature review | sources reviewed | 22 |

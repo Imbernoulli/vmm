@@ -4,4 +4,6 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 results/**/checkpoints/
+results/vllm_checkpoint_eval/**/predictions.csv
+results/vllm_downstream_eval*/predictions.csv
 *.pt

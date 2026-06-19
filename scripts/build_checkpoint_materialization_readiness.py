@@ -221,6 +221,22 @@ def vllm_rows() -> pd.DataFrame:
     return pd.read_csv(path)
 
 
+def completed_eval_summary(output_dir: str) -> dict[str, Any]:
+    if not output_dir:
+        return {}
+    summary = read_json_if_exists(repo_path(output_dir) / "summary.json")
+    if summary.get("status") != "complete":
+        return {}
+    model_summary = summary.get("model_summary", [])
+    primary = model_summary[0] if model_summary else {}
+    return {
+        "vllm_eval_status": "complete",
+        "vllm_eval_examples_per_task": summary.get("max_examples_per_task"),
+        "vllm_eval_avg_primary_score": primary.get("avg_primary_score"),
+        "vllm_eval_worst_primary_score": primary.get("worst_primary_score"),
+    }
+
+
 def attach_vllm_status(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     vllm = vllm_rows()
     by_method = {}
@@ -237,7 +253,19 @@ def attach_vllm_status(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
             row["vllm_plan_status"] = str(vllm_row.get("serve_status", ""))
             row["vllm_eval_output_dir"] = str(vllm_row.get("eval_output_dir", ""))
             row["vllm_eval_command"] = str(vllm_row.get("eval_command", ""))
-        if row["writer_output_exists"] and row["vllm_plan_status"] in {"ready_to_host", "not_in_vllm_plan"}:
+        eval_summary = completed_eval_summary(row["vllm_eval_output_dir"])
+        row.update(
+            {
+                "vllm_eval_status": eval_summary.get("vllm_eval_status", "not_run"),
+                "vllm_eval_examples_per_task": eval_summary.get("vllm_eval_examples_per_task"),
+                "vllm_eval_avg_primary_score": eval_summary.get("vllm_eval_avg_primary_score"),
+                "vllm_eval_worst_primary_score": eval_summary.get("vllm_eval_worst_primary_score"),
+            }
+        )
+        if row["vllm_eval_status"] == "complete":
+            row["end_to_end_status"] = "hosted_eval_complete"
+            row["next_writer_action"] = "compare this negative baseline against source endpoints and optimized candidates"
+        elif row["writer_output_exists"] and row["vllm_plan_status"] in {"ready_to_host", "not_in_vllm_plan"}:
             row["end_to_end_status"] = "ready_for_vllm_eval"
         elif row["loadability"] == "not_vllm_loadable_toy":
             row["end_to_end_status"] = "toy_writer_validation_only"
@@ -273,13 +301,19 @@ def build_report(summary: dict[str, Any], rows: list[dict[str, Any]]) -> str:
         f"- Materialized checkpoints: `{summary['materialized_count']}`",
         f"- Blocked by placeholders: `{summary['blocked_by_placeholder_count']}`",
         f"- Ready for vLLM eval: `{summary['ready_for_vllm_eval_count']}`",
+        f"- Completed vLLM evals: `{summary['completed_vllm_eval_count']}`",
         "",
-        "| candidate | writer status | vLLM status | end-to-end status | next action |",
-        "| --- | --- | --- | --- | --- |",
+        "| candidate | writer status | vLLM status | eval status | avg primary | worst primary | end-to-end status | next action |",
+        "| --- | --- | --- | --- | ---: | ---: | --- | --- |",
     ]
     for row in rows:
+        avg_score = row.get("vllm_eval_avg_primary_score")
+        worst_score = row.get("vllm_eval_worst_primary_score")
+        avg_text = "" if avg_score is None or pd.isna(avg_score) else f"{float(avg_score):.3f}"
+        worst_text = "" if worst_score is None or pd.isna(worst_score) else f"{float(worst_score):.3f}"
         lines.append(
             f"| `{row['candidate']}` | `{row['writer_status']}` | `{row['vllm_plan_status']}` | "
+            f"`{row['vllm_eval_status']}` | {avg_text} | {worst_text} | "
             f"`{row['end_to_end_status']}` | {row['next_writer_action']} |"
         )
     lines.extend(
@@ -310,11 +344,16 @@ def main() -> None:
     df.to_csv(csv_path, index=False)
     summary = {
         "schema_version": 1,
-        "status": "ready_for_vllm_eval" if (df["end_to_end_status"] == "ready_for_vllm_eval").any() else "waiting_for_checkpoint_materialization",
+        "status": "hosted_eval_complete"
+        if (df["end_to_end_status"] == "hosted_eval_complete").any()
+        else "ready_for_vllm_eval"
+        if (df["end_to_end_status"] == "ready_for_vllm_eval").any()
+        else "waiting_for_checkpoint_materialization",
         "candidate_count": int(len(df)),
         "materialized_count": int(df["writer_output_exists"].sum()) if "writer_output_exists" in df else 0,
         "blocked_by_placeholder_count": int((df["writer_status"] == "blocked_by_placeholder_inputs").sum()),
         "ready_for_vllm_eval_count": int((df["end_to_end_status"] == "ready_for_vllm_eval").sum()),
+        "completed_vllm_eval_count": int((df["end_to_end_status"] == "hosted_eval_complete").sum()),
         "toy_validation_only_count": int((df["end_to_end_status"] == "toy_writer_validation_only").sum()),
         "outputs": {
             "readiness_csv": rel(csv_path),

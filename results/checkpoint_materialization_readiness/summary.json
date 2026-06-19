@@ -1,14 +1,15 @@
 {
   "blocked_by_placeholder_count": 3,
   "candidate_count": 6,
+  "completed_vllm_eval_count": 1,
   "materialized_count": 1,
   "outputs": {
     "readiness_csv": "results/checkpoint_materialization_readiness/candidate_readiness.csv",
     "report": "results/checkpoint_materialization_readiness/report.md",
     "summary": "results/checkpoint_materialization_readiness/summary.json"
   },
-  "ready_for_vllm_eval_count": 1,
+  "ready_for_vllm_eval_count": 0,
   "schema_version": 1,
-  "status": "ready_for_vllm_eval",
+  "status": "hosted_eval_complete",
   "toy_validation_only_count": 2
 }

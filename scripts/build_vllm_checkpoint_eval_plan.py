@@ -50,6 +50,12 @@ def read_csv_if_exists(path: Path) -> pd.DataFrame | None:
         return None
 
 
+def read_json_if_exists(path: Path) -> dict[str, Any]:
+    if not path.exists() or path.stat().st_size == 0:
+        return {}
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
 def load_manual_candidates(raw_candidates: list[str]) -> list[dict[str, Any]]:
     rows = []
     for raw in raw_candidates:
@@ -145,6 +151,9 @@ def build_plan_rows(args: argparse.Namespace, candidates: list[dict[str, Any]]) 
         tensor_parallel_size = int(candidate.get("tensor_parallel_size") or args.tensor_parallel_size)
         gpu = str(candidate.get("gpu") if "gpu" in candidate else args.gpu)
         output_dir = repo_path(args.eval_output_root) / method
+        eval_summary = read_json_if_exists(output_dir / "summary.json")
+        model_summary = eval_summary.get("model_summary", [])
+        first_model_summary = model_summary[0] if model_summary else {}
         checkpoint_display = rel(checkpoint)
         serve_parts = []
         if gpu:
@@ -197,6 +206,7 @@ def build_plan_rows(args: argparse.Namespace, candidates: list[dict[str, Any]]) 
         status = "ready_to_host" if checkpoint.exists() else "checkpoint_missing_until_materialized"
         if str(candidate.get("materialization_status", "")).startswith("toy_"):
             status = "not_vllm_loadable_toy_candidate"
+        eval_status = str(eval_summary.get("status", "not_run"))
         rows.append(
             {
                 "eval_order": idx,
@@ -216,6 +226,10 @@ def build_plan_rows(args: argparse.Namespace, candidates: list[dict[str, Any]]) 
                 "example_source": args.example_source,
                 "max_examples": args.max_examples,
                 "eval_output_dir": rel(output_dir),
+                "eval_status": eval_status,
+                "eval_completed": eval_status == "complete",
+                "eval_avg_primary_score": first_model_summary.get("avg_primary_score"),
+                "eval_worst_primary_score": first_model_summary.get("worst_primary_score"),
                 "serve_command": shell_join(serve_parts),
                 "eval_command": shell_join(eval_parts),
                 "notes": candidate.get("notes", ""),
@@ -263,17 +277,23 @@ def build_report(summary: dict[str, Any], rows: list[dict[str, Any]]) -> str:
         f"- Plan status: `{summary['status']}`",
         f"- Candidate rows: `{summary['candidate_count']}`",
         f"- Ready to host: `{summary['ready_to_host_count']}`",
+        f"- Completed evals: `{summary['completed_eval_count']}`",
         f"- Missing checkpoints: `{summary['missing_checkpoint_count']}`",
         f"- Tasks: `{summary['tasks']}`",
         "",
         "## Plan",
         "",
-        "| order | method | status | checkpoint | port | output |",
-        "| ---: | --- | --- | --- | ---: | --- |",
+        "| order | method | serve status | eval status | avg primary | worst primary | checkpoint | port | output |",
+        "| ---: | --- | --- | --- | ---: | ---: | --- | ---: | --- |",
     ]
     for row in rows:
+        avg_score = row.get("eval_avg_primary_score")
+        worst_score = row.get("eval_worst_primary_score")
+        avg_text = "" if avg_score is None or pd.isna(avg_score) else f"{float(avg_score):.3f}"
+        worst_text = "" if worst_score is None or pd.isna(worst_score) else f"{float(worst_score):.3f}"
         lines.append(
             f"| {int(row['eval_order'])} | `{row['method']}` | `{row['serve_status']}` | "
+            f"`{row['eval_status']}` | {avg_text} | {worst_text} | "
             f"`{row['checkpoint_path']}` | {int(row['port'])} | `{row['eval_output_dir']}` |"
         )
     lines.extend(
@@ -340,11 +360,17 @@ def main() -> None:
     ready_count = int(sum(row["serve_status"] == "ready_to_host" for row in rows))
     missing_count = int(sum(row["serve_status"] == "checkpoint_missing_until_materialized" for row in rows))
     not_loadable_count = int(sum(row["serve_status"] == "not_vllm_loadable_toy_candidate" for row in rows))
+    completed_eval_count = int(sum(bool(row["eval_completed"]) for row in rows))
     summary = {
         "schema_version": 1,
-        "status": "ready_to_host" if ready_count else "waiting_for_checkpoint_materialization",
+        "status": "hosted_eval_complete"
+        if completed_eval_count
+        else "ready_to_host"
+        if ready_count
+        else "waiting_for_checkpoint_materialization",
         "candidate_count": len(rows),
         "ready_to_host_count": ready_count,
+        "completed_eval_count": completed_eval_count,
         "missing_checkpoint_count": missing_count,
         "not_vllm_loadable_count": not_loadable_count,
         "tasks": args.tasks,

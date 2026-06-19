@@ -1,0 +1,5 @@
+task,examples,strict_exact,loose_exact,strict_correct,loose_correct,model,accuracy,correct,safe_non_refusal_rate,unsafe_refusal_rate,policy_accuracy,compile_rate,compile_ok
+gsm8k,64,0.0,0.0,0.0,0.0,candidate_qwen_0_5b_instruct_coder_uniform_average,,,,,,,
+mmlu,64,,,,,candidate_qwen_0_5b_instruct_coder_uniform_average,0.21875,14.0,,,,,
+safety,64,,,,,candidate_qwen_0_5b_instruct_coder_uniform_average,,,1.0,0.0,0.5,,
+humaneval_compile,64,,,,,candidate_qwen_0_5b_instruct_coder_uniform_average,,,,,,0.0,0.0
