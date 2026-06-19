@@ -642,6 +642,36 @@ def summarize_moe_router_delta_calibration_smoke() -> dict[str, Any]:
     }
 
 
+def summarize_moe_router_calibration_cache_smoke() -> dict[str, Any]:
+    root = repo_path("results/moe_router_calibration_cache_smoke")
+    summary = read_json(root / "summary.json")
+    cache = read_csv(root / "cache_summary.csv")
+    calibration = read_json(root / "delta_calibration/summary.json")
+    return {
+        "summary": summary,
+        "calibration_summary": calibration,
+        "status": summary.get("status"),
+        "cache_ready_router_count": int(summary.get("cache_ready_router_count", 0)),
+        "common_router_count": int(summary.get("common_router_count", len(cache))),
+        "total_cache_rows": int(summary.get("total_cache_rows", 0)),
+        "mean_student_teacher_route_kl": float(summary.get("mean_student_teacher_route_kl", 0.0)),
+        "mean_student_teacher_top1_agreement": float(summary.get("mean_student_teacher_top1_agreement", 0.0)),
+        "calibration_status": summary.get("calibration_status"),
+        "calibration_mean_initial_route_kl": float(calibration.get("mean_initial_route_kl", 0.0)),
+        "calibration_mean_final_route_kl": float(calibration.get("mean_final_route_kl", 0.0)),
+        "calibration_mean_initial_top1_agreement": float(calibration.get("mean_initial_top1_agreement", 0.0)),
+        "calibration_mean_final_top1_agreement": float(calibration.get("mean_final_top1_agreement", 0.0)),
+        "router_delta_safetensors": calibration.get("outputs", {}).get(
+            "router_delta_safetensors",
+            rel(root / "delta_calibration/router_delta.safetensors"),
+        ),
+        "cache": rel(root / "router_calibration_cache.pt"),
+        "cache_summary": rel(root / "cache_summary.csv"),
+        "report": rel(root / "report.md"),
+        "delta_calibration_report": rel(root / "delta_calibration/report.md"),
+    }
+
+
 def summarize_dense_sparse_method_writer_smoke() -> dict[str, Any]:
     summary = read_json("results/dense_sparse_method_writer_smoke/summary.json")
     checks = read_csv("results/dense_sparse_method_writer_smoke/tensor_checks.csv")
@@ -2669,6 +2699,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/moe_router_delta_calibration_smoke/report.md trains a same-shape router safetensors delta from hidden/router-logit cache, improving route KL and top-1 agreement under a relative-norm cap.",
         },
         {
+            "item": "MoE router calibration cache smoke",
+            "status": "complete",
+            "evidence": "results/moe_router_calibration_cache_smoke/report.md captures student router hidden states and teacher router logits from forward hooks, then verifies the cache by training a same-shape router delta.",
+        },
+        {
             "item": "MoE combined writer smoke",
             "status": "complete",
             "evidence": "results/moe_combined_writer_smoke/report.md verifies expert tensor rules, source expert alias remap, freeze-router, and router-bias additive deltas in one same-shape writer call.",
@@ -2853,6 +2888,7 @@ def build_summary() -> dict[str, Any]:
         "dense_sparse_method_writer_smoke": summarize_dense_sparse_method_writer_smoke(),
         "moe_tensor_rule_writer_smoke": summarize_moe_tensor_rule_writer_smoke(),
         "moe_router_delta_calibration_smoke": summarize_moe_router_delta_calibration_smoke(),
+        "moe_router_calibration_cache_smoke": summarize_moe_router_calibration_cache_smoke(),
         "moe_combined_writer_smoke": summarize_moe_combined_writer_smoke(),
         "moe_packed_expert_writer_smoke": summarize_moe_packed_expert_writer_smoke(),
         "checkpoint_topology_inspect": summarize_checkpoint_topology(),
@@ -2985,6 +3021,7 @@ def build_summary() -> dict[str, Any]:
             "PYTHONPATH=scripts python scripts/smoke_dense_sparse_method_writer.py --output-dir results/dense_sparse_method_writer_smoke",
             "python scripts/smoke_moe_tensor_rule_writer.py --output-dir results/moe_tensor_rule_writer_smoke",
             "python scripts/train_moe_router_delta_calibration.py --smoke --output-dir results/moe_router_delta_calibration_smoke",
+            "PYTHONPATH=scripts python scripts/collect_moe_router_calibration_cache.py --smoke --output-dir results/moe_router_calibration_cache_smoke",
             "PYTHONPATH=src python scripts/smoke_moe_combined_writer.py --output-dir results/moe_combined_writer_smoke",
             "PYTHONPATH=scripts python scripts/smoke_moe_packed_expert_writer.py --output-dir results/moe_packed_expert_writer_smoke",
             "python scripts/inspect_checkpoint_topology.py --model NAME=MODEL_PATH --output-dir results/checkpoint_topology_inspect",
@@ -3054,6 +3091,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     dense_sparse_writer_smoke = exp["dense_sparse_method_writer_smoke"]
     moe_tensor_rule_writer_smoke = exp["moe_tensor_rule_writer_smoke"]
     moe_router_delta_calibration_smoke = exp["moe_router_delta_calibration_smoke"]
+    moe_router_calibration_cache_smoke = exp["moe_router_calibration_cache_smoke"]
     moe_combined_writer_smoke = exp["moe_combined_writer_smoke"]
     moe_packed_expert_writer_smoke = exp["moe_packed_expert_writer_smoke"]
     topology = exp["checkpoint_topology_inspect"]
@@ -4293,6 +4331,21 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(moe_router_delta_calibration_smoke['mean_initial_top1_agreement'], 4)}-"
                 f"{fmt(moe_router_delta_calibration_smoke['mean_final_top1_agreement'], 4)} / "
                 f"{fmt(moe_router_delta_calibration_smoke['max_final_relative_delta_norm'], 4)} |"
+            ),
+            (
+                "| MoE router calibration cache smoke | status / ready routers / cache rows | "
+                f"{moe_router_calibration_cache_smoke['status']} / "
+                f"{moe_router_calibration_cache_smoke['cache_ready_router_count']}"
+                f"/{moe_router_calibration_cache_smoke['common_router_count']} / "
+                f"{moe_router_calibration_cache_smoke['total_cache_rows']} |"
+            ),
+            (
+                "| MoE router calibration cache smoke | cache KL / trained KL initial-final / trained top1 initial-final | "
+                f"{fmt(moe_router_calibration_cache_smoke['mean_student_teacher_route_kl'], 4)} / "
+                f"{fmt(moe_router_calibration_cache_smoke['calibration_mean_initial_route_kl'], 4)}-"
+                f"{fmt(moe_router_calibration_cache_smoke['calibration_mean_final_route_kl'], 4)} / "
+                f"{fmt(moe_router_calibration_cache_smoke['calibration_mean_initial_top1_agreement'], 4)}-"
+                f"{fmt(moe_router_calibration_cache_smoke['calibration_mean_final_top1_agreement'], 4)} |"
             ),
             (
                 "| MoE combined writer smoke | status | "

@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T21:42:15.786563+00:00`
+Generated at: `2026-06-19T21:49:00.179228+00:00`
 
 ## Coverage
 
-Complete: `65`; partial: `1`; missing: `0`.
+Complete: `66`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -43,6 +43,7 @@ Complete: `65`; partial: `1`; missing: `0`.
 | Dense sparse-method writer smoke | complete | results/dense_sparse_method_writer_smoke/report.md verifies coordinate-wise TIES-style trim/sign-elect/merge inside the same-shape checkpoint writer. |
 | MoE tensor-rule writer materialization | complete | results/moe_tensor_rule_writer_smoke/report.md writes a tiny MoE-like safetensors checkpoint and verifies tensor-rule, freeze-router, router-bias additive deltas, full-tensor router deltas, and non-floating tensor behavior numerically. |
 | MoE router delta calibration smoke | complete | results/moe_router_delta_calibration_smoke/report.md trains a same-shape router safetensors delta from hidden/router-logit cache, improving route KL and top-1 agreement under a relative-norm cap. |
+| MoE router calibration cache smoke | complete | results/moe_router_calibration_cache_smoke/report.md captures student router hidden states and teacher router logits from forward hooks, then verifies the cache by training a same-shape router delta. |
 | MoE combined writer smoke | complete | results/moe_combined_writer_smoke/report.md verifies expert tensor rules, source expert alias remap, freeze-router, and router-bias additive deltas in one same-shape writer call. |
 | MoE packed-expert writer smoke | complete | results/moe_packed_expert_writer_smoke/report.md verifies first-dimension packed expert slice weights and source-expert remaps for Qwen-style packed MoE tensors. |
 | MoE layer-wise expert remap smoke | complete | results/moe_layerwise_expert_remap_smoke/report.md verifies layer-scoped source tensor alias rules for real multi-layer MoE expert matching. |
@@ -331,6 +332,8 @@ Complete: `65`; partial: `1`; missing: `0`.
 | MoE tensor-rule writer smoke | safetensors tensor delta tensors / values | 1 / 4 |
 | MoE router delta calibration smoke | status / routers / delta tensors | passed / 1 / 1 |
 | MoE router delta calibration smoke | route KL initial-final / top1 initial-final / rel cap | 0.1752-0.0516 / 0.5260-0.7708 / 0.5000 |
+| MoE router calibration cache smoke | status / ready routers / cache rows | passed / 2/2 / 192 |
+| MoE router calibration cache smoke | cache KL / trained KL initial-final / trained top1 initial-final | 0.0624 / 0.0624-0.0204 / 0.7031-0.8802 |
 | MoE combined writer smoke | status | passed |
 | MoE combined writer smoke | checked / failed tensors | 7 / 0 |
 | MoE combined writer smoke | alias rules / aliased tensors / additive values | 2 / 2 / 2 |

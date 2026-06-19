@@ -1,0 +1,23 @@
+{
+  "cache_ready_router_count": 2,
+  "calibration_mean_final_route_kl": 0.020388375502079725,
+  "calibration_status": "passed",
+  "common_router_count": 2,
+  "mean_student_teacher_route_kl": 0.0623903963714838,
+  "mean_student_teacher_top1_agreement": 0.703125,
+  "mean_student_teacher_topk_jaccard": 0.7534722222222223,
+  "outputs": {
+    "cache": "results/moe_router_calibration_cache_smoke/router_calibration_cache.pt",
+    "cache_summary": "results/moe_router_calibration_cache_smoke/cache_summary.csv",
+    "delta_calibration": "results/moe_router_calibration_cache_smoke/delta_calibration",
+    "report": "results/moe_router_calibration_cache_smoke/report.md",
+    "summary": "results/moe_router_calibration_cache_smoke/summary.json"
+  },
+  "schema_version": 1,
+  "status": "passed",
+  "student_model": "SMOKE_STUDENT",
+  "teacher_model": "SMOKE_TEACHER",
+  "total_cache_rows": 192,
+  "training_command": "python scripts/train_moe_router_delta_calibration.py --base STUDENT_BASE_CHECKPOINT --cache results/moe_router_calibration_cache_smoke/router_calibration_cache.pt --output-dir results/moe_router_calibration_cache_smoke/delta_calibration",
+  "writer_command_after_training": "python scripts/write_same_shape_average_checkpoint.py --base STUDENT_BASE_CHECKPOINT --source SOURCE_NAME=SOURCE_CHECKPOINT --source-weight SOURCE_NAME=0.0 --freeze-router --tensor-delta-safetensors results/moe_router_calibration_cache_smoke/delta_calibration/router_delta.safetensors --output-dir CHECKPOINT_WITH_CALIBRATED_ROUTER"
+}
