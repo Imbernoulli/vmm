@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 43400,
+      "bytes": 45212,
       "kind": "document",
       "path": "README.md",
-      "sha256": "bd729a886d4f137ab8e49343f97ed7191b1d6495b39812bc62ae2f9dfc3e514e"
+      "sha256": "db543894206fc617021517c80b2647ad0865e2d2fdba37407a58ed0a6cc82a85"
     },
     {
       "bytes": 33211,
@@ -1393,6 +1393,66 @@
       "sha256": "a5472d55ffb45db4086ac971841f6cb54d6ed18d64e503a2ec8b7bd381382fcc"
     },
     {
+      "bytes": 26812,
+      "kind": "data",
+      "path": "results/qwen_dense_sparse_method_candidate/dry_run/merge_manifest.json",
+      "sha256": "c4681efdc7f5598b2c916c2eb21a52c2d6a03b1b22b38c5c8f4fb1042c1c41c6"
+    },
+    {
+      "bytes": 679,
+      "kind": "data",
+      "path": "results/qwen_dense_sparse_method_candidate/dry_run_command.txt",
+      "sha256": "8b0c64cf418fc5a8b7ea83c2ca752d09d8dad92aa272c95e758eedd3ebe9004b"
+    },
+    {
+      "bytes": 134,
+      "kind": "data",
+      "path": "results/qwen_dense_sparse_method_candidate/dry_run_stderr.txt",
+      "sha256": "d54c19246fbe025f826d9cb2c6dadf31477eeaf7a8c5c50e49ad1d88f456219f"
+    },
+    {
+      "bytes": 185,
+      "kind": "data",
+      "path": "results/qwen_dense_sparse_method_candidate/dry_run_stdout.txt",
+      "sha256": "c08851f9f74745debc764657e35ce8c082bab57f068ea0942df2e3adede2a1a7"
+    },
+    {
+      "bytes": 4873,
+      "kind": "document",
+      "path": "results/qwen_dense_sparse_method_candidate/report.md",
+      "sha256": "c92a5aa7e5873f31d2c6d44bcd86d3df0ba95c2acab4b931c0605e056432601b"
+    },
+    {
+      "bytes": 17630,
+      "kind": "data",
+      "path": "results/qwen_dense_sparse_method_candidate/selected_tensors.csv",
+      "sha256": "a78f38340e8a050ad5dcc1011eea7dc9bcf6f5c6b7bd8cca5fcaf2d7f8323f73"
+    },
+    {
+      "bytes": 11619,
+      "kind": "data",
+      "path": "results/qwen_dense_sparse_method_candidate/summary.json",
+      "sha256": "6ce6fc9d2fc06b6978a7e12675005f13ba1f067c004f7670c5edd3cba5bceb26"
+    },
+    {
+      "bytes": 14751,
+      "kind": "data",
+      "path": "results/qwen_dense_sparse_method_candidate/tensor_method_rules.txt",
+      "sha256": "5efeee57940b4bbab8b0ecfbaf31a492c8d37075affa03b38b0b18285326dfde"
+    },
+    {
+      "bytes": 583,
+      "kind": "data",
+      "path": "results/qwen_dense_sparse_method_candidate/vllm_commands.json",
+      "sha256": "390c4b79fba40d01bd1980f1aef04d6a416231ed15fd1e829babafdfbb47fb06"
+    },
+    {
+      "bytes": 624,
+      "kind": "data",
+      "path": "results/qwen_dense_sparse_method_candidate/writer_command.txt",
+      "sha256": "d8ad5ff66f8931d0672cc07c60b4fd6038f38258d87fdde087274632034e27c4"
+    },
+    {
       "bytes": 66758,
       "kind": "figure",
       "path": "results/qwen_gsm8k_slice/gsm8k_exact_match.png",
@@ -1639,16 +1699,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 405493,
+      "bytes": 426014,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "3f277a6bfa4d2d3af9d55f744c057c1748a3e5cf19f5775b4f3556759dd1c187"
+      "sha256": "3f32c92a853536bf03b1eb46532d29d7ed15a6055fa60bb4cda41cf4aa9a15ba"
     },
     {
-      "bytes": 26222,
+      "bytes": 26689,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "16101a1227f0baf0ad0ebf3907e85231656f2ed38d57768640b5dec625e5a44c"
+      "sha256": "2a168f87118d9f1cead4b9f53d47bce613854d68770d6c373a27d58c1059ae1d"
     },
     {
       "bytes": 288,
@@ -2623,6 +2683,12 @@
       "sha256": "4394b692604f472831c4d14ca8e70e21de1134977e45d12bc4ae9d9106b774e8"
     },
     {
+      "bytes": 15278,
+      "kind": "code",
+      "path": "scripts/build_qwen_dense_sparse_method_candidate.py",
+      "sha256": "58f32eb60affc976d05c927918c62682c7c901cdfda20027b0cbcbc18c404e9f"
+    },
+    {
       "bytes": 39783,
       "kind": "code",
       "path": "scripts/build_qwen_target_model_registry.py",
@@ -2641,10 +2707,10 @@
       "sha256": "0b0e4be7ec51f0afb74dfdee6e3d8b217da9aac4d965a170bea36c89f1b46abb"
     },
     {
-      "bytes": 164077,
+      "bytes": 167550,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "d2b17f1cd59a295f61dfafbf726e7ba809c5144532d7b93529d792ae4711207a"
+      "sha256": "9e996f36e69ea2ad961dd4a1030c52b5f60447398837c1a67cdc24663d382464"
     },
     {
       "bytes": 19422,
@@ -2821,7 +2887,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T16:33:54.138420+00:00",
+  "generated_at": "2026-06-19T16:44:08.056373+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

@@ -1492,6 +1492,41 @@ def summarize_qwen_dense_guarded_candidate(output_dir: str) -> dict[str, Any]:
     }
 
 
+def summarize_qwen_dense_sparse_method_candidate() -> dict[str, Any]:
+    output_dir = "results/qwen_dense_sparse_method_candidate"
+    summary = read_json(f"{output_dir}/summary.json")
+    selected = read_csv(f"{output_dir}/selected_tensors.csv")
+    manifest = read_json(f"{output_dir}/dry_run/merge_manifest.json")
+    method_counts = summary.get("dry_run_method_counts") or manifest.get("method_counts", {})
+    sparse_applied = summary.get("dry_run_tensor_method_applied_count")
+    if sparse_applied is None:
+        sparse_applied = sum(int(count) for method, count in method_counts.items() if str(method).startswith("tensor_method:"))
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "candidate_id": summary.get("candidate_id"),
+        "base_bridge_candidate": summary.get("base_bridge_candidate"),
+        "method": summary.get("method"),
+        "density": maybe_float(summary.get("density")),
+        "source_weights": summary.get("source_weights", {}),
+        "selected_tensor_count": maybe_int(summary.get("selected_tensor_count")),
+        "selected_numel": maybe_int(summary.get("selected_numel")),
+        "selected_numel_fraction": maybe_float(summary.get("selected_numel_fraction")),
+        "projection_counts": summary.get("projection_counts", {}),
+        "dry_run_status": summary.get("dry_run_status"),
+        "dry_run_linear_count": maybe_int(method_counts.get("linear")),
+        "dry_run_tensor_method_applied_count": maybe_int(sparse_applied),
+        "dry_run_floating_tensors": maybe_int(manifest.get("floating_tensors")),
+        "top_selected_tensors": [clean_row(row) for _, row in selected.head(12).iterrows()],
+        "report": rel(f"{output_dir}/report.md"),
+        "selected_tensors_path": rel(f"{output_dir}/selected_tensors.csv"),
+        "tensor_method_rules": rel(f"{output_dir}/tensor_method_rules.txt"),
+        "dry_run_manifest": rel(f"{output_dir}/dry_run/merge_manifest.json"),
+        "writer_command": rel(f"{output_dir}/writer_command.txt"),
+        "vllm_commands": rel(f"{output_dir}/vllm_commands.json"),
+    }
+
+
 def summarize_checkpoint_materialization_readiness() -> dict[str, Any]:
     summary = read_json("results/checkpoint_materialization_readiness/summary.json")
     readiness = read_csv("results/checkpoint_materialization_readiness/candidate_readiness.csv")
@@ -1717,6 +1752,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/qwen_dense_module_guarded_candidate/report.md, results/qwen_dense_norm_guarded_candidate/report.md, and results/qwen_dense_selective_norm_guarded_candidate/report.md compare module-level, norm-only, and selective-norm tensor-rule variants against the global bridge under the same vLLM downstream tasks.",
         },
         {
+            "item": "Qwen dense sparse-method candidate",
+            "status": "complete",
+            "evidence": "results/qwen_dense_sparse_method_candidate/report.md selects high-conflict attention/MLP tensors from Qwen conflict probes and dry-runs 99 TIES tensor-method rules in the same-shape writer.",
+        },
+        {
             "item": "vLLM downstream eval contract smoke",
             "status": "complete",
             "evidence": "results/vllm_downstream_eval_smoke/smoke_report.md validates the OpenAI-compatible HTTP request, answer parsing, scoring, model ranking, and artifact writing path using a local mock endpoint.",
@@ -1940,6 +1980,7 @@ def build_summary() -> dict[str, Any]:
         "qwen_dense_selective_norm_guarded_candidate": summarize_qwen_dense_guarded_candidate(
             "results/qwen_dense_selective_norm_guarded_candidate"
         ),
+        "qwen_dense_sparse_method_candidate": summarize_qwen_dense_sparse_method_candidate(),
         "checkpoint_materialization_readiness": summarize_checkpoint_materialization_readiness(),
         "moe_materialization_pipeline_plan": summarize_moe_materialization_pipeline_plan(),
         "probe_gated_unified_average_plan": summarize_probe_gated_unified_average_plan(),
@@ -1992,6 +2033,7 @@ def build_summary() -> dict[str, Any]:
             "PYTHONPATH=src python scripts/build_qwen_dense_module_guarded_candidate.py --output-dir results/qwen_dense_module_guarded_candidate --variant module_guarded",
             "PYTHONPATH=src python scripts/build_qwen_dense_module_guarded_candidate.py --output-dir results/qwen_dense_norm_guarded_candidate --variant norm_only",
             "PYTHONPATH=src python scripts/build_qwen_dense_module_guarded_candidate.py --output-dir results/qwen_dense_selective_norm_guarded_candidate --variant selective_norm",
+            "PYTHONPATH=src python scripts/build_qwen_dense_sparse_method_candidate.py --output-dir results/qwen_dense_sparse_method_candidate",
             "PYTHONPATH=src python scripts/build_average_decision_report.py",
             "python scripts/build_qwen_target_model_registry.py",
             "PYTHONPATH=src python scripts/build_moe_average_plan.py",
@@ -2088,6 +2130,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen_dense_module_guarded = exp["qwen_dense_module_guarded_candidate"]
     qwen_dense_norm_guarded = exp["qwen_dense_norm_guarded_candidate"]
     qwen_dense_selective_norm_guarded = exp["qwen_dense_selective_norm_guarded_candidate"]
+    qwen_dense_sparse_method = exp["qwen_dense_sparse_method_candidate"]
     materialization_readiness = exp["checkpoint_materialization_readiness"]
     moe_pipeline_plan = exp["moe_materialization_pipeline_plan"]
     probe_gated_unified = exp["probe_gated_unified_average_plan"]
@@ -2717,6 +2760,18 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 "| Qwen dense guard ablation | selective-norm vLLM avg / delta vs global bridge | "
                 f"{fmt(qwen_dense_selective_norm_guarded['vllm_avg_primary_score'])} / "
                 f"{fmt(qwen_dense_selective_norm_guarded['delta_vs_global_bridge_avg_primary'])} |"
+            ),
+            (
+                "| Qwen dense sparse-method candidate | selected tensors / applied sparse rules / linear tensors | "
+                f"{qwen_dense_sparse_method['selected_tensor_count']} / "
+                f"{qwen_dense_sparse_method['dry_run_tensor_method_applied_count']} / "
+                f"{qwen_dense_sparse_method['dry_run_linear_count']} |"
+            ),
+            (
+                "| Qwen dense sparse-method candidate | method / density / selected parameter fraction | "
+                f"{qwen_dense_sparse_method['method']} / "
+                f"{fmt(qwen_dense_sparse_method['density'])} / "
+                f"{fmt(qwen_dense_sparse_method['selected_numel_fraction'])} |"
             ),
             (
                 "| checkpoint materialization readiness | status | "

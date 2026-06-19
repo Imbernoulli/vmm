@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T16:33:54.094135+00:00`
+Generated at: `2026-06-19T16:44:08.012500+00:00`
 
 ## Coverage
 
-Complete: `50`; partial: `1`; missing: `0`.
+Complete: `51`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -26,6 +26,7 @@ Complete: `50`; partial: `1`; missing: `0`.
 | Qwen source-vs-merge vLLM comparison | complete | results/vllm_source_merge_comparison/report.md compares Qwen2.5-0.5B base/instruct/coder source endpoints against the materialized uniform-average checkpoint under the same vLLM downstream tasks. |
 | Probe-guided dense average candidate vLLM eval | complete | results/probe_guided_dense_average_candidate/report.md selects a non-uniform Qwen instruct/coder bridge from the NLL grid, materializes the same-shape checkpoint locally, and records its real vLLM downstream eval. |
 | Qwen dense module-wise guard ablation vLLM eval | complete | results/qwen_dense_module_guarded_candidate/report.md, results/qwen_dense_norm_guarded_candidate/report.md, and results/qwen_dense_selective_norm_guarded_candidate/report.md compare module-level, norm-only, and selective-norm tensor-rule variants against the global bridge under the same vLLM downstream tasks. |
+| Qwen dense sparse-method candidate | complete | results/qwen_dense_sparse_method_candidate/report.md selects high-conflict attention/MLP tensors from Qwen conflict probes and dry-runs 99 TIES tensor-method rules in the same-shape writer. |
 | vLLM downstream eval contract smoke | complete | results/vllm_downstream_eval_smoke/smoke_report.md validates the OpenAI-compatible HTTP request, answer parsing, scoring, model ranking, and artifact writing path using a local mock endpoint. |
 | vLLM checkpoint eval plan | complete | results/vllm_checkpoint_eval_plan/report.md turns same-shape checkpoint candidates into one-checkpoint-at-a-time vLLM serve/eval commands while keeping missing checkpoints separate from completed metrics. |
 | Checkpoint materialization readiness audit | complete | results/checkpoint_materialization_readiness/report.md audits writer commands, placeholders, dry-run outputs, checkpoint existence, and vLLM eval readiness in one table. |
@@ -210,6 +211,8 @@ Complete: `50`; partial: `1`; missing: `0`.
 | Qwen dense guard ablation | module-guarded vLLM avg / delta vs global bridge | 0.160 / -0.043 |
 | Qwen dense guard ablation | norm-only vLLM avg / delta vs global bridge | 0.203 / 0.000 |
 | Qwen dense guard ablation | selective-norm vLLM avg / delta vs global bridge | 0.191 / -0.012 |
+| Qwen dense sparse-method candidate | selected tensors / applied sparse rules / linear tensors | 99 / 99 / 191 |
+| Qwen dense sparse-method candidate | method / density / selected parameter fraction | ties / 0.500 / 0.487 |
 | checkpoint materialization readiness | status | hosted_eval_complete |
 | checkpoint materialization readiness | materialized / blocked / ready / completed | 1 / 4 / 0 / 1 |
 | MoE materialization pipeline | status | waiting_for_real_moe_probe_or_paths |
