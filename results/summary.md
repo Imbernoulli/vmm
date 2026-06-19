@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-19T20:16:52.219310+00:00`
+Generated at: `2026-06-19T20:22:23.639609+00:00`
 
 ## Coverage
 
@@ -148,6 +148,9 @@ Complete: `60`; partial: `1`; missing: `0`.
 | Qwen3 MoE expert-only ablation | frozen tensors / expert / attention hits | 3891 / 15729 / 288 |
 | Qwen3 MoE expert-only delta audit | status / total relative norm / router changed | passed / 0.246 / 0/48 |
 | Qwen3 MoE expert-only delta audit | max routed rel-delta / routed tensors >1.0 / >0.75 | 0.750 / 0 / 14 |
+| Qwen3 MoE delta frontier | best safety candidate / next required gate | expert_only / vllm_downstream_eval_trust_region_vs_expert_only_attention_ablation |
+| Qwen3 MoE delta frontier | audit->trust routed >0.75 reduction / trust->expert-only routed >0.75 reduction | 150 / 0 |
+| Qwen3 MoE delta frontier | trust vs expert-only total rel-norm / attention norm reduction | 0.249->0.246 / 0.189 |
 | real MoE gauge self-merge | baseline / same-name / aligned NLL | 4.168 / 9.659 / 4.168 |
 | real MoE gauge self-merge | same-name degradation vs baseline | 5.491 |
 | real MoE gauge self-merge | recovered expert permutations | 16 / 16 |

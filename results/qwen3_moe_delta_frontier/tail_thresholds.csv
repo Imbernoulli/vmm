@@ -1,0 +1,17 @@
+candidate,threshold,routed_tensor_count
+route_guarded,1.0,182
+route_guarded,0.75,839
+route_guarded,0.65,1156
+route_guarded,0.5,1768
+audit_gated,1.0,0
+audit_gated,0.75,164
+audit_gated,0.65,1146
+audit_gated,0.5,1768
+trust_region,1.0,0
+trust_region,0.75,14
+trust_region,0.65,366
+trust_region,0.5,1759
+expert_only,1.0,0
+expert_only,0.75,14
+expert_only,0.65,366
+expert_only,0.5,1759

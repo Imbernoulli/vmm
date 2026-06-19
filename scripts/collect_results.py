@@ -873,6 +873,53 @@ def summarize_qwen3_moe_expert_only_delta_audit() -> dict[str, Any]:
     return summarize_materialized_delta_audit_dir("results/qwen3_moe_expert_only_delta_audit")
 
 
+def summarize_qwen3_moe_delta_frontier() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_delta_frontier")
+    summary = read_json(root / "summary.json")
+    candidates = read_csv(root / "candidate_delta_frontier.csv")
+    pairwise = read_csv(root / "pairwise_delta_reductions.csv")
+    thresholds = read_csv(root / "tail_thresholds.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "candidate_count": int(summary.get("candidate_count", len(candidates))),
+        "best_delta_safety_candidate": summary.get("best_delta_safety_candidate"),
+        "trust_region_total_relative_delta_norm": maybe_float(
+            summary.get("trust_region_total_relative_delta_norm")
+        ),
+        "expert_only_total_relative_delta_norm": maybe_float(
+            summary.get("expert_only_total_relative_delta_norm")
+        ),
+        "trust_to_expert_only_relative_norm_reduction": maybe_float(
+            summary.get("trust_to_expert_only_relative_norm_reduction")
+        ),
+        "trust_to_expert_only_attention_norm_reduction": maybe_float(
+            summary.get("trust_to_expert_only_attention_norm_reduction")
+        ),
+        "audit_to_trust_routed_gt_075_reduction": int(
+            summary.get("audit_to_trust_routed_gt_075_reduction", 0)
+        ),
+        "trust_to_expert_only_routed_gt_075_reduction": int(
+            summary.get("trust_to_expert_only_routed_gt_075_reduction", 0)
+        ),
+        "expert_only_attention_changed_tensors": int(
+            summary.get("expert_only_attention_changed_tensors", 0)
+        ),
+        "expert_only_router_changed_tensors": int(summary.get("expert_only_router_changed_tensors", 0)),
+        "next_required_gate": summary.get("next_required_gate"),
+        "candidate_rows": [clean_row(row) for _, row in candidates.iterrows()],
+        "pairwise_rows": [clean_row(row) for _, row in pairwise.iterrows()],
+        "threshold_rows": [clean_row(row) for _, row in thresholds.iterrows()],
+        "report": rel(root / "report.md"),
+        "candidate_frontier": rel(root / "candidate_delta_frontier.csv"),
+        "group_frontier": rel(root / "group_delta_frontier.csv"),
+        "pairwise_reductions": rel(root / "pairwise_delta_reductions.csv"),
+        "tail_thresholds": rel(root / "tail_thresholds.csv"),
+        "layer_frontier": rel(root / "layer_delta_frontier.csv"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_qwen3_moe_trust_region_delta_validation() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_trust_region_delta_validation")
     summary = read_json(root / "summary.json")
@@ -2585,6 +2632,7 @@ def build_summary() -> dict[str, Any]:
             summarize_qwen3_moe_expert_only_trust_region_candidate()
         ),
         "qwen3_moe_expert_only_delta_audit": summarize_qwen3_moe_expert_only_delta_audit(),
+        "qwen3_moe_delta_frontier": summarize_qwen3_moe_delta_frontier(),
         "toy_moe_routing_readiness": summarize_toy_moe_routing_readiness(),
         "toy_moe_method_selection": summarize_toy_moe_method_selection(),
         "toy_moe_expert_remap_plan": summarize_toy_moe_expert_remap_plan(),
@@ -2700,6 +2748,7 @@ def build_summary() -> dict[str, Any]:
             "python scripts/validate_qwen3_moe_trust_region_delta.py --output-dir results/qwen3_moe_trust_region_delta_validation",
             "python scripts/build_qwen3_moe_expert_only_trust_region_candidate.py --output-dir results/qwen3_moe_expert_only_trust_region_candidate",
             "python scripts/audit_materialized_checkpoint_delta.py --base BASE --candidate EXPERT_ONLY_CANDIDATE --output-dir results/qwen3_moe_expert_only_delta_audit",
+            "python scripts/build_qwen3_moe_delta_frontier.py --output-dir results/qwen3_moe_delta_frontier",
             "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
             "PYTHONPATH=src python scripts/collect_results.py",
         ],
@@ -2768,6 +2817,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_trust_region_delta_validation = exp["qwen3_moe_trust_region_delta_validation"]
     qwen3_moe_expert_only_trust_region_candidate = exp["qwen3_moe_expert_only_trust_region_candidate"]
     qwen3_moe_expert_only_delta_audit = exp["qwen3_moe_expert_only_delta_audit"]
+    qwen3_moe_delta_frontier = exp["qwen3_moe_delta_frontier"]
     selected_unified_capacity = toy_moe.get("unified_moe_capacity_sweep_selected") or {}
     selected_unified_output_projection_capacity = (
         toy_moe.get("unified_output_projection_moe_capacity_sweep_selected") or {}
@@ -3176,6 +3226,22 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(qwen3_moe_expert_only_delta_audit['max_routed_tensor_relative_delta'])} / "
                 f"{qwen3_moe_expert_only_delta_audit['routed_tensors_relative_delta_gt_1']} / "
                 f"{qwen3_moe_expert_only_delta_audit['routed_tensors_relative_delta_gt_075']} |"
+            ),
+            (
+                "| Qwen3 MoE delta frontier | best safety candidate / next required gate | "
+                f"{qwen3_moe_delta_frontier['best_delta_safety_candidate']} / "
+                f"{qwen3_moe_delta_frontier['next_required_gate']} |"
+            ),
+            (
+                "| Qwen3 MoE delta frontier | audit->trust routed >0.75 reduction / trust->expert-only routed >0.75 reduction | "
+                f"{qwen3_moe_delta_frontier['audit_to_trust_routed_gt_075_reduction']} / "
+                f"{qwen3_moe_delta_frontier['trust_to_expert_only_routed_gt_075_reduction']} |"
+            ),
+            (
+                "| Qwen3 MoE delta frontier | trust vs expert-only total rel-norm / attention norm reduction | "
+                f"{fmt(qwen3_moe_delta_frontier['trust_region_total_relative_delta_norm'])}"
+                f"->{fmt(qwen3_moe_delta_frontier['expert_only_total_relative_delta_norm'])} / "
+                f"{fmt(qwen3_moe_delta_frontier['trust_to_expert_only_attention_norm_reduction'])} |"
             ),
             (
                 "| real MoE gauge self-merge | baseline / same-name / aligned NLL | "

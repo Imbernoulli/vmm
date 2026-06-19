@@ -6818,6 +6818,373 @@
         }
       ]
     },
+    "qwen3_moe_delta_frontier": {
+      "audit_to_trust_routed_gt_075_reduction": 150,
+      "best_delta_safety_candidate": "expert_only",
+      "candidate_count": 4,
+      "candidate_frontier": "results/qwen3_moe_delta_frontier/candidate_delta_frontier.csv",
+      "candidate_rows": [
+        {
+          "attention_changed_numel_fraction": 1.0,
+          "attention_changed_tensors": 288,
+          "attention_max_tensor_relative_delta": 0.2945318646495786,
+          "attention_relative_delta_norm": 0.188546444938151,
+          "audit_dir": "results/qwen3_moe_materialized_delta_audit",
+          "candidate": "route_guarded",
+          "changed_numel_fraction": 0.5630084470605328,
+          "changed_tensors": 10641,
+          "max_abs_delta": 1.6875,
+          "method": "qwen3_moe_unified_route_guarded_candidate",
+          "routed_changed_numel_fraction": 0.5616861979166666,
+          "routed_changed_tensors": 10353,
+          "routed_max_tensor_relative_delta": 1.327236932104148,
+          "routed_p95_tensor_relative_delta": 0.7232101779615792,
+          "routed_p99_tensor_relative_delta": 0.9981719621107764,
+          "routed_relative_delta_norm": 0.2931251336290252,
+          "routed_tensors_gt_0_5": 1768,
+          "routed_tensors_gt_0_65": 1156,
+          "routed_tensors_gt_0_75": 839,
+          "routed_tensors_gt_1_0": 182,
+          "router_changed_tensors": 0,
+          "router_tensors": 48,
+          "rule": "freeze_router_route_conditioned_experts_small_attention",
+          "status": "passed",
+          "tensor_count": 18867,
+          "total_delta_norm": 1180.9302046416317,
+          "total_relative_delta_norm": 0.2856374928013712
+        },
+        {
+          "attention_changed_numel_fraction": 1.0,
+          "attention_changed_tensors": 288,
+          "attention_max_tensor_relative_delta": 0.2945318646495786,
+          "attention_relative_delta_norm": 0.188546444938151,
+          "audit_dir": "results/qwen3_moe_audit_gated_delta_audit",
+          "candidate": "audit_gated",
+          "changed_numel_fraction": 0.5630084470605328,
+          "changed_tensors": 10641,
+          "max_abs_delta": 1.6875,
+          "method": "qwen3_moe_audit_gated_candidate",
+          "routed_changed_numel_fraction": 0.5616861979166666,
+          "routed_changed_tensors": 10353,
+          "routed_max_tensor_relative_delta": 0.7500417154655807,
+          "routed_p95_tensor_relative_delta": 0.6993373619740993,
+          "routed_p99_tensor_relative_delta": 0.7499994472057022,
+          "routed_relative_delta_norm": 0.2703826752777784,
+          "routed_tensors_gt_0_5": 1768,
+          "routed_tensors_gt_0_65": 1146,
+          "routed_tensors_gt_0_75": 164,
+          "routed_tensors_gt_1_0": 0,
+          "router_changed_tensors": 0,
+          "router_tensors": 48,
+          "rule": "route_conditioned_experts_with_delta_cap",
+          "status": "passed",
+          "tensor_count": 18867,
+          "total_delta_norm": 1090.826367315644,
+          "total_relative_delta_norm": 0.263843627182202
+        },
+        {
+          "attention_changed_numel_fraction": 1.0,
+          "attention_changed_tensors": 288,
+          "attention_max_tensor_relative_delta": 0.2945318646495786,
+          "attention_relative_delta_norm": 0.188546444938151,
+          "audit_dir": "results/qwen3_moe_trust_region_delta_audit",
+          "candidate": "trust_region",
+          "changed_numel_fraction": 0.5630084470605328,
+          "changed_tensors": 10641,
+          "max_abs_delta": 1.6875,
+          "method": "qwen3_moe_trust_region_candidate",
+          "routed_changed_numel_fraction": 0.5616861979166666,
+          "routed_changed_tensors": 10353,
+          "routed_max_tensor_relative_delta": 0.7500218768922794,
+          "routed_p95_tensor_relative_delta": 0.5968140763150682,
+          "routed_p99_tensor_relative_delta": 0.6931072832360479,
+          "routed_relative_delta_norm": 0.2545180628201444,
+          "routed_tensors_gt_0_5": 1759,
+          "routed_tensors_gt_0_65": 366,
+          "routed_tensors_gt_0_75": 14,
+          "routed_tensors_gt_1_0": 0,
+          "router_changed_tensors": 0,
+          "router_tensors": 48,
+          "rule": "route_load_category_fragility_trust_region",
+          "status": "passed",
+          "tensor_count": 18867,
+          "total_delta_norm": 1028.0540834124845,
+          "total_relative_delta_norm": 0.2486605810368496
+        },
+        {
+          "attention_changed_numel_fraction": 0.0,
+          "attention_changed_tensors": 0,
+          "attention_max_tensor_relative_delta": 0.0,
+          "attention_relative_delta_norm": 0.0,
+          "audit_dir": "results/qwen3_moe_expert_only_delta_audit",
+          "candidate": "expert_only",
+          "changed_numel_fraction": 0.5333353724709579,
+          "changed_tensors": 10353,
+          "max_abs_delta": 0.59765625,
+          "method": "qwen3_moe_expert_only_trust_region_candidate",
+          "routed_changed_numel_fraction": 0.5616861979166666,
+          "routed_changed_tensors": 10353,
+          "routed_max_tensor_relative_delta": 0.7500218768922794,
+          "routed_p95_tensor_relative_delta": 0.5968140763150682,
+          "routed_p99_tensor_relative_delta": 0.6931072832360479,
+          "routed_relative_delta_norm": 0.2545180628201444,
+          "routed_tensors_gt_0_5": 1759,
+          "routed_tensors_gt_0_65": 366,
+          "routed_tensors_gt_0_75": 14,
+          "routed_tensors_gt_1_0": 0,
+          "router_changed_tensors": 0,
+          "router_tensors": 48,
+          "rule": "trust_region_experts_freeze_attention",
+          "status": "passed",
+          "tensor_count": 18867,
+          "total_delta_norm": 1017.190922308056,
+          "total_relative_delta_norm": 0.2460330539488216
+        }
+      ],
+      "expert_only_attention_changed_tensors": 0,
+      "expert_only_router_changed_tensors": 0,
+      "expert_only_total_relative_delta_norm": 0.24603305394882163,
+      "group_frontier": "results/qwen3_moe_delta_frontier/group_delta_frontier.csv",
+      "layer_frontier": "results/qwen3_moe_delta_frontier/layer_delta_frontier.csv",
+      "next_required_gate": "vllm_downstream_eval_trust_region_vs_expert_only_attention_ablation",
+      "pairwise_reductions": "results/qwen3_moe_delta_frontier/pairwise_delta_reductions.csv",
+      "pairwise_rows": [
+        {
+          "attention_relative_delta_norm_reduction": 0.0,
+          "changed_tensors_reduction": 0,
+          "delta_rule_change": "freeze_router_route_conditioned_experts_small_attention -> route_conditioned_experts_with_delta_cap",
+          "from_candidate": "route_guarded",
+          "routed_gt_075_reduction": 675,
+          "routed_gt_1_reduction": 182,
+          "routed_max_tensor_relative_delta_reduction": 0.5771952166385672,
+          "routed_relative_delta_norm_reduction": 0.0227424583512468,
+          "to_candidate": "audit_gated",
+          "total_relative_delta_norm_reduction": 0.0217938656191691
+        },
+        {
+          "attention_relative_delta_norm_reduction": 0.0,
+          "changed_tensors_reduction": 0,
+          "delta_rule_change": "route_conditioned_experts_with_delta_cap -> route_load_category_fragility_trust_region",
+          "from_candidate": "audit_gated",
+          "routed_gt_075_reduction": 150,
+          "routed_gt_1_reduction": 0,
+          "routed_max_tensor_relative_delta_reduction": 1.983857330134509e-05,
+          "routed_relative_delta_norm_reduction": 0.0158646124576339,
+          "to_candidate": "trust_region",
+          "total_relative_delta_norm_reduction": 0.0151830461453524
+        },
+        {
+          "attention_relative_delta_norm_reduction": 0.188546444938151,
+          "changed_tensors_reduction": 288,
+          "delta_rule_change": "route_load_category_fragility_trust_region -> trust_region_experts_freeze_attention",
+          "from_candidate": "trust_region",
+          "routed_gt_075_reduction": 0,
+          "routed_gt_1_reduction": 0,
+          "routed_max_tensor_relative_delta_reduction": 0.0,
+          "routed_relative_delta_norm_reduction": 0.0,
+          "to_candidate": "expert_only",
+          "total_relative_delta_norm_reduction": 0.0026275270880279
+        }
+      ],
+      "report": "results/qwen3_moe_delta_frontier/report.md",
+      "status": "delta_frontier_ready",
+      "summary": {
+        "audit_to_trust_routed_gt_075_reduction": 150,
+        "best_delta_safety_candidate": "expert_only",
+        "candidate_count": 4,
+        "expert_only_attention_changed_tensors": 0,
+        "expert_only_router_changed_tensors": 0,
+        "expert_only_total_relative_delta_norm": 0.24603305394882163,
+        "highest_trust_region_layers": [
+          {
+            "expert_only_relative_delta_norm": 0.3079834191697174,
+            "layer": 22,
+            "route_guarded_relative_delta_norm": 0.3536107557030083,
+            "route_to_trust_reduction": 0.04327411022053379,
+            "trust_region_relative_delta_norm": 0.3103366454824745,
+            "trust_to_expert_only_reduction": 0.0023532263127571396
+          },
+          {
+            "expert_only_relative_delta_norm": 0.287533639076152,
+            "layer": 17,
+            "route_guarded_relative_delta_norm": 0.3468300537451158,
+            "route_to_trust_reduction": 0.05568166588880197,
+            "trust_region_relative_delta_norm": 0.2911483878563138,
+            "trust_to_expert_only_reduction": 0.003614748780161825
+          },
+          {
+            "expert_only_relative_delta_norm": 0.284350848653104,
+            "layer": 12,
+            "route_guarded_relative_delta_norm": 0.3402511118591397,
+            "route_to_trust_reduction": 0.0520804660440361,
+            "trust_region_relative_delta_norm": 0.2881706458151036,
+            "trust_to_expert_only_reduction": 0.003819797161999594
+          },
+          {
+            "expert_only_relative_delta_norm": 0.2810388219856966,
+            "layer": 23,
+            "route_guarded_relative_delta_norm": 0.3357040046167494,
+            "route_to_trust_reduction": 0.05196468593107778,
+            "trust_region_relative_delta_norm": 0.2837393186856716,
+            "trust_to_expert_only_reduction": 0.002700496699975019
+          },
+          {
+            "expert_only_relative_delta_norm": 0.2776933735381983,
+            "layer": 20,
+            "route_guarded_relative_delta_norm": 0.3397887787184432,
+            "route_to_trust_reduction": 0.05935284792039369,
+            "trust_region_relative_delta_norm": 0.2804359307980495,
+            "trust_to_expert_only_reduction": 0.0027425572598512304
+          },
+          {
+            "expert_only_relative_delta_norm": 0.2772625800736952,
+            "layer": 26,
+            "route_guarded_relative_delta_norm": 0.3425549645603962,
+            "route_to_trust_reduction": 0.06307010031721522,
+            "trust_region_relative_delta_norm": 0.279484864243181,
+            "trust_to_expert_only_reduction": 0.0022222841694857776
+          },
+          {
+            "expert_only_relative_delta_norm": 0.2745647119784266,
+            "layer": 24,
+            "route_guarded_relative_delta_norm": 0.3263049785632597,
+            "route_to_trust_reduction": 0.048977511785955774,
+            "trust_region_relative_delta_norm": 0.2773274667773039,
+            "trust_to_expert_only_reduction": 0.0027627547988773316
+          },
+          {
+            "expert_only_relative_delta_norm": 0.2734594958576116,
+            "layer": 8,
+            "route_guarded_relative_delta_norm": 0.3128747155233154,
+            "route_to_trust_reduction": 0.03614335119439743,
+            "trust_region_relative_delta_norm": 0.276731364328918,
+            "trust_to_expert_only_reduction": 0.003271868471306394
+          },
+          {
+            "expert_only_relative_delta_norm": 0.2699399272640423,
+            "layer": 25,
+            "route_guarded_relative_delta_norm": 0.3158693175007592,
+            "route_to_trust_reduction": 0.04311477848761541,
+            "trust_region_relative_delta_norm": 0.2727545390131438,
+            "trust_to_expert_only_reduction": 0.00281461174910147
+          },
+          {
+            "expert_only_relative_delta_norm": 0.2667934297597258,
+            "layer": 15,
+            "route_guarded_relative_delta_norm": 0.3097682567044132,
+            "route_to_trust_reduction": 0.03936663040828581,
+            "trust_region_relative_delta_norm": 0.2704016262961274,
+            "trust_to_expert_only_reduction": 0.0036081965364015978
+          }
+        ],
+        "interpretation": "Trust-region rules control the routed-expert delta tail; expert-only freezes attention without changing routed tail risk. Attention should therefore be decided by downstream eval, not by delta safety alone.",
+        "next_required_gate": "vllm_downstream_eval_trust_region_vs_expert_only_attention_ablation",
+        "outputs": {
+          "candidate_frontier": "results/qwen3_moe_delta_frontier/candidate_delta_frontier.csv",
+          "group_frontier": "results/qwen3_moe_delta_frontier/group_delta_frontier.csv",
+          "layer_frontier": "results/qwen3_moe_delta_frontier/layer_delta_frontier.csv",
+          "pairwise_reductions": "results/qwen3_moe_delta_frontier/pairwise_delta_reductions.csv",
+          "report": "results/qwen3_moe_delta_frontier/report.md",
+          "summary": "results/qwen3_moe_delta_frontier/summary.json",
+          "tail_thresholds": "results/qwen3_moe_delta_frontier/tail_thresholds.csv"
+        },
+        "router_changed_all_candidates": 0,
+        "schema_version": 1,
+        "status": "delta_frontier_ready",
+        "trust_region_total_relative_delta_norm": 0.2486605810368496,
+        "trust_to_expert_only_attention_norm_reduction": 0.188546444938151,
+        "trust_to_expert_only_relative_norm_reduction": 0.0026275270880279644,
+        "trust_to_expert_only_routed_gt_075_reduction": 0
+      },
+      "summary_path": "results/qwen3_moe_delta_frontier/summary.json",
+      "tail_thresholds": "results/qwen3_moe_delta_frontier/tail_thresholds.csv",
+      "threshold_rows": [
+        {
+          "candidate": "route_guarded",
+          "routed_tensor_count": 182,
+          "threshold": 1.0
+        },
+        {
+          "candidate": "route_guarded",
+          "routed_tensor_count": 839,
+          "threshold": 0.75
+        },
+        {
+          "candidate": "route_guarded",
+          "routed_tensor_count": 1156,
+          "threshold": 0.65
+        },
+        {
+          "candidate": "route_guarded",
+          "routed_tensor_count": 1768,
+          "threshold": 0.5
+        },
+        {
+          "candidate": "audit_gated",
+          "routed_tensor_count": 0,
+          "threshold": 1.0
+        },
+        {
+          "candidate": "audit_gated",
+          "routed_tensor_count": 164,
+          "threshold": 0.75
+        },
+        {
+          "candidate": "audit_gated",
+          "routed_tensor_count": 1146,
+          "threshold": 0.65
+        },
+        {
+          "candidate": "audit_gated",
+          "routed_tensor_count": 1768,
+          "threshold": 0.5
+        },
+        {
+          "candidate": "trust_region",
+          "routed_tensor_count": 0,
+          "threshold": 1.0
+        },
+        {
+          "candidate": "trust_region",
+          "routed_tensor_count": 14,
+          "threshold": 0.75
+        },
+        {
+          "candidate": "trust_region",
+          "routed_tensor_count": 366,
+          "threshold": 0.65
+        },
+        {
+          "candidate": "trust_region",
+          "routed_tensor_count": 1759,
+          "threshold": 0.5
+        },
+        {
+          "candidate": "expert_only",
+          "routed_tensor_count": 0,
+          "threshold": 1.0
+        },
+        {
+          "candidate": "expert_only",
+          "routed_tensor_count": 14,
+          "threshold": 0.75
+        },
+        {
+          "candidate": "expert_only",
+          "routed_tensor_count": 366,
+          "threshold": 0.65
+        },
+        {
+          "candidate": "expert_only",
+          "routed_tensor_count": 1759,
+          "threshold": 0.5
+        }
+      ],
+      "trust_region_total_relative_delta_norm": 0.2486605810368496,
+      "trust_to_expert_only_attention_norm_reduction": 0.188546444938151,
+      "trust_to_expert_only_relative_norm_reduction": 0.0026275270880279644,
+      "trust_to_expert_only_routed_gt_075_reduction": 0
+    },
     "qwen3_moe_expert_only_delta_audit": {
       "changed_numel_fraction": 0.5333353724709579,
       "changed_tensors": 10353,
@@ -16140,7 +16507,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-19T20:16:52.219310+00:00",
+  "generated_at": "2026-06-19T20:22:23.639609+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -16209,6 +16576,7 @@
     "python scripts/validate_qwen3_moe_trust_region_delta.py --output-dir results/qwen3_moe_trust_region_delta_validation",
     "python scripts/build_qwen3_moe_expert_only_trust_region_candidate.py --output-dir results/qwen3_moe_expert_only_trust_region_candidate",
     "python scripts/audit_materialized_checkpoint_delta.py --base BASE --candidate EXPERT_ONLY_CANDIDATE --output-dir results/qwen3_moe_expert_only_delta_audit",
+    "python scripts/build_qwen3_moe_delta_frontier.py --output-dir results/qwen3_moe_delta_frontier",
     "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
     "PYTHONPATH=src python scripts/collect_results.py"
   ],
