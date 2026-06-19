@@ -228,6 +228,7 @@ Qwen2.5-7B dense merged assistant
 - MoE same-shape average plan：把 router entropy/load/overlap 和 expert route frequency 转成 router/shared/expert/adapter 的参数组平均策略；最终仍输出同 expert 数、同 router shape 的 MoE checkpoint。
 - MoE routing readiness：用 `scripts/analyze_moe_routing_readiness.py` 把 `router_summary.csv`、`route_overlap.csv`、`expert_load.csv` 转成 router collapse、route drift、top-k boundary、expert load 和 category specialization 风险表；当前模板见 [results/moe_routing_readiness/report.md](results/moe_routing_readiness/report.md)。
 - MoE route-weight recipes：用 `scripts/build_moe_route_weight_recipes.py` 把 `scripts/probe_moe_routing.py` 的 `expert_load.csv` 转成 checkpoint writer 可读的 `tensor_rules.txt`；当前模板见 [results/moe_route_weight_recipes/report.md](results/moe_route_weight_recipes/report.md)，prompt pack 见 [prompts/qwen_moe_route_probe_prompts.jsonl](prompts/qwen_moe_route_probe_prompts.jsonl)。
+- Toy MoE sanity check：用 [results/toy_moe_merge/report.md](results/toy_moe_merge/report.md) 先在可控同构 MoE 上验证 expert-index mismatch、expert-output matching 和 route-frequency expert average；真实 Qwen3 MoE 实验必须至少复现同类 probe 表。
 - Same-shape checkpoint：用 `scripts/write_same_shape_average_checkpoint.py` 把选好的全局/layer/module/router/expert 权重写成 safetensors，再在 held-out slice 上评测；不能只停在图和 CSV。
 
 ### 推荐的第二轮 MoE 实验

@@ -1,0 +1,5 @@
+expert_id,route_mass_general,route_mass_code,weight_general,weight_code,anchor_floor,same_shape_action
+0,0.35625,0.09,0.6785714285714285,0.1714285714285714,0.15,route_frequency_weighted_average
+1,0.15125,0.27875,0.2989825581395349,0.5510174418604651,0.15,route_frequency_weighted_average
+2,0.155,0.29375,0.29359331476323125,0.5564066852367688,0.15,route_frequency_weighted_average
+3,0.3375,0.3375,0.42499999999999993,0.42499999999999993,0.15,route_frequency_weighted_average

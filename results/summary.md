@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T04:24:41.598259+00:00`
+Generated at: `2026-06-19T04:35:46.266820+00:00`
 
 ## Coverage
 
-Complete: `21`; partial: `0`; missing: `0`.
+Complete: `22`; partial: `0`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -28,6 +28,7 @@ Complete: `21`; partial: `0`; missing: `0`.
 | Average candidate recipes | complete | results/average_candidate_recipes/report.md converts probe decisions into conservative same-shape materialization recipes and skips endpoint-only pseudo-averages. |
 | MoE route-weight recipes | complete | results/moe_route_weight_recipes/report.md converts MoE routing/expert-load probes into tensor-rule files for same-shape checkpoint materialization; current recipe is waiting for real routing probe data. |
 | MoE routing readiness diagnostics | complete | results/moe_routing_readiness/report.md turns router_summary, route_overlap, and expert_load CSVs into router collapse, drift, boundary-fragility, and expert-load risk actions. |
+| Toy MoE route-aware merge | complete | results/toy_moe_merge/report.md runs a small same-shape MoE averaging experiment showing expert-index mismatch and route-aware/expert-matched fixes. |
 | Interactive explainer UI | complete | Dashboard includes a draggable precomputed merge-plane explorer with task-pair, method, objective, raw/normalized plane, alpha/beta, and lambda controls. |
 
 ## Key Metrics
@@ -60,6 +61,10 @@ Complete: `21`; partial: `0`; missing: `0`.
 | Qwen multi-expert | best average-NLL method | instruct_expert (3.009) |
 | Qwen multi-expert | linear-average avg / worst NLL | 5.591 / 9.553 |
 | Qwen multi-expert | instruct/coder weighted conflict | 0.386 |
+| toy MoE route-aware merge | all-weight average worst accuracy | 0.620 |
+| toy MoE route-aware merge | expert-matched average worst accuracy | 0.800 |
+| toy MoE route-aware merge | route-aware average worst accuracy | 0.790 |
+| toy MoE route-aware merge | route-aware minus all-weight worst accuracy | 0.170 |
 | Average decision report | avoid uniform average decisions | 3 |
 | Average decision report | coefficient-search decisions | 2 |
 | MoE average plan | router plan rows | 0 |

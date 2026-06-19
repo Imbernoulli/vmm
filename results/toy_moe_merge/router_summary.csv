@@ -1,0 +1,15 @@
+model,method,category,prompt_idx,router,num_experts,tokens,top_k,router_entropy_mean,top1_margin_mean,unique_top1_experts,unique_topk_experts,max_top1_fraction,effective_top1_experts
+base,base,general,0,toy_router,4,400,2,1.316019892692566,0.08915641903877258,4,4,0.5825,2.649198972450098
+base,base,code,0,toy_router,4,400,2,1.3179583549499512,0.0965285375714302,4,4,0.4925,2.364459685612222
+general_endpoint,general_endpoint,general,0,toy_router,4,400,2,1.3094273805618286,0.0984262079000473,4,4,0.6175,2.520725900587457
+general_endpoint,general_endpoint,code,0,toy_router,4,400,2,1.3166502714157104,0.09697137773036957,4,4,0.4975,2.319256368575001
+code_endpoint_permuted,code_endpoint_permuted,general,0,toy_router,4,400,2,1.3128443956375122,0.09133914858102798,4,4,0.58,2.648422158833769
+code_endpoint_permuted,code_endpoint_permuted,code,0,toy_router,4,400,2,1.3177599906921387,0.09420640021562576,4,4,0.52,2.5324458651978063
+all_weight_average,all_weight_average,general,0,toy_router,4,400,2,1.3550729751586914,0.061258479952812195,4,4,0.395,3.397288722221001
+all_weight_average,all_weight_average,code,0,toy_router,4,400,2,1.3541308641433716,0.0633547231554985,4,4,0.485,2.9304523560560276
+router_frozen_average,router_frozen_average,general,0,toy_router,4,400,2,1.316019892692566,0.08915641903877258,4,4,0.5825,2.649198972450098
+router_frozen_average,router_frozen_average,code,0,toy_router,4,400,2,1.3179583549499512,0.0965285375714302,4,4,0.4925,2.364459685612222
+expert_matched_average,expert_matched_average,general,0,toy_router,4,400,2,1.3112859725952148,0.0945511907339096,4,4,0.6025,2.593437418412376
+expert_matched_average,expert_matched_average,code,0,toy_router,4,400,2,1.3172906637191772,0.09539114683866501,4,4,0.5075,2.4149853809688104
+route_aware_expert_average,route_aware_expert_average,general,0,toy_router,4,400,2,1.316019892692566,0.08915641903877258,4,4,0.5825,2.649198972450098
+route_aware_expert_average,route_aware_expert_average,code,0,toy_router,4,400,2,1.3179583549499512,0.0965285375714302,4,4,0.4925,2.364459685612222

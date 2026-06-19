@@ -101,13 +101,18 @@
       "status": "complete"
     },
     {
+      "evidence": "results/toy_moe_merge/report.md runs a small same-shape MoE averaging experiment showing expert-index mismatch and route-aware/expert-matched fixes.",
+      "item": "Toy MoE route-aware merge",
+      "status": "complete"
+    },
+    {
       "evidence": "Dashboard includes a draggable precomputed merge-plane explorer with task-pair, method, objective, raw/normalized plane, alpha/beta, and lambda controls.",
       "item": "Interactive explainer UI",
       "status": "complete"
     }
   ],
   "coverage_counts": {
-    "complete": 21,
+    "complete": 22,
     "missing": 0,
     "partial": 0
   },
@@ -2342,9 +2347,98 @@
           "tensors": 290
         }
       }
+    },
+    "toy_moe_merge": {
+      "all_weight_average": {
+        "avg_acc": 0.65375,
+        "avg_loss": 0.662787389755249,
+        "code_acc": 0.62,
+        "code_loss": 0.6685362434387208,
+        "description": "average same-name router and expert tensors without expert matching",
+        "general_acc": 0.6875,
+        "general_loss": 0.6570385360717773,
+        "method": "all_weight_average",
+        "worst_acc": 0.62,
+        "worst_loss": 0.6685362434387208
+      },
+      "best_method": {
+        "avg_acc": 0.81,
+        "avg_loss": 0.6179901313781738,
+        "code_acc": 0.8025,
+        "code_loss": 0.6259734725952149,
+        "description": "code source endpoint with function-preserving expert permutation",
+        "general_acc": 0.8175,
+        "general_loss": 0.6100067901611328,
+        "method": "code_endpoint_permuted",
+        "worst_acc": 0.8025,
+        "worst_loss": 0.6259734725952149
+      },
+      "expert_load": "results/toy_moe_merge/expert_load.csv",
+      "expert_match": "results/toy_moe_merge/expert_match.csv",
+      "expert_match_mean_cosine": 0.9773149192333221,
+      "expert_matched_average": {
+        "avg_acc": 0.8087500000000001,
+        "avg_loss": 0.6161747264862061,
+        "code_acc": 0.8,
+        "code_loss": 0.6304422187805175,
+        "description": "align code experts to general source by output cosine before averaging",
+        "general_acc": 0.8175,
+        "general_loss": 0.6019072341918945,
+        "method": "expert_matched_average",
+        "worst_acc": 0.8,
+        "worst_loss": 0.6304422187805175
+      },
+      "figure": "results/toy_moe_merge/toy_moe_merge.png",
+      "method_metrics": "results/toy_moe_merge/method_metrics.csv",
+      "report": "results/toy_moe_merge/report.md",
+      "route_aware_expert_average": {
+        "avg_acc": 0.7987500000000001,
+        "avg_loss": 0.6195249080657959,
+        "code_acc": 0.79,
+        "code_loss": 0.6338796043395996,
+        "description": "freeze base router and use route-frequency expert source weights",
+        "general_acc": 0.8075,
+        "general_loss": 0.6051702117919922,
+        "method": "route_aware_expert_average",
+        "worst_acc": 0.79,
+        "worst_loss": 0.6338796043395996
+      },
+      "route_aware_minus_all_weight_worst_acc": 0.17000000000000004,
+      "route_overlap": "results/toy_moe_merge/route_overlap.csv",
+      "route_weights": "results/toy_moe_merge/route_weights_by_expert.csv",
+      "router_rows": 14,
+      "router_summary": "results/toy_moe_merge/router_summary.csv",
+      "summary": {
+        "all_weight_average_worst_acc": 0.62,
+        "best_method": "code_endpoint_permuted",
+        "best_worst_acc": 0.8025,
+        "code_source_permutation": [
+          2,
+          0,
+          3,
+          1
+        ],
+        "expert_match_mean_cosine": 0.9773149192333221,
+        "n_experts": 4,
+        "outputs": {
+          "expert_load": "expert_load.csv",
+          "expert_match": "expert_match.csv",
+          "figure": "toy_moe_merge.png",
+          "method_metrics": "method_metrics.csv",
+          "report": "report.md",
+          "route_overlap": "route_overlap.csv",
+          "route_weights_by_expert": "route_weights_by_expert.csv",
+          "router_summary": "router_summary.csv"
+        },
+        "route_aware_minus_all_weight_worst_acc": 0.17000000000000004,
+        "route_aware_worst_acc": 0.79,
+        "same_shape_constraint": "All methods keep the same TinyMoEClassifier architecture, expert count, router shape, and output classes.",
+        "schema_version": 1,
+        "seed": 17
+      }
     }
   },
-  "generated_at": "2026-06-19T04:24:41.598259+00:00",
+  "generated_at": "2026-06-19T04:35:46.266820+00:00",
   "overall_status": "complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -2360,6 +2454,7 @@
     "PYTHONPATH=src python scripts/run_qwen_humaneval_nll_slice.py --output-dir results/qwen_humaneval_nll_slice",
     "PYTHONPATH=src python scripts/run_qwen_safety_refusal_slice.py --output-dir results/qwen_safety_refusal_slice",
     "PYTHONPATH=src python scripts/run_qwen_multi_expert_merge.py --output-dir results/qwen_multi_expert_merge",
+    "PYTHONPATH=src python scripts/run_toy_moe_merge.py --output-dir results/toy_moe_merge --device cpu",
     "PYTHONPATH=src python scripts/build_average_decision_report.py",
     "PYTHONPATH=src python scripts/build_moe_average_plan.py",
     "python scripts/write_same_shape_average_checkpoint.py --base BASE --source expert=EXPERT --dry-run --output-dir results/same_shape_writer_smoke",

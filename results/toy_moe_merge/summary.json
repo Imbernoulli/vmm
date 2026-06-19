@@ -1,0 +1,28 @@
+{
+  "all_weight_average_worst_acc": 0.62,
+  "best_method": "code_endpoint_permuted",
+  "best_worst_acc": 0.8025,
+  "code_source_permutation": [
+    2,
+    0,
+    3,
+    1
+  ],
+  "expert_match_mean_cosine": 0.9773149192333221,
+  "n_experts": 4,
+  "outputs": {
+    "expert_load": "expert_load.csv",
+    "expert_match": "expert_match.csv",
+    "figure": "toy_moe_merge.png",
+    "method_metrics": "method_metrics.csv",
+    "report": "report.md",
+    "route_overlap": "route_overlap.csv",
+    "route_weights_by_expert": "route_weights_by_expert.csv",
+    "router_summary": "router_summary.csv"
+  },
+  "route_aware_minus_all_weight_worst_acc": 0.17000000000000004,
+  "route_aware_worst_acc": 0.79,
+  "same_shape_constraint": "All methods keep the same TinyMoEClassifier architecture, expert count, router shape, and output classes.",
+  "schema_version": 1,
+  "seed": 17
+}

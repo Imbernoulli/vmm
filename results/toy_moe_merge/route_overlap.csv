@@ -1,0 +1,13 @@
+left_model,right_model,category,prompt_idx,router,tokens_compared,top1_agreement,topk_jaccard
+base,general_endpoint,general,0,toy_router,400,0.9574999809265137,0.985
+base,general_endpoint,code,0,toy_router,400,0.9750000238418579,0.965
+base,code_endpoint_permuted,general,0,toy_router,400,0.007499999832361937,0.20416666666666664
+base,code_endpoint_permuted,code,0,toy_router,400,0.02500000037252903,0.29333333333333333
+base,all_weight_average,general,0,toy_router,400,0.36000001430511475,0.4883333333333333
+base,all_weight_average,code,0,toy_router,400,0.6324999928474426,0.6466666666666667
+base,router_frozen_average,general,0,toy_router,400,1.0,1.0
+base,router_frozen_average,code,0,toy_router,400,1.0,1.0
+base,expert_matched_average,general,0,toy_router,400,0.9800000190734863,0.9816666666666667
+base,expert_matched_average,code,0,toy_router,400,0.9800000190734863,0.98
+base,route_aware_expert_average,general,0,toy_router,400,1.0,1.0
+base,route_aware_expert_average,code,0,toy_router,400,1.0,1.0

@@ -530,6 +530,31 @@ def summarize_moe_routing_readiness() -> dict[str, Any]:
     }
 
 
+def summarize_toy_moe_merge() -> dict[str, Any]:
+    summary = read_json("results/toy_moe_merge/summary.json")
+    methods = read_csv("results/toy_moe_merge/method_metrics.csv")
+    router_summary = read_csv("results/toy_moe_merge/router_summary.csv")
+    expert_match = read_csv("results/toy_moe_merge/expert_match.csv")
+    return {
+        "summary": summary,
+        "best_method": find_method(methods, summary["best_method"]),
+        "all_weight_average": find_method(methods, "all_weight_average"),
+        "expert_matched_average": find_method(methods, "expert_matched_average"),
+        "route_aware_expert_average": find_method(methods, "route_aware_expert_average"),
+        "route_aware_minus_all_weight_worst_acc": float(summary["route_aware_minus_all_weight_worst_acc"]),
+        "expert_match_mean_cosine": float(expert_match["output_cosine"].mean()),
+        "router_rows": int(len(router_summary)),
+        "report": rel("results/toy_moe_merge/report.md"),
+        "method_metrics": rel("results/toy_moe_merge/method_metrics.csv"),
+        "router_summary": rel("results/toy_moe_merge/router_summary.csv"),
+        "expert_load": rel("results/toy_moe_merge/expert_load.csv"),
+        "route_overlap": rel("results/toy_moe_merge/route_overlap.csv"),
+        "expert_match": rel("results/toy_moe_merge/expert_match.csv"),
+        "route_weights": rel("results/toy_moe_merge/route_weights_by_expert.csv"),
+        "figure": rel("results/toy_moe_merge/toy_moe_merge.png"),
+    }
+
+
 def coverage_checklist() -> list[dict[str, str]]:
     return [
         {
@@ -633,6 +658,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/moe_routing_readiness/report.md turns router_summary, route_overlap, and expert_load CSVs into router collapse, drift, boundary-fragility, and expert-load risk actions.",
         },
         {
+            "item": "Toy MoE route-aware merge",
+            "status": "complete",
+            "evidence": "results/toy_moe_merge/report.md runs a small same-shape MoE averaging experiment showing expert-index mismatch and route-aware/expert-matched fixes.",
+        },
+        {
             "item": "Interactive explainer UI",
             "status": "complete",
             "evidence": "Dashboard includes a draggable precomputed merge-plane explorer with task-pair, method, objective, raw/normalized plane, alpha/beta, and lambda controls.",
@@ -662,6 +692,7 @@ def build_summary() -> dict[str, Any]:
         "average_candidate_recipes": summarize_average_candidate_recipes(),
         "moe_route_weight_recipes": summarize_moe_route_weight_recipes(),
         "moe_routing_readiness": summarize_moe_routing_readiness(),
+        "toy_moe_merge": summarize_toy_moe_merge(),
     }
     coverage = coverage_checklist()
     counts = {
@@ -690,6 +721,7 @@ def build_summary() -> dict[str, Any]:
             "PYTHONPATH=src python scripts/run_qwen_humaneval_nll_slice.py --output-dir results/qwen_humaneval_nll_slice",
             "PYTHONPATH=src python scripts/run_qwen_safety_refusal_slice.py --output-dir results/qwen_safety_refusal_slice",
             "PYTHONPATH=src python scripts/run_qwen_multi_expert_merge.py --output-dir results/qwen_multi_expert_merge",
+            "PYTHONPATH=src python scripts/run_toy_moe_merge.py --output-dir results/toy_moe_merge --device cpu",
             "PYTHONPATH=src python scripts/build_average_decision_report.py",
             "PYTHONPATH=src python scripts/build_moe_average_plan.py",
             "python scripts/write_same_shape_average_checkpoint.py --base BASE --source expert=EXPERT --dry-run --output-dir results/same_shape_writer_smoke",
@@ -732,6 +764,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     recipes = exp["average_candidate_recipes"]
     route_weight_recipes = exp["moe_route_weight_recipes"]
     routing_readiness = exp["moe_routing_readiness"]
+    toy_moe = exp["toy_moe_merge"]
     coverage_counts = summary["coverage_counts"]
     lines = [
         "# Result Summary",
@@ -861,6 +894,22 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| Qwen multi-expert | instruct/coder weighted conflict | "
                 f"{fmt(qwen_multi_conflict.get('weighted_conflict'))} |"
+            ),
+            (
+                "| toy MoE route-aware merge | all-weight average worst accuracy | "
+                f"{fmt(toy_moe['all_weight_average']['worst_acc'])} |"
+            ),
+            (
+                "| toy MoE route-aware merge | expert-matched average worst accuracy | "
+                f"{fmt(toy_moe['expert_matched_average']['worst_acc'])} |"
+            ),
+            (
+                "| toy MoE route-aware merge | route-aware average worst accuracy | "
+                f"{fmt(toy_moe['route_aware_expert_average']['worst_acc'])} |"
+            ),
+            (
+                "| toy MoE route-aware merge | route-aware minus all-weight worst accuracy | "
+                f"{fmt(toy_moe['route_aware_minus_all_weight_worst_acc'])} |"
             ),
             (
                 "| Average decision report | avoid uniform average decisions | "
