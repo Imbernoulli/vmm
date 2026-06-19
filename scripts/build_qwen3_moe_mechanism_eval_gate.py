@@ -1,0 +1,942 @@
+#!/usr/bin/env python
+from __future__ import annotations
+
+import argparse
+import json
+import shlex
+import shutil
+import subprocess
+from pathlib import Path
+from typing import Any
+
+import pandas as pd
+
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
+SOURCE_METHODS = [
+    "source_qwen3_30b_instruct",
+    "source_qwen3_30b_coder",
+]
+
+CANDIDATE_METHODS = [
+    "qwen3_moe_unified_route_guarded_candidate",
+    "qwen3_moe_audit_gated_candidate",
+    "qwen3_moe_trust_region_candidate",
+    "qwen3_moe_expert_only_trust_region_candidate",
+    "qwen3_moe_tail_trimmed_expert_only_candidate",
+]
+
+METHOD_ORDER = SOURCE_METHODS + CANDIDATE_METHODS
+
+METHOD_META: dict[str, dict[str, str]] = {
+    "source_qwen3_30b_instruct": {
+        "role": "source",
+        "short_name": "instruct_source",
+        "mechanism": "general/instruction endpoint",
+        "question": "Instruct source sets the general, safety, and instruction-following control floor.",
+        "required_controls": "coder source; all candidates",
+    },
+    "source_qwen3_30b_coder": {
+        "role": "source",
+        "short_name": "coder_source",
+        "mechanism": "code endpoint",
+        "question": "Coder source sets the code-specialized control floor.",
+        "required_controls": "instruct source; all candidates",
+    },
+    "qwen3_moe_unified_route_guarded_candidate": {
+        "role": "candidate",
+        "short_name": "route_guarded",
+        "mechanism": "freeze router + route-conditioned expert weights + small attention step",
+        "question": "Does preserving the original router while moving route-relevant experts keep both source abilities?",
+        "required_controls": "both sources; audit-gated",
+    },
+    "qwen3_moe_audit_gated_candidate": {
+        "role": "candidate",
+        "short_name": "audit_gated",
+        "mechanism": "route-conditioned experts + file-level relative-delta cap",
+        "question": "Are the largest routed-expert deltas harmful enough that clipping them improves downstream behavior?",
+        "required_controls": "route-guarded; trust-region",
+    },
+    "qwen3_moe_trust_region_candidate": {
+        "role": "candidate",
+        "short_name": "trust_region",
+        "mechanism": "route/load/category/router-fragility trust-region caps",
+        "question": "Do internal MoE risk signals predict which expert deltas need a smaller trust region?",
+        "required_controls": "audit-gated; expert-only",
+    },
+    "qwen3_moe_expert_only_trust_region_candidate": {
+        "role": "candidate",
+        "short_name": "expert_only",
+        "mechanism": "trust-region experts + frozen shared attention + frozen router",
+        "question": "Is the shared attention Coder delta useful, or is expert-only movement the safer unified rule?",
+        "required_controls": "trust-region; tail-trimmed",
+    },
+    "qwen3_moe_tail_trimmed_expert_only_candidate": {
+        "role": "candidate",
+        "short_name": "tail_trimmed",
+        "mechanism": "expert-only + second-stage routed-expert tail cap at 0.65",
+        "question": "Does removing the remaining high-tail expert deltas preserve utility while lowering risk?",
+        "required_controls": "expert-only; both sources",
+    },
+}
+
+MECHANISM_TESTS = [
+    {
+        "test": "source_control_floor",
+        "from_method": "source_qwen3_30b_instruct",
+        "to_method": "source_qwen3_30b_coder",
+        "mechanism_question": "How different are the source endpoints on the same downstream tasks?",
+        "why_it_matters": "A merged checkpoint is only meaningful if it is compared with both endpoint trade-offs, not just one source.",
+        "pass_signal": "Sources expose complementary strengths; candidate ranking uses Pareto dominance across both.",
+        "fail_signal": "One source dominates the other and all candidates; the unified selector should return that endpoint.",
+    },
+    {
+        "test": "tail_delta_cap",
+        "from_method": "qwen3_moe_unified_route_guarded_candidate",
+        "to_method": "qwen3_moe_audit_gated_candidate",
+        "mechanism_question": "Does clipping extreme routed-expert deltas help?",
+        "why_it_matters": "This isolates whether file-level delta outliers are a real behavioral risk or only a cosmetic norm metric.",
+        "pass_signal": "Audit-gated keeps or improves avg/worst/task scores after removing high relative-delta tails.",
+        "fail_signal": "Audit-gated loses task scores; the cap is too tight or the high-delta experts carry useful ability.",
+    },
+    {
+        "test": "route_load_trust_region",
+        "from_method": "qwen3_moe_audit_gated_candidate",
+        "to_method": "qwen3_moe_trust_region_candidate",
+        "mechanism_question": "Do route/load/category/fragility probes identify the expert groups that need a tighter cap?",
+        "why_it_matters": "This is the core internal-parameter probe: it tests whether MoE-specific signals explain performance, not only norm size.",
+        "pass_signal": "Trust-region improves or preserves downstream scores while reducing routed tail risk.",
+        "fail_signal": "Trust-region drops scores versus audit-gated; the internal risk gate is over-conservative or mis-specified.",
+    },
+    {
+        "test": "shared_attention_ablation",
+        "from_method": "qwen3_moe_trust_region_candidate",
+        "to_method": "qwen3_moe_expert_only_trust_region_candidate",
+        "mechanism_question": "Should the unified MoE rule move shared attention, or keep it fixed?",
+        "why_it_matters": "Delta audit alone cannot answer this because attention removal barely changes routed-tail risk; only downstream eval decides utility.",
+        "pass_signal": "Expert-only matches or beats trust-region; freeze shared attention in the unified rule.",
+        "fail_signal": "Trust-region beats expert-only; retain a small shared-attention step and tune its coefficient.",
+    },
+    {
+        "test": "second_stage_tail_trim",
+        "from_method": "qwen3_moe_expert_only_trust_region_candidate",
+        "to_method": "qwen3_moe_tail_trimmed_expert_only_candidate",
+        "mechanism_question": "Does the stricter 0.65 routed-expert tail cap remove risk without removing ability?",
+        "why_it_matters": "This decides whether the next unified default should use a 0.65 tail trim or stop at the trust-region cap.",
+        "pass_signal": "Tail-trimmed keeps or improves downstream scores while eliminating >0.75 routed tails.",
+        "fail_signal": "Tail-trimmed loses task scores; the remaining tail contained useful specialization.",
+    },
+    {
+        "test": "candidate_vs_sources",
+        "from_method": "source_qwen3_30b_instruct",
+        "to_method": "qwen3_moe_tail_trimmed_expert_only_candidate",
+        "mechanism_question": "Does any same-shape candidate avoid Pareto domination by the two source endpoints?",
+        "why_it_matters": "If every candidate is dominated by an endpoint, the correct same-shape output is an endpoint/no-average, not a worse average.",
+        "pass_signal": "At least one candidate is non-dominated by both sources and wins on avg/worst/task trade-off.",
+        "fail_signal": "All candidates are dominated; select endpoint and use probes to design the next intervention.",
+    },
+]
+
+LITERATURE_SOURCES = [
+    {
+        "key": "loss_landscape_visualization",
+        "title": "Visualizing the Loss Landscape of Neural Nets",
+        "url": "https://arxiv.org/abs/1712.09913",
+        "mechanism_used_here": "Treat loss surfaces as 2D slices through weight space; for this project the axes are task vectors or source deltas rather than random directions.",
+    },
+    {
+        "key": "mode_connectivity",
+        "title": "Loss Surfaces, Mode Connectivity, and Fast Ensembling of DNNs",
+        "url": "https://arxiv.org/abs/1802.10026",
+        "mechanism_used_here": "If two checkpoints are connected by a low-loss path, averaging may work; if the straight line crosses a barrier, the selector should shrink or reject the merge.",
+    },
+    {
+        "key": "essentially_no_barriers",
+        "title": "Essentially No Barriers in Neural Network Energy Landscape",
+        "url": "https://arxiv.org/abs/1803.00885",
+        "mechanism_used_here": "Nonlinear connectivity can exist even when straight-line averaging is poor, motivating path probes rather than only midpoint scores.",
+    },
+    {
+        "key": "model_soups",
+        "title": "Model soups: averaging weights of multiple fine-tuned models improves accuracy without increasing inference time",
+        "url": "https://arxiv.org/abs/2203.05482",
+        "mechanism_used_here": "Weight averaging is plausible when fine-tuned models sit in one low-error basin; the gate must test that assumption instead of assuming it.",
+    },
+    {
+        "key": "fisher_merging",
+        "title": "Merging Models with Fisher-Weighted Averaging",
+        "url": "https://arxiv.org/abs/2111.09832",
+        "mechanism_used_here": "Fisher/Laplace weighting gives a local quadratic explanation, but our Qwen dense probe shows local curvature can underpredict nonlocal barriers.",
+    },
+    {
+        "key": "ties",
+        "title": "TIES-Merging: Resolving Interference When Merging Models",
+        "url": "https://arxiv.org/abs/2306.01708",
+        "mechanism_used_here": "Sign and magnitude conflicts are useful probes, but sparse conflict rules still need held-out/vLLM gates before touching broad LLM modules.",
+    },
+    {
+        "key": "git_rebasin",
+        "title": "Git Re-Basin: Merging Models modulo Permutation Symmetries",
+        "url": "https://arxiv.org/abs/2209.04836",
+        "mechanism_used_here": "Permutation symmetries explain why expert identity alignment must precede same-name averaging.",
+    },
+    {
+        "key": "mergeme",
+        "title": "MergeME: Model Merging Techniques for Homogeneous and Heterogeneous MoEs",
+        "url": "https://arxiv.org/abs/2502.00997",
+        "mechanism_used_here": "MoE merging needs explicit handling of parameter interference and routing, not only uniform expert averaging.",
+    },
+    {
+        "key": "harc",
+        "title": "When Model Merging Breaks Routing: Training-Free Calibration for MoE",
+        "url": "https://arxiv.org/abs/2606.03391",
+        "mechanism_used_here": "Router perturbations can cause routing breakdown; the current Qwen3 rule freezes router first and leaves router calibration as a separate ablation.",
+    },
+]
+
+
+def repo_path(path: str | Path) -> Path:
+    path = Path(path)
+    return path if path.is_absolute() else REPO_ROOT / path
+
+
+def rel(path: str | Path) -> str:
+    path = repo_path(path)
+    try:
+        return str(path.relative_to(REPO_ROOT))
+    except ValueError:
+        return str(path)
+
+
+def read_json_if_exists(path: str | Path) -> dict[str, Any]:
+    path = repo_path(path)
+    if not path.exists() or path.stat().st_size == 0:
+        return {}
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def read_csv_if_exists(path: str | Path) -> pd.DataFrame:
+    path = repo_path(path)
+    if not path.exists() or path.stat().st_size == 0:
+        return pd.DataFrame()
+    return pd.read_csv(path)
+
+
+def clean_value(value: Any) -> Any:
+    if value is None:
+        return None
+    try:
+        if pd.isna(value):
+            return None
+    except TypeError:
+        pass
+    if hasattr(value, "item"):
+        return value.item()
+    return value
+
+
+def json_safe(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {str(key): json_safe(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [json_safe(item) for item in value]
+    return clean_value(value)
+
+
+def maybe_float(value: Any) -> float | None:
+    value = clean_value(value)
+    return None if value is None else float(value)
+
+
+def shell_quote(value: str) -> str:
+    return shlex.quote(value)
+
+
+def local_gpu_status() -> dict[str, Any]:
+    if not shutil.which("nvidia-smi"):
+        return {"available": False, "status": "nvidia_smi_missing", "detail": "nvidia-smi is not on PATH"}
+    try:
+        result = subprocess.run(
+            ["nvidia-smi", "-L"],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+    except Exception as exc:
+        return {"available": False, "status": type(exc).__name__, "detail": str(exc)}
+    if result.returncode != 0:
+        return {
+            "available": False,
+            "status": "nvidia_smi_failed",
+            "detail": (result.stderr or result.stdout).strip(),
+        }
+    gpu_lines = [line for line in result.stdout.splitlines() if line.strip().startswith("GPU ")]
+    return {
+        "available": bool(gpu_lines),
+        "status": "available" if gpu_lines else "no_gpus_reported",
+        "gpu_count": len(gpu_lines),
+        "detail": result.stdout.strip(),
+    }
+
+
+def primary_metric(row: pd.Series | dict[str, Any]) -> tuple[str, float]:
+    for key in ("strict_exact", "accuracy", "policy_accuracy", "compile_rate"):
+        value = row.get(key)
+        if clean_value(value) is not None:
+            return key, float(value)
+    return "score", 0.0
+
+
+def read_eval_state(eval_output_dir: str | Path) -> dict[str, Any]:
+    root = repo_path(eval_output_dir)
+    summary = read_json_if_exists(root / "summary.json")
+    metrics = read_csv_if_exists(root / "metrics.csv")
+    model_summary = read_csv_if_exists(root / "model_summary.csv")
+    status = str(summary.get("status", "not_run"))
+    if not model_summary.empty:
+        first = model_summary.iloc[0]
+        avg_primary = maybe_float(first.get("avg_primary_score"))
+        worst_primary = maybe_float(first.get("worst_primary_score"))
+    else:
+        summary_rows = summary.get("model_summary") or []
+        first = summary_rows[0] if summary_rows else {}
+        avg_primary = maybe_float(first.get("avg_primary_score"))
+        worst_primary = maybe_float(first.get("worst_primary_score"))
+
+    task_scores: dict[str, float] = {}
+    if not metrics.empty:
+        for _, row in metrics.iterrows():
+            task = str(row.get("task", "unknown"))
+            _, score = primary_metric(row)
+            task_scores[task] = score
+
+    state: dict[str, Any] = {
+        "eval_status": status,
+        "eval_completed": status == "complete",
+        "avg_primary_score": avg_primary,
+        "worst_primary_score": worst_primary,
+        "task_scores": task_scores,
+        "metrics_path": rel(root / "metrics.csv") if (root / "metrics.csv").exists() else None,
+        "summary_path": rel(root / "summary.json") if (root / "summary.json").exists() else None,
+    }
+    for task, score in task_scores.items():
+        state[f"task_{task}_score"] = score
+    return state
+
+
+def load_ordered_plan(plan_path: Path) -> pd.DataFrame:
+    plan = pd.read_csv(plan_path)
+    rows = []
+    for method in METHOD_ORDER:
+        selected = plan[plan["method"] == method]
+        if selected.empty:
+            raise ValueError(f"{plan_path} is missing required method: {method}")
+        rows.append(selected.iloc[0].to_dict())
+    return pd.DataFrame(rows)
+
+
+def load_delta_frontier(delta_dir: Path) -> tuple[pd.DataFrame, pd.DataFrame, dict[str, Any]]:
+    candidates = read_csv_if_exists(delta_dir / "candidate_delta_frontier.csv")
+    pairwise = read_csv_if_exists(delta_dir / "pairwise_delta_reductions.csv")
+    summary = read_json_if_exists(delta_dir / "summary.json")
+    return candidates, pairwise, summary
+
+
+def build_eval_gate_plan(
+    plan: pd.DataFrame,
+    delta_candidates: pd.DataFrame,
+    readiness: pd.DataFrame,
+) -> pd.DataFrame:
+    delta_by_method = {
+        str(row["method"]): row.to_dict()
+        for _, row in delta_candidates.iterrows()
+        if "method" in row and clean_value(row.get("method")) is not None
+    }
+    readiness_by_method = {
+        str(row["candidate"]): row.to_dict()
+        for _, row in readiness.iterrows()
+        if "candidate" in row and clean_value(row.get("candidate")) is not None
+    }
+
+    rows: list[dict[str, Any]] = []
+    for idx, row in plan.iterrows():
+        method = str(row["method"])
+        meta = METHOD_META[method]
+        eval_state = read_eval_state(row["eval_output_dir"])
+        delta = delta_by_method.get(method, {})
+        ready = readiness_by_method.get(method, {})
+        role = meta["role"]
+        audit_status = delta.get("status")
+        row_out = {
+            "gate_order": idx,
+            "method": method,
+            "short_name": meta["short_name"],
+            "role": role,
+            "mechanism": meta["mechanism"],
+            "mechanism_question": meta["question"],
+            "required_controls": meta["required_controls"],
+            "checkpoint_path": row.get("checkpoint_path"),
+            "checkpoint_exists": bool(row.get("checkpoint_exists")),
+            "serve_status": row.get("serve_status"),
+            "served_model_id": row.get("served_model_id"),
+            "base_url": row.get("base_url"),
+            "port": row.get("port"),
+            "tasks": row.get("tasks"),
+            "example_source": row.get("example_source"),
+            "max_examples": row.get("max_examples"),
+            "eval_output_dir": row.get("eval_output_dir"),
+            "eval_status": eval_state["eval_status"],
+            "eval_completed": bool(eval_state["eval_completed"]),
+            "avg_primary_score": eval_state["avg_primary_score"],
+            "worst_primary_score": eval_state["worst_primary_score"],
+            "task_gsm8k_score": eval_state.get("task_gsm8k_score"),
+            "task_mmlu_score": eval_state.get("task_mmlu_score"),
+            "task_safety_score": eval_state.get("task_safety_score"),
+            "task_humaneval_compile_score": eval_state.get("task_humaneval_compile_score"),
+            "audit_status": audit_status if role == "candidate" else "source",
+            "audit_passed": bool(role == "source" or audit_status == "passed"),
+            "total_relative_delta_norm": maybe_float(delta.get("total_relative_delta_norm")),
+            "routed_relative_delta_norm": maybe_float(delta.get("routed_relative_delta_norm")),
+            "routed_max_tensor_relative_delta": maybe_float(delta.get("routed_max_tensor_relative_delta")),
+            "routed_tensors_gt_1_0": clean_value(delta.get("routed_tensors_gt_1_0")),
+            "routed_tensors_gt_0_75": clean_value(delta.get("routed_tensors_gt_0_75")),
+            "routed_tensors_gt_0_65": clean_value(delta.get("routed_tensors_gt_0_65")),
+            "attention_relative_delta_norm": maybe_float(delta.get("attention_relative_delta_norm")),
+            "attention_changed_tensors": clean_value(delta.get("attention_changed_tensors")),
+            "router_changed_tensors": clean_value(delta.get("router_changed_tensors")),
+            "end_to_end_status": ready.get("end_to_end_status"),
+            "serve_command": row.get("serve_command"),
+            "eval_command": row.get("eval_command"),
+            "notes": row.get("notes"),
+        }
+        rows.append(row_out)
+    return pd.DataFrame(rows)
+
+
+def score_columns(df: pd.DataFrame) -> list[str]:
+    columns = ["avg_primary_score", "worst_primary_score"]
+    columns.extend(
+        col
+        for col in [
+            "task_gsm8k_score",
+            "task_mmlu_score",
+            "task_safety_score",
+            "task_humaneval_compile_score",
+        ]
+        if col in df.columns
+    )
+    return columns
+
+
+def dominates(left: pd.Series, right: pd.Series, columns: list[str], eps: float = 1e-9) -> bool:
+    pairs: list[tuple[float, float]] = []
+    for col in columns:
+        l_val = clean_value(left.get(col))
+        r_val = clean_value(right.get(col))
+        if l_val is None or r_val is None:
+            continue
+        pairs.append((float(l_val), float(r_val)))
+    if not pairs:
+        return False
+    return all(left_val >= right_val - eps for left_val, right_val in pairs) and any(
+        left_val > right_val + eps for left_val, right_val in pairs
+    )
+
+
+def build_selection(gate: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    columns = score_columns(gate)
+    sources = gate[gate["role"] == "source"].copy()
+    candidates = gate[gate["role"] == "candidate"].copy()
+    sources_complete = bool(len(sources) == len(SOURCE_METHODS) and sources["eval_completed"].all())
+    candidates_complete = bool(len(candidates) == len(CANDIDATE_METHODS) and candidates["eval_completed"].all())
+
+    if sources_complete:
+        best_source_avg = sources.sort_values(["avg_primary_score", "worst_primary_score"], ascending=False).iloc[0]
+        best_source_worst = sources.sort_values(["worst_primary_score", "avg_primary_score"], ascending=False).iloc[0]
+    else:
+        best_source_avg = pd.Series(dtype=object)
+        best_source_worst = pd.Series(dtype=object)
+
+    for _, row in gate.iterrows():
+        method = str(row["method"])
+        dominated_by = []
+        if bool(row.get("eval_completed")) and sources_complete and row.get("role") == "candidate":
+            for _, source in sources.iterrows():
+                if dominates(source, row, columns):
+                    dominated_by.append(str(source["method"]))
+        eligible = (
+            row.get("role") == "candidate"
+            and bool(row.get("eval_completed"))
+            and bool(row.get("audit_passed"))
+            and sources_complete
+            and not dominated_by
+        )
+        rows.append(
+            {
+                "method": method,
+                "role": row.get("role"),
+                "eval_completed": bool(row.get("eval_completed")),
+                "audit_passed": bool(row.get("audit_passed")),
+                "avg_primary_score": row.get("avg_primary_score"),
+                "worst_primary_score": row.get("worst_primary_score"),
+                "task_gsm8k_score": row.get("task_gsm8k_score"),
+                "task_mmlu_score": row.get("task_mmlu_score"),
+                "task_safety_score": row.get("task_safety_score"),
+                "task_humaneval_compile_score": row.get("task_humaneval_compile_score"),
+                "total_relative_delta_norm": row.get("total_relative_delta_norm"),
+                "routed_tensors_gt_0_75": row.get("routed_tensors_gt_0_75"),
+                "dominated_by_source": ",".join(dominated_by),
+                "selection_eligible": eligible,
+            }
+        )
+
+    selection_df = pd.DataFrame(rows)
+    eligible_df = selection_df[selection_df["selection_eligible"]].copy()
+    if not sources_complete:
+        selection = {
+            "status": "awaiting_source_eval",
+            "selected_method": None,
+            "reason": "Both Qwen3 source endpoints must be evaluated before candidate selection is meaningful.",
+        }
+    elif not candidates_complete:
+        selection = {
+            "status": "awaiting_candidate_eval",
+            "selected_method": None,
+            "reason": "All five Qwen3 MoE candidates need the same downstream task run before choosing a unified rule.",
+            "completed_candidate_count": int(candidates["eval_completed"].sum()),
+            "candidate_count": int(len(candidates)),
+        }
+    elif eligible_df.empty:
+        if sources_complete and not sources.empty:
+            endpoint = best_source_avg
+            selected = str(endpoint["method"])
+        else:
+            selected = None
+        selection = {
+            "status": "select_endpoint_no_average",
+            "selected_method": selected,
+            "reason": "Every completed same-shape candidate is dominated by at least one source endpoint or failed audit gates.",
+        }
+    else:
+        eligible_df = eligible_df.sort_values(
+            ["avg_primary_score", "worst_primary_score", "total_relative_delta_norm"],
+            ascending=[False, False, True],
+        )
+        selected_row = eligible_df.iloc[0]
+        selection = {
+            "status": "selected_candidate",
+            "selected_method": str(selected_row["method"]),
+            "reason": "Selected the non-dominated audited candidate with the best avg/worst downstream score and lower delta norm as tie-breaker.",
+        }
+
+    selection.update(
+        {
+            "sources_complete": sources_complete,
+            "candidates_complete": candidates_complete,
+            "best_source_by_avg": None if best_source_avg.empty else str(best_source_avg.get("method")),
+            "best_source_by_worst": None if best_source_worst.empty else str(best_source_worst.get("method")),
+            "score_columns": columns,
+        }
+    )
+    return selection_df, selection
+
+
+def build_mechanism_tests(gate: pd.DataFrame, pairwise: pd.DataFrame) -> pd.DataFrame:
+    gate_by_method = {str(row["method"]): row for _, row in gate.iterrows()}
+    pairwise_by_edge = {
+        (str(row["from_candidate"]), str(row["to_candidate"])): row
+        for _, row in pairwise.iterrows()
+        if "from_candidate" in row and "to_candidate" in row
+    }
+    short_to_method = {meta["short_name"]: method for method, meta in METHOD_META.items()}
+    rows: list[dict[str, Any]] = []
+    for test in MECHANISM_TESTS:
+        from_method = test["from_method"]
+        to_method = test["to_method"]
+        left = gate_by_method.get(from_method)
+        right = gate_by_method.get(to_method)
+        completed = bool(
+            left is not None
+            and right is not None
+            and left.get("eval_completed")
+            and right.get("eval_completed")
+        )
+        delta_avg = None
+        delta_worst = None
+        status = "awaiting_eval"
+        interpretation = "Needs matched vLLM downstream scores."
+        if completed:
+            delta_avg = maybe_float(right.get("avg_primary_score")) - maybe_float(left.get("avg_primary_score"))
+            delta_worst = maybe_float(right.get("worst_primary_score")) - maybe_float(left.get("worst_primary_score"))
+            if delta_avg >= 0.0 and delta_worst >= 0.0:
+                status = "mechanism_supported"
+                interpretation = test["pass_signal"]
+            else:
+                status = "mechanism_cost_detected"
+                interpretation = test["fail_signal"]
+
+        from_short = METHOD_META[from_method]["short_name"]
+        to_short = METHOD_META[to_method]["short_name"]
+        edge = pairwise_by_edge.get((from_short, to_short))
+        if edge is None and from_short in short_to_method and to_short in short_to_method:
+            edge = pairwise_by_edge.get((from_short, to_short))
+        rows.append(
+            {
+                "test": test["test"],
+                "from_method": from_method,
+                "to_method": to_method,
+                "mechanism_question": test["mechanism_question"],
+                "why_it_matters": test["why_it_matters"],
+                "current_status": status,
+                "avg_primary_delta_to_minus_from": delta_avg,
+                "worst_primary_delta_to_minus_from": delta_worst,
+                "delta_norm_reduction": clean_value(edge.get("total_relative_delta_norm_reduction")) if edge is not None else None,
+                "routed_gt_075_reduction": clean_value(edge.get("routed_gt_075_reduction")) if edge is not None else None,
+                "attention_norm_reduction": clean_value(edge.get("attention_relative_delta_norm_reduction")) if edge is not None else None,
+                "interpretation": interpretation,
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def build_selection_rules(selection: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "schema_version": 1,
+        "name": "qwen3_moe_mechanism_gated_same_shape_average",
+        "current_selection": selection,
+        "target_contract": [
+            "Target checkpoint must keep the same config, tokenizer, tensor names, tensor shapes, and model class as the input Qwen3 MoE checkpoints.",
+            "No ensemble, no extra experts, and no architecture expansion are allowed.",
+        ],
+        "unified_algorithm": [
+            {
+                "gate": "expert_identity",
+                "rule": "If expert correspondence is not identity-optimal, remap source expert tensors before any average; if identity-optimal, keep index identity.",
+                "mechanism": "MoE experts have permutation/gauge symmetry, so same-name average is invalid without identity recovery.",
+            },
+            {
+                "gate": "router",
+                "rule": "If route overlap/top1 agreement is low or load concentration is high, freeze router for the first materialized candidate; evaluate router calibration only as a separate ablation.",
+                "mechanism": "Top-k routing is discrete and can send tokens to wrong experts after small router perturbations.",
+            },
+            {
+                "gate": "routed_experts",
+                "rule": "Apply source-route-conditioned expert deltas, then cap relative delta by route/load/category/router-fragility trust regions.",
+                "mechanism": "Expert updates should be local to the tokens and categories that actually used the source expert.",
+            },
+            {
+                "gate": "shared_attention",
+                "rule": "Retain shared-attention delta only if trust-region beats expert-only on the same downstream tasks; otherwise freeze attention.",
+                "mechanism": "Attention delta is not routed, so norm/audit safety cannot decide its utility.",
+            },
+            {
+                "gate": "tail_trim",
+                "rule": "Use the 0.65 second-stage expert tail cap only if tail-trimmed matches or beats expert-only on downstream tasks.",
+                "mechanism": "A smaller high-tail cap is safer only if it does not remove useful specialization.",
+            },
+            {
+                "gate": "endpoint_fallback",
+                "rule": "If every candidate is Pareto-dominated by a source endpoint, output the best same-shape endpoint/no-average.",
+                "mechanism": "A unified algorithm should reject bad averages; same-shape endpoint fallback is still a valid target model.",
+            },
+        ],
+        "score_policy": {
+            "primary_scores": [
+                "avg_primary_score",
+                "worst_primary_score",
+                "gsm8k strict_exact",
+                "mmlu accuracy",
+                "safety policy_accuracy",
+                "humaneval_compile compile_rate",
+            ],
+            "dominance": "A candidate is rejected if a source endpoint is at least as good on every available primary/task score and strictly better on at least one.",
+            "tie_breaker": "Among non-dominated audited candidates, choose higher avg_primary_score, then higher worst_primary_score, then lower total_relative_delta_norm.",
+        },
+    }
+
+
+def build_shell_script(gate: pd.DataFrame) -> str:
+    lines = [
+        "#!/usr/bin/env bash",
+        "set -euo pipefail",
+        "",
+        "# Run from the repository root on a GPU host with vLLM installed.",
+        "# Usage: results/qwen3_moe_mechanism_eval_gate/run_eval_gate.sh [all|method_name]",
+        "# The script serves one model, waits for /v1/models, runs the eval, then stops the server before moving on.",
+        "",
+        "requested=\"${1:-all}\"",
+        "mkdir -p results/qwen3_moe_mechanism_eval_gate/logs",
+        "",
+        "run_one() {",
+        "  local method=\"$1\"",
+        "  local base_url=\"$2\"",
+        "  local serve_cmd=\"$3\"",
+        "  local eval_cmd=\"$4\"",
+        "  if [[ \"$requested\" != \"all\" && \"$requested\" != \"$method\" ]]; then",
+        "    return 0",
+        "  fi",
+        "  local log_path=\"results/qwen3_moe_mechanism_eval_gate/logs/${method}.serve.log\"",
+        "  echo \"[serve] ${method}\"",
+        "  bash -lc \"$serve_cmd\" >\"$log_path\" 2>&1 &",
+        "  local server_pid=$!",
+        "  cleanup_server() {",
+        "    if kill -0 \"$server_pid\" >/dev/null 2>&1; then",
+        "      kill \"$server_pid\" >/dev/null 2>&1 || true",
+        "      wait \"$server_pid\" >/dev/null 2>&1 || true",
+        "    fi",
+        "  }",
+        "  trap cleanup_server RETURN",
+        "  local ready=0",
+        "  for _ in $(seq 1 \"${VLLM_WAIT_ATTEMPTS:-240}\"); do",
+        "    if curl -sf \"${base_url}/models\" >/dev/null; then",
+        "      ready=1",
+        "      break",
+        "    fi",
+        "    sleep \"${VLLM_WAIT_SECONDS:-5}\"",
+        "  done",
+        "  if [[ \"$ready\" != \"1\" ]]; then",
+        "    echo \"vLLM did not become ready for ${method}. See ${log_path}\" >&2",
+        "    return 1",
+        "  fi",
+        "  echo \"[eval] ${method}\"",
+        "  bash -lc \"$eval_cmd\"",
+        "}",
+        "",
+    ]
+    for _, row in gate.iterrows():
+        if row.get("serve_status") != "ready_to_host":
+            lines.append(f"# Skipping {row['method']}: serve_status={row.get('serve_status')}")
+            continue
+        lines.append(
+            "run_one "
+            f"{shell_quote(str(row['method']))} "
+            f"{shell_quote(str(row['base_url']))} "
+            f"{shell_quote(str(row['serve_command']))} "
+            f"{shell_quote(str(row['eval_command']))}"
+        )
+    return "\n".join(lines) + "\n"
+
+
+def fmt(value: Any, digits: int = 3) -> str:
+    value = clean_value(value)
+    if value is None:
+        return ""
+    if isinstance(value, float):
+        return f"{value:.{digits}f}"
+    return str(value)
+
+
+def build_report(
+    summary: dict[str, Any],
+    gate: pd.DataFrame,
+    mechanism_tests: pd.DataFrame,
+    selection_df: pd.DataFrame,
+    selection_rules: dict[str, Any],
+) -> str:
+    current_selection = selection_rules["current_selection"]
+    gpu = summary["local_gpu"]
+    lines = [
+        "# Qwen3 MoE Mechanism-Gated vLLM Eval Gate",
+        "",
+        "这份 gate 的目的不是静态宣布哪个算法最好，而是把每个内部机制变成可证伪的下游评测问题：router 是否应该冻结、shared attention delta 是否有用、route/load/category 信号是否真的能预测 expert 风险、0.65 tail trim 是否会伤害能力。",
+        "",
+        f"- Gate status: `{summary['status']}`",
+        f"- Local GPU available: `{gpu.get('available')}` (`{gpu.get('status')}`)",
+        f"- Source endpoints: `{summary['source_count']}`",
+        f"- Same-shape candidates: `{summary['candidate_count']}`",
+        f"- Ready-to-host rows: `{summary['ready_to_host_count']}`",
+        f"- Completed Qwen3 eval rows: `{summary['completed_eval_count']}`",
+        f"- Current selection status: `{current_selection['status']}`",
+        f"- Selected method: `{current_selection.get('selected_method')}`",
+        "",
+        "## Unified Rule",
+        "",
+        "当前 unified average 不是一个固定的 `0.5/0.5` 公式，而是一个机制门控的同构输出规则：",
+        "",
+        "```text",
+        "1. 先检查 same-shape 和 expert identity；identity 不成立就先 remap expert。",
+        "2. router overlap/load 风险高时先 freeze router；router calibration 只作为单独 ablation 进入。",
+        "3. routed experts 用 source-route-conditioned delta，并按 route/load/category/router-fragility 设 trust region。",
+        "4. shared attention 是否移动只看 trust-region vs expert-only 的同任务 vLLM 结果。",
+        "5. 0.65 tail trim 是否默认启用只看 tail-trimmed vs expert-only 的同任务 vLLM 结果。",
+        "6. 如果所有候选被 source endpoint 支配，输出同构 endpoint/no-average。",
+        "```",
+        "",
+        "一个简化的 expert 规则可以写成：",
+        "",
+        "```text",
+        "theta_out[g] = theta_base[g] + s_g * w_g(source, route_mass, category) * (theta_source[g] - theta_base[g])",
+        "s_g = min(1, cap_g * ||theta_base[g]|| / ||w_g * (theta_source[g] - theta_base[g])||)",
+        "cap_g = f(route_load, category_specialization, router_fragility, delta_audit_tail)",
+        "```",
+        "",
+        "这解释了为什么不能只靠某个静态算法名：Fisher/RegMean/TIES 这些方法给的是候选变换或局部解释，真正进入 unified 规则前必须通过同构、路由、delta audit 和下游任务门控。",
+        "",
+        "## Mechanism Tests",
+        "",
+        "| test | comparison | status | avg delta | worst delta | delta norm reduction | routed >0.75 reduction | question |",
+        "| --- | --- | --- | ---: | ---: | ---: | ---: | --- |",
+    ]
+    for _, row in mechanism_tests.iterrows():
+        lines.append(
+            f"| `{row['test']}` | `{row['from_method']}` -> `{row['to_method']}` | "
+            f"`{row['current_status']}` | {fmt(row['avg_primary_delta_to_minus_from'])} | "
+            f"{fmt(row['worst_primary_delta_to_minus_from'])} | {fmt(row['delta_norm_reduction'])} | "
+            f"{fmt(row['routed_gt_075_reduction'])} | {row['mechanism_question']} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Eval Gate Plan",
+            "",
+            "| order | method | role | serve | eval | avg | worst | routed >0.75 | attention changed | mechanism |",
+            "| ---: | --- | --- | --- | --- | ---: | ---: | ---: | ---: | --- |",
+        ]
+    )
+    for _, row in gate.iterrows():
+        lines.append(
+            f"| {int(row['gate_order'])} | `{row['method']}` | `{row['role']}` | "
+            f"`{row['serve_status']}` | `{row['eval_status']}` | {fmt(row['avg_primary_score'])} | "
+            f"{fmt(row['worst_primary_score'])} | {fmt(row['routed_tensors_gt_0_75'])} | "
+            f"{fmt(row['attention_changed_tensors'])} | {row['mechanism']} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Selection State",
+            "",
+            "| method | eligible | dominated by source | avg | worst | gsm8k | mmlu | safety | humaneval | delta norm |",
+            "| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for _, row in selection_df.iterrows():
+        lines.append(
+            f"| `{row['method']}` | `{row['selection_eligible']}` | `{row['dominated_by_source']}` | "
+            f"{fmt(row['avg_primary_score'])} | {fmt(row['worst_primary_score'])} | "
+            f"{fmt(row['task_gsm8k_score'])} | {fmt(row['task_mmlu_score'])} | "
+            f"{fmt(row['task_safety_score'])} | {fmt(row['task_humaneval_compile_score'])} | "
+            f"{fmt(row['total_relative_delta_norm'])} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## How To Run On GPU",
+            "",
+            "在 GPU host 上从仓库根目录运行：",
+            "",
+            "```bash",
+            "results/qwen3_moe_mechanism_eval_gate/run_eval_gate.sh all",
+            "python scripts/build_qwen3_moe_mechanism_eval_gate.py",
+            "python scripts/collect_results.py",
+            "```",
+            "",
+            "也可以只跑一个方法：",
+            "",
+            "```bash",
+            "results/qwen3_moe_mechanism_eval_gate/run_eval_gate.sh qwen3_moe_tail_trimmed_expert_only_candidate",
+            "```",
+            "",
+            "## Literature Hooks",
+            "",
+        ]
+    )
+    for source in LITERATURE_SOURCES:
+        lines.append(f"- [{source['title']}]({source['url']}): {source['mechanism_used_here']}")
+    lines.extend(
+        [
+            "",
+            "## Outputs",
+            "",
+            f"- `{summary['outputs']['eval_gate_plan']}`",
+            f"- `{summary['outputs']['mechanism_tests']}`",
+            f"- `{summary['outputs']['method_selection']}`",
+            f"- `{summary['outputs']['selection_rules']}`",
+            f"- `{summary['outputs']['run_script']}`",
+            f"- `{summary['outputs']['literature_sources']}`",
+        ]
+    )
+    return "\n".join(lines) + "\n"
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Build a mechanism-gated vLLM eval gate for Qwen3 MoE same-shape candidates.")
+    parser.add_argument("--vllm-plan", type=Path, default=Path("results/vllm_checkpoint_eval_plan/checkpoint_eval_plan.csv"))
+    parser.add_argument("--delta-frontier-dir", type=Path, default=Path("results/qwen3_moe_delta_frontier"))
+    parser.add_argument("--readiness-csv", type=Path, default=Path("results/checkpoint_materialization_readiness/candidate_readiness.csv"))
+    parser.add_argument("--output-dir", type=Path, default=Path("results/qwen3_moe_mechanism_eval_gate"))
+    return parser.parse_args()
+
+
+def main() -> None:
+    args = parse_args()
+    output_dir = repo_path(args.output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    plan = load_ordered_plan(repo_path(args.vllm_plan))
+    delta_candidates, pairwise, delta_summary = load_delta_frontier(repo_path(args.delta_frontier_dir))
+    readiness = read_csv_if_exists(args.readiness_csv)
+    gate = build_eval_gate_plan(plan, delta_candidates, readiness)
+    mechanism_tests = build_mechanism_tests(gate, pairwise)
+    selection_df, selection = build_selection(gate)
+    selection_rules = build_selection_rules(selection)
+    gpu = local_gpu_status()
+
+    gate_path = output_dir / "eval_gate_plan.csv"
+    mechanism_path = output_dir / "mechanism_tests.csv"
+    selection_path = output_dir / "method_selection.csv"
+    rules_path = output_dir / "selection_rules.json"
+    sources_path = output_dir / "literature_sources.json"
+    run_script_path = output_dir / "run_eval_gate.sh"
+    summary_path = output_dir / "summary.json"
+    report_path = output_dir / "report.md"
+
+    gate.to_csv(gate_path, index=False)
+    mechanism_tests.to_csv(mechanism_path, index=False)
+    selection_df.to_csv(selection_path, index=False)
+    rules_path.write_text(json.dumps(json_safe(selection_rules), indent=2, ensure_ascii=False, sort_keys=True) + "\n", encoding="utf-8")
+    sources_path.write_text(json.dumps(LITERATURE_SOURCES, indent=2, ensure_ascii=False, sort_keys=True) + "\n", encoding="utf-8")
+    run_script_path.write_text(build_shell_script(gate), encoding="utf-8")
+    run_script_path.chmod(0o755)
+
+    completed_eval_count = int(gate["eval_completed"].sum())
+    ready_to_host_count = int((gate["serve_status"] == "ready_to_host").sum())
+    candidate_count = int((gate["role"] == "candidate").sum())
+    source_count = int((gate["role"] == "source").sum())
+    status = (
+        "selection_complete"
+        if selection["status"] in {"selected_candidate", "select_endpoint_no_average"}
+        else "awaiting_remote_vllm_eval"
+    )
+    summary = {
+        "schema_version": 1,
+        "status": status,
+        "source_count": source_count,
+        "candidate_count": candidate_count,
+        "ready_to_host_count": ready_to_host_count,
+        "completed_eval_count": completed_eval_count,
+        "local_gpu": gpu,
+        "delta_frontier_status": delta_summary.get("status"),
+        "best_delta_safety_candidate": delta_summary.get("best_delta_safety_candidate"),
+        "next_required_gate": "run_qwen3_source_and_candidate_vllm_eval_then_rebuild_gate",
+        "current_selection": selection,
+        "outputs": {
+            "eval_gate_plan": rel(gate_path),
+            "mechanism_tests": rel(mechanism_path),
+            "method_selection": rel(selection_path),
+            "selection_rules": rel(rules_path),
+            "literature_sources": rel(sources_path),
+            "run_script": rel(run_script_path),
+            "summary": rel(summary_path),
+            "report": rel(report_path),
+        },
+    }
+    summary_path.write_text(json.dumps(json_safe(summary), indent=2, ensure_ascii=False, sort_keys=True) + "\n", encoding="utf-8")
+    report_path.write_text(build_report(summary, gate, mechanism_tests, selection_df, selection_rules), encoding="utf-8")
+    print(f"Wrote Qwen3 MoE mechanism eval gate to {output_dir.resolve()}")
+
+
+if __name__ == "__main__":
+    main()

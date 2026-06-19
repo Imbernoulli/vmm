@@ -1,0 +1,69 @@
+{
+  "current_selection": {
+    "best_source_by_avg": null,
+    "best_source_by_worst": null,
+    "candidates_complete": false,
+    "reason": "Both Qwen3 source endpoints must be evaluated before candidate selection is meaningful.",
+    "score_columns": [
+      "avg_primary_score",
+      "worst_primary_score",
+      "task_gsm8k_score",
+      "task_mmlu_score",
+      "task_safety_score",
+      "task_humaneval_compile_score"
+    ],
+    "selected_method": null,
+    "sources_complete": false,
+    "status": "awaiting_source_eval"
+  },
+  "name": "qwen3_moe_mechanism_gated_same_shape_average",
+  "schema_version": 1,
+  "score_policy": {
+    "dominance": "A candidate is rejected if a source endpoint is at least as good on every available primary/task score and strictly better on at least one.",
+    "primary_scores": [
+      "avg_primary_score",
+      "worst_primary_score",
+      "gsm8k strict_exact",
+      "mmlu accuracy",
+      "safety policy_accuracy",
+      "humaneval_compile compile_rate"
+    ],
+    "tie_breaker": "Among non-dominated audited candidates, choose higher avg_primary_score, then higher worst_primary_score, then lower total_relative_delta_norm."
+  },
+  "target_contract": [
+    "Target checkpoint must keep the same config, tokenizer, tensor names, tensor shapes, and model class as the input Qwen3 MoE checkpoints.",
+    "No ensemble, no extra experts, and no architecture expansion are allowed."
+  ],
+  "unified_algorithm": [
+    {
+      "gate": "expert_identity",
+      "mechanism": "MoE experts have permutation/gauge symmetry, so same-name average is invalid without identity recovery.",
+      "rule": "If expert correspondence is not identity-optimal, remap source expert tensors before any average; if identity-optimal, keep index identity."
+    },
+    {
+      "gate": "router",
+      "mechanism": "Top-k routing is discrete and can send tokens to wrong experts after small router perturbations.",
+      "rule": "If route overlap/top1 agreement is low or load concentration is high, freeze router for the first materialized candidate; evaluate router calibration only as a separate ablation."
+    },
+    {
+      "gate": "routed_experts",
+      "mechanism": "Expert updates should be local to the tokens and categories that actually used the source expert.",
+      "rule": "Apply source-route-conditioned expert deltas, then cap relative delta by route/load/category/router-fragility trust regions."
+    },
+    {
+      "gate": "shared_attention",
+      "mechanism": "Attention delta is not routed, so norm/audit safety cannot decide its utility.",
+      "rule": "Retain shared-attention delta only if trust-region beats expert-only on the same downstream tasks; otherwise freeze attention."
+    },
+    {
+      "gate": "tail_trim",
+      "mechanism": "A smaller high-tail cap is safer only if it does not remove useful specialization.",
+      "rule": "Use the 0.65 second-stage expert tail cap only if tail-trimmed matches or beats expert-only on downstream tasks."
+    },
+    {
+      "gate": "endpoint_fallback",
+      "mechanism": "A unified algorithm should reject bad averages; same-shape endpoint fallback is still a valid target model.",
+      "rule": "If every candidate is Pareto-dominated by a source endpoint, output the best same-shape endpoint/no-average."
+    }
+  ]
+}

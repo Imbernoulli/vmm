@@ -1,0 +1,56 @@
+[
+  {
+    "key": "loss_landscape_visualization",
+    "mechanism_used_here": "Treat loss surfaces as 2D slices through weight space; for this project the axes are task vectors or source deltas rather than random directions.",
+    "title": "Visualizing the Loss Landscape of Neural Nets",
+    "url": "https://arxiv.org/abs/1712.09913"
+  },
+  {
+    "key": "mode_connectivity",
+    "mechanism_used_here": "If two checkpoints are connected by a low-loss path, averaging may work; if the straight line crosses a barrier, the selector should shrink or reject the merge.",
+    "title": "Loss Surfaces, Mode Connectivity, and Fast Ensembling of DNNs",
+    "url": "https://arxiv.org/abs/1802.10026"
+  },
+  {
+    "key": "essentially_no_barriers",
+    "mechanism_used_here": "Nonlinear connectivity can exist even when straight-line averaging is poor, motivating path probes rather than only midpoint scores.",
+    "title": "Essentially No Barriers in Neural Network Energy Landscape",
+    "url": "https://arxiv.org/abs/1803.00885"
+  },
+  {
+    "key": "model_soups",
+    "mechanism_used_here": "Weight averaging is plausible when fine-tuned models sit in one low-error basin; the gate must test that assumption instead of assuming it.",
+    "title": "Model soups: averaging weights of multiple fine-tuned models improves accuracy without increasing inference time",
+    "url": "https://arxiv.org/abs/2203.05482"
+  },
+  {
+    "key": "fisher_merging",
+    "mechanism_used_here": "Fisher/Laplace weighting gives a local quadratic explanation, but our Qwen dense probe shows local curvature can underpredict nonlocal barriers.",
+    "title": "Merging Models with Fisher-Weighted Averaging",
+    "url": "https://arxiv.org/abs/2111.09832"
+  },
+  {
+    "key": "ties",
+    "mechanism_used_here": "Sign and magnitude conflicts are useful probes, but sparse conflict rules still need held-out/vLLM gates before touching broad LLM modules.",
+    "title": "TIES-Merging: Resolving Interference When Merging Models",
+    "url": "https://arxiv.org/abs/2306.01708"
+  },
+  {
+    "key": "git_rebasin",
+    "mechanism_used_here": "Permutation symmetries explain why expert identity alignment must precede same-name averaging.",
+    "title": "Git Re-Basin: Merging Models modulo Permutation Symmetries",
+    "url": "https://arxiv.org/abs/2209.04836"
+  },
+  {
+    "key": "mergeme",
+    "mechanism_used_here": "MoE merging needs explicit handling of parameter interference and routing, not only uniform expert averaging.",
+    "title": "MergeME: Model Merging Techniques for Homogeneous and Heterogeneous MoEs",
+    "url": "https://arxiv.org/abs/2502.00997"
+  },
+  {
+    "key": "harc",
+    "mechanism_used_here": "Router perturbations can cause routing breakdown; the current Qwen3 rule freezes router first and leaves router calibration as a separate ablation.",
+    "title": "When Model Merging Breaks Routing: Training-Free Calibration for MoE",
+    "url": "https://arxiv.org/abs/2606.03391"
+  }
+]

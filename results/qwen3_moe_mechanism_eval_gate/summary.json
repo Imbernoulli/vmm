@@ -1,0 +1,43 @@
+{
+  "best_delta_safety_candidate": "tail_trimmed",
+  "candidate_count": 5,
+  "completed_eval_count": 0,
+  "current_selection": {
+    "best_source_by_avg": null,
+    "best_source_by_worst": null,
+    "candidates_complete": false,
+    "reason": "Both Qwen3 source endpoints must be evaluated before candidate selection is meaningful.",
+    "score_columns": [
+      "avg_primary_score",
+      "worst_primary_score",
+      "task_gsm8k_score",
+      "task_mmlu_score",
+      "task_safety_score",
+      "task_humaneval_compile_score"
+    ],
+    "selected_method": null,
+    "sources_complete": false,
+    "status": "awaiting_source_eval"
+  },
+  "delta_frontier_status": "delta_frontier_ready",
+  "local_gpu": {
+    "available": false,
+    "detail": "NVIDIA-SMI has failed because it couldn't communicate with the NVIDIA driver. Make sure that the latest NVIDIA driver is installed and running.",
+    "status": "nvidia_smi_failed"
+  },
+  "next_required_gate": "run_qwen3_source_and_candidate_vllm_eval_then_rebuild_gate",
+  "outputs": {
+    "eval_gate_plan": "results/qwen3_moe_mechanism_eval_gate/eval_gate_plan.csv",
+    "literature_sources": "results/qwen3_moe_mechanism_eval_gate/literature_sources.json",
+    "mechanism_tests": "results/qwen3_moe_mechanism_eval_gate/mechanism_tests.csv",
+    "method_selection": "results/qwen3_moe_mechanism_eval_gate/method_selection.csv",
+    "report": "results/qwen3_moe_mechanism_eval_gate/report.md",
+    "run_script": "results/qwen3_moe_mechanism_eval_gate/run_eval_gate.sh",
+    "selection_rules": "results/qwen3_moe_mechanism_eval_gate/selection_rules.json",
+    "summary": "results/qwen3_moe_mechanism_eval_gate/summary.json"
+  },
+  "ready_to_host_count": 7,
+  "schema_version": 1,
+  "source_count": 2,
+  "status": "awaiting_remote_vllm_eval"
+}

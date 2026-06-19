@@ -986,6 +986,41 @@ def summarize_qwen3_moe_delta_frontier() -> dict[str, Any]:
     }
 
 
+def summarize_qwen3_moe_mechanism_eval_gate() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_mechanism_eval_gate")
+    summary = read_json(root / "summary.json")
+    gate = read_csv(root / "eval_gate_plan.csv")
+    tests = read_csv(root / "mechanism_tests.csv")
+    selection = read_csv(root / "method_selection.csv")
+    current_selection = summary.get("current_selection", {})
+    local_gpu = summary.get("local_gpu", {})
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "source_count": int(summary.get("source_count", 0)),
+        "candidate_count": int(summary.get("candidate_count", 0)),
+        "ready_to_host_count": int(summary.get("ready_to_host_count", 0)),
+        "completed_eval_count": int(summary.get("completed_eval_count", 0)),
+        "selection_status": current_selection.get("status"),
+        "selected_method": current_selection.get("selected_method"),
+        "best_delta_safety_candidate": summary.get("best_delta_safety_candidate"),
+        "local_gpu_available": bool(local_gpu.get("available", False)),
+        "local_gpu_status": local_gpu.get("status"),
+        "awaiting_tests": int((tests["current_status"] == "awaiting_eval").sum()),
+        "mechanism_test_rows": [clean_row(row) for _, row in tests.iterrows()],
+        "eval_gate_rows": [clean_row(row) for _, row in gate.iterrows()],
+        "selection_rows": [clean_row(row) for _, row in selection.iterrows()],
+        "report": rel(root / "report.md"),
+        "eval_gate_plan": rel(root / "eval_gate_plan.csv"),
+        "mechanism_tests": rel(root / "mechanism_tests.csv"),
+        "method_selection": rel(root / "method_selection.csv"),
+        "selection_rules": rel(root / "selection_rules.json"),
+        "run_script": rel(root / "run_eval_gate.sh"),
+        "literature_sources": rel(root / "literature_sources.json"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_qwen3_moe_trust_region_delta_validation() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_trust_region_delta_validation")
     summary = read_json(root / "summary.json")
@@ -2619,6 +2654,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/qwen3_moe_unified_route_guarded_candidate/report.md converts the real Qwen3 route/load probe into source-route-conditioned same-shape tensor rules and a validated writer dry-run command.",
         },
         {
+            "item": "Qwen3 MoE mechanism-gated vLLM eval gate",
+            "status": "complete",
+            "evidence": "results/qwen3_moe_mechanism_eval_gate/report.md turns two source endpoints and five same-shape Qwen3 MoE candidates into mechanism tests, a one-model-at-a-time vLLM run script, and endpoint-fallback selection rules.",
+        },
+        {
             "item": "Toy MoE multi-method routing readiness",
             "status": "complete",
             "evidence": "results/toy_moe_routing_readiness/report.md applies the generic readiness gate to toy MoE methods and flags all-weight routing drift separately from expert-matched/route-aware variants.",
@@ -2703,6 +2743,7 @@ def build_summary() -> dict[str, Any]:
         ),
         "qwen3_moe_tail_trimmed_delta_audit": summarize_qwen3_moe_tail_trimmed_delta_audit(),
         "qwen3_moe_delta_frontier": summarize_qwen3_moe_delta_frontier(),
+        "qwen3_moe_mechanism_eval_gate": summarize_qwen3_moe_mechanism_eval_gate(),
         "toy_moe_routing_readiness": summarize_toy_moe_routing_readiness(),
         "toy_moe_method_selection": summarize_toy_moe_method_selection(),
         "toy_moe_expert_remap_plan": summarize_toy_moe_expert_remap_plan(),
@@ -2892,6 +2933,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_tail_trimmed_expert_only_candidate = exp["qwen3_moe_tail_trimmed_expert_only_candidate"]
     qwen3_moe_tail_trimmed_delta_audit = exp["qwen3_moe_tail_trimmed_delta_audit"]
     qwen3_moe_delta_frontier = exp["qwen3_moe_delta_frontier"]
+    qwen3_moe_mechanism_eval_gate = exp["qwen3_moe_mechanism_eval_gate"]
     selected_unified_capacity = toy_moe.get("unified_moe_capacity_sweep_selected") or {}
     selected_unified_output_projection_capacity = (
         toy_moe.get("unified_output_projection_moe_capacity_sweep_selected") or {}
@@ -3346,6 +3388,23 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 "| Qwen3 MoE delta frontier | expert-only->tail-trimmed rel-norm reduction / routed >0.65 reduction | "
                 f"{fmt(qwen3_moe_delta_frontier['expert_only_to_tail_trimmed_relative_norm_reduction'])} / "
                 f"{qwen3_moe_delta_frontier['expert_only_to_tail_trimmed_routed_gt_065_reduction']} |"
+            ),
+            (
+                "| Qwen3 MoE mechanism eval gate | status / selection / selected | "
+                f"{qwen3_moe_mechanism_eval_gate['status']} / "
+                f"{qwen3_moe_mechanism_eval_gate['selection_status']} / "
+                f"{qwen3_moe_mechanism_eval_gate['selected_method']} |"
+            ),
+            (
+                "| Qwen3 MoE mechanism eval gate | ready / completed / awaiting tests | "
+                f"{qwen3_moe_mechanism_eval_gate['ready_to_host_count']} / "
+                f"{qwen3_moe_mechanism_eval_gate['completed_eval_count']} / "
+                f"{qwen3_moe_mechanism_eval_gate['awaiting_tests']} |"
+            ),
+            (
+                "| Qwen3 MoE mechanism eval gate | local GPU / best delta-safety candidate | "
+                f"{qwen3_moe_mechanism_eval_gate['local_gpu_status']} / "
+                f"{qwen3_moe_mechanism_eval_gate['best_delta_safety_candidate']} |"
             ),
             (
                 "| real MoE gauge self-merge | baseline / same-name / aligned NLL | "
