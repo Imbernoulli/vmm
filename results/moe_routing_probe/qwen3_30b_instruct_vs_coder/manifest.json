@@ -1,0 +1,20 @@
+{
+  "generated_at": "2026-06-19T18:14:59.096980+00:00",
+  "model": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe",
+  "compare_model": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-Coder-30B-A3B-Instruct/snapshots/b2cff646eb4bb1d68355c01b18ae02e7cf42d120",
+  "prompts": 12,
+  "top_k": 8,
+  "router_name_regex": "(^|\\.)(router|gate)$",
+  "exclude_name_regex": "(gate_proj|shared_expert_gate)",
+  "outputs": {
+    "router_summary": "router_summary.csv",
+    "expert_load": "expert_load.csv",
+    "token_routes": null,
+    "compare_router_summary": "compare_router_summary.csv",
+    "compare_expert_load": "compare_expert_load.csv",
+    "compare_token_routes": null,
+    "route_overlap": "route_overlap.csv",
+    "summary": "summary.json",
+    "report": "report.md"
+  }
+}

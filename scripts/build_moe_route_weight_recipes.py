@@ -65,6 +65,16 @@ def parse_weight(raw: str) -> tuple[str, float]:
     return key, float(value)
 
 
+def parse_model_source(raw: str) -> tuple[str, str]:
+    key, value = parse_pair(raw)
+    return key, value
+
+
+def parse_source_path(raw: str) -> tuple[str, str]:
+    key, value = parse_pair(raw)
+    return key, value
+
+
 def read_csv_if_exists(path: Path) -> pd.DataFrame | None:
     if not path.exists() or path.stat().st_size == 0:
         return None
@@ -266,35 +276,100 @@ def load_route_masses(
     source_names: list[str],
     category_sources: dict[str, str],
     fallback_source: str,
+    model_sources: list[tuple[str, str]],
     layer_regex: re.Pattern[str],
 ) -> tuple[dict[tuple[str, str, int], dict[str, float]], list[dict[str, Any]]]:
     route_masses: dict[tuple[str, str, int], dict[str, float]] = defaultdict(lambda: {name: 0.0 for name in source_names})
     inputs: list[dict[str, Any]] = []
     for router_dir in router_dirs:
-        expert_load = read_csv_if_exists(router_dir / "expert_load.csv")
-        if expert_load is None or expert_load.empty:
-            inputs.append({"router_dir": rel(router_dir), "expert_load_rows": 0, "status": "missing_or_empty"})
-            continue
-        required = {"category", "router", "expert_id", "topk_fraction"}
-        missing = sorted(required - set(expert_load.columns))
-        if missing:
-            raise ValueError(f"{router_dir / 'expert_load.csv'} is missing columns: {missing}")
-        used_rows = 0
-        for _, item in expert_load.iterrows():
-            category = str(item["category"])
-            source = source_for_category(category, category_sources, source_names, fallback_source)
-            if source not in source_names:
-                raise ValueError(f"Category {category!r} maps to unknown source {source!r}")
-            router = str(item["router"])
-            expert_id = int(item["expert_id"])
-            layer_id = layer_id_from_router(router, layer_regex)
-            topk_fraction = maybe_float(item.get("topk_fraction"))
-            if topk_fraction <= 0:
+        loaded_files = [
+            ("expert_load", router_dir / "expert_load.csv"),
+            ("compare_expert_load", router_dir / "compare_expert_load.csv"),
+        ]
+        loaded_any = False
+        dir_used_rows = 0
+        dir_skipped_model_rows = 0
+        dir_unknown_model_rows = 0
+        for file_kind, expert_load_path in loaded_files:
+            expert_load = read_csv_if_exists(expert_load_path)
+            if expert_load is None or expert_load.empty:
+                inputs.append(
+                    {
+                        "router_dir": rel(router_dir),
+                        "expert_load_file": expert_load_path.name,
+                        "expert_load_rows": 0,
+                        "status": "missing_or_empty",
+                    }
+                )
                 continue
-            route_masses[(layer_id, router, expert_id)][source] += topk_fraction
-            used_rows += 1
-        inputs.append({"router_dir": rel(router_dir), "expert_load_rows": int(len(expert_load)), "used_rows": used_rows, "status": "loaded"})
+            loaded_any = True
+            required = {"category", "router", "expert_id", "topk_fraction"}
+            missing = sorted(required - set(expert_load.columns))
+            if missing:
+                raise ValueError(f"{expert_load_path} is missing columns: {missing}")
+            used_rows = 0
+            skipped_model_rows = 0
+            unknown_model_rows = 0
+            for _, item in expert_load.iterrows():
+                category = str(item["category"])
+                target_source = source_for_category(category, category_sources, source_names, fallback_source)
+                if target_source not in source_names:
+                    raise ValueError(f"Category {category!r} maps to unknown source {target_source!r}")
+                if model_sources:
+                    row_model = str(item.get("model", ""))
+                    row_source = source_for_model(row_model, model_sources)
+                    if row_source is None:
+                        unknown_model_rows += 1
+                        continue
+                    if row_source != target_source:
+                        skipped_model_rows += 1
+                        continue
+                    source = row_source
+                else:
+                    source = target_source
+                router = str(item["router"])
+                expert_id = int(item["expert_id"])
+                layer_id = layer_id_from_router(router, layer_regex)
+                topk_fraction = maybe_float(item.get("topk_fraction"))
+                if topk_fraction <= 0:
+                    continue
+                route_masses[(layer_id, router, expert_id)][source] += topk_fraction
+                used_rows += 1
+            dir_used_rows += used_rows
+            dir_skipped_model_rows += skipped_model_rows
+            dir_unknown_model_rows += unknown_model_rows
+            inputs.append(
+                {
+                    "router_dir": rel(router_dir),
+                    "expert_load_file": expert_load_path.name,
+                    "expert_load_rows": int(len(expert_load)),
+                    "used_rows": used_rows,
+                    "skipped_model_rows": skipped_model_rows,
+                    "unknown_model_rows": unknown_model_rows,
+                    "status": "loaded",
+                }
+            )
+        if not loaded_any:
+            inputs.append({"router_dir": rel(router_dir), "expert_load_rows": 0, "status": "missing_or_empty"})
+        elif model_sources:
+            inputs.append(
+                {
+                    "router_dir": rel(router_dir),
+                    "expert_load_rows": int(dir_used_rows + dir_skipped_model_rows + dir_unknown_model_rows),
+                    "used_rows": dir_used_rows,
+                    "skipped_model_rows": dir_skipped_model_rows,
+                    "unknown_model_rows": dir_unknown_model_rows,
+                    "status": "source_route_conditioned_loaded",
+                }
+            )
     return route_masses, inputs
+
+
+def source_for_model(model: str, model_sources: list[tuple[str, str]]) -> str | None:
+    for pattern, source in model_sources:
+        if pattern in model:
+            return source
+    return None
 
 
 def normalize_source_weights(
@@ -565,6 +640,8 @@ def build_packed_expert_rule_rows(
 def build_writer_command(
     *,
     source_names: list[str],
+    base: str,
+    source_paths: dict[str, str],
     tensor_rule_file: Path,
     packed_expert_rule_file: Path | None,
     output_checkpoint_dir: str,
@@ -572,10 +649,10 @@ def build_writer_command(
 ) -> str:
     parts = [
         "python scripts/write_same_shape_average_checkpoint.py",
-        "--base MOE_BASE_OR_ANCHOR_PATH",
+        f"--base {base}",
     ]
     for source in source_names:
-        parts.append(f"--source {source}={source.upper()}_MODEL_PATH")
+        parts.append(f"--source {source}={source_paths.get(source, source.upper() + '_MODEL_PATH')}")
     for source in source_names:
         parts.append(f"--source-weight {source}=0.0")
     if freeze_router:
@@ -624,6 +701,15 @@ def build_report(
         "剩下的 `anchor_floor` 留给 base/anchor checkpoint，低使用率 expert 默认保持 anchor-heavy/frozen。这样做是为了避免 MoE average 直接把低证据、低路由频率的 experts 拉偏。",
         "",
     ]
+    if summary.get("model_sources"):
+        lines.extend(
+            [
+                "如果传入 `--model-source`，脚本只把某个 source 自己 checkpoint 的 route mass 分给该 source；例如 code 类只使用 coder checkpoint 的 code 路由，general/safety/legal 等只使用 instruct checkpoint 的对应路由。这样避免把两个模型路由冲突直接相加。",
+                "",
+                f"- Model-source filters: `{json.dumps(summary['model_sources'], ensure_ascii=False)}`",
+                "",
+            ]
+        )
     topology = summary.get("topology")
     if topology:
         lines.extend(
@@ -724,7 +810,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--expert-weight-csv", action="append", default=[], help="CSV with expert_id and weight_<source> columns from a calibration/search step.")
     parser.add_argument("--expert-weight-category", default=None, help="When expert-weight CSV has a category column, keep only rows with this category.")
     parser.add_argument("--source", action="append", default=[], help="Source name used by the checkpoint writer, e.g. general or code.")
+    parser.add_argument("--base", default="MOE_BASE_OR_ANCHOR_PATH", help="Anchor/base model path for the writer command.")
+    parser.add_argument("--source-path", action="append", default=[], help="Writer source path NAME=MODEL_PATH.")
     parser.add_argument("--category-source", action="append", default=[], help="Map prompt category to source, e.g. code=code.")
+    parser.add_argument(
+        "--model-source",
+        action="append",
+        default=[],
+        help="Only count expert-load rows from models whose path contains SUBSTRING for SOURCE, e.g. Qwen3-Coder=coder.",
+    )
     parser.add_argument("--fallback-source", default=None, help="Source used for unmapped prompt categories. Defaults to first --source.")
     parser.add_argument("--anchor-floor", type=float, default=0.15, help="Unmerged base/anchor reserve for expert deltas.")
     parser.add_argument("--min-source-weight", type=float, default=0.05, help="Trim tiny normalized source weights before rescaling.")
@@ -763,12 +857,20 @@ def main() -> None:
     if len(source_names) != len(set(source_names)):
         raise ValueError(f"Source names must be unique: {source_names}")
     category_sources = dict(parse_pair(raw) for raw in args.category_source)
+    source_paths = dict(parse_source_path(raw) for raw in args.source_path)
     fallback_source = args.fallback_source or source_names[0]
     if fallback_source not in source_names:
         raise ValueError(f"Fallback source {fallback_source!r} is not in source list {source_names}")
     for category, source in category_sources.items():
         if source not in source_names:
             raise ValueError(f"Category {category!r} maps to unknown source {source!r}")
+    for source in source_paths:
+        if source not in source_names:
+            raise ValueError(f"Source path references unknown source {source!r}; known sources: {source_names}")
+    model_sources = [parse_model_source(raw) for raw in args.model_source]
+    for _, source in model_sources:
+        if source not in source_names:
+            raise ValueError(f"Model-source mapping references unknown source {source!r}; known sources: {source_names}")
 
     output_dir = repo_path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -817,6 +919,7 @@ def main() -> None:
             source_names=source_names,
             category_sources=category_sources,
             fallback_source=fallback_source,
+            model_sources=model_sources,
             layer_regex=layer_regex,
         )
         source_rows = build_source_weight_rows(
@@ -863,6 +966,8 @@ def main() -> None:
     pd.DataFrame(packed_expert_rows, columns=PACKED_EXPERT_RULE_COLUMNS).to_csv(packed_expert_rule_file, index=False)
     writer_command = build_writer_command(
         source_names=source_names,
+        base=args.base,
+        source_paths=source_paths,
         tensor_rule_file=tensor_rule_file,
         packed_expert_rule_file=packed_expert_rule_file if packed_expert_rows else None,
         output_checkpoint_dir=args.checkpoint_output_dir,
@@ -895,7 +1000,10 @@ def main() -> None:
         ),
         "recipe_kind": recipe_kind,
         "source_names": source_names,
+        "base": args.base,
+        "source_paths": source_paths,
         "category_sources": category_sources,
+        "model_sources": [{"model_substring": key, "source": value} for key, value in model_sources],
         "fallback_source": fallback_source,
         "router_dirs": [rel(path) for path in router_dirs],
         "expert_weight_csvs": [rel(path) for path in expert_weight_csvs],

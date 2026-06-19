@@ -271,6 +271,21 @@
       "status": "complete"
     },
     {
+      "evidence": "results/moe_unified_preflight_qwen3_30b/report.md verifies Qwen3-30B Instruct/Coder same-shape config, router tensor contract, routed expert layout, expert identity gate, and the emitted real routing probe command.",
+      "item": "Qwen3 MoE unified average preflight",
+      "status": "complete"
+    },
+    {
+      "evidence": "results/moe_routing_readiness/qwen3_30b_instruct_vs_coder/report.md analyzes the real Qwen3-30B Instruct/Coder route overlap and expert load probe, showing direct router averaging is high risk and needs calibration or freeze.",
+      "item": "Qwen3 MoE real routing readiness",
+      "status": "complete"
+    },
+    {
+      "evidence": "results/qwen3_moe_unified_route_guarded_candidate/report.md converts the real Qwen3 route/load probe into source-route-conditioned same-shape tensor rules and a validated writer dry-run command.",
+      "item": "Qwen3 MoE route-guarded unified candidate",
+      "status": "complete"
+    },
+    {
       "evidence": "results/toy_moe_routing_readiness/report.md applies the generic readiness gate to toy MoE methods and flags all-weight routing drift separately from expert-matched/route-aware variants.",
       "item": "Toy MoE multi-method routing readiness",
       "status": "complete"
@@ -292,7 +307,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 57,
+    "complete": 60,
     "missing": 0,
     "partial": 1
   },
@@ -4700,6 +4715,30 @@
           "same_shape_action": "use identity expert slices first; freeze or small-step router until route overlap/load is measured"
         },
         {
+          "blocking_probe": "real_qwen3_route_overlap_and_expert_load",
+          "capacity_gate": "real_expert_load_probe_required",
+          "case": "qwen3_unified_preflight_contract",
+          "decision": "same_shape_identity_ready_wait_for_route_runtime",
+          "evidence": "status=same_shape_and_identity_ready_route_runtime_blocked_here; same_shape=True; routers=48; routed_expert_tensors=18432; identity=pass; cuda=False",
+          "expert_identity_gate": "pass",
+          "model_or_pair": "qwen3_30b_instruct :: qwen3_30b_coder",
+          "probe": "config and safetensors-header router/expert same-shape contract",
+          "router_gate": "real_route_probe_required",
+          "same_shape_action": "run emitted route/load probe command; do not materialize until route readiness and behavior eval pass"
+        },
+        {
+          "blocking_probe": "materialized_route_guarded_candidate_vllm_eval",
+          "capacity_gate": "protect_high_load_experts_and_check_capacity",
+          "case": "qwen3_real_route_load_readiness",
+          "decision": "reject_direct_router_average_calibrate_or_freeze",
+          "evidence": "status=high_risk_calibrate_router_before_merge; calibrate=493; small_lambda=46; passed=31; freeze=6; overused_expert=4459",
+          "expert_identity_gate": "identity_mapping_allowed_but_route_weighted_expert_weights_required",
+          "model_or_pair": "qwen3_30b_instruct :: qwen3_30b_coder",
+          "probe": "real prompt route overlap + expert load readiness",
+          "router_gate": "calibrate_or_freeze_router_before_average",
+          "same_shape_action": "keep identity expert layout, derive route/category-aware expert weights, freeze or calibrate router, then run vLLM behavior eval"
+        },
+        {
           "blocking_probe": "target_model_generation_or_vllm_eval",
           "capacity_gate": "pass",
           "case": "toy_moe_method_selector",
@@ -4714,10 +4753,12 @@
       ],
       "case_table": "results/moe_probe_gated_selector/selector_cases.csv",
       "global_moe_gauge_decision": "reject_same_name_average_without_alignment",
-      "next_blocking_probe": "real_qwen3_route_overlap_and_expert_load",
+      "next_blocking_probe": "materialized_route_guarded_candidate_vllm_eval",
       "qwen3_argmax_identity_fraction": 1.0,
       "qwen3_expert_identity_decision": "identity_expert_average_allowed_with_routing_gate",
       "qwen3_identity_fraction": 1.0,
+      "qwen3_preflight_decision": "same_shape_identity_ready_wait_for_route_runtime",
+      "qwen3_routing_decision": "reject_direct_router_average_calibrate_or_freeze",
       "real_gauge_aligned_degradation": 0.0,
       "real_gauge_naive_degradation": 5.490968298724317,
       "report": "results/moe_probe_gated_selector/report.md",
@@ -4725,7 +4766,7 @@
         {
           "action_if_fail": "do_not_materialize",
           "action_if_pass": "continue",
-          "gate": "same_shape_config_and_packed_expert_layout",
+          "gate": "same_shape_config_and_routed_expert_layout",
           "required_evidence": "tensor names, tensor shapes, router rows, expert dimension, tokenizer/model class",
           "stage": "topology"
         },
@@ -4766,11 +4807,11 @@
         }
       ],
       "stage_table": "results/moe_probe_gated_selector/selector_stages.csv",
-      "status": "selector_ready_waiting_for_real_qwen_routing_probe",
+      "status": "selector_has_real_qwen_routing_probe_high_risk",
       "summary": {
-        "generated_at": "2026-06-19T17:57:17.415057+00:00",
+        "generated_at": "2026-06-19T18:20:32.502130+00:00",
         "global_moe_gauge_decision": "reject_same_name_average_without_alignment",
-        "next_blocking_probe": "real_qwen3_route_overlap_and_expert_load",
+        "next_blocking_probe": "materialized_route_guarded_candidate_vllm_eval",
         "outputs": {
           "case_table": "results/moe_probe_gated_selector/selector_cases.csv",
           "report": "results/moe_probe_gated_selector/report.md",
@@ -4780,11 +4821,13 @@
         "qwen3_argmax_identity_fraction": 1.0,
         "qwen3_expert_identity_decision": "identity_expert_average_allowed_with_routing_gate",
         "qwen3_identity_fraction": 1.0,
+        "qwen3_preflight_decision": "same_shape_identity_ready_wait_for_route_runtime",
+        "qwen3_routing_decision": "reject_direct_router_average_calibrate_or_freeze",
         "real_gauge_aligned_degradation": 0.0,
         "real_gauge_naive_degradation": 5.490968298724317,
         "same_shape_invariant": "No selector stage changes model class, tokenizer, hidden size, router shape, expert count, or tensor shape.",
         "schema_version": 1,
-        "status": "selector_ready_waiting_for_real_qwen_routing_probe",
+        "status": "selector_has_real_qwen_routing_probe_high_risk",
         "toy_capacity_recommendation": "unified_moe_bias_capacity_average",
         "toy_soft_recommendation": "expert_output_projection_router_calibrated_average",
         "toy_sparse_recommendation": "unified_confidence_blended_route_kd_seed_average"
@@ -5188,6 +5231,164 @@
         ]
       },
       "tensor_checks": "results/moe_tensor_rule_writer_smoke/tensor_checks.csv"
+    },
+    "moe_unified_preflight_qwen3_30b": {
+      "config_rows": [
+        {
+          "field": "model_type",
+          "left": "qwen3_moe",
+          "match": true,
+          "right": "qwen3_moe"
+        },
+        {
+          "field": "hidden_size",
+          "left": "2048",
+          "match": true,
+          "right": "2048"
+        },
+        {
+          "field": "num_hidden_layers",
+          "left": "48",
+          "match": true,
+          "right": "48"
+        },
+        {
+          "field": "num_attention_heads",
+          "left": "32",
+          "match": true,
+          "right": "32"
+        },
+        {
+          "field": "num_key_value_heads",
+          "left": "4",
+          "match": true,
+          "right": "4"
+        },
+        {
+          "field": "moe_intermediate_size",
+          "left": "768",
+          "match": true,
+          "right": "768"
+        },
+        {
+          "field": "shared_expert_intermediate_size",
+          "left": null,
+          "match": true,
+          "right": null
+        },
+        {
+          "field": "num_experts",
+          "left": "128",
+          "match": true,
+          "right": "128"
+        },
+        {
+          "field": "num_experts_per_tok",
+          "left": "8",
+          "match": true,
+          "right": "8"
+        },
+        {
+          "field": "vocab_size",
+          "left": "151936",
+          "match": true,
+          "right": "151936"
+        }
+      ],
+      "cuda_available": false,
+      "expert_contract": "results/moe_unified_preflight_qwen3_30b/expert_contract.csv",
+      "expert_identity_fraction": 1.0,
+      "expert_identity_status": "pass",
+      "gate_rows": [
+        {
+          "action": "continue",
+          "evidence": "All average-critical config fields match.",
+          "stage": "same_shape_config",
+          "status": "pass"
+        },
+        {
+          "action": "allow_router_probe",
+          "evidence": "48 router tensors compared; all shapes match=True.",
+          "stage": "router_tensor_contract",
+          "status": "pass"
+        },
+        {
+          "action": "allow_identity_or_remap_gate",
+          "evidence": "18432 routed expert tensors compared; per-layer layout match=True.",
+          "stage": "routed_expert_layout",
+          "status": "pass"
+        },
+        {
+          "action": "use_identity_expert_slices_first",
+          "evidence": "Expert identity is stable enough to use identity slices first.",
+          "stage": "expert_identity",
+          "status": "pass"
+        },
+        {
+          "action": "run the emitted command on a GPU/vLLM host; keep materialization blocked here",
+          "evidence": "torch.cuda.is_available=False.",
+          "stage": "runtime_route_probe",
+          "status": "blocked_in_this_process"
+        },
+        {
+          "action": "host candidate with vLLM after route/load gates pass",
+          "evidence": "No same-shape Qwen3 MoE candidate should be published before route overlap, load, and downstream eval.",
+          "stage": "behavior_eval",
+          "status": "waiting"
+        }
+      ],
+      "gate_table": "results/moe_unified_preflight_qwen3_30b/unified_gate_table.csv",
+      "report": "results/moe_unified_preflight_qwen3_30b/report.md",
+      "routed_expert_tensor_rows": 18432,
+      "router_contract": "results/moe_unified_preflight_qwen3_30b/router_contract.csv",
+      "router_tensor_rows": 48,
+      "routing_probe_command": "results/moe_unified_preflight_qwen3_30b/routing_probe_command.txt",
+      "same_shape_contract_pass": true,
+      "status": "same_shape_and_identity_ready_route_runtime_blocked_here",
+      "summary": {
+        "cuda_available": false,
+        "expert_identity_gate": {
+          "expected_layers": 48,
+          "frac_layers_identity_optimal": 1.0,
+          "mean_argmax_is_identity_frac": 1.0,
+          "mean_diag_cos": 0.18304558439801136,
+          "mean_offdiag_cos": 0.00013665722265917188,
+          "n_layers": 48,
+          "pass": true,
+          "reason": "Expert identity is stable enough to use identity slices first.",
+          "status": "pass"
+        },
+        "gate_blocked_count": 1,
+        "gate_pass_count": 4,
+        "generated_at": "2026-06-19T18:15:13.280493+00:00",
+        "layout_rows": 96,
+        "left_model": "qwen3_30b_instruct",
+        "outputs": {
+          "config_contract": "results/moe_unified_preflight_qwen3_30b/config_contract.csv",
+          "expert_contract": "results/moe_unified_preflight_qwen3_30b/expert_contract.csv",
+          "gate_table": "results/moe_unified_preflight_qwen3_30b/unified_gate_table.csv",
+          "layout_contract": "results/moe_unified_preflight_qwen3_30b/layout_contract.csv",
+          "report": "results/moe_unified_preflight_qwen3_30b/report.md",
+          "router_contract": "results/moe_unified_preflight_qwen3_30b/router_contract.csv",
+          "routing_probe_command": "results/moe_unified_preflight_qwen3_30b/routing_probe_command.txt",
+          "summary": "results/moe_unified_preflight_qwen3_30b/summary.json"
+        },
+        "right_model": "qwen3_30b_coder",
+        "routed_expert_tensor_rows": 18432,
+        "router_tensor_rows": 48,
+        "routing_probe_command": "python scripts/probe_moe_routing.py --model /srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe --compare-model /srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-Coder-30B-A3B-Instruct/snapshots/b2cff646eb4bb1d68355c01b18ae02e7cf42d120 --tokenizer /srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe --prompts prompts/qwen_moe_route_probe_prompts.jsonl --device-map auto --dtype bfloat16 --use-chat-template --local-files-only --top-k 8 --output-dir results/moe_routing_probe/qwen3_30b_instruct_vs_coder",
+        "same_shape_contract_pass": true,
+        "schema_version": 1,
+        "selector_next_blocking_probe": "real_qwen3_route_overlap_and_expert_load",
+        "selector_prior_status": "selector_ready_waiting_for_real_qwen_routing_probe",
+        "status": "same_shape_and_identity_ready_route_runtime_blocked_here",
+        "unified_mechanism": {
+          "current_qwen3_action": "identity expert slices are allowed by correspondence; router and load remain blocked until real route probe.",
+          "moe_error_decomposition": "expert gauge/identity + expert functional residual + router route-overlap drift + sparse capacity overflow + downstream behavior",
+          "objective": "same-shape model average that can choose endpoint/base, layer/tensor coefficients, expert remap, guarded router, and capacity bias without changing architecture"
+        }
+      },
+      "summary_path": "results/moe_unified_preflight_qwen3_30b/summary.json"
     },
     "pretrained_vit_transfer_merge": {
       "base": {
@@ -5829,6 +6030,462 @@
       "vllm_worst_primary_score": 0.0,
       "worst_nll": 7.632229374904258,
       "writer_command": "results/probe_guided_dense_average_candidate/writer_command.txt"
+    },
+    "qwen3_moe_route_guarded_candidate": {
+      "category_sources": {
+        "agentic_code": "coder",
+        "code": "coder",
+        "finance": "instruct",
+        "general": "instruct",
+        "legal": "instruct",
+        "long_context": "instruct",
+        "math": "instruct",
+        "safety": "instruct"
+      },
+      "expert_rule_count": 5243,
+      "freeze_router": true,
+      "model_sources": [
+        {
+          "model_substring": "Qwen3-30B-A3B-Instruct-2507",
+          "source": "instruct"
+        },
+        {
+          "model_substring": "Qwen3-Coder-30B-A3B-Instruct",
+          "source": "coder"
+        }
+      ],
+      "packed_expert_rules_enabled": false,
+      "recipe_kind": "route_frequency",
+      "recipe_status": "route_weight_rules_ready",
+      "report": "results/qwen3_moe_unified_route_guarded_candidate/report.md",
+      "shared_attention_coder_delta": 0.25,
+      "source_route_conditioned_skipped_rows": 73728,
+      "source_route_conditioned_used_rows": 35432,
+      "source_weight_rows": 5243,
+      "source_weights": "results/qwen3_moe_unified_route_guarded_candidate/source_weights_by_expert.csv",
+      "summary": {
+        "anchor_floor": 0.15,
+        "base": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe",
+        "category_source_plan": [
+          {
+            "category": "agentic_code",
+            "mapped_source": "coder",
+            "mapping_kind": "explicit",
+            "prompt_count": 1
+          },
+          {
+            "category": "code",
+            "mapped_source": "coder",
+            "mapping_kind": "explicit",
+            "prompt_count": 2
+          },
+          {
+            "category": "finance",
+            "mapped_source": "instruct",
+            "mapping_kind": "explicit",
+            "prompt_count": 1
+          },
+          {
+            "category": "general",
+            "mapped_source": "instruct",
+            "mapping_kind": "explicit",
+            "prompt_count": 2
+          },
+          {
+            "category": "legal",
+            "mapped_source": "instruct",
+            "mapping_kind": "explicit",
+            "prompt_count": 1
+          },
+          {
+            "category": "long_context",
+            "mapped_source": "instruct",
+            "mapping_kind": "explicit",
+            "prompt_count": 1
+          },
+          {
+            "category": "math",
+            "mapped_source": "instruct",
+            "mapping_kind": "explicit",
+            "prompt_count": 2
+          },
+          {
+            "category": "safety",
+            "mapped_source": "instruct",
+            "mapping_kind": "explicit",
+            "prompt_count": 2
+          }
+        ],
+        "category_source_plan_rows": 8,
+        "category_sources": {
+          "agentic_code": "coder",
+          "code": "coder",
+          "finance": "instruct",
+          "general": "instruct",
+          "legal": "instruct",
+          "long_context": "instruct",
+          "math": "instruct",
+          "safety": "instruct"
+        },
+        "expert_rule_count": 5243,
+        "expert_weight_category": null,
+        "expert_weight_csvs": [],
+        "fallback_source": "instruct",
+        "freeze_router": true,
+        "input_summaries": [
+          {
+            "expert_load_file": "expert_load.csv",
+            "expert_load_rows": 73728,
+            "router_dir": "results/moe_routing_probe/qwen3_30b_instruct_vs_coder",
+            "skipped_model_rows": 18432,
+            "status": "loaded",
+            "unknown_model_rows": 0,
+            "used_rows": 26868
+          },
+          {
+            "expert_load_file": "compare_expert_load.csv",
+            "expert_load_rows": 73728,
+            "router_dir": "results/moe_routing_probe/qwen3_30b_instruct_vs_coder",
+            "skipped_model_rows": 55296,
+            "status": "loaded",
+            "unknown_model_rows": 0,
+            "used_rows": 8564
+          },
+          {
+            "expert_load_rows": 109160,
+            "router_dir": "results/moe_routing_probe/qwen3_30b_instruct_vs_coder",
+            "skipped_model_rows": 73728,
+            "status": "source_route_conditioned_loaded",
+            "unknown_model_rows": 0,
+            "used_rows": 35432
+          }
+        ],
+        "low_route_threshold": 0.005,
+        "min_source_weight": 0.05,
+        "model_sources": [
+          {
+            "model_substring": "Qwen3-30B-A3B-Instruct-2507",
+            "source": "instruct"
+          },
+          {
+            "model_substring": "Qwen3-Coder-30B-A3B-Instruct",
+            "source": "coder"
+          }
+        ],
+        "outputs": {
+          "category_source_plan": "results/qwen3_moe_unified_route_guarded_candidate/category_source_plan.csv",
+          "packed_expert_rules": "results/qwen3_moe_unified_route_guarded_candidate/packed_expert_rules.csv",
+          "report": "results/qwen3_moe_unified_route_guarded_candidate/report.md",
+          "routing_probe_plan": "results/qwen3_moe_unified_route_guarded_candidate/routing_probe_plan.csv",
+          "routing_probe_plan_json": "results/qwen3_moe_unified_route_guarded_candidate/routing_probe_plan.json",
+          "source_weights": "results/qwen3_moe_unified_route_guarded_candidate/source_weights_by_expert.csv",
+          "summary": "results/qwen3_moe_unified_route_guarded_candidate/summary.json",
+          "tensor_rules": "results/qwen3_moe_unified_route_guarded_candidate/tensor_rules.txt",
+          "writer_command": "results/qwen3_moe_unified_route_guarded_candidate/writer_command.txt"
+        },
+        "packed_expert_rule_count": 0,
+        "packed_expert_rule_slice_count": 0,
+        "packed_expert_rule_tensor_count": 0,
+        "packed_expert_rules_enabled": false,
+        "packed_expert_tensor_templates": [
+          "model.language_model.layers.{layer_id}.mlp.experts.gate_up_proj",
+          "model.language_model.layers.{layer_id}.mlp.experts.down_proj"
+        ],
+        "prompt_pack": "prompts/qwen_moe_route_probe_prompts.jsonl",
+        "recipe_kind": "route_frequency",
+        "recipe_status": "route_weight_rules_ready",
+        "router_dirs": [
+          "results/moe_routing_probe/qwen3_30b_instruct_vs_coder"
+        ],
+        "routing_probe_plan": [
+          {
+            "category_count": 8,
+            "command": "python scripts/probe_moe_routing.py --model Qwen/Qwen3-30B-A3B --compare-model Qwen/Qwen3-Coder-30B-A3B-Instruct --prompts prompts/qwen_moe_route_probe_prompts.jsonl --device-map auto --dtype bfloat16 --max-length 768 --use-chat-template --output-dir results/moe_routing_probe/qwen3_30b_general_vs_code",
+            "compare_model": "Qwen/Qwen3-Coder-30B-A3B-Instruct",
+            "device_map": "auto",
+            "dtype": "bfloat16",
+            "expected_expert_load": "results/moe_routing_probe/qwen3_30b_general_vs_code/expert_load.csv",
+            "expected_route_overlap": "results/moe_routing_probe/qwen3_30b_general_vs_code/route_overlap.csv",
+            "max_length": 768,
+            "model": "Qwen/Qwen3-30B-A3B",
+            "next_recipe_command": "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code --source instruct --source coder --category-source agentic_code=coder --category-source code=coder --category-source finance=instruct --category-source general=instruct --category-source legal=instruct --category-source long_context=instruct --category-source math=instruct --category-source safety=instruct",
+            "output_dir": "results/moe_routing_probe/qwen3_30b_general_vs_code",
+            "probe_name": "qwen3_30b_general_vs_code",
+            "prompt_count": 12,
+            "prompt_pack": "prompts/qwen_moe_route_probe_prompts.jsonl",
+            "source_names": "instruct,coder",
+            "use_chat_template": true
+          }
+        ],
+        "routing_probe_plan_rows": 1,
+        "same_shape_constraint": "Tensor rules only change weights inside the existing model structure; expert count, router shape, tokenizer, and layer count stay fixed.",
+        "shared_attention_weights": {
+          "coder": 0.25,
+          "instruct": 0.0
+        },
+        "shared_mlp_weights": null,
+        "source_names": [
+          "instruct",
+          "coder"
+        ],
+        "source_paths": {
+          "coder": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-Coder-30B-A3B-Instruct/snapshots/b2cff646eb4bb1d68355c01b18ae02e7cf42d120",
+          "instruct": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe"
+        },
+        "tensor_rule_count": 5244,
+        "topology": null
+      },
+      "tensor_rule_count": 5244,
+      "tensor_rules": "results/qwen3_moe_unified_route_guarded_candidate/tensor_rules.txt",
+      "writer_command": "results/qwen3_moe_unified_route_guarded_candidate/writer_command.txt",
+      "writer_command_has_real_paths": true,
+      "writer_dry_run_expert_tensor_rule_hits": 15729,
+      "writer_dry_run_floating_tensors": 18867,
+      "writer_dry_run_freeze_router_hits": 48,
+      "writer_dry_run_frozen_tensors": 3603,
+      "writer_dry_run_passed": true,
+      "writer_dry_run_shared_attention_hits": 288
+    },
+    "qwen3_moe_routing_probe": {
+      "category_count": 8,
+      "compare_router_summary": "results/moe_routing_probe/qwen3_30b_instruct_vs_coder/compare_router_summary.csv",
+      "mean_top1_agreement": 0.4125356771853856,
+      "mean_topk_jaccard": 0.4539157016864801,
+      "min_top1_agreement": 0.0689655169844627,
+      "min_topk_jaccard": 0.2422377622377622,
+      "prompt_count": 12,
+      "report": "results/moe_routing_probe/qwen3_30b_instruct_vs_coder/report.md",
+      "route_overlap": "results/moe_routing_probe/qwen3_30b_instruct_vs_coder/route_overlap.csv",
+      "route_overlap_rows": 576,
+      "router_count": 48,
+      "router_summary": "results/moe_routing_probe/qwen3_30b_instruct_vs_coder/router_summary.csv",
+      "router_summary_rows": 576,
+      "summary": {
+        "categories": [
+          "agentic_code",
+          "code",
+          "finance",
+          "general",
+          "legal",
+          "long_context",
+          "math",
+          "safety"
+        ],
+        "category_count": 8,
+        "compare_model": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-Coder-30B-A3B-Instruct/snapshots/b2cff646eb4bb1d68355c01b18ae02e7cf42d120",
+        "compare_router_count": 48,
+        "compare_routers": [
+          "model.layers.0.mlp.gate",
+          "model.layers.1.mlp.gate",
+          "model.layers.10.mlp.gate",
+          "model.layers.11.mlp.gate",
+          "model.layers.12.mlp.gate",
+          "model.layers.13.mlp.gate",
+          "model.layers.14.mlp.gate",
+          "model.layers.15.mlp.gate",
+          "model.layers.16.mlp.gate",
+          "model.layers.17.mlp.gate",
+          "model.layers.18.mlp.gate",
+          "model.layers.19.mlp.gate",
+          "model.layers.2.mlp.gate",
+          "model.layers.20.mlp.gate",
+          "model.layers.21.mlp.gate",
+          "model.layers.22.mlp.gate",
+          "model.layers.23.mlp.gate",
+          "model.layers.24.mlp.gate",
+          "model.layers.25.mlp.gate",
+          "model.layers.26.mlp.gate",
+          "model.layers.27.mlp.gate",
+          "model.layers.28.mlp.gate",
+          "model.layers.29.mlp.gate",
+          "model.layers.3.mlp.gate",
+          "model.layers.30.mlp.gate",
+          "model.layers.31.mlp.gate",
+          "model.layers.32.mlp.gate",
+          "model.layers.33.mlp.gate",
+          "model.layers.34.mlp.gate",
+          "model.layers.35.mlp.gate",
+          "model.layers.36.mlp.gate",
+          "model.layers.37.mlp.gate",
+          "model.layers.38.mlp.gate",
+          "model.layers.39.mlp.gate",
+          "model.layers.4.mlp.gate",
+          "model.layers.40.mlp.gate",
+          "model.layers.41.mlp.gate",
+          "model.layers.42.mlp.gate",
+          "model.layers.43.mlp.gate",
+          "model.layers.44.mlp.gate",
+          "model.layers.45.mlp.gate",
+          "model.layers.46.mlp.gate",
+          "model.layers.47.mlp.gate",
+          "model.layers.5.mlp.gate",
+          "model.layers.6.mlp.gate",
+          "model.layers.7.mlp.gate",
+          "model.layers.8.mlp.gate",
+          "model.layers.9.mlp.gate"
+        ],
+        "downstream_consumers": {
+          "average_decision": "scripts/build_average_decision_report.py",
+          "moe_average_plan": "scripts/build_moe_average_plan.py",
+          "readiness": "scripts/analyze_moe_routing_readiness.py",
+          "route_weight_recipes": "scripts/build_moe_route_weight_recipes.py"
+        },
+        "exclude_name_regex": "(gate_proj|shared_expert_gate)",
+        "generated_at": "2026-06-19T18:14:59.097271+00:00",
+        "max_length": 512,
+        "model": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe",
+        "outputs": {
+          "compare_expert_load": "results/moe_routing_probe/qwen3_30b_instruct_vs_coder/compare_expert_load.csv",
+          "compare_router_summary": "results/moe_routing_probe/qwen3_30b_instruct_vs_coder/compare_router_summary.csv",
+          "compare_token_routes": null,
+          "expert_load": "results/moe_routing_probe/qwen3_30b_instruct_vs_coder/expert_load.csv",
+          "manifest": "results/moe_routing_probe/qwen3_30b_instruct_vs_coder/manifest.json",
+          "report": "results/moe_routing_probe/qwen3_30b_instruct_vs_coder/report.md",
+          "route_overlap": "results/moe_routing_probe/qwen3_30b_instruct_vs_coder/route_overlap.csv",
+          "router_summary": "results/moe_routing_probe/qwen3_30b_instruct_vs_coder/router_summary.csv",
+          "summary": "results/moe_routing_probe/qwen3_30b_instruct_vs_coder/summary.json",
+          "token_routes": null
+        },
+        "prompt_count": 12,
+        "router_count": 48,
+        "router_name_regex": "(^|\\.)(router|gate)$",
+        "routers": [
+          "model.layers.0.mlp.gate",
+          "model.layers.1.mlp.gate",
+          "model.layers.10.mlp.gate",
+          "model.layers.11.mlp.gate",
+          "model.layers.12.mlp.gate",
+          "model.layers.13.mlp.gate",
+          "model.layers.14.mlp.gate",
+          "model.layers.15.mlp.gate",
+          "model.layers.16.mlp.gate",
+          "model.layers.17.mlp.gate",
+          "model.layers.18.mlp.gate",
+          "model.layers.19.mlp.gate",
+          "model.layers.2.mlp.gate",
+          "model.layers.20.mlp.gate",
+          "model.layers.21.mlp.gate",
+          "model.layers.22.mlp.gate",
+          "model.layers.23.mlp.gate",
+          "model.layers.24.mlp.gate",
+          "model.layers.25.mlp.gate",
+          "model.layers.26.mlp.gate",
+          "model.layers.27.mlp.gate",
+          "model.layers.28.mlp.gate",
+          "model.layers.29.mlp.gate",
+          "model.layers.3.mlp.gate",
+          "model.layers.30.mlp.gate",
+          "model.layers.31.mlp.gate",
+          "model.layers.32.mlp.gate",
+          "model.layers.33.mlp.gate",
+          "model.layers.34.mlp.gate",
+          "model.layers.35.mlp.gate",
+          "model.layers.36.mlp.gate",
+          "model.layers.37.mlp.gate",
+          "model.layers.38.mlp.gate",
+          "model.layers.39.mlp.gate",
+          "model.layers.4.mlp.gate",
+          "model.layers.40.mlp.gate",
+          "model.layers.41.mlp.gate",
+          "model.layers.42.mlp.gate",
+          "model.layers.43.mlp.gate",
+          "model.layers.44.mlp.gate",
+          "model.layers.45.mlp.gate",
+          "model.layers.46.mlp.gate",
+          "model.layers.47.mlp.gate",
+          "model.layers.5.mlp.gate",
+          "model.layers.6.mlp.gate",
+          "model.layers.7.mlp.gate",
+          "model.layers.8.mlp.gate",
+          "model.layers.9.mlp.gate"
+        ],
+        "row_counts": {
+          "compare_expert_load": 73728,
+          "compare_router_summary": 576,
+          "compare_token_routes": 0,
+          "expert_load": 73728,
+          "route_overlap": 576,
+          "router_summary": 576,
+          "token_routes": 0
+        },
+        "top_k": 8,
+        "use_chat_template": true,
+        "write_token_routes": false
+      },
+      "summary_path": "results/moe_routing_probe/qwen3_30b_instruct_vs_coder/summary.json"
+    },
+    "qwen3_moe_routing_readiness": {
+      "category_specialization": "results/moe_routing_readiness/qwen3_30b_instruct_vs_coder/category_specialization.csv",
+      "expert_action_counts": {
+        "anchor_heavy_until_rare_task_probe": 38163,
+        "low_lambda_or_route_frequency_average": 31106,
+        "protect_or_source_weight_high_load_expert": 4459
+      },
+      "expert_rows": 73728,
+      "mean_top1_agreement": 0.4125356771853856,
+      "mean_topk_jaccard": 0.4539157016864801,
+      "min_top1_agreement": 0.0689655169844627,
+      "min_topk_jaccard": 0.2422377622377622,
+      "readiness_status": "high_risk_calibrate_router_before_merge",
+      "report": "results/moe_routing_readiness/qwen3_30b_instruct_vs_coder/report.md",
+      "router_action_counts": {
+        "calibrate_router_before_average": 493,
+        "freeze_router_and_check_load_balance": 6,
+        "router_probe_passed_for_small_lambda": 31,
+        "small_lambda_router_with_overlap_guard": 46
+      },
+      "router_readiness": "results/moe_routing_readiness/qwen3_30b_instruct_vs_coder/router_readiness.csv",
+      "router_rows": 576,
+      "specialization_action_counts": {
+        "category_specialized_route_weight": 1409,
+        "shared_or_mixed_expert": 3693
+      },
+      "specialization_rows": 5102,
+      "summary": {
+        "expert_action_counts": {
+          "anchor_heavy_until_rare_task_probe": 38163,
+          "low_lambda_or_route_frequency_average": 31106,
+          "protect_or_source_weight_high_load_expert": 4459
+        },
+        "expert_rows": 73728,
+        "generated_at": "2026-06-19T18:17:16.338446+00:00",
+        "outputs": {
+          "category_specialization": "results/moe_routing_readiness/qwen3_30b_instruct_vs_coder/category_specialization.csv",
+          "expert_load_risks": "results/moe_routing_readiness/qwen3_30b_instruct_vs_coder/expert_load_risks.csv",
+          "report": "results/moe_routing_readiness/qwen3_30b_instruct_vs_coder/report.md",
+          "router_readiness": "results/moe_routing_readiness/qwen3_30b_instruct_vs_coder/router_readiness.csv",
+          "summary": "results/moe_routing_readiness/qwen3_30b_instruct_vs_coder/summary.json"
+        },
+        "readiness_status": "high_risk_calibrate_router_before_merge",
+        "router_action_counts": {
+          "calibrate_router_before_average": 493,
+          "freeze_router_and_check_load_balance": 6,
+          "router_probe_passed_for_small_lambda": 31,
+          "small_lambda_router_with_overlap_guard": 46
+        },
+        "router_dirs": [
+          "results/moe_routing_probe/qwen3_30b_instruct_vs_coder"
+        ],
+        "router_rows": 576,
+        "same_shape_constraint": "Readiness actions preserve router shape, expert count, hidden size, tokenizer, and model class.",
+        "specialization_action_counts": {
+          "category_specialized_route_weight": 1409,
+          "shared_or_mixed_expert": 3693
+        },
+        "specialization_rows": 5102,
+        "thresholds": {
+          "collapse_threshold": 0.5,
+          "low_margin_threshold": 0.05,
+          "min_effective_fraction": 0.02,
+          "min_top1_agreement": 0.5,
+          "min_topk_jaccard": 0.5,
+          "overuse_ratio_threshold": 4.0,
+          "specialization_threshold": 0.7,
+          "underuse_fraction_threshold": 0.0
+        },
+        "topology": null
+      },
+      "summary_path": "results/moe_routing_readiness/qwen3_30b_instruct_vs_coder/summary.json"
     },
     "qwen_dense_attention_sparse_method_candidate": {
       "base_bridge_candidate": "qwen_0_5b_probe_guided_bridge_a025_b100",
@@ -12248,7 +12905,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-19T18:00:31.236720+00:00",
+  "generated_at": "2026-06-19T18:35:30.500485+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [

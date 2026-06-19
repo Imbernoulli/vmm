@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 53235,
+      "bytes": 57341,
       "kind": "document",
       "path": "README.md",
-      "sha256": "e521a6dee4d57c688a602d528c093142f08984cc05a4b7b4254ee13a1666f01c"
+      "sha256": "051a4f592c3bbbd5be85f9ca697bfa2dbba261ad06b1d3eca9c746d1e80777f7"
     },
     {
       "bytes": 33211,
@@ -703,6 +703,12 @@
       "sha256": "924f541a6c81b3faa952372417bb50bcc71e6b0f367afadc94582f3d69a53fda"
     },
     {
+      "bytes": 2126,
+      "kind": "data",
+      "path": "results/fp_dense_lambda/summary.json",
+      "sha256": "f6622e878653627bef5fe123dc79ff257db39c450598691efda65d691b5aff72"
+    },
+    {
       "bytes": 179,
       "kind": "data",
       "path": "results/fp_gen_eval_dense/method_metrics.csv",
@@ -1099,28 +1105,28 @@
       "sha256": "9fd5d9a242c6268eea47556c8f7d462f7858da3cf844419125f816c1f24d739d"
     },
     {
-      "bytes": 3562,
+      "bytes": 4412,
       "kind": "document",
       "path": "results/moe_probe_gated_selector/report.md",
-      "sha256": "e290fb2254974f6d1852e5127ab248f5eb018624a0a51372ea368d089eed602c"
+      "sha256": "b1763a02836bf6f078a9fd2b5d08f878422bb275a57d43ee3bb5adc7e0402736"
     },
     {
-      "bytes": 1688,
+      "bytes": 2851,
       "kind": "data",
       "path": "results/moe_probe_gated_selector/selector_cases.csv",
-      "sha256": "ed0a16f9f9d66c7eb33c15f2624010dd104b431742b796aa5ad46cd60fe54a59"
+      "sha256": "2ea19c94373384aba520623bca9facea000b1fd36da1684ca3fd692f3feb8412"
     },
     {
       "bytes": 1262,
       "kind": "data",
       "path": "results/moe_probe_gated_selector/selector_stages.csv",
-      "sha256": "ea1931af5aa4040f4f554427552cfe687c6729f68a70c1e6e3aec641612fe5cc"
+      "sha256": "8b3846f95100d672941af015e8d8711fb0d012156db1d4e0bee21fcc728a5c3e"
     },
     {
-      "bytes": 1214,
+      "bytes": 1378,
       "kind": "data",
       "path": "results/moe_probe_gated_selector/summary.json",
-      "sha256": "bc7ed2b28d9eb3960a9450031f67dd4ab319049f9636d2ed7b074b8f0b1dc1cd"
+      "sha256": "5f45395dd4797bbd1996330153dbf738652c40856b8291d39459a7759a836fa7"
     },
     {
       "bytes": 260,
@@ -1201,6 +1207,54 @@
       "sha256": "8e77d50b122947e898ea890e89dbdd0b3605d960efd9d08013b54067d7ffd325"
     },
     {
+      "bytes": 14316044,
+      "kind": "data",
+      "path": "results/moe_routing_probe/qwen3_30b_instruct_vs_coder/compare_expert_load.csv",
+      "sha256": "4ca8f62cdfe8f747cfb4253e52b3373b960a98550d04f846b3862a1ff9bd19aa"
+    },
+    {
+      "bytes": 149278,
+      "kind": "data",
+      "path": "results/moe_routing_probe/qwen3_30b_instruct_vs_coder/compare_router_summary.csv",
+      "sha256": "7f20f2bd528d0f0ca52fd2da300224fea9d5b5532abcfafea1ffa56edcb22512"
+    },
+    {
+      "bytes": 14269063,
+      "kind": "data",
+      "path": "results/moe_routing_probe/qwen3_30b_instruct_vs_coder/expert_load.csv",
+      "sha256": "3f1b2f9b2834bb1abd8abba3ec92676fc7bb048115fda73ced2d475645cefa72"
+    },
+    {
+      "bytes": 876,
+      "kind": "data",
+      "path": "results/moe_routing_probe/qwen3_30b_instruct_vs_coder/manifest.json",
+      "sha256": "b2f95a91c57548855a938e5d33d40dff321cd02692b27c59fb89e3ee2fb8f569"
+    },
+    {
+      "bytes": 2523,
+      "kind": "document",
+      "path": "results/moe_routing_probe/qwen3_30b_instruct_vs_coder/report.md",
+      "sha256": "3fdda725b348c8e6a33d780ff81082122b4cb80afdd523e1eeb0c637c659a957"
+    },
+    {
+      "bytes": 199555,
+      "kind": "data",
+      "path": "results/moe_routing_probe/qwen3_30b_instruct_vs_coder/route_overlap.csv",
+      "sha256": "99ff6d47d3f59ed8be466b15a48dc23c5b4879ed848dc85911f81fb5caf575aa"
+    },
+    {
+      "bytes": 148781,
+      "kind": "data",
+      "path": "results/moe_routing_probe/qwen3_30b_instruct_vs_coder/router_summary.csv",
+      "sha256": "261cbc28b36356ca79dfabb3264d942a62977036ed23ee65a7050a941bc78c04"
+    },
+    {
+      "bytes": 5262,
+      "kind": "data",
+      "path": "results/moe_routing_probe/qwen3_30b_instruct_vs_coder/summary.json",
+      "sha256": "ef210746176ed3bcc9f77dcd1f207354436239be5ddc759f7d024e10aecbd6a0"
+    },
+    {
       "bytes": 1709,
       "kind": "data",
       "path": "results/moe_routing_probe_smoke/compare_expert_load.csv",
@@ -1273,6 +1327,36 @@
       "sha256": "92905e2f04bcf8692ea6356a1a6db41774fc8347d93962a25965af8eb2c9f49b"
     },
     {
+      "bytes": 1959638,
+      "kind": "data",
+      "path": "results/moe_routing_readiness/qwen3_30b_instruct_vs_coder/category_specialization.csv",
+      "sha256": "af87aedbdd9341026843a5777ef1ded141531aff6b6fc5ee1b264f46a4e31a22"
+    },
+    {
+      "bytes": 28458759,
+      "kind": "data",
+      "path": "results/moe_routing_readiness/qwen3_30b_instruct_vs_coder/expert_load_risks.csv",
+      "sha256": "c5a3e6a9df4eb0b965e56e7b0a1ffc00554c67b80f7a309532c0d85db3c5be33"
+    },
+    {
+      "bytes": 19043,
+      "kind": "document",
+      "path": "results/moe_routing_readiness/qwen3_30b_instruct_vs_coder/report.md",
+      "sha256": "b09a1132abbceaf7dad391027ad45bf5698551e405be4c99be1bb036203b656e"
+    },
+    {
+      "bytes": 318649,
+      "kind": "data",
+      "path": "results/moe_routing_readiness/qwen3_30b_instruct_vs_coder/router_readiness.csv",
+      "sha256": "cbdd00c7dee562b5765447b3ed97d54cc9280cf4f13297d5502efc24740725b7"
+    },
+    {
+      "bytes": 1784,
+      "kind": "data",
+      "path": "results/moe_routing_readiness/qwen3_30b_instruct_vs_coder/summary.json",
+      "sha256": "84024b1edcf5135914f5ec9e95fbbe7642356e85f00f6d11247cf5e1d61126b7"
+    },
+    {
       "bytes": 2751,
       "kind": "document",
       "path": "results/moe_routing_readiness/report.md",
@@ -1313,6 +1397,66 @@
       "kind": "data",
       "path": "results/moe_tensor_rule_writer_smoke/tensor_checks.csv",
       "sha256": "93e95bf0cf09d9194d4d00999e699f1c6da35eca88248534eaf3ecc40c74a4a7"
+    },
+    {
+      "bytes": 333,
+      "kind": "data",
+      "path": "results/moe_unified_preflight_qwen3_30b/config_contract.csv",
+      "sha256": "59f0387b49c0c8779a86029b5be63b70bdafc928a37950dc4f77ff15723b4fd6"
+    },
+    {
+      "bytes": 3835035,
+      "kind": "data",
+      "path": "results/moe_unified_preflight_qwen3_30b/expert_contract.csv",
+      "sha256": "d5ce0c0ef426c8e421b83f14e914981c43e8fbd6f46541540d611808c0c7d915"
+    },
+    {
+      "bytes": 5464,
+      "kind": "data",
+      "path": "results/moe_unified_preflight_qwen3_30b/layout_contract.csv",
+      "sha256": "15c049c58fcd1f4d1685f0f885ff9b9f73c243aad073265fdb8009d3e510d82b"
+    },
+    {
+      "bytes": 4555,
+      "kind": "data",
+      "path": "results/moe_unified_preflight_qwen3_30b/model_contracts.json",
+      "sha256": "cffcfb1466f8413aa4532cda17650c0381aabaf1f60a96817ed37956daa997ce"
+    },
+    {
+      "bytes": 4149,
+      "kind": "document",
+      "path": "results/moe_unified_preflight_qwen3_30b/report.md",
+      "sha256": "814821e6bddb0270a44ec1b7f66679d41bb230f890c225ed11142060fbe4c577"
+    },
+    {
+      "bytes": 9031,
+      "kind": "data",
+      "path": "results/moe_unified_preflight_qwen3_30b/router_contract.csv",
+      "sha256": "f4340cc65a4faa2ea3c665584f27c10dd65437eaff52483544602759e046764d"
+    },
+    {
+      "bytes": 682,
+      "kind": "data",
+      "path": "results/moe_unified_preflight_qwen3_30b/routing_probe_command.txt",
+      "sha256": "a92b4ba94f701d3fd555cd1cfa0a344132d4d31cee80e3cf272391f9137320f0"
+    },
+    {
+      "bytes": 1,
+      "kind": "data",
+      "path": "results/moe_unified_preflight_qwen3_30b/shared_expert_contract.csv",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "bytes": 2865,
+      "kind": "data",
+      "path": "results/moe_unified_preflight_qwen3_30b/summary.json",
+      "sha256": "ccb4cd24853dc14e11d8a201f0edc97886536441f4e5bca1bbce909a806d1f54"
+    },
+    {
+      "bytes": 773,
+      "kind": "data",
+      "path": "results/moe_unified_preflight_qwen3_30b/unified_gate_table.csv",
+      "sha256": "a1d2dfdfe3608734e7a1afba567894beeb7e54a6a5369b9b611247a9cc9a96bd"
     },
     {
       "bytes": 31792,
@@ -1433,6 +1577,60 @@
       "kind": "data",
       "path": "results/probe_guided_dense_average_candidate/writer_command.txt",
       "sha256": "0b627d0c4076494b141e0611769731059c4f308a3f85500750e69f079b1bc948"
+    },
+    {
+      "bytes": 268,
+      "kind": "data",
+      "path": "results/qwen3_moe_unified_route_guarded_candidate/category_source_plan.csv",
+      "sha256": "e6b3e244d85cd4c9c52081f4769fefbba1d732a58b0893d76a6837c4bf89c030"
+    },
+    {
+      "bytes": 56,
+      "kind": "data",
+      "path": "results/qwen3_moe_unified_route_guarded_candidate/packed_expert_rules.csv",
+      "sha256": "1241ec98a3b7b3d5ab525a7f7b20bb1509fe9c795906f53ac713f69db346b082"
+    },
+    {
+      "bytes": 6358,
+      "kind": "document",
+      "path": "results/qwen3_moe_unified_route_guarded_candidate/report.md",
+      "sha256": "7036022e42cb70926aebe167a14a6811ced9508ec67b41eda3c75652115a7639"
+    },
+    {
+      "bytes": 1310,
+      "kind": "data",
+      "path": "results/qwen3_moe_unified_route_guarded_candidate/routing_probe_plan.csv",
+      "sha256": "a801be21dc8b5b902691f36bf19506279a7843eede94f7299c3ee181cfd09a52"
+    },
+    {
+      "bytes": 1471,
+      "kind": "data",
+      "path": "results/qwen3_moe_unified_route_guarded_candidate/routing_probe_plan.json",
+      "sha256": "4accc53c534536f2e8f7f1f4fb3222933cacd707d1ee51131b7ea5f11fb6a19a"
+    },
+    {
+      "bytes": 1798334,
+      "kind": "data",
+      "path": "results/qwen3_moe_unified_route_guarded_candidate/source_weights_by_expert.csv",
+      "sha256": "9bd809e70f7c1996fbfc9d900cddecb2ae0a6e816389a515c4abe49a035cade2"
+    },
+    {
+      "bytes": 6569,
+      "kind": "data",
+      "path": "results/qwen3_moe_unified_route_guarded_candidate/summary.json",
+      "sha256": "3be9bdc75721fc2dec7aa68c94f7861aebd73a37538f9fe86e85ec39a8dab9e4"
+    },
+    {
+      "bytes": 322299,
+      "kind": "data",
+      "path": "results/qwen3_moe_unified_route_guarded_candidate/tensor_rules.txt",
+      "sha256": "19f20d36d701e64633422642031a3282c2cc7083dc4490c9244144ca0c2a6257"
+    },
+    {
+      "bytes": 742,
+      "kind": "data",
+      "path": "results/qwen3_moe_unified_route_guarded_candidate/writer_command.txt",
+      "sha256": "15470200b0132d1d58c66bf08c9fdcda041c47b664f41e967f200d5e0a2aa405"
     },
     {
       "bytes": 14592,
@@ -1927,16 +2125,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 538735,
+      "bytes": 568482,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "32f604990a0c4a21a2b24f9536e2531da8c4658c2e86ba24574f31b1c0a59bbe"
+      "sha256": "8fa9c86266fe82008dbf679b958eb5b961af425ff9936d684cd65eca68f99ed1"
     },
     {
-      "bytes": 29967,
+      "bytes": 31745,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "62b25e9adce1493154579f25726126bd55d70faa11289275e6a42ad24ee0941f"
+      "sha256": "e093adfe47ea798f5826475892acd751f226c02a6ef7a38ad8aec46acbfdfab8"
     },
     {
       "bytes": 288,
@@ -2893,10 +3091,10 @@
       "sha256": "e8a5c796644d5b6870eb5d6267c203fbb1c983a2404d2b52724177872ac63e68"
     },
     {
-      "bytes": 27159,
+      "bytes": 27511,
       "kind": "code",
       "path": "scripts/analyze_moe_routing_readiness.py",
-      "sha256": "ef4376fed3955e10546e0b3a44e11454b22228aaed6727a9f26608b93125d539"
+      "sha256": "bbc62bccc12e36bcf2302539fa82ef2a2476cbbadd540efa70d284e9b69fba60"
     },
     {
       "bytes": 13129,
@@ -2959,22 +3157,28 @@
       "sha256": "3dfe98e8a62c92eceeaba15e423ea88a99a8f0d570b8587b4071828c98077505"
     },
     {
-      "bytes": 15804,
+      "bytes": 21339,
       "kind": "code",
       "path": "scripts/build_moe_probe_gated_selector.py",
-      "sha256": "42bd839b385ba34b90c905e142a2189741b6cf8ace6645dffdaca059e7950b52"
+      "sha256": "9bd8f2f012abef849fc9090cbcb91568bb271c56220e61ff5046d5c0ac0ac11a"
     },
     {
-      "bytes": 41247,
+      "bytes": 45980,
       "kind": "code",
       "path": "scripts/build_moe_route_weight_recipes.py",
-      "sha256": "94b57c72b32a4543ab86f30b7271a210098a8ab629d10d2ca337b0356c2dff9a"
+      "sha256": "7d005b97e81160c9251a8ec9350ea639ad6a54795faf3cc2beda2de5f1f0d1e9"
     },
     {
       "bytes": 17656,
       "kind": "code",
       "path": "scripts/build_moe_router_bias_plan.py",
       "sha256": "ad01d594be71d23b5241f6e23ac3a4fc68a91cd2c3a14fdaf081c2fbc74f2653"
+    },
+    {
+      "bytes": 26303,
+      "kind": "code",
+      "path": "scripts/build_moe_unified_preflight.py",
+      "sha256": "c70288689f0d4ccb34c2f72554b06c81ee0fd10bd01a48c29e3585dc8c34381c"
     },
     {
       "bytes": 20784,
@@ -3019,16 +3223,22 @@
       "sha256": "0b0e4be7ec51f0afb74dfdee6e3d8b217da9aac4d965a170bea36c89f1b46abb"
     },
     {
-      "bytes": 188012,
+      "bytes": 199987,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "56723ce759ba7ef3e7d03786f670ba3d110049519dabb10f08a9c7632eba40f9"
+      "sha256": "910b120b2f9a79cf67385b0960e21894f2fd22e48dd0ceb517241c67cf75ba75"
     },
     {
       "bytes": 16101,
       "kind": "code",
       "path": "scripts/fp_curvature_law.py",
       "sha256": "b9baeca376c1a6fce6a3458990ecbae7164c25c9016f26c53e222b18d566e737"
+    },
+    {
+      "bytes": 5866,
+      "kind": "code",
+      "path": "scripts/fp_dense_lambda.py",
+      "sha256": "5d5cf5695dfcd275fa2c9317ebfede6c6a361817274bcbb88e4c0a0e993634dc"
     },
     {
       "bytes": 12880,
@@ -3061,10 +3271,10 @@
       "sha256": "0c439772685d64f1707671b0d906058d7e350c172e2c9d30942253e558c34ebc"
     },
     {
-      "bytes": 23794,
+      "bytes": 24018,
       "kind": "code",
       "path": "scripts/probe_moe_routing.py",
-      "sha256": "4862a4763747de5e6ef4acb53f6c7008f3879fbaa5861217230cb48239b07f95"
+      "sha256": "2ff9cb6a2b95ea118b1776769688d33bb11e92639f53cf136461de9697d59ffe"
     },
     {
       "bytes": 9487,
@@ -3229,7 +3439,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T18:00:31.282047+00:00",
+  "generated_at": "2026-06-19T18:35:30.507100+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

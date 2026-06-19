@@ -1,0 +1,172 @@
+{
+  "recipe_status": "route_weight_rules_ready",
+  "recipe_kind": "route_frequency",
+  "source_names": [
+    "instruct",
+    "coder"
+  ],
+  "base": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe",
+  "source_paths": {
+    "instruct": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe",
+    "coder": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-Coder-30B-A3B-Instruct/snapshots/b2cff646eb4bb1d68355c01b18ae02e7cf42d120"
+  },
+  "category_sources": {
+    "general": "instruct",
+    "math": "instruct",
+    "safety": "instruct",
+    "finance": "instruct",
+    "legal": "instruct",
+    "long_context": "instruct",
+    "code": "coder",
+    "agentic_code": "coder"
+  },
+  "model_sources": [
+    {
+      "model_substring": "Qwen3-30B-A3B-Instruct-2507",
+      "source": "instruct"
+    },
+    {
+      "model_substring": "Qwen3-Coder-30B-A3B-Instruct",
+      "source": "coder"
+    }
+  ],
+  "fallback_source": "instruct",
+  "router_dirs": [
+    "results/moe_routing_probe/qwen3_30b_instruct_vs_coder"
+  ],
+  "expert_weight_csvs": [],
+  "expert_weight_category": null,
+  "input_summaries": [
+    {
+      "router_dir": "results/moe_routing_probe/qwen3_30b_instruct_vs_coder",
+      "expert_load_file": "expert_load.csv",
+      "expert_load_rows": 73728,
+      "used_rows": 26868,
+      "skipped_model_rows": 18432,
+      "unknown_model_rows": 0,
+      "status": "loaded"
+    },
+    {
+      "router_dir": "results/moe_routing_probe/qwen3_30b_instruct_vs_coder",
+      "expert_load_file": "compare_expert_load.csv",
+      "expert_load_rows": 73728,
+      "used_rows": 8564,
+      "skipped_model_rows": 55296,
+      "unknown_model_rows": 0,
+      "status": "loaded"
+    },
+    {
+      "router_dir": "results/moe_routing_probe/qwen3_30b_instruct_vs_coder",
+      "expert_load_rows": 109160,
+      "used_rows": 35432,
+      "skipped_model_rows": 73728,
+      "unknown_model_rows": 0,
+      "status": "source_route_conditioned_loaded"
+    }
+  ],
+  "routing_probe_plan_rows": 1,
+  "routing_probe_plan": [
+    {
+      "probe_name": "qwen3_30b_general_vs_code",
+      "model": "Qwen/Qwen3-30B-A3B",
+      "compare_model": "Qwen/Qwen3-Coder-30B-A3B-Instruct",
+      "source_names": "instruct,coder",
+      "prompt_pack": "prompts/qwen_moe_route_probe_prompts.jsonl",
+      "prompt_count": 12,
+      "category_count": 8,
+      "output_dir": "results/moe_routing_probe/qwen3_30b_general_vs_code",
+      "expected_expert_load": "results/moe_routing_probe/qwen3_30b_general_vs_code/expert_load.csv",
+      "expected_route_overlap": "results/moe_routing_probe/qwen3_30b_general_vs_code/route_overlap.csv",
+      "device_map": "auto",
+      "dtype": "bfloat16",
+      "max_length": 768,
+      "use_chat_template": true,
+      "command": "python scripts/probe_moe_routing.py --model Qwen/Qwen3-30B-A3B --compare-model Qwen/Qwen3-Coder-30B-A3B-Instruct --prompts prompts/qwen_moe_route_probe_prompts.jsonl --device-map auto --dtype bfloat16 --max-length 768 --use-chat-template --output-dir results/moe_routing_probe/qwen3_30b_general_vs_code",
+      "next_recipe_command": "PYTHONPATH=src python scripts/build_moe_route_weight_recipes.py --router-dir results/moe_routing_probe/qwen3_30b_general_vs_code --source instruct --source coder --category-source agentic_code=coder --category-source code=coder --category-source finance=instruct --category-source general=instruct --category-source legal=instruct --category-source long_context=instruct --category-source math=instruct --category-source safety=instruct"
+    }
+  ],
+  "category_source_plan_rows": 8,
+  "category_source_plan": [
+    {
+      "category": "agentic_code",
+      "prompt_count": 1,
+      "mapped_source": "coder",
+      "mapping_kind": "explicit"
+    },
+    {
+      "category": "code",
+      "prompt_count": 2,
+      "mapped_source": "coder",
+      "mapping_kind": "explicit"
+    },
+    {
+      "category": "finance",
+      "prompt_count": 1,
+      "mapped_source": "instruct",
+      "mapping_kind": "explicit"
+    },
+    {
+      "category": "general",
+      "prompt_count": 2,
+      "mapped_source": "instruct",
+      "mapping_kind": "explicit"
+    },
+    {
+      "category": "legal",
+      "prompt_count": 1,
+      "mapped_source": "instruct",
+      "mapping_kind": "explicit"
+    },
+    {
+      "category": "long_context",
+      "prompt_count": 1,
+      "mapped_source": "instruct",
+      "mapping_kind": "explicit"
+    },
+    {
+      "category": "math",
+      "prompt_count": 2,
+      "mapped_source": "instruct",
+      "mapping_kind": "explicit"
+    },
+    {
+      "category": "safety",
+      "prompt_count": 2,
+      "mapped_source": "instruct",
+      "mapping_kind": "explicit"
+    }
+  ],
+  "prompt_pack": "prompts/qwen_moe_route_probe_prompts.jsonl",
+  "anchor_floor": 0.15,
+  "min_source_weight": 0.05,
+  "low_route_threshold": 0.005,
+  "freeze_router": true,
+  "shared_attention_weights": {
+    "instruct": 0.0,
+    "coder": 0.25
+  },
+  "shared_mlp_weights": null,
+  "expert_rule_count": 5243,
+  "packed_expert_rules_enabled": false,
+  "packed_expert_tensor_templates": [
+    "model.language_model.layers.{layer_id}.mlp.experts.gate_up_proj",
+    "model.language_model.layers.{layer_id}.mlp.experts.down_proj"
+  ],
+  "packed_expert_rule_count": 0,
+  "packed_expert_rule_tensor_count": 0,
+  "packed_expert_rule_slice_count": 0,
+  "tensor_rule_count": 5244,
+  "topology": null,
+  "same_shape_constraint": "Tensor rules only change weights inside the existing model structure; expert count, router shape, tokenizer, and layer count stay fixed.",
+  "outputs": {
+    "source_weights": "results/qwen3_moe_unified_route_guarded_candidate/source_weights_by_expert.csv",
+    "tensor_rules": "results/qwen3_moe_unified_route_guarded_candidate/tensor_rules.txt",
+    "packed_expert_rules": "results/qwen3_moe_unified_route_guarded_candidate/packed_expert_rules.csv",
+    "writer_command": "results/qwen3_moe_unified_route_guarded_candidate/writer_command.txt",
+    "routing_probe_plan": "results/qwen3_moe_unified_route_guarded_candidate/routing_probe_plan.csv",
+    "routing_probe_plan_json": "results/qwen3_moe_unified_route_guarded_candidate/routing_probe_plan.json",
+    "category_source_plan": "results/qwen3_moe_unified_route_guarded_candidate/category_source_plan.csv",
+    "summary": "results/qwen3_moe_unified_route_guarded_candidate/summary.json",
+    "report": "results/qwen3_moe_unified_route_guarded_candidate/report.md"
+  }
+}

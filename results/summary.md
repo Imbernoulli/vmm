@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T18:00:31.236720+00:00`
+Generated at: `2026-06-19T18:35:30.500485+00:00`
 
 ## Coverage
 
-Complete: `57`; partial: `1`; missing: `0`.
+Complete: `60`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -62,6 +62,9 @@ Complete: `57`; partial: `1`; missing: `0`.
 | First-principles MoE mechanism probe | complete | results/fp_moe_mechanism/report.md isolates function-preserving expert permutation, expert alignment, router calibration, and Fisher ablations with real forward/backward passes. |
 | Real MoE expert-gauge self-merge probe | complete | results/fp_moe_real_probe/report.md runs a function-preserving expert/router permutation on a real packed OLMoE checkpoint and shows same-name averaging fails unless expert identity is recovered. |
 | MoE probe-gated selector | complete | results/moe_probe_gated_selector/report.md combines real OLMoE gauge evidence, Qwen3 expert correspondence, and toy route/capacity selection into a same-shape MoE average gate. |
+| Qwen3 MoE unified average preflight | complete | results/moe_unified_preflight_qwen3_30b/report.md verifies Qwen3-30B Instruct/Coder same-shape config, router tensor contract, routed expert layout, expert identity gate, and the emitted real routing probe command. |
+| Qwen3 MoE real routing readiness | complete | results/moe_routing_readiness/qwen3_30b_instruct_vs_coder/report.md analyzes the real Qwen3-30B Instruct/Coder route overlap and expert load probe, showing direct router averaging is high risk and needs calibration or freeze. |
+| Qwen3 MoE route-guarded unified candidate | complete | results/qwen3_moe_unified_route_guarded_candidate/report.md converts the real Qwen3 route/load probe into source-route-conditioned same-shape tensor rules and a validated writer dry-run command. |
 | Toy MoE multi-method routing readiness | complete | results/toy_moe_routing_readiness/report.md applies the generic readiness gate to toy MoE methods and flags all-weight routing drift separately from expert-matched/route-aware variants. |
 | Toy MoE merge method selection | complete | results/toy_moe_method_selection/report.md combines method metrics, routing readiness, and sparse capacity overflow into materialization gates plus a hard-top2/overflow Pareto frontier. |
 | Toy MoE expert remap plan | complete | results/toy_moe_expert_remap_plan/report.md turns expert-output matching into source tensor alias rules for same-shape checkpoint materialization. |
@@ -114,7 +117,18 @@ Complete: `57`; partial: `1`; missing: `0`.
 | first-principles MoE mechanism | Fisher worst-loss reduction after alignment | -0.027 |
 | MoE probe-gated selector | global gauge rule | reject_same_name_average_without_alignment |
 | MoE probe-gated selector | Qwen3 expert identity decision | identity_expert_average_allowed_with_routing_gate |
-| MoE probe-gated selector | next blocking probe | real_qwen3_route_overlap_and_expert_load |
+| MoE probe-gated selector | next blocking probe | materialized_route_guarded_candidate_vllm_eval |
+| Qwen3 MoE unified preflight | status | same_shape_and_identity_ready_route_runtime_blocked_here |
+| Qwen3 MoE unified preflight | same-shape / expert identity / CUDA | True / pass / False |
+| Qwen3 MoE unified preflight | router / routed expert tensors | 48 / 18432 |
+| Qwen3 MoE routing probe | prompts / routers / overlap rows | 12 / 48 / 576 |
+| Qwen3 MoE routing probe | mean/min top-k Jaccard | 0.454 / 0.242 |
+| Qwen3 MoE routing probe | mean/min top1 agreement | 0.413 / 0.069 |
+| Qwen3 MoE routing readiness | status | high_risk_calibrate_router_before_merge |
+| Qwen3 MoE routing readiness | calibrate / small-lambda / passed / freeze rows | 493 / 46 / 31 / 6 |
+| Qwen3 MoE route-guarded candidate | status / frozen router | route_weight_rules_ready / True |
+| Qwen3 MoE route-guarded candidate | expert rules / route rows used / skipped | 5243 / 35432 / 73728 |
+| Qwen3 MoE route-guarded candidate | dry-run expert / attention / router hits | 15729 / 288 / 48 |
 | real MoE gauge self-merge | baseline / same-name / aligned NLL | 4.168 / 9.659 / 4.168 |
 | real MoE gauge self-merge | same-name degradation vs baseline | 5.491 |
 | real MoE gauge self-merge | recovered expert permutations | 16 / 16 |

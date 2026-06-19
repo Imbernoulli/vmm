@@ -65,6 +65,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--router-name-regex", default=r"(^|\.)(router|gate)$")
     parser.add_argument("--exclude-name-regex", default=r"(gate_proj|shared_expert_gate)")
     parser.add_argument("--max-router-dim", type=int, default=4096)
+    parser.add_argument("--local-files-only", action="store_true", help="Load model/tokenizer only from local cache or paths.")
     parser.add_argument("--trust-remote-code", action="store_true")
     parser.add_argument("--use-chat-template", action="store_true")
     parser.add_argument("--write-token-routes", action="store_true")
@@ -458,6 +459,7 @@ def load_model(model_name: str, args: argparse.Namespace, device: torch.device) 
         model_name,
         torch_dtype=dtype,
         device_map=args.device_map,
+        local_files_only=args.local_files_only,
         trust_remote_code=args.trust_remote_code,
     )
     if args.device_map is None:
@@ -474,6 +476,7 @@ def main() -> None:
     prompts = load_prompts(args.prompts, args.max_prompts)
     tokenizer = AutoTokenizer.from_pretrained(
         args.tokenizer or args.model,
+        local_files_only=args.local_files_only,
         trust_remote_code=args.trust_remote_code,
     )
 

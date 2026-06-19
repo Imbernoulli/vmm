@@ -1,0 +1,9 @@
+category,prompt_count,mapped_source,mapping_kind
+agentic_code,1,coder,explicit
+code,2,coder,explicit
+finance,1,instruct,explicit
+general,2,instruct,explicit
+legal,1,instruct,explicit
+long_context,1,instruct,explicit
+math,2,instruct,explicit
+safety,2,instruct,explicit

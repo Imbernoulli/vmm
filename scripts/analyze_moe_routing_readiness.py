@@ -137,7 +137,16 @@ def merge_overlap(router_summary: pd.DataFrame, route_overlap: pd.DataFrame | No
         return merged
     overlap = route_overlap.copy()
     if "method" in merged.columns and "method" not in overlap.columns and "right_model" in overlap.columns:
-        overlap["method"] = overlap["right_model"].astype(str)
+        copies = []
+        for model_col in ("left_model", "right_model"):
+            if model_col in overlap.columns:
+                item = overlap.copy()
+                item["method"] = item[model_col].astype(str)
+                copies.append(item)
+        if copies:
+            overlap = pd.concat(copies, ignore_index=True)
+        else:
+            overlap["method"] = overlap["right_model"].astype(str)
     join_cols = [
         col
         for col in ("method", "category", "prompt_idx", "router")

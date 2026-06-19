@@ -1,0 +1,7 @@
+stage,status,evidence,action
+same_shape_config,pass,All average-critical config fields match.,continue
+router_tensor_contract,pass,48 router tensors compared; all shapes match=True.,allow_router_probe
+routed_expert_layout,pass,18432 routed expert tensors compared; per-layer layout match=True.,allow_identity_or_remap_gate
+expert_identity,pass,Expert identity is stable enough to use identity slices first.,use_identity_expert_slices_first
+runtime_route_probe,blocked_in_this_process,torch.cuda.is_available=False.,run the emitted command on a GPU/vLLM host; keep materialization blocked here
+behavior_eval,waiting,"No same-shape Qwen3 MoE candidate should be published before route overlap, load, and downstream eval.",host candidate with vLLM after route/load gates pass

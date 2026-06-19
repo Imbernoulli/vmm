@@ -1,0 +1,44 @@
+{
+  "generated_at": "2026-06-19T18:17:16.338446+00:00",
+  "readiness_status": "high_risk_calibrate_router_before_merge",
+  "router_dirs": [
+    "results/moe_routing_probe/qwen3_30b_instruct_vs_coder"
+  ],
+  "router_rows": 576,
+  "expert_rows": 73728,
+  "specialization_rows": 5102,
+  "router_action_counts": {
+    "calibrate_router_before_average": 493,
+    "small_lambda_router_with_overlap_guard": 46,
+    "router_probe_passed_for_small_lambda": 31,
+    "freeze_router_and_check_load_balance": 6
+  },
+  "expert_action_counts": {
+    "anchor_heavy_until_rare_task_probe": 38163,
+    "low_lambda_or_route_frequency_average": 31106,
+    "protect_or_source_weight_high_load_expert": 4459
+  },
+  "specialization_action_counts": {
+    "shared_or_mixed_expert": 3693,
+    "category_specialized_route_weight": 1409
+  },
+  "thresholds": {
+    "collapse_threshold": 0.5,
+    "min_effective_fraction": 0.02,
+    "min_topk_jaccard": 0.5,
+    "min_top1_agreement": 0.5,
+    "low_margin_threshold": 0.05,
+    "overuse_ratio_threshold": 4.0,
+    "underuse_fraction_threshold": 0.0,
+    "specialization_threshold": 0.7
+  },
+  "topology": null,
+  "same_shape_constraint": "Readiness actions preserve router shape, expert count, hidden size, tokenizer, and model class.",
+  "outputs": {
+    "router_readiness": "results/moe_routing_readiness/qwen3_30b_instruct_vs_coder/router_readiness.csv",
+    "expert_load_risks": "results/moe_routing_readiness/qwen3_30b_instruct_vs_coder/expert_load_risks.csv",
+    "category_specialization": "results/moe_routing_readiness/qwen3_30b_instruct_vs_coder/category_specialization.csv",
+    "summary": "results/moe_routing_readiness/qwen3_30b_instruct_vs_coder/summary.json",
+    "report": "results/moe_routing_readiness/qwen3_30b_instruct_vs_coder/report.md"
+  }
+}

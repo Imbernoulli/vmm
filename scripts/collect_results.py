@@ -699,6 +699,123 @@ def summarize_checkpoint_topology() -> dict[str, Any]:
     }
 
 
+def summarize_moe_unified_preflight() -> dict[str, Any]:
+    root = repo_path("results/moe_unified_preflight_qwen3_30b")
+    summary = read_json(root / "summary.json")
+    gates = read_csv(root / "unified_gate_table.csv")
+    config = read_csv(root / "config_contract.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "same_shape_contract_pass": bool(summary.get("same_shape_contract_pass", False)),
+        "expert_identity_status": (summary.get("expert_identity_gate") or {}).get("status"),
+        "expert_identity_fraction": maybe_float(
+            (summary.get("expert_identity_gate") or {}).get("frac_layers_identity_optimal")
+        ),
+        "cuda_available": bool(summary.get("cuda_available", False)),
+        "router_tensor_rows": int(summary.get("router_tensor_rows", 0)),
+        "routed_expert_tensor_rows": int(summary.get("routed_expert_tensor_rows", 0)),
+        "gate_rows": [clean_row(row) for _, row in gates.iterrows()],
+        "config_rows": [clean_row(row) for _, row in config.iterrows()],
+        "report": rel(root / "report.md"),
+        "summary_path": rel(root / "summary.json"),
+        "gate_table": rel(root / "unified_gate_table.csv"),
+        "router_contract": rel(root / "router_contract.csv"),
+        "expert_contract": rel(root / "expert_contract.csv"),
+        "routing_probe_command": rel(root / "routing_probe_command.txt"),
+    }
+
+
+def summarize_qwen3_moe_routing_probe() -> dict[str, Any]:
+    root = repo_path("results/moe_routing_probe/qwen3_30b_instruct_vs_coder")
+    summary = read_json(root / "summary.json")
+    route_overlap = read_csv(root / "route_overlap.csv")
+    router_summary = read_csv(root / "router_summary.csv")
+    return {
+        "summary": summary,
+        "prompt_count": int(summary.get("prompt_count", 0)),
+        "category_count": int(summary.get("category_count", 0)),
+        "router_count": int(summary.get("router_count", 0)),
+        "router_summary_rows": int(len(router_summary)),
+        "route_overlap_rows": int(len(route_overlap)),
+        "mean_top1_agreement": float(route_overlap["top1_agreement"].mean()),
+        "min_top1_agreement": float(route_overlap["top1_agreement"].min()),
+        "mean_topk_jaccard": float(route_overlap["topk_jaccard"].mean()),
+        "min_topk_jaccard": float(route_overlap["topk_jaccard"].min()),
+        "report": rel(root / "report.md"),
+        "summary_path": rel(root / "summary.json"),
+        "router_summary": rel(root / "router_summary.csv"),
+        "compare_router_summary": rel(root / "compare_router_summary.csv"),
+        "route_overlap": rel(root / "route_overlap.csv"),
+    }
+
+
+def summarize_qwen3_moe_routing_readiness() -> dict[str, Any]:
+    root = repo_path("results/moe_routing_readiness/qwen3_30b_instruct_vs_coder")
+    summary = read_json(root / "summary.json")
+    router_readiness = read_csv(root / "router_readiness.csv")
+    return {
+        "summary": summary,
+        "readiness_status": summary.get("readiness_status"),
+        "router_rows": int(summary.get("router_rows", len(router_readiness))),
+        "expert_rows": int(summary.get("expert_rows", 0)),
+        "specialization_rows": int(summary.get("specialization_rows", 0)),
+        "router_action_counts": summary.get("router_action_counts", {}),
+        "expert_action_counts": summary.get("expert_action_counts", {}),
+        "specialization_action_counts": summary.get("specialization_action_counts", {}),
+        "mean_top1_agreement": float(router_readiness["top1_agreement"].mean()),
+        "min_top1_agreement": float(router_readiness["top1_agreement"].min()),
+        "mean_topk_jaccard": float(router_readiness["topk_jaccard"].mean()),
+        "min_topk_jaccard": float(router_readiness["topk_jaccard"].min()),
+        "report": rel(root / "report.md"),
+        "summary_path": rel(root / "summary.json"),
+        "router_readiness": rel(root / "router_readiness.csv"),
+        "category_specialization": rel(root / "category_specialization.csv"),
+    }
+
+
+def summarize_qwen3_moe_route_guarded_candidate() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_unified_route_guarded_candidate")
+    summary = read_json(root / "summary.json")
+    source_weights = read_csv(root / "source_weights_by_expert.csv")
+    writer_command = (root / "writer_command.txt").read_text(encoding="utf-8").strip()
+    loaded_inputs = [
+        row for row in summary.get("input_summaries", []) if row.get("expert_load_file") in {"expert_load.csv", "compare_expert_load.csv"}
+    ]
+    dry_run_path = repo_path("results/checkpoints/qwen3_moe_unified_route_guarded_candidate/merge_manifest.json")
+    dry_run = read_json(dry_run_path) if dry_run_path.exists() else {}
+    rule_counts = dry_run.get("rule_counts", {})
+    expert_tensor_rule_hits = sum(
+        int(count) for key, count in rule_counts.items() if str(key).startswith("tensor_rule:.*layers\\.")
+    )
+    return {
+        "summary": summary,
+        "recipe_status": summary.get("recipe_status"),
+        "recipe_kind": summary.get("recipe_kind"),
+        "expert_rule_count": int(summary.get("expert_rule_count", len(source_weights))),
+        "tensor_rule_count": int(summary.get("tensor_rule_count", 0)),
+        "source_weight_rows": int(len(source_weights)),
+        "source_route_conditioned_used_rows": int(sum(int(row.get("used_rows", 0)) for row in loaded_inputs)),
+        "source_route_conditioned_skipped_rows": int(sum(int(row.get("skipped_model_rows", 0)) for row in loaded_inputs)),
+        "freeze_router": bool(summary.get("freeze_router")),
+        "shared_attention_coder_delta": maybe_float((summary.get("shared_attention_weights") or {}).get("coder")),
+        "packed_expert_rules_enabled": bool(summary.get("packed_expert_rules_enabled")),
+        "writer_dry_run_passed": bool(dry_run.get("dry_run", False)),
+        "writer_dry_run_floating_tensors": int(dry_run.get("floating_tensors", 0)),
+        "writer_dry_run_frozen_tensors": int(dry_run.get("frozen_tensors", 0)),
+        "writer_dry_run_freeze_router_hits": int(rule_counts.get("freeze_router", 0)),
+        "writer_dry_run_shared_attention_hits": int(rule_counts.get("tensor_rule:.*self_attn.*", 0)),
+        "writer_dry_run_expert_tensor_rule_hits": expert_tensor_rule_hits,
+        "writer_command_has_real_paths": "MOE_BASE_OR_ANCHOR_PATH" not in writer_command and "MODEL_PATH" not in writer_command,
+        "category_sources": summary.get("category_sources", {}),
+        "model_sources": summary.get("model_sources", []),
+        "report": rel(root / "report.md"),
+        "source_weights": rel(root / "source_weights_by_expert.csv"),
+        "tensor_rules": rel(root / "tensor_rules.txt"),
+        "writer_command": rel(root / "writer_command.txt"),
+    }
+
+
 def summarize_average_candidate_recipes() -> dict[str, Any]:
     summary = read_json("results/average_candidate_recipes/summary.json")
     recipes = read_csv("results/average_candidate_recipes/candidate_recipes.csv")
@@ -1348,6 +1465,8 @@ def summarize_moe_probe_gated_selector() -> dict[str, Any]:
         "status": summary.get("status"),
         "global_moe_gauge_decision": summary.get("global_moe_gauge_decision"),
         "qwen3_expert_identity_decision": summary.get("qwen3_expert_identity_decision"),
+        "qwen3_preflight_decision": summary.get("qwen3_preflight_decision"),
+        "qwen3_routing_decision": summary.get("qwen3_routing_decision"),
         "next_blocking_probe": summary.get("next_blocking_probe"),
         "real_gauge_naive_degradation": maybe_float(summary.get("real_gauge_naive_degradation")),
         "real_gauge_aligned_degradation": maybe_float(summary.get("real_gauge_aligned_degradation")),
@@ -2150,6 +2269,21 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/moe_probe_gated_selector/report.md combines real OLMoE gauge evidence, Qwen3 expert correspondence, and toy route/capacity selection into a same-shape MoE average gate.",
         },
         {
+            "item": "Qwen3 MoE unified average preflight",
+            "status": "complete",
+            "evidence": "results/moe_unified_preflight_qwen3_30b/report.md verifies Qwen3-30B Instruct/Coder same-shape config, router tensor contract, routed expert layout, expert identity gate, and the emitted real routing probe command.",
+        },
+        {
+            "item": "Qwen3 MoE real routing readiness",
+            "status": "complete",
+            "evidence": "results/moe_routing_readiness/qwen3_30b_instruct_vs_coder/report.md analyzes the real Qwen3-30B Instruct/Coder route overlap and expert load probe, showing direct router averaging is high risk and needs calibration or freeze.",
+        },
+        {
+            "item": "Qwen3 MoE route-guarded unified candidate",
+            "status": "complete",
+            "evidence": "results/qwen3_moe_unified_route_guarded_candidate/report.md converts the real Qwen3 route/load probe into source-route-conditioned same-shape tensor rules and a validated writer dry-run command.",
+        },
+        {
             "item": "Toy MoE multi-method routing readiness",
             "status": "complete",
             "evidence": "results/toy_moe_routing_readiness/report.md applies the generic readiness gate to toy MoE methods and flags all-weight routing drift separately from expert-matched/route-aware variants.",
@@ -2215,6 +2349,10 @@ def build_summary() -> dict[str, Any]:
         "fp_moe_mechanism": summarize_fp_moe_mechanism(),
         "fp_moe_real_probe": summarize_fp_moe_real_probe(),
         "moe_probe_gated_selector": summarize_moe_probe_gated_selector(),
+        "moe_unified_preflight_qwen3_30b": summarize_moe_unified_preflight(),
+        "qwen3_moe_routing_probe": summarize_qwen3_moe_routing_probe(),
+        "qwen3_moe_routing_readiness": summarize_qwen3_moe_routing_readiness(),
+        "qwen3_moe_route_guarded_candidate": summarize_qwen3_moe_route_guarded_candidate(),
         "toy_moe_routing_readiness": summarize_toy_moe_routing_readiness(),
         "toy_moe_method_selection": summarize_toy_moe_method_selection(),
         "toy_moe_expert_remap_plan": summarize_toy_moe_expert_remap_plan(),
@@ -2378,6 +2516,10 @@ def build_markdown(summary: dict[str, Any]) -> str:
     fp_moe = exp["fp_moe_mechanism"]
     fp_moe_real = exp["fp_moe_real_probe"]
     moe_selector = exp["moe_probe_gated_selector"]
+    moe_unified_preflight = exp["moe_unified_preflight_qwen3_30b"]
+    qwen3_moe_routing_probe = exp["qwen3_moe_routing_probe"]
+    qwen3_moe_routing_readiness = exp["qwen3_moe_routing_readiness"]
+    qwen3_moe_route_guarded_candidate = exp["qwen3_moe_route_guarded_candidate"]
     selected_unified_capacity = toy_moe.get("unified_moe_capacity_sweep_selected") or {}
     selected_unified_output_projection_capacity = (
         toy_moe.get("unified_output_projection_moe_capacity_sweep_selected") or {}
@@ -2608,6 +2750,65 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| MoE probe-gated selector | next blocking probe | "
                 f"{moe_selector['next_blocking_probe']} |"
+            ),
+            (
+                "| Qwen3 MoE unified preflight | status | "
+                f"{moe_unified_preflight['status']} |"
+            ),
+            (
+                "| Qwen3 MoE unified preflight | same-shape / expert identity / CUDA | "
+                f"{moe_unified_preflight['same_shape_contract_pass']} / "
+                f"{moe_unified_preflight['expert_identity_status']} / "
+                f"{moe_unified_preflight['cuda_available']} |"
+            ),
+            (
+                "| Qwen3 MoE unified preflight | router / routed expert tensors | "
+                f"{moe_unified_preflight['router_tensor_rows']} / "
+                f"{moe_unified_preflight['routed_expert_tensor_rows']} |"
+            ),
+            (
+                "| Qwen3 MoE routing probe | prompts / routers / overlap rows | "
+                f"{qwen3_moe_routing_probe['prompt_count']} / "
+                f"{qwen3_moe_routing_probe['router_count']} / "
+                f"{qwen3_moe_routing_probe['route_overlap_rows']} |"
+            ),
+            (
+                "| Qwen3 MoE routing probe | mean/min top-k Jaccard | "
+                f"{fmt(qwen3_moe_routing_probe['mean_topk_jaccard'])} / "
+                f"{fmt(qwen3_moe_routing_probe['min_topk_jaccard'])} |"
+            ),
+            (
+                "| Qwen3 MoE routing probe | mean/min top1 agreement | "
+                f"{fmt(qwen3_moe_routing_probe['mean_top1_agreement'])} / "
+                f"{fmt(qwen3_moe_routing_probe['min_top1_agreement'])} |"
+            ),
+            (
+                "| Qwen3 MoE routing readiness | status | "
+                f"{qwen3_moe_routing_readiness['readiness_status']} |"
+            ),
+            (
+                "| Qwen3 MoE routing readiness | calibrate / small-lambda / passed / freeze rows | "
+                f"{qwen3_moe_routing_readiness['router_action_counts'].get('calibrate_router_before_average', 0)} / "
+                f"{qwen3_moe_routing_readiness['router_action_counts'].get('small_lambda_router_with_overlap_guard', 0)} / "
+                f"{qwen3_moe_routing_readiness['router_action_counts'].get('router_probe_passed_for_small_lambda', 0)} / "
+                f"{qwen3_moe_routing_readiness['router_action_counts'].get('freeze_router_and_check_load_balance', 0)} |"
+            ),
+            (
+                "| Qwen3 MoE route-guarded candidate | status / frozen router | "
+                f"{qwen3_moe_route_guarded_candidate['recipe_status']} / "
+                f"{qwen3_moe_route_guarded_candidate['freeze_router']} |"
+            ),
+            (
+                "| Qwen3 MoE route-guarded candidate | expert rules / route rows used / skipped | "
+                f"{qwen3_moe_route_guarded_candidate['expert_rule_count']} / "
+                f"{qwen3_moe_route_guarded_candidate['source_route_conditioned_used_rows']} / "
+                f"{qwen3_moe_route_guarded_candidate['source_route_conditioned_skipped_rows']} |"
+            ),
+            (
+                "| Qwen3 MoE route-guarded candidate | dry-run expert / attention / router hits | "
+                f"{qwen3_moe_route_guarded_candidate['writer_dry_run_expert_tensor_rule_hits']} / "
+                f"{qwen3_moe_route_guarded_candidate['writer_dry_run_shared_attention_hits']} / "
+                f"{qwen3_moe_route_guarded_candidate['writer_dry_run_freeze_router_hits']} |"
             ),
             (
                 "| real MoE gauge self-merge | baseline / same-name / aligned NLL | "

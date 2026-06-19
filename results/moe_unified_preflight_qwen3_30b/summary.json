@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-06-19T18:15:13.280493+00:00",
+  "status": "same_shape_and_identity_ready_route_runtime_blocked_here",
+  "left_model": "qwen3_30b_instruct",
+  "right_model": "qwen3_30b_coder",
+  "same_shape_contract_pass": true,
+  "expert_identity_gate": {
+    "status": "pass",
+    "pass": true,
+    "n_layers": 48,
+    "expected_layers": 48,
+    "frac_layers_identity_optimal": 1.0,
+    "mean_argmax_is_identity_frac": 1.0,
+    "mean_diag_cos": 0.18304558439801136,
+    "mean_offdiag_cos": 0.00013665722265917188,
+    "reason": "Expert identity is stable enough to use identity slices first."
+  },
+  "cuda_available": false,
+  "router_tensor_rows": 48,
+  "routed_expert_tensor_rows": 18432,
+  "layout_rows": 96,
+  "gate_pass_count": 4,
+  "gate_blocked_count": 1,
+  "selector_prior_status": "selector_ready_waiting_for_real_qwen_routing_probe",
+  "selector_next_blocking_probe": "real_qwen3_route_overlap_and_expert_load",
+  "unified_mechanism": {
+    "objective": "same-shape model average that can choose endpoint/base, layer/tensor coefficients, expert remap, guarded router, and capacity bias without changing architecture",
+    "moe_error_decomposition": "expert gauge/identity + expert functional residual + router route-overlap drift + sparse capacity overflow + downstream behavior",
+    "current_qwen3_action": "identity expert slices are allowed by correspondence; router and load remain blocked until real route probe."
+  },
+  "routing_probe_command": "python scripts/probe_moe_routing.py --model /srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe --compare-model /srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-Coder-30B-A3B-Instruct/snapshots/b2cff646eb4bb1d68355c01b18ae02e7cf42d120 --tokenizer /srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe --prompts prompts/qwen_moe_route_probe_prompts.jsonl --device-map auto --dtype bfloat16 --use-chat-template --local-files-only --top-k 8 --output-dir results/moe_routing_probe/qwen3_30b_instruct_vs_coder",
+  "outputs": {
+    "config_contract": "results/moe_unified_preflight_qwen3_30b/config_contract.csv",
+    "router_contract": "results/moe_unified_preflight_qwen3_30b/router_contract.csv",
+    "expert_contract": "results/moe_unified_preflight_qwen3_30b/expert_contract.csv",
+    "layout_contract": "results/moe_unified_preflight_qwen3_30b/layout_contract.csv",
+    "gate_table": "results/moe_unified_preflight_qwen3_30b/unified_gate_table.csv",
+    "summary": "results/moe_unified_preflight_qwen3_30b/summary.json",
+    "report": "results/moe_unified_preflight_qwen3_30b/report.md",
+    "routing_probe_command": "results/moe_unified_preflight_qwen3_30b/routing_probe_command.txt"
+  }
+}

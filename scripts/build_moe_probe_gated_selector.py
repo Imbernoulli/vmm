@@ -30,6 +30,15 @@ def read_json(path: str | Path) -> dict[str, Any]:
     return json.loads(repo_path(path).read_text(encoding="utf-8"))
 
 
+def read_optional_json(path: str | Path | None) -> dict[str, Any] | None:
+    if path is None:
+        return None
+    full = repo_path(path)
+    if not full.exists():
+        return None
+    return json.loads(full.read_text(encoding="utf-8"))
+
+
 def read_csv(path: str | Path) -> pd.DataFrame:
     return pd.read_csv(repo_path(path))
 
@@ -59,6 +68,8 @@ def build_case_table(
     *,
     real_gauge: dict[str, Any],
     qwen_xcorr: dict[str, Any],
+    qwen_preflight: dict[str, Any] | None,
+    qwen_routing_readiness: dict[str, Any] | None,
     toy_selection_summary: dict[str, Any],
     toy_selection: pd.DataFrame,
     max_aligned_degradation: float,
@@ -116,6 +127,63 @@ def build_case_table(
         }
     )
 
+    if qwen_preflight:
+        identity_gate = qwen_preflight.get("expert_identity_gate") or {}
+        preflight_ready = bool(qwen_preflight.get("same_shape_contract_pass") and identity_gate.get("pass"))
+        rows.append(
+            {
+                "case": "qwen3_unified_preflight_contract",
+                "model_or_pair": f"{qwen_preflight.get('left_model')} :: {qwen_preflight.get('right_model')}",
+                "probe": "config and safetensors-header router/expert same-shape contract",
+                "evidence": (
+                    f"status={qwen_preflight.get('status')}; "
+                    f"same_shape={qwen_preflight.get('same_shape_contract_pass')}; "
+                    f"routers={qwen_preflight.get('router_tensor_rows')}; "
+                    f"routed_expert_tensors={qwen_preflight.get('routed_expert_tensor_rows')}; "
+                    f"identity={identity_gate.get('status')}; "
+                    f"cuda={qwen_preflight.get('cuda_available')}"
+                ),
+                "expert_identity_gate": identity_gate.get("status", "missing"),
+                "router_gate": "real_route_probe_required",
+                "capacity_gate": "real_expert_load_probe_required",
+                "decision": "same_shape_identity_ready_wait_for_route_runtime"
+                if preflight_ready
+                else "blocked_before_route_probe",
+                "same_shape_action": "run emitted route/load probe command; do not materialize until route readiness and behavior eval pass",
+                "blocking_probe": qwen_preflight.get("selector_next_blocking_probe")
+                or "real_qwen3_route_overlap_and_expert_load",
+            }
+        )
+
+    if qwen_routing_readiness:
+        router_counts = qwen_routing_readiness.get("router_action_counts") or {}
+        expert_counts = qwen_routing_readiness.get("expert_action_counts") or {}
+        status = qwen_routing_readiness.get("readiness_status")
+        high_risk = status == "high_risk_calibrate_router_before_merge"
+        rows.append(
+            {
+                "case": "qwen3_real_route_load_readiness",
+                "model_or_pair": "qwen3_30b_instruct :: qwen3_30b_coder",
+                "probe": "real prompt route overlap + expert load readiness",
+                "evidence": (
+                    f"status={status}; "
+                    f"calibrate={router_counts.get('calibrate_router_before_average', 0)}; "
+                    f"small_lambda={router_counts.get('small_lambda_router_with_overlap_guard', 0)}; "
+                    f"passed={router_counts.get('router_probe_passed_for_small_lambda', 0)}; "
+                    f"freeze={router_counts.get('freeze_router_and_check_load_balance', 0)}; "
+                    f"overused_expert={expert_counts.get('protect_or_source_weight_high_load_expert', 0)}"
+                ),
+                "expert_identity_gate": "identity_mapping_allowed_but_route_weighted_expert_weights_required",
+                "router_gate": "calibrate_or_freeze_router_before_average" if high_risk else "small_lambda_router_allowed",
+                "capacity_gate": "protect_high_load_experts_and_check_capacity",
+                "decision": "reject_direct_router_average_calibrate_or_freeze"
+                if high_risk
+                else "route_guarded_small_lambda_candidate_allowed",
+                "same_shape_action": "keep identity expert layout, derive route/category-aware expert weights, freeze or calibrate router, then run vLLM behavior eval",
+                "blocking_probe": "materialized_route_guarded_candidate_vllm_eval",
+            }
+        )
+
     all_weight = method_row(toy_selection, "all_weight_average")
     soft = toy_selection_summary.get("recommended_method")
     sparse = toy_selection_summary.get("recommended_sparse_method")
@@ -154,7 +222,7 @@ def build_stage_table(cases: pd.DataFrame) -> pd.DataFrame:
         [
             {
                 "stage": "topology",
-                "gate": "same_shape_config_and_packed_expert_layout",
+                "gate": "same_shape_config_and_routed_expert_layout",
                 "required_evidence": "tensor names, tensor shapes, router rows, expert dimension, tokenizer/model class",
                 "action_if_pass": "continue",
                 "action_if_fail": "do_not_materialize",
@@ -209,13 +277,24 @@ def build_summary(
 ) -> dict[str, Any]:
     qwen_case = cases[cases["case"] == "qwen3_instruct_coder_cross_correspondence"].iloc[0].to_dict()
     real_case = cases[cases["case"] == "real_olmoe_gauge_selfmerge"].iloc[0].to_dict()
+    qwen_preflight_rows = cases[cases["case"] == "qwen3_unified_preflight_contract"]
+    qwen_preflight_case = qwen_preflight_rows.iloc[0].to_dict() if not qwen_preflight_rows.empty else None
+    qwen_routing_rows = cases[cases["case"] == "qwen3_real_route_load_readiness"]
+    qwen_routing_case = qwen_routing_rows.iloc[0].to_dict() if not qwen_routing_rows.empty else None
+    next_blocking_probe = (
+        qwen_routing_case["blocking_probe"] if qwen_routing_case is not None else "real_qwen3_route_overlap_and_expert_load"
+    )
     return {
         "schema_version": 1,
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "status": "selector_ready_waiting_for_real_qwen_routing_probe",
+        "status": "selector_has_real_qwen_routing_probe_high_risk"
+        if qwen_routing_case is not None
+        else "selector_ready_waiting_for_real_qwen_routing_probe",
         "same_shape_invariant": "No selector stage changes model class, tokenizer, hidden size, router shape, expert count, or tensor shape.",
         "global_moe_gauge_decision": real_case["decision"],
         "qwen3_expert_identity_decision": qwen_case["decision"],
+        "qwen3_preflight_decision": None if qwen_preflight_case is None else qwen_preflight_case["decision"],
+        "qwen3_routing_decision": None if qwen_routing_case is None else qwen_routing_case["decision"],
         "qwen3_identity_fraction": qwen_xcorr.get("frac_layers_identity_optimal"),
         "qwen3_argmax_identity_fraction": qwen_xcorr.get("mean_argmax_is_identity_frac"),
         "real_gauge_naive_degradation": real_gauge.get("naive_degradation_vs_baseline"),
@@ -223,7 +302,7 @@ def build_summary(
         "toy_soft_recommendation": toy_selection_summary.get("recommended_method"),
         "toy_sparse_recommendation": toy_selection_summary.get("recommended_sparse_method"),
         "toy_capacity_recommendation": toy_selection_summary.get("recommended_sparse_capacity_aware_method"),
-        "next_blocking_probe": "real_qwen3_route_overlap_and_expert_load",
+        "next_blocking_probe": next_blocking_probe,
         "outputs": {
             "case_table": rel(output_dir / "selector_cases.csv"),
             "stage_table": rel(output_dir / "selector_stages.csv"),
@@ -243,6 +322,8 @@ def build_report(summary: dict[str, Any], cases: pd.DataFrame, stages: pd.DataFr
         "",
         f"- Global MoE gauge rule: `{summary['global_moe_gauge_decision']}`",
         f"- Qwen3 Instruct/Coder expert identity: `{summary['qwen3_expert_identity_decision']}`",
+        f"- Qwen3 preflight: `{summary['qwen3_preflight_decision']}`",
+        f"- Qwen3 routing: `{summary['qwen3_routing_decision']}`",
         f"- Next blocking probe: `{summary['next_blocking_probe']}`",
         f"- Same-shape invariant: `{summary['same_shape_invariant']}`",
         "",
@@ -274,7 +355,7 @@ def build_report(summary: dict[str, Any], cases: pd.DataFrame, stages: pd.DataFr
             "",
             "## Interpretation",
             "",
-            "真实 OLMoE 反事实说明 expert index 是 gauge，不是稳定语义；Qwen3 cross-correspondence 说明这对官方同族 checkpoint 目前 identity mapping 可信，但这只能通过 expert identity gate，不能替代 routing/load gate。toy MoE selector 进一步说明 router policy 和 capacity overflow 是独立失败模式。因此真实 Qwen3 MoE materialization 的下一步不是直接 average，而是先跑 route overlap 和 expert load，再决定 freeze-router、small-step calibration、route-KD 或 router-bias capacity correction。",
+            "真实 OLMoE 反事实说明 expert index 是 gauge，不是稳定语义；Qwen3 cross-correspondence 和 preflight 说明这对官方同族 checkpoint 目前 identity mapping 与同构合同可信，但真实 route/load probe 显示 router overlap 与 load 仍是独立失败模式。因此真实 Qwen3 MoE materialization 的下一步不是直接 average，而是基于 route/load 结果生成 route/category-aware expert weights，并选择 freeze-router、small-step calibration、route-KD 或 router-bias capacity correction，再进入 vLLM 行为评测。",
             "",
             "## Files",
             "",
@@ -295,6 +376,16 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=Path("results/fp_moe_real_probe/qwen3_instruct_coder/cross_correspondence.json"),
     )
+    parser.add_argument(
+        "--qwen-preflight-summary",
+        type=Path,
+        default=Path("results/moe_unified_preflight_qwen3_30b/summary.json"),
+    )
+    parser.add_argument(
+        "--qwen-routing-readiness-summary",
+        type=Path,
+        default=Path("results/moe_routing_readiness/qwen3_30b_instruct_vs_coder/summary.json"),
+    )
     parser.add_argument("--toy-selection-summary", type=Path, default=Path("results/toy_moe_method_selection/summary.json"))
     parser.add_argument("--toy-selection-csv", type=Path, default=Path("results/toy_moe_method_selection/method_selection.csv"))
     parser.add_argument("--max-aligned-degradation", type=float, default=0.05)
@@ -311,12 +402,16 @@ def main() -> None:
 
     real_gauge = read_json(args.real_gauge_summary)
     qwen_xcorr = read_json(args.qwen_cross_correspondence)
+    qwen_preflight = read_optional_json(args.qwen_preflight_summary)
+    qwen_routing_readiness = read_optional_json(args.qwen_routing_readiness_summary)
     toy_selection_summary = read_json(args.toy_selection_summary)
     toy_selection = read_csv(args.toy_selection_csv)
 
     cases = build_case_table(
         real_gauge=real_gauge,
         qwen_xcorr=qwen_xcorr,
+        qwen_preflight=qwen_preflight,
+        qwen_routing_readiness=qwen_routing_readiness,
         toy_selection_summary=toy_selection_summary,
         toy_selection=toy_selection,
         max_aligned_degradation=args.max_aligned_degradation,

@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-06-19T17:57:17.415057+00:00",
+  "generated_at": "2026-06-19T18:20:32.502130+00:00",
   "global_moe_gauge_decision": "reject_same_name_average_without_alignment",
-  "next_blocking_probe": "real_qwen3_route_overlap_and_expert_load",
+  "next_blocking_probe": "materialized_route_guarded_candidate_vllm_eval",
   "outputs": {
     "case_table": "results/moe_probe_gated_selector/selector_cases.csv",
     "report": "results/moe_probe_gated_selector/report.md",
@@ -11,11 +11,13 @@
   "qwen3_argmax_identity_fraction": 1.0,
   "qwen3_expert_identity_decision": "identity_expert_average_allowed_with_routing_gate",
   "qwen3_identity_fraction": 1.0,
+  "qwen3_preflight_decision": "same_shape_identity_ready_wait_for_route_runtime",
+  "qwen3_routing_decision": "reject_direct_router_average_calibrate_or_freeze",
   "real_gauge_aligned_degradation": 0.0,
   "real_gauge_naive_degradation": 5.490968298724317,
   "same_shape_invariant": "No selector stage changes model class, tokenizer, hidden size, router shape, expert count, or tensor shape.",
   "schema_version": 1,
-  "status": "selector_ready_waiting_for_real_qwen_routing_probe",
+  "status": "selector_has_real_qwen_routing_probe_high_risk",
   "toy_capacity_recommendation": "unified_moe_bias_capacity_average",
   "toy_soft_recommendation": "expert_output_projection_router_calibrated_average",
   "toy_sparse_recommendation": "unified_confidence_blended_route_kd_seed_average"
