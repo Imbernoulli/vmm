@@ -108,7 +108,6 @@ def collect_artifacts() -> list[dict[str, Any]]:
     ]
     suffixes = {".py", ".md", ".csv", ".json", ".jsonl", ".txt", ".png", ".html"}
     excluded_files = {
-        "scripts/fp_gen_eval.py",  # incomplete: current run only produced a log
         "scripts/fp_moe_barrier.py",  # incomplete: current run only produced a log
     }
     excluded_prefixes = {
@@ -504,6 +503,44 @@ def summarize_fp_merge_compare() -> dict[str, Any]:
         "summary_path": rel(root / "summary.json"),
         "method_metrics": rel(root / "method_metrics.csv"),
         "selection_trace": rel(root / "selection_trace.csv"),
+    }
+
+
+def summarize_fp_gen_eval_dense() -> dict[str, Any]:
+    root = repo_path("results/fp_gen_eval_dense")
+    summary = read_json(root / "summary.json")
+    methods = read_csv(root / "method_metrics.csv")
+    predictions = read_csv(root / "predictions.csv")
+    results = summary.get("results", {})
+    linear = results.get("linear", {})
+    unified = results.get("unified", {})
+    coder = results.get("coder", {})
+    return {
+        "summary": summary,
+        "models": summary.get("models", {}),
+        "task_counts": summary.get("task_counts", {}),
+        "best_method": summary.get("best_method"),
+        "linear": linear,
+        "unified": unified,
+        "coder": coder,
+        "unified_avg_delta_vs_linear": maybe_float(unified.get("avg_accuracy"))
+        - maybe_float(linear.get("avg_accuracy"))
+        if maybe_float(unified.get("avg_accuracy")) is not None and maybe_float(linear.get("avg_accuracy")) is not None
+        else None,
+        "unified_worst_delta_vs_linear": maybe_float(unified.get("worst_accuracy"))
+        - maybe_float(linear.get("worst_accuracy"))
+        if maybe_float(unified.get("worst_accuracy")) is not None and maybe_float(linear.get("worst_accuracy")) is not None
+        else None,
+        "coder_worst_delta_vs_unified": maybe_float(coder.get("worst_accuracy"))
+        - maybe_float(unified.get("worst_accuracy"))
+        if maybe_float(coder.get("worst_accuracy")) is not None and maybe_float(unified.get("worst_accuracy")) is not None
+        else None,
+        "method_rows": [clean_row(row) for _, row in methods.iterrows()],
+        "prediction_rows": [clean_row(row) for _, row in predictions.iterrows()],
+        "report": rel(root / "report.md"),
+        "summary_path": rel(root / "summary.json"),
+        "method_metrics": rel(root / "method_metrics.csv"),
+        "predictions": rel(root / "predictions.csv"),
     }
 
 
@@ -1884,6 +1921,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/fp_merge_compare_dense/report.md evaluates a finite family containing linear average, task arithmetic, sign-elect, and magnitude-weighted variants, then selects by held-out worst-task NLL.",
         },
         {
+            "item": "Dense exact-answer generation smoke",
+            "status": "complete",
+            "evidence": "results/fp_gen_eval_dense/report.md evaluates base, endpoints, linear average, and unified lambda=0 on built-in math/code-output generation tasks without executing model-generated code.",
+        },
+        {
             "item": "Formal LLM benchmark slices",
             "status": "complete",
             "evidence": "Representative Qwen2.5-1.5B benchmark slices cover MMLU, GSM8K, HumanEval canonical-solution NLL, and BeaverTails safety/refusal NLL.",
@@ -2112,6 +2154,7 @@ def build_summary() -> dict[str, Any]:
         "qwen_multi_expert_merge": summarize_qwen_multi_expert(),
         "fp_curvature_law": summarize_fp_curvature_law(),
         "fp_merge_compare_dense": summarize_fp_merge_compare(),
+        "fp_gen_eval_dense": summarize_fp_gen_eval_dense(),
         "qwen_probe_smoke": summarize_qwen_probe_smoke(),
         "average_decision_report": summarize_average_decision_report(),
         "model_averaging_literature_review": summarize_model_averaging_literature_review(),
@@ -2195,6 +2238,7 @@ def build_summary() -> dict[str, Any]:
             "PYTHONPATH=src python scripts/run_qwen_multi_expert_merge.py --output-dir results/qwen_multi_expert_merge",
             "python scripts/fp_curvature_law.py --out results/fp_curvature_law",
             "python scripts/fp_merge_compare.py --instruct Qwen/Qwen2.5-0.5B-Instruct --coder Qwen/Qwen2.5-Coder-0.5B-Instruct --base Qwen/Qwen2.5-0.5B --out results/fp_merge_compare_dense --n-general 4 --n-code 4 --seqlen 128 --grid-profile linear --device cpu",
+            "python scripts/fp_gen_eval.py --instruct Qwen/Qwen2.5-0.5B-Instruct --coder Qwen/Qwen2.5-Coder-0.5B-Instruct --base Qwen/Qwen2.5-0.5B --out results/fp_gen_eval_dense --n-math 2 --n-code 2 --max-new-tokens 8 --device cpu --methods base,instruct,coder,linear,unified",
             "python scripts/fp_moe_mechanism.py --out results/fp_moe_mechanism --base-steps 700 --ft-steps 500",
             "python scripts/fp_moe_real_probe.py --mode gauge_selfmerge --model-a allenai/OLMoE-1B-7B-0924-Instruct --out results/fp_moe_real_probe --n-probe 4 --seqlen 128",
             "PYTHONPATH=src python scripts/run_toy_moe_merge.py --output-dir results/toy_moe_merge --device cpu",
@@ -2271,6 +2315,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen_multi_conflict = qwen_multi["instruct_coder_conflict"] or {}
     fp_curvature = exp["fp_curvature_law"]
     fp_merge_compare = exp["fp_merge_compare_dense"]
+    fp_gen_eval = exp["fp_gen_eval_dense"]
     average_decision = exp["average_decision_report"]
     literature_review = exp["model_averaging_literature_review"]
     qwen_registry = exp["qwen_target_model_registry"]
@@ -2482,6 +2527,18 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| dense unified selector | unified minus best endpoint worst NLL | "
                 f"{fmt(fp_merge_compare['unified_worst_minus_best_endpoint'])} |"
+            ),
+            (
+                "| dense generation smoke | best method / linear avg accuracy | "
+                f"{fp_gen_eval['best_method']} / {fmt(fp_gen_eval['linear'].get('avg_accuracy'))} |"
+            ),
+            (
+                "| dense generation smoke | unified avg delta vs linear | "
+                f"{fmt(fp_gen_eval['unified_avg_delta_vs_linear'])} |"
+            ),
+            (
+                "| dense generation smoke | coder worst delta vs unified | "
+                f"{fmt(fp_gen_eval['coder_worst_delta_vs_unified'])} |"
             ),
             (
                 "| first-principles MoE mechanism | gauge-equivalent B MSE | "

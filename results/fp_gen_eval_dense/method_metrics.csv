@@ -1,0 +1,6 @@
+method,math_exact,code_output_exact,avg_accuracy,worst_accuracy
+coder,0.5,0.5,0.5,0.5
+base,0.0,1.0,0.5,0.0
+instruct,0.0,1.0,0.5,0.0
+unified,0.0,1.0,0.5,0.0
+linear,0.0,0.0,0.0,0.0

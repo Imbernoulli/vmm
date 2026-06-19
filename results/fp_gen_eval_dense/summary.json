@@ -1,0 +1,153 @@
+{
+  "best_method": "coder",
+  "interpretation": "The exact-answer generation smoke follows the same boundary as the NLL selector: it is a fast behavioral check, not proof that a merge beats all endpoints. The unified candidate beats the linear midpoint on this smoke slice.",
+  "method_metrics": [
+    {
+      "avg_accuracy": 0.5,
+      "code_output_exact": 0.5,
+      "math_exact": 0.5,
+      "method": "coder",
+      "worst_accuracy": 0.5
+    },
+    {
+      "avg_accuracy": 0.5,
+      "code_output_exact": 1.0,
+      "math_exact": 0.0,
+      "method": "base",
+      "worst_accuracy": 0.0
+    },
+    {
+      "avg_accuracy": 0.5,
+      "code_output_exact": 1.0,
+      "math_exact": 0.0,
+      "method": "instruct",
+      "worst_accuracy": 0.0
+    },
+    {
+      "avg_accuracy": 0.5,
+      "code_output_exact": 1.0,
+      "math_exact": 0.0,
+      "method": "unified",
+      "worst_accuracy": 0.0
+    },
+    {
+      "avg_accuracy": 0.0,
+      "code_output_exact": 0.0,
+      "math_exact": 0.0,
+      "method": "linear",
+      "worst_accuracy": 0.0
+    }
+  ],
+  "methods": [
+    "base",
+    "instruct",
+    "coder",
+    "linear",
+    "unified"
+  ],
+  "models": {
+    "base": "Qwen/Qwen2.5-0.5B",
+    "coder": "Qwen/Qwen2.5-Coder-0.5B-Instruct",
+    "instruct": "Qwen/Qwen2.5-0.5B-Instruct"
+  },
+  "outputs": {
+    "method_metrics": "method_metrics.csv",
+    "predictions": "predictions.csv",
+    "report": "report.md",
+    "summary": "summary.json"
+  },
+  "results": {
+    "base": {
+      "avg_accuracy": 0.5,
+      "by_task": {
+        "code_output_exact": {
+          "accuracy": 1.0,
+          "correct": 2,
+          "total": 2
+        },
+        "math_exact": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "total": 2
+        }
+      },
+      "worst_accuracy": 0.0
+    },
+    "coder": {
+      "avg_accuracy": 0.5,
+      "by_task": {
+        "code_output_exact": {
+          "accuracy": 0.5,
+          "correct": 1,
+          "total": 2
+        },
+        "math_exact": {
+          "accuracy": 0.5,
+          "correct": 1,
+          "total": 2
+        }
+      },
+      "worst_accuracy": 0.5
+    },
+    "instruct": {
+      "avg_accuracy": 0.5,
+      "by_task": {
+        "code_output_exact": {
+          "accuracy": 1.0,
+          "correct": 2,
+          "total": 2
+        },
+        "math_exact": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "total": 2
+        }
+      },
+      "worst_accuracy": 0.0
+    },
+    "linear": {
+      "avg_accuracy": 0.0,
+      "by_task": {
+        "code_output_exact": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "total": 2
+        },
+        "math_exact": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "total": 2
+        }
+      },
+      "worst_accuracy": 0.0
+    },
+    "unified": {
+      "avg_accuracy": 0.5,
+      "by_task": {
+        "code_output_exact": {
+          "accuracy": 1.0,
+          "correct": 2,
+          "total": 2
+        },
+        "math_exact": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "total": 2
+        }
+      },
+      "worst_accuracy": 0.0
+    }
+  },
+  "schema_version": 1,
+  "task_counts": {
+    "code_output_exact": 2,
+    "math_exact": 2
+  },
+  "unified_config": {
+    "density": 1.0,
+    "importance": "uniform",
+    "lam": 0.0,
+    "router": "average",
+    "sign_resolve": false
+  }
+}

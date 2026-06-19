@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-19T17:47:41.807014+00:00`
+Generated at: `2026-06-19T17:53:46.424544+00:00`
 
 ## Coverage
 
-Complete: `55`; partial: `1`; missing: `0`.
+Complete: `56`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -22,6 +22,7 @@ Complete: `55`; partial: `1`; missing: `0`.
 | Multi-expert LLM merge | complete | Qwen2.5-0.5B base, Qwen2.5-0.5B-Instruct, and Qwen2.5-Coder-0.5B-Instruct are evaluated in a two-expert merge plane. |
 | Dense curvature-displacement mechanism probe | complete | results/fp_curvature_law/report.md compares diagonal-Fisher second-order midpoint predictions against real Qwen instruct/coder interpolation loss. |
 | Unified merge-family selector | complete | results/fp_merge_compare_dense/report.md evaluates a finite family containing linear average, task arithmetic, sign-elect, and magnitude-weighted variants, then selects by held-out worst-task NLL. |
+| Dense exact-answer generation smoke | complete | results/fp_gen_eval_dense/report.md evaluates base, endpoints, linear average, and unified lambda=0 on built-in math/code-output generation tasks without executing model-generated code. |
 | Formal LLM benchmark slices | complete | Representative Qwen2.5-1.5B benchmark slices cover MMLU, GSM8K, HumanEval canonical-solution NLL, and BeaverTails safety/refusal NLL. |
 | vLLM hosted downstream evaluation | partial | scripts/run_vllm_downstream_eval.py can build a served-model eval plan from the Qwen target registry; the generic registry run remains endpoint_unavailable, while checkpoint-specific hosted eval is tracked separately. |
 | Materialized checkpoint vLLM hosted eval | complete | results/vllm_checkpoint_eval/qwen_0_5b_instruct_coder_uniform_average/report.md contains a real vLLM-hosted GSM8K/MMLU/safety/HumanEval compile eval for the materialized Qwen2.5-0.5B uniform-average checkpoint. |
@@ -102,6 +103,9 @@ Complete: `55`; partial: `1`; missing: `0`.
 | dense unified selector | selected lambda / test worst NLL | 0.00 / 5.183 |
 | dense unified selector | linear / TIES worst delta vs unified | 3.765 / 3.927 |
 | dense unified selector | unified minus best endpoint worst NLL | 0.032 |
+| dense generation smoke | best method / linear avg accuracy | coder / 0.000 |
+| dense generation smoke | unified avg delta vs linear | 0.500 |
+| dense generation smoke | coder worst delta vs unified | 0.500 |
 | first-principles MoE mechanism | gauge-equivalent B MSE | 7.66e-16 |
 | first-principles MoE mechanism | router agreement raw to aligned | 0.035 to 0.795 |
 | first-principles MoE mechanism | same-name to aligned worst loss | 0.511 to 0.125 |

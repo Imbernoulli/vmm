@@ -71,6 +71,11 @@
       "status": "complete"
     },
     {
+      "evidence": "results/fp_gen_eval_dense/report.md evaluates base, endpoints, linear average, and unified lambda=0 on built-in math/code-output generation tasks without executing model-generated code.",
+      "item": "Dense exact-answer generation smoke",
+      "status": "complete"
+    },
+    {
       "evidence": "Representative Qwen2.5-1.5B benchmark slices cover MMLU, GSM8K, HumanEval canonical-solution NLL, and BeaverTails safety/refusal NLL.",
       "item": "Formal LLM benchmark slices",
       "status": "complete"
@@ -282,7 +287,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 55,
+    "complete": 56,
     "missing": 0,
     "partial": 1
   },
@@ -2158,6 +2163,445 @@
         "general": 5.9108830695058785,
         "worst": 5.9108830695058785
       }
+    },
+    "fp_gen_eval_dense": {
+      "best_method": "coder",
+      "coder": {
+        "avg_accuracy": 0.5,
+        "by_task": {
+          "code_output_exact": {
+            "accuracy": 0.5,
+            "correct": 1,
+            "total": 2
+          },
+          "math_exact": {
+            "accuracy": 0.5,
+            "correct": 1,
+            "total": 2
+          }
+        },
+        "worst_accuracy": 0.5
+      },
+      "coder_worst_delta_vs_unified": 0.5,
+      "linear": {
+        "avg_accuracy": 0.0,
+        "by_task": {
+          "code_output_exact": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "total": 2
+          },
+          "math_exact": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "total": 2
+          }
+        },
+        "worst_accuracy": 0.0
+      },
+      "method_metrics": "results/fp_gen_eval_dense/method_metrics.csv",
+      "method_rows": [
+        {
+          "avg_accuracy": 0.5,
+          "code_output_exact": 0.5,
+          "math_exact": 0.5,
+          "method": "coder",
+          "worst_accuracy": 0.5
+        },
+        {
+          "avg_accuracy": 0.5,
+          "code_output_exact": 1.0,
+          "math_exact": 0.0,
+          "method": "base",
+          "worst_accuracy": 0.0
+        },
+        {
+          "avg_accuracy": 0.5,
+          "code_output_exact": 1.0,
+          "math_exact": 0.0,
+          "method": "instruct",
+          "worst_accuracy": 0.0
+        },
+        {
+          "avg_accuracy": 0.5,
+          "code_output_exact": 1.0,
+          "math_exact": 0.0,
+          "method": "unified",
+          "worst_accuracy": 0.0
+        },
+        {
+          "avg_accuracy": 0.0,
+          "code_output_exact": 0.0,
+          "math_exact": 0.0,
+          "method": "linear",
+          "worst_accuracy": 0.0
+        }
+      ],
+      "models": {
+        "base": "Qwen/Qwen2.5-0.5B",
+        "coder": "Qwen/Qwen2.5-Coder-0.5B-Instruct",
+        "instruct": "Qwen/Qwen2.5-0.5B-Instruct"
+      },
+      "prediction_rows": [
+        {
+          "correct": false,
+          "gold": 20,
+          "id": "math_01",
+          "method": "base",
+          "prediction": "step-by-step reasoning process: mina",
+          "raw_generation": " Step-by-step reasoning process: Mina",
+          "task": "math_exact"
+        },
+        {
+          "correct": false,
+          "gold": 21,
+          "id": "math_02",
+          "method": "base",
+          "prediction": "the total number of markers in the box",
+          "raw_generation": " The total number of markers in the box",
+          "task": "math_exact"
+        },
+        {
+          "correct": true,
+          "gold": 10,
+          "id": "code_01",
+          "method": "base",
+          "prediction": "10",
+          "raw_generation": " 10",
+          "task": "code_output_exact"
+        },
+        {
+          "correct": true,
+          "gold": 3,
+          "id": "code_02",
+          "method": "base",
+          "prediction": "3",
+          "raw_generation": " 3",
+          "task": "code_output_exact"
+        },
+        {
+          "correct": false,
+          "gold": 20,
+          "id": "math_01",
+          "method": "instruct",
+          "prediction": "to determine how many apples mina has",
+          "raw_generation": " To determine how many apples Mina has",
+          "task": "math_exact"
+        },
+        {
+          "correct": false,
+          "gold": 21,
+          "id": "math_02",
+          "method": "instruct",
+          "prediction": "to find the total number of markers in",
+          "raw_generation": " To find the total number of markers in",
+          "task": "math_exact"
+        },
+        {
+          "correct": true,
+          "gold": 10,
+          "id": "code_01",
+          "method": "instruct",
+          "prediction": "10",
+          "raw_generation": " 10\\n\\nExplanation:\\nThe code",
+          "task": "code_output_exact"
+        },
+        {
+          "correct": true,
+          "gold": 3,
+          "id": "code_02",
+          "method": "instruct",
+          "prediction": "3",
+          "raw_generation": " 3\\n\\nExplanation:\\nThe code defines",
+          "task": "code_output_exact"
+        },
+        {
+          "correct": true,
+          "gold": 20,
+          "id": "math_01",
+          "method": "coder",
+          "prediction": "20",
+          "raw_generation": " 20\\nMina starts with",
+          "task": "math_exact"
+        },
+        {
+          "correct": false,
+          "gold": 21,
+          "id": "math_02",
+          "method": "coder",
+          "prediction": "12",
+          "raw_generation": " 12\\nTo determine the total",
+          "task": "math_exact"
+        },
+        {
+          "correct": false,
+          "gold": 10,
+          "id": "code_01",
+          "method": "coder",
+          "prediction": "9",
+          "raw_generation": " 9\\n\\nExplanation:\\nThe given Python",
+          "task": "code_output_exact"
+        },
+        {
+          "correct": true,
+          "gold": 3,
+          "id": "code_02",
+          "method": "coder",
+          "prediction": "3",
+          "raw_generation": " 3\\n```",
+          "task": "code_output_exact"
+        },
+        {
+          "correct": false,
+          "gold": 20,
+          "id": "math_01",
+          "method": "linear",
+          "prediction": "answer: answer: answer: answer:",
+          "raw_generation": " Answer: Answer: Answer: Answer:",
+          "task": "math_exact"
+        },
+        {
+          "correct": false,
+          "gold": 21,
+          "id": "math_02",
+          "method": "linear",
+          "prediction": "answer to question",
+          "raw_generation": " Answer to question.\\nAnswer:\\nAnswer:\\n",
+          "task": "math_exact"
+        },
+        {
+          "correct": false,
+          "gold": 10,
+          "id": "code_01",
+          "method": "linear",
+          "prediction": "the printed value is the printed value of",
+          "raw_generation": " the printed value is the printed value of",
+          "task": "code_output_exact"
+        },
+        {
+          "correct": false,
+          "gold": 3,
+          "id": "code_02",
+          "method": "linear",
+          "prediction": "'a'",
+          "raw_generation": " 'a'\\n\\na\\n\\nb\\n\\nc",
+          "task": "code_output_exact"
+        },
+        {
+          "correct": false,
+          "gold": 20,
+          "id": "math_01",
+          "method": "unified",
+          "prediction": "step-by-step reasoning process: mina",
+          "raw_generation": " Step-by-step reasoning process: Mina",
+          "task": "math_exact"
+        },
+        {
+          "correct": false,
+          "gold": 21,
+          "id": "math_02",
+          "method": "unified",
+          "prediction": "the total number of markers in the box",
+          "raw_generation": " The total number of markers in the box",
+          "task": "math_exact"
+        },
+        {
+          "correct": true,
+          "gold": 10,
+          "id": "code_01",
+          "method": "unified",
+          "prediction": "10",
+          "raw_generation": " 10",
+          "task": "code_output_exact"
+        },
+        {
+          "correct": true,
+          "gold": 3,
+          "id": "code_02",
+          "method": "unified",
+          "prediction": "3",
+          "raw_generation": " 3",
+          "task": "code_output_exact"
+        }
+      ],
+      "predictions": "results/fp_gen_eval_dense/predictions.csv",
+      "report": "results/fp_gen_eval_dense/report.md",
+      "summary": {
+        "best_method": "coder",
+        "interpretation": "The exact-answer generation smoke follows the same boundary as the NLL selector: it is a fast behavioral check, not proof that a merge beats all endpoints. The unified candidate beats the linear midpoint on this smoke slice.",
+        "method_metrics": [
+          {
+            "avg_accuracy": 0.5,
+            "code_output_exact": 0.5,
+            "math_exact": 0.5,
+            "method": "coder",
+            "worst_accuracy": 0.5
+          },
+          {
+            "avg_accuracy": 0.5,
+            "code_output_exact": 1.0,
+            "math_exact": 0.0,
+            "method": "base",
+            "worst_accuracy": 0.0
+          },
+          {
+            "avg_accuracy": 0.5,
+            "code_output_exact": 1.0,
+            "math_exact": 0.0,
+            "method": "instruct",
+            "worst_accuracy": 0.0
+          },
+          {
+            "avg_accuracy": 0.5,
+            "code_output_exact": 1.0,
+            "math_exact": 0.0,
+            "method": "unified",
+            "worst_accuracy": 0.0
+          },
+          {
+            "avg_accuracy": 0.0,
+            "code_output_exact": 0.0,
+            "math_exact": 0.0,
+            "method": "linear",
+            "worst_accuracy": 0.0
+          }
+        ],
+        "methods": [
+          "base",
+          "instruct",
+          "coder",
+          "linear",
+          "unified"
+        ],
+        "models": {
+          "base": "Qwen/Qwen2.5-0.5B",
+          "coder": "Qwen/Qwen2.5-Coder-0.5B-Instruct",
+          "instruct": "Qwen/Qwen2.5-0.5B-Instruct"
+        },
+        "outputs": {
+          "method_metrics": "method_metrics.csv",
+          "predictions": "predictions.csv",
+          "report": "report.md",
+          "summary": "summary.json"
+        },
+        "results": {
+          "base": {
+            "avg_accuracy": 0.5,
+            "by_task": {
+              "code_output_exact": {
+                "accuracy": 1.0,
+                "correct": 2,
+                "total": 2
+              },
+              "math_exact": {
+                "accuracy": 0.0,
+                "correct": 0,
+                "total": 2
+              }
+            },
+            "worst_accuracy": 0.0
+          },
+          "coder": {
+            "avg_accuracy": 0.5,
+            "by_task": {
+              "code_output_exact": {
+                "accuracy": 0.5,
+                "correct": 1,
+                "total": 2
+              },
+              "math_exact": {
+                "accuracy": 0.5,
+                "correct": 1,
+                "total": 2
+              }
+            },
+            "worst_accuracy": 0.5
+          },
+          "instruct": {
+            "avg_accuracy": 0.5,
+            "by_task": {
+              "code_output_exact": {
+                "accuracy": 1.0,
+                "correct": 2,
+                "total": 2
+              },
+              "math_exact": {
+                "accuracy": 0.0,
+                "correct": 0,
+                "total": 2
+              }
+            },
+            "worst_accuracy": 0.0
+          },
+          "linear": {
+            "avg_accuracy": 0.0,
+            "by_task": {
+              "code_output_exact": {
+                "accuracy": 0.0,
+                "correct": 0,
+                "total": 2
+              },
+              "math_exact": {
+                "accuracy": 0.0,
+                "correct": 0,
+                "total": 2
+              }
+            },
+            "worst_accuracy": 0.0
+          },
+          "unified": {
+            "avg_accuracy": 0.5,
+            "by_task": {
+              "code_output_exact": {
+                "accuracy": 1.0,
+                "correct": 2,
+                "total": 2
+              },
+              "math_exact": {
+                "accuracy": 0.0,
+                "correct": 0,
+                "total": 2
+              }
+            },
+            "worst_accuracy": 0.0
+          }
+        },
+        "schema_version": 1,
+        "task_counts": {
+          "code_output_exact": 2,
+          "math_exact": 2
+        },
+        "unified_config": {
+          "density": 1.0,
+          "importance": "uniform",
+          "lam": 0.0,
+          "router": "average",
+          "sign_resolve": false
+        }
+      },
+      "summary_path": "results/fp_gen_eval_dense/summary.json",
+      "task_counts": {
+        "code_output_exact": 2,
+        "math_exact": 2
+      },
+      "unified": {
+        "avg_accuracy": 0.5,
+        "by_task": {
+          "code_output_exact": {
+            "accuracy": 1.0,
+            "correct": 2,
+            "total": 2
+          },
+          "math_exact": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "total": 2
+          }
+        },
+        "worst_accuracy": 0.0
+      },
+      "unified_avg_delta_vs_linear": 0.5,
+      "unified_worst_delta_vs_linear": 0.0
     },
     "fp_merge_compare_dense": {
       "best_endpoint_worst": 5.150962227269223,
@@ -11678,7 +12122,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-19T17:47:41.807014+00:00",
+  "generated_at": "2026-06-19T17:53:46.424544+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -11696,6 +12140,7 @@
     "PYTHONPATH=src python scripts/run_qwen_multi_expert_merge.py --output-dir results/qwen_multi_expert_merge",
     "python scripts/fp_curvature_law.py --out results/fp_curvature_law",
     "python scripts/fp_merge_compare.py --instruct Qwen/Qwen2.5-0.5B-Instruct --coder Qwen/Qwen2.5-Coder-0.5B-Instruct --base Qwen/Qwen2.5-0.5B --out results/fp_merge_compare_dense --n-general 4 --n-code 4 --seqlen 128 --grid-profile linear --device cpu",
+    "python scripts/fp_gen_eval.py --instruct Qwen/Qwen2.5-0.5B-Instruct --coder Qwen/Qwen2.5-Coder-0.5B-Instruct --base Qwen/Qwen2.5-0.5B --out results/fp_gen_eval_dense --n-math 2 --n-code 2 --max-new-tokens 8 --device cpu --methods base,instruct,coder,linear,unified",
     "python scripts/fp_moe_mechanism.py --out results/fp_moe_mechanism --base-steps 700 --ft-steps 500",
     "python scripts/fp_moe_real_probe.py --mode gauge_selfmerge --model-a allenai/OLMoE-1B-7B-0924-Instruct --out results/fp_moe_real_probe --n-probe 4 --seqlen 128",
     "PYTHONPATH=src python scripts/run_toy_moe_merge.py --output-dir results/toy_moe_merge --device cpu",

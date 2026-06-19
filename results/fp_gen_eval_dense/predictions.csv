@@ -1,0 +1,21 @@
+task,id,gold,prediction,raw_generation,correct,method
+math_exact,math_01,20,step-by-step reasoning process: mina, Step-by-step reasoning process: Mina,False,base
+math_exact,math_02,21,the total number of markers in the box, The total number of markers in the box,False,base
+code_output_exact,code_01,10,10, 10,True,base
+code_output_exact,code_02,3,3, 3,True,base
+math_exact,math_01,20,to determine how many apples mina has, To determine how many apples Mina has,False,instruct
+math_exact,math_02,21,to find the total number of markers in, To find the total number of markers in,False,instruct
+code_output_exact,code_01,10,10, 10\n\nExplanation:\nThe code,True,instruct
+code_output_exact,code_02,3,3, 3\n\nExplanation:\nThe code defines,True,instruct
+math_exact,math_01,20,20, 20\nMina starts with,True,coder
+math_exact,math_02,21,12, 12\nTo determine the total,False,coder
+code_output_exact,code_01,10,9, 9\n\nExplanation:\nThe given Python,False,coder
+code_output_exact,code_02,3,3, 3\n```,True,coder
+math_exact,math_01,20,answer: answer: answer: answer:, Answer: Answer: Answer: Answer:,False,linear
+math_exact,math_02,21,answer to question, Answer to question.\nAnswer:\nAnswer:\n,False,linear
+code_output_exact,code_01,10,the printed value is the printed value of, the printed value is the printed value of,False,linear
+code_output_exact,code_02,3,'a', 'a'\n\na\n\nb\n\nc,False,linear
+math_exact,math_01,20,step-by-step reasoning process: mina, Step-by-step reasoning process: Mina,False,unified
+math_exact,math_02,21,the total number of markers in the box, The total number of markers in the box,False,unified
+code_output_exact,code_01,10,10, 10,True,unified
+code_output_exact,code_02,3,3, 3,True,unified
