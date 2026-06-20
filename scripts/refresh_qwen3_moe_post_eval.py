@@ -467,6 +467,10 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
             "hard_cap_bound_group_count"
         ),
         "unified_optimizer_status": unified_optimizer.get("status"),
+        "unified_optimizer_contract_status": unified_optimizer.get("contract_status"),
+        "unified_optimizer_contract_passed": unified_optimizer.get("contract_passed_requirement_count"),
+        "unified_optimizer_contract_requirements": unified_optimizer.get("contract_requirement_count"),
+        "unified_optimizer_contract_blocking": unified_optimizer.get("contract_blocking_requirements", []),
         "unified_optimizer_top_experiment": optimizer_top.get("experiment"),
         "unified_optimizer_top_experiment_status": optimizer_top.get("status"),
         "unified_optimizer_final_confidence_tie_band": optimizer_moe.get("qwen3_final_confidence_tie_band"),
@@ -528,6 +532,7 @@ def build_report(summary: dict[str, Any]) -> str:
         f"- Mechanistic unified: `{downstream.get('mechanistic_status', 'n/a')}` -> `{downstream.get('mechanistic_selected_candidate', 'n/a')}` (`retention={downstream.get('mechanistic_retention', 'n/a')}`, `violations={downstream.get('mechanistic_hard_cap_violations', 'n/a')}`)",
         f"- Mechanistic evidence: `{downstream.get('mechanistic_evidence_status', 'n/a')}` (`gradient_agreement={downstream.get('mechanistic_evidence_gradient_agreement', 'n/a')}`, `objective_improved={downstream.get('mechanistic_evidence_objective_improved_fraction', 'n/a')}`)",
         f"- Unified average optimizer: `{downstream.get('unified_optimizer_status', 'n/a')}` (top next experiment `{downstream.get('unified_optimizer_top_experiment', 'n/a')}` / `{downstream.get('unified_optimizer_top_experiment_status', 'n/a')}`)",
+        f"- Unified algorithm contract: `{downstream.get('unified_optimizer_contract_status', 'n/a')}` (`{downstream.get('unified_optimizer_contract_passed', 'n/a')}/{downstream.get('unified_optimizer_contract_requirements', 'n/a')}` passed, blocking `{downstream.get('unified_optimizer_contract_blocking', [])}`)",
         f"- Unified selector rank gate in optimizer: confidence band `{downstream.get('unified_optimizer_final_confidence_tie_band', 'n/a')}`, rank mode `{downstream.get('unified_optimizer_final_rank_mode', 'n/a')}`, band size `{downstream.get('unified_optimizer_final_rank_band_size', 'n/a')}`",
         f"- Unified optimizer ledger smoke: `{downstream.get('unified_optimizer_smoke_status', 'n/a')}` (`{downstream.get('unified_optimizer_smoke_passed', 'n/a')}/{downstream.get('unified_optimizer_smoke_cases', 'n/a')}` cases)",
         f"- Average method gate matrix: `{downstream.get('average_method_gate_status', 'n/a')}` (`accepted_by_default={downstream.get('average_method_gate_default_accepted', 'n/a')}`, `rejected={downstream.get('average_method_gate_default_rejected', 'n/a')}`, `conditional={downstream.get('average_method_gate_conditional', 'n/a')}`)",

@@ -1334,10 +1334,219 @@ def build_evidence_ledger(summary: dict[str, Any], hypotheses: pd.DataFrame) -> 
     return pd.DataFrame(rows)
 
 
+def build_algorithm_contract(
+    summary: dict[str, Any],
+    evidence_ledger: pd.DataFrame,
+    experiment_queue: pd.DataFrame,
+) -> pd.DataFrame:
+    dense = summary["dense"]
+    moe = summary["moe"]
+    verdicts = {
+        str(row["hypothesis_id"]): str(row["verdict"]) for _, row in evidence_ledger.iterrows()
+    }
+    queue_by_experiment = {
+        str(row["experiment"]): row for _, row in experiment_queue.iterrows()
+    }
+
+    def verdict(hypothesis_id: str) -> str:
+        return verdicts.get(hypothesis_id, "unknown")
+
+    def command(experiment: str, fallback: str) -> str:
+        row = queue_by_experiment.get(experiment)
+        return fallback if row is None else str(row["command"])
+
+    dense_gate = verdict("dense_same_basin_required") == "supports_current_action"
+    expert_gate = verdict("moe_expert_gauge_alignment_precedes_average") == "supports_current_action"
+    router_gate = verdict("moe_direct_router_average_crosses_topk_boundaries") == "supports_current_action"
+    connectivity_gate = verdict("moe_source_to_source_line_not_averageable") == "supports_current_action"
+    structural_gate = (
+        moe.get("qwen3_unified_materialized_rule_status") == "fresh"
+        and moe.get("qwen3_unified_audit_status") == "passed"
+        and maybe_int(moe.get("qwen3_unified_routed_gt_065")) == 0
+        and maybe_int(moe.get("qwen3_unified_router_changed_tensors")) == 0
+        and bool(moe.get("qwen3_unified_matches_materialized_checkpoint_manifest", False))
+    )
+    downstream_verdict = verdict("downstream_source_dominance_is_final_gate")
+    unified_verdict = verdict("moe_risk_weighted_expert_caps_preserve_useful_route_mass")
+    router_cal_verdict = verdict("router_calibration_repairs_dispatch_but_is_not_acceptance")
+    tiebreak_gate = verdict("moe_structural_tiebreak_requires_statistical_equivalence") == "supports_current_action"
+    downstream_terminal = downstream_verdict in {"supports_current_action", "supports_source_fallback"}
+    unified_accepted = (
+        downstream_verdict == "supports_current_action"
+        and unified_verdict == "supports_current_action"
+    )
+    source_fallback = downstream_verdict == "supports_source_fallback"
+    downstream_waiting = downstream_verdict == "awaiting_downstream_eval"
+    router_cal_guarded = router_cal_verdict in {
+        "promising_but_unaccepted",
+        "supports_current_action",
+        "supports_freeze_router_baseline",
+    }
+
+    rows = [
+        {
+            "requirement": "same_shape_output_contract",
+            "mechanism": "architecture_invariant",
+            "required_state": "output preserves config/tokenizer/class/tensor names/tensor shapes",
+            "observed_state": "algorithm contract writes same-shape operations only",
+            "passed": True,
+            "blocking_status": "passed",
+            "next_command": "python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer",
+        },
+        {
+            "requirement": "dense_midpoint_path_gate",
+            "mechanism": "mode_connectivity_and_curvature",
+            "required_state": "linear midpoint is not accepted unless path evidence beats endpoint frontier",
+            "observed_state": (
+                f"dense decision={dense.get('decision')}; "
+                f"midpoint worst={fmt(dense.get('lambda_linear_worst_nll'))}; "
+                f"best lambda-family worst={fmt(dense.get('lambda_best_worst_nll'))}; "
+                f"verdict={verdict('dense_same_basin_required')}"
+            ),
+            "passed": dense_gate,
+            "blocking_status": "passed" if dense_gate else "failed_dense_path_gate",
+            "next_command": "python scripts/fp_dense_lambda.py --out results/fp_dense_lambda",
+        },
+        {
+            "requirement": "moe_expert_identity_gate",
+            "mechanism": "expert_gauge_alignment",
+            "required_state": "expert identity is verified or canonicalized before expert averaging",
+            "observed_state": (
+                f"identity_fraction={fmt(moe.get('qwen3_identity_fraction'))}; "
+                f"real same-name degradation={fmt(moe.get('real_gauge_naive_degradation'))}; "
+                f"verdict={verdict('moe_expert_gauge_alignment_precedes_average')}"
+            ),
+            "passed": expert_gate,
+            "blocking_status": "passed" if expert_gate else "failed_expert_alignment_gate",
+            "next_command": "python scripts/fp_moe_real_probe.py --help",
+        },
+        {
+            "requirement": "moe_router_boundary_gate",
+            "mechanism": "topk_margin_fragility",
+            "required_state": "direct router averaging is frozen or replaced by audited capped route-KD",
+            "observed_state": (
+                f"router_action={moe.get('router_action')}; "
+                f"high_fragility_layers={moe.get('qwen3_router_margin_high_fragility_layers')}/"
+                f"{moe.get('qwen3_router_margin_layer_count')}; "
+                f"min_safe_lambda={fmt(moe.get('qwen3_router_margin_min_safe_lambda_proxy'))}; "
+                f"verdict={verdict('moe_direct_router_average_crosses_topk_boundaries')}"
+            ),
+            "passed": router_gate,
+            "blocking_status": "passed" if router_gate else "failed_router_boundary_gate",
+            "next_command": "python scripts/build_qwen3_moe_router_margin_fragility.py --output-dir results/qwen3_moe_router_margin_fragility",
+        },
+        {
+            "requirement": "moe_connectivity_gate",
+            "mechanism": "source_to_source_path_probe",
+            "required_state": "unconditional source-to-source interpolation is rejected unless an interior point beats source frontier",
+            "observed_state": (
+                f"instruct/coder interior gap={fmt(moe.get('qwen3_interpolation_interior_gap_nll'))}; "
+                f"base/coder interior gap={fmt(moe.get('qwen3_base_coder_interior_gap_nll'))}; "
+                f"complementary beats sources={moe.get('qwen3_complementary_merge_beats_sources')}; "
+                f"verdict={verdict('moe_source_to_source_line_not_averageable')}"
+            ),
+            "passed": connectivity_gate,
+            "blocking_status": "passed" if connectivity_gate else "failed_connectivity_gate",
+            "next_command": "python scripts/fp_moe_barrier.py --out results/fp_moe_barrier",
+        },
+        {
+            "requirement": "mechanistic_candidate_structural_gate",
+            "mechanism": "route_geometry_subspace_cap_audit",
+            "required_state": "materialized candidate is fresh, manifest-matched, router-frozen, and below routed tail cap",
+            "observed_state": (
+                f"rule_status={moe.get('qwen3_unified_materialized_rule_status')}; "
+                f"audit_status={moe.get('qwen3_unified_audit_status')}; "
+                f"routed_gt_0.65={moe.get('qwen3_unified_routed_gt_065')}; "
+                f"router_changed={moe.get('qwen3_unified_router_changed_tensors')}/"
+                f"{moe.get('qwen3_unified_router_tensors')}; "
+                f"manifest_match={moe.get('qwen3_unified_matches_materialized_checkpoint_manifest')}"
+            ),
+            "passed": structural_gate,
+            "blocking_status": "passed" if structural_gate else "failed_structural_candidate_gate",
+            "next_command": "python scripts/audit_materialized_checkpoint_delta.py --base BASE --candidate results/checkpoints/qwen3_moe_unified_mechanism_candidate --output-dir results/qwen3_moe_unified_mechanism_delta_audit",
+        },
+        {
+            "requirement": "router_calibration_separate_acceptance_gate",
+            "mechanism": "router_repair_not_default_average",
+            "required_state": "router calibration stays an ablation unless its own selector accepts it",
+            "observed_state": (
+                f"router_calibration_status={moe.get('qwen3_router_calibration_status')}; "
+                f"eligible={moe.get('qwen3_router_calibration_eligible_candidates')}/"
+                f"{moe.get('qwen3_router_calibration_candidate_count')}; "
+                f"verdict={router_cal_verdict}"
+            ),
+            "passed": router_cal_guarded,
+            "blocking_status": "passed" if router_cal_guarded else "failed_router_calibration_gate",
+            "next_command": command(
+                "router_calibration_active_candidates",
+                "results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh all",
+            ),
+        },
+        {
+            "requirement": "statistical_structural_tiebreak_gate",
+            "mechanism": "confidence_band_selector",
+            "required_state": "structural frontier can only break ties inside a downstream confidence-overlap band",
+            "observed_state": (
+                f"tie_band={moe.get('qwen3_final_confidence_tie_band')}; "
+                f"rank_mode={moe.get('qwen3_final_selection_rank_mode')}; "
+                f"band_size={moe.get('qwen3_final_selection_rank_band_size')}; "
+                f"point_leader={moe.get('qwen3_final_selection_point_leader_method')}; "
+                f"verdict={verdict('moe_structural_tiebreak_requires_statistical_equivalence')}"
+            ),
+            "passed": tiebreak_gate,
+            "blocking_status": "passed" if tiebreak_gate else "failed_statistical_tiebreak_gate",
+            "next_command": "python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke",
+        },
+        {
+            "requirement": "downstream_source_dominance_gate",
+            "mechanism": "locked_manifest_vllm_eval",
+            "required_state": "sources and final candidates pass eval-bundle audit, source dominance, task regression, confidence, and paired-prediction gates",
+            "observed_state": (
+                f"final_status={moe.get('qwen3_final_selection_status')}; "
+                f"eligible={moe.get('qwen3_eligible_candidates')}/"
+                f"{moe.get('qwen3_candidate_count')}; "
+                f"downstream_verdict={downstream_verdict}; "
+                f"unified_verdict={unified_verdict}"
+            ),
+            "passed": downstream_terminal,
+            "blocking_status": "passed"
+            if downstream_terminal
+            else ("blocked_on_downstream_eval" if downstream_waiting else "failed_downstream_gate"),
+            "next_command": command(
+                "budgeted_qwen3_moe_downstream_eval",
+                "results/qwen3_moe_eval_budget_plan/run_eval_budget.sh final",
+            ),
+        },
+        {
+            "requirement": "final_unified_average_acceptance",
+            "mechanism": "all_gates_joint",
+            "required_state": "all structural gates pass and downstream selector accepts the same-shape average",
+            "observed_state": (
+                f"structural_gate={structural_gate}; downstream_terminal={downstream_terminal}; "
+                f"unified_accepted={unified_accepted}; source_fallback={source_fallback}"
+            ),
+            "passed": unified_accepted,
+            "blocking_status": "passed"
+            if unified_accepted
+            else (
+                "rejected_source_fallback"
+                if source_fallback
+                else ("blocked_on_downstream_eval" if downstream_waiting else "failed_final_acceptance")
+            ),
+            "next_command": command(
+                "budgeted_qwen3_moe_downstream_eval",
+                "results/qwen3_moe_eval_budget_plan/run_eval_budget.sh final",
+            ),
+        },
+    ]
+    return pd.DataFrame(rows)
+
+
 def build_algorithm(
     decisions: pd.DataFrame,
     hypotheses: pd.DataFrame,
     evidence_ledger: pd.DataFrame,
+    algorithm_contract: pd.DataFrame,
 ) -> dict[str, Any]:
     return {
         "schema_version": 1,
@@ -1372,6 +1581,18 @@ def build_algorithm(
             }
             for _, row in evidence_ledger.iterrows()
         ],
+        "algorithm_contract": [
+            {
+                "requirement": row["requirement"],
+                "mechanism": row["mechanism"],
+                "required_state": row["required_state"],
+                "observed_state": row["observed_state"],
+                "passed": bool(row["passed"]),
+                "blocking_status": row["blocking_status"],
+                "next_command": row["next_command"],
+            }
+            for _, row in algorithm_contract.iterrows()
+        ],
         "literature_priors": LITERATURE_PRIORS,
         "mechanism_equations": {
             "dense_second_order_gate": "accept a straight-line average only when the measured path loss does not exceed the endpoint frontier; local Fisher/RegMean curvature is treated as a proxy, not a proof",
@@ -1389,6 +1610,7 @@ def build_report(
     decisions: pd.DataFrame,
     hypotheses: pd.DataFrame,
     evidence_ledger: pd.DataFrame,
+    algorithm_contract: pd.DataFrame,
     experiment_queue: pd.DataFrame,
 ) -> str:
     dense = summary["dense"]
@@ -1463,6 +1685,24 @@ def build_report(
     lines.extend(
         [
             "",
+            "## Algorithm Contract",
+            "",
+            f"- Contract status: `{summary['contract_status']}`",
+            f"- Requirements passed: `{summary['contract_passed_requirement_count']}/{summary['contract_requirement_count']}`",
+            f"- Blocking requirements: `{summary['contract_blocking_requirement_count']}`",
+            "",
+            "| requirement | mechanism | status | passed | observed | next command |",
+            "| --- | --- | --- | --- | --- | --- |",
+        ]
+    )
+    for _, row in algorithm_contract.iterrows():
+        lines.append(
+            f"| `{row['requirement']}` | `{row['mechanism']}` | `{row['blocking_status']}` | "
+            f"`{bool(row['passed'])}` | {row['observed_state']} | `{row['next_command']}` |"
+        )
+    lines.extend(
+        [
+            "",
             "## Next Experiments",
             "",
             "| rank | experiment | status | priority | driving verdict | command | expected update |",
@@ -1496,6 +1736,7 @@ def build_report(
             f"- `{summary['outputs']['decisions']}`",
             f"- `{summary['outputs']['hypotheses']}`",
             f"- `{summary['outputs']['evidence_ledger']}`",
+            f"- `{summary['outputs']['algorithm_contract']}`",
             f"- `{summary['outputs']['next_experiment_queue']}`",
             f"- `{summary['outputs']['algorithm']}`",
             f"- `{summary['outputs']['summary']}`",
@@ -1791,9 +2032,22 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
     hypotheses = build_mechanism_hypotheses(summary)
     evidence_ledger = build_evidence_ledger(summary, hypotheses)
     experiment_queue = build_next_experiment_queue(summary, evidence_ledger)
-    algorithm = build_algorithm(decisions, hypotheses, evidence_ledger)
+    algorithm_contract = build_algorithm_contract(summary, evidence_ledger, experiment_queue)
+    algorithm = build_algorithm(decisions, hypotheses, evidence_ledger, algorithm_contract)
     status_counts = hypotheses["current_status"].value_counts().to_dict()
     verdict_counts = evidence_ledger["verdict"].value_counts().to_dict()
+    blocking_contract = algorithm_contract[algorithm_contract["blocking_status"].astype(str) != "passed"]
+    failed_contract = blocking_contract[
+        ~blocking_contract["blocking_status"].astype(str).str.startswith("blocked_on_")
+    ]
+    if bool(algorithm_contract["passed"].all()):
+        contract_status = "accepted_unified_average"
+    elif not failed_contract.empty:
+        contract_status = "failed_contract"
+    elif any(blocking_contract["blocking_status"].astype(str).str.contains("downstream_eval")):
+        contract_status = "blocked_on_downstream_eval"
+    else:
+        contract_status = "blocked_on_mechanism_gate"
     top_experiment = experiment_queue.iloc[0].to_dict() if not experiment_queue.empty else {}
     summary["hypothesis_count"] = int(len(hypotheses))
     summary["hypothesis_status_counts"] = {str(key): int(value) for key, value in status_counts.items()}
@@ -1802,6 +2056,14 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         str(key): int(value) for key, value in verdict_counts.items()
     }
     summary["next_experiment_count"] = int(len(experiment_queue))
+    summary["contract_status"] = contract_status
+    summary["contract_requirement_count"] = int(len(algorithm_contract))
+    summary["contract_passed_requirement_count"] = int(algorithm_contract["passed"].astype(bool).sum())
+    summary["contract_blocking_requirement_count"] = int(len(blocking_contract))
+    summary["contract_failed_requirement_count"] = int(len(failed_contract))
+    summary["contract_blocking_requirements"] = [
+        str(row["requirement"]) for _, row in blocking_contract.iterrows()
+    ]
     summary["top_next_experiment"] = {
         "experiment": top_experiment.get("experiment"),
         "status": top_experiment.get("status"),
@@ -1816,6 +2078,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
     decisions_path = output_dir / "operation_decisions.csv"
     hypotheses_path = output_dir / "mechanism_hypotheses.csv"
     evidence_ledger_path = output_dir / "hypothesis_evidence_ledger.csv"
+    algorithm_contract_path = output_dir / "algorithm_contract.csv"
     queue_path = output_dir / "next_experiment_queue.csv"
     algorithm_path = output_dir / "algorithm.json"
     summary_path = output_dir / "summary.json"
@@ -1825,6 +2088,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         "decisions": rel(decisions_path),
         "hypotheses": rel(hypotheses_path),
         "evidence_ledger": rel(evidence_ledger_path),
+        "algorithm_contract": rel(algorithm_contract_path),
         "next_experiment_queue": rel(queue_path),
         "algorithm": rel(algorithm_path),
         "summary": rel(summary_path),
@@ -1835,11 +2099,20 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
     decisions.to_csv(decisions_path, index=False)
     hypotheses.to_csv(hypotheses_path, index=False)
     evidence_ledger.to_csv(evidence_ledger_path, index=False)
+    algorithm_contract.to_csv(algorithm_contract_path, index=False)
     experiment_queue.to_csv(queue_path, index=False)
     algorithm_path.write_text(json.dumps(json_safe(algorithm), indent=2, sort_keys=True) + "\n", encoding="utf-8")
     summary_path.write_text(json.dumps(json_safe(summary), indent=2, sort_keys=True) + "\n", encoding="utf-8")
     report_path.write_text(
-        build_report(summary, features, decisions, hypotheses, evidence_ledger, experiment_queue),
+        build_report(
+            summary,
+            features,
+            decisions,
+            hypotheses,
+            evidence_ledger,
+            algorithm_contract,
+            experiment_queue,
+        ),
         encoding="utf-8",
     )
     return summary

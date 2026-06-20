@@ -1,16 +1,17 @@
 {
-  "assertion_count": 21,
+  "assertion_count": 29,
   "case_count": 5,
   "failed_assertion_count": 0,
   "failed_case_count": 0,
   "outputs": {
+    "contract_matrix": "results/unified_average_optimizer_ledger_smoke/contract_matrix.csv",
     "ledger_matrix": "results/unified_average_optimizer_ledger_smoke/ledger_matrix.csv",
     "matrix": "results/unified_average_optimizer_ledger_smoke/ledger_matrix.csv",
     "queue_matrix": "results/unified_average_optimizer_ledger_smoke/queue_matrix.csv",
     "report": "results/unified_average_optimizer_ledger_smoke/report.md",
     "summary": "results/unified_average_optimizer_ledger_smoke/summary.json"
   },
-  "passed_assertion_count": 21,
+  "passed_assertion_count": 29,
   "passed_case_count": 5,
   "schema_version": 1,
   "status": "passed"

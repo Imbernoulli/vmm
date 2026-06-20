@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-20T12:04:16.953961+00:00`
+Generated at: `2026-06-20T12:11:08.849694+00:00`
 
 ## Coverage
 
@@ -260,7 +260,8 @@ Complete: `94`; partial: `1`; missing: `0`.
 | unified average optimizer | status / dense / MoE | built_waiting_for_qwen3_vllm_eval / avoid_linear_midpoint_use_probe_selected_anchor_or_low_lambda / align_experts_freeze_router_then_gate_candidate_by_vllm |
 | unified average optimizer | hypotheses / queue / top experiment | 9 / 5 / budgeted_qwen3_moe_downstream_eval |
 | unified average optimizer | evidence ledger / verdicts | 9 / {'awaiting_downstream_eval': 2, 'promising_but_unaccepted': 1, 'supports_conditional_action': 1, 'supports_current_action': 5} |
-| unified average optimizer ledger smoke | status / passed cases / assertions | passed / 5/5 / 21/21 |
+| unified average optimizer | contract status / passed / blocked | blocked_on_downstream_eval / 8/10 / ['downstream_source_dominance_gate', 'final_unified_average_acceptance'] |
+| unified average optimizer ledger smoke | status / passed cases / assertions | passed / 5/5 / 29/29 |
 | unified average optimizer | dense linear / unified / endpoint worst NLL | 8.948 / 5.183 / 5.151 |
 | unified average optimizer | dense lambda midpoint / best-family worst NLL | 6.040 / 3.073 |
 | unified average optimizer | real MoE gauge / router / Qwen3 final | 5.491 -> 0.000 / freeze_router / awaiting_source_eval (0/10) |

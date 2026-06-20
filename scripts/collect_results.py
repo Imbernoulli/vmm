@@ -2010,6 +2010,7 @@ def summarize_unified_average_optimizer() -> dict[str, Any]:
     decisions = read_csv(root / "operation_decisions.csv")
     hypotheses = read_csv(root / "mechanism_hypotheses.csv")
     evidence_ledger = read_csv(root / "hypothesis_evidence_ledger.csv")
+    algorithm_contract = read_csv(root / "algorithm_contract.csv")
     next_queue = read_csv(root / "next_experiment_queue.csv")
     dense = summary.get("dense", {})
     moe = summary.get("moe", {})
@@ -2020,6 +2021,12 @@ def summarize_unified_average_optimizer() -> dict[str, Any]:
         "hypothesis_status_counts": summary.get("hypothesis_status_counts", {}),
         "evidence_ledger_count": maybe_int(summary.get("evidence_ledger_count")),
         "evidence_verdict_counts": summary.get("evidence_verdict_counts", {}),
+        "contract_status": summary.get("contract_status"),
+        "contract_requirement_count": maybe_int(summary.get("contract_requirement_count")),
+        "contract_passed_requirement_count": maybe_int(summary.get("contract_passed_requirement_count")),
+        "contract_blocking_requirement_count": maybe_int(summary.get("contract_blocking_requirement_count")),
+        "contract_failed_requirement_count": maybe_int(summary.get("contract_failed_requirement_count")),
+        "contract_blocking_requirements": summary.get("contract_blocking_requirements", []),
         "next_experiment_count": maybe_int(summary.get("next_experiment_count")),
         "top_next_experiment": summary.get("top_next_experiment", {}),
         "dense_decision": dense.get("decision"),
@@ -2161,12 +2168,14 @@ def summarize_unified_average_optimizer() -> dict[str, Any]:
         "decision_rows": [clean_row(row) for _, row in decisions.iterrows()],
         "hypothesis_rows": [clean_row(row) for _, row in hypotheses.iterrows()],
         "evidence_ledger_rows": [clean_row(row) for _, row in evidence_ledger.iterrows()],
+        "algorithm_contract_rows": [clean_row(row) for _, row in algorithm_contract.iterrows()],
         "next_experiment_rows": [clean_row(row) for _, row in next_queue.iterrows()],
         "report": rel(root / "report.md"),
         "features": rel(root / "mechanism_features.csv"),
         "decisions": rel(root / "operation_decisions.csv"),
         "hypotheses": rel(root / "mechanism_hypotheses.csv"),
         "evidence_ledger": rel(root / "hypothesis_evidence_ledger.csv"),
+        "algorithm_contract": rel(root / "algorithm_contract.csv"),
         "next_experiment_queue": rel(root / "next_experiment_queue.csv"),
         "algorithm": rel(root / "algorithm.json"),
         "summary_path": rel(root / "summary.json"),
@@ -2179,6 +2188,8 @@ def summarize_unified_average_optimizer_ledger_smoke() -> dict[str, Any]:
     matrix = read_csv(root / "ledger_matrix.csv")
     queue_matrix_path = root / "queue_matrix.csv"
     queue_matrix = read_csv(queue_matrix_path) if queue_matrix_path.exists() else pd.DataFrame()
+    contract_matrix_path = root / "contract_matrix.csv"
+    contract_matrix = read_csv(contract_matrix_path) if contract_matrix_path.exists() else pd.DataFrame()
     return {
         "summary": summary,
         "status": summary.get("status"),
@@ -2190,9 +2201,11 @@ def summarize_unified_average_optimizer_ledger_smoke() -> dict[str, Any]:
         "failed_assertion_count": int(summary.get("failed_assertion_count", 0)),
         "case_rows": [clean_row(row) for _, row in matrix.iterrows()],
         "queue_case_rows": [clean_row(row) for _, row in queue_matrix.iterrows()],
+        "contract_case_rows": [clean_row(row) for _, row in contract_matrix.iterrows()],
         "report": rel(root / "report.md"),
         "matrix": rel(root / "ledger_matrix.csv"),
         "queue_matrix": rel(queue_matrix_path) if queue_matrix_path.exists() else None,
+        "contract_matrix": rel(contract_matrix_path) if contract_matrix_path.exists() else None,
         "summary_path": rel(root / "summary.json"),
     }
 
@@ -6217,6 +6230,13 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 "| unified average optimizer | evidence ledger / verdicts | "
                 f"{unified_average_optimizer['evidence_ledger_count']} / "
                 f"{unified_average_optimizer['evidence_verdict_counts']} |"
+            ),
+            (
+                "| unified average optimizer | contract status / passed / blocked | "
+                f"{unified_average_optimizer['contract_status']} / "
+                f"{unified_average_optimizer['contract_passed_requirement_count']}"
+                f"/{unified_average_optimizer['contract_requirement_count']} / "
+                f"{unified_average_optimizer['contract_blocking_requirements']} |"
             ),
             (
                 "| unified average optimizer ledger smoke | status / passed cases / assertions | "

@@ -16,6 +16,7 @@
 - Mechanistic unified: `n/a` -> `n/a` (`retention=n/a`, `violations=n/a`)
 - Mechanistic evidence: `n/a` (`gradient_agreement=n/a`, `objective_improved=n/a`)
 - Unified average optimizer: `n/a` (top next experiment `n/a` / `n/a`)
+- Unified algorithm contract: `n/a` (`n/a/n/a` passed, blocking `[]`)
 - Unified selector rank gate in optimizer: confidence band `n/a`, rank mode `n/a`, band size `n/a`
 - Unified optimizer ledger smoke: `n/a` (`n/a/n/a` cases)
 - Average method gate matrix: `n/a` (`accepted_by_default=n/a`, `rejected=n/a`, `conditional=n/a`)

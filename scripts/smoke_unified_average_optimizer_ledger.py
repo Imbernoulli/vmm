@@ -50,11 +50,12 @@ def ledger_for(summary: dict[str, Any]) -> pd.DataFrame:
     return optimizer.build_evidence_ledger(summary, hypotheses)
 
 
-def ledger_and_queue_for(summary: dict[str, Any]) -> tuple[pd.DataFrame, pd.DataFrame]:
+def ledger_queue_contract_for(summary: dict[str, Any]) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     hypotheses = optimizer.build_mechanism_hypotheses(summary)
     ledger = optimizer.build_evidence_ledger(summary, hypotheses)
     queue = optimizer.build_next_experiment_queue(summary, ledger)
-    return ledger, queue
+    contract = optimizer.build_algorithm_contract(summary, ledger, queue)
+    return ledger, queue, contract
 
 
 def set_moe(summary: dict[str, Any], **updates: Any) -> dict[str, Any]:
@@ -92,6 +93,10 @@ def case_specs(base: dict[str, Any]) -> list[dict[str, Any]]:
                     "router_calibration_active_candidates": "blocked_on_gpu_vllm",
                 },
             },
+            "expect_contract": {
+                "downstream_source_dominance_gate": "blocked_on_downstream_eval",
+                "final_unified_average_acceptance": "blocked_on_downstream_eval",
+            },
         },
         {
             "case": "unified_candidate_downstream_win",
@@ -110,6 +115,10 @@ def case_specs(base: dict[str, Any]) -> list[dict[str, Any]]:
                 "statuses": {
                     "budgeted_qwen3_moe_downstream_eval": "completed_by_selector",
                 },
+            },
+            "expect_contract": {
+                "downstream_source_dominance_gate": "passed",
+                "final_unified_average_acceptance": "passed",
             },
         },
         {
@@ -130,6 +139,10 @@ def case_specs(base: dict[str, Any]) -> list[dict[str, Any]]:
                     "budgeted_qwen3_moe_downstream_eval": "completed_source_fallback",
                 },
             },
+            "expect_contract": {
+                "downstream_source_dominance_gate": "passed",
+                "final_unified_average_acceptance": "rejected_source_fallback",
+            },
         },
         {
             "case": "router_calibration_selected",
@@ -147,6 +160,9 @@ def case_specs(base: dict[str, Any]) -> list[dict[str, Any]]:
                 "statuses": {
                     "router_calibration_active_candidates": "completed_by_selector",
                 },
+            },
+            "expect_contract": {
+                "router_calibration_separate_acceptance_gate": "passed",
             },
         },
         {
@@ -166,11 +182,19 @@ def case_specs(base: dict[str, Any]) -> list[dict[str, Any]]:
                     "router_calibration_active_candidates": "rejected_by_selector",
                 },
             },
+            "expect_contract": {
+                "router_calibration_separate_acceptance_gate": "passed",
+            },
         },
     ]
 
 
-def build_report(summary: dict[str, Any], ledger_matrix: pd.DataFrame, queue_matrix: pd.DataFrame) -> str:
+def build_report(
+    summary: dict[str, Any],
+    ledger_matrix: pd.DataFrame,
+    queue_matrix: pd.DataFrame,
+    contract_matrix: pd.DataFrame,
+) -> str:
     lines = [
         "# Unified Average Optimizer Ledger Smoke",
         "",
@@ -206,10 +230,25 @@ def build_report(summary: dict[str, Any], ledger_matrix: pd.DataFrame, queue_mat
     lines.extend(
         [
             "",
+            "## Contract Assertions",
+            "",
+            "| case | requirement | expected status | actual status | passed |",
+            "| --- | --- | --- | --- | --- |",
+        ]
+    )
+    for _, row in contract_matrix.iterrows():
+        lines.append(
+            f"| `{row['case']}` | `{row['requirement']}` | `{row['expected_status']}` | "
+            f"`{row['actual_status']}` | `{bool(row['passed'])}` |"
+        )
+    lines.extend(
+        [
+            "",
             "## Outputs",
             "",
             f"- `{summary['outputs']['ledger_matrix']}`",
             f"- `{summary['outputs']['queue_matrix']}`",
+            f"- `{summary['outputs']['contract_matrix']}`",
             f"- `{summary['outputs']['summary']}`",
             f"- `{summary['outputs']['report']}`",
         ]
@@ -231,8 +270,9 @@ def main() -> None:
         raise SystemExit(f"Missing optimizer summary: {args.summary}")
     ledger_rows: list[dict[str, Any]] = []
     queue_rows: list[dict[str, Any]] = []
+    contract_rows: list[dict[str, Any]] = []
     for spec in case_specs(base):
-        ledger, queue = ledger_and_queue_for(spec["summary"])
+        ledger, queue, contract = ledger_queue_contract_for(spec["summary"])
         by_id = {str(row["hypothesis_id"]): row for _, row in ledger.iterrows()}
         for hypothesis_id, expected in spec["expect"].items():
             actual = str(by_id[hypothesis_id]["verdict"])
@@ -270,12 +310,26 @@ def main() -> None:
                     "passed": actual_status == expected_status,
                 }
             )
+        contract_by_requirement = {str(row["requirement"]): row for _, row in contract.iterrows()}
+        for requirement, expected_status in spec["expect_contract"].items():
+            actual_status = str(contract_by_requirement[requirement]["blocking_status"])
+            contract_rows.append(
+                {
+                    "case": spec["case"],
+                    "requirement": requirement,
+                    "expected_status": expected_status,
+                    "actual_status": actual_status,
+                    "passed": actual_status == expected_status,
+                }
+            )
     ledger_matrix = pd.DataFrame(ledger_rows)
     queue_matrix = pd.DataFrame(queue_rows)
+    contract_matrix = pd.DataFrame(contract_rows)
     assertion_matrix = pd.concat(
         [
             ledger_matrix[["case", "passed"]],
             queue_matrix[["case", "passed"]],
+            contract_matrix[["case", "passed"]],
         ],
         ignore_index=True,
     )
@@ -283,6 +337,7 @@ def main() -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     ledger_matrix_path = output_dir / "ledger_matrix.csv"
     queue_matrix_path = output_dir / "queue_matrix.csv"
+    contract_matrix_path = output_dir / "contract_matrix.csv"
     summary_path = output_dir / "summary.json"
     report_path = output_dir / "report.md"
     case_count = int(assertion_matrix["case"].nunique()) if not assertion_matrix.empty else 0
@@ -304,14 +359,16 @@ def main() -> None:
             "matrix": rel(ledger_matrix_path),
             "ledger_matrix": rel(ledger_matrix_path),
             "queue_matrix": rel(queue_matrix_path),
+            "contract_matrix": rel(contract_matrix_path),
             "summary": rel(summary_path),
             "report": rel(report_path),
         },
     }
     ledger_matrix.to_csv(ledger_matrix_path, index=False)
     queue_matrix.to_csv(queue_matrix_path, index=False)
+    contract_matrix.to_csv(contract_matrix_path, index=False)
     summary_path.write_text(json.dumps(json_safe(summary), indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    report_path.write_text(build_report(summary, ledger_matrix, queue_matrix), encoding="utf-8")
+    report_path.write_text(build_report(summary, ledger_matrix, queue_matrix, contract_matrix), encoding="utf-8")
     print(f"Wrote unified average optimizer ledger smoke to {output_dir.resolve()}")
     print(f"Status: {summary['status']}; cases {passed_case_count}/{case_count}")
 

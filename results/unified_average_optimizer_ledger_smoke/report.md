@@ -36,9 +36,23 @@ This smoke matrix verifies that the mechanism evidence ledger and next-experimen
 | `router_calibration_rejected` | `top_experiment` | `budgeted_qwen3_moe_downstream_eval` | `budgeted_qwen3_moe_downstream_eval` | `True` |
 | `router_calibration_rejected` | `router_calibration_active_candidates.status` | `rejected_by_selector` | `rejected_by_selector` | `True` |
 
+## Contract Assertions
+
+| case | requirement | expected status | actual status | passed |
+| --- | --- | --- | --- | --- |
+| `awaiting_eval_keeps_provisional` | `downstream_source_dominance_gate` | `blocked_on_downstream_eval` | `blocked_on_downstream_eval` | `True` |
+| `awaiting_eval_keeps_provisional` | `final_unified_average_acceptance` | `blocked_on_downstream_eval` | `blocked_on_downstream_eval` | `True` |
+| `unified_candidate_downstream_win` | `downstream_source_dominance_gate` | `passed` | `passed` | `True` |
+| `unified_candidate_downstream_win` | `final_unified_average_acceptance` | `passed` | `passed` | `True` |
+| `source_endpoint_dominates` | `downstream_source_dominance_gate` | `passed` | `passed` | `True` |
+| `source_endpoint_dominates` | `final_unified_average_acceptance` | `rejected_source_fallback` | `rejected_source_fallback` | `True` |
+| `router_calibration_selected` | `router_calibration_separate_acceptance_gate` | `passed` | `passed` | `True` |
+| `router_calibration_rejected` | `router_calibration_separate_acceptance_gate` | `passed` | `passed` | `True` |
+
 ## Outputs
 
 - `results/unified_average_optimizer_ledger_smoke/ledger_matrix.csv`
 - `results/unified_average_optimizer_ledger_smoke/queue_matrix.csv`
+- `results/unified_average_optimizer_ledger_smoke/contract_matrix.csv`
 - `results/unified_average_optimizer_ledger_smoke/summary.json`
 - `results/unified_average_optimizer_ledger_smoke/report.md`

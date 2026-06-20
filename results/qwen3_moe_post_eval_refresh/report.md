@@ -16,6 +16,7 @@
 - Mechanistic unified: `mechanistic_unified_candidate_ready` -> `s0.08_b1.65_h0.75_i0.75` (`retention=0.9650345047849123`, `violations=0`)
 - Mechanistic evidence: `mechanistic_evidence_audit_ready` (`gradient_agreement=1.0`, `objective_improved=0.945260347129506`)
 - Unified average optimizer: `built_waiting_for_qwen3_vllm_eval` (top next experiment `budgeted_qwen3_moe_downstream_eval` / `blocked_on_gpu_vllm`)
+- Unified algorithm contract: `blocked_on_downstream_eval` (`8/10` passed, blocking `['downstream_source_dominance_gate', 'final_unified_average_acceptance']`)
 - Unified selector rank gate in optimizer: confidence band `True`, rank mode `None`, band size `0`
 - Unified optimizer ledger smoke: `passed` (`5/5` cases)
 - Average method gate matrix: `built_from_current_probe_evidence` (`accepted_by_default=0`, `rejected=1`, `conditional=3`)
@@ -26,30 +27,30 @@
 
 | step | kind | status | returncode | seconds |
 | --- | --- | --- | ---: | ---: |
-| `build_candidate_trust_region_gate` | `gate` | `passed` | 0 | 0.42 |
-| `plan_eval_budget` | `planner` | `passed` | 0 | 0.42 |
-| `audit_eval_bundles` | `gate` | `passed` | 0 | 0.40 |
-| `select_unified_result` | `selector` | `passed` | 0 | 0.40 |
-| `select_final_candidate` | `selector` | `passed` | 0 | 0.41 |
-| `attribute_mechanism_effects` | `attribution` | `passed` | 0 | 0.44 |
-| `build_feedback_optimizer` | `optimizer` | `passed` | 0 | 1.03 |
-| `build_mechanistic_unified_candidate` | `optimizer` | `passed` | 0 | 2.52 |
-| `audit_mechanistic_evidence` | `attribution` | `passed` | 0 | 1.37 |
+| `build_candidate_trust_region_gate` | `gate` | `passed` | 0 | 0.40 |
+| `plan_eval_budget` | `planner` | `passed` | 0 | 0.43 |
+| `audit_eval_bundles` | `gate` | `passed` | 0 | 0.43 |
+| `select_unified_result` | `selector` | `passed` | 0 | 0.42 |
+| `select_final_candidate` | `selector` | `passed` | 0 | 0.44 |
+| `attribute_mechanism_effects` | `attribution` | `passed` | 0 | 0.40 |
+| `build_feedback_optimizer` | `optimizer` | `passed` | 0 | 1.07 |
+| `build_mechanistic_unified_candidate` | `optimizer` | `passed` | 0 | 2.61 |
+| `audit_mechanistic_evidence` | `attribution` | `passed` | 0 | 1.39 |
 | `build_unified_average_optimizer` | `optimizer` | `passed` | 0 | 0.41 |
-| `build_average_method_gate_matrix` | `optimizer` | `passed` | 0 | 0.41 |
-| `build_average_trust_region_bounds` | `optimizer` | `passed` | 0 | 0.38 |
-| `analyze_mechanism_levers` | `attribution` | `passed` | 0 | 0.41 |
+| `build_average_method_gate_matrix` | `optimizer` | `passed` | 0 | 0.38 |
+| `build_average_trust_region_bounds` | `optimizer` | `passed` | 0 | 0.40 |
+| `analyze_mechanism_levers` | `attribution` | `passed` | 0 | 0.43 |
 | `audit_eval_bundles_smoke` | `smoke` | `passed` | 0 | 0.63 |
-| `select_unified_result_smoke` | `smoke` | `passed` | 0 | 0.42 |
-| `select_final_candidate_smoke` | `smoke` | `passed` | 0 | 0.50 |
-| `eval_budget_queue_smoke` | `smoke` | `passed` | 0 | 0.42 |
-| `attribute_mechanism_effects_smoke` | `smoke` | `passed` | 0 | 0.41 |
-| `build_feedback_optimizer_smoke` | `smoke` | `passed` | 0 | 0.49 |
-| `build_mechanistic_unified_candidate_smoke` | `smoke` | `passed` | 0 | 1.58 |
-| `unified_average_optimizer_ledger_smoke` | `smoke` | `passed` | 0 | 0.42 |
-| `average_method_gate_matrix_consistency_smoke` | `smoke` | `passed` | 0 | 0.40 |
-| `average_trust_region_bounds_smoke` | `smoke` | `passed` | 0 | 0.42 |
-| `collect_results` | `summary` | `passed` | 0 | 1.74 |
+| `select_unified_result_smoke` | `smoke` | `passed` | 0 | 0.39 |
+| `select_final_candidate_smoke` | `smoke` | `passed` | 0 | 0.49 |
+| `eval_budget_queue_smoke` | `smoke` | `passed` | 0 | 0.39 |
+| `attribute_mechanism_effects_smoke` | `smoke` | `passed` | 0 | 0.40 |
+| `build_feedback_optimizer_smoke` | `smoke` | `passed` | 0 | 0.48 |
+| `build_mechanistic_unified_candidate_smoke` | `smoke` | `passed` | 0 | 1.62 |
+| `unified_average_optimizer_ledger_smoke` | `smoke` | `passed` | 0 | 0.41 |
+| `average_method_gate_matrix_consistency_smoke` | `smoke` | `passed` | 0 | 0.41 |
+| `average_trust_region_bounds_smoke` | `smoke` | `passed` | 0 | 0.40 |
+| `collect_results` | `summary` | `passed` | 0 | 1.64 |
 
 ## Commands
 

@@ -92,6 +92,25 @@
 | `downstream_source_dominance_is_final_gate` | `awaiting_downstream_eval` | `missing_required_downstream_eval` | do_not_accept_any_average_until_locked_manifest_eval_completes | complete budgeted vLLM eval bundle audit |
 | `moe_structural_tiebreak_requires_statistical_equivalence` | `supports_current_action` | `selector_policy_and_smoke_matrix` | apply_structural_frontier_safety_only_inside_confidence_tie_band | complete locked-manifest vLLM eval so the confidence band contains real candidate scores |
 
+## Algorithm Contract
+
+- Contract status: `blocked_on_downstream_eval`
+- Requirements passed: `8/10`
+- Blocking requirements: `2`
+
+| requirement | mechanism | status | passed | observed | next command |
+| --- | --- | --- | --- | --- | --- |
+| `same_shape_output_contract` | `architecture_invariant` | `passed` | `True` | algorithm contract writes same-shape operations only | `python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer` |
+| `dense_midpoint_path_gate` | `mode_connectivity_and_curvature` | `passed` | `True` | dense decision=avoid_linear_midpoint_use_probe_selected_anchor_or_low_lambda; midpoint worst=6.0398; best lambda-family worst=3.0727; verdict=supports_current_action | `python scripts/fp_dense_lambda.py --out results/fp_dense_lambda` |
+| `moe_expert_identity_gate` | `expert_gauge_alignment` | `passed` | `True` | identity_fraction=1.0000; real same-name degradation=5.4910; verdict=supports_current_action | `python scripts/fp_moe_real_probe.py --help` |
+| `moe_router_boundary_gate` | `topk_margin_fragility` | `passed` | `True` | router_action=freeze_router; high_fragility_layers=24/48; min_safe_lambda=0.0197; verdict=supports_current_action | `python scripts/build_qwen3_moe_router_margin_fragility.py --output-dir results/qwen3_moe_router_margin_fragility` |
+| `moe_connectivity_gate` | `source_to_source_path_probe` | `passed` | `True` | instruct/coder interior gap=0.1189; base/coder interior gap=0.1058; complementary beats sources=False; verdict=supports_current_action | `python scripts/fp_moe_barrier.py --out results/fp_moe_barrier` |
+| `mechanistic_candidate_structural_gate` | `route_geometry_subspace_cap_audit` | `passed` | `True` | rule_status=fresh; audit_status=passed; routed_gt_0.65=0; router_changed=0/48; manifest_match=True | `python scripts/audit_materialized_checkpoint_delta.py --base BASE --candidate results/checkpoints/qwen3_moe_unified_mechanism_candidate --output-dir results/qwen3_moe_unified_mechanism_delta_audit` |
+| `router_calibration_separate_acceptance_gate` | `router_repair_not_default_average` | `passed` | `True` | router_calibration_status=awaiting_baseline_eval; eligible=0/4; verdict=promising_but_unaccepted | `results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh all` |
+| `statistical_structural_tiebreak_gate` | `confidence_band_selector` | `passed` | `True` | tie_band=True; rank_mode=None; band_size=0; point_leader=None; verdict=supports_current_action | `python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke` |
+| `downstream_source_dominance_gate` | `locked_manifest_vllm_eval` | `blocked_on_downstream_eval` | `False` | final_status=awaiting_source_eval; eligible=0/10; downstream_verdict=awaiting_downstream_eval; unified_verdict=awaiting_downstream_eval | `results/qwen3_moe_eval_budget_plan/run_eval_budget.sh final` |
+| `final_unified_average_acceptance` | `all_gates_joint` | `blocked_on_downstream_eval` | `False` | structural_gate=True; downstream_terminal=False; unified_accepted=False; source_fallback=False | `results/qwen3_moe_eval_budget_plan/run_eval_budget.sh final` |
+
 ## Next Experiments
 
 | rank | experiment | status | priority | driving verdict | command | expected update |
@@ -128,6 +147,7 @@
 - `results/unified_average_optimizer/operation_decisions.csv`
 - `results/unified_average_optimizer/mechanism_hypotheses.csv`
 - `results/unified_average_optimizer/hypothesis_evidence_ledger.csv`
+- `results/unified_average_optimizer/algorithm_contract.csv`
 - `results/unified_average_optimizer/next_experiment_queue.csv`
 - `results/unified_average_optimizer/algorithm.json`
 - `results/unified_average_optimizer/summary.json`

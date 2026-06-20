@@ -1,4 +1,13 @@
 {
+  "contract_blocking_requirement_count": 2,
+  "contract_blocking_requirements": [
+    "downstream_source_dominance_gate",
+    "final_unified_average_acceptance"
+  ],
+  "contract_failed_requirement_count": 0,
+  "contract_passed_requirement_count": 8,
+  "contract_requirement_count": 10,
+  "contract_status": "blocked_on_downstream_eval",
   "dense": {
     "best_endpoint_worst_nll": 5.150962227269223,
     "curvature_ratio_code": 26.657526023465977,
@@ -137,6 +146,7 @@
   "next_experiment_count": 5,
   "outputs": {
     "algorithm": "results/unified_average_optimizer/algorithm.json",
+    "algorithm_contract": "results/unified_average_optimizer/algorithm_contract.csv",
     "decisions": "results/unified_average_optimizer/operation_decisions.csv",
     "evidence_ledger": "results/unified_average_optimizer/hypothesis_evidence_ledger.csv",
     "features": "results/unified_average_optimizer/mechanism_features.csv",

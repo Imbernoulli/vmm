@@ -1,4 +1,96 @@
 {
+  "algorithm_contract": [
+    {
+      "blocking_status": "passed",
+      "mechanism": "architecture_invariant",
+      "next_command": "python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer",
+      "observed_state": "algorithm contract writes same-shape operations only",
+      "passed": true,
+      "required_state": "output preserves config/tokenizer/class/tensor names/tensor shapes",
+      "requirement": "same_shape_output_contract"
+    },
+    {
+      "blocking_status": "passed",
+      "mechanism": "mode_connectivity_and_curvature",
+      "next_command": "python scripts/fp_dense_lambda.py --out results/fp_dense_lambda",
+      "observed_state": "dense decision=avoid_linear_midpoint_use_probe_selected_anchor_or_low_lambda; midpoint worst=6.0398; best lambda-family worst=3.0727; verdict=supports_current_action",
+      "passed": true,
+      "required_state": "linear midpoint is not accepted unless path evidence beats endpoint frontier",
+      "requirement": "dense_midpoint_path_gate"
+    },
+    {
+      "blocking_status": "passed",
+      "mechanism": "expert_gauge_alignment",
+      "next_command": "python scripts/fp_moe_real_probe.py --help",
+      "observed_state": "identity_fraction=1.0000; real same-name degradation=5.4910; verdict=supports_current_action",
+      "passed": true,
+      "required_state": "expert identity is verified or canonicalized before expert averaging",
+      "requirement": "moe_expert_identity_gate"
+    },
+    {
+      "blocking_status": "passed",
+      "mechanism": "topk_margin_fragility",
+      "next_command": "python scripts/build_qwen3_moe_router_margin_fragility.py --output-dir results/qwen3_moe_router_margin_fragility",
+      "observed_state": "router_action=freeze_router; high_fragility_layers=24/48; min_safe_lambda=0.0197; verdict=supports_current_action",
+      "passed": true,
+      "required_state": "direct router averaging is frozen or replaced by audited capped route-KD",
+      "requirement": "moe_router_boundary_gate"
+    },
+    {
+      "blocking_status": "passed",
+      "mechanism": "source_to_source_path_probe",
+      "next_command": "python scripts/fp_moe_barrier.py --out results/fp_moe_barrier",
+      "observed_state": "instruct/coder interior gap=0.1189; base/coder interior gap=0.1058; complementary beats sources=False; verdict=supports_current_action",
+      "passed": true,
+      "required_state": "unconditional source-to-source interpolation is rejected unless an interior point beats source frontier",
+      "requirement": "moe_connectivity_gate"
+    },
+    {
+      "blocking_status": "passed",
+      "mechanism": "route_geometry_subspace_cap_audit",
+      "next_command": "python scripts/audit_materialized_checkpoint_delta.py --base BASE --candidate results/checkpoints/qwen3_moe_unified_mechanism_candidate --output-dir results/qwen3_moe_unified_mechanism_delta_audit",
+      "observed_state": "rule_status=fresh; audit_status=passed; routed_gt_0.65=0; router_changed=0/48; manifest_match=True",
+      "passed": true,
+      "required_state": "materialized candidate is fresh, manifest-matched, router-frozen, and below routed tail cap",
+      "requirement": "mechanistic_candidate_structural_gate"
+    },
+    {
+      "blocking_status": "passed",
+      "mechanism": "router_repair_not_default_average",
+      "next_command": "results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh all",
+      "observed_state": "router_calibration_status=awaiting_baseline_eval; eligible=0/4; verdict=promising_but_unaccepted",
+      "passed": true,
+      "required_state": "router calibration stays an ablation unless its own selector accepts it",
+      "requirement": "router_calibration_separate_acceptance_gate"
+    },
+    {
+      "blocking_status": "passed",
+      "mechanism": "confidence_band_selector",
+      "next_command": "python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke",
+      "observed_state": "tie_band=True; rank_mode=None; band_size=0; point_leader=None; verdict=supports_current_action",
+      "passed": true,
+      "required_state": "structural frontier can only break ties inside a downstream confidence-overlap band",
+      "requirement": "statistical_structural_tiebreak_gate"
+    },
+    {
+      "blocking_status": "blocked_on_downstream_eval",
+      "mechanism": "locked_manifest_vllm_eval",
+      "next_command": "results/qwen3_moe_eval_budget_plan/run_eval_budget.sh final",
+      "observed_state": "final_status=awaiting_source_eval; eligible=0/10; downstream_verdict=awaiting_downstream_eval; unified_verdict=awaiting_downstream_eval",
+      "passed": false,
+      "required_state": "sources and final candidates pass eval-bundle audit, source dominance, task regression, confidence, and paired-prediction gates",
+      "requirement": "downstream_source_dominance_gate"
+    },
+    {
+      "blocking_status": "blocked_on_downstream_eval",
+      "mechanism": "all_gates_joint",
+      "next_command": "results/qwen3_moe_eval_budget_plan/run_eval_budget.sh final",
+      "observed_state": "structural_gate=True; downstream_terminal=False; unified_accepted=False; source_fallback=False",
+      "passed": false,
+      "required_state": "all structural gates pass and downstream selector accepts the same-shape average",
+      "requirement": "final_unified_average_acceptance"
+    }
+  ],
   "contract": "The output model must keep the same config, tokenizer, model class, tensor names, and tensor shapes as the chosen target.",
   "evidence_ledger": [
     {
