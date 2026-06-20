@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-20T04:16:41.407965+00:00`
+Generated at: `2026-06-20T04:29:10.913041+00:00`
 
 ## Coverage
 
-Complete: `83`; partial: `1`; missing: `0`.
+Complete: `84`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -83,6 +83,7 @@ Complete: `83`; partial: `1`; missing: `0`.
 | Qwen3 MoE post-vLLM eval refresh pipeline | complete | results/qwen3_moe_post_eval_refresh/report.md runs eval-bundle audit, unified result selection, mechanism attribution, smoke checks, and collect_results in a fixed post-eval order after remote vLLM outputs land. |
 | Qwen3 MoE searched cap-law materialized candidate | complete | results/qwen3_moe_searched_no_gt065_delta_audit/report.md verifies the materialized searched 0.65 cap-law checkpoint and adds it to the Qwen3 MoE eval gate. |
 | Qwen3 MoE router move gate | complete | results/qwen3_moe_router_move_gate/report.md combines router tensor deltas with real routing readiness and rejects direct router-weight movement for all 48 layers. |
+| Qwen3 MoE router margin fragility probe | complete | results/qwen3_moe_router_margin_fragility/report.md ranks router layers and prompt categories by top-k boundary fragility from real Qwen3 route margins, overlap, and router movement. |
 | Qwen3 MoE router calibration NLL probe | complete | results/qwen3_moe_router_calibration_nll_probe/report.md formalizes the real Qwen3 router-only training probe, showing the averaged MoE improves when only router dispatch is recalibrated while keeping experts frozen. |
 | Qwen3 MoE router calibration job | complete | results/qwen3_moe_router_calibration_job/report.md turns the rejected direct-router-move result into a capped route-KD router-calibration sweep job and locks source/baseline/candidate vLLM evals to one task manifest. |
 | Qwen3 MoE router calibration result selector | complete | results/qwen3_moe_router_calibration_selection/report.md accepts a router-calibrated cap only when matched vLLM eval, router-only tensor audit, cap compliance, and source/baseline dominance gates pass. |
@@ -233,6 +234,8 @@ Complete: `83`; partial: `1`; missing: `0`.
 | Qwen3 MoE router move gate | status / action / allowed layers | router_move_rejected_freeze_router / freeze_router / 0/48 |
 | Qwen3 MoE router move gate | unsafe / calibrate / freeze rows | 499 / 493 / 6 |
 | Qwen3 MoE router move gate | router rel-norm / mean-min top-k Jaccard / min top1 | 0.739 / 0.454-0.242 / 0.069 |
+| Qwen3 MoE router margin fragility | status / high-fragility layers / top layer | router_margin_fragility_rejects_direct_router_average / 24/48 / L17 |
+| Qwen3 MoE router margin fragility | top score / min safe-lambda proxy / top category | 0.752 / 0.020 / long_context |
 | Qwen3 MoE router calibration NLL probe | status / worst / avg reduction | router_calibration_improves_linear_merge_but_needs_downstream_gate / 0.221 / 0.161 |
 | Qwen3 MoE router calibration NLL probe | code gap / worst gap to best source | -0.014 / 0.127 |
 | Qwen3 MoE router calibration job | status / local GPU / candidates / stages | job_ready_awaiting_gpu / unavailable / 3 / 18 |

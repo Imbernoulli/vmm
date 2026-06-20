@@ -1,0 +1,31 @@
+{
+  "allowed_router_layer_count": 0,
+  "calibrate_readiness_rows": 493,
+  "freeze_readiness_rows": 6,
+  "high_fragility_layer_count": 24,
+  "high_fragility_threshold": 0.62,
+  "interpretation": "Top-k router boundary fragility is high enough that direct router averaging should remain frozen. The next meaningful router intervention is calibrated router movement with matched downstream eval.",
+  "least_fragile_layer": 43,
+  "least_fragility_score": 0.38863627000598255,
+  "mean_fragility_score": 0.5907284175574304,
+  "median_safe_lambda_proxy": 0.05,
+  "min_safe_lambda_proxy": 0.019725152295719042,
+  "outputs": {
+    "category_fragility": "results/qwen3_moe_router_margin_fragility/category_margin_fragility.csv",
+    "figure": "results/qwen3_moe_router_margin_fragility/router_margin_fragility.png",
+    "layer_fragility": "results/qwen3_moe_router_margin_fragility/layer_margin_fragility.csv",
+    "literature_sources": "results/qwen3_moe_router_margin_fragility/literature_sources.json",
+    "report": "results/qwen3_moe_router_margin_fragility/report.md",
+    "slice_fragility": "results/qwen3_moe_router_margin_fragility/slice_margin_fragility.csv",
+    "summary": "results/qwen3_moe_router_margin_fragility/summary.json"
+  },
+  "recommended_unified_router_action": "freeze_router",
+  "router_layer_count": 48,
+  "schema_version": 1,
+  "status": "router_margin_fragility_rejects_direct_router_average",
+  "top_category_fragility_score": 0.7328642528963769,
+  "top_fragile_category": "long_context",
+  "top_fragile_layer": 17,
+  "top_fragility_score": 0.7522782693160674,
+  "unsafe_readiness_rows": 499
+}

@@ -111,13 +111,19 @@ def collect_artifacts() -> list[dict[str, Any]]:
         "scripts/fp_downstream_eval.py",  # scratch HF-generation eval, not the vLLM hosted eval path
         "scripts/fp_materialize_merge.py",  # scratch materialization helper outside the maintained writer path
         "scripts/fp_make_figures.py",  # stale draft figures with old first-principles numbers
+        "scripts/fp_collect_matrix.py",  # scratch matrix collector awaiting vLLM-backed replacement
+        "results/fp_curvature_law/run.log",
         "results/fp_dense_lambda/run.log",
+        "results/fp_merge_compare_dense/run.log",
         "results/fp_moe_barrier/run.log",
         "results/fp_moe_complementary/run.log",
         "results/fp_moe_forgetting_base_coder/moe_barrier.png",  # title reflects the generic script, not the base->coder run
         "results/fp_moe_forgetting_base_coder/run.log",
+        "results/fp_moe_mechanism/run.log",
+        "results/fp_moe_mechanism_identity/run.log",
     }
     excluded_prefixes = {
+        "results/fp_downstream_matrix/",
         "results/fp_figures/",
         "results/fp_gen_eval_moe/",
         "results/fp_moe_real_probe/olmoe/",
@@ -1773,6 +1779,48 @@ def summarize_qwen3_moe_router_move_gate() -> dict[str, Any]:
         "report": rel(root / "report.md"),
         "router_layer_move_gate": rel(root / "router_layer_move_gate.csv"),
         "router_delta_summary": rel(root / "router_delta_summary.csv"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
+def summarize_qwen3_moe_router_margin_fragility() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_router_margin_fragility")
+    summary = read_json(root / "summary.json")
+    layers = read_csv(root / "layer_margin_fragility.csv")
+    categories = read_csv(root / "category_margin_fragility.csv")
+    slices = read_csv(root / "slice_margin_fragility.csv")
+    top_layer = clean_row(layers.iloc[0]) if not layers.empty else {}
+    top_category = clean_row(categories.iloc[0]) if not categories.empty else {}
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "router_layer_count": int(summary.get("router_layer_count", len(layers))),
+        "high_fragility_layer_count": int(summary.get("high_fragility_layer_count", 0)),
+        "top_fragile_layer": maybe_int(summary.get("top_fragile_layer")),
+        "top_fragility_score": maybe_float(summary.get("top_fragility_score")),
+        "least_fragile_layer": maybe_int(summary.get("least_fragile_layer")),
+        "least_fragility_score": maybe_float(summary.get("least_fragility_score")),
+        "mean_fragility_score": maybe_float(summary.get("mean_fragility_score")),
+        "min_safe_lambda_proxy": maybe_float(summary.get("min_safe_lambda_proxy")),
+        "median_safe_lambda_proxy": maybe_float(summary.get("median_safe_lambda_proxy")),
+        "top_fragile_category": summary.get("top_fragile_category"),
+        "top_category_fragility_score": maybe_float(summary.get("top_category_fragility_score")),
+        "unsafe_readiness_rows": int(summary.get("unsafe_readiness_rows", 0)),
+        "calibrate_readiness_rows": int(summary.get("calibrate_readiness_rows", 0)),
+        "freeze_readiness_rows": int(summary.get("freeze_readiness_rows", 0)),
+        "allowed_router_layer_count": int(summary.get("allowed_router_layer_count", 0)),
+        "recommended_unified_router_action": summary.get("recommended_unified_router_action"),
+        "top_layer": top_layer,
+        "top_category": top_category,
+        "layer_rows": [clean_row(row) for _, row in layers.head(16).iterrows()],
+        "category_rows": [clean_row(row) for _, row in categories.iterrows()],
+        "slice_rows": [clean_row(row) for _, row in slices.head(16).iterrows()],
+        "report": rel(root / "report.md"),
+        "layer_fragility": rel(root / "layer_margin_fragility.csv"),
+        "category_fragility": rel(root / "category_margin_fragility.csv"),
+        "slice_fragility": rel(root / "slice_margin_fragility.csv"),
+        "literature_sources": rel(root / "literature_sources.json"),
+        "figure": rel(root / "router_margin_fragility.png"),
         "summary_path": rel(root / "summary.json"),
     }
 
@@ -3828,6 +3876,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/qwen3_moe_router_move_gate/report.md combines router tensor deltas with real routing readiness and rejects direct router-weight movement for all 48 layers.",
         },
         {
+            "item": "Qwen3 MoE router margin fragility probe",
+            "status": "complete",
+            "evidence": "results/qwen3_moe_router_margin_fragility/report.md ranks router layers and prompt categories by top-k boundary fragility from real Qwen3 route margins, overlap, and router movement.",
+        },
+        {
             "item": "Qwen3 MoE router calibration NLL probe",
             "status": "complete",
             "evidence": "results/qwen3_moe_router_calibration_nll_probe/report.md formalizes the real Qwen3 router-only training probe, showing the averaged MoE improves when only router dispatch is recalibrated while keeping experts frozen.",
@@ -3963,6 +4016,7 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_post_eval_refresh": summarize_qwen3_moe_post_eval_refresh(),
         "qwen3_moe_post_eval_refresh_plan": summarize_qwen3_moe_post_eval_refresh_plan(),
         "qwen3_moe_router_move_gate": summarize_qwen3_moe_router_move_gate(),
+        "qwen3_moe_router_margin_fragility": summarize_qwen3_moe_router_margin_fragility(),
         "qwen3_moe_router_calibration_nll_probe": summarize_qwen3_moe_router_calibration_nll_probe(),
         "qwen3_moe_router_calibration_job": summarize_qwen3_moe_router_calibration_job(),
         "qwen3_moe_router_calibration_selection": summarize_qwen3_moe_router_calibration_selection(),
@@ -4115,6 +4169,7 @@ def build_summary() -> dict[str, Any]:
             "bash results/qwen3_moe_layer_chunk_candidate/writer_command.txt",
             "python scripts/audit_materialized_checkpoint_delta.py --base BASE --candidate results/checkpoints/qwen3_moe_layer_chunk_candidate --output-dir results/qwen3_moe_layer_chunk_delta_audit",
             "python scripts/build_qwen3_moe_router_move_gate.py --output-dir results/qwen3_moe_router_move_gate",
+            "python scripts/build_qwen3_moe_router_margin_fragility.py --output-dir results/qwen3_moe_router_margin_fragility",
             "python scripts/build_qwen3_moe_router_calibration_nll_probe.py --output-dir results/qwen3_moe_router_calibration_nll_probe",
             "python scripts/build_qwen3_moe_router_calibration_job.py --output-dir results/qwen3_moe_router_calibration_job",
             "python scripts/select_qwen3_moe_router_calibration_result.py --output-dir results/qwen3_moe_router_calibration_selection",
@@ -4235,6 +4290,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_post_eval_refresh = exp["qwen3_moe_post_eval_refresh"]
     qwen3_moe_post_eval_refresh_plan = exp["qwen3_moe_post_eval_refresh_plan"]
     qwen3_moe_router_move_gate = exp["qwen3_moe_router_move_gate"]
+    qwen3_moe_router_margin_fragility = exp["qwen3_moe_router_margin_fragility"]
     qwen3_moe_router_calibration_nll_probe = exp["qwen3_moe_router_calibration_nll_probe"]
     qwen3_moe_router_calibration_job = exp["qwen3_moe_router_calibration_job"]
     qwen3_moe_router_calibration_selection = exp["qwen3_moe_router_calibration_selection"]
@@ -5068,6 +5124,19 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(qwen3_moe_router_move_gate['mean_topk_jaccard'])}"
                 f"-{fmt(qwen3_moe_router_move_gate['min_topk_jaccard'])} / "
                 f"{fmt(qwen3_moe_router_move_gate['min_top1_agreement'])} |"
+            ),
+            (
+                "| Qwen3 MoE router margin fragility | status / high-fragility layers / top layer | "
+                f"{qwen3_moe_router_margin_fragility['status']} / "
+                f"{qwen3_moe_router_margin_fragility['high_fragility_layer_count']}"
+                f"/{qwen3_moe_router_margin_fragility['router_layer_count']} / "
+                f"L{qwen3_moe_router_margin_fragility['top_fragile_layer']} |"
+            ),
+            (
+                "| Qwen3 MoE router margin fragility | top score / min safe-lambda proxy / top category | "
+                f"{fmt(qwen3_moe_router_margin_fragility['top_fragility_score'])} / "
+                f"{fmt(qwen3_moe_router_margin_fragility['min_safe_lambda_proxy'])} / "
+                f"{qwen3_moe_router_margin_fragility['top_fragile_category']} |"
             ),
             (
                 "| Qwen3 MoE router calibration NLL probe | status / worst / avg reduction | "

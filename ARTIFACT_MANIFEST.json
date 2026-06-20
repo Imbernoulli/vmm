@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 82943,
+      "bytes": 83673,
       "kind": "document",
       "path": "README.md",
-      "sha256": "41758a96a002f4733581dc310564bc761b21cb4d252b28f171ac9d0c47fb165c"
+      "sha256": "34f148dfcf6327f0d1e0577f356c8e1c5607370797e725e4ef43b51a0c1301b0"
     },
     {
       "bytes": 33211,
@@ -3787,6 +3787,48 @@
       "sha256": "30857dd9425a24d6cde5eaa41395270a4abb87adc942025fd6135d55bc4f6d7a"
     },
     {
+      "bytes": 1918,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_margin_fragility/category_margin_fragility.csv",
+      "sha256": "e745d91da648911fc24f34ad3e4eef95680dcf0a219090e6cdcd74109efa4b58"
+    },
+    {
+      "bytes": 24832,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_margin_fragility/layer_margin_fragility.csv",
+      "sha256": "e49ee429fa6b86bda34def22410eede17544cc5d46f9fceaf8f3822df304682a"
+    },
+    {
+      "bytes": 911,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_margin_fragility/literature_sources.json",
+      "sha256": "d51384b11a28d1c9e08f63b88cb25b2be73d88ca6281bc77858ae0ddf95906ed"
+    },
+    {
+      "bytes": 5997,
+      "kind": "document",
+      "path": "results/qwen3_moe_router_margin_fragility/report.md",
+      "sha256": "585fa92075648928a23111d377c9f9b36e278f8947bbaaeb1483ecef685a9067"
+    },
+    {
+      "bytes": 85910,
+      "kind": "figure",
+      "path": "results/qwen3_moe_router_margin_fragility/router_margin_fragility.png",
+      "sha256": "ea3a6516aa10a6ce9167a850a13495d53e017df49baf5a6d821124d5e9f76ffa"
+    },
+    {
+      "bytes": 123854,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_margin_fragility/slice_margin_fragility.csv",
+      "sha256": "9790faa1e0fe1c3e3bce57de3e0c7f9e741c0bf4bf3f955c9cdc7cf617fbe911"
+    },
+    {
+      "bytes": 1614,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_margin_fragility/summary.json",
+      "sha256": "2999cf67123846792c579020e6f98076c4e9b3125accd753103b04498d8b719a"
+    },
+    {
       "bytes": 11586,
       "kind": "document",
       "path": "results/qwen3_moe_router_move_gate/report.md",
@@ -4807,16 +4849,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 1557752,
+      "bytes": 1604017,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "6e7edcb1397e3dc1bd7f11f6c27c64b13c7a00fa5fe7310266be0c4b7a3745e1"
+      "sha256": "b183f94655293537865f8f6279fb2cc491b8bcfafd6038d11a42903a958dc06c"
     },
     {
-      "bytes": 52973,
+      "bytes": 53486,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "1b38bf4e51f97b45b069389244a0cda7f6af528ab6084a34ab6ffcb2ea633959"
+      "sha256": "55622ce5627606b458d796727b6a2023bf9f9ea788b98ec9a0cfd4ea9f26dd35"
     },
     {
       "bytes": 288,
@@ -5995,6 +6037,12 @@
       "sha256": "e5d5aa49e71e941f7d02977812176b84056debd4f652fe3f172ba8f5dd2ea19e"
     },
     {
+      "bytes": 19537,
+      "kind": "code",
+      "path": "scripts/build_qwen3_moe_router_margin_fragility.py",
+      "sha256": "817da1ac5bc7cb57b76973d468412fa3c3edf0c1a868c45f53fb4c793cc119cd"
+    },
+    {
       "bytes": 14811,
       "kind": "code",
       "path": "scripts/build_qwen3_moe_router_move_gate.py",
@@ -6061,10 +6109,10 @@
       "sha256": "cd588bc1804013f4043bd95c245b066dbae86bfd3e3f9c18317ef33eb506f123"
     },
     {
-      "bytes": 365199,
+      "bytes": 369691,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "27ab85cd6324920a28782494ff32e422ce6a98f64dbc631ab739346eaebb322b"
+      "sha256": "f6214b70b93e5b2314bcbc888324ab46054583423a8f2c4add4bc0b2b5f0bd4a"
     },
     {
       "bytes": 16101,
@@ -6355,7 +6403,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-20T04:16:41.443657+00:00",
+  "generated_at": "2026-06-20T04:29:10.958885+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

@@ -1,0 +1,20 @@
+[
+  {
+    "key": "harc",
+    "mechanism": "MoE top-k dispatch can change sharply under router perturbations; router calibration is a separate intervention.",
+    "title": "When Model Merging Breaks Routing: Training-Free Calibration for MoE",
+    "url": "https://arxiv.org/abs/2606.03391"
+  },
+  {
+    "key": "mergeme",
+    "mechanism": "MoE merging needs routing heuristics and interference mitigation beyond unweighted expert averaging.",
+    "title": "MergeME: Model Merging Techniques for Homogeneous and Heterogeneous MoEs",
+    "url": "https://arxiv.org/abs/2502.00997"
+  },
+  {
+    "key": "expert_merging",
+    "mechanism": "Layer heterogeneity matters; router risk should be summarized by layer before opening layer-wise movement.",
+    "title": "Expert Merging: Model Merging with Unsupervised Expert Alignment and Importance-Guided Layer Chunking",
+    "url": "https://arxiv.org/abs/2509.25712"
+  }
+]
