@@ -117,7 +117,7 @@
     {
       "condition": "router-only NLL probe improves the linear MoE merge, but Qwen3 baseline/source vLLM eval is not complete",
       "operation": "treat router calibration as a separately audited ablation",
-      "selected_action": "nll_probe_worst_reduction=0.2214; awaiting_baseline_eval: Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps.",
+      "selected_action": "nll_probe_worst_reduction=0.2214; generation_avg_gain=0.0333; awaiting_baseline_eval: Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps.",
       "stage": "moe_router_calibration_gate",
       "step": 8
     },

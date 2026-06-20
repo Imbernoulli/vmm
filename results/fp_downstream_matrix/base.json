@@ -1,0 +1,9 @@
+{
+  "model": "Qwen/Qwen3-30B-A3B-Base",
+  "name": "base",
+  "mmlu": 0.7666666666666667,
+  "gsm8k": 0.725,
+  "humaneval": 0.825,
+  "avg": 0.7722222222222221,
+  "worst": 0.725
+}

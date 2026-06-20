@@ -212,6 +212,7 @@ def moe_feature_rows(
     qwen3_moe_interpolation: dict[str, Any],
     qwen3_moe_complementary: dict[str, Any],
     qwen3_moe_base_coder: dict[str, Any],
+    qwen3_downstream_matrix: dict[str, Any],
 ) -> list[dict[str, Any]]:
     selection = final_selection.get("current_selection") or {}
     router_selection = router_calibration.get("current_selection") or {}
@@ -415,6 +416,21 @@ def moe_feature_rows(
         },
         {
             "domain": "moe",
+            "probe": "qwen3_generation_downstream_routercal_matrix",
+            "value": qwen3_downstream_matrix.get("pair_routercal_avg_gain"),
+            "threshold": 0.0,
+            "decision_signal": "router_calibration_recovers_generation_interference_but_not_endpoint_dominance",
+            "evidence": (
+                f"status = {qwen3_downstream_matrix.get('status')}; "
+                f"Instruct+Coder avg = {fmt(qwen3_downstream_matrix.get('pair_merge_avg'))}; "
+                f"+router-cal avg = {fmt(qwen3_downstream_matrix.get('pair_routercal_avg'))}; "
+                f"avg gain = {fmt(qwen3_downstream_matrix.get('pair_routercal_avg_gain'))}; "
+                f"HumanEval gain = {fmt(qwen3_downstream_matrix.get('pair_routercal_humaneval_gain'))}; "
+                f"gap to best parent avg = {fmt(qwen3_downstream_matrix.get('pair_routercal_gap_to_best_parent_avg'))}"
+            ),
+        },
+        {
+            "domain": "moe",
             "probe": "qwen3_router_calibration_gate",
             "value": router_selection.get("eligible_candidate_count"),
             "threshold": router_selection.get("candidate_count"),
@@ -453,6 +469,7 @@ def build_decisions(
     qwen3_moe_interpolation: dict[str, Any],
     qwen3_moe_complementary: dict[str, Any],
     qwen3_moe_base_coder: dict[str, Any],
+    qwen3_downstream_matrix: dict[str, Any],
 ) -> pd.DataFrame:
     dense_config = ((dense_selector.get("results") or {}).get("unified") or {}).get("config") or {}
     router_selection = router_calibration.get("current_selection") or {}
@@ -564,6 +581,7 @@ def build_decisions(
             "condition": "router-only NLL probe improves the linear MoE merge, but Qwen3 baseline/source vLLM eval is not complete",
             "selected_action": (
                 f"nll_probe_worst_reduction={fmt(router_calibration_nll_probe.get('worst_nll_reduction_vs_linear'))}; "
+                f"generation_avg_gain={fmt(qwen3_downstream_matrix.get('pair_routercal_avg_gain'))}; "
                 f"{router_selection.get('status')}: {router_selection.get('reason')}"
             ),
             "why_it_should_improve": "It keeps router calibration as an active MoE-specific lever while still requiring source-dominance and task-regression gates before acceptance.",
@@ -625,6 +643,7 @@ def build_report(summary: dict[str, Any], features: pd.DataFrame, decisions: pd.
         f"- Qwen3 subspace-scaled ablation: audit relative norm `{fmt(moe['qwen3_subspace_total_relative_delta_norm'])}`，unified->subspace norm reduction `{fmt(moe['qwen3_unified_to_subspace_relative_norm_reduction'], 6)}`，routed >0.65 `{moe['qwen3_subspace_routed_gt_065']}`。",
         f"- Qwen3 router margin fragility: high layers `{moe['qwen3_router_margin_high_fragility_layers']}/{moe['qwen3_router_margin_layer_count']}`，top `L{moe['qwen3_router_margin_top_layer']}` score `{fmt(moe['qwen3_router_margin_top_score'])}`，min safe-lambda proxy `{fmt(moe['qwen3_router_margin_min_safe_lambda_proxy'])}`。",
         f"- Qwen3 router NLL probe: worst-NLL reduction `{fmt(moe['qwen3_router_calibration_nll_worst_reduction'])}`，code gap to best source `{fmt(moe['qwen3_router_calibration_nll_code_gap_to_best_source'])}`。",
+        f"- Qwen3 generation matrix: Instruct+Coder avg `{fmt(moe['qwen3_generation_pair_merge_avg'])}` -> router-cal avg `{fmt(moe['qwen3_generation_pair_routercal_avg'])}`；avg gain `{fmt(moe['qwen3_generation_pair_routercal_avg_gain'])}`，gap to best parent `{fmt(moe['qwen3_generation_pair_routercal_gap_to_best_parent_avg'])}`。",
         f"- Qwen3 router calibration: `{moe['qwen3_router_calibration_status']}`。",
         f"- Qwen3 final selection: `{moe['qwen3_final_selection_status']}`，eligible `{moe['qwen3_eligible_candidates']}/{moe['qwen3_candidate_count']}`。",
         "",
@@ -688,6 +707,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
     qwen3_moe_interpolation = read_json(args.qwen3_moe_interpolation)
     qwen3_moe_complementary = read_json(args.qwen3_moe_complementary)
     qwen3_moe_base_coder = read_json(args.qwen3_moe_base_coder)
+    qwen3_downstream_matrix = read_json(args.qwen3_downstream_matrix)
 
     feature_rows = dense_feature_rows(curvature, dense_selector, dense_lambda, gen_eval)
     feature_rows.extend(
@@ -706,6 +726,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
             qwen3_moe_interpolation,
             qwen3_moe_complementary,
             qwen3_moe_base_coder,
+            qwen3_downstream_matrix,
         )
     )
     features = pd.DataFrame(feature_rows)
@@ -721,6 +742,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         qwen3_moe_interpolation,
         qwen3_moe_complementary,
         qwen3_moe_base_coder,
+        qwen3_downstream_matrix,
     )
     algorithm = build_algorithm(decisions)
 
@@ -794,6 +816,22 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
             ),
             "qwen3_router_calibration_nll_worst_gap_to_best_source": fnum(
                 router_calibration_nll_probe.get("routercal_worst_gap_to_best_source")
+            ),
+            "qwen3_generation_matrix_status": qwen3_downstream_matrix.get("status"),
+            "qwen3_generation_best_avg_model": qwen3_downstream_matrix.get("best_avg_model"),
+            "qwen3_generation_best_avg": fnum(qwen3_downstream_matrix.get("best_avg")),
+            "qwen3_generation_pair_merge_avg": fnum(qwen3_downstream_matrix.get("pair_merge_avg")),
+            "qwen3_generation_pair_routercal_avg": fnum(
+                qwen3_downstream_matrix.get("pair_routercal_avg")
+            ),
+            "qwen3_generation_pair_routercal_avg_gain": fnum(
+                qwen3_downstream_matrix.get("pair_routercal_avg_gain")
+            ),
+            "qwen3_generation_pair_routercal_humaneval_gain": fnum(
+                qwen3_downstream_matrix.get("pair_routercal_humaneval_gain")
+            ),
+            "qwen3_generation_pair_routercal_gap_to_best_parent_avg": fnum(
+                qwen3_downstream_matrix.get("pair_routercal_gap_to_best_parent_avg")
             ),
             "qwen3_layer_chunk_to_unified_relative_norm_reduction": fnum(
                 delta_frontier.get("layer_chunk_to_unified_relative_norm_reduction")
@@ -919,6 +957,11 @@ def parse_args() -> argparse.Namespace:
         "--qwen3-router-calibration",
         type=Path,
         default=Path("results/qwen3_moe_router_calibration_selection/summary.json"),
+    )
+    parser.add_argument(
+        "--qwen3-downstream-matrix",
+        type=Path,
+        default=Path("results/fp_downstream_matrix/summary.json"),
     )
     parser.add_argument(
         "--qwen3-router-margin-fragility",

@@ -1,0 +1,10 @@
+{
+  "model": "merge:Qwen/Qwen3-30B-A3B-Instruct-2507,Qwen/Qwen3-Coder-30B-A3B-Instruct",
+  "router_cal": true,
+  "name": "merge_instruct+coder_routercal",
+  "mmlu": 0.7583333333333333,
+  "gsm8k": 0.85,
+  "humaneval": 0.875,
+  "avg": 0.8277777777777778,
+  "worst": 0.7583333333333333
+}

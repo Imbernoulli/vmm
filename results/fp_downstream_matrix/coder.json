@@ -1,0 +1,9 @@
+{
+  "model": "Qwen/Qwen3-Coder-30B-A3B-Instruct",
+  "name": "coder",
+  "mmlu": 0.7666666666666667,
+  "gsm8k": 0.9,
+  "humaneval": 0.95,
+  "avg": 0.8722222222222222,
+  "worst": 0.7666666666666667
+}

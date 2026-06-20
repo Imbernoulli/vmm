@@ -76,6 +76,11 @@
       "status": "complete"
     },
     {
+      "evidence": "results/fp_downstream_matrix/report.md compares official Qwen3 MoE parents, naive averages, and router-calibrated averages on MMLU/GSM8K/HumanEval generation tasks; it is auxiliary evidence, not the final vLLM selector.",
+      "item": "Qwen3 MoE generation-level downstream matrix",
+      "status": "complete"
+    },
+    {
       "evidence": "Representative Qwen2.5-1.5B benchmark slices cover MMLU, GSM8K, HumanEval canonical-solution NLL, and BeaverTails safety/refusal NLL.",
       "item": "Formal LLM benchmark slices",
       "status": "complete"
@@ -432,7 +437,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 85,
+    "complete": 86,
     "missing": 0,
     "partial": 1
   },
@@ -3188,6 +3193,118 @@
         "general": 5.9108830695058785,
         "worst": 5.9108830695058785
       }
+    },
+    "fp_downstream_matrix": {
+      "best_avg": 0.8972222222222221,
+      "best_avg_model": "instruct",
+      "best_parent_avg": 0.8972222222222221,
+      "best_parent_model": "instruct",
+      "figure": "results/fp_downstream_matrix/downstream_matrix.png",
+      "interpretation": "The generation matrix confirms the mechanism: naive Instruct+Coder averaging dilutes the dominant Instruct endpoint, while router calibration recovers part of the lost GSM8K and HumanEval performance. It still does not beat the best parent on this task set, so it is evidence for router calibration as a lever, not acceptance of an average candidate.",
+      "matrix": "results/fp_downstream_matrix/matrix.csv",
+      "matrix_rows": [
+        {
+          "avg": 0.7722222222222221,
+          "gsm8k": 0.725,
+          "humaneval": 0.825,
+          "mmlu": 0.7666666666666667,
+          "name": "base",
+          "worst": 0.725
+        },
+        {
+          "avg": 0.8972222222222221,
+          "gsm8k": 0.9,
+          "humaneval": 0.95,
+          "mmlu": 0.8416666666666667,
+          "name": "instruct",
+          "worst": 0.8416666666666667
+        },
+        {
+          "avg": 0.8722222222222222,
+          "gsm8k": 0.9,
+          "humaneval": 0.95,
+          "mmlu": 0.7666666666666667,
+          "name": "coder",
+          "worst": 0.7666666666666667
+        },
+        {
+          "avg": 0.8138888888888888,
+          "gsm8k": 0.75,
+          "humaneval": 0.9,
+          "mmlu": 0.7916666666666666,
+          "name": "thinking",
+          "worst": 0.75
+        },
+        {
+          "avg": 0.7944444444444444,
+          "gsm8k": 0.825,
+          "humaneval": 0.8,
+          "mmlu": 0.7583333333333333,
+          "name": "merge_instruct+coder",
+          "worst": 0.7583333333333333
+        },
+        {
+          "avg": 0.8277777777777778,
+          "gsm8k": 0.85,
+          "humaneval": 0.875,
+          "mmlu": 0.7583333333333333,
+          "name": "merge_instruct+coder_routercal",
+          "worst": 0.7583333333333333
+        },
+        {
+          "avg": 0.8333333333333334,
+          "gsm8k": 0.9,
+          "humaneval": 0.85,
+          "mmlu": 0.75,
+          "name": "merge_instruct+coder+thinking",
+          "worst": 0.75
+        }
+      ],
+      "model_count": 7,
+      "pair_merge_avg": 0.7944444444444444,
+      "pair_routercal_avg": 0.8277777777777778,
+      "pair_routercal_avg_gain": 0.03333333333333344,
+      "pair_routercal_gap_to_best_parent_avg": -0.06944444444444431,
+      "pair_routercal_gsm8k_gain": 0.025000000000000022,
+      "pair_routercal_humaneval_gain": 0.07499999999999996,
+      "pair_routercal_mmlu_gain": 0.0,
+      "report": "results/fp_downstream_matrix/report.md",
+      "role": "auxiliary_transformers_generation_eval_not_final_vllm_selector",
+      "status": "generation_downstream_matrix_ready",
+      "summary": {
+        "best_avg": 0.8972222222222221,
+        "best_avg_model": "instruct",
+        "best_parent_avg": 0.8972222222222221,
+        "best_parent_model": "instruct",
+        "interpretation": "The generation matrix confirms the mechanism: naive Instruct+Coder averaging dilutes the dominant Instruct endpoint, while router calibration recovers part of the lost GSM8K and HumanEval performance. It still does not beat the best parent on this task set, so it is evidence for router calibration as a lever, not acceptance of an average candidate.",
+        "model_count": 7,
+        "outputs": {
+          "figure": "results/fp_downstream_matrix/downstream_matrix.png",
+          "matrix": "results/fp_downstream_matrix/matrix.csv",
+          "report": "results/fp_downstream_matrix/report.md",
+          "summary": "results/fp_downstream_matrix/summary.json"
+        },
+        "pair_merge_avg": 0.7944444444444444,
+        "pair_routercal_avg": 0.8277777777777778,
+        "pair_routercal_avg_gain": 0.03333333333333344,
+        "pair_routercal_gap_to_best_parent_avg": -0.06944444444444431,
+        "pair_routercal_gsm8k_gain": 0.025000000000000022,
+        "pair_routercal_humaneval_gain": 0.07499999999999996,
+        "pair_routercal_mmlu_gain": 0.0,
+        "role": "auxiliary_transformers_generation_eval_not_final_vllm_selector",
+        "schema_version": 1,
+        "status": "generation_downstream_matrix_ready",
+        "tasks": [
+          "mmlu",
+          "gsm8k",
+          "humaneval"
+        ],
+        "triple_merge_avg": 0.8333333333333334,
+        "triple_minus_pair_avg": 0.03888888888888897
+      },
+      "summary_path": "results/fp_downstream_matrix/summary.json",
+      "triple_merge_avg": 0.8333333333333334,
+      "triple_minus_pair_avg": 0.03888888888888897
     },
     "fp_gen_eval_dense": {
       "best_method": "coder",
@@ -34286,7 +34403,7 @@
           "condition": "router-only NLL probe improves the linear MoE merge, but Qwen3 baseline/source vLLM eval is not complete",
           "operation": "treat router calibration as a separately audited ablation",
           "same_shape_invariant": "any accepted router delta must keep the same router tensors and pass router-only audit caps",
-          "selected_action": "nll_probe_worst_reduction=0.2214; awaiting_baseline_eval: Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps.",
+          "selected_action": "nll_probe_worst_reduction=0.2214; generation_avg_gain=0.0333; awaiting_baseline_eval: Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps.",
           "stage": "moe_router_calibration_gate",
           "why_it_should_improve": "It keeps router calibration as an active MoE-specific lever while still requiring source-dominance and task-regression gates before acceptance."
         },
@@ -34446,6 +34563,14 @@
           "value": 0.2214274487464256
         },
         {
+          "decision_signal": "router_calibration_recovers_generation_interference_but_not_endpoint_dominance",
+          "domain": "moe",
+          "evidence": "status = generation_downstream_matrix_ready; Instruct+Coder avg = 0.7944; +router-cal avg = 0.8278; avg gain = 0.0333; HumanEval gain = 0.0750; gap to best parent avg = -0.0694",
+          "probe": "qwen3_generation_downstream_routercal_matrix",
+          "threshold": 0.0,
+          "value": 0.0333333333333334
+        },
+        {
           "decision_signal": "do_not_accept_router_delta_without_baseline_eval",
           "domain": "moe",
           "evidence": "status = awaiting_baseline_eval; eligible router-cal candidates = 0/4; reason = Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps.",
@@ -34534,6 +34659,14 @@
           "qwen3_complementary_merge_beats_sources": false,
           "qwen3_eligible_candidates": 0,
           "qwen3_final_selection_status": "awaiting_source_eval",
+          "qwen3_generation_best_avg": 0.8972222222222221,
+          "qwen3_generation_best_avg_model": "instruct",
+          "qwen3_generation_matrix_status": "generation_downstream_matrix_ready",
+          "qwen3_generation_pair_merge_avg": 0.7944444444444444,
+          "qwen3_generation_pair_routercal_avg": 0.8277777777777778,
+          "qwen3_generation_pair_routercal_avg_gain": 0.03333333333333344,
+          "qwen3_generation_pair_routercal_gap_to_best_parent_avg": -0.06944444444444431,
+          "qwen3_generation_pair_routercal_humaneval_gain": 0.07499999999999996,
           "qwen3_identity_fraction": 1.0,
           "qwen3_interpolation_best_interior_worst_nll": 2.5946544073765576,
           "qwen3_interpolation_endpoint_best_worst_nll": 2.47572769464231,
@@ -36517,7 +36650,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-20T06:06:34.813999+00:00",
+  "generated_at": "2026-06-20T06:16:59.446653+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [

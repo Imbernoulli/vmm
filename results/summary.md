@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-20T06:06:34.813999+00:00`
+Generated at: `2026-06-20T06:16:59.446653+00:00`
 
 ## Coverage
 
-Complete: `85`; partial: `1`; missing: `0`.
+Complete: `86`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -23,6 +23,7 @@ Complete: `85`; partial: `1`; missing: `0`.
 | Dense curvature-displacement mechanism probe | complete | results/fp_curvature_law/report.md compares diagonal-Fisher second-order midpoint predictions against real Qwen instruct/coder interpolation loss. |
 | Unified merge-family selector | complete | results/fp_merge_compare_dense/report.md evaluates a finite family containing linear average, task arithmetic, sign-elect, and magnitude-weighted variants, then selects by held-out worst-task NLL. |
 | Dense exact-answer generation smoke | complete | results/fp_gen_eval_dense/report.md evaluates base, endpoints, linear average, and unified lambda=0 on built-in math/code-output generation tasks without executing model-generated code. |
+| Qwen3 MoE generation-level downstream matrix | complete | results/fp_downstream_matrix/report.md compares official Qwen3 MoE parents, naive averages, and router-calibrated averages on MMLU/GSM8K/HumanEval generation tasks; it is auxiliary evidence, not the final vLLM selector. |
 | Formal LLM benchmark slices | complete | Representative Qwen2.5-1.5B benchmark slices cover MMLU, GSM8K, HumanEval canonical-solution NLL, and BeaverTails safety/refusal NLL. |
 | vLLM hosted downstream evaluation | partial | scripts/run_vllm_downstream_eval.py can build a served-model eval plan from the Qwen target registry; the generic registry run remains endpoint_unavailable, while checkpoint-specific hosted eval is tracked separately. |
 | Materialized checkpoint vLLM hosted eval | complete | results/vllm_checkpoint_eval/qwen_0_5b_instruct_coder_uniform_average/report.md contains a real vLLM-hosted GSM8K/MMLU/safety/HumanEval compile eval for the materialized Qwen2.5-0.5B uniform-average checkpoint. |
@@ -135,6 +136,9 @@ Complete: `85`; partial: `1`; missing: `0`.
 | dense generation smoke | best method / linear avg accuracy | coder / 0.000 |
 | dense generation smoke | unified avg delta vs linear | 0.500 |
 | dense generation smoke | coder worst delta vs unified | 0.500 |
+| Qwen3 MoE downstream generation matrix | best avg model / avg | instruct / 0.897 |
+| Qwen3 MoE downstream generation matrix | Instruct+Coder avg -> +router-cal avg | 0.794 -> 0.828 |
+| Qwen3 MoE downstream generation matrix | router-cal avg gain / HumanEval gain / gap to best parent | 0.033 / 0.075 / -0.069 |
 | first-principles MoE mechanism | gauge-equivalent B MSE | 7.66e-16 |
 | first-principles MoE mechanism | router agreement raw to aligned | 0.035 to 0.795 |
 | first-principles MoE mechanism | same-name to aligned worst loss | 0.511 to 0.125 |

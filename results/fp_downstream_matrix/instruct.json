@@ -1,0 +1,9 @@
+{
+  "model": "Qwen/Qwen3-30B-A3B-Instruct-2507",
+  "name": "instruct",
+  "mmlu": 0.8416666666666667,
+  "gsm8k": 0.9,
+  "humaneval": 0.95,
+  "avg": 0.8972222222222221,
+  "worst": 0.8416666666666667
+}

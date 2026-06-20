@@ -108,7 +108,6 @@ def collect_artifacts() -> list[dict[str, Any]]:
     ]
     suffixes = {".py", ".md", ".csv", ".json", ".jsonl", ".txt", ".png", ".html"}
     excluded_files = {
-        "scripts/fp_downstream_eval.py",  # scratch HF-generation eval, not the vLLM hosted eval path
         "scripts/fp_materialize_merge.py",  # scratch materialization helper outside the maintained writer path
         "scripts/fp_make_figures.py",  # stale draft figures with old first-principles numbers
         "scripts/fp_collect_matrix.py",  # scratch matrix collector awaiting vLLM-backed replacement
@@ -123,7 +122,6 @@ def collect_artifacts() -> list[dict[str, Any]]:
         "results/fp_moe_mechanism_identity/run.log",
     }
     excluded_prefixes = {
-        "results/fp_downstream_matrix/",
         "results/fp_figures/",
         "results/fp_gen_eval_moe/",
         "results/fp_moe_real_probe/olmoe/",
@@ -555,6 +553,49 @@ def summarize_fp_gen_eval_dense() -> dict[str, Any]:
         "summary_path": rel(root / "summary.json"),
         "method_metrics": rel(root / "method_metrics.csv"),
         "predictions": rel(root / "predictions.csv"),
+    }
+
+
+def summarize_fp_downstream_matrix() -> dict[str, Any]:
+    root = repo_path("results/fp_downstream_matrix")
+    summary = read_json(root / "summary.json")
+    matrix = read_csv(root / "matrix.csv")
+    if not summary:
+        return {
+            "status": "missing",
+            "model_count": 0,
+            "matrix_rows": [],
+            "report": rel(root / "report.md"),
+            "summary_path": rel(root / "summary.json"),
+            "matrix": rel(root / "matrix.csv"),
+            "figure": rel(root / "downstream_matrix.png"),
+        }
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "role": summary.get("role"),
+        "model_count": maybe_int(summary.get("model_count")),
+        "best_avg_model": summary.get("best_avg_model"),
+        "best_avg": maybe_float(summary.get("best_avg")),
+        "best_parent_model": summary.get("best_parent_model"),
+        "best_parent_avg": maybe_float(summary.get("best_parent_avg")),
+        "pair_merge_avg": maybe_float(summary.get("pair_merge_avg")),
+        "pair_routercal_avg": maybe_float(summary.get("pair_routercal_avg")),
+        "pair_routercal_avg_gain": maybe_float(summary.get("pair_routercal_avg_gain")),
+        "pair_routercal_humaneval_gain": maybe_float(summary.get("pair_routercal_humaneval_gain")),
+        "pair_routercal_gsm8k_gain": maybe_float(summary.get("pair_routercal_gsm8k_gain")),
+        "pair_routercal_mmlu_gain": maybe_float(summary.get("pair_routercal_mmlu_gain")),
+        "pair_routercal_gap_to_best_parent_avg": maybe_float(
+            summary.get("pair_routercal_gap_to_best_parent_avg")
+        ),
+        "triple_merge_avg": maybe_float(summary.get("triple_merge_avg")),
+        "triple_minus_pair_avg": maybe_float(summary.get("triple_minus_pair_avg")),
+        "interpretation": summary.get("interpretation"),
+        "matrix_rows": [clean_row(row) for _, row in matrix.iterrows()],
+        "report": rel(root / "report.md"),
+        "summary_path": rel(root / "summary.json"),
+        "matrix": rel(root / "matrix.csv"),
+        "figure": rel(root / "downstream_matrix.png"),
     }
 
 
@@ -3719,6 +3760,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/fp_gen_eval_dense/report.md evaluates base, endpoints, linear average, and unified lambda=0 on built-in math/code-output generation tasks without executing model-generated code.",
         },
         {
+            "item": "Qwen3 MoE generation-level downstream matrix",
+            "status": "complete",
+            "evidence": "results/fp_downstream_matrix/report.md compares official Qwen3 MoE parents, naive averages, and router-calibrated averages on MMLU/GSM8K/HumanEval generation tasks; it is auxiliary evidence, not the final vLLM selector.",
+        },
+        {
             "item": "Formal LLM benchmark slices",
             "status": "complete",
             "evidence": "Representative Qwen2.5-1.5B benchmark slices cover MMLU, GSM8K, HumanEval canonical-solution NLL, and BeaverTails safety/refusal NLL.",
@@ -4093,6 +4139,7 @@ def build_summary() -> dict[str, Any]:
         "fp_curvature_law": summarize_fp_curvature_law(),
         "fp_merge_compare_dense": summarize_fp_merge_compare(),
         "fp_gen_eval_dense": summarize_fp_gen_eval_dense(),
+        "fp_downstream_matrix": summarize_fp_downstream_matrix(),
         "qwen_probe_smoke": summarize_qwen_probe_smoke(),
         "average_decision_report": summarize_average_decision_report(),
         "model_averaging_literature_review": summarize_model_averaging_literature_review(),
@@ -4373,6 +4420,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     fp_curvature = exp["fp_curvature_law"]
     fp_merge_compare = exp["fp_merge_compare_dense"]
     fp_gen_eval = exp["fp_gen_eval_dense"]
+    fp_downstream_matrix = exp["fp_downstream_matrix"]
     average_decision = exp["average_decision_report"]
     literature_review = exp["model_averaging_literature_review"]
     average_method_gate_matrix = exp["average_method_gate_matrix"]
@@ -4679,6 +4727,20 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| dense generation smoke | coder worst delta vs unified | "
                 f"{fmt(fp_gen_eval['coder_worst_delta_vs_unified'])} |"
+            ),
+            (
+                "| Qwen3 MoE downstream generation matrix | best avg model / avg | "
+                f"{fp_downstream_matrix['best_avg_model']} / {fmt(fp_downstream_matrix['best_avg'])} |"
+            ),
+            (
+                "| Qwen3 MoE downstream generation matrix | Instruct+Coder avg -> +router-cal avg | "
+                f"{fmt(fp_downstream_matrix['pair_merge_avg'])} -> {fmt(fp_downstream_matrix['pair_routercal_avg'])} |"
+            ),
+            (
+                "| Qwen3 MoE downstream generation matrix | router-cal avg gain / HumanEval gain / gap to best parent | "
+                f"{fmt(fp_downstream_matrix['pair_routercal_avg_gain'])} / "
+                f"{fmt(fp_downstream_matrix['pair_routercal_humaneval_gain'])} / "
+                f"{fmt(fp_downstream_matrix['pair_routercal_gap_to_best_parent_avg'])} |"
             ),
             (
                 "| first-principles MoE mechanism | gauge-equivalent B MSE | "

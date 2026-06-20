@@ -1,0 +1,31 @@
+{
+  "best_avg": 0.8972222222222221,
+  "best_avg_model": "instruct",
+  "best_parent_avg": 0.8972222222222221,
+  "best_parent_model": "instruct",
+  "interpretation": "The generation matrix confirms the mechanism: naive Instruct+Coder averaging dilutes the dominant Instruct endpoint, while router calibration recovers part of the lost GSM8K and HumanEval performance. It still does not beat the best parent on this task set, so it is evidence for router calibration as a lever, not acceptance of an average candidate.",
+  "model_count": 7,
+  "outputs": {
+    "figure": "results/fp_downstream_matrix/downstream_matrix.png",
+    "matrix": "results/fp_downstream_matrix/matrix.csv",
+    "report": "results/fp_downstream_matrix/report.md",
+    "summary": "results/fp_downstream_matrix/summary.json"
+  },
+  "pair_merge_avg": 0.7944444444444444,
+  "pair_routercal_avg": 0.8277777777777778,
+  "pair_routercal_avg_gain": 0.03333333333333344,
+  "pair_routercal_gap_to_best_parent_avg": -0.06944444444444431,
+  "pair_routercal_gsm8k_gain": 0.025000000000000022,
+  "pair_routercal_humaneval_gain": 0.07499999999999996,
+  "pair_routercal_mmlu_gain": 0.0,
+  "role": "auxiliary_transformers_generation_eval_not_final_vllm_selector",
+  "schema_version": 1,
+  "status": "generation_downstream_matrix_ready",
+  "tasks": [
+    "mmlu",
+    "gsm8k",
+    "humaneval"
+  ],
+  "triple_merge_avg": 0.8333333333333334,
+  "triple_minus_pair_avg": 0.03888888888888897
+}
