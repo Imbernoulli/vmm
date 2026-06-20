@@ -4,7 +4,7 @@
 
 - Status: `passed`
 - Plan only: `False`
-- Steps passed: `44/44`
+- Steps passed: `45/45`
 - Audit: `awaiting_eval` (`0/14` usable)
 - Selection: `awaiting_source_eval` -> `None`
 - Final selection: `awaiting_source_eval` -> `None` (`0/12` eligible)
@@ -44,53 +44,55 @@
 - Average trust-region bounds: `trust_region_bounds_ready_waiting_vllm` (`passed=2`, `rejected=7`, `waiting=2`); dense lambda bound `0.34155204135935996`, router midpoint over safe bound `25.34834674551614`
 - Average trust-region smoke: `passed` (`11/11` assertions)
 - Mechanism levers: `mechanism_leverage_map_ready` (top `source_task_gap_frontier_acquisition` -> `python scripts/run_vllm_downstream_eval.py --models SERVED_CODER,SERVED_THINKING --tasks gsm8k,humaneval_compile,mmlu --max-examples 256 --output-dir results/qwen_source_discovery_plan/measured_coder_thinking_vllm`, task blockers `3`, top task gap `gsm8k` / `no_task_frontier_gain` needs `0.0694444444444443`)
+- Qwen task source acquisition: `task_source_acquisition_plan_ready` (`8` jobs, `35` candidates, top `gsm8k_qwen3_moe_30b_a3b_source_acquisition` / `qwen3_moe_30b_a3b`)
 
 | step | kind | status | returncode | seconds |
 | --- | --- | --- | ---: | ---: |
-| `build_candidate_trust_region_gate` | `gate` | `passed` | 0 | 0.40 |
-| `plan_eval_budget` | `planner` | `passed` | 0 | 0.42 |
-| `audit_eval_bundles` | `gate` | `passed` | 0 | 0.42 |
-| `select_unified_result` | `selector` | `passed` | 0 | 0.42 |
-| `select_final_candidate` | `selector` | `passed` | 0 | 0.41 |
-| `attribute_mechanism_effects` | `attribution` | `passed` | 0 | 0.41 |
-| `build_feedback_optimizer` | `optimizer` | `passed` | 0 | 1.11 |
-| `build_mechanistic_unified_candidate` | `optimizer` | `passed` | 0 | 2.59 |
-| `audit_mechanistic_evidence` | `attribution` | `passed` | 0 | 1.43 |
-| `analyze_mechanistic_sensitivity` | `attribution` | `passed` | 0 | 17.32 |
-| `analyze_router_expert_coupling` | `attribution` | `passed` | 0 | 0.79 |
-| `build_router_coupled_candidate` | `optimizer` | `passed` | 0 | 1.29 |
-| `analyze_router_coupled_retention_frontier` | `attribution` | `passed` | 0 | 3.61 |
+| `build_candidate_trust_region_gate` | `gate` | `passed` | 0 | 0.39 |
+| `plan_eval_budget` | `planner` | `passed` | 0 | 0.43 |
+| `audit_eval_bundles` | `gate` | `passed` | 0 | 0.43 |
+| `select_unified_result` | `selector` | `passed` | 0 | 0.39 |
+| `select_final_candidate` | `selector` | `passed` | 0 | 0.42 |
+| `attribute_mechanism_effects` | `attribution` | `passed` | 0 | 0.40 |
+| `build_feedback_optimizer` | `optimizer` | `passed` | 0 | 1.03 |
+| `build_mechanistic_unified_candidate` | `optimizer` | `passed` | 0 | 2.56 |
+| `audit_mechanistic_evidence` | `attribution` | `passed` | 0 | 1.40 |
+| `analyze_mechanistic_sensitivity` | `attribution` | `passed` | 0 | 17.12 |
+| `analyze_router_expert_coupling` | `attribution` | `passed` | 0 | 0.80 |
+| `build_router_coupled_candidate` | `optimizer` | `passed` | 0 | 1.30 |
+| `analyze_router_coupled_retention_frontier` | `attribution` | `passed` | 0 | 3.67 |
 | `build_source_set_complementarity_gate` | `gate` | `passed` | 0 | 0.40 |
-| `build_average_source_set_optimizer` | `optimizer` | `passed` | 0 | 0.43 |
-| `build_qwen_source_discovery_plan` | `planner` | `passed` | 0 | 0.42 |
-| `build_qwen_source_discovery_eval_plan` | `planner` | `passed` | 0 | 0.40 |
-| `audit_qwen_source_discovery_served_model_preflight` | `gate` | `passed` | 0 | 0.46 |
-| `build_qwen_source_frontier_eval_feedback` | `gate` | `passed` | 0 | 0.44 |
-| `build_router_calibration_frontier` | `gate` | `passed` | 0 | 0.40 |
-| `collect_qwen3_moe_harc_router_stats` | `probe` | `passed` | 0 | 2.06 |
-| `solve_qwen3_moe_harc_router_delta` | `optimizer` | `passed` | 0 | 3.54 |
-| `build_qwen3_moe_harc_router_candidate` | `optimizer` | `passed` | 0 | 3.52 |
-| `build_qwen3_moe_harc_readiness_gate` | `gate` | `passed` | 0 | 0.42 |
-| `build_unified_average_optimizer` | `optimizer` | `passed` | 0 | 0.48 |
-| `build_average_method_gate_matrix` | `optimizer` | `passed` | 0 | 0.39 |
-| `build_average_trust_region_bounds` | `optimizer` | `passed` | 0 | 0.43 |
-| `analyze_mechanism_levers` | `attribution` | `passed` | 0 | 0.44 |
-| `audit_eval_bundles_smoke` | `smoke` | `passed` | 0 | 0.75 |
-| `select_unified_result_smoke` | `smoke` | `passed` | 0 | 0.41 |
+| `build_average_source_set_optimizer` | `optimizer` | `passed` | 0 | 0.44 |
+| `build_qwen_source_discovery_plan` | `planner` | `passed` | 0 | 0.47 |
+| `build_qwen_source_discovery_eval_plan` | `planner` | `passed` | 0 | 0.39 |
+| `audit_qwen_source_discovery_served_model_preflight` | `gate` | `passed` | 0 | 0.42 |
+| `build_qwen_source_frontier_eval_feedback` | `gate` | `passed` | 0 | 0.39 |
+| `build_router_calibration_frontier` | `gate` | `passed` | 0 | 0.43 |
+| `collect_qwen3_moe_harc_router_stats` | `probe` | `passed` | 0 | 1.90 |
+| `solve_qwen3_moe_harc_router_delta` | `optimizer` | `passed` | 0 | 3.57 |
+| `build_qwen3_moe_harc_router_candidate` | `optimizer` | `passed` | 0 | 3.47 |
+| `build_qwen3_moe_harc_readiness_gate` | `gate` | `passed` | 0 | 0.40 |
+| `build_unified_average_optimizer` | `optimizer` | `passed` | 0 | 0.45 |
+| `build_average_method_gate_matrix` | `optimizer` | `passed` | 0 | 0.43 |
+| `build_average_trust_region_bounds` | `optimizer` | `passed` | 0 | 0.41 |
+| `analyze_mechanism_levers` | `attribution` | `passed` | 0 | 0.41 |
+| `build_qwen_task_source_acquisition_plan` | `plan` | `passed` | 0 | 0.46 |
+| `audit_eval_bundles_smoke` | `smoke` | `passed` | 0 | 0.73 |
+| `select_unified_result_smoke` | `smoke` | `passed` | 0 | 0.43 |
 | `select_final_candidate_smoke` | `smoke` | `passed` | 0 | 0.48 |
 | `eval_budget_queue_smoke` | `smoke` | `passed` | 0 | 0.39 |
-| `build_qwen_source_frontier_eval_feedback_smoke` | `smoke` | `passed` | 0 | 0.46 |
-| `collect_qwen3_moe_harc_router_stats_smoke` | `smoke` | `passed` | 0 | 2.40 |
-| `solve_qwen3_moe_harc_router_delta_smoke` | `smoke` | `passed` | 0 | 3.82 |
-| `build_qwen3_moe_harc_router_candidate_smoke` | `smoke` | `passed` | 0 | 3.35 |
-| `build_qwen3_moe_harc_readiness_gate_smoke` | `smoke` | `passed` | 0 | 0.51 |
-| `attribute_mechanism_effects_smoke` | `smoke` | `passed` | 0 | 0.41 |
-| `build_feedback_optimizer_smoke` | `smoke` | `passed` | 0 | 0.49 |
-| `build_mechanistic_unified_candidate_smoke` | `smoke` | `passed` | 0 | 1.64 |
-| `unified_average_optimizer_ledger_smoke` | `smoke` | `passed` | 0 | 0.44 |
-| `average_method_gate_matrix_consistency_smoke` | `smoke` | `passed` | 0 | 0.39 |
-| `average_trust_region_bounds_smoke` | `smoke` | `passed` | 0 | 0.40 |
-| `collect_results` | `summary` | `passed` | 0 | 1.80 |
+| `build_qwen_source_frontier_eval_feedback_smoke` | `smoke` | `passed` | 0 | 0.40 |
+| `collect_qwen3_moe_harc_router_stats_smoke` | `smoke` | `passed` | 0 | 2.16 |
+| `solve_qwen3_moe_harc_router_delta_smoke` | `smoke` | `passed` | 0 | 3.65 |
+| `build_qwen3_moe_harc_router_candidate_smoke` | `smoke` | `passed` | 0 | 3.59 |
+| `build_qwen3_moe_harc_readiness_gate_smoke` | `smoke` | `passed` | 0 | 0.50 |
+| `attribute_mechanism_effects_smoke` | `smoke` | `passed` | 0 | 0.44 |
+| `build_feedback_optimizer_smoke` | `smoke` | `passed` | 0 | 0.47 |
+| `build_mechanistic_unified_candidate_smoke` | `smoke` | `passed` | 0 | 1.58 |
+| `unified_average_optimizer_ledger_smoke` | `smoke` | `passed` | 0 | 0.43 |
+| `average_method_gate_matrix_consistency_smoke` | `smoke` | `passed` | 0 | 0.38 |
+| `average_trust_region_bounds_smoke` | `smoke` | `passed` | 0 | 0.38 |
+| `collect_results` | `summary` | `passed` | 0 | 1.78 |
 
 ## Commands
 
@@ -122,6 +124,7 @@
 - `python scripts/build_average_method_gate_matrix.py --output-dir results/average_method_gate_matrix --optimizer-summary results/unified_average_optimizer/summary.json --optimizer-features results/unified_average_optimizer/mechanism_features.csv`
 - `python scripts/build_average_trust_region_bounds.py --output-dir results/average_trust_region_bounds`
 - `python scripts/analyze_qwen3_moe_mechanism_levers.py --eval-budget-dir results/qwen3_moe_eval_budget_plan --qwen-source-discovery-plan results/qwen_source_discovery_plan/summary.json --qwen-source-task-gap-targets results/qwen_source_discovery_plan/task_gap_targets.csv --average-source-set-optimizer results/qwen3_average_source_set_optimizer/summary.json --output-dir results/qwen3_moe_mechanism_levers`
+- `python scripts/build_qwen_task_source_acquisition_plan.py --model-registry results/qwen_target_model_registry/model_registry.csv --task-gap-targets results/qwen_source_discovery_plan/task_gap_targets.csv --task-gap-policy results/qwen3_moe_mechanism_levers/task_gap_policy.csv --output-dir results/qwen_task_source_acquisition_plan`
 - `python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke`
 - `python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke`
 - `python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke`

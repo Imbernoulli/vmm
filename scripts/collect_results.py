@@ -927,6 +927,38 @@ def summarize_qwen_source_discovery_eval_plan() -> dict[str, Any]:
     }
 
 
+def summarize_qwen_task_source_acquisition_plan() -> dict[str, Any]:
+    root = repo_path("results/qwen_task_source_acquisition_plan")
+    summary = read_json(root / "summary.json")
+    candidates = read_csv(root / "candidate_task_sources.csv")
+    jobs = read_csv(root / "vllm_source_acquisition_jobs.csv")
+    gates = read_csv(root / "source_acquisition_gates.csv")
+    top_job = clean_row(jobs.iloc[0]) if not jobs.empty else {}
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "task_gap_count": maybe_int(summary.get("task_gap_count")),
+        "candidate_source_count": maybe_int(summary.get("candidate_source_count")),
+        "eval_job_count": maybe_int(summary.get("eval_job_count")),
+        "same_shape_group_count": maybe_int(summary.get("same_shape_group_count")),
+        "top_eval_job": summary.get("top_eval_job"),
+        "top_task": summary.get("top_task"),
+        "top_same_shape_group": summary.get("top_same_shape_group"),
+        "top_eval_command": summary.get("top_eval_command"),
+        "top_job_models": top_job.get("served_models"),
+        "top_job_tasks": top_job.get("tasks"),
+        "candidate_rows": [clean_row(row) for _, row in candidates.iterrows()],
+        "job_rows": [clean_row(row) for _, row in jobs.iterrows()],
+        "gate_rows": [clean_row(row) for _, row in gates.iterrows()],
+        "report": rel(root / "report.md"),
+        "candidate_task_sources": rel(root / "candidate_task_sources.csv"),
+        "vllm_source_acquisition_jobs": rel(root / "vllm_source_acquisition_jobs.csv"),
+        "source_acquisition_gates": rel(root / "source_acquisition_gates.csv"),
+        "literature_sources": rel(root / "literature_sources.json"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_qwen_source_discovery_served_model_preflight() -> dict[str, Any]:
     root = repo_path("results/qwen_source_discovery_served_model_preflight")
     summary = read_json(root / "summary.json")
@@ -5423,6 +5455,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/qwen_source_discovery_eval_plan/report.md converts the discovered source sets into concrete vLLM jobs, task manifests, and runner commands using the runner-compatible humaneval_compile task name.",
         },
         {
+            "item": "Qwen task source acquisition plan",
+            "status": "complete",
+            "evidence": "results/qwen_task_source_acquisition_plan/report.md maps task-level source gaps to same-shape Dense and MoE source-acquisition vLLM jobs with explicit surplus gates.",
+        },
+        {
             "item": "Qwen source discovery served-model preflight",
             "status": "complete",
             "evidence": "results/qwen_source_discovery_served_model_preflight/report.md checks the planned vLLM served model ids against an endpoint model list when available and reports task-manifest readiness before downstream eval launch.",
@@ -5874,6 +5911,7 @@ def build_summary() -> dict[str, Any]:
         "qwen3_average_source_set_optimizer": summarize_qwen3_average_source_set_optimizer(),
         "qwen_source_discovery_plan": summarize_qwen_source_discovery_plan(),
         "qwen_source_discovery_eval_plan": summarize_qwen_source_discovery_eval_plan(),
+        "qwen_task_source_acquisition_plan": summarize_qwen_task_source_acquisition_plan(),
         "qwen_source_discovery_served_model_preflight": (
             summarize_qwen_source_discovery_served_model_preflight()
         ),
@@ -6224,6 +6262,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_average_source_set_optimizer = exp["qwen3_average_source_set_optimizer"]
     qwen_source_discovery_plan = exp["qwen_source_discovery_plan"]
     qwen_source_discovery_eval_plan = exp["qwen_source_discovery_eval_plan"]
+    qwen_task_source_acquisition_plan = exp["qwen_task_source_acquisition_plan"]
     qwen_source_discovery_served_model_preflight = exp[
         "qwen_source_discovery_served_model_preflight"
     ]
@@ -6668,6 +6707,18 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 "| Qwen source discovery eval plan | task-name compatibility / task names | "
                 f"{qwen_source_discovery_eval_plan['task_name_compatibility_status']} / "
                 f"{qwen_source_discovery_eval_plan['task_names']} |"
+            ),
+            (
+                "| Qwen task source acquisition plan | jobs / candidates / top group | "
+                f"{qwen_task_source_acquisition_plan['eval_job_count']} / "
+                f"{qwen_task_source_acquisition_plan['candidate_source_count']} / "
+                f"{qwen_task_source_acquisition_plan['top_task']} "
+                f"{qwen_task_source_acquisition_plan['top_same_shape_group']} |"
+            ),
+            (
+                "| Qwen task source acquisition plan | top job / tasks | "
+                f"{qwen_task_source_acquisition_plan['top_eval_job']} / "
+                f"{qwen_task_source_acquisition_plan['top_job_tasks']} |"
             ),
             (
                 "| Qwen source discovery served-model preflight | status / endpoint / missing | "

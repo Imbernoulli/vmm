@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-20T17:06:35.544974+00:00`
+Generated at: `2026-06-20T17:16:55.525178+00:00`
 
 ## Coverage
 
-Complete: `106`; partial: `1`; missing: `0`.
+Complete: `107`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -30,6 +30,7 @@ Complete: `106`; partial: `1`; missing: `0`.
 | Qwen3 average source-set surplus optimizer | complete | results/qwen3_average_source_set_optimizer/report.md compares source-frontier gain against observed merge-interference budget and keeps the top Coder+Thinking source set probe-only because its surplus is still negative. |
 | Qwen source discovery and endpoint-expansion plan | complete | results/qwen_source_discovery_plan/report.md turns the negative source-set surplus into concrete Qwen endpoint/source-set discovery queues, including Dense 7B and Qwen3 MoE route-aware scenarios. |
 | Qwen source discovery vLLM eval plan | complete | results/qwen_source_discovery_eval_plan/report.md converts the discovered source sets into concrete vLLM jobs, task manifests, and runner commands using the runner-compatible humaneval_compile task name. |
+| Qwen task source acquisition plan | complete | results/qwen_task_source_acquisition_plan/report.md maps task-level source gaps to same-shape Dense and MoE source-acquisition vLLM jobs with explicit surplus gates. |
 | Qwen source discovery served-model preflight | complete | results/qwen_source_discovery_served_model_preflight/report.md checks the planned vLLM served model ids against an endpoint model list when available and reports task-manifest readiness before downstream eval launch. |
 | Qwen source frontier eval feedback | complete | results/qwen_source_frontier_eval_feedback/report.md converts completed vLLM source-frontier metrics into endpoint frontier gain, surplus against merge-interference budget, and a final/probe/reject average gate. |
 | Qwen source frontier eval feedback smoke | complete | results/qwen_source_frontier_eval_feedback_smoke/report.md proves the feedback gate promotes positive-surplus frontiers, keeps low-surplus frontiers probe-only, and rejects source-dominated frontiers. |
@@ -173,6 +174,8 @@ Complete: `106`; partial: `1`; missing: `0`.
 | Qwen source discovery plan | task blockers / top task gap | 3 / gsm8k no_task_frontier_gain 0.069 |
 | Qwen source discovery eval plan | jobs / top job / tasks | 4 / measured_coder_thinking_source_frontier / mmlu,gsm8k,humaneval_compile |
 | Qwen source discovery eval plan | task-name compatibility / task names | passed_humaneval_compile_task_name / ['gsm8k', 'humaneval_compile', 'mmlu', 'safety'] |
+| Qwen task source acquisition plan | jobs / candidates / top group | 8 / 35 / gsm8k qwen3_moe_30b_a3b |
+| Qwen task source acquisition plan | top job / tasks | gsm8k_qwen3_moe_30b_a3b_source_acquisition / gsm8k,mmlu |
 | Qwen source discovery served-model preflight | status / endpoint / missing | static_preflight_ready_waiting_for_endpoint_model_list / not_requested / 0 |
 | Qwen source discovery served-model preflight | required models / manifest ready | 12 / 4/8 |
 | Qwen source frontier eval feedback | status / scored / final | awaiting_vllm_source_frontier_results / 0/4 / 0 |
@@ -333,8 +336,8 @@ Complete: `106`; partial: `1`; missing: `0`.
 | Qwen3 MoE router-coupled retention frontier | gate / constrained / stress | direct_router_boundary_term_not_default / router_q0.85_s0.00020_cap0.00010 / router_q0.75_s0.01000_cap0.01000 |
 | Qwen3 MoE router-coupled retention frontier | pass default / effect fraction / action | 146/770 / 0.0103 / keep_router_fragility_inside_BHI_and_keep_direct_extra_shrink_as_ablation |
 | Qwen3 MoE mechanistic unified smoke | status / passed cases | passed / 4/4 |
-| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | passed / 44/44 / 0/14 |
-| Qwen3 MoE post-eval refresh | selection / final selection / attribution scored / plan steps | awaiting_source_eval / awaiting_source_eval / 0/10 / 44/44 |
+| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | passed / 45/45 / 0/14 |
+| Qwen3 MoE post-eval refresh | selection / final selection / attribution scored / plan steps | awaiting_source_eval / awaiting_source_eval / 0/10 / 45/45 |
 | Qwen3 MoE post-eval refresh | feedback status / scored tasks / changed groups | awaiting_eval / 0/4 / 0 |
 | Qwen3 MoE post-eval refresh | mechanistic status / retention / hard-cap violations | mechanistic_unified_candidate_ready / 0.965 / 0 |
 | Qwen3 MoE post-eval refresh | sensitivity objective / scale | no_category_prior 0.003 / no_subspace_conflict 0.0086 |

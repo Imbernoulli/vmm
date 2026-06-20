@@ -437,6 +437,22 @@ def build_steps(args: argparse.Namespace) -> list[dict[str, Any]]:
                 str(args.mechanism_levers_dir),
             ],
         },
+        {
+            "step": "build_qwen_task_source_acquisition_plan",
+            "kind": "plan",
+            "command": [
+                py,
+                "scripts/build_qwen_task_source_acquisition_plan.py",
+                "--model-registry",
+                "results/qwen_target_model_registry/model_registry.csv",
+                "--task-gap-targets",
+                str(args.qwen_source_discovery_plan_dir / "task_gap_targets.csv"),
+                "--task-gap-policy",
+                str(args.mechanism_levers_dir / "task_gap_policy.csv"),
+                "--output-dir",
+                str(args.qwen_task_source_acquisition_plan_dir),
+            ],
+        },
     ]
     if args.include_smoke:
         steps.extend(
@@ -691,6 +707,9 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
         repo_path(args.average_trust_region_bounds_smoke_dir) / "summary.json"
     )
     mechanism_levers = read_json(repo_path(args.mechanism_levers_dir) / "summary.json")
+    qwen_task_source_acquisition = read_json(
+        repo_path(args.qwen_task_source_acquisition_plan_dir) / "summary.json"
+    )
     final_current = final_selection.get("current_selection") or {}
     optimizer_moe = unified_optimizer.get("moe") or {}
     optimizer_top = unified_optimizer.get("top_next_experiment") or {}
@@ -1069,6 +1088,19 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
         "mechanism_levers_top_task_gap_policy": mechanism_levers.get(
             "top_task_gap_average_policy"
         ),
+        "qwen_task_source_acquisition_status": qwen_task_source_acquisition.get("status"),
+        "qwen_task_source_acquisition_jobs": qwen_task_source_acquisition.get("eval_job_count"),
+        "qwen_task_source_acquisition_candidates": qwen_task_source_acquisition.get(
+            "candidate_source_count"
+        ),
+        "qwen_task_source_acquisition_top_job": qwen_task_source_acquisition.get("top_eval_job"),
+        "qwen_task_source_acquisition_top_task": qwen_task_source_acquisition.get("top_task"),
+        "qwen_task_source_acquisition_top_group": qwen_task_source_acquisition.get(
+            "top_same_shape_group"
+        ),
+        "qwen_task_source_acquisition_top_command": qwen_task_source_acquisition.get(
+            "top_eval_command"
+        ),
     }
 
 
@@ -1121,6 +1153,7 @@ def build_report(summary: dict[str, Any]) -> str:
         f"- Average trust-region bounds: `{downstream.get('average_trust_region_bounds_status', 'n/a')}` (`passed={downstream.get('average_trust_region_bounds_passed', 'n/a')}`, `rejected={downstream.get('average_trust_region_bounds_rejected', 'n/a')}`, `waiting={downstream.get('average_trust_region_bounds_waiting', 'n/a')}`); dense lambda bound `{downstream.get('dense_local_task_vector_lambda_bound', 'n/a')}`, router midpoint over safe bound `{downstream.get('moe_direct_router_average_over_safe_bound', 'n/a')}`",
         f"- Average trust-region smoke: `{downstream.get('average_trust_region_bounds_smoke_status', 'n/a')}` (`{downstream.get('average_trust_region_bounds_smoke_passed', 'n/a')}/{downstream.get('average_trust_region_bounds_smoke_assertions', 'n/a')}` assertions)",
         f"- Mechanism levers: `{downstream.get('mechanism_levers_status', 'n/a')}` (top `{downstream.get('mechanism_levers_top_lever', 'n/a')}` -> `{downstream.get('mechanism_levers_top_next_test', 'n/a')}`, task blockers `{downstream.get('mechanism_levers_task_gap_blockers', 'n/a')}`, top task gap `{downstream.get('mechanism_levers_top_task_gap', 'n/a')}` / `{downstream.get('mechanism_levers_top_task_gap_status', 'n/a')}` needs `{downstream.get('mechanism_levers_top_task_gap_needed', 'n/a')}`)",
+        f"- Qwen task source acquisition: `{downstream.get('qwen_task_source_acquisition_status', 'n/a')}` (`{downstream.get('qwen_task_source_acquisition_jobs', 'n/a')}` jobs, `{downstream.get('qwen_task_source_acquisition_candidates', 'n/a')}` candidates, top `{downstream.get('qwen_task_source_acquisition_top_job', 'n/a')}` / `{downstream.get('qwen_task_source_acquisition_top_group', 'n/a')}`)",
         "",
         "| step | kind | status | returncode | seconds |",
         "| --- | --- | --- | ---: | ---: |",
@@ -1291,6 +1324,11 @@ def parse_args() -> argparse.Namespace:
         default=Path("results/average_trust_region_bounds"),
     )
     parser.add_argument("--mechanism-levers-dir", type=Path, default=Path("results/qwen3_moe_mechanism_levers"))
+    parser.add_argument(
+        "--qwen-task-source-acquisition-plan-dir",
+        type=Path,
+        default=Path("results/qwen_task_source_acquisition_plan"),
+    )
     parser.add_argument("--audit-smoke-dir", type=Path, default=Path("results/qwen3_moe_eval_bundle_audit_smoke"))
     parser.add_argument("--selection-smoke-dir", type=Path, default=Path("results/qwen3_moe_unified_result_selection_smoke"))
     parser.add_argument(

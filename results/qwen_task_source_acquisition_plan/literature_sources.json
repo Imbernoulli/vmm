@@ -1,0 +1,26 @@
+[
+  {
+    "key": "model_soups",
+    "mechanism": "Weight averaging is most plausible when fine-tuned models occupy a shared low-loss basin and source endpoints have complementary validation signal.",
+    "title": "Model soups: averaging weights of multiple fine-tuned models improves accuracy without increasing inference time",
+    "url": "https://arxiv.org/abs/2203.05482"
+  },
+  {
+    "key": "ties",
+    "mechanism": "Sign and redundancy interference mean weak source complementarity should block final average promotion before delta surgery.",
+    "title": "TIES-Merging: Resolving Interference When Merging Models",
+    "url": "https://arxiv.org/abs/2306.01708"
+  },
+  {
+    "key": "expert_merging",
+    "mechanism": "For MoE, source and task evidence should decide which same-shape expert families deserve layer/chunk coefficient calibration.",
+    "title": "Expert Merging: Model Merging with Unsupervised Expert Alignment and Importance-Guided Layer Chunking",
+    "url": "https://arxiv.org/abs/2509.25712"
+  },
+  {
+    "key": "harc",
+    "mechanism": "Router calibration is useful only after source/candidate eval shows the average is worth repairing.",
+    "title": "When Model Merging Breaks Routing: Training-Free Calibration for MoE",
+    "url": "https://arxiv.org/abs/2606.03391"
+  }
+]

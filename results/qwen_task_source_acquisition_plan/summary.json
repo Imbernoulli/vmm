@@ -1,0 +1,21 @@
+{
+  "candidate_source_count": 35,
+  "eval_job_count": 8,
+  "literature_count": 4,
+  "outputs": {
+    "candidate_task_sources": "results/qwen_task_source_acquisition_plan/candidate_task_sources.csv",
+    "literature_sources": "results/qwen_task_source_acquisition_plan/literature_sources.json",
+    "report": "results/qwen_task_source_acquisition_plan/report.md",
+    "source_acquisition_gates": "results/qwen_task_source_acquisition_plan/source_acquisition_gates.csv",
+    "summary": "results/qwen_task_source_acquisition_plan/summary.json",
+    "vllm_source_acquisition_jobs": "results/qwen_task_source_acquisition_plan/vllm_source_acquisition_jobs.csv"
+  },
+  "same_shape_group_count": 3,
+  "schema_version": 1,
+  "status": "task_source_acquisition_plan_ready",
+  "task_gap_count": 3,
+  "top_eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://HOST:PORT/v1 --models Qwen/Qwen3-30B-A3B-Thinking-2507,Qwen/Qwen3-30B-A3B,Qwen/Qwen3-30B-A3B-Base --tasks gsm8k,mmlu --example-source datasets --max-examples 256 --subjects all --task-manifest results/qwen_task_source_acquisition_plan/task_manifests/gsm8k_qwen3_moe_30b_a3b_source_acquisition_task_manifest.json --create-task-manifest-if-missing --output-dir results/qwen_task_source_acquisition_plan/vllm_eval/gsm8k_qwen3_moe_30b_a3b_source_acquisition",
+  "top_eval_job": "gsm8k_qwen3_moe_30b_a3b_source_acquisition",
+  "top_same_shape_group": "qwen3_moe_30b_a3b",
+  "top_task": "gsm8k"
+}

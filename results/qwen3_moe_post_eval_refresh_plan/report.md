@@ -4,7 +4,7 @@
 
 - Status: `planned`
 - Plan only: `True`
-- Steps passed: `0/44`
+- Steps passed: `0/45`
 - Audit: `n/a` (`n/a/n/a` usable)
 - Selection: `n/a` -> `n/a`
 - Final selection: `n/a` -> `n/a` (`n/a/n/a` eligible)
@@ -44,6 +44,7 @@
 - Average trust-region bounds: `n/a` (`passed=n/a`, `rejected=n/a`, `waiting=n/a`); dense lambda bound `n/a`, router midpoint over safe bound `n/a`
 - Average trust-region smoke: `n/a` (`n/a/n/a` assertions)
 - Mechanism levers: `n/a` (top `n/a` -> `n/a`, task blockers `n/a`, top task gap `n/a` / `n/a` needs `n/a`)
+- Qwen task source acquisition: `n/a` (`n/a` jobs, `n/a` candidates, top `n/a` / `n/a`)
 
 | step | kind | status | returncode | seconds |
 | --- | --- | --- | ---: | ---: |
@@ -75,6 +76,7 @@
 | `build_average_method_gate_matrix` | `optimizer` | `planned` | None | 0.00 |
 | `build_average_trust_region_bounds` | `optimizer` | `planned` | None | 0.00 |
 | `analyze_mechanism_levers` | `attribution` | `planned` | None | 0.00 |
+| `build_qwen_task_source_acquisition_plan` | `plan` | `planned` | None | 0.00 |
 | `audit_eval_bundles_smoke` | `smoke` | `planned` | None | 0.00 |
 | `select_unified_result_smoke` | `smoke` | `planned` | None | 0.00 |
 | `select_final_candidate_smoke` | `smoke` | `planned` | None | 0.00 |
@@ -122,6 +124,7 @@
 - `python scripts/build_average_method_gate_matrix.py --output-dir results/average_method_gate_matrix --optimizer-summary results/unified_average_optimizer/summary.json --optimizer-features results/unified_average_optimizer/mechanism_features.csv`
 - `python scripts/build_average_trust_region_bounds.py --output-dir results/average_trust_region_bounds`
 - `python scripts/analyze_qwen3_moe_mechanism_levers.py --eval-budget-dir results/qwen3_moe_eval_budget_plan --qwen-source-discovery-plan results/qwen_source_discovery_plan/summary.json --qwen-source-task-gap-targets results/qwen_source_discovery_plan/task_gap_targets.csv --average-source-set-optimizer results/qwen3_average_source_set_optimizer/summary.json --output-dir results/qwen3_moe_mechanism_levers`
+- `python scripts/build_qwen_task_source_acquisition_plan.py --model-registry results/qwen_target_model_registry/model_registry.csv --task-gap-targets results/qwen_source_discovery_plan/task_gap_targets.csv --task-gap-policy results/qwen3_moe_mechanism_levers/task_gap_policy.csv --output-dir results/qwen_task_source_acquisition_plan`
 - `python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke`
 - `python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke`
 - `python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke`
