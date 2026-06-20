@@ -148,9 +148,9 @@
   "schema_version": 1,
   "status": "built_waiting_for_qwen3_vllm_eval",
   "top_next_experiment": {
-    "command": "results/qwen3_moe_eval_budget_plan/run_eval_budget.sh all",
+    "command": "results/qwen3_moe_eval_budget_plan/run_eval_budget.sh final",
     "experiment": "budgeted_qwen3_moe_downstream_eval",
-    "preflight_command": "results/qwen3_moe_eval_budget_plan/run_eval_budget.sh preflight",
+    "preflight_command": "results/qwen3_moe_eval_budget_plan/run_eval_budget.sh preflight final",
     "priority_score": 1.0,
     "status": "blocked_on_gpu_vllm"
   }

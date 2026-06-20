@@ -5,13 +5,14 @@
 - Status: `mechanism_leverage_map_ready`
 - Lever count: `9`
 - Top lever: `source_and_candidate_downstream_eval`
+- Top next test: `results/qwen3_moe_eval_budget_plan/run_eval_budget.sh final`
 - Fine calibration layers: `12,13,17,20,21,22,23,26`
 
 ## Levers
 
 | mechanism | priority | confidence | evidence | action |
 | --- | ---: | --- | --- | --- |
-| `source_and_candidate_downstream_eval` | 0.98 | `high` | examples 64 -> 384; extra prompts 15360 | run budgeted one-model-at-a-time vLLM eval before accepting any average |
+| `source_and_candidate_downstream_eval` | 0.98 | `high` | examples 64 -> 384; extra prompts 17920 | run budgeted one-model-at-a-time vLLM eval before accepting any average |
 | `router_direct_movement` | 0.94 | `high` | allowed layers 0/48; min top1 0.0689655169844627; router rel-norm 0.7392916983133861 | freeze router for same-shape candidate; only consider calibrated router deltas |
 | `routed_expert_tail_cap_0_75` | 0.86 | `high` | route->audit removes >0.75 by 675 and >1.0 by 182 | keep file-level/audit-level relative-delta cap as a mandatory safety gate |
 | `risk_penalty_complexity` | 0.83 | `medium_high` | risk flag ablation tail reductions 0; summed retention loss 0.00525858; searched no-gt-0.65 rel norm 0.2475948491291486 | prefer the simpler uniform 0.65 cap unless downstream eval proves risk penalties preserve task behavior |
@@ -25,7 +26,7 @@
 
 | rank | mechanism | test or command |
 | ---: | --- | --- |
-| 1 | `source_and_candidate_downstream_eval` | `results/qwen3_moe_eval_budget_plan/run_eval_budget.sh all` |
+| 1 | `source_and_candidate_downstream_eval` | `results/qwen3_moe_eval_budget_plan/run_eval_budget.sh final` |
 | 2 | `router_direct_movement` | `route-KD/HARC-style router calibration after frozen-router baseline and sources finish vLLM eval` |
 | 3 | `routed_expert_tail_cap_0_75` | `compare route_guarded vs audit_gated under budgeted vLLM eval` |
 | 4 | `risk_penalty_complexity` | `budgeted paired vLLM comparison of tail_trimmed vs searched_no_gt065 vs layer_chunk vs unified mechanism` |

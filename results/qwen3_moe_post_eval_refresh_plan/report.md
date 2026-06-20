@@ -4,11 +4,12 @@
 
 - Status: `planned`
 - Plan only: `True`
-- Steps passed: `0/21`
+- Steps passed: `0/23`
 - Audit: `n/a` (`n/a/n/a` usable)
 - Selection: `n/a` -> `n/a`
 - Final selection: `n/a` -> `n/a` (`n/a/n/a` eligible)
 - Candidate trust-region gate: `n/a` (`n/a/n/a` final-selectable, `n/a` ablation-only)
+- Eval budget queue: `n/a` (default `n/a`, final `n/a` methods / `n/a` prompts, max examples `n/a`)
 - Attribution: `n/a` (`n/a/n/a` scored)
 - Feedback optimizer: `n/a` (`n/a/n/a` scored, `n/a` changed groups)
 - Mechanistic unified: `n/a` -> `n/a` (`retention=n/a`, `violations=n/a`)
@@ -20,12 +21,14 @@
 - Average method gate smoke: `n/a` (`n/a/n/a` assertions)
 - Average trust-region bounds: `n/a` (`passed=n/a`, `rejected=n/a`, `waiting=n/a`); dense lambda bound `n/a`, router midpoint over safe bound `n/a`
 - Average trust-region smoke: `n/a` (`n/a/n/a` assertions)
+- Mechanism levers: `n/a` (top `n/a` -> `n/a`)
 
 | step | kind | status | returncode | seconds |
 | --- | --- | --- | ---: | ---: |
+| `build_candidate_trust_region_gate` | `gate` | `planned` | None | 0.00 |
+| `plan_eval_budget` | `planner` | `planned` | None | 0.00 |
 | `audit_eval_bundles` | `gate` | `planned` | None | 0.00 |
 | `select_unified_result` | `selector` | `planned` | None | 0.00 |
-| `build_candidate_trust_region_gate` | `gate` | `planned` | None | 0.00 |
 | `select_final_candidate` | `selector` | `planned` | None | 0.00 |
 | `attribute_mechanism_effects` | `attribution` | `planned` | None | 0.00 |
 | `build_feedback_optimizer` | `optimizer` | `planned` | None | 0.00 |
@@ -34,6 +37,7 @@
 | `build_unified_average_optimizer` | `optimizer` | `planned` | None | 0.00 |
 | `build_average_method_gate_matrix` | `optimizer` | `planned` | None | 0.00 |
 | `build_average_trust_region_bounds` | `optimizer` | `planned` | None | 0.00 |
+| `analyze_mechanism_levers` | `attribution` | `planned` | None | 0.00 |
 | `audit_eval_bundles_smoke` | `smoke` | `planned` | None | 0.00 |
 | `select_unified_result_smoke` | `smoke` | `planned` | None | 0.00 |
 | `select_final_candidate_smoke` | `smoke` | `planned` | None | 0.00 |
@@ -47,9 +51,10 @@
 
 ## Commands
 
+- `python scripts/build_qwen3_moe_candidate_trust_region_gate.py --gate-plan results/qwen3_moe_mechanism_eval_gate/eval_gate_plan.csv --output-dir results/qwen3_moe_candidate_trust_region_gate`
+- `python scripts/plan_qwen3_moe_eval_budget.py --gate-dir results/qwen3_moe_mechanism_eval_gate --candidate-trust-gate results/qwen3_moe_candidate_trust_region_gate/candidate_trust_region_gate.csv --output-dir results/qwen3_moe_eval_budget_plan`
 - `python scripts/audit_qwen3_moe_eval_bundle.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_eval_bundle_audit`
 - `python scripts/select_qwen3_moe_unified_result.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_unified_result_selection`
-- `python scripts/build_qwen3_moe_candidate_trust_region_gate.py --gate-plan results/qwen3_moe_mechanism_eval_gate/eval_gate_plan.csv --output-dir results/qwen3_moe_candidate_trust_region_gate`
 - `python scripts/select_qwen3_moe_final_candidate.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_final_candidate_selection --candidate-trust-gate results/qwen3_moe_candidate_trust_region_gate/candidate_trust_region_gate.csv`
 - `python scripts/attribute_qwen3_moe_mechanism_effects.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_mechanism_effect_attribution`
 - `python scripts/build_qwen3_moe_feedback_optimizer.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_feedback_optimizer`
@@ -58,6 +63,7 @@
 - `python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer`
 - `python scripts/build_average_method_gate_matrix.py --output-dir results/average_method_gate_matrix --optimizer-summary results/unified_average_optimizer/summary.json --optimizer-features results/unified_average_optimizer/mechanism_features.csv`
 - `python scripts/build_average_trust_region_bounds.py --output-dir results/average_trust_region_bounds`
+- `python scripts/analyze_qwen3_moe_mechanism_levers.py --eval-budget-dir results/qwen3_moe_eval_budget_plan --output-dir results/qwen3_moe_mechanism_levers`
 - `python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke`
 - `python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke`
 - `python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke`

@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-20T11:49:46.742079+00:00`
+Generated at: `2026-06-20T11:55:48.809132+00:00`
 
 ## Coverage
 
@@ -230,7 +230,7 @@ Complete: `94`; partial: `1`; missing: `0`.
 | Qwen3 MoE adaptive eval schedule smoke | status / assertions | passed / 17/17 |
 | Qwen3 MoE eval manifest preflight | status / tasks sufficient / methods aligned | task_manifest_ready / 4/4 / 14/14 |
 | Qwen3 MoE eval budget plan | router active / ready / pending / plan-pruned caps | 2 / 0 / 2 / 2 |
-| Qwen3 MoE mechanism levers | top lever / priority / next test | source_and_candidate_downstream_eval / 0.98 / results/qwen3_moe_eval_budget_plan/run_eval_budget.sh all |
+| Qwen3 MoE mechanism levers | top lever / priority / next test | source_and_candidate_downstream_eval / 0.98 / results/qwen3_moe_eval_budget_plan/run_eval_budget.sh final |
 | Qwen3 MoE mechanism levers | fine calibration layers / top layer score | 12,13,17,20,21,22,23,26 / 17:0.905 |
 | Qwen3 MoE mechanism levers | expert geometry used / top geometry layer | True / 17:0.714 |
 | Qwen3 MoE mechanism levers | expert subspace used / high / extra-scaled / top layer | True / 1323 / 17 / 17 |
@@ -292,8 +292,8 @@ Complete: `94`; partial: `1`; missing: `0`.
 | Qwen3 MoE mechanistic evidence audit | gradient agree / objective improved / hard-cap bound | 1.000 / 0.945 / 319 |
 | Qwen3 MoE mechanistic evidence audit | dominant binding / suppressing features | cost_gradient_shrink / curvature_score, feature_router_instability, feature_expert_internal_geometry |
 | Qwen3 MoE mechanistic unified smoke | status / passed cases | passed / 4/4 |
-| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | passed / 21/21 / 0/12 |
-| Qwen3 MoE post-eval refresh | selection / final selection / attribution scored / plan steps | awaiting_source_eval / awaiting_source_eval / 0/10 / 21/21 |
+| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | passed / 23/23 / 0/12 |
+| Qwen3 MoE post-eval refresh | selection / final selection / attribution scored / plan steps | awaiting_source_eval / awaiting_source_eval / 0/10 / 23/23 |
 | Qwen3 MoE post-eval refresh | feedback status / scored tasks / changed groups | awaiting_eval / 0/4 / 0 |
 | Qwen3 MoE post-eval refresh | mechanistic status / retention / hard-cap violations | mechanistic_unified_candidate_ready / 0.965 / 0 |
 | Qwen3 MoE router move gate | status / action / allowed layers | router_move_rejected_freeze_router / freeze_router / 0/48 |

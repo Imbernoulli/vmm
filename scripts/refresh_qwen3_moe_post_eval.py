@@ -98,6 +98,32 @@ def build_steps(args: argparse.Namespace) -> list[dict[str, Any]]:
     py = "python"
     steps = [
         {
+            "step": "build_candidate_trust_region_gate",
+            "kind": "gate",
+            "command": [
+                py,
+                "scripts/build_qwen3_moe_candidate_trust_region_gate.py",
+                "--gate-plan",
+                str(args.gate_dir / "eval_gate_plan.csv"),
+                "--output-dir",
+                str(args.candidate_trust_region_gate_dir),
+            ],
+        },
+        {
+            "step": "plan_eval_budget",
+            "kind": "planner",
+            "command": [
+                py,
+                "scripts/plan_qwen3_moe_eval_budget.py",
+                "--gate-dir",
+                str(args.gate_dir),
+                "--candidate-trust-gate",
+                str(args.candidate_trust_region_gate_dir / "candidate_trust_region_gate.csv"),
+                "--output-dir",
+                str(args.eval_budget_dir),
+            ],
+        },
+        {
             "step": "audit_eval_bundles",
             "kind": "gate",
             "command": [
@@ -119,18 +145,6 @@ def build_steps(args: argparse.Namespace) -> list[dict[str, Any]]:
                 str(args.gate_dir),
                 "--output-dir",
                 str(args.selection_dir),
-            ],
-        },
-        {
-            "step": "build_candidate_trust_region_gate",
-            "kind": "gate",
-            "command": [
-                py,
-                "scripts/build_qwen3_moe_candidate_trust_region_gate.py",
-                "--gate-plan",
-                str(args.gate_dir / "eval_gate_plan.csv"),
-                "--output-dir",
-                str(args.candidate_trust_region_gate_dir),
             ],
         },
         {
@@ -229,6 +243,18 @@ def build_steps(args: argparse.Namespace) -> list[dict[str, Any]]:
                 "scripts/build_average_trust_region_bounds.py",
                 "--output-dir",
                 str(args.average_trust_region_bounds_dir),
+            ],
+        },
+        {
+            "step": "analyze_mechanism_levers",
+            "kind": "attribution",
+            "command": [
+                py,
+                "scripts/analyze_qwen3_moe_mechanism_levers.py",
+                "--eval-budget-dir",
+                str(args.eval_budget_dir),
+                "--output-dir",
+                str(args.mechanism_levers_dir),
             ],
         },
     ]
@@ -357,6 +383,7 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
     selection = read_json(repo_path(args.selection_dir) / "summary.json")
     final_selection = read_json(repo_path(args.final_selection_dir) / "summary.json")
     candidate_trust_region_gate = read_json(repo_path(args.candidate_trust_region_gate_dir) / "summary.json")
+    eval_budget = read_json(repo_path(args.eval_budget_dir) / "summary.json")
     attribution = read_json(repo_path(args.attribution_dir) / "summary.json")
     feedback = read_json(repo_path(args.feedback_dir) / "summary.json")
     mechanistic = read_json(repo_path(args.mechanistic_dir) / "summary.json")
@@ -371,6 +398,7 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
     average_trust_region_bounds_smoke = read_json(
         repo_path(args.average_trust_region_bounds_smoke_dir) / "summary.json"
     )
+    mechanism_levers = read_json(repo_path(args.mechanism_levers_dir) / "summary.json")
     final_current = final_selection.get("current_selection") or {}
     optimizer_moe = unified_optimizer.get("moe") or {}
     optimizer_top = unified_optimizer.get("top_next_experiment") or {}
@@ -394,6 +422,12 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
         "candidate_trust_region_ablation_only": candidate_trust_region_gate.get(
             "ablation_only_candidate_count"
         ),
+        "eval_budget_status": eval_budget.get("status"),
+        "eval_budget_default_runner_request": eval_budget.get("default_runner_request"),
+        "eval_budget_final_core_method_count": eval_budget.get("final_core_method_count"),
+        "eval_budget_final_core_prompt_budget": eval_budget.get("final_core_recommended_prompt_budget"),
+        "eval_budget_mechanism_ablation_method_count": eval_budget.get("mechanism_ablation_method_count"),
+        "eval_budget_recommended_max_examples": eval_budget.get("recommended_max_examples"),
         "attribution_status": attribution.get("status"),
         "attribution_scored_transition_count": attribution.get("scored_transition_count"),
         "attribution_transition_count": attribution.get("transition_count"),
@@ -449,6 +483,9 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
         "average_trust_region_bounds_smoke_assertions": average_trust_region_bounds_smoke.get(
             "assertion_count"
         ),
+        "mechanism_levers_status": mechanism_levers.get("status"),
+        "mechanism_levers_top_lever": mechanism_levers.get("top_lever"),
+        "mechanism_levers_top_next_test": mechanism_levers.get("top_lever_next_test"),
     }
 
 
@@ -466,6 +503,7 @@ def build_report(summary: dict[str, Any]) -> str:
         f"- Selection: `{downstream.get('selection_status', 'n/a')}` -> `{downstream.get('selected_method', 'n/a')}`",
         f"- Final selection: `{downstream.get('final_selection_status', 'n/a')}` -> `{downstream.get('final_selected_method', 'n/a')}` (`{downstream.get('final_eligible_candidate_count', 'n/a')}/{downstream.get('final_candidate_count', 'n/a')}` eligible)",
         f"- Candidate trust-region gate: `{downstream.get('candidate_trust_region_gate_status', 'n/a')}` (`{downstream.get('candidate_trust_region_final_selectable', 'n/a')}/{downstream.get('candidate_trust_region_candidates', 'n/a')}` final-selectable, `{downstream.get('candidate_trust_region_ablation_only', 'n/a')}` ablation-only)",
+        f"- Eval budget queue: `{downstream.get('eval_budget_status', 'n/a')}` (default `{downstream.get('eval_budget_default_runner_request', 'n/a')}`, final `{downstream.get('eval_budget_final_core_method_count', 'n/a')}` methods / `{downstream.get('eval_budget_final_core_prompt_budget', 'n/a')}` prompts, max examples `{downstream.get('eval_budget_recommended_max_examples', 'n/a')}`)",
         f"- Attribution: `{downstream.get('attribution_status', 'n/a')}` (`{downstream.get('attribution_scored_transition_count', 'n/a')}/{downstream.get('attribution_transition_count', 'n/a')}` scored)",
         f"- Feedback optimizer: `{downstream.get('feedback_status', 'n/a')}` (`{downstream.get('feedback_scored_task_count', 'n/a')}/{downstream.get('feedback_task_count', 'n/a')}` scored, `{downstream.get('feedback_changed_group_count', 'n/a')}` changed groups)",
         f"- Mechanistic unified: `{downstream.get('mechanistic_status', 'n/a')}` -> `{downstream.get('mechanistic_selected_candidate', 'n/a')}` (`retention={downstream.get('mechanistic_retention', 'n/a')}`, `violations={downstream.get('mechanistic_hard_cap_violations', 'n/a')}`)",
@@ -477,6 +515,7 @@ def build_report(summary: dict[str, Any]) -> str:
         f"- Average method gate smoke: `{downstream.get('average_method_gate_smoke_status', 'n/a')}` (`{downstream.get('average_method_gate_smoke_passed', 'n/a')}/{downstream.get('average_method_gate_smoke_assertions', 'n/a')}` assertions)",
         f"- Average trust-region bounds: `{downstream.get('average_trust_region_bounds_status', 'n/a')}` (`passed={downstream.get('average_trust_region_bounds_passed', 'n/a')}`, `rejected={downstream.get('average_trust_region_bounds_rejected', 'n/a')}`, `waiting={downstream.get('average_trust_region_bounds_waiting', 'n/a')}`); dense lambda bound `{downstream.get('dense_local_task_vector_lambda_bound', 'n/a')}`, router midpoint over safe bound `{downstream.get('moe_direct_router_average_over_safe_bound', 'n/a')}`",
         f"- Average trust-region smoke: `{downstream.get('average_trust_region_bounds_smoke_status', 'n/a')}` (`{downstream.get('average_trust_region_bounds_smoke_passed', 'n/a')}/{downstream.get('average_trust_region_bounds_smoke_assertions', 'n/a')}` assertions)",
+        f"- Mechanism levers: `{downstream.get('mechanism_levers_status', 'n/a')}` (top `{downstream.get('mechanism_levers_top_lever', 'n/a')}` -> `{downstream.get('mechanism_levers_top_next_test', 'n/a')}`)",
         "",
         "| step | kind | status | returncode | seconds |",
         "| --- | --- | --- | ---: | ---: |",
@@ -538,6 +577,7 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=Path("results/qwen3_moe_candidate_trust_region_gate"),
     )
+    parser.add_argument("--eval-budget-dir", type=Path, default=Path("results/qwen3_moe_eval_budget_plan"))
     parser.add_argument("--attribution-dir", type=Path, default=Path("results/qwen3_moe_mechanism_effect_attribution"))
     parser.add_argument("--feedback-dir", type=Path, default=Path("results/qwen3_moe_feedback_optimizer"))
     parser.add_argument(
@@ -565,6 +605,7 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=Path("results/average_trust_region_bounds"),
     )
+    parser.add_argument("--mechanism-levers-dir", type=Path, default=Path("results/qwen3_moe_mechanism_levers"))
     parser.add_argument("--audit-smoke-dir", type=Path, default=Path("results/qwen3_moe_eval_bundle_audit_smoke"))
     parser.add_argument("--selection-smoke-dir", type=Path, default=Path("results/qwen3_moe_unified_result_selection_smoke"))
     parser.add_argument(

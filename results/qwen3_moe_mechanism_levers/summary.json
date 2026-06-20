@@ -20,6 +20,7 @@
   "top_expert_geometry_layer": 17,
   "top_expert_geometry_layer_risk": 0.7143063688618061,
   "top_lever": "source_and_candidate_downstream_eval",
+  "top_lever_next_test": "results/qwen3_moe_eval_budget_plan/run_eval_budget.sh final",
   "top_lever_priority": 0.98,
   "top_subspace_conflict_layer": 17
 }
