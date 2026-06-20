@@ -5,8 +5,8 @@
 - Gate status: `awaiting_remote_vllm_eval`
 - Local GPU available: `False` (`nvidia_smi_failed`)
 - Source endpoints: `2`
-- Same-shape candidates: `7`
-- Ready-to-host rows: `9`
+- Same-shape candidates: `8`
+- Ready-to-host rows: `10`
 - Completed Qwen3 eval rows: `0`
 - Current selection status: `awaiting_source_eval`
 - Selected method: `None`
@@ -45,8 +45,9 @@ cap_g = f(route_load, category_specialization, router_fragility, delta_audit_tai
 | `shared_attention_ablation` | `qwen3_moe_trust_region_candidate` -> `qwen3_moe_expert_only_trust_region_candidate` | `awaiting_eval` |  |  | 0.003 | 0.000 | Should the unified MoE rule move shared attention, or keep it fixed? |
 | `second_stage_tail_trim` | `qwen3_moe_expert_only_trust_region_candidate` -> `qwen3_moe_tail_trimmed_expert_only_candidate` | `awaiting_eval` |  |  | 0.003 | 14.000 | Does the stricter 0.65 routed-expert tail cap remove risk without removing ability? |
 | `risk_penalty_simplification` | `qwen3_moe_tail_trimmed_expert_only_candidate` -> `qwen3_moe_searched_no_gt065_max_retention_candidate` | `awaiting_eval` |  |  | -0.004 | 0.000 | Are hand-built risk penalties necessary after a uniform 0.65 expert cap is enforced? |
+| `layer_chunk_sensitivity` | `qwen3_moe_searched_no_gt065_max_retention_candidate` -> `qwen3_moe_layer_chunk_candidate` | `awaiting_eval` |  |  | 0.004 | 0.000 | Do importance-guided layer/chunk coefficients improve the unified MoE rule beyond a uniform expert cap? |
 | `candidate_vs_sources` | `source_qwen3_30b_instruct` -> `qwen3_moe_unified_mechanism_candidate` | `awaiting_eval` |  |  |  |  | Does any same-shape candidate avoid Pareto domination by the two source endpoints? |
-| `unified_rule_alias_validation` | `qwen3_moe_searched_no_gt065_max_retention_candidate` -> `qwen3_moe_unified_mechanism_candidate` | `mechanism_supported` |  |  | 0.000 | 0.000 | Did the unified risk/retention optimizer recover the same materialized rule as the validated searched no-gt-0.65 checkpoint? |
+| `unified_rule_alias_validation` | `qwen3_moe_searched_no_gt065_max_retention_candidate` -> `qwen3_moe_unified_mechanism_candidate` | `awaiting_eval` |  |  |  |  | Did the unified risk/retention optimizer recover the same materialized rule as the validated searched no-gt-0.65 checkpoint? |
 
 ## Eval Gate Plan
 
@@ -60,7 +61,8 @@ cap_g = f(route_load, category_specialization, router_fragility, delta_audit_tai
 | 5 | `qwen3_moe_expert_only_trust_region_candidate` | `candidate` | `ready_to_host` | `not_run` |  |  | 14.000 | 0.000 | trust-region experts + frozen shared attention + frozen router |
 | 6 | `qwen3_moe_tail_trimmed_expert_only_candidate` | `candidate` | `ready_to_host` | `not_run` |  |  | 0.000 | 0.000 | expert-only + second-stage routed-expert tail cap at 0.65 |
 | 7 | `qwen3_moe_searched_no_gt065_max_retention_candidate` | `candidate` | `ready_to_host` | `not_run` |  |  | 0.000 | 0.000 | freeze router/attention + source-route expert weights + searched uniform 0.65 cap |
-| 8 | `qwen3_moe_unified_mechanism_candidate` | `candidate` | `ready_to_host` | `not_run` |  |  | 0.000 | 0.000 | mechanism-optimized same-shape MoE average with frozen router/attention and threshold-efficient 0.65 expert cap |
+| 8 | `qwen3_moe_layer_chunk_candidate` | `candidate` | `ready_to_host` | `not_run` |  |  | 0.000 | 0.000 | freeze router/attention + source-route expert weights + importance-guided layer/chunk coefficients |
+| 9 | `qwen3_moe_unified_mechanism_candidate` | `candidate` | `ready_to_host` | `not_run` |  |  | 0.000 | 0.000 | mechanism-optimized same-shape MoE average with frozen router/attention and threshold-efficient 0.65 expert cap |
 
 ## Selection State
 
@@ -74,6 +76,7 @@ cap_g = f(route_load, category_specialization, router_fragility, delta_audit_tai
 | `qwen3_moe_expert_only_trust_region_candidate` | `False` | `` |  |  |  |  |  |  | 0.246 |
 | `qwen3_moe_tail_trimmed_expert_only_candidate` | `False` | `` |  |  |  |  |  |  | 0.243 |
 | `qwen3_moe_searched_no_gt065_max_retention_candidate` | `False` | `` |  |  |  |  |  |  | 0.248 |
+| `qwen3_moe_layer_chunk_candidate` | `False` | `` |  |  |  |  |  |  | 0.243 |
 | `qwen3_moe_unified_mechanism_candidate` | `False` | `` |  |  |  |  |  |  | 0.248 |
 
 ## How To Run On GPU

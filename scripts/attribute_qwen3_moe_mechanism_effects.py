@@ -67,6 +67,12 @@ TRANSITIONS = [
         "mechanism": "replace hand-built risk penalties with a uniform searched 0.65 routed-expert cap",
     },
     {
+        "transition": "searched_cap_law_to_layer_chunk",
+        "from_method": "qwen3_moe_searched_no_gt065_max_retention_candidate",
+        "to_method": "qwen3_moe_layer_chunk_candidate",
+        "mechanism": "apply importance-guided layer/chunk coefficients to high-sensitivity routed experts",
+    },
+    {
         "transition": "searched_cap_law_to_unified_alias",
         "from_method": "qwen3_moe_searched_no_gt065_max_retention_candidate",
         "to_method": "qwen3_moe_unified_mechanism_candidate",
@@ -364,6 +370,7 @@ def synthetic_rows(case: str) -> dict[str, dict[str, Any]]:
         "qwen3_moe_expert_only_trust_region_candidate": (0.66, 0.47, [0.59, 0.62, 0.69, 0.58]),
         "qwen3_moe_tail_trimmed_expert_only_candidate": (0.67, 0.49, [0.60, 0.63, 0.70, 0.59]),
         "qwen3_moe_searched_no_gt065_max_retention_candidate": (0.68, 0.50, [0.61, 0.64, 0.70, 0.60]),
+        "qwen3_moe_layer_chunk_candidate": (0.69, 0.51, [0.62, 0.65, 0.70, 0.61]),
         "qwen3_moe_unified_mechanism_candidate": (0.68, 0.50, [0.61, 0.64, 0.70, 0.60]),
     }
     if case == "regression":
@@ -379,6 +386,7 @@ def synthetic_rows(case: str) -> dict[str, dict[str, Any]]:
         "qwen3_moe_expert_only_trust_region_candidate": (0.246, 14, 0, 0),
         "qwen3_moe_tail_trimmed_expert_only_candidate": (0.243, 0, 0, 0),
         "qwen3_moe_searched_no_gt065_max_retention_candidate": (0.248, 0, 0, 0),
+        "qwen3_moe_layer_chunk_candidate": (0.243, 0, 0, 0),
         "qwen3_moe_unified_mechanism_candidate": (0.248, 0, 0, 0),
     }
     rows: dict[str, dict[str, Any]] = {}
@@ -387,6 +395,7 @@ def synthetic_rows(case: str) -> dict[str, dict[str, Any]]:
         if case == "partial" and method in {
             "qwen3_moe_tail_trimmed_expert_only_candidate",
             "qwen3_moe_searched_no_gt065_max_retention_candidate",
+            "qwen3_moe_layer_chunk_candidate",
             "qwen3_moe_unified_mechanism_candidate",
         }:
             eval_usable = False
@@ -424,9 +433,9 @@ def synthetic_rows(case: str) -> dict[str, dict[str, Any]]:
 
 def run_smoke_matrix(args: argparse.Namespace) -> dict[str, Any]:
     expected = {
-        "complete": ("complete", 7),
+        "complete": ("complete", 8),
         "partial": ("partial", 4),
-        "regression": ("complete", 7),
+        "regression": ("complete", 8),
     }
     rows = []
     for case, (expected_status, expected_scored) in expected.items():

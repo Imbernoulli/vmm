@@ -6,7 +6,7 @@
 
 - Dense: `avoid_linear_midpoint_use_probe_selected_anchor_or_low_lambda`；linear worst NLL `8.9477`，unified worst NLL `5.1830`。
 - MoE: `align_experts_freeze_router_then_gate_candidate_by_vllm`；真实 OLMoE same-name average degradation `5.4910`，Qwen3 router action `freeze_router`。
-- Qwen3 final selection: `awaiting_source_eval`，eligible `0/7`。
+- Qwen3 final selection: `awaiting_source_eval`，eligible `0/8`。
 
 ## Mechanism Features
 
@@ -20,7 +20,7 @@
 | `moe` | `real_olmoe_gauge_selfmerge` | `reject_same_name_average_without_alignment` | 5.4910 | 1.0000 | baseline NLL = 4.1678; same-name average NLL = 9.6588; aligned average NLL = 4.1678; layers recovered = 16/16 |
 | `moe` | `qwen3_expert_identity` | `identity_alignment_is_allowed_for_this_pair` | 1.0000 | 1.0000 | identity-optimal layer fraction = 1.0000; argmax identity fraction = 1.0000 |
 | `moe` | `qwen3_router_move_gate` | `freeze_router_or_train_route_kd_delta` | 0.0000 | 48.0000 | allowed router layers = 0/48; top-k Jaccard mean/min = 0.4539/0.2422; top1 agreement mean/min = 0.4125/0.0690 |
-| `moe` | `qwen3_final_candidate_selection` | `await_matched_vllm_before_accepting_average` | 0.0000 | 7.0000 | status = awaiting_source_eval; eligible candidates = 0/7; reason = Both Qwen3 source endpoints must complete audited vLLM eval before final candidate selection. |
+| `moe` | `qwen3_final_candidate_selection` | `await_matched_vllm_before_accepting_average` | 0.0000 | 8.0000 | status = awaiting_source_eval; eligible candidates = 0/8; reason = Both Qwen3 source endpoints must complete audited vLLM eval before final candidate selection. |
 
 ## Operations
 

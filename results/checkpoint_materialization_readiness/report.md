@@ -3,10 +3,10 @@
 这个 audit 把 same-shape writer 命令、router-bias plan、dry-run manifest 和 vLLM eval plan 串起来。目标是区分三件事：方法是否有 recipe、checkpoint 是否已经写出、是否可以进入真实 vLLM 下游评测。
 
 - Status: `hosted_eval_complete`
-- Candidates: `14`
-- Materialized checkpoints: `7`
+- Candidates: `15`
+- Materialized checkpoints: `8`
 - Blocked by placeholders: `4`
-- Ready for vLLM eval: `7`
+- Ready for vLLM eval: `8`
 - Completed vLLM evals: `1`
 
 | candidate | writer status | vLLM status | eval status | avg primary | worst primary | end-to-end status | next action |
@@ -17,6 +17,7 @@
 | `qwen3_moe_expert_only_trust_region_candidate` | `materialized_checkpoint_exists` | `ready_to_host` | `not_run` |  |  | `ready_for_vllm_eval` | host the vLLM plan checkpoint and run downstream eval |
 | `qwen3_moe_tail_trimmed_expert_only_candidate` | `materialized_checkpoint_exists` | `ready_to_host` | `not_run` |  |  | `ready_for_vllm_eval` | host the vLLM plan checkpoint and run downstream eval |
 | `qwen3_moe_searched_no_gt065_max_retention_candidate` | `materialized_checkpoint_exists` | `ready_to_host` | `not_run` |  |  | `ready_for_vllm_eval` | host the vLLM plan checkpoint and run downstream eval |
+| `qwen3_moe_layer_chunk_candidate` | `materialized_checkpoint_exists` | `not_in_vllm_plan` | `not_run` |  |  | `ready_for_vllm_eval` | host_with_vllm_and_run_downstream_eval |
 | `qwen3_moe_unified_mechanism_candidate` | `materialization_command_ready` | `ready_to_host` | `not_run` |  |  | `ready_for_vllm_eval` | host the vLLM plan checkpoint and run downstream eval |
 | `moe_route_aware_candidate` | `blocked_by_placeholder_inputs` | `checkpoint_missing_until_materialized` | `not_run` |  |  | `blocked_before_materialization` | replace placeholder model paths/route weights, run writer dry-run, then materialize |
 | `toy_moe_expert_weight_candidate` | `blocked_by_placeholder_inputs` | `not_vllm_loadable_toy_candidate` | `not_run` |  |  | `toy_writer_validation_only` | replace placeholder model paths/route weights, run writer dry-run, then materialize |

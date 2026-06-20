@@ -49,6 +49,12 @@ DEFAULT_CANDIDATES = [
         "rule": "searched_source_route_expert_weights_uniform_cap_0_65",
     },
     {
+        "candidate": "layer_chunk",
+        "method": "qwen3_moe_layer_chunk_candidate",
+        "audit_dir": "results/qwen3_moe_layer_chunk_delta_audit",
+        "rule": "importance_guided_layer_chunk_coefficients",
+    },
+    {
         "candidate": "unified_mechanism",
         "method": "qwen3_moe_unified_mechanism_candidate",
         "audit_dir": "results/qwen3_moe_searched_no_gt065_delta_audit",
@@ -245,6 +251,7 @@ def build_summary(
     expert = candidate_rows[candidate_rows["candidate"] == "expert_only"].iloc[0]
     tail = candidate_rows[candidate_rows["candidate"] == "tail_trimmed"].iloc[0]
     searched = candidate_rows[candidate_rows["candidate"] == "searched_no_gt065"].iloc[0]
+    layer_chunk = candidate_rows[candidate_rows["candidate"] == "layer_chunk"].iloc[0]
     unified = candidate_rows[candidate_rows["candidate"] == "unified_mechanism"].iloc[0]
     route_to_trust = pairwise_rows[
         (pairwise_rows["from_candidate"] == "audit_gated")
@@ -262,6 +269,10 @@ def build_summary(
         (pairwise_rows["from_candidate"] == "tail_trimmed")
         & (pairwise_rows["to_candidate"] == "searched_no_gt065")
     ]
+    searched_to_layer_chunk = pairwise_rows[
+        (pairwise_rows["from_candidate"] == "searched_no_gt065")
+        & (pairwise_rows["to_candidate"] == "layer_chunk")
+    ]
     return {
         "schema_version": 1,
         "status": "delta_frontier_ready",
@@ -272,13 +283,16 @@ def build_summary(
         "expert_only_total_relative_delta_norm": float(expert["total_relative_delta_norm"]),
         "tail_trimmed_total_relative_delta_norm": float(tail["total_relative_delta_norm"]),
         "searched_no_gt065_total_relative_delta_norm": float(searched["total_relative_delta_norm"]),
+        "layer_chunk_total_relative_delta_norm": float(layer_chunk["total_relative_delta_norm"]),
         "unified_mechanism_total_relative_delta_norm": float(unified["total_relative_delta_norm"]),
         "expert_only_attention_changed_tensors": int(expert["attention_changed_tensors"]),
         "tail_trimmed_attention_changed_tensors": int(tail["attention_changed_tensors"]),
         "searched_no_gt065_attention_changed_tensors": int(searched["attention_changed_tensors"]),
+        "layer_chunk_attention_changed_tensors": int(layer_chunk["attention_changed_tensors"]),
         "expert_only_router_changed_tensors": int(expert["router_changed_tensors"]),
         "tail_trimmed_router_changed_tensors": int(tail["router_changed_tensors"]),
         "searched_no_gt065_router_changed_tensors": int(searched["router_changed_tensors"]),
+        "layer_chunk_router_changed_tensors": int(layer_chunk["router_changed_tensors"]),
         "unified_mechanism_router_changed_tensors": int(unified["router_changed_tensors"]),
         "unified_mechanism_matches_searched_no_gt065_delta": bool(
             abs(float(unified["total_relative_delta_norm"]) - float(searched["total_relative_delta_norm"])) <= 1e-12
@@ -295,6 +309,12 @@ def build_summary(
         "tail_trimmed_to_searched_no_gt065_relative_norm_delta": float(
             searched["total_relative_delta_norm"] - tail["total_relative_delta_norm"]
         ),
+        "searched_no_gt065_to_layer_chunk_relative_norm_reduction": 0.0
+        if searched_to_layer_chunk.empty
+        else float(searched_to_layer_chunk.iloc[0]["total_relative_delta_norm_reduction"]),
+        "searched_no_gt065_to_layer_chunk_routed_gt_065_reduction": 0
+        if searched_to_layer_chunk.empty
+        else int(searched_to_layer_chunk.iloc[0].get("routed_gt_065_reduction", 0)),
         "trust_to_expert_only_attention_norm_reduction": float(
             trust["attention_relative_delta_norm"] - expert["attention_relative_delta_norm"]
         ),
@@ -312,6 +332,8 @@ def build_summary(
         else int(searched["routed_tensors_gt_0_65"] - tail["routed_tensors_gt_0_65"]),
         "tail_trimmed_routed_gt_0_6505": int(tail["routed_tensors_gt_0_6505"]),
         "searched_no_gt065_routed_gt_0_6505": int(searched["routed_tensors_gt_0_6505"]),
+        "layer_chunk_routed_gt_0_6505": int(layer_chunk["routed_tensors_gt_0_6505"]),
+        "layer_chunk_routed_gt_0_65": int(layer_chunk["routed_tensors_gt_0_65"]),
         "audit_to_trust_routed_gt_075_reduction": 0
         if route_to_trust.empty
         else int(route_to_trust.iloc[0]["routed_gt_075_reduction"]),
@@ -319,14 +341,16 @@ def build_summary(
             {str(k): clean(v) for k, v in row.items()}
             for row in layer_frontier.head(10).to_dict("records")
         ],
-        "next_required_gate": "vllm_downstream_eval_trust_region_vs_expert_only_tail_trimmed_vs_searched_cap_law",
+        "next_required_gate": "vllm_downstream_eval_trust_region_vs_expert_only_tail_trimmed_vs_searched_cap_law_vs_layer_chunk",
         "interpretation": (
             "Trust-region rules control the routed-expert delta tail; expert-only freezes attention "
             "without changing routed tail risk. Tail-trimmed then reduces the remaining routed tail "
             "while preserving the frozen attention/router contract. The searched no-gt-0.65 candidate "
             "tests whether the hand-built route/load/category risk penalties can be replaced by a simpler "
-            "global expert cap. Attention and cap-law complexity should therefore be decided by downstream "
-            "eval, not by delta safety alone."
+            "global expert cap. The layer/chunk candidate then tests whether layer sensitivity coefficients "
+            "can reduce structural delta further without removing useful Coder specialization. Attention, "
+            "cap-law complexity, and layer sensitivity should therefore be decided by downstream eval, not "
+            "by delta safety alone."
         ),
         "outputs": {
             "candidate_frontier": rel(output_dir / "candidate_delta_frontier.csv"),
@@ -359,16 +383,20 @@ def build_report(
         f"- Expert-only total relative delta norm: `{fmt(summary['expert_only_total_relative_delta_norm'])}`",
         f"- Tail-trimmed total relative delta norm: `{fmt(summary['tail_trimmed_total_relative_delta_norm'])}`",
         f"- Searched no-gt-0.65 total relative delta norm: `{fmt(summary['searched_no_gt065_total_relative_delta_norm'])}`",
+        f"- Layer/chunk total relative delta norm: `{fmt(summary['layer_chunk_total_relative_delta_norm'])}`",
         f"- Unified mechanism total relative delta norm: `{fmt(summary['unified_mechanism_total_relative_delta_norm'])}`",
         f"- Unified mechanism matches searched no-gt-0.65 delta: `{summary['unified_mechanism_matches_searched_no_gt065_delta']}`",
         f"- Trust -> expert-only relative norm reduction: `{fmt(summary['trust_to_expert_only_relative_norm_reduction'])}`",
         f"- Expert-only -> tail-trimmed relative norm reduction: `{fmt(summary['expert_only_to_tail_trimmed_relative_norm_reduction'])}`",
         f"- Tail-trimmed -> searched no-gt-0.65 relative norm delta: `{fmt(summary['tail_trimmed_to_searched_no_gt065_relative_norm_delta'])}`",
-        f"- Tail-trimmed / searched routed tensors >0.6505: `{summary['tail_trimmed_routed_gt_0_6505']}` / `{summary['searched_no_gt065_routed_gt_0_6505']}`",
+        f"- Searched no-gt-0.65 -> layer/chunk relative norm reduction: `{fmt(summary['searched_no_gt065_to_layer_chunk_relative_norm_reduction'])}`",
+        f"- Tail-trimmed / searched / layer-chunk routed tensors >0.6505: `{summary['tail_trimmed_routed_gt_0_6505']}` / `{summary['searched_no_gt065_routed_gt_0_6505']}` / `{summary['layer_chunk_routed_gt_0_6505']}`",
         f"- Expert-only attention changed tensors: `{summary['expert_only_attention_changed_tensors']}`",
         f"- Tail-trimmed attention changed tensors: `{summary['tail_trimmed_attention_changed_tensors']}`",
+        f"- Layer/chunk attention changed tensors: `{summary['layer_chunk_attention_changed_tensors']}`",
         f"- Expert-only router changed tensors: `{summary['expert_only_router_changed_tensors']}`",
         f"- Tail-trimmed router changed tensors: `{summary['tail_trimmed_router_changed_tensors']}`",
+        f"- Layer/chunk router changed tensors: `{summary['layer_chunk_router_changed_tensors']}`",
         f"- Next required gate: `{summary['next_required_gate']}`",
         "",
         "## Candidate Frontier",
@@ -440,7 +468,8 @@ def build_report(
             "expert-only 只是把 shared attention 从候选里拿掉，几乎不改变 routed expert 风险；"
             "tail-trimmed 才继续压剩余 routed tail。"
             "searched no-gt-0.65 则把复杂风险 penalty 换成统一 cap，给下一轮 eval 一个更简单的候选。"
-            "所以 attention 是否保留、risk penalty 是否保留，都不能靠 delta safety 单独判断，必须靠同任务 vLLM 下游结果决定。",
+            "layer/chunk candidate 再把机制 leverage 里的层敏感度转成系数，给下一轮 eval 一个更细粒度的候选。"
+            "所以 attention 是否保留、risk penalty 是否保留、layer sensitivity 是否有用，都不能靠 delta safety 单独判断，必须靠同任务 vLLM 下游结果决定。",
             "",
             "## Files",
             "",

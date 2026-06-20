@@ -11,7 +11,7 @@
   "moe": {
     "controlled_gauge_mse": 7.66403245730453e-16,
     "decision": "align_experts_freeze_router_then_gate_candidate_by_vllm",
-    "qwen3_candidate_count": 7,
+    "qwen3_candidate_count": 8,
     "qwen3_eligible_candidates": 0,
     "qwen3_final_selection_status": "awaiting_source_eval",
     "qwen3_identity_fraction": 1.0,

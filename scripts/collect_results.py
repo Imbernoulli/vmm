@@ -991,6 +991,10 @@ def summarize_qwen3_moe_searched_no_gt065_delta_audit() -> dict[str, Any]:
     return summarize_materialized_delta_audit_dir("results/qwen3_moe_searched_no_gt065_delta_audit")
 
 
+def summarize_qwen3_moe_layer_chunk_delta_audit() -> dict[str, Any]:
+    return summarize_materialized_delta_audit_dir("results/qwen3_moe_layer_chunk_delta_audit")
+
+
 def summarize_qwen3_moe_tail_trimmed_expert_only_candidate() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_tail_trimmed_expert_only_candidate")
     summary = read_json(root / "summary.json")
@@ -1060,6 +1064,9 @@ def summarize_qwen3_moe_delta_frontier() -> dict[str, Any]:
         "searched_no_gt065_total_relative_delta_norm": maybe_float(
             summary.get("searched_no_gt065_total_relative_delta_norm")
         ),
+        "layer_chunk_total_relative_delta_norm": maybe_float(
+            summary.get("layer_chunk_total_relative_delta_norm")
+        ),
         "unified_mechanism_total_relative_delta_norm": maybe_float(
             summary.get("unified_mechanism_total_relative_delta_norm")
         ),
@@ -1077,6 +1084,12 @@ def summarize_qwen3_moe_delta_frontier() -> dict[str, Any]:
         ),
         "tail_trimmed_to_searched_no_gt065_relative_norm_delta": maybe_float(
             summary.get("tail_trimmed_to_searched_no_gt065_relative_norm_delta")
+        ),
+        "searched_no_gt065_to_layer_chunk_relative_norm_reduction": maybe_float(
+            summary.get("searched_no_gt065_to_layer_chunk_relative_norm_reduction")
+        ),
+        "searched_no_gt065_to_layer_chunk_routed_gt_065_reduction": int(
+            summary.get("searched_no_gt065_to_layer_chunk_routed_gt_065_reduction", 0)
         ),
         "trust_to_expert_only_attention_norm_reduction": maybe_float(
             summary.get("trust_to_expert_only_attention_norm_reduction")
@@ -1100,6 +1113,8 @@ def summarize_qwen3_moe_delta_frontier() -> dict[str, Any]:
         "searched_no_gt065_routed_gt_0_6505": int(
             summary.get("searched_no_gt065_routed_gt_0_6505", 0)
         ),
+        "layer_chunk_routed_gt_0_6505": int(summary.get("layer_chunk_routed_gt_0_6505", 0)),
+        "layer_chunk_routed_gt_0_65": int(summary.get("layer_chunk_routed_gt_0_65", 0)),
         "expert_only_attention_changed_tensors": int(
             summary.get("expert_only_attention_changed_tensors", 0)
         ),
@@ -1111,8 +1126,14 @@ def summarize_qwen3_moe_delta_frontier() -> dict[str, Any]:
         "searched_no_gt065_attention_changed_tensors": int(
             summary.get("searched_no_gt065_attention_changed_tensors", 0)
         ),
+        "layer_chunk_attention_changed_tensors": int(
+            summary.get("layer_chunk_attention_changed_tensors", 0)
+        ),
         "searched_no_gt065_router_changed_tensors": int(
             summary.get("searched_no_gt065_router_changed_tensors", 0)
+        ),
+        "layer_chunk_router_changed_tensors": int(
+            summary.get("layer_chunk_router_changed_tensors", 0)
         ),
         "next_required_gate": summary.get("next_required_gate"),
         "candidate_rows": [clean_row(row) for _, row in candidates.iterrows()],
@@ -3455,7 +3476,7 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "Qwen3 MoE layer/chunk coefficient candidate",
             "status": "complete",
-            "evidence": "results/qwen3_moe_layer_chunk_candidate/report.md converts the mechanism leverage layer scores into writer-ready same-shape tensor rules and validates the real Qwen3 writer dry-run path.",
+            "evidence": "results/qwen3_moe_layer_chunk_candidate/report.md converts the mechanism leverage layer scores into writer-ready same-shape tensor rules; results/qwen3_moe_layer_chunk_delta_audit/report.md verifies the materialized same-shape checkpoint.",
         },
         {
             "item": "Qwen3 MoE unified downstream result selector",
@@ -3480,7 +3501,7 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "Qwen3 MoE mechanism effect attribution",
             "status": "complete",
-            "evidence": "results/qwen3_moe_mechanism_effect_attribution/report.md decomposes the Qwen3 MoE source-frontier -> route-guarded -> audit-gated -> trust-region -> expert-only -> tail-trimmed -> searched-cap -> unified-alias chain into structural and downstream score deltas, gated by the eval-bundle audit.",
+            "evidence": "results/qwen3_moe_mechanism_effect_attribution/report.md decomposes the Qwen3 MoE source-frontier -> route-guarded -> audit-gated -> trust-region -> expert-only -> tail-trimmed -> searched-cap -> layer/chunk -> unified-alias chain into structural and downstream score deltas, gated by the eval-bundle audit.",
         },
         {
             "item": "Qwen3 MoE post-vLLM eval refresh pipeline",
@@ -3604,6 +3625,7 @@ def build_summary() -> dict[str, Any]:
         ),
         "qwen3_moe_tail_trimmed_delta_audit": summarize_qwen3_moe_tail_trimmed_delta_audit(),
         "qwen3_moe_searched_no_gt065_delta_audit": summarize_qwen3_moe_searched_no_gt065_delta_audit(),
+        "qwen3_moe_layer_chunk_delta_audit": summarize_qwen3_moe_layer_chunk_delta_audit(),
         "qwen3_moe_delta_frontier": summarize_qwen3_moe_delta_frontier(),
         "qwen3_moe_mechanism_eval_gate": summarize_qwen3_moe_mechanism_eval_gate(),
         "qwen3_moe_eval_budget_plan": summarize_qwen3_moe_eval_budget_plan(),
@@ -3767,6 +3789,8 @@ def build_summary() -> dict[str, Any]:
             "python scripts/plan_qwen3_moe_eval_budget.py --output-dir results/qwen3_moe_eval_budget_plan",
             "python scripts/analyze_qwen3_moe_mechanism_levers.py --output-dir results/qwen3_moe_mechanism_levers",
             "python scripts/build_qwen3_moe_layer_chunk_candidate.py --output-dir results/qwen3_moe_layer_chunk_candidate",
+            "bash results/qwen3_moe_layer_chunk_candidate/writer_command.txt",
+            "python scripts/audit_materialized_checkpoint_delta.py --base BASE --candidate results/checkpoints/qwen3_moe_layer_chunk_candidate --output-dir results/qwen3_moe_layer_chunk_delta_audit",
             "python scripts/build_qwen3_moe_router_move_gate.py --output-dir results/qwen3_moe_router_move_gate",
             "python scripts/build_qwen3_moe_router_calibration_job.py --output-dir results/qwen3_moe_router_calibration_job",
             "python scripts/select_qwen3_moe_router_calibration_result.py --output-dir results/qwen3_moe_router_calibration_selection",
@@ -3861,6 +3885,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_tail_trimmed_expert_only_candidate = exp["qwen3_moe_tail_trimmed_expert_only_candidate"]
     qwen3_moe_tail_trimmed_delta_audit = exp["qwen3_moe_tail_trimmed_delta_audit"]
     qwen3_moe_searched_no_gt065_delta_audit = exp["qwen3_moe_searched_no_gt065_delta_audit"]
+    qwen3_moe_layer_chunk_delta_audit = exp["qwen3_moe_layer_chunk_delta_audit"]
     qwen3_moe_delta_frontier = exp["qwen3_moe_delta_frontier"]
     qwen3_moe_mechanism_eval_gate = exp["qwen3_moe_mechanism_eval_gate"]
     qwen3_moe_eval_budget_plan = exp["qwen3_moe_eval_budget_plan"]
@@ -4367,6 +4392,20 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_searched_no_gt065_delta_audit['routed_tensors_relative_delta_gt_06505']} |"
             ),
             (
+                "| Qwen3 MoE layer/chunk delta audit | status / total relative norm / router changed | "
+                f"{qwen3_moe_layer_chunk_delta_audit['status']} / "
+                f"{fmt(qwen3_moe_layer_chunk_delta_audit['relative_delta_norm'])} / "
+                f"{qwen3_moe_layer_chunk_delta_audit['router_changed_tensors']}"
+                f"/{qwen3_moe_layer_chunk_delta_audit['router_tensors']} |"
+            ),
+            (
+                "| Qwen3 MoE layer/chunk delta audit | max routed rel-delta / >0.75 / >0.65 / >0.6505 | "
+                f"{fmt(qwen3_moe_layer_chunk_delta_audit['max_routed_tensor_relative_delta'])} / "
+                f"{qwen3_moe_layer_chunk_delta_audit['routed_tensors_relative_delta_gt_075']} / "
+                f"{qwen3_moe_layer_chunk_delta_audit['routed_tensors_relative_delta_gt_065']} / "
+                f"{qwen3_moe_layer_chunk_delta_audit['routed_tensors_relative_delta_gt_06505']} |"
+            ),
+            (
                 "| Qwen3 MoE delta frontier | best safety candidate / next required gate | "
                 f"{qwen3_moe_delta_frontier['best_delta_safety_candidate']} / "
                 f"{qwen3_moe_delta_frontier['next_required_gate']} |"
@@ -4392,6 +4431,12 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(qwen3_moe_delta_frontier['tail_trimmed_to_searched_no_gt065_relative_norm_delta'])} / "
                 f"{qwen3_moe_delta_frontier['tail_trimmed_routed_gt_0_6505']}"
                 f"->{qwen3_moe_delta_frontier['searched_no_gt065_routed_gt_0_6505']} |"
+            ),
+            (
+                "| Qwen3 MoE delta frontier | searched->layer/chunk rel-norm reduction / >0.65 reduction / >0.6505 | "
+                f"{fmt(qwen3_moe_delta_frontier['searched_no_gt065_to_layer_chunk_relative_norm_reduction'])} / "
+                f"{qwen3_moe_delta_frontier['searched_no_gt065_to_layer_chunk_routed_gt_065_reduction']} / "
+                f"{qwen3_moe_delta_frontier['layer_chunk_routed_gt_0_6505']} |"
             ),
             (
                 "| Qwen3 MoE delta frontier | unified matches searched / unified rel-norm / router changed | "

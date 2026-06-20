@@ -3,12 +3,12 @@
 这份计划解决的是评测强度问题：现在 Qwen3 MoE gate 的 `64` examples 只适合 smoke，不足以支撑 final selector 的 Wilson confidence gate 和 paired prediction gate。
 
 - Status: `ready_for_budgeted_remote_vllm_eval`
-- Methods to evaluate: `9`
+- Methods to evaluate: `10`
 - Current gate max examples: `64`
 - Recommended command max examples: `384`
-- Total current prompt budget: `2304`
-- Total recommended prompt budget: `13824`
-- Additional prompt budget: `11520`
+- Total current prompt budget: `2560`
+- Total recommended prompt budget: `15360`
+- Additional prompt budget: `12800`
 
 ## Why This Budget
 
@@ -39,7 +39,8 @@ Paired gate: final selection compares source and candidate predictions on the sa
 | 5 | `qwen3_moe_expert_only_trust_region_candidate` | `candidate` | 64 | 384 | 1280 | `not_run` |
 | 6 | `qwen3_moe_tail_trimmed_expert_only_candidate` | `candidate` | 64 | 384 | 1280 | `not_run` |
 | 7 | `qwen3_moe_searched_no_gt065_max_retention_candidate` | `candidate` | 64 | 384 | 1280 | `not_run` |
-| 8 | `qwen3_moe_unified_mechanism_candidate` | `candidate` | 64 | 384 | 1280 | `not_run` |
+| 8 | `qwen3_moe_layer_chunk_candidate` | `candidate` | 64 | 384 | 1280 | `not_run` |
+| 9 | `qwen3_moe_unified_mechanism_candidate` | `candidate` | 64 | 384 | 1280 | `not_run` |
 
 ## Mechanism Budget
 
@@ -51,6 +52,7 @@ Paired gate: final selection compares source and candidate predictions on the sa
 | `shared_attention_ablation` | `qwen3_moe_trust_region_candidate` -> `qwen3_moe_expert_only_trust_region_candidate` | 3072 | Should the unified MoE rule move shared attention, or keep it fixed? |
 | `second_stage_tail_trim` | `qwen3_moe_expert_only_trust_region_candidate` -> `qwen3_moe_tail_trimmed_expert_only_candidate` | 3072 | Does the stricter 0.65 routed-expert tail cap remove risk without removing ability? |
 | `risk_penalty_simplification` | `qwen3_moe_tail_trimmed_expert_only_candidate` -> `qwen3_moe_searched_no_gt065_max_retention_candidate` | 3072 | Are hand-built risk penalties necessary after a uniform 0.65 expert cap is enforced? |
+| `layer_chunk_sensitivity` | `qwen3_moe_searched_no_gt065_max_retention_candidate` -> `qwen3_moe_layer_chunk_candidate` | 3072 | Do importance-guided layer/chunk coefficients improve the unified MoE rule beyond a uniform expert cap? |
 | `candidate_vs_sources` | `source_qwen3_30b_instruct` -> `qwen3_moe_unified_mechanism_candidate` | 3072 | Does any same-shape candidate avoid Pareto domination by the two source endpoints? |
 | `unified_rule_alias_validation` | `qwen3_moe_searched_no_gt065_max_retention_candidate` -> `qwen3_moe_unified_mechanism_candidate` | 3072 | Did the unified risk/retention optimizer recover the same materialized rule as the validated searched no-gt-0.65 checkpoint? |
 

@@ -131,6 +131,11 @@ def writer_command_candidates() -> list[dict[str, Any]]:
             "loadability": "qwen_moe_if_materialized",
         },
         {
+            "candidate": "qwen3_moe_layer_chunk_candidate",
+            "source": "results/qwen3_moe_layer_chunk_candidate/writer_command.txt",
+            "loadability": "qwen_moe_if_materialized",
+        },
+        {
             "candidate": "qwen3_moe_unified_mechanism_candidate",
             "source": "results/qwen3_moe_unified_mechanism_candidate/writer_command.txt",
             "loadability": "qwen_moe_if_materialized",

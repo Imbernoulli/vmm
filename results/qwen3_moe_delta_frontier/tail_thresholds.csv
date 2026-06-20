@@ -29,6 +29,11 @@ searched_no_gt065,0.75,0
 searched_no_gt065,0.6505,0
 searched_no_gt065,0.65,245
 searched_no_gt065,0.5,1768
+layer_chunk,1.0,0
+layer_chunk,0.75,0
+layer_chunk,0.6505,0
+layer_chunk,0.65,87
+layer_chunk,0.5,1732
 unified_mechanism,1.0,0
 unified_mechanism,0.75,0
 unified_mechanism,0.6505,0

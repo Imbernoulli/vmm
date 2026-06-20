@@ -93,58 +93,69 @@ set -euo pipefail
 # Eval:
 # python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8107/v1 --models candidate_qwen3_moe_searched_no_gt065_max_retention_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate
 
-# [8] qwen3_moe_unified_mechanism_candidate - ready_to_host
-# Checkpoint: results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate
+# [8] qwen3_moe_layer_chunk_candidate - ready_to_host
+# Checkpoint: results/checkpoints/qwen3_moe_layer_chunk_candidate
 # Serve:
-# CUDA_VISIBLE_DEVICES=0,1,2,3 vllm serve results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate --served-model-name candidate_qwen3_moe_unified_mechanism_candidate --host 127.0.0.1 --port 8108 --dtype bfloat16 --tensor-parallel-size 4
+# CUDA_VISIBLE_DEVICES=0,1,2,3 vllm serve results/checkpoints/qwen3_moe_layer_chunk_candidate --served-model-name candidate_qwen3_moe_layer_chunk_candidate --host 127.0.0.1 --port 8108 --dtype bfloat16 --tensor-parallel-size 4
 
 # Wait:
 # curl -sf http://127.0.0.1:8108/v1/models >/dev/null
 
 # Eval:
-# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8108/v1 --models candidate_qwen3_moe_unified_mechanism_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_unified_mechanism_candidate
+# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8108/v1 --models candidate_qwen3_moe_layer_chunk_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_layer_chunk_candidate
 
-# [9] qwen_0_5b_instruct_coder_uniform_average - ready_to_host
-# Checkpoint: results/checkpoints/qwen_0_5b_instruct_coder_uniform_average
+# [9] qwen3_moe_unified_mechanism_candidate - ready_to_host
+# Checkpoint: results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate
 # Serve:
-# CUDA_VISIBLE_DEVICES=0 vllm serve results/checkpoints/qwen_0_5b_instruct_coder_uniform_average --served-model-name candidate_qwen_0_5b_instruct_coder_uniform_average --host 127.0.0.1 --port 8109 --dtype bfloat16 --tensor-parallel-size 1
+# CUDA_VISIBLE_DEVICES=0,1,2,3 vllm serve results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate --served-model-name candidate_qwen3_moe_unified_mechanism_candidate --host 127.0.0.1 --port 8109 --dtype bfloat16 --tensor-parallel-size 4
 
 # Wait:
 # curl -sf http://127.0.0.1:8109/v1/models >/dev/null
 
 # Eval:
-# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8109/v1 --models candidate_qwen_0_5b_instruct_coder_uniform_average --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen_0_5b_instruct_coder_uniform_average
+# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8109/v1 --models candidate_qwen3_moe_unified_mechanism_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_unified_mechanism_candidate
 
-# [10] moe_route_aware_candidate - checkpoint_missing_until_materialized
-# Checkpoint: results/checkpoints/moe_route_aware_candidate
+# [10] qwen_0_5b_instruct_coder_uniform_average - ready_to_host
+# Checkpoint: results/checkpoints/qwen_0_5b_instruct_coder_uniform_average
 # Serve:
-# CUDA_VISIBLE_DEVICES=0 vllm serve results/checkpoints/moe_route_aware_candidate --served-model-name candidate_moe_route_aware_candidate --host 127.0.0.1 --port 8110 --dtype bfloat16 --tensor-parallel-size 1
+# CUDA_VISIBLE_DEVICES=0 vllm serve results/checkpoints/qwen_0_5b_instruct_coder_uniform_average --served-model-name candidate_qwen_0_5b_instruct_coder_uniform_average --host 127.0.0.1 --port 8110 --dtype bfloat16 --tensor-parallel-size 1
 
 # Wait:
 # curl -sf http://127.0.0.1:8110/v1/models >/dev/null
 
 # Eval:
-# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8110/v1 --models candidate_moe_route_aware_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/moe_route_aware_candidate
+# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8110/v1 --models candidate_qwen_0_5b_instruct_coder_uniform_average --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen_0_5b_instruct_coder_uniform_average
 
-# [11] moe_bias_calibrated_candidate - checkpoint_missing_until_materialized
-# Checkpoint: results/checkpoints/moe_bias_calibrated_candidate
+# [11] moe_route_aware_candidate - checkpoint_missing_until_materialized
+# Checkpoint: results/checkpoints/moe_route_aware_candidate
 # Serve:
-# CUDA_VISIBLE_DEVICES=0 vllm serve results/checkpoints/moe_bias_calibrated_candidate --served-model-name candidate_moe_bias_calibrated_candidate --host 127.0.0.1 --port 8111 --dtype bfloat16 --tensor-parallel-size 1
+# CUDA_VISIBLE_DEVICES=0 vllm serve results/checkpoints/moe_route_aware_candidate --served-model-name candidate_moe_route_aware_candidate --host 127.0.0.1 --port 8111 --dtype bfloat16 --tensor-parallel-size 1
 
 # Wait:
 # curl -sf http://127.0.0.1:8111/v1/models >/dev/null
 
 # Eval:
-# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8111/v1 --models candidate_moe_bias_calibrated_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/moe_bias_calibrated_candidate
+# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8111/v1 --models candidate_moe_route_aware_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/moe_route_aware_candidate
 
-# [12] toy_moe_expert_weight_candidate - not_vllm_loadable_toy_candidate
-# Checkpoint: results/checkpoints/toy_moe_expert_weight_candidate
+# [12] moe_bias_calibrated_candidate - checkpoint_missing_until_materialized
+# Checkpoint: results/checkpoints/moe_bias_calibrated_candidate
 # Serve:
-# CUDA_VISIBLE_DEVICES=0 vllm serve results/checkpoints/toy_moe_expert_weight_candidate --served-model-name candidate_toy_moe_expert_weight_candidate --host 127.0.0.1 --port 8112 --dtype bfloat16 --tensor-parallel-size 1
+# CUDA_VISIBLE_DEVICES=0 vllm serve results/checkpoints/moe_bias_calibrated_candidate --served-model-name candidate_moe_bias_calibrated_candidate --host 127.0.0.1 --port 8112 --dtype bfloat16 --tensor-parallel-size 1
 
 # Wait:
 # curl -sf http://127.0.0.1:8112/v1/models >/dev/null
 
 # Eval:
-# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8112/v1 --models candidate_toy_moe_expert_weight_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/toy_moe_expert_weight_candidate
+# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8112/v1 --models candidate_moe_bias_calibrated_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/moe_bias_calibrated_candidate
+
+# [13] toy_moe_expert_weight_candidate - not_vllm_loadable_toy_candidate
+# Checkpoint: results/checkpoints/toy_moe_expert_weight_candidate
+# Serve:
+# CUDA_VISIBLE_DEVICES=0 vllm serve results/checkpoints/toy_moe_expert_weight_candidate --served-model-name candidate_toy_moe_expert_weight_candidate --host 127.0.0.1 --port 8113 --dtype bfloat16 --tensor-parallel-size 1
+
+# Wait:
+# curl -sf http://127.0.0.1:8113/v1/models >/dev/null
+
+# Eval:
+# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8113/v1 --models candidate_toy_moe_expert_weight_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/toy_moe_expert_weight_candidate
 

@@ -188,6 +188,15 @@ def default_candidates() -> list[dict[str, Any]]:
             "notes": "Searched Qwen3 MoE cap-law candidate: freeze router and shared attention, keep source-route-conditioned expert weights, and replace hand-built risk penalties with a simple global 0.65 routed-expert relative-delta cap.",
         },
         {
+            "candidate_source": "results/qwen3_moe_layer_chunk_candidate/writer_command.txt",
+            "method": "qwen3_moe_layer_chunk_candidate",
+            "checkpoint_path": "results/checkpoints/qwen3_moe_layer_chunk_candidate",
+            "tensor_parallel_size": 4,
+            "gpu": "0,1,2,3",
+            "materialization_status": "local_checkpoint_materialized_if_safetensors_present",
+            "notes": "Layer/chunk sensitivity candidate: freeze router and shared attention, keep source-route-conditioned expert weights, then shrink Coder contribution by layer sensitivity coefficients from the mechanism leverage probe.",
+        },
+        {
             "candidate_source": "results/qwen3_moe_unified_mechanism_candidate/summary.json",
             "method": "qwen3_moe_unified_mechanism_candidate",
             "checkpoint_path": "results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate",

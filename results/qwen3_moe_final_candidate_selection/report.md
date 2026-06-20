@@ -7,7 +7,7 @@
 - Reason: `Both Qwen3 source endpoints must complete audited vLLM eval before final candidate selection.`
 - Sources complete: `False`
 - Candidates complete: `False`
-- Eligible candidates: `0/7`
+- Eligible candidates: `0/8`
 - Uncertainty gate: `True`
 - Paired prediction gate: `True`
 - Paired alpha: `0.05`
@@ -22,6 +22,7 @@
 | `qwen3_moe_expert_only_trust_region_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.246033 | `` | `` | `` | `` | n/a | n/a | `` | `False` |
 | `qwen3_moe_tail_trimmed_expert_only_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.243145 | `` | `` | `` | `` | n/a | n/a | `` | `False` |
 | `qwen3_moe_searched_no_gt065_max_retention_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.247595 | `` | `` | `` | `` | n/a | n/a | `` | `False` |
+| `qwen3_moe_layer_chunk_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.243451 | `` | `` | `` | `` | n/a | n/a | `` | `False` |
 | `qwen3_moe_unified_mechanism_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.247595 | `` | `` | `` | `` | n/a | n/a | `` | `False` |
 
 ## Outputs

@@ -26,6 +26,7 @@ CANDIDATE_METHODS = [
     "qwen3_moe_expert_only_trust_region_candidate",
     "qwen3_moe_tail_trimmed_expert_only_candidate",
     "qwen3_moe_searched_no_gt065_max_retention_candidate",
+    "qwen3_moe_layer_chunk_candidate",
     "qwen3_moe_unified_mechanism_candidate",
 ]
 
@@ -87,6 +88,13 @@ METHOD_META: dict[str, dict[str, str]] = {
         "mechanism": "freeze router/attention + source-route expert weights + searched uniform 0.65 cap",
         "question": "Can a simple searched 0.65 cap replace the hand-built route/load/category risk penalties?",
         "required_controls": "tail-trimmed; expert-only; both sources",
+    },
+    "qwen3_moe_layer_chunk_candidate": {
+        "role": "candidate",
+        "short_name": "layer_chunk",
+        "mechanism": "freeze router/attention + source-route expert weights + importance-guided layer/chunk coefficients",
+        "question": "Do layer sensitivity coefficients reduce harmful movement without removing useful Coder specialization?",
+        "required_controls": "searched_no_gt065; tail-trimmed; both sources",
     },
     "qwen3_moe_unified_mechanism_candidate": {
         "role": "candidate",
@@ -151,6 +159,15 @@ MECHANISM_TESTS = [
         "why_it_matters": "The cap-law search found that a simple 0.65 cap removes the high tail with slightly higher route-mass retention; downstream eval must decide whether the simpler rule keeps ability.",
         "pass_signal": "Searched no-gt-0.65 matches or beats tail-trimmed; simplify the unified expert cap law.",
         "fail_signal": "Tail-trimmed beats searched no-gt-0.65; keep route/load/category risk penalties despite the internal proxy result.",
+    },
+    {
+        "test": "layer_chunk_sensitivity",
+        "from_method": "qwen3_moe_searched_no_gt065_max_retention_candidate",
+        "to_method": "qwen3_moe_layer_chunk_candidate",
+        "mechanism_question": "Do importance-guided layer/chunk coefficients improve the unified MoE rule beyond a uniform expert cap?",
+        "why_it_matters": "The layer/chunk candidate has lower structural delta and preserves high route-mass Coder contribution, but only downstream tasks can tell whether shrinking high-sensitive layers removed useful specialization.",
+        "pass_signal": "Layer/chunk matches or beats searched no-gt-0.65 on avg/worst/task scores; keep layer-sensitive coefficients in the unified optimizer.",
+        "fail_signal": "Searched no-gt-0.65 beats layer/chunk; the extra layer sensitivity shrink is over-conservative or mis-targeted.",
     },
     {
         "test": "candidate_vs_sources",

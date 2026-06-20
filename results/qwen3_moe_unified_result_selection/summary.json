@@ -1,7 +1,7 @@
 {
   "candidate_count": 3,
   "current_selection": {
-    "alias_status": "mechanism_supported",
+    "alias_status": "awaiting_eval",
     "avg_gain_vs_best_source": null,
     "best_source_by_avg": "source_qwen3_30b_instruct",
     "reason": "Both Qwen3 source endpoints must complete matched vLLM downstream eval before accepting an average.",

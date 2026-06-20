@@ -3,7 +3,7 @@
 这个 attribution 把 Qwen3 MoE average 的机制链条拆成相邻对比：source frontier、route-guarded、audit-gated、trust-region、expert-only、tail-trimmed、searched cap-law 和 unified alias。只有通过 eval bundle audit 的 vLLM 结果才会进入 downstream score delta。
 
 - Status: `awaiting_eval`
-- Scored transitions: `0/7`
+- Scored transitions: `0/8`
 - Improving transitions: `0`
 - Regressing transitions: `0`
 - Best avg transition: `None` (`None`)
@@ -17,6 +17,7 @@
 | `trust_region_to_expert_only` | `awaiting_eval` | n/a | n/a | 0 | -288 | `structural_change_only:attention_changed_tensors:-288` |
 | `expert_only_to_tail_trimmed` | `awaiting_eval` | n/a | n/a | -14 | 0 | `structural_change_only:routed_tensors_gt_0_75:-14,routed_tensors_gt_0_65:-286` |
 | `tail_trimmed_to_searched_cap_law` | `awaiting_eval` | n/a | n/a | 0 | 0 | `structural_change_only:routed_tensors_gt_0_65:+165` |
+| `searched_cap_law_to_layer_chunk` | `awaiting_eval` | n/a | n/a | 0 | 0 | `structural_change_only:routed_tensors_gt_0_65:-158` |
 | `searched_cap_law_to_unified_alias` | `awaiting_eval` | n/a | n/a | 0 | 0 | `awaiting_downstream_eval` |
 
 ## Outputs
