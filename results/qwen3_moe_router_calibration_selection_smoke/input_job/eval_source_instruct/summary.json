@@ -9,5 +9,7 @@
       "worst_primary_score": 0.28
     }
   ],
-  "status": "complete"
+  "status": "complete",
+  "task_manifest_path": "smoke_task_manifest.json",
+  "task_manifest_sha256": "smoke-shared-manifest-sha"
 }

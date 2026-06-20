@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-20T04:35:34.260874+00:00`
+Generated at: `2026-06-20T04:45:05.786799+00:00`
 
 ## Coverage
 
@@ -85,8 +85,8 @@ Complete: `84`; partial: `1`; missing: `0`.
 | Qwen3 MoE router move gate | complete | results/qwen3_moe_router_move_gate/report.md combines router tensor deltas with real routing readiness and rejects direct router-weight movement for all 48 layers. |
 | Qwen3 MoE router margin fragility probe | complete | results/qwen3_moe_router_margin_fragility/report.md ranks router layers and prompt categories by top-k boundary fragility from real Qwen3 route margins, overlap, and router movement. |
 | Qwen3 MoE router calibration NLL probe | complete | results/qwen3_moe_router_calibration_nll_probe/report.md formalizes the real Qwen3 router-only training probe, showing the averaged MoE improves when only router dispatch is recalibrated while keeping experts frozen. |
-| Qwen3 MoE router calibration job | complete | results/qwen3_moe_router_calibration_job/report.md turns the rejected direct-router-move result into a capped route-KD router-calibration sweep job and locks source/baseline/candidate vLLM evals to one task manifest. |
-| Qwen3 MoE router calibration result selector | complete | results/qwen3_moe_router_calibration_selection/report.md accepts a router-calibrated cap only when matched vLLM eval, router-only tensor audit, cap compliance, and source/baseline dominance gates pass. |
+| Qwen3 MoE router calibration job | complete | results/qwen3_moe_router_calibration_job/report.md turns the rejected direct-router-move result into a margin-capped route-KD router-calibration sweep job and locks source/baseline/candidate vLLM evals to one task manifest. |
+| Qwen3 MoE router calibration result selector | complete | results/qwen3_moe_router_calibration_selection/report.md accepts a router-calibrated cap only when matched vLLM eval, router-only tensor audit, top-k margin cap compliance, and source/baseline dominance gates pass. |
 | Qwen3 MoE trust-region cap-law search | complete | results/qwen3_moe_trust_region_cap_search/report.md searches interpretable expert cap laws over real Qwen3 route-mass, risk-flag, and safetensors-delta probes and emits writer-ready next-candidate rules. |
 | Qwen3 MoE unified mechanism candidate | complete | results/qwen3_moe_unified_mechanism_candidate/report.md turns route mass, router fragility, load, source-conflict, and delta probes into one same-shape constrained optimizer and writer-ready candidate. |
 | Toy MoE multi-method routing readiness | complete | results/toy_moe_routing_readiness/report.md applies the generic readiness gate to toy MoE methods and flags all-weight routing drift separately from expert-matched/route-aware variants. |
@@ -242,14 +242,16 @@ Complete: `84`; partial: `1`; missing: `0`.
 | Qwen3 MoE router calibration job | status / local GPU / candidates / stages | job_ready_awaiting_gpu / unavailable / 3 / 18 |
 | Qwen3 MoE router calibration job | source controls / ready | 2 / True |
 | Qwen3 MoE router calibration job | task manifest / create-if-missing | results/qwen3_moe_router_calibration_job/task_manifest.json / True |
+| Qwen3 MoE router calibration job | margin safe-lambda / planned-pass caps | 0.020 / 1/3 |
 | Qwen3 MoE router calibration job | inputs student / teacher / prompts | True / True / True |
 | Qwen3 MoE router calibration selector | status / selected / eligible | awaiting_baseline_eval / None / 0/3 |
 | Qwen3 MoE router calibration selector | source required-complete / baseline eval / candidate eval / audit | True-False / False / False / False |
 | Qwen3 MoE router calibration selector | training / hard route-load / group validation | False / False / False |
+| Qwen3 MoE router calibration selector | margin gate / safe-lambda / high layers | True / 0.020 / 24/48 |
 | Qwen3 MoE router row-validation negative smoke | status / eligible / group validation | awaiting_router_calibration_eval / 0/3 / False |
-| Qwen3 MoE router row-validation negative smoke | first decision reason | router_validation_not_group_heldout,no_downstream_gain |
+| Qwen3 MoE router row-validation negative smoke | first decision reason | router_validation_not_group_heldout |
 | Qwen3 MoE router source-dominance negative smoke | status / selected / eligible | keep_frozen_router_baseline / qwen3_moe_searched_no_gt065_max_retention_candidate / 0/3 |
-| Qwen3 MoE router source-dominance negative smoke | first decision reason | no_downstream_gain,source_endpoint_dominates |
+| Qwen3 MoE router source-dominance negative smoke | first decision reason | source_endpoint_dominates |
 | Qwen3 MoE router no-gain negative smoke | status / selected / eligible | keep_frozen_router_baseline / qwen3_moe_searched_no_gt065_max_retention_candidate / 0/3 |
 | Qwen3 MoE router no-gain negative smoke | first decision reason | no_downstream_gain |
 | Qwen3 MoE router task-regression negative smoke | status / selected / eligible | keep_frozen_router_baseline / qwen3_moe_searched_no_gt065_max_retention_candidate / 0/3 |

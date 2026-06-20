@@ -127,6 +127,7 @@ def collect_artifacts() -> list[dict[str, Any]]:
         "results/fp_figures/",
         "results/fp_gen_eval_moe/",
         "results/fp_moe_real_probe/olmoe/",
+        "results/qwen3_moe_router_calibration_selection_manifest_mismatch_negative_smoke/",
     }
     files: list[Path] = []
     for root in roots:
@@ -1854,6 +1855,9 @@ def summarize_qwen3_moe_router_calibration_job() -> dict[str, Any]:
         "prompts_exists": bool(summary.get("prompts_exists", False)),
         "local_gpu_status": summary.get("local_gpu_status"),
         "router_caps": summary.get("router_caps", []),
+        "router_margin_safe_lambda_proxy": maybe_float(summary.get("router_margin_safe_lambda_proxy")),
+        "router_margin_limit_with_tolerance": maybe_float(summary.get("router_margin_limit_with_tolerance")),
+        "router_margin_planned_pass_count": maybe_int(summary.get("router_margin_planned_pass_count")),
         "task_manifest": summary.get("task_manifest"),
         "create_task_manifest_if_missing": bool(summary.get("create_task_manifest_if_missing", False)),
         "source_control_count": int(summary.get("source_control_count", len(source_plan))),
@@ -1897,6 +1901,19 @@ def summarize_qwen3_moe_router_calibration_selection_dir(root: str | Path) -> di
         "training_completed": bool(selection.get("training_completed", False)),
         "capacity_metrics_completed": bool(selection.get("capacity_metrics_completed", False)),
         "group_validation_completed": bool(selection.get("group_validation_completed", False)),
+        "router_margin_gate_completed": bool(selection.get("router_margin_gate_completed", False)),
+        "router_margin_gate_enabled": bool(selection.get("router_margin_gate_enabled", False)),
+        "router_margin_min_safe_lambda_proxy": maybe_float(
+            selection.get("router_margin_min_safe_lambda_proxy")
+        ),
+        "router_margin_limit_with_tolerance": maybe_float(
+            selection.get("router_margin_limit_with_tolerance")
+        ),
+        "router_margin_high_fragility_layer_count": maybe_int(
+            selection.get("router_margin_high_fragility_layer_count")
+        ),
+        "router_margin_layer_count": maybe_int(selection.get("router_margin_layer_count")),
+        "router_margin_top_fragile_layer": maybe_int(selection.get("router_margin_top_fragile_layer")),
         "source_eval_completed": bool(selection.get("source_eval_completed", False)),
         "eligible_candidate_count": int(selection.get("eligible_candidate_count", len(eligible))),
         "candidate_count": int(selection.get("candidate_count", len(table))),
@@ -3902,12 +3919,12 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "Qwen3 MoE router calibration job",
             "status": "complete",
-            "evidence": "results/qwen3_moe_router_calibration_job/report.md turns the rejected direct-router-move result into a capped route-KD router-calibration sweep job and locks source/baseline/candidate vLLM evals to one task manifest.",
+            "evidence": "results/qwen3_moe_router_calibration_job/report.md turns the rejected direct-router-move result into a margin-capped route-KD router-calibration sweep job and locks source/baseline/candidate vLLM evals to one task manifest.",
         },
         {
             "item": "Qwen3 MoE router calibration result selector",
             "status": "complete",
-            "evidence": "results/qwen3_moe_router_calibration_selection/report.md accepts a router-calibrated cap only when matched vLLM eval, router-only tensor audit, cap compliance, and source/baseline dominance gates pass.",
+            "evidence": "results/qwen3_moe_router_calibration_selection/report.md accepts a router-calibrated cap only when matched vLLM eval, router-only tensor audit, top-k margin cap compliance, and source/baseline dominance gates pass.",
         },
         {
             "item": "Qwen3 MoE trust-region cap-law search",
@@ -5189,6 +5206,12 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_router_calibration_job['create_task_manifest_if_missing']} |"
             ),
             (
+                "| Qwen3 MoE router calibration job | margin safe-lambda / planned-pass caps | "
+                f"{fmt(qwen3_moe_router_calibration_job['router_margin_safe_lambda_proxy'])} / "
+                f"{qwen3_moe_router_calibration_job['router_margin_planned_pass_count']}"
+                f"/{qwen3_moe_router_calibration_job['candidate_count']} |"
+            ),
+            (
                 "| Qwen3 MoE router calibration job | inputs student / teacher / prompts | "
                 f"{qwen3_moe_router_calibration_job['student_exists']} / "
                 f"{qwen3_moe_router_calibration_job['teacher_exists']} / "
@@ -5214,6 +5237,13 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_router_calibration_selection['training_completed']} / "
                 f"{qwen3_moe_router_calibration_selection['capacity_metrics_completed']} / "
                 f"{qwen3_moe_router_calibration_selection['group_validation_completed']} |"
+            ),
+            (
+                "| Qwen3 MoE router calibration selector | margin gate / safe-lambda / high layers | "
+                f"{qwen3_moe_router_calibration_selection['router_margin_gate_completed']} / "
+                f"{fmt(qwen3_moe_router_calibration_selection['router_margin_min_safe_lambda_proxy'])} / "
+                f"{qwen3_moe_router_calibration_selection['router_margin_high_fragility_layer_count']}"
+                f"/{qwen3_moe_router_calibration_selection['router_margin_layer_count']} |"
             ),
             (
                 "| Qwen3 MoE router row-validation negative smoke | status / eligible / group validation | "

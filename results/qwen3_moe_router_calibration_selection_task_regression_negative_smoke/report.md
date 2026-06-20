@@ -13,7 +13,12 @@
 - Training completed: `True`
 - Capacity metrics completed: `True`
 - Group validation completed: `True`
+- Router margin gate completed: `True`
+- Router margin safe-lambda proxy: `0.0197`
+- Router margin high-fragility layers: `24/48`
+- Task manifest gate completed: `True`
 - Eligible candidates: `0/3`
+- Baseline task manifest sha: `smoke-shared-manifest-sha`
 
 ## Baseline
 
@@ -23,11 +28,11 @@
 
 ## Candidate Gate
 
-| cap | method | split | groups | selected epoch | KL gap | top1 drop | decision | avg delta | worst delta | worst task delta | router max rel | top1/top-k overflow | top1/top-k increase | load pass | gen pass | group pass | router-only | cap pass | score | reason |
-| ---: | --- | --- | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- | --- | ---: | --- |
-| 0.0100 | `smoke_router_calibrated_cap001` | `group_validation` | 8.0/2.0 | 10.0 | 0.0200 | 0.0200 | `reject_or_wait` | 0.0010 | 0.0000 | -0.0010 | 0.0080 | 0.0000/0.0000 | 0.0000/0.0000 | `True` | `True` | `True` | `True` | `True` | -0.0018 | `no_downstream_gain` |
-| 0.0250 | `smoke_router_calibrated_cap0025` | `group_validation` | 8.0/2.0 | 10.0 | 0.0200 | 0.0200 | `reject_or_wait` | 0.0150 | 0.0100 | -0.0400 | 0.0220 | 0.0150/0.0200 | 0.0050/0.0150 | `True` | `True` | `True` | `True` | `True` | -0.0045 | `task_score_regression` |
-| 0.0500 | `smoke_router_calibrated_cap005` | `group_validation` | 8.0/2.0 | 10.0 | 0.0200 | 0.0200 | `reject_or_wait` | 0.0250 | 0.0150 | 0.0000 | 0.0710 | 0.0900/0.0400 | 0.0600/0.0250 | `False` | `True` | `True` | `False` | `False` | -0.0055 | `top1_capacity_overflow_increase,audit_not_router_only,router_delta_cap_violation` |
+| cap | method | manifest | split | groups | selected epoch | KL gap | top1 drop | decision | avg delta | worst delta | worst task delta | router max rel | margin pass | top1/top-k overflow | top1/top-k increase | load pass | gen pass | group pass | router-only | cap pass | score | reason |
+| ---: | --- | --- | --- | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | --- | ---: | ---: | --- | --- | --- | --- | --- | ---: | --- |
+| 0.0100 | `smoke_router_calibrated_cap001` | `matched` | `group_validation` | 8.0/2.0 | 10.0 | 0.0200 | 0.0200 | `reject_or_wait` | 0.0060 | 0.0050 | -0.0400 | 0.0080 | `True` | 0.0000/0.0000 | 0.0000/0.0000 | `True` | `True` | `True` | `True` | `True` | -0.0041 | `task_score_regression` |
+| 0.0250 | `smoke_router_calibrated_cap0025` | `matched` | `group_validation` | 8.0/2.0 | 10.0 | 0.0200 | 0.0200 | `reject_or_wait` | 0.0150 | 0.0100 | -0.0400 | 0.0220 | `False` | 0.0150/0.0200 | 0.0050/0.0150 | `True` | `True` | `True` | `True` | `True` | -0.0045 | `router_margin_planned_cap_violation,task_score_regression` |
+| 0.0500 | `smoke_router_calibrated_cap005` | `matched` | `group_validation` | 8.0/2.0 | 10.0 | 0.0200 | 0.0200 | `reject_or_wait` | 0.0250 | 0.0150 | 0.0000 | 0.0710 | `False` | 0.0900/0.0400 | 0.0600/0.0250 | `False` | `True` | `True` | `False` | `False` | -0.0055 | `top1_capacity_overflow_increase,audit_not_router_only,router_delta_cap_violation,router_margin_planned_cap_violation` |
 
 ## Source Controls
 
@@ -47,8 +52,10 @@
 - Every cap candidate must have a materialized delta audit and vLLM eval before final selection.
 - Every cap candidate must have router training metrics with hard top-1/top-k route-load statistics.
 - Router route-KD validation must use group-heldout prompt/batch splits with at least 1 train groups and 1 validation groups, unless --allow-row-validation is explicitly set.
+- Baseline, source, and candidate downstream eval summaries must carry the same task_manifest_sha256.
 - The audit must show only router tensors changed, with no shape/dtype mismatch.
 - The maximum per-router relative delta norm must stay inside the planned cap.
+- The planned and audited router delta must stay inside the observed top-k margin safe-lambda proxy unless --disable-router-margin-gate is explicitly set; current tolerance is 0.02.
 - Hard top-1 route capacity overflow may not exceed 0.1.
 - Hard top-k route capacity overflow may not exceed 0.05.
 - Hard top-1 route capacity overflow may not increase over the frozen-router start by more than 0.05.
@@ -69,6 +76,7 @@
 - [Git Re-Basin: Merging Models modulo Permutation Symmetries](https://arxiv.org/abs/2209.04836): Expert identity and permutation alignment remain upstream gates; this selector only decides whether a small router delta should be added after the frozen-router expert candidate.
 - [What Matters for Model Merging at Scale?](https://arxiv.org/abs/2410.03617): Large-model merging can work, but endpoint controls are required; router-calibrated candidates are rejected if dominated by source endpoints.
 - [Model Merging by Output-Space Projection](https://arxiv.org/abs/2605.29101): The route-KD cache is an output-space calibration signal for routers; this script uses downstream scores to decide whether that local calibration transfers to the full model.
+- [When Model Merging Breaks Routing: Training-Free Calibration for MoE](https://arxiv.org/abs/2606.03391): Router movement is gated by observed top-k boundary margins; a route-KD delta may not exceed the measured safe-lambda proxy without fresh downstream evidence.
 
 ## Outputs
 

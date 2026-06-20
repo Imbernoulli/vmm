@@ -17,6 +17,7 @@ DEFAULT_JOB_DIR = Path("results/qwen3_moe_router_calibration_job")
 DEFAULT_OUTPUT_DIR = Path("results/qwen3_moe_router_calibration_selection")
 DEFAULT_BASELINE_EVAL_DIR = Path("results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate")
 DEFAULT_BASELINE_AUDIT_DIR = Path("results/qwen3_moe_searched_no_gt065_delta_audit")
+DEFAULT_ROUTER_MARGIN_FRAGILITY = Path("results/qwen3_moe_router_margin_fragility/summary.json")
 DEFAULT_SOURCE_EVAL_DIRS = [
     Path("results/vllm_checkpoint_eval/source_qwen3_30b_instruct"),
     Path("results/vllm_checkpoint_eval/source_qwen3_30b_coder"),
@@ -66,6 +67,12 @@ LITERATURE_HOOKS = [
         "title": "Model Merging by Output-Space Projection",
         "url": "https://arxiv.org/abs/2605.29101",
         "mechanism": "The route-KD cache is an output-space calibration signal for routers; this script uses downstream scores to decide whether that local calibration transfers to the full model.",
+    },
+    {
+        "key": "harc",
+        "title": "When Model Merging Breaks Routing: Training-Free Calibration for MoE",
+        "url": "https://arxiv.org/abs/2606.03391",
+        "mechanism": "Router movement is gated by observed top-k boundary margins; a route-KD delta may not exceed the measured safe-lambda proxy without fresh downstream evidence.",
     },
 ]
 
@@ -357,6 +364,26 @@ def score_delta(candidate: dict[str, Any], baseline: dict[str, Any], column: str
     return left - right
 
 
+def read_router_margin_state(args: argparse.Namespace) -> dict[str, Any]:
+    summary = read_json_if_exists(args.router_margin_fragility_summary)
+    min_safe_lambda = maybe_float(summary.get("min_safe_lambda_proxy"))
+    limit = None if min_safe_lambda is None else min_safe_lambda * (1.0 + float(args.router_margin_tolerance))
+    return {
+        "enabled": not bool(args.disable_router_margin_gate),
+        "summary_path": rel(args.router_margin_fragility_summary),
+        "summary_exists": bool(summary),
+        "status": summary.get("status") if summary else "not_available",
+        "min_safe_lambda_proxy": min_safe_lambda,
+        "limit_with_tolerance": limit,
+        "high_fragility_layer_count": maybe_int(summary.get("high_fragility_layer_count")),
+        "router_layer_count": maybe_int(summary.get("router_layer_count")),
+        "top_fragile_layer": maybe_int(summary.get("top_fragile_layer")),
+        "top_fragility_score": maybe_float(summary.get("top_fragility_score")),
+        "top_fragile_category": summary.get("top_fragile_category"),
+        "tolerance": float(args.router_margin_tolerance),
+    }
+
+
 def common_score_columns(*rows: dict[str, Any]) -> list[str]:
     columns = []
     for column in SCORE_COLUMNS:
@@ -387,6 +414,10 @@ def build_candidate_rows(
     args: argparse.Namespace,
 ) -> pd.DataFrame:
     rows: list[dict[str, Any]] = []
+    router_margin = read_router_margin_state(args)
+    margin_enabled = bool(router_margin["enabled"])
+    margin_ready = bool(router_margin["summary_exists"] and router_margin["min_safe_lambda_proxy"] is not None)
+    margin_limit = maybe_float(router_margin.get("limit_with_tolerance"))
     baseline_complete = bool(baseline_eval.get("eval_completed"))
     source_complete = all(bool(row.get("eval_completed")) for row in source_evals) if source_evals else False
     source_required = not bool(args.allow_missing_source_eval)
@@ -413,6 +444,20 @@ def build_candidate_rows(
         eval_state = read_eval_state(plan_row["eval_dir"])
         audit_state = read_audit_state(plan_row["audit_dir"], cap, args.cap_tolerance)
         training_state = read_training_state(plan_row["delta_dir"])
+        router_actual_norm = maybe_float(audit_state.get("router_max_relative_delta_norm"))
+        margin_planned_passed = bool(
+            not margin_enabled or (margin_ready and margin_limit is not None and cap <= margin_limit)
+        )
+        margin_actual_passed = bool(
+            not margin_enabled
+            or (
+                margin_ready
+                and margin_limit is not None
+                and router_actual_norm is not None
+                and router_actual_norm <= margin_limit
+            )
+        )
+        margin_gate_passed = bool(not margin_enabled or (margin_planned_passed and margin_actual_passed))
         training_passed = training_state["training_status"] == "passed"
         top1_overflow = training_state.get("max_final_top1_capacity_overflow_fraction")
         topk_overflow = training_state.get("max_final_topk_capacity_overflow_fraction")
@@ -501,6 +546,19 @@ def build_candidate_rows(
             "group_validation_required": group_validation_required,
             "group_validation_metrics_ready": group_validation_metrics_ready,
             "group_validation_passed": group_validation_passed,
+            "router_margin_gate_enabled": margin_enabled,
+            "router_margin_summary_exists": router_margin["summary_exists"],
+            "router_margin_status": router_margin["status"],
+            "router_margin_min_safe_lambda_proxy": router_margin["min_safe_lambda_proxy"],
+            "router_margin_limit_with_tolerance": margin_limit,
+            "router_margin_high_fragility_layer_count": router_margin["high_fragility_layer_count"],
+            "router_margin_layer_count": router_margin["router_layer_count"],
+            "router_margin_top_fragile_layer": router_margin["top_fragile_layer"],
+            "router_margin_top_fragility_score": router_margin["top_fragility_score"],
+            "router_margin_top_fragile_category": router_margin["top_fragile_category"],
+            "router_margin_planned_cap_passed": margin_planned_passed,
+            "router_margin_actual_delta_passed": margin_actual_passed,
+            "router_margin_gate_passed": margin_gate_passed,
         }
         candidate_manifest_sha = clean_value(eval_state.get("task_manifest_sha256"))
         row["baseline_task_manifest_sha256"] = baseline_manifest_sha
@@ -606,6 +664,12 @@ def build_candidate_rows(
             rejection_reasons.append("audit_not_router_only")
         if audit_state["audit_exists"] and not audit_state["cap_passed"]:
             rejection_reasons.append("router_delta_cap_violation")
+        if margin_enabled and not margin_ready:
+            rejection_reasons.append("awaiting_router_margin_fragility")
+        elif margin_enabled and not margin_planned_passed:
+            rejection_reasons.append("router_margin_planned_cap_violation")
+        elif margin_enabled and audit_state["audit_exists"] and not margin_actual_passed:
+            rejection_reasons.append("router_margin_actual_delta_violation")
         if baseline_complete and eval_state["eval_completed"] and not preserves_average:
             rejection_reasons.append("avg_score_regression")
         if baseline_complete and eval_state["eval_completed"] and not preserves_worst:
@@ -627,6 +691,7 @@ def build_candidate_rows(
             and eval_state["eval_completed"]
             and manifest_gate_passed
             and audit_state["audit_passed_for_router_calibration"]
+            and margin_gate_passed
             and preserves_average
             and preserves_worst
             and preserves_tasks
@@ -692,6 +757,15 @@ def build_selection(
     source_complete = all(bool(row.get("eval_completed")) for row in source_evals) if source_evals else False
     source_required = not bool(args.allow_missing_source_eval)
     group_validation_complete = bool((table["group_validation_passed"].astype(bool)).all()) if not table.empty else False
+    router_margin_gate_enabled = bool(table["router_margin_gate_enabled"].iloc[0]) if not table.empty else False
+    router_margin_gate_complete = bool(
+        not router_margin_gate_enabled
+        or (
+            not table.empty
+            and table["router_margin_summary_exists"].astype(bool).all()
+            and table["router_margin_min_safe_lambda_proxy"].notna().all()
+        )
+    )
     candidate_manifest_gates_passed = (
         bool((table["task_manifest_gate_passed"].astype(bool)).all()) if not table.empty else False
     )
@@ -717,12 +791,13 @@ def build_selection(
         or not training_complete
         or not capacity_metrics_complete
         or not group_validation_complete
+        or not router_margin_gate_complete
     ):
         status = "awaiting_router_calibration_eval"
         selected_method = None
         reason = (
             "The cap sweep is not complete; all candidates need router training summaries, hard route-load metrics, "
-            "group-heldout validation, audit, and matched vLLM downstream eval."
+            "group-heldout validation, router margin gates, audit, and matched vLLM downstream eval."
         )
     elif eligible.empty:
         status = "keep_frozen_router_baseline"
@@ -752,6 +827,27 @@ def build_selection(
         "training_completed": training_complete,
         "capacity_metrics_completed": capacity_metrics_complete,
         "group_validation_completed": group_validation_complete,
+        "router_margin_gate_completed": router_margin_gate_complete,
+        "router_margin_gate_enabled": router_margin_gate_enabled,
+        "router_margin_min_safe_lambda_proxy": clean_value(
+            table["router_margin_min_safe_lambda_proxy"].iloc[0]
+        )
+        if not table.empty and "router_margin_min_safe_lambda_proxy" in table
+        else None,
+        "router_margin_limit_with_tolerance": clean_value(table["router_margin_limit_with_tolerance"].iloc[0])
+        if not table.empty and "router_margin_limit_with_tolerance" in table
+        else None,
+        "router_margin_high_fragility_layer_count": clean_value(
+            table["router_margin_high_fragility_layer_count"].iloc[0]
+        )
+        if not table.empty and "router_margin_high_fragility_layer_count" in table
+        else None,
+        "router_margin_layer_count": clean_value(table["router_margin_layer_count"].iloc[0])
+        if not table.empty and "router_margin_layer_count" in table
+        else None,
+        "router_margin_top_fragile_layer": clean_value(table["router_margin_top_fragile_layer"].iloc[0])
+        if not table.empty and "router_margin_top_fragile_layer" in table
+        else None,
         "task_manifest_gate_completed": task_manifest_gate_complete,
         "baseline_task_manifest_sha256": clean_value(baseline_eval.get("task_manifest_sha256")),
         "source_task_manifest_sha256": [
@@ -781,6 +877,10 @@ def build_decision_rules(args: argparse.Namespace, selection: dict[str, Any]) ->
             {
                 "claim": "MoE routers create discontinuous functional changes.",
                 "implication": "A small router weight delta can change expert assignment for many tokens; therefore the default unified method freezes routers unless route-KD calibration gives downstream evidence.",
+            },
+            {
+                "claim": "A router delta is only locally meaningful below the measured top-k boundary margin.",
+                "implication": "The selector rejects route-KD caps above the Qwen3 router margin safe-lambda proxy, because those caps may move tokens across dispatch boundaries before downstream evidence can be trusted.",
             },
             {
                 "claim": "Route KL alone can hide expert-load collapse.",
@@ -816,6 +916,10 @@ def build_decision_rules(args: argparse.Namespace, selection: dict[str, Any]) ->
             "Baseline, source, and candidate downstream eval summaries must carry the same task_manifest_sha256.",
             "The audit must show only router tensors changed, with no shape/dtype mismatch.",
             "The maximum per-router relative delta norm must stay inside the planned cap.",
+            (
+                "The planned and audited router delta must stay inside the observed top-k margin safe-lambda proxy "
+                f"unless --disable-router-margin-gate is explicitly set; current tolerance is {args.router_margin_tolerance}."
+            ),
             f"Hard top-1 route capacity overflow may not exceed {args.max_top1_capacity_overflow}.",
             f"Hard top-k route capacity overflow may not exceed {args.max_topk_capacity_overflow}.",
             f"Hard top-1 route capacity overflow may not increase over the frozen-router start by more than {args.max_top1_capacity_overflow_increase}.",
@@ -870,6 +974,9 @@ def build_report(
         f"- Training completed: `{selection['training_completed']}`",
         f"- Capacity metrics completed: `{selection['capacity_metrics_completed']}`",
         f"- Group validation completed: `{selection['group_validation_completed']}`",
+        f"- Router margin gate completed: `{selection['router_margin_gate_completed']}`",
+        f"- Router margin safe-lambda proxy: `{fmt(selection.get('router_margin_min_safe_lambda_proxy'))}`",
+        f"- Router margin high-fragility layers: `{selection.get('router_margin_high_fragility_layer_count')}/{selection.get('router_margin_layer_count')}`",
         f"- Task manifest gate completed: `{selection['task_manifest_gate_completed']}`",
         f"- Eligible candidates: `{selection['eligible_candidate_count']}/{selection['candidate_count']}`",
         f"- Baseline task manifest sha: `{selection.get('baseline_task_manifest_sha256')}`",
@@ -887,8 +994,8 @@ def build_report(
         "",
         "## Candidate Gate",
         "",
-        "| cap | method | manifest | split | groups | selected epoch | KL gap | top1 drop | decision | avg delta | worst delta | worst task delta | router max rel | top1/top-k overflow | top1/top-k increase | load pass | gen pass | group pass | router-only | cap pass | score | reason |",
-        "| ---: | --- | --- | --- | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- | --- | ---: | --- |",
+        "| cap | method | manifest | split | groups | selected epoch | KL gap | top1 drop | decision | avg delta | worst delta | worst task delta | router max rel | margin pass | top1/top-k overflow | top1/top-k increase | load pass | gen pass | group pass | router-only | cap pass | score | reason |",
+        "| ---: | --- | --- | --- | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | --- | ---: | ---: | --- | --- | --- | --- | --- | ---: | --- |",
     ]
     for _, row in table.iterrows():
         overflow_text = (
@@ -910,7 +1017,8 @@ def build_report(
             f"{fmt(row.get('delta_vs_baseline_avg_primary_score'))} | "
             f"{fmt(row.get('delta_vs_baseline_worst_primary_score'))} | "
             f"{fmt(row.get('worst_task_delta_vs_baseline'))} | "
-            f"{fmt(row.get('router_max_relative_delta_norm'))} | {overflow_text} | "
+            f"{fmt(row.get('router_max_relative_delta_norm'))} | "
+            f"`{row.get('router_margin_gate_passed')}` | {overflow_text} | "
             f"{increase_text} | "
             f"`{row.get('router_load_capacity_passed')}` | `{row.get('router_generalization_passed')}` | "
             f"`{row.get('group_validation_passed')}` | "
@@ -1226,6 +1334,13 @@ def write_smoke_inputs(
     )
 
     smoke_split = "validation" if row_validation_negative else "group_validation"
+    cap001_scores = (
+        (0.501, 0.300, 0.421, 0.529, 0.620, 0.300)
+        if no_downstream_gain_negative
+        else (0.506, 0.305, 0.423, 0.534, 0.621, 0.260)
+        if task_regression_negative
+        else (0.506, 0.305, 0.423, 0.534, 0.621, 0.305)
+    )
     cap0025_scores = (
         (0.501, 0.300, 0.421, 0.529, 0.620, 0.300)
         if no_downstream_gain_negative
@@ -1249,12 +1364,7 @@ def write_smoke_inputs(
             0.000,
             0.000,
             0.000,
-            0.501,
-            0.300,
-            0.421,
-            0.529,
-            0.620,
-            0.300,
+            *cap001_scores,
         ),
         (
             "cap0025",
@@ -1325,7 +1435,7 @@ def write_smoke_inputs(
                 "task_humaneval_compile_score": humaneval,
             },
             manifest_sha="smoke-other-manifest-sha"
-            if manifest_mismatch_negative and label == "cap0025"
+            if manifest_mismatch_negative and label == "cap001"
             else "smoke-shared-manifest-sha",
         )
         candidate_rows.append(
@@ -1440,6 +1550,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     parser.add_argument("--baseline-eval-dir", type=Path, default=DEFAULT_BASELINE_EVAL_DIR)
     parser.add_argument("--baseline-audit-dir", type=Path, default=DEFAULT_BASELINE_AUDIT_DIR)
+    parser.add_argument("--router-margin-fragility-summary", type=Path, default=DEFAULT_ROUTER_MARGIN_FRAGILITY)
+    parser.add_argument(
+        "--router-margin-tolerance",
+        type=float,
+        default=0.02,
+        help="Tolerance around the observed router top-k safe-lambda proxy for route-KD cap acceptance.",
+    )
+    parser.add_argument(
+        "--disable-router-margin-gate",
+        action="store_true",
+        help="Debug escape hatch: do not reject router-calibration caps that exceed observed top-k margin safety.",
+    )
     parser.add_argument("--source-eval-dir", type=Path, action="append", default=None)
     parser.add_argument("--max-avg-drop", type=float, default=0.005)
     parser.add_argument("--max-worst-drop", type=float, default=0.01)

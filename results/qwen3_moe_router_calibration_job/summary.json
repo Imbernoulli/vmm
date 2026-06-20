@@ -22,6 +22,10 @@
     0.025,
     0.05
   ],
+  "router_margin_limit_with_tolerance": 0.020119655341633423,
+  "router_margin_planned_pass_count": 1,
+  "router_margin_safe_lambda_proxy": 0.019725152295719042,
+  "router_margin_summary": "results/qwen3_moe_router_margin_fragility/summary.json",
   "router_validation_gate": "require_group_heldout_prompt_batch_validation",
   "run_script_command": "results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh all",
   "schema_version": 1,

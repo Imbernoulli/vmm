@@ -34,5 +34,11 @@
     "mechanism": "The route-KD cache is an output-space calibration signal for routers; this script uses downstream scores to decide whether that local calibration transfers to the full model.",
     "title": "Model Merging by Output-Space Projection",
     "url": "https://arxiv.org/abs/2605.29101"
+  },
+  {
+    "key": "harc",
+    "mechanism": "Router movement is gated by observed top-k boundary margins; a route-KD delta may not exceed the measured safe-lambda proxy without fresh downstream evidence.",
+    "title": "When Model Merging Breaks Routing: Training-Free Calibration for MoE",
+    "url": "https://arxiv.org/abs/2606.03391"
   }
 ]

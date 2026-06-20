@@ -13,6 +13,9 @@
 - Training completed: `False`
 - Capacity metrics completed: `False`
 - Group validation completed: `False`
+- Router margin gate completed: `True`
+- Router margin safe-lambda proxy: `0.0197`
+- Router margin high-fragility layers: `24/48`
 - Task manifest gate completed: `False`
 - Eligible candidates: `0/3`
 - Baseline task manifest sha: `None`
@@ -25,11 +28,11 @@
 
 ## Candidate Gate
 
-| cap | method | manifest | split | groups | selected epoch | KL gap | top1 drop | decision | avg delta | worst delta | worst task delta | router max rel | top1/top-k overflow | top1/top-k increase | load pass | gen pass | group pass | router-only | cap pass | score | reason |
-| ---: | --- | --- | --- | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- | --- | ---: | --- |
-| 0.0100 | `qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate` | `awaiting_eval` | `None` | / |  |  |  | `reject_or_wait` |  |  |  |  | / | / | `False` | `False` | `False` | `False` | `False` | -0.0001 | `awaiting_baseline_eval,awaiting_source_eval,awaiting_router_training,awaiting_candidate_eval,awaiting_audit` |
-| 0.0250 | `qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate` | `awaiting_eval` | `None` | / |  |  |  | `reject_or_wait` |  |  |  |  | / | / | `False` | `False` | `False` | `False` | `False` | -0.0003 | `awaiting_baseline_eval,awaiting_source_eval,awaiting_router_training,awaiting_candidate_eval,awaiting_audit` |
-| 0.0500 | `qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate` | `awaiting_eval` | `None` | / |  |  |  | `reject_or_wait` |  |  |  |  | / | / | `False` | `False` | `False` | `False` | `False` | -0.0005 | `awaiting_baseline_eval,awaiting_source_eval,awaiting_router_training,awaiting_candidate_eval,awaiting_audit` |
+| cap | method | manifest | split | groups | selected epoch | KL gap | top1 drop | decision | avg delta | worst delta | worst task delta | router max rel | margin pass | top1/top-k overflow | top1/top-k increase | load pass | gen pass | group pass | router-only | cap pass | score | reason |
+| ---: | --- | --- | --- | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | --- | ---: | ---: | --- | --- | --- | --- | --- | ---: | --- |
+| 0.0100 | `qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate` | `awaiting_eval` | `None` | / |  |  |  | `reject_or_wait` |  |  |  |  | `False` | / | / | `False` | `False` | `False` | `False` | `False` | -0.0001 | `awaiting_baseline_eval,awaiting_source_eval,awaiting_router_training,awaiting_candidate_eval,awaiting_audit` |
+| 0.0250 | `qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate` | `awaiting_eval` | `None` | / |  |  |  | `reject_or_wait` |  |  |  |  | `False` | / | / | `False` | `False` | `False` | `False` | `False` | -0.0003 | `awaiting_baseline_eval,awaiting_source_eval,awaiting_router_training,awaiting_candidate_eval,awaiting_audit,router_margin_planned_cap_violation` |
+| 0.0500 | `qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate` | `awaiting_eval` | `None` | / |  |  |  | `reject_or_wait` |  |  |  |  | `False` | / | / | `False` | `False` | `False` | `False` | `False` | -0.0005 | `awaiting_baseline_eval,awaiting_source_eval,awaiting_router_training,awaiting_candidate_eval,awaiting_audit,router_margin_planned_cap_violation` |
 
 ## Source Controls
 
@@ -52,6 +55,7 @@
 - Baseline, source, and candidate downstream eval summaries must carry the same task_manifest_sha256.
 - The audit must show only router tensors changed, with no shape/dtype mismatch.
 - The maximum per-router relative delta norm must stay inside the planned cap.
+- The planned and audited router delta must stay inside the observed top-k margin safe-lambda proxy unless --disable-router-margin-gate is explicitly set; current tolerance is 0.02.
 - Hard top-1 route capacity overflow may not exceed 0.1.
 - Hard top-k route capacity overflow may not exceed 0.05.
 - Hard top-1 route capacity overflow may not increase over the frozen-router start by more than 0.05.
@@ -72,6 +76,7 @@
 - [Git Re-Basin: Merging Models modulo Permutation Symmetries](https://arxiv.org/abs/2209.04836): Expert identity and permutation alignment remain upstream gates; this selector only decides whether a small router delta should be added after the frozen-router expert candidate.
 - [What Matters for Model Merging at Scale?](https://arxiv.org/abs/2410.03617): Large-model merging can work, but endpoint controls are required; router-calibrated candidates are rejected if dominated by source endpoints.
 - [Model Merging by Output-Space Projection](https://arxiv.org/abs/2605.29101): The route-KD cache is an output-space calibration signal for routers; this script uses downstream scores to decide whether that local calibration transfers to the full model.
+- [When Model Merging Breaks Routing: Training-Free Calibration for MoE](https://arxiv.org/abs/2606.03391): Router movement is gated by observed top-k boundary margins; a route-KD delta may not exceed the measured safe-lambda proxy without fresh downstream evidence.
 
 ## Outputs
 

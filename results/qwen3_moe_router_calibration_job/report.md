@@ -8,6 +8,8 @@
 - Prompt pack exists: `True`
 - Local GPU status: `unavailable`
 - Router caps: `0.01, 0.025, 0.05`
+- Router margin safe-lambda proxy: `0.019725152295719042`
+- Router margin planned-pass caps: `1/3`
 - Task manifest: `results/qwen3_moe_router_calibration_job/task_manifest.json`
 - Baseline eval dir: `results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate`
 - Source control count: `2`
@@ -30,11 +32,11 @@ The selector requires group-heldout route-KD validation by default: prompt/batch
 
 ## Candidates
 
-| cap | method | checkpoint | port |
-|---:|---|---|---:|
-| 0.010 | `qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate` | `results/checkpoints/qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate` | 8108 |
-| 0.025 | `qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate` | `results/checkpoints/qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate` | 8109 |
-| 0.050 | `qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate` | `results/checkpoints/qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate` | 8110 |
+| cap | margin pass | method | checkpoint | port |
+|---:|---|---|---|---:|
+| 0.010 | `True` | `qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate` | `results/checkpoints/qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate` | 8108 |
+| 0.025 | `False` | `qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate` | `results/checkpoints/qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate` | 8109 |
+| 0.050 | `False` | `qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate` | `results/checkpoints/qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate` | 8110 |
 
 ## Stages
 

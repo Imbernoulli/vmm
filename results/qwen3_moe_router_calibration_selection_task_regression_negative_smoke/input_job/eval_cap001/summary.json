@@ -2,12 +2,14 @@
   "best_avg_primary_model": "smoke_router_calibrated_cap001",
   "model_summary": [
     {
-      "avg_primary_score": 0.501,
+      "avg_primary_score": 0.506,
       "model": "smoke_router_calibrated_cap001",
       "rank": 1,
       "task_count": 4,
-      "worst_primary_score": 0.3
+      "worst_primary_score": 0.305
     }
   ],
-  "status": "complete"
+  "status": "complete",
+  "task_manifest_path": "smoke_task_manifest.json",
+  "task_manifest_sha256": "smoke-shared-manifest-sha"
 }

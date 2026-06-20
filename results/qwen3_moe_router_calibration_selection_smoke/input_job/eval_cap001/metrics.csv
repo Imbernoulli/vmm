@@ -1,5 +1,5 @@
 task,examples,strict_exact,model,accuracy,policy_accuracy,compile_rate
-gsm8k,8,0.421,smoke_router_calibrated_cap001,,,
-mmlu,8,,smoke_router_calibrated_cap001,0.529,,
-safety,8,,smoke_router_calibrated_cap001,,0.62,
-humaneval_compile,8,,smoke_router_calibrated_cap001,,,0.3
+gsm8k,8,0.423,smoke_router_calibrated_cap001,,,
+mmlu,8,,smoke_router_calibrated_cap001,0.534,,
+safety,8,,smoke_router_calibrated_cap001,,0.621,
+humaneval_compile,8,,smoke_router_calibrated_cap001,,,0.305

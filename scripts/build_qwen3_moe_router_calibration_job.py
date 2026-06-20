@@ -25,6 +25,7 @@ DEFAULT_TOKENIZER = Path(
     "0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe"
 )
 DEFAULT_PROMPTS = Path("prompts/qwen_moe_route_probe_prompts.jsonl")
+DEFAULT_ROUTER_MARGIN_FRAGILITY = Path("results/qwen3_moe_router_margin_fragility/summary.json")
 DEFAULT_SOURCE_CONTROLS = [
     ("source_qwen3_30b_instruct", DEFAULT_TOKENIZER),
     ("source_qwen3_30b_coder", DEFAULT_TEACHER),
@@ -46,6 +47,22 @@ def rel(path: str | Path) -> str:
 
 def shell_join(parts: list[str | Path | int | float]) -> str:
     return " ".join(shlex.quote(str(part)) for part in parts if str(part) != "")
+
+
+def read_json_if_exists(path: str | Path) -> dict[str, Any]:
+    path = repo_path(path)
+    if not path.exists() or path.stat().st_size == 0:
+        return {}
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def maybe_float(value: Any) -> float | None:
+    if value is None:
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
 
 
 def parse_source_control(raw: str) -> tuple[str, Path]:
@@ -117,6 +134,9 @@ def build_source_control_rows(args: argparse.Namespace) -> list[dict[str, Any]]:
 def build_candidate_rows(args: argparse.Namespace, output_dir: Path) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     cache_dir = output_dir / "cache"
+    margin = read_json_if_exists(args.router_margin_fragility_summary)
+    safe_lambda = maybe_float(margin.get("min_safe_lambda_proxy"))
+    margin_limit = None if safe_lambda is None else safe_lambda * (1.0 + float(args.router_margin_tolerance))
     for idx, cap in enumerate(args.router_cap):
         label = cap_label(float(cap))
         method = f"qwen3_moe_router_calibrated_searched_no_gt065_{label}_candidate"
@@ -131,6 +151,12 @@ def build_candidate_rows(args: argparse.Namespace, output_dir: Path) -> list[dic
                 "rank": idx,
                 "cap_label": label,
                 "router_max_relative_norm": float(cap),
+                "router_margin_summary": rel(args.router_margin_fragility_summary),
+                "router_margin_safe_lambda_proxy": safe_lambda,
+                "router_margin_limit_with_tolerance": margin_limit,
+                "router_margin_planned_cap_passed": bool(
+                    margin_limit is not None and float(cap) <= float(margin_limit)
+                ),
                 "method": method,
                 "student_checkpoint": rel(args.student),
                 "teacher_checkpoint": rel(args.teacher),
@@ -354,6 +380,10 @@ def select_command(args: argparse.Namespace, output_dir: Path, source_rows: list
         repo_path("results/qwen3_moe_router_calibration_selection"),
         "--baseline-eval-dir",
         args.baseline_eval_dir,
+        "--router-margin-fragility-summary",
+        args.router_margin_fragility_summary,
+        "--router-margin-tolerance",
+        args.router_margin_tolerance,
     ]
     for row in source_rows:
         parts.extend(["--source-eval-dir", row["eval_dir"]])
@@ -698,6 +728,8 @@ def build_report(
         f"- Prompt pack exists: `{summary['prompts_exists']}`",
         f"- Local GPU status: `{summary['local_gpu_status']}`",
         f"- Router caps: `{', '.join(str(item) for item in summary['router_caps'])}`",
+        f"- Router margin safe-lambda proxy: `{summary['router_margin_safe_lambda_proxy']}`",
+        f"- Router margin planned-pass caps: `{summary['router_margin_planned_pass_count']}/{summary['candidate_count']}`",
         f"- Task manifest: `{summary['task_manifest']}`",
         f"- Baseline eval dir: `{summary['baseline_eval_dir']}`",
         f"- Source control count: `{summary['source_control_count']}`",
@@ -725,13 +757,14 @@ def build_report(
             "",
             "## Candidates",
             "",
-            "| cap | method | checkpoint | port |",
-            "|---:|---|---|---:|",
+            "| cap | margin pass | method | checkpoint | port |",
+            "|---:|---|---|---|---:|",
         ]
     )
     for row in candidate_rows:
         lines.append(
-            f"| {row['router_max_relative_norm']:.3f} | `{row['method']}` | "
+            f"| {row['router_max_relative_norm']:.3f} | `{row['router_margin_planned_cap_passed']}` | "
+            f"`{row['method']}` | "
             f"`{row['checkpoint_dir']}` | {int(row['port'])} |"
         )
     lines.extend(
@@ -771,6 +804,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--tokenizer", type=Path, default=DEFAULT_TOKENIZER)
     parser.add_argument("--prompts", type=Path, default=DEFAULT_PROMPTS)
     parser.add_argument("--router-cap", type=float, action="append", default=None)
+    parser.add_argument("--router-margin-fragility-summary", type=Path, default=DEFAULT_ROUTER_MARGIN_FRAGILITY)
+    parser.add_argument("--router-margin-tolerance", type=float, default=0.02)
     parser.add_argument("--epochs", type=int, default=120)
     parser.add_argument("--lr", type=float, default=0.05)
     parser.add_argument("--temperature", type=float, default=1.0)
@@ -862,6 +897,16 @@ def main() -> None:
         "prompts_exists": prompts_exists,
         "local_gpu_status": local_gpu_status,
         "router_caps": [float(item) for item in args.router_cap],
+        "router_margin_summary": rel(args.router_margin_fragility_summary),
+        "router_margin_safe_lambda_proxy": candidate_rows[0].get("router_margin_safe_lambda_proxy")
+        if candidate_rows
+        else None,
+        "router_margin_limit_with_tolerance": candidate_rows[0].get("router_margin_limit_with_tolerance")
+        if candidate_rows
+        else None,
+        "router_margin_planned_pass_count": sum(
+            1 for row in candidate_rows if row.get("router_margin_planned_cap_passed")
+        ),
         "task_manifest": rel(args.task_manifest),
         "create_task_manifest_if_missing": not bool(args.no_create_task_manifest),
         "baseline_eval_dir": rel(args.baseline_eval_dir),

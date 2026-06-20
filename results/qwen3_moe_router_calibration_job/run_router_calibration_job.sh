@@ -67,7 +67,7 @@ eval_baseline() {
 }
 
 select_result() {
-  python scripts/select_qwen3_moe_router_calibration_result.py --job-dir /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_router_calibration_job --output-dir /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_router_calibration_selection --baseline-eval-dir results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate --source-eval-dir results/vllm_checkpoint_eval/source_qwen3_30b_instruct --source-eval-dir results/vllm_checkpoint_eval/source_qwen3_30b_coder
+  python scripts/select_qwen3_moe_router_calibration_result.py --job-dir /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_router_calibration_job --output-dir /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_router_calibration_selection --baseline-eval-dir results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate --router-margin-fragility-summary results/qwen3_moe_router_margin_fragility/summary.json --router-margin-tolerance 0.02 --source-eval-dir results/vllm_checkpoint_eval/source_qwen3_30b_instruct --source-eval-dir results/vllm_checkpoint_eval/source_qwen3_30b_coder
 }
 
 train_cap001() {

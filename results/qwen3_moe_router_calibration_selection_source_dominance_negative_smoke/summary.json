@@ -12,6 +12,8 @@
     "summary_path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/eval_baseline/summary.json",
     "task_gsm8k_score": 0.42,
     "task_humaneval_compile_score": 0.3,
+    "task_manifest_path": "smoke_task_manifest.json",
+    "task_manifest_sha256": "smoke-shared-manifest-sha",
     "task_mmlu_score": 0.53,
     "task_safety_score": 0.62,
     "task_scores": {
@@ -25,20 +27,34 @@
   "current_selection": {
     "audit_completed": true,
     "baseline_eval_completed": true,
+    "baseline_task_manifest_sha256": "smoke-shared-manifest-sha",
     "candidate_count": 3,
     "candidate_eval_completed": true,
     "capacity_metrics_completed": true,
     "eligible_candidate_count": 0,
     "group_validation_completed": true,
     "reason": "No router-calibrated cap improved downstream scores while preserving baseline/source-control gates.",
+    "router_margin_gate_completed": true,
+    "router_margin_gate_enabled": true,
+    "router_margin_high_fragility_layer_count": 24,
+    "router_margin_layer_count": 48,
+    "router_margin_limit_with_tolerance": 0.020119655341633423,
+    "router_margin_min_safe_lambda_proxy": 0.019725152295719042,
+    "router_margin_top_fragile_layer": 17,
     "schema_version": 1,
     "selected_method": "qwen3_moe_searched_no_gt065_max_retention_candidate",
     "source_eval_completed": true,
     "source_eval_required": true,
+    "source_task_manifest_sha256": [
+      "smoke-shared-manifest-sha",
+      "smoke-shared-manifest-sha"
+    ],
     "status": "keep_frozen_router_baseline",
+    "task_manifest_gate_completed": true,
     "training_completed": true
   },
   "job_dir": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job",
+  "manifest_mismatch_negative_smoke": false,
   "no_downstream_gain_negative_smoke": false,
   "outputs": {
     "decision_rules": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/decision_rules.json",
@@ -64,6 +80,8 @@
       "summary_path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/eval_source_instruct/summary.json",
       "task_gsm8k_score": 0.46,
       "task_humaneval_compile_score": 0.36,
+      "task_manifest_path": "smoke_task_manifest.json",
+      "task_manifest_sha256": "smoke-shared-manifest-sha",
       "task_mmlu_score": 0.57,
       "task_safety_score": 0.65,
       "task_scores": {
@@ -86,6 +104,8 @@
       "summary_path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/eval_source_coder/summary.json",
       "task_gsm8k_score": 0.36,
       "task_humaneval_compile_score": 0.41,
+      "task_manifest_path": "smoke_task_manifest.json",
+      "task_manifest_sha256": "smoke-shared-manifest-sha",
       "task_mmlu_score": 0.49,
       "task_safety_score": 0.55,
       "task_scores": {

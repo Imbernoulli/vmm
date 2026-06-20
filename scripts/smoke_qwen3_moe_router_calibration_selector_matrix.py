@@ -32,7 +32,7 @@ CASES = [
         name="positive_group_heldout",
         flag="--smoke",
         expected_status="selected_router_calibrated_candidate",
-        expected_selected_method="smoke_router_calibrated_cap0025",
+        expected_selected_method="smoke_router_calibrated_cap001",
         expected_eligible_count=1,
         expected_reason_marker="passes_all_gates",
     ),
