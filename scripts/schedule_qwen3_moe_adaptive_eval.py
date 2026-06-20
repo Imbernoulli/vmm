@@ -31,6 +31,7 @@ DEFAULT_TASK_ORDER = ["gsm8k", "mmlu", "safety", "humaneval_compile"]
 TASKS_BY_MECHANISM_TEST = {
     "candidate_vs_sources": DEFAULT_TASK_ORDER,
     "unified_mechanism_optimizer": ["gsm8k", "mmlu", "humaneval_compile"],
+    "mechanistic_unified_optimizer": DEFAULT_TASK_ORDER,
     "expert_subspace_conflict_ablation": ["gsm8k", "humaneval_compile"],
     "layer_chunk_sensitivity": ["mmlu", "humaneval_compile"],
     "risk_penalty_simplification": ["gsm8k", "humaneval_compile"],
@@ -462,6 +463,7 @@ def mechanism_priority(row: pd.Series, mechanism_budget: pd.DataFrame) -> float:
     if method in SOURCE_METHODS:
         return 1.20
     manual = {
+        "qwen3_moe_mechanistic_unified_candidate": 1.04,
         "qwen3_moe_unified_mechanism_candidate": 1.00,
         "qwen3_moe_searched_no_gt065_max_retention_candidate": 0.94,
         "qwen3_moe_layer_chunk_candidate": 0.92,

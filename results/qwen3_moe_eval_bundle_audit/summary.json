@@ -1,10 +1,10 @@
 {
-  "candidate_count": 9,
+  "candidate_count": 10,
   "candidate_usable_count": 0,
   "complete_eval_count": 0,
   "invalid_complete_count": 0,
   "max_required_examples": 384,
-  "method_count": 11,
+  "method_count": 12,
   "outputs": {
     "audit_rows": "results/qwen3_moe_eval_bundle_audit/audit_rows.csv",
     "pairability": "results/qwen3_moe_eval_bundle_audit/pairability.csv",

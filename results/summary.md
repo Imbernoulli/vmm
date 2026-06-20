@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-20T08:46:30.082079+00:00`
+Generated at: `2026-06-20T09:08:06.248184+00:00`
 
 ## Coverage
 
-Complete: `91`; partial: `1`; missing: `0`.
+Complete: `92`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -87,7 +87,8 @@ Complete: `91`; partial: `1`; missing: `0`.
 | Qwen3 MoE vLLM eval bundle audit | complete | results/qwen3_moe_eval_bundle_audit/report.md checks every Qwen3 source/candidate eval output for model-id, task-manifest sha, task, example-count, prediction, primary-score, and paired prediction-key consistency before selector use; results/qwen3_moe_eval_bundle_audit_smoke/report.md covers valid, stale-model, missing-task, low-example, key-mismatch, and manifest-mismatch bundles. |
 | Qwen3 MoE mechanism effect attribution | complete | results/qwen3_moe_mechanism_effect_attribution/report.md decomposes the Qwen3 MoE source-frontier -> route-guarded -> audit-gated -> trust-region -> expert-only -> tail-trimmed -> searched-cap -> layer/chunk -> unified-mechanism chain into structural and downstream score deltas, gated by the eval-bundle audit. |
 | Qwen3 MoE downstream feedback optimizer | complete | results/qwen3_moe_feedback_optimizer/report.md converts source-frontier task regressions from vLLM eval into bounded routed-expert rule updates; results/qwen3_moe_feedback_optimizer_smoke/report.md verifies code-regression restoration, non-code source-regression shrinkage, hard-cap enforcement, no-update awaiting-eval behavior, and eval-bundle-to-feedback integration. |
-| Qwen3 MoE post-vLLM eval refresh pipeline | complete | results/qwen3_moe_post_eval_refresh/report.md runs eval-bundle audit, unified result selection, mechanism attribution, downstream feedback optimization, smoke checks, and collect_results in a fixed post-eval order after remote vLLM outputs land. |
+| Qwen3 MoE mechanistic unified candidate | complete | results/qwen3_moe_mechanistic_unified_candidate/report.md solves per-expert nonbase scale from benefit, curvature, and interference proxies, using real route mass, expert geometry, subspace conflict, delta pressure, and feedback priors; results/qwen3_moe_mechanistic_unified_candidate_smoke/report.md verifies monotonic mechanism behavior, hard-cap enforcement, and feedback shrink gating. |
+| Qwen3 MoE post-vLLM eval refresh pipeline | complete | results/qwen3_moe_post_eval_refresh/report.md runs eval-bundle audit, unified result selection, mechanism attribution, downstream feedback optimization, mechanistic unified candidate generation, smoke checks, and collect_results in a fixed post-eval order after remote vLLM outputs land. |
 | Qwen3 MoE searched cap-law materialized candidate | complete | results/qwen3_moe_searched_no_gt065_delta_audit/report.md verifies the materialized searched 0.65 cap-law checkpoint and adds it to the Qwen3 MoE eval gate. |
 | Qwen3 MoE router move gate | complete | results/qwen3_moe_router_move_gate/report.md combines router tensor deltas with real routing readiness and rejects direct router-weight movement for all 48 layers. |
 | Qwen3 MoE router margin fragility probe | complete | results/qwen3_moe_router_margin_fragility/report.md ranks router layers and prompt categories by top-k boundary fragility from real Qwen3 route margins, overlap, and router movement. |
@@ -194,7 +195,7 @@ Complete: `91`; partial: `1`; missing: `0`.
 | Qwen3 MoE searched cap-law delta audit | max routed rel-delta / >0.75 / >0.65 / >0.6505 | 0.650 / 0 / 245 / 0 |
 | Qwen3 MoE layer/chunk delta audit | status / total relative norm / router changed | passed / 0.243 / 0/48 |
 | Qwen3 MoE layer/chunk delta audit | max routed rel-delta / >0.75 / >0.65 / >0.6505 | 0.650 / 0 / 89 / 0 |
-| Qwen3 MoE delta frontier | best safety candidate / next required gate | subspace_scaled / vllm_downstream_eval_trust_region_vs_expert_only_tail_trimmed_vs_searched_cap_law_vs_layer_chunk_vs_unified_vs_subspace_scaled |
+| Qwen3 MoE delta frontier | best safety candidate / next required gate | subspace_scaled / vllm_downstream_eval_trust_region_vs_expert_only_tail_trimmed_vs_searched_cap_law_vs_layer_chunk_vs_unified_vs_mechanistic_vs_subspace_scaled |
 | Qwen3 MoE delta frontier | audit->trust routed >0.75 reduction / trust->expert-only routed >0.75 reduction | 150 / 0 |
 | Qwen3 MoE delta frontier | trust vs expert-only total rel-norm / attention norm reduction | 0.249->0.246 / 0.189 |
 | Qwen3 MoE delta frontier | expert-only->tail-trimmed rel-norm reduction / routed >0.65 reduction | 0.003 / 286 |
@@ -204,15 +205,15 @@ Complete: `91`; partial: `1`; missing: `0`.
 | Qwen3 MoE delta frontier | layer/chunk->unified rel-norm reduction / >0.65 reduction / unified >0.6505 | 0.003 / 89 / 0 |
 | Qwen3 MoE delta frontier | unified->subspace rel-norm reduction / >0.65 reduction / subspace >0.6505 | 0.001 / 0 / 0 |
 | Qwen3 MoE mechanism eval gate | status / selection / selected | awaiting_remote_vllm_eval / awaiting_source_eval / None |
-| Qwen3 MoE mechanism eval gate | ready / completed / awaiting tests | 11 / 0 / 10 |
+| Qwen3 MoE mechanism eval gate | ready / completed / awaiting tests | 11 / 0 / 11 |
 | Qwen3 MoE mechanism eval gate | local GPU / best delta-safety candidate | nvidia_smi_failed / subspace_scaled |
 | Qwen3 MoE mechanism eval gate | unified serve / audit / optimizer test | ready_to_host / True / awaiting_eval |
 | Qwen3 MoE eval budget plan | status / current -> recommended examples | ready_for_budgeted_remote_vllm_eval / 64 -> 384 |
-| Qwen3 MoE eval budget plan | planned / ready / pending methods | 13 / 11 / 2 |
-| Qwen3 MoE eval budget plan | current / recommended / extra prompt budget | 3328 / 19968 / 16640 |
+| Qwen3 MoE eval budget plan | planned / ready / pending methods | 14 / 11 / 2 |
+| Qwen3 MoE eval budget plan | current / recommended / extra prompt budget | 3584 / 21504 / 17920 |
 | Qwen3 MoE eval budget plan | ready current / recommended / extra prompt budget | 2816 / 16896 / 14080 |
 | Qwen3 MoE eval budget plan | Wilson n / paired n / capped tasks | 381 / 248 / humaneval_compile |
-| Qwen3 MoE eval budget plan | task manifest aligned / canonical manifest | 13/13 / results/qwen3_moe_mechanism_eval_gate/task_manifest.json |
+| Qwen3 MoE eval budget plan | task manifest aligned / canonical manifest | 14/14 / results/qwen3_moe_mechanism_eval_gate/task_manifest.json |
 | Qwen3 MoE adaptive eval schedule | status / top action / top method | adaptive_schedule_ready / run_or_extend_source_control_probe / source_qwen3_30b_instruct |
 | Qwen3 MoE adaptive eval schedule | source controls / round1 probes / probe->full examples | False / 5 / 64 -> 384 |
 | Qwen3 MoE adaptive eval schedule | runnable methods / prompt budget / round1 probe prompts | 7 / 1408 / 896 |
@@ -238,8 +239,8 @@ Complete: `91`; partial: `1`; missing: `0`.
 | Qwen3 MoE unified result selector | status / selected / reason | awaiting_source_eval / None / Both Qwen3 source endpoints must complete matched vLLM downstream eval before accepting an average. |
 | Qwen3 MoE unified result selector | source complete / unified complete / eligible | False / False / 0/3 |
 | Qwen3 MoE unified result selector smoke | status / passed cases | passed / 4/4 |
-| Qwen3 MoE final candidate selector | status / selected / eligible | awaiting_source_eval / None / 0/9 |
-| Qwen3 MoE final candidate selector | usable / complete / best source | 0/9 / False / None |
+| Qwen3 MoE final candidate selector | status / selected / eligible | awaiting_source_eval / None / 0/10 |
+| Qwen3 MoE final candidate selector | usable / complete / best source | 0/10 / False / None |
 | Qwen3 MoE final candidate selector | uncertainty / paired gates / paired alpha | True / True / 0.050 |
 | Qwen3 MoE final candidate selector smoke | status / passed cases | passed / 7/7 |
 | unified average optimizer | status / dense / MoE | built_waiting_for_qwen3_vllm_eval / avoid_linear_midpoint_use_probe_selected_anchor_or_low_lambda / align_experts_freeze_router_then_gate_candidate_by_vllm |
@@ -257,20 +258,25 @@ Complete: `91`; partial: `1`; missing: `0`.
 | unified average optimizer | layer/chunk->unified norm / >0.65 reduction | 0.003 / 89 |
 | unified average optimizer | router calibration status / eligible | awaiting_baseline_eval / 0/4 |
 | unified average optimizer | router NLL probe worst reduction / code gap | 0.221 / -0.014 |
-| Qwen3 MoE eval bundle audit | status / usable / invalid complete | awaiting_eval / 0/11 / 0 |
-| Qwen3 MoE eval bundle audit | source usable / candidate usable / unified usable | 0/2 / 0/9 / False |
+| Qwen3 MoE eval bundle audit | status / usable / invalid complete | awaiting_eval / 0/12 / 0 |
+| Qwen3 MoE eval bundle audit | source usable / candidate usable / unified usable | 0/2 / 0/10 / False |
 | Qwen3 MoE eval bundle audit | pairable sources / failed methods | 0 / 0 |
 | Qwen3 MoE eval bundle audit smoke | status / passed cases | passed / 6/6 |
-| Qwen3 MoE mechanism attribution | status / scored / regressions | awaiting_eval / 0/9 / 0 |
+| Qwen3 MoE mechanism attribution | status / scored / regressions | awaiting_eval / 0/10 / 0 |
 | Qwen3 MoE mechanism attribution | best avg / best worst transition | None / None |
 | Qwen3 MoE mechanism attribution smoke | status / passed cases | passed / 3/3 |
 | Qwen3 MoE feedback optimizer | status / scored tasks / regressions / changed groups | awaiting_eval / 0/4 / 0 / 0 |
 | Qwen3 MoE feedback optimizer | materialization gate | do_not_materialize_feedback_candidate_yet |
 | Qwen3 MoE feedback optimizer | nonbase ratio / max expected delta / hard-cap violations | 1.000 / 0.644 / 0 |
 | Qwen3 MoE feedback optimizer smoke | status / passed cases | passed / 10/10 |
-| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | passed / 11/11 / 0/11 |
-| Qwen3 MoE post-eval refresh | selection / final selection / attribution scored / plan steps | awaiting_source_eval / awaiting_source_eval / 0/9 / 11/11 |
+| Qwen3 MoE mechanistic unified candidate | selected / candidates / feedback | s0.16_b1.65_h1.25_i1.00 / 144 / awaiting_eval |
+| Qwen3 MoE mechanistic unified candidate | retention / max rel-delta / hard-cap violations | 0.965 / 0.650 / 0 |
+| Qwen3 MoE mechanistic unified candidate | risk-delta / benefit-scale / loss proxy | 0.230 / 0.977 / 0.029 |
+| Qwen3 MoE mechanistic unified smoke | status / passed cases | passed / 4/4 |
+| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | passed / 13/13 / 0/12 |
+| Qwen3 MoE post-eval refresh | selection / final selection / attribution scored / plan steps | awaiting_source_eval / awaiting_source_eval / 0/10 / 13/13 |
 | Qwen3 MoE post-eval refresh | feedback status / scored tasks / changed groups | awaiting_eval / 0/4 / 0 |
+| Qwen3 MoE post-eval refresh | mechanistic status / retention / hard-cap violations | mechanistic_unified_candidate_ready / 0.965 / 0 |
 | Qwen3 MoE router move gate | status / action / allowed layers | router_move_rejected_freeze_router / freeze_router / 0/48 |
 | Qwen3 MoE router move gate | unsafe / calibrate / freeze rows | 499 / 493 / 6 |
 | Qwen3 MoE router move gate | router rel-norm / mean-min top-k Jaccard / min top1 | 0.739 / 0.454-0.242 / 0.069 |
@@ -423,7 +429,7 @@ Complete: `91`; partial: `1`; missing: `0`.
 | vLLM downstream eval smoke | status | passed |
 | vLLM downstream eval smoke | good / bad avg primary | 1.000 / 0.000 |
 | vLLM checkpoint eval plan | status | hosted_eval_complete |
-| vLLM checkpoint eval plan | ready / missing / not-loadable | 12 / 2 / 1 |
+| vLLM checkpoint eval plan | ready / missing / not-loadable | 12 / 3 / 1 |
 | vLLM checkpoint eval plan | unified serve / eval output | ready_to_host / results/vllm_checkpoint_eval/qwen3_moe_unified_mechanism_candidate |
 | vLLM hosted eval results | completed eval dirs | 10 |
 | vLLM hosted eval results | best eval avg / worst primary | source_qwen_0_5b_base / 0.375 / 0.094 |

@@ -2211,6 +2211,67 @@ def summarize_qwen3_moe_feedback_optimizer_smoke() -> dict[str, Any]:
     }
 
 
+def summarize_qwen3_moe_mechanistic_unified_candidate() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_mechanistic_unified_candidate")
+    summary = read_json(root / "summary.json")
+    search = read_csv(root / "candidate_search.csv")
+    group_rules = read_csv(root / "mechanistic_group_rules.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "expert_group_count": int(summary.get("expert_group_count", len(group_rules))),
+        "candidate_count": int(summary.get("candidate_count", len(search))),
+        "selected_candidate_id": summary.get("selected_candidate_id"),
+        "selected_nonbase_mass_retention": maybe_float(summary.get("selected_nonbase_mass_retention")),
+        "selected_max_predicted_relative_delta": maybe_float(summary.get("selected_max_predicted_relative_delta")),
+        "selected_hard_cap_violation_count": int(summary.get("selected_hard_cap_violation_count", 0)),
+        "selected_risk_weighted_predicted_delta": maybe_float(
+            summary.get("selected_risk_weighted_predicted_delta")
+        ),
+        "selected_benefit_weighted_scale": maybe_float(summary.get("selected_benefit_weighted_scale")),
+        "selected_mean_mechanistic_loss_proxy": maybe_float(
+            summary.get("selected_mean_mechanistic_loss_proxy")
+        ),
+        "selected_mean_scale": maybe_float(summary.get("selected_mean_scale")),
+        "selected_min_scale": maybe_float(summary.get("selected_min_scale")),
+        "selected_high_benefit_low_risk_mean_scale": maybe_float(
+            summary.get("selected_high_benefit_low_risk_mean_scale")
+        ),
+        "selected_high_interference_low_benefit_mean_scale": maybe_float(
+            summary.get("selected_high_interference_low_benefit_mean_scale")
+        ),
+        "selected_high_subspace_mean_scale": maybe_float(summary.get("selected_high_subspace_mean_scale")),
+        "feedback_status": summary.get("feedback_status"),
+        "feedback_materialization_gate": summary.get("feedback_materialization_gate"),
+        "candidate_rows": [clean_row(row) for _, row in search.iterrows()],
+        "report": rel(root / "report.md"),
+        "candidate_search": rel(root / "candidate_search.csv"),
+        "mechanistic_group_rules": rel(root / "mechanistic_group_rules.csv"),
+        "tensor_rules": rel(root / "tensor_rules.txt"),
+        "writer_command": rel(root / "writer_command.txt"),
+        "dry_run_command": rel(root / "dry_run_command.txt"),
+        "literature_sources": rel(root / "literature_sources.json"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
+def summarize_qwen3_moe_mechanistic_unified_candidate_smoke() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_mechanistic_unified_candidate_smoke")
+    summary = read_json(root / "summary.json")
+    matrix = read_csv(root / "mechanistic_unified_smoke_matrix.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "case_count": int(summary.get("case_count", len(matrix))),
+        "passed_case_count": int(summary.get("passed_case_count", 0)),
+        "failed_case_count": int(summary.get("failed_case_count", 0)),
+        "case_rows": [clean_row(row) for _, row in matrix.iterrows()],
+        "report": rel(root / "report.md"),
+        "matrix": rel(root / "mechanistic_unified_smoke_matrix.csv"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_qwen3_moe_post_eval_refresh() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_post_eval_refresh")
     summary = read_json(root / "summary.json")
@@ -2245,6 +2306,10 @@ def summarize_qwen3_moe_post_eval_refresh() -> dict[str, Any]:
             downstream.get("feedback_regression_task_count")
         ),
         "feedback_changed_group_count": maybe_int(downstream.get("feedback_changed_group_count")),
+        "mechanistic_status": downstream.get("mechanistic_status"),
+        "mechanistic_selected_candidate": downstream.get("mechanistic_selected_candidate"),
+        "mechanistic_retention": maybe_float(downstream.get("mechanistic_retention")),
+        "mechanistic_hard_cap_violations": maybe_int(downstream.get("mechanistic_hard_cap_violations")),
         "step_rows": [clean_row(row) for _, row in steps.iterrows()],
         "report": rel(root / "report.md"),
         "steps": rel(root / "steps.csv"),
@@ -4454,9 +4519,14 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/qwen3_moe_feedback_optimizer/report.md converts source-frontier task regressions from vLLM eval into bounded routed-expert rule updates; results/qwen3_moe_feedback_optimizer_smoke/report.md verifies code-regression restoration, non-code source-regression shrinkage, hard-cap enforcement, no-update awaiting-eval behavior, and eval-bundle-to-feedback integration.",
         },
         {
+            "item": "Qwen3 MoE mechanistic unified candidate",
+            "status": "complete",
+            "evidence": "results/qwen3_moe_mechanistic_unified_candidate/report.md solves per-expert nonbase scale from benefit, curvature, and interference proxies, using real route mass, expert geometry, subspace conflict, delta pressure, and feedback priors; results/qwen3_moe_mechanistic_unified_candidate_smoke/report.md verifies monotonic mechanism behavior, hard-cap enforcement, and feedback shrink gating.",
+        },
+        {
             "item": "Qwen3 MoE post-vLLM eval refresh pipeline",
             "status": "complete",
-            "evidence": "results/qwen3_moe_post_eval_refresh/report.md runs eval-bundle audit, unified result selection, mechanism attribution, downstream feedback optimization, smoke checks, and collect_results in a fixed post-eval order after remote vLLM outputs land.",
+            "evidence": "results/qwen3_moe_post_eval_refresh/report.md runs eval-bundle audit, unified result selection, mechanism attribution, downstream feedback optimization, mechanistic unified candidate generation, smoke checks, and collect_results in a fixed post-eval order after remote vLLM outputs land.",
         },
         {
             "item": "Qwen3 MoE searched cap-law materialized candidate",
@@ -4616,6 +4686,10 @@ def build_summary() -> dict[str, Any]:
         ),
         "qwen3_moe_feedback_optimizer": summarize_qwen3_moe_feedback_optimizer(),
         "qwen3_moe_feedback_optimizer_smoke": summarize_qwen3_moe_feedback_optimizer_smoke(),
+        "qwen3_moe_mechanistic_unified_candidate": summarize_qwen3_moe_mechanistic_unified_candidate(),
+        "qwen3_moe_mechanistic_unified_candidate_smoke": (
+            summarize_qwen3_moe_mechanistic_unified_candidate_smoke()
+        ),
         "qwen3_moe_post_eval_refresh": summarize_qwen3_moe_post_eval_refresh(),
         "qwen3_moe_post_eval_refresh_plan": summarize_qwen3_moe_post_eval_refresh_plan(),
         "qwen3_moe_router_move_gate": summarize_qwen3_moe_router_move_gate(),
@@ -4800,6 +4874,8 @@ def build_summary() -> dict[str, Any]:
             "python scripts/attribute_qwen3_moe_mechanism_effects.py --smoke-matrix --output-dir results/qwen3_moe_mechanism_effect_attribution_smoke",
             "python scripts/build_qwen3_moe_feedback_optimizer.py --output-dir results/qwen3_moe_feedback_optimizer",
             "python scripts/build_qwen3_moe_feedback_optimizer.py --smoke-matrix --output-dir results/qwen3_moe_feedback_optimizer_smoke",
+            "python scripts/build_qwen3_moe_mechanistic_unified_candidate.py --output-dir results/qwen3_moe_mechanistic_unified_candidate",
+            "python scripts/build_qwen3_moe_mechanistic_unified_candidate.py --smoke-matrix --output-dir results/qwen3_moe_mechanistic_unified_candidate_smoke",
             "python scripts/refresh_qwen3_moe_post_eval.py --plan-only --include-smoke --output-dir results/qwen3_moe_post_eval_refresh_plan",
             "python scripts/refresh_qwen3_moe_post_eval.py --include-smoke --output-dir results/qwen3_moe_post_eval_refresh",
             "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
@@ -4906,6 +4982,10 @@ def build_markdown(summary: dict[str, Any]) -> str:
     ]
     qwen3_moe_feedback_optimizer = exp["qwen3_moe_feedback_optimizer"]
     qwen3_moe_feedback_optimizer_smoke = exp["qwen3_moe_feedback_optimizer_smoke"]
+    qwen3_moe_mechanistic_unified_candidate = exp["qwen3_moe_mechanistic_unified_candidate"]
+    qwen3_moe_mechanistic_unified_candidate_smoke = exp[
+        "qwen3_moe_mechanistic_unified_candidate_smoke"
+    ]
     qwen3_moe_post_eval_refresh = exp["qwen3_moe_post_eval_refresh"]
     qwen3_moe_post_eval_refresh_plan = exp["qwen3_moe_post_eval_refresh_plan"]
     qwen3_moe_router_move_gate = exp["qwen3_moe_router_move_gate"]
@@ -5907,6 +5987,30 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"/{qwen3_moe_feedback_optimizer_smoke['case_count']} |"
             ),
             (
+                "| Qwen3 MoE mechanistic unified candidate | selected / candidates / feedback | "
+                f"{qwen3_moe_mechanistic_unified_candidate['selected_candidate_id']} / "
+                f"{qwen3_moe_mechanistic_unified_candidate['candidate_count']} / "
+                f"{qwen3_moe_mechanistic_unified_candidate['feedback_status']} |"
+            ),
+            (
+                "| Qwen3 MoE mechanistic unified candidate | retention / max rel-delta / hard-cap violations | "
+                f"{fmt(qwen3_moe_mechanistic_unified_candidate['selected_nonbase_mass_retention'])} / "
+                f"{fmt(qwen3_moe_mechanistic_unified_candidate['selected_max_predicted_relative_delta'])} / "
+                f"{qwen3_moe_mechanistic_unified_candidate['selected_hard_cap_violation_count']} |"
+            ),
+            (
+                "| Qwen3 MoE mechanistic unified candidate | risk-delta / benefit-scale / loss proxy | "
+                f"{fmt(qwen3_moe_mechanistic_unified_candidate['selected_risk_weighted_predicted_delta'])} / "
+                f"{fmt(qwen3_moe_mechanistic_unified_candidate['selected_benefit_weighted_scale'])} / "
+                f"{fmt(qwen3_moe_mechanistic_unified_candidate['selected_mean_mechanistic_loss_proxy'])} |"
+            ),
+            (
+                "| Qwen3 MoE mechanistic unified smoke | status / passed cases | "
+                f"{qwen3_moe_mechanistic_unified_candidate_smoke['status']} / "
+                f"{qwen3_moe_mechanistic_unified_candidate_smoke['passed_case_count']}"
+                f"/{qwen3_moe_mechanistic_unified_candidate_smoke['case_count']} |"
+            ),
+            (
                 "| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | "
                 f"{qwen3_moe_post_eval_refresh['status']} / "
                 f"{qwen3_moe_post_eval_refresh['passed_step_count']}"
@@ -5929,6 +6033,12 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_post_eval_refresh['feedback_scored_task_count']}"
                 f"/{qwen3_moe_post_eval_refresh['feedback_task_count']} / "
                 f"{qwen3_moe_post_eval_refresh['feedback_changed_group_count']} |"
+            ),
+            (
+                "| Qwen3 MoE post-eval refresh | mechanistic status / retention / hard-cap violations | "
+                f"{qwen3_moe_post_eval_refresh['mechanistic_status']} / "
+                f"{fmt(qwen3_moe_post_eval_refresh['mechanistic_retention'])} / "
+                f"{qwen3_moe_post_eval_refresh['mechanistic_hard_cap_violations']} |"
             ),
             (
                 "| Qwen3 MoE router move gate | status / action / allowed layers | "

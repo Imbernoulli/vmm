@@ -1,6 +1,6 @@
 {
   "best_delta_safety_candidate": "subspace_scaled",
-  "candidate_count": 9,
+  "candidate_count": 10,
   "completed_eval_count": 0,
   "current_selection": {
     "best_source_by_avg": null,

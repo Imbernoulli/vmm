@@ -1,10 +1,10 @@
 {
   "assumed_paired_discordance_rate": 0.25,
-  "candidate_count": 11,
+  "candidate_count": 12,
   "canonical_task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
   "confidence_z": 1.96,
   "current_gate_examples": 64,
-  "method_count": 13,
+  "method_count": 14,
   "outputs": {
     "mechanism_budget": "results/qwen3_moe_eval_budget_plan/mechanism_budget.csv",
     "method_budget": "results/qwen3_moe_eval_budget_plan/method_budget.csv",
@@ -42,13 +42,13 @@
   "status": "ready_for_budgeted_remote_vllm_eval",
   "target_paired_net_loss_rate": 0.05,
   "target_wilson_half_width": 0.05,
-  "task_manifest_aligned_method_count": 13,
+  "task_manifest_aligned_method_count": 14,
   "task_manifest_pairing_contract": "All source and candidate eval commands must use the same task manifest so final paired prediction comparisons share task/example keys.",
   "task_manifest_path_count": 1,
   "task_manifest_unaligned_method_count": 0,
-  "total_additional_prompt_budget": 16640,
-  "total_current_prompt_budget": 3328,
-  "total_recommended_prompt_budget": 19968,
+  "total_additional_prompt_budget": 17920,
+  "total_current_prompt_budget": 3584,
+  "total_recommended_prompt_budget": 21504,
   "wilson_required_examples": 381,
   "wilson_rounded_examples": 384
 }

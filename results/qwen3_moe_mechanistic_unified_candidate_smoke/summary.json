@@ -1,0 +1,12 @@
+{
+  "case_count": 4,
+  "failed_case_count": 0,
+  "outputs": {
+    "matrix": "results/qwen3_moe_mechanistic_unified_candidate_smoke/mechanistic_unified_smoke_matrix.csv",
+    "report": "results/qwen3_moe_mechanistic_unified_candidate_smoke/report.md",
+    "summary": "results/qwen3_moe_mechanistic_unified_candidate_smoke/summary.json"
+  },
+  "passed_case_count": 4,
+  "selected_candidate_id": "s0.16_b0.90_h1.25_i1.25",
+  "status": "passed"
+}

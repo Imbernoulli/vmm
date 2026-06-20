@@ -61,6 +61,12 @@ DEFAULT_CANDIDATES = [
         "rule": "unified_router_evidence_geometry_risk_cap",
     },
     {
+        "candidate": "mechanistic_unified",
+        "method": "qwen3_moe_mechanistic_unified_candidate",
+        "audit_dir": "results/qwen3_moe_mechanistic_unified_delta_audit",
+        "rule": "benefit_curvature_interference_scale_law",
+    },
+    {
         "candidate": "subspace_scaled",
         "method": "qwen3_moe_subspace_scaled_candidate",
         "audit_dir": "results/qwen3_moe_subspace_scaled_delta_audit",
@@ -121,6 +127,38 @@ def group_int(groups: pd.DataFrame, group: str, column: str) -> int:
 
 def summarize_candidate(spec: dict[str, str]) -> tuple[dict[str, Any], pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     audit_dir = repo_path(spec["audit_dir"])
+    summary_path = audit_dir / "summary.json"
+    if not summary_path.exists():
+        row = {
+            "candidate": spec["candidate"],
+            "method": spec["method"],
+            "rule": spec["rule"],
+            "audit_dir": rel(audit_dir),
+            "status": "pending_delta_audit",
+            "delta_audit_available": False,
+            "tensor_count": 0,
+            "changed_tensors": 0,
+            "changed_numel_fraction": 0.0,
+            "total_relative_delta_norm": 0.0,
+            "total_delta_norm": 0.0,
+            "max_abs_delta": 0.0,
+            "routed_relative_delta_norm": 0.0,
+            "routed_changed_tensors": 0,
+            "routed_changed_numel_fraction": 0.0,
+            "routed_max_tensor_relative_delta": 0.0,
+            "routed_p99_tensor_relative_delta": 0.0,
+            "routed_p95_tensor_relative_delta": 0.0,
+            "attention_relative_delta_norm": 0.0,
+            "attention_changed_tensors": 0,
+            "attention_changed_numel_fraction": 0.0,
+            "attention_max_tensor_relative_delta": 0.0,
+            "router_changed_tensors": 0,
+            "router_tensors": 0,
+        }
+        for threshold in THRESHOLDS:
+            suffix = str(threshold).replace(".", "_")
+            row[f"routed_tensors_gt_{suffix}"] = 0
+        return row, pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
     summary = read_json(audit_dir / "summary.json")
     groups = pd.read_csv(audit_dir / "group_delta_summary.csv")
     layers = pd.read_csv(audit_dir / "layer_delta_summary.csv")
@@ -134,6 +172,7 @@ def summarize_candidate(spec: dict[str, str]) -> tuple[dict[str, Any], pd.DataFr
         "rule": spec["rule"],
         "audit_dir": rel(audit_dir),
         "status": summary.get("status"),
+        "delta_audit_available": True,
         "tensor_count": int(summary.get("tensor_count", 0)),
         "changed_tensors": int(summary.get("changed_tensors", 0)),
         "changed_numel_fraction": float(summary.get("changed_numel", 0))
@@ -178,7 +217,7 @@ def summarize_candidate(spec: dict[str, str]) -> tuple[dict[str, Any], pd.DataFr
 
 def build_pairwise(candidate_rows: pd.DataFrame) -> pd.DataFrame:
     rows = []
-    ordered = candidate_rows.to_dict("records")
+    ordered = candidate_rows[candidate_rows.get("delta_audit_available", True).astype(bool)].to_dict("records")
     for before, after in zip(ordered, ordered[1:]):
         rows.append(
             {
@@ -249,7 +288,8 @@ def build_summary(
     layer_frontier: pd.DataFrame,
     output_dir: Path,
 ) -> dict[str, Any]:
-    best_safety = candidate_rows.sort_values(
+    available = candidate_rows[candidate_rows.get("delta_audit_available", True).astype(bool)].copy()
+    best_safety = available.sort_values(
         ["router_changed_tensors", "routed_tensors_gt_1_0", "routed_tensors_gt_0_75", "total_relative_delta_norm"],
         ascending=[True, True, True, True],
     ).iloc[0]
@@ -292,6 +332,7 @@ def build_summary(
         "schema_version": 1,
         "status": "delta_frontier_ready",
         "candidate_count": int(len(candidate_rows)),
+        "pending_delta_audit_candidate_count": int((~candidate_rows.get("delta_audit_available", True).astype(bool)).sum()),
         "best_delta_safety_candidate": str(best_safety["candidate"]),
         "router_changed_all_candidates": int(candidate_rows["router_changed_tensors"].sum()),
         "trust_region_total_relative_delta_norm": float(trust["total_relative_delta_norm"]),
@@ -374,7 +415,7 @@ def build_summary(
             {str(k): clean(v) for k, v in row.items()}
             for row in layer_frontier.head(10).to_dict("records")
         ],
-        "next_required_gate": "vllm_downstream_eval_trust_region_vs_expert_only_tail_trimmed_vs_searched_cap_law_vs_layer_chunk_vs_unified_vs_subspace_scaled",
+        "next_required_gate": "vllm_downstream_eval_trust_region_vs_expert_only_tail_trimmed_vs_searched_cap_law_vs_layer_chunk_vs_unified_vs_mechanistic_vs_subspace_scaled",
         "interpretation": (
             "Trust-region rules control the routed-expert delta tail; expert-only freezes attention "
             "without changing routed tail risk. Tail-trimmed then reduces the remaining routed tail "
@@ -383,9 +424,11 @@ def build_summary(
             "global expert cap. The layer/chunk candidate then tests whether layer sensitivity coefficients "
             "can reduce structural delta further without removing useful Coder specialization. The unified "
             "mechanism candidate now uses router/evidence/geometry risk to lower the routed tail below the "
-            "uniform 0.65 cap while staying same-shape. The subspace-scaled ablation then applies only a "
+            "uniform 0.65 cap while staying same-shape. The mechanistic unified candidate then turns the same "
+            "signals into a benefit/curvature/interference scale law, pending materialization and delta audit. "
+            "The subspace-scaled ablation then applies only a "
             "small extra shrink to uncovered channel/chunk conflict experts. Attention, cap-law complexity, "
-            "layer sensitivity, geometry-aware shrink, and subspace-conflict shrink should therefore be "
+            "layer sensitivity, geometry-aware shrink, mechanistic scale law, and subspace-conflict shrink should therefore be "
             "decided by downstream eval, not by delta safety alone."
         ),
         "outputs": {
@@ -414,6 +457,7 @@ def build_report(
         "",
         f"- Status: `{summary['status']}`",
         f"- Candidates: `{summary['candidate_count']}`",
+        f"- Pending delta-audit candidates: `{summary['pending_delta_audit_candidate_count']}`",
         f"- Best delta-safety candidate: `{summary['best_delta_safety_candidate']}`",
         f"- Trust-region total relative delta norm: `{fmt(summary['trust_region_total_relative_delta_norm'])}`",
         f"- Expert-only total relative delta norm: `{fmt(summary['expert_only_total_relative_delta_norm'])}`",

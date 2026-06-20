@@ -1,0 +1,11 @@
+# Qwen3 MoE Mechanistic Unified Candidate Smoke
+
+- Status: `passed`
+- Cases passed: `4/4`
+
+| case | assertion | expected | actual | passed |
+| --- | --- | --- | --- | --- |
+| `benefit_vs_interference` | `high_benefit_low_risk_kept_above_high_interference` | `expert0 scale > expert1 scale` | `1.000000 > 0.918347` | `True` |
+| `hard_cap` | `delta_cap_enforced` | `scale <= 0.541667` | `0.541667` | `True` |
+| `feedback_prior` | `feedback_shrink_respected` | `<=0.55` | `0.510470` | `True` |
+| `candidate_search` | `selected_candidate_passes_hard_cap` | `True` | `True` | `True` |

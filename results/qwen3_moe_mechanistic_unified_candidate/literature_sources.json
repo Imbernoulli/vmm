@@ -1,0 +1,37 @@
+[
+  {
+    "key": "loss_landscape",
+    "mechanism": "Weight-space pictures are only useful when the plotted directions are tied to the model perturbation being tested.",
+    "source": "https://arxiv.org/abs/1712.09913"
+  },
+  {
+    "key": "mode_connectivity",
+    "mechanism": "Low-barrier connectivity is the condition under which a direct average is plausible.",
+    "source": "https://arxiv.org/abs/1802.10026"
+  },
+  {
+    "key": "model_soups",
+    "mechanism": "Same-basin finetunes can be averaged, but endpoint fallback and validation remain part of the method.",
+    "source": "https://arxiv.org/abs/2203.05482"
+  },
+  {
+    "key": "git_rebasin",
+    "mechanism": "Permutation/gauge symmetry means hidden units or experts must be aligned before same-name averaging is trusted.",
+    "source": "https://arxiv.org/abs/2209.04836"
+  },
+  {
+    "key": "ties",
+    "mechanism": "Parameter conflict should be measured and suppressed instead of blindly averaging every coordinate.",
+    "source": "https://arxiv.org/abs/2306.01708"
+  },
+  {
+    "key": "expert_merging",
+    "mechanism": "Layer/chunk heterogeneity and unlabeled hidden/logit alignment provide better merge coefficients than one global weight.",
+    "source": "https://arxiv.org/abs/2509.25712"
+  },
+  {
+    "key": "nash_expert_merging",
+    "mechanism": "Expert contributions are cooperative/competitive, so weights should depend on marginal utility rather than a fixed average.",
+    "source": "https://arxiv.org/abs/2510.16138"
+  }
+]

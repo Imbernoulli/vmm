@@ -3,9 +3,9 @@
 这个 audit 检查远端 vLLM eval 落盘结果是否能被 downstream selector 使用，防止旧模型名、缺任务、样本数不足或缺 predictions 的结果混入 Average 选择。
 
 - Status: `awaiting_eval`
-- Usable for selection: `0/11`
+- Usable for selection: `0/12`
 - Source usable: `0/2`
-- Candidate usable: `0/9`
+- Candidate usable: `0/10`
 - Unified usable: `False`
 - Required examples by task: `{'gsm8k': 384, 'mmlu': 384, 'safety': 384, 'humaneval_compile': 164}`
 - Complete source count for paired keys: `0`
@@ -23,6 +23,7 @@
 | `qwen3_moe_searched_no_gt065_max_retention_candidate` | `missing` | `False` | `False` | `False` | `False` | `False` | 0 | `False` | `eval_output_dir_missing;missing_files:summary.json,eval_plan.csv,metrics.csv,model_summary.csv,predictions.csv; +6 more` |
 | `qwen3_moe_layer_chunk_candidate` | `missing` | `False` | `False` | `False` | `False` | `False` | 0 | `False` | `eval_output_dir_missing;missing_files:summary.json,eval_plan.csv,metrics.csv,model_summary.csv,predictions.csv; +6 more` |
 | `qwen3_moe_unified_mechanism_candidate` | `missing` | `False` | `False` | `False` | `False` | `False` | 0 | `False` | `eval_output_dir_missing;missing_files:summary.json,eval_plan.csv,metrics.csv,model_summary.csv,predictions.csv; +6 more` |
+| `qwen3_moe_mechanistic_unified_candidate` | `missing` | `False` | `False` | `False` | `False` | `False` | 0 | `False` | `eval_output_dir_missing;missing_files:summary.json,eval_plan.csv,metrics.csv,model_summary.csv,predictions.csv; +6 more` |
 | `qwen3_moe_subspace_scaled_candidate` | `missing` | `False` | `False` | `False` | `False` | `False` | 0 | `False` | `eval_output_dir_missing;missing_files:summary.json,eval_plan.csv,metrics.csv,model_summary.csv,predictions.csv; +6 more` |
 
 ## Outputs

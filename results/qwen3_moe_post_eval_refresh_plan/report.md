@@ -4,12 +4,13 @@
 
 - Status: `planned`
 - Plan only: `True`
-- Steps passed: `0/11`
+- Steps passed: `0/13`
 - Audit: `n/a` (`n/a/n/a` usable)
 - Selection: `n/a` -> `n/a`
 - Final selection: `n/a` -> `n/a` (`n/a/n/a` eligible)
 - Attribution: `n/a` (`n/a/n/a` scored)
 - Feedback optimizer: `n/a` (`n/a/n/a` scored, `n/a` changed groups)
+- Mechanistic unified: `n/a` -> `n/a` (`retention=n/a`, `violations=n/a`)
 
 | step | kind | status | returncode | seconds |
 | --- | --- | --- | ---: | ---: |
@@ -18,11 +19,13 @@
 | `select_final_candidate` | `selector` | `planned` | None | 0.00 |
 | `attribute_mechanism_effects` | `attribution` | `planned` | None | 0.00 |
 | `build_feedback_optimizer` | `optimizer` | `planned` | None | 0.00 |
+| `build_mechanistic_unified_candidate` | `optimizer` | `planned` | None | 0.00 |
 | `audit_eval_bundles_smoke` | `smoke` | `planned` | None | 0.00 |
 | `select_unified_result_smoke` | `smoke` | `planned` | None | 0.00 |
 | `select_final_candidate_smoke` | `smoke` | `planned` | None | 0.00 |
 | `attribute_mechanism_effects_smoke` | `smoke` | `planned` | None | 0.00 |
 | `build_feedback_optimizer_smoke` | `smoke` | `planned` | None | 0.00 |
+| `build_mechanistic_unified_candidate_smoke` | `smoke` | `planned` | None | 0.00 |
 | `collect_results` | `summary` | `planned` | None | 0.00 |
 
 ## Commands
@@ -32,9 +35,11 @@
 - `python scripts/select_qwen3_moe_final_candidate.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_final_candidate_selection`
 - `python scripts/attribute_qwen3_moe_mechanism_effects.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_mechanism_effect_attribution`
 - `python scripts/build_qwen3_moe_feedback_optimizer.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_feedback_optimizer`
+- `python scripts/build_qwen3_moe_mechanistic_unified_candidate.py --output-dir results/qwen3_moe_mechanistic_unified_candidate`
 - `python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke`
 - `python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke`
 - `python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke`
 - `python scripts/attribute_qwen3_moe_mechanism_effects.py --smoke-matrix --output-dir results/qwen3_moe_mechanism_effect_attribution_smoke`
 - `python scripts/build_qwen3_moe_feedback_optimizer.py --smoke-matrix --output-dir results/qwen3_moe_feedback_optimizer_smoke`
+- `python scripts/build_qwen3_moe_mechanistic_unified_candidate.py --smoke-matrix --output-dir results/qwen3_moe_mechanistic_unified_candidate_smoke`
 - `python scripts/collect_results.py`

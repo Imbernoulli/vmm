@@ -28,6 +28,7 @@ CANDIDATE_METHODS = [
     "qwen3_moe_searched_no_gt065_max_retention_candidate",
     "qwen3_moe_layer_chunk_candidate",
     "qwen3_moe_unified_mechanism_candidate",
+    "qwen3_moe_mechanistic_unified_candidate",
     "qwen3_moe_subspace_scaled_candidate",
 ]
 
@@ -103,6 +104,13 @@ METHOD_META: dict[str, dict[str, str]] = {
         "mechanism": "mechanism-optimized same-shape MoE average with frozen router/attention and router/evidence/geometry-risk expert caps",
         "question": "Does the unified mechanism optimizer produce a candidate that survives source dominance and downstream task gates?",
         "required_controls": "both sources; searched_no_gt065; layer_chunk; router calibration selector",
+    },
+    "qwen3_moe_mechanistic_unified_candidate": {
+        "role": "candidate",
+        "short_name": "mechanistic_unified",
+        "mechanism": "damped per-expert benefit/curvature/interference optimizer with frozen router/attention",
+        "question": "Does a first-principles marginal-utility scale law improve the unified average beyond hand-weighted mechanism caps?",
+        "required_controls": "both sources; unified_mechanism; feedback optimizer; expert geometry; expert subspace conflict probe",
     },
     "qwen3_moe_subspace_scaled_candidate": {
         "role": "candidate",
@@ -197,12 +205,21 @@ MECHANISM_TESTS = [
     },
     {
         "test": "expert_subspace_conflict_ablation",
-        "from_method": "qwen3_moe_unified_mechanism_candidate",
+        "from_method": "qwen3_moe_mechanistic_unified_candidate",
         "to_method": "qwen3_moe_subspace_scaled_candidate",
         "mechanism_question": "Do uncovered high subspace-conflict experts need additional non-base shrink after the unified mechanism cap?",
         "why_it_matters": "The subspace probe found only a small set of uncovered channel/chunk conflicts; this isolates whether those localized conflicts matter behaviorally.",
-        "pass_signal": "Subspace-scaled matches or beats unified_mechanism on avg/worst/task scores without source dominance.",
-        "fail_signal": "Unified_mechanism beats subspace-scaled; the remaining subspace conflicts were not behaviorally harmful or the shrink removed useful specialization.",
+        "pass_signal": "Subspace-scaled matches or beats mechanistic_unified on avg/worst/task scores without source dominance.",
+        "fail_signal": "Mechanistic_unified beats subspace-scaled; the remaining subspace conflicts were not behaviorally harmful or the shrink removed useful specialization.",
+    },
+    {
+        "test": "mechanistic_unified_optimizer",
+        "from_method": "qwen3_moe_unified_mechanism_candidate",
+        "to_method": "qwen3_moe_mechanistic_unified_candidate",
+        "mechanism_question": "Does the benefit/curvature/interference objective explain a better scale law than the current risk-weighted cap search?",
+        "why_it_matters": "This tests the proposed unified algorithm as a scientific mechanism: high-benefit groups should be preserved while high-curvature/interference groups are damped.",
+        "pass_signal": "Mechanistic unified matches or beats unified_mechanism without source dominance or task regression.",
+        "fail_signal": "Unified_mechanism beats mechanistic_unified; the marginal-utility proxy is overfit or missing an internal signal.",
     },
 ]
 

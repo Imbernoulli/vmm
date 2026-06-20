@@ -4,7 +4,8 @@
 目的不是替代 vLLM 下游评测，而是回答：当前几版规则到底改变了哪些参数组，下一版算法应该把风险预算放在哪里。
 
 - Status: `delta_frontier_ready`
-- Candidates: `9`
+- Candidates: `10`
+- Pending delta-audit candidates: `1`
 - Best delta-safety candidate: `subspace_scaled`
 - Trust-region total relative delta norm: `0.249`
 - Expert-only total relative delta norm: `0.246`
@@ -27,7 +28,7 @@
 - Expert-only router changed tensors: `0`
 - Tail-trimmed router changed tensors: `0`
 - Layer/chunk router changed tensors: `0`
-- Next required gate: `vllm_downstream_eval_trust_region_vs_expert_only_tail_trimmed_vs_searched_cap_law_vs_layer_chunk_vs_unified_vs_subspace_scaled`
+- Next required gate: `vllm_downstream_eval_trust_region_vs_expert_only_tail_trimmed_vs_searched_cap_law_vs_layer_chunk_vs_unified_vs_mechanistic_vs_subspace_scaled`
 
 ## Candidate Frontier
 
@@ -41,6 +42,7 @@
 | `searched_no_gt065` | 0.248 | 0.256 | 0.000 | 0/48 | 0.650 | 0 | 0 | 245 | 0 | 10353 |
 | `layer_chunk` | 0.243 | 0.252 | 0.000 | 0/48 | 0.650 | 0 | 0 | 89 | 0 | 10353 |
 | `unified_mechanism` | 0.240 | 0.249 | 0.000 | 0/48 | 0.644 | 0 | 0 | 0 | 0 | 10353 |
+| `mechanistic_unified` | 0.000 | 0.000 | 0.000 | 0/0 | 0.000 | 0 | 0 | 0 | 0 | 0 |
 | `subspace_scaled` | 0.240 | 0.248 | 0.000 | 0/48 | 0.623 | 0 | 0 | 0 | 0 | 10353 |
 
 ## Pairwise Reductions
@@ -75,7 +77,7 @@
 
 ## Interpretation
 
-Trust-region rules control the routed-expert delta tail; expert-only freezes attention without changing routed tail risk. Tail-trimmed then reduces the remaining routed tail while preserving the frozen attention/router contract. The searched no-gt-0.65 candidate tests whether the hand-built route/load/category risk penalties can be replaced by a simpler global expert cap. The layer/chunk candidate then tests whether layer sensitivity coefficients can reduce structural delta further without removing useful Coder specialization. The unified mechanism candidate now uses router/evidence/geometry risk to lower the routed tail below the uniform 0.65 cap while staying same-shape. The subspace-scaled ablation then applies only a small extra shrink to uncovered channel/chunk conflict experts. Attention, cap-law complexity, layer sensitivity, geometry-aware shrink, and subspace-conflict shrink should therefore be decided by downstream eval, not by delta safety alone.
+Trust-region rules control the routed-expert delta tail; expert-only freezes attention without changing routed tail risk. Tail-trimmed then reduces the remaining routed tail while preserving the frozen attention/router contract. The searched no-gt-0.65 candidate tests whether the hand-built route/load/category risk penalties can be replaced by a simpler global expert cap. The layer/chunk candidate then tests whether layer sensitivity coefficients can reduce structural delta further without removing useful Coder specialization. The unified mechanism candidate now uses router/evidence/geometry risk to lower the routed tail below the uniform 0.65 cap while staying same-shape. The mechanistic unified candidate then turns the same signals into a benefit/curvature/interference scale law, pending materialization and delta audit. The subspace-scaled ablation then applies only a small extra shrink to uncovered channel/chunk conflict experts. Attention, cap-law complexity, layer sensitivity, geometry-aware shrink, mechanistic scale law, and subspace-conflict shrink should therefore be decided by downstream eval, not by delta safety alone.
 
 实际含义：trust-region/audit-gated 的价值主要是压 routed expert 的高 relative-delta tail；expert-only 只是把 shared attention 从候选里拿掉，几乎不改变 routed expert 风险；tail-trimmed 才继续压剩余 routed tail。searched no-gt-0.65 则把复杂风险 penalty 换成统一 cap，给下一轮 eval 一个更简单的候选。layer/chunk candidate 再把机制 leverage 里的层敏感度转成系数，给下一轮 eval 一个更细粒度的候选。unified mechanism candidate 进一步把 router/evidence/geometry risk 放进同一个约束优化器，成为当前最保守的 same-shape average 候选。subspace-scaled ablation 只在 unified 之后额外压少数 uncovered 子空间冲突 expert。所以 attention 是否保留、risk penalty 是否保留、layer sensitivity 是否有用、subspace shrink 是否值得默认启用，都不能靠 delta safety 单独判断，必须靠同任务 vLLM 下游结果决定。
 

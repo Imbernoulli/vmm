@@ -3,7 +3,7 @@
 这个 audit 把 same-shape writer 命令、router-bias plan、dry-run manifest 和 vLLM eval plan 串起来。目标是区分三件事：方法是否有 recipe、checkpoint 是否已经写出、是否可以进入真实 vLLM 下游评测。
 
 - Status: `hosted_eval_complete`
-- Candidates: `16`
+- Candidates: `17`
 - Materialized checkpoints: `10`
 - Blocked by placeholders: `4`
 - Ready for vLLM eval: `9`
@@ -19,6 +19,7 @@
 | `qwen3_moe_searched_no_gt065_max_retention_candidate` | `materialized_checkpoint_exists` | `ready_to_host` | `not_run` |  |  | `ready_for_vllm_eval` | host the vLLM plan checkpoint and run downstream eval |
 | `qwen3_moe_layer_chunk_candidate` | `materialized_checkpoint_exists` | `ready_to_host` | `not_run` |  |  | `ready_for_vllm_eval` | host the vLLM plan checkpoint and run downstream eval |
 | `qwen3_moe_unified_mechanism_candidate` | `materialized_checkpoint_exists` | `ready_to_host` | `not_run` |  |  | `ready_for_vllm_eval` | host the vLLM plan checkpoint and run downstream eval |
+| `qwen3_moe_mechanistic_unified_candidate` | `materialization_command_ready` | `checkpoint_missing_until_materialized` | `not_run` |  |  | `needs_checkpoint_materialization` | run writer command and verify safetensors output |
 | `qwen3_moe_subspace_scaled_candidate` | `materialized_checkpoint_exists` | `ready_to_host` | `not_run` |  |  | `ready_for_vllm_eval` | host the vLLM plan checkpoint and run downstream eval |
 | `moe_route_aware_candidate` | `blocked_by_placeholder_inputs` | `checkpoint_missing_until_materialized` | `not_run` |  |  | `blocked_before_materialization` | replace placeholder model paths/route weights, run writer dry-run, then materialize |
 | `toy_moe_expert_weight_candidate` | `blocked_by_placeholder_inputs` | `not_vllm_loadable_toy_candidate` | `not_run` |  |  | `toy_writer_validation_only` | replace placeholder model paths/route weights, run writer dry-run, then materialize |

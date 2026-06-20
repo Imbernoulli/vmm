@@ -79,10 +79,16 @@ TRANSITIONS = [
         "mechanism": "apply router/evidence/geometry-risk optimizer under a retention constraint",
     },
     {
-        "transition": "unified_mechanism_to_subspace_scaled",
+        "transition": "unified_mechanism_to_mechanistic_unified",
         "from_method": "qwen3_moe_unified_mechanism_candidate",
+        "to_method": "qwen3_moe_mechanistic_unified_candidate",
+        "mechanism": "replace hand-weighted cap search with damped benefit/curvature/interference per-expert scale law",
+    },
+    {
+        "transition": "unified_mechanism_to_subspace_scaled",
+        "from_method": "qwen3_moe_mechanistic_unified_candidate",
         "to_method": "qwen3_moe_subspace_scaled_candidate",
-        "mechanism": "shrink only uncovered channel/chunk subspace-conflict experts beyond the unified cap",
+        "mechanism": "shrink only uncovered channel/chunk subspace-conflict experts beyond the mechanistic unified cap",
     },
 ]
 
@@ -378,6 +384,7 @@ def synthetic_rows(case: str) -> dict[str, dict[str, Any]]:
         "qwen3_moe_searched_no_gt065_max_retention_candidate": (0.68, 0.50, [0.61, 0.64, 0.70, 0.60]),
         "qwen3_moe_layer_chunk_candidate": (0.69, 0.51, [0.62, 0.65, 0.70, 0.61]),
         "qwen3_moe_unified_mechanism_candidate": (0.70, 0.52, [0.63, 0.66, 0.70, 0.62]),
+        "qwen3_moe_mechanistic_unified_candidate": (0.704, 0.524, [0.634, 0.664, 0.704, 0.624]),
         "qwen3_moe_subspace_scaled_candidate": (0.705, 0.525, [0.635, 0.665, 0.705, 0.625]),
     }
     if case == "regression":
@@ -395,6 +402,7 @@ def synthetic_rows(case: str) -> dict[str, dict[str, Any]]:
         "qwen3_moe_searched_no_gt065_max_retention_candidate": (0.248, 0, 0, 0),
         "qwen3_moe_layer_chunk_candidate": (0.243, 0, 0, 0),
         "qwen3_moe_unified_mechanism_candidate": (0.240, 0, 0, 0),
+        "qwen3_moe_mechanistic_unified_candidate": (0.238, 0, 0, 0),
         "qwen3_moe_subspace_scaled_candidate": (0.239, 0, 0, 0),
     }
     rows: dict[str, dict[str, Any]] = {}
@@ -405,6 +413,7 @@ def synthetic_rows(case: str) -> dict[str, dict[str, Any]]:
             "qwen3_moe_searched_no_gt065_max_retention_candidate",
             "qwen3_moe_layer_chunk_candidate",
             "qwen3_moe_unified_mechanism_candidate",
+            "qwen3_moe_mechanistic_unified_candidate",
             "qwen3_moe_subspace_scaled_candidate",
         }:
             eval_usable = False
@@ -441,10 +450,11 @@ def synthetic_rows(case: str) -> dict[str, dict[str, Any]]:
 
 
 def run_smoke_matrix(args: argparse.Namespace) -> dict[str, Any]:
+    full_transition_count = len(TRANSITIONS)
     expected = {
-        "complete": ("complete", 9),
+        "complete": ("complete", full_transition_count),
         "partial": ("partial", 4),
-        "regression": ("complete", 9),
+        "regression": ("complete", full_transition_count),
     }
     rows = []
     for case, (expected_status, expected_scored) in expected.items():

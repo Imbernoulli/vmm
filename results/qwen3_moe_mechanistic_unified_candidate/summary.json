@@ -1,0 +1,33 @@
+{
+  "candidate_count": 144,
+  "expert_group_count": 5243,
+  "feedback_materialization_gate": "do_not_materialize_feedback_candidate_yet",
+  "feedback_status": "awaiting_eval",
+  "hard_cap": 0.65,
+  "min_retention": 0.965,
+  "outputs": {
+    "candidate_search": "results/qwen3_moe_mechanistic_unified_candidate/candidate_search.csv",
+    "checkpoint_output_dir": "results/checkpoints/qwen3_moe_mechanistic_unified_candidate",
+    "dry_run_command": "results/qwen3_moe_mechanistic_unified_candidate/dry_run_command.txt",
+    "literature_sources": "results/qwen3_moe_mechanistic_unified_candidate/literature_sources.json",
+    "mechanistic_group_rules": "results/qwen3_moe_mechanistic_unified_candidate/mechanistic_group_rules.csv",
+    "report": "results/qwen3_moe_mechanistic_unified_candidate/report.md",
+    "selected_candidate": "results/qwen3_moe_mechanistic_unified_candidate/selected_candidate.json",
+    "summary": "results/qwen3_moe_mechanistic_unified_candidate/summary.json",
+    "tensor_rules": "results/qwen3_moe_mechanistic_unified_candidate/tensor_rules.txt",
+    "writer_command": "results/qwen3_moe_mechanistic_unified_candidate/writer_command.txt"
+  },
+  "selected_benefit_weighted_scale": 0.9772333747867289,
+  "selected_candidate_id": "s0.16_b1.65_h1.25_i1.00",
+  "selected_hard_cap_violation_count": 0,
+  "selected_high_benefit_low_risk_mean_scale": 0.8652719229158106,
+  "selected_high_interference_low_benefit_mean_scale": 0.9533264400581084,
+  "selected_high_subspace_mean_scale": 0.9281971126193738,
+  "selected_max_predicted_relative_delta": 0.65,
+  "selected_mean_mechanistic_loss_proxy": 0.029011101792307627,
+  "selected_mean_scale": 0.958911886608893,
+  "selected_min_scale": 0.41791358379857446,
+  "selected_nonbase_mass_retention": 0.9653481845843201,
+  "selected_risk_weighted_predicted_delta": 0.2303343840396321,
+  "status": "mechanistic_unified_candidate_ready"
+}
