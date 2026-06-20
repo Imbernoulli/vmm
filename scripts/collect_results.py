@@ -1307,6 +1307,51 @@ def summarize_qwen3_moe_mechanism_effect_attribution_smoke() -> dict[str, Any]:
     }
 
 
+def summarize_qwen3_moe_post_eval_refresh() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_post_eval_refresh")
+    summary = read_json(root / "summary.json")
+    steps = read_csv(root / "steps.csv")
+    downstream = summary.get("downstream") or {}
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "step_count": int(summary.get("step_count", len(steps))),
+        "passed_step_count": int(summary.get("passed_step_count", 0)),
+        "failed_step_count": int(summary.get("failed_step_count", 0)),
+        "audit_status": downstream.get("audit_status"),
+        "audit_usable_for_selection": maybe_int(downstream.get("audit_usable_for_selection")),
+        "audit_method_count": maybe_int(downstream.get("audit_method_count")),
+        "selection_status": downstream.get("selection_status"),
+        "selected_method": downstream.get("selected_method"),
+        "selection_reason": downstream.get("selection_reason"),
+        "attribution_status": downstream.get("attribution_status"),
+        "attribution_scored_transition_count": maybe_int(
+            downstream.get("attribution_scored_transition_count")
+        ),
+        "attribution_transition_count": maybe_int(downstream.get("attribution_transition_count")),
+        "step_rows": [clean_row(row) for _, row in steps.iterrows()],
+        "report": rel(root / "report.md"),
+        "steps": rel(root / "steps.csv"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
+def summarize_qwen3_moe_post_eval_refresh_plan() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_post_eval_refresh_plan")
+    summary = read_json(root / "summary.json")
+    steps = read_csv(root / "steps.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "step_count": int(summary.get("step_count", len(steps))),
+        "planned_step_count": int(summary.get("planned_step_count", 0)),
+        "step_rows": [clean_row(row) for _, row in steps.iterrows()],
+        "report": rel(root / "report.md"),
+        "steps": rel(root / "steps.csv"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_qwen3_moe_router_move_gate() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_router_move_gate")
     summary = read_json(root / "summary.json")
@@ -3201,6 +3246,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/qwen3_moe_mechanism_effect_attribution/report.md decomposes the Qwen3 MoE source-frontier -> route-guarded -> audit-gated -> trust-region -> expert-only -> tail-trimmed -> searched-cap -> unified-alias chain into structural and downstream score deltas, gated by the eval-bundle audit.",
         },
         {
+            "item": "Qwen3 MoE post-vLLM eval refresh pipeline",
+            "status": "complete",
+            "evidence": "results/qwen3_moe_post_eval_refresh/report.md runs eval-bundle audit, unified result selection, mechanism attribution, smoke checks, and collect_results in a fixed post-eval order after remote vLLM outputs land.",
+        },
+        {
             "item": "Qwen3 MoE searched cap-law materialized candidate",
             "status": "complete",
             "evidence": "results/qwen3_moe_searched_no_gt065_delta_audit/report.md verifies the materialized searched 0.65 cap-law checkpoint and adds it to the Qwen3 MoE eval gate.",
@@ -3327,6 +3377,8 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_mechanism_effect_attribution_smoke": (
             summarize_qwen3_moe_mechanism_effect_attribution_smoke()
         ),
+        "qwen3_moe_post_eval_refresh": summarize_qwen3_moe_post_eval_refresh(),
+        "qwen3_moe_post_eval_refresh_plan": summarize_qwen3_moe_post_eval_refresh_plan(),
         "qwen3_moe_router_move_gate": summarize_qwen3_moe_router_move_gate(),
         "qwen3_moe_router_calibration_job": summarize_qwen3_moe_router_calibration_job(),
         "qwen3_moe_router_calibration_selection": summarize_qwen3_moe_router_calibration_selection(),
@@ -3485,6 +3537,8 @@ def build_summary() -> dict[str, Any]:
             "python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke",
             "python scripts/attribute_qwen3_moe_mechanism_effects.py --output-dir results/qwen3_moe_mechanism_effect_attribution",
             "python scripts/attribute_qwen3_moe_mechanism_effects.py --smoke-matrix --output-dir results/qwen3_moe_mechanism_effect_attribution_smoke",
+            "python scripts/refresh_qwen3_moe_post_eval.py --plan-only --include-smoke --output-dir results/qwen3_moe_post_eval_refresh_plan",
+            "python scripts/refresh_qwen3_moe_post_eval.py --include-smoke --output-dir results/qwen3_moe_post_eval_refresh",
             "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
             "PYTHONPATH=src python scripts/collect_results.py",
         ],
@@ -3568,6 +3622,8 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_mechanism_effect_attribution_smoke = exp[
         "qwen3_moe_mechanism_effect_attribution_smoke"
     ]
+    qwen3_moe_post_eval_refresh = exp["qwen3_moe_post_eval_refresh"]
+    qwen3_moe_post_eval_refresh_plan = exp["qwen3_moe_post_eval_refresh_plan"]
     qwen3_moe_router_move_gate = exp["qwen3_moe_router_move_gate"]
     qwen3_moe_router_calibration_job = exp["qwen3_moe_router_calibration_job"]
     qwen3_moe_router_calibration_selection = exp["qwen3_moe_router_calibration_selection"]
@@ -4168,6 +4224,22 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_mechanism_effect_attribution_smoke['status']} / "
                 f"{qwen3_moe_mechanism_effect_attribution_smoke['passed_case_count']}"
                 f"/{qwen3_moe_mechanism_effect_attribution_smoke['case_count']} |"
+            ),
+            (
+                "| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | "
+                f"{qwen3_moe_post_eval_refresh['status']} / "
+                f"{qwen3_moe_post_eval_refresh['passed_step_count']}"
+                f"/{qwen3_moe_post_eval_refresh['step_count']} / "
+                f"{qwen3_moe_post_eval_refresh['audit_usable_for_selection']}"
+                f"/{qwen3_moe_post_eval_refresh['audit_method_count']} |"
+            ),
+            (
+                "| Qwen3 MoE post-eval refresh | selection / attribution scored / plan steps | "
+                f"{qwen3_moe_post_eval_refresh['selection_status']} / "
+                f"{qwen3_moe_post_eval_refresh['attribution_scored_transition_count']}"
+                f"/{qwen3_moe_post_eval_refresh['attribution_transition_count']} / "
+                f"{qwen3_moe_post_eval_refresh_plan['planned_step_count']}"
+                f"/{qwen3_moe_post_eval_refresh_plan['step_count']} |"
             ),
             (
                 "| Qwen3 MoE router move gate | status / action / allowed layers | "

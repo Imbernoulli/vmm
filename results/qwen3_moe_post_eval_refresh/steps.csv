@@ -1,0 +1,24 @@
+step,kind,command,status,returncode,duration_sec,stdout_tail,stderr_tail
+audit_eval_bundles,gate,python scripts/audit_qwen3_moe_eval_bundle.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_eval_bundle_audit,passed,0,0.40117621421813965,"Wrote Qwen3 MoE eval bundle audit to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_eval_bundle_audit
+Status: awaiting_eval; usable=0/9
+",
+select_unified_result,selector,python scripts/select_qwen3_moe_unified_result.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_unified_result_selection,passed,0,0.40361595153808594,"Wrote Qwen3 MoE unified result selection to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_unified_result_selection
+Status: awaiting_source_eval; selected=None
+",
+attribute_mechanism_effects,attribution,python scripts/attribute_qwen3_moe_mechanism_effects.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_mechanism_effect_attribution,passed,0,0.4120345115661621,"Wrote Qwen3 MoE mechanism effect attribution to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_mechanism_effect_attribution
+Status: awaiting_eval; scored=0/7
+",
+audit_eval_bundles_smoke,smoke,python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke,passed,0,0.5361423492431641,"Wrote Qwen3 MoE eval bundle audit smoke to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_eval_bundle_audit_smoke
+Status: passed; cases 4/4
+",
+select_unified_result_smoke,smoke,python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke,passed,0,0.41001367568969727,"Wrote smoke matrix to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_unified_result_selection_smoke
+Status: passed; cases 4/4
+",
+attribute_mechanism_effects_smoke,smoke,python scripts/attribute_qwen3_moe_mechanism_effects.py --smoke-matrix --output-dir results/qwen3_moe_mechanism_effect_attribution_smoke,passed,0,0.46576547622680664,"Wrote Qwen3 MoE mechanism attribution smoke to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_mechanism_effect_attribution_smoke
+Status: passed; cases 3/3
+",
+collect_results,summary,python scripts/collect_results.py,passed,0,1.2948508262634277,"Wrote results/summary.json
+Wrote results/summary.md
+Wrote ARTIFACT_MANIFEST.json
+Artifacts indexed: 968
+",

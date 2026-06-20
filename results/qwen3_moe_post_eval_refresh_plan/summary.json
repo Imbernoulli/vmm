@@ -1,0 +1,87 @@
+{
+  "downstream": {},
+  "failed_step_count": 0,
+  "outputs": {
+    "report": "results/qwen3_moe_post_eval_refresh_plan/report.md",
+    "steps": "results/qwen3_moe_post_eval_refresh_plan/steps.csv",
+    "summary": "results/qwen3_moe_post_eval_refresh_plan/summary.json"
+  },
+  "passed_step_count": 0,
+  "plan_only": true,
+  "planned_step_count": 7,
+  "schema_version": 1,
+  "status": "planned",
+  "step_count": 7,
+  "steps": [
+    {
+      "command": "python scripts/audit_qwen3_moe_eval_bundle.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_eval_bundle_audit",
+      "duration_sec": 0.0,
+      "kind": "gate",
+      "returncode": null,
+      "status": "planned",
+      "stderr_tail": "",
+      "stdout_tail": "",
+      "step": "audit_eval_bundles"
+    },
+    {
+      "command": "python scripts/select_qwen3_moe_unified_result.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_unified_result_selection",
+      "duration_sec": 0.0,
+      "kind": "selector",
+      "returncode": null,
+      "status": "planned",
+      "stderr_tail": "",
+      "stdout_tail": "",
+      "step": "select_unified_result"
+    },
+    {
+      "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_mechanism_effect_attribution",
+      "duration_sec": 0.0,
+      "kind": "attribution",
+      "returncode": null,
+      "status": "planned",
+      "stderr_tail": "",
+      "stdout_tail": "",
+      "step": "attribute_mechanism_effects"
+    },
+    {
+      "command": "python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke",
+      "duration_sec": 0.0,
+      "kind": "smoke",
+      "returncode": null,
+      "status": "planned",
+      "stderr_tail": "",
+      "stdout_tail": "",
+      "step": "audit_eval_bundles_smoke"
+    },
+    {
+      "command": "python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke",
+      "duration_sec": 0.0,
+      "kind": "smoke",
+      "returncode": null,
+      "status": "planned",
+      "stderr_tail": "",
+      "stdout_tail": "",
+      "step": "select_unified_result_smoke"
+    },
+    {
+      "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --smoke-matrix --output-dir results/qwen3_moe_mechanism_effect_attribution_smoke",
+      "duration_sec": 0.0,
+      "kind": "smoke",
+      "returncode": null,
+      "status": "planned",
+      "stderr_tail": "",
+      "stdout_tail": "",
+      "step": "attribute_mechanism_effects_smoke"
+    },
+    {
+      "command": "python scripts/collect_results.py",
+      "duration_sec": 0.0,
+      "kind": "summary",
+      "returncode": null,
+      "status": "planned",
+      "stderr_tail": "",
+      "stdout_tail": "",
+      "step": "collect_results"
+    }
+  ]
+}

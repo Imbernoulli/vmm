@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-20T00:21:26.640144+00:00`
+Generated at: `2026-06-20T00:28:24.244989+00:00`
 
 ## Coverage
 
-Complete: `72`; partial: `1`; missing: `0`.
+Complete: `73`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -71,6 +71,7 @@ Complete: `72`; partial: `1`; missing: `0`.
 | Qwen3 MoE unified downstream result selector | complete | results/qwen3_moe_unified_result_selection/report.md gates the unified same-shape average against both Qwen3 source endpoints after matched vLLM eval; results/qwen3_moe_unified_result_selection_smoke/report.md covers candidate-win, source-dominance, task-regression, and no-gain branches. |
 | Qwen3 MoE vLLM eval bundle audit | complete | results/qwen3_moe_eval_bundle_audit/report.md checks every Qwen3 source/candidate eval output for model-id, task, example-count, prediction, and primary-score consistency before selector use; results/qwen3_moe_eval_bundle_audit_smoke/report.md covers valid, stale-model, missing-task, and low-example bundles. |
 | Qwen3 MoE mechanism effect attribution | complete | results/qwen3_moe_mechanism_effect_attribution/report.md decomposes the Qwen3 MoE source-frontier -> route-guarded -> audit-gated -> trust-region -> expert-only -> tail-trimmed -> searched-cap -> unified-alias chain into structural and downstream score deltas, gated by the eval-bundle audit. |
+| Qwen3 MoE post-vLLM eval refresh pipeline | complete | results/qwen3_moe_post_eval_refresh/report.md runs eval-bundle audit, unified result selection, mechanism attribution, smoke checks, and collect_results in a fixed post-eval order after remote vLLM outputs land. |
 | Qwen3 MoE searched cap-law materialized candidate | complete | results/qwen3_moe_searched_no_gt065_delta_audit/report.md verifies the materialized searched 0.65 cap-law checkpoint and adds it to the Qwen3 MoE eval gate. |
 | Qwen3 MoE router move gate | complete | results/qwen3_moe_router_move_gate/report.md combines router tensor deltas with real routing readiness and rejects direct router-weight movement for all 48 layers. |
 | Qwen3 MoE router calibration job | complete | results/qwen3_moe_router_calibration_job/report.md turns the rejected direct-router-move result into a capped route-KD router-calibration sweep job over the searched no-gt-0.65 candidate. |
@@ -185,6 +186,8 @@ Complete: `72`; partial: `1`; missing: `0`.
 | Qwen3 MoE mechanism attribution | status / scored / regressions | awaiting_eval / 0/7 / 0 |
 | Qwen3 MoE mechanism attribution | best avg / best worst transition | None / None |
 | Qwen3 MoE mechanism attribution smoke | status / passed cases | passed / 3/3 |
+| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | passed / 7/7 / 0/9 |
+| Qwen3 MoE post-eval refresh | selection / attribution scored / plan steps | awaiting_source_eval / 0/7 / 7/7 |
 | Qwen3 MoE router move gate | status / action / allowed layers | router_move_rejected_freeze_router / freeze_router / 0/48 |
 | Qwen3 MoE router move gate | unsafe / calibrate / freeze rows | 499 / 493 / 6 |
 | Qwen3 MoE router move gate | router rel-norm / mean-min top-k Jaccard / min top1 | 0.739 / 0.454-0.242 / 0.069 |

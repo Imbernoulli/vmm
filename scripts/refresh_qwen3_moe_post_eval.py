@@ -1,0 +1,305 @@
+#!/usr/bin/env python
+from __future__ import annotations
+
+import argparse
+import json
+import subprocess
+import sys
+import time
+from pathlib import Path
+from typing import Any
+
+import pandas as pd
+
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
+def repo_path(path: str | Path) -> Path:
+    path = Path(path)
+    return path if path.is_absolute() else REPO_ROOT / path
+
+
+def rel(path: str | Path) -> str:
+    path = repo_path(path)
+    try:
+        return str(path.relative_to(REPO_ROOT))
+    except ValueError:
+        return str(path)
+
+
+def clean_value(value: Any) -> Any:
+    if value is None:
+        return None
+    try:
+        if pd.isna(value):
+            return None
+    except (TypeError, ValueError):
+        pass
+    if hasattr(value, "item"):
+        return value.item()
+    return value
+
+
+def json_safe(value: Any) -> Any:
+    value = clean_value(value)
+    if isinstance(value, dict):
+        return {str(key): json_safe(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [json_safe(item) for item in value]
+    return value
+
+
+def read_json(path: str | Path) -> dict[str, Any]:
+    path = repo_path(path)
+    if not path.exists() or path.stat().st_size == 0:
+        return {}
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def command_text(command: list[str]) -> str:
+    return " ".join(command)
+
+
+def run_step(step: dict[str, Any], *, plan_only: bool) -> dict[str, Any]:
+    started = time.time()
+    result = {
+        "step": step["step"],
+        "kind": step["kind"],
+        "command": command_text(step["command"]),
+        "status": "planned" if plan_only else "running",
+        "returncode": None,
+        "duration_sec": 0.0,
+        "stdout_tail": "",
+        "stderr_tail": "",
+    }
+    if plan_only:
+        return result
+    completed = subprocess.run(
+        step["command"],
+        cwd=REPO_ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    result.update(
+        {
+            "status": "passed" if completed.returncode == 0 else "failed",
+            "returncode": completed.returncode,
+            "duration_sec": time.time() - started,
+            "stdout_tail": completed.stdout[-4000:],
+            "stderr_tail": completed.stderr[-4000:],
+        }
+    )
+    return result
+
+
+def build_steps(args: argparse.Namespace) -> list[dict[str, Any]]:
+    py = "python"
+    steps = [
+        {
+            "step": "audit_eval_bundles",
+            "kind": "gate",
+            "command": [
+                py,
+                "scripts/audit_qwen3_moe_eval_bundle.py",
+                "--gate-dir",
+                str(args.gate_dir),
+                "--output-dir",
+                str(args.audit_dir),
+            ],
+        },
+        {
+            "step": "select_unified_result",
+            "kind": "selector",
+            "command": [
+                py,
+                "scripts/select_qwen3_moe_unified_result.py",
+                "--gate-dir",
+                str(args.gate_dir),
+                "--output-dir",
+                str(args.selection_dir),
+            ],
+        },
+        {
+            "step": "attribute_mechanism_effects",
+            "kind": "attribution",
+            "command": [
+                py,
+                "scripts/attribute_qwen3_moe_mechanism_effects.py",
+                "--gate-dir",
+                str(args.gate_dir),
+                "--audit-dir",
+                str(args.audit_dir),
+                "--output-dir",
+                str(args.attribution_dir),
+            ],
+        },
+    ]
+    if args.include_smoke:
+        steps.extend(
+            [
+                {
+                    "step": "audit_eval_bundles_smoke",
+                    "kind": "smoke",
+                    "command": [
+                        py,
+                        "scripts/audit_qwen3_moe_eval_bundle.py",
+                        "--smoke-matrix",
+                        "--output-dir",
+                        str(args.audit_smoke_dir),
+                    ],
+                },
+                {
+                    "step": "select_unified_result_smoke",
+                    "kind": "smoke",
+                    "command": [
+                        py,
+                        "scripts/select_qwen3_moe_unified_result.py",
+                        "--smoke-matrix",
+                        "--output-dir",
+                        str(args.selection_smoke_dir),
+                    ],
+                },
+                {
+                    "step": "attribute_mechanism_effects_smoke",
+                    "kind": "smoke",
+                    "command": [
+                        py,
+                        "scripts/attribute_qwen3_moe_mechanism_effects.py",
+                        "--smoke-matrix",
+                        "--output-dir",
+                        str(args.attribution_smoke_dir),
+                    ],
+                },
+            ]
+        )
+    if not args.skip_collect:
+        steps.append(
+            {
+                "step": "collect_results",
+                "kind": "summary",
+                "command": [py, "scripts/collect_results.py"],
+            }
+        )
+    return steps
+
+
+def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
+    audit = read_json(repo_path(args.audit_dir) / "summary.json")
+    selection = read_json(repo_path(args.selection_dir) / "summary.json")
+    attribution = read_json(repo_path(args.attribution_dir) / "summary.json")
+    return {
+        "audit_status": audit.get("status"),
+        "audit_usable_for_selection": audit.get("usable_for_selection_count"),
+        "audit_method_count": audit.get("method_count"),
+        "selection_status": selection.get("status"),
+        "selected_method": (selection.get("current_selection") or {}).get("selected_method"),
+        "selection_reason": (selection.get("current_selection") or {}).get("reason"),
+        "attribution_status": attribution.get("status"),
+        "attribution_scored_transition_count": attribution.get("scored_transition_count"),
+        "attribution_transition_count": attribution.get("transition_count"),
+    }
+
+
+def build_report(summary: dict[str, Any]) -> str:
+    downstream = summary.get("downstream") or {}
+    lines = [
+        "# Qwen3 MoE Post-Eval Refresh",
+        "",
+        "这个脚本在远端 vLLM eval 落盘后按固定顺序刷新 eval bundle audit、unified selector、mechanism attribution 和总汇总，避免手工漏跑或用到旧结果。",
+        "",
+        f"- Status: `{summary['status']}`",
+        f"- Plan only: `{summary['plan_only']}`",
+        f"- Steps passed: `{summary['passed_step_count']}/{summary['step_count']}`",
+        f"- Audit: `{downstream.get('audit_status', 'n/a')}` (`{downstream.get('audit_usable_for_selection', 'n/a')}/{downstream.get('audit_method_count', 'n/a')}` usable)",
+        f"- Selection: `{downstream.get('selection_status', 'n/a')}` -> `{downstream.get('selected_method', 'n/a')}`",
+        f"- Attribution: `{downstream.get('attribution_status', 'n/a')}` (`{downstream.get('attribution_scored_transition_count', 'n/a')}/{downstream.get('attribution_transition_count', 'n/a')}` scored)",
+        "",
+        "| step | kind | status | returncode | seconds |",
+        "| --- | --- | --- | ---: | ---: |",
+    ]
+    for row in summary["steps"]:
+        lines.append(
+            f"| `{row['step']}` | `{row['kind']}` | `{row['status']}` | "
+            f"{row['returncode']} | {float(row['duration_sec']):.2f} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Commands",
+            "",
+        ]
+    )
+    for row in summary["steps"]:
+        lines.append(f"- `{row['command']}`")
+    return "\n".join(lines) + "\n"
+
+
+def write_outputs(output_dir: Path, step_rows: list[dict[str, Any]], args: argparse.Namespace) -> dict[str, Any]:
+    output_dir = repo_path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    failed = [row for row in step_rows if row["status"] == "failed"]
+    passed = [row for row in step_rows if row["status"] == "passed"]
+    planned = [row for row in step_rows if row["status"] == "planned"]
+    status = "planned" if args.plan_only else ("failed" if failed else "passed")
+    summary = {
+        "schema_version": 1,
+        "status": status,
+        "plan_only": bool(args.plan_only),
+        "step_count": int(len(step_rows)),
+        "passed_step_count": int(len(passed)),
+        "planned_step_count": int(len(planned)),
+        "failed_step_count": int(len(failed)),
+        "downstream": downstream_status(args) if not args.plan_only else {},
+        "steps": step_rows,
+        "outputs": {
+            "steps": rel(output_dir / "steps.csv"),
+            "summary": rel(output_dir / "summary.json"),
+            "report": rel(output_dir / "report.md"),
+        },
+    }
+    pd.DataFrame(step_rows).to_csv(output_dir / "steps.csv", index=False)
+    (output_dir / "summary.json").write_text(json.dumps(json_safe(summary), indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    (output_dir / "report.md").write_text(build_report(summary), encoding="utf-8")
+    return summary
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Refresh Qwen3 MoE post-vLLM eval gates in the correct order.")
+    parser.add_argument("--gate-dir", type=Path, default=Path("results/qwen3_moe_mechanism_eval_gate"))
+    parser.add_argument("--audit-dir", type=Path, default=Path("results/qwen3_moe_eval_bundle_audit"))
+    parser.add_argument("--selection-dir", type=Path, default=Path("results/qwen3_moe_unified_result_selection"))
+    parser.add_argument("--attribution-dir", type=Path, default=Path("results/qwen3_moe_mechanism_effect_attribution"))
+    parser.add_argument("--audit-smoke-dir", type=Path, default=Path("results/qwen3_moe_eval_bundle_audit_smoke"))
+    parser.add_argument("--selection-smoke-dir", type=Path, default=Path("results/qwen3_moe_unified_result_selection_smoke"))
+    parser.add_argument(
+        "--attribution-smoke-dir",
+        type=Path,
+        default=Path("results/qwen3_moe_mechanism_effect_attribution_smoke"),
+    )
+    parser.add_argument("--output-dir", type=Path, default=Path("results/qwen3_moe_post_eval_refresh"))
+    parser.add_argument("--include-smoke", action="store_true")
+    parser.add_argument("--skip-collect", action="store_true")
+    parser.add_argument("--plan-only", action="store_true")
+    return parser.parse_args()
+
+
+def main() -> None:
+    args = parse_args()
+    steps = build_steps(args)
+    rows = []
+    for step in steps:
+        result = run_step(step, plan_only=args.plan_only)
+        rows.append(result)
+        if result["status"] == "failed":
+            break
+    summary = write_outputs(args.output_dir, rows, args)
+    print(f"Wrote Qwen3 MoE post-eval refresh to {repo_path(args.output_dir).resolve()}")
+    print(f"Status: {summary['status']}; steps={summary['passed_step_count']}/{summary['step_count']}")
+    if summary["status"] == "failed":
+        raise SystemExit(1)
+
+
+if __name__ == "__main__":
+    main()
