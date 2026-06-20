@@ -1,0 +1,44 @@
+{
+  "blocking_reason": "",
+  "endpoint_model_count": 2,
+  "endpoint_model_list_available": true,
+  "endpoint_models": [
+    "mock-bad",
+    "mock-good"
+  ],
+  "endpoint_probe": {
+    "base_url": "MOCK_BASE_URL",
+    "model_count": 2,
+    "raw_response": {
+      "data": [
+        {
+          "id": "mock-good",
+          "object": "model"
+        },
+        {
+          "id": "mock-bad",
+          "object": "model"
+        }
+      ],
+      "object": "list"
+    },
+    "status": "ok"
+  },
+  "endpoint_probe_status": "ok",
+  "eval_jobs": "results/vllm_downstream_eval_smoke/eval_plan.csv",
+  "manifest_check_count": 0,
+  "missing_required_model_count": 0,
+  "missing_required_models": [],
+  "outputs": {
+    "endpoint_models": "results/vllm_downstream_eval_smoke/served_model_preflight/endpoint_models.json",
+    "manifest_checks": "results/vllm_downstream_eval_smoke/served_model_preflight/task_manifest_checks.csv",
+    "report": "results/vllm_downstream_eval_smoke/served_model_preflight/report.md",
+    "required_models": "results/vllm_downstream_eval_smoke/served_model_preflight/required_served_models.csv",
+    "summary": "results/vllm_downstream_eval_smoke/served_model_preflight/summary.json"
+  },
+  "ready_manifest_count": 0,
+  "required_model_row_count": 2,
+  "schema_version": 1,
+  "status": "served_model_preflight_ready",
+  "unique_required_model_count": 2
+}

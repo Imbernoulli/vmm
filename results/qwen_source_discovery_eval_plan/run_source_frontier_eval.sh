@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# First check that the running vLLM endpoint exposes every served model id
+# referenced by this plan.
+python scripts/audit_vllm_served_model_preflight.py --eval-jobs results/qwen_source_discovery_eval_plan/vllm_eval_jobs.csv --base-url http://127.0.0.1:8000/v1 --output-dir results/qwen_source_discovery_served_model_preflight
+
 # Prepare production task manifests first. These commands use the dataset-backed
 # runner and should be executed in an environment with the required datasets/cache.
 

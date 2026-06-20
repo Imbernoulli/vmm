@@ -6,10 +6,12 @@
     "manifest_jobs": "results/qwen_source_discovery_eval_plan/manifest_jobs.csv",
     "report": "results/qwen_source_discovery_eval_plan/report.md",
     "run_script": "results/qwen_source_discovery_eval_plan/run_source_frontier_eval.sh",
+    "served_model_preflight": "results/qwen_source_discovery_served_model_preflight/summary.json",
     "summary": "results/qwen_source_discovery_eval_plan/summary.json",
     "vllm_eval_jobs": "results/qwen_source_discovery_eval_plan/vllm_eval_jobs.csv"
   },
   "schema_version": 1,
+  "served_model_preflight_command": "python scripts/audit_vllm_served_model_preflight.py --eval-jobs results/qwen_source_discovery_eval_plan/vllm_eval_jobs.csv --base-url http://127.0.0.1:8000/v1 --output-dir results/qwen_source_discovery_served_model_preflight",
   "source_discovery_status": "source_discovery_plan_ready",
   "status": "source_discovery_vllm_eval_plan_ready",
   "task_name_compatibility_status": "passed_humaneval_compile_task_name",

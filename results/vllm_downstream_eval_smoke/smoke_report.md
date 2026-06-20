@@ -7,9 +7,11 @@
 - Bad model avg primary: `0.000`
 - Metric rows: `8`
 - Task manifest sha: `f542a5bb714f734c144ba063594c83149bcedee8b004eb7170ecb8b7c0f45bd6`
+- Served-model preflight: `served_model_preflight_ready`
 
 ## Files
 
 - `results/vllm_downstream_eval_smoke/metrics.csv`
 - `results/vllm_downstream_eval_smoke/model_summary.csv`
+- `results/vllm_downstream_eval_smoke/served_model_preflight/summary.json`
 - `results/vllm_downstream_eval_smoke/smoke_summary.json`

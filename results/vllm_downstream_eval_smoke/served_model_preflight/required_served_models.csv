@@ -1,0 +1,3 @@
+job_id,scenario_id,rank,served_model,endpoint_model_list_available,present_on_endpoint,tasks,task_manifest,smoke_task_manifest,output_dir
+manual_0,,0,mock-good,True,True,,,,
+manual_1,,1,mock-bad,True,True,,,,

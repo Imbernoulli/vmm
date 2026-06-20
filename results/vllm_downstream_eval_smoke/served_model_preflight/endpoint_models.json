@@ -1,0 +1,24 @@
+{
+  "models": [
+    "mock-bad",
+    "mock-good"
+  ],
+  "probe": {
+    "base_url": "MOCK_BASE_URL",
+    "model_count": 2,
+    "raw_response": {
+      "data": [
+        {
+          "id": "mock-good",
+          "object": "model"
+        },
+        {
+          "id": "mock-bad",
+          "object": "model"
+        }
+      ],
+      "object": "list"
+    },
+    "status": "ok"
+  }
+}

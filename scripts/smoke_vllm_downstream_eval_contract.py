@@ -94,6 +94,30 @@ def sanitize_generated_eval_artifacts(output_dir: Path, *, base_url: str) -> Non
     report_text = report_path.read_text(encoding="utf-8").replace(base_url, "MOCK_BASE_URL")
     report_path.write_text(report_text, encoding="utf-8")
 
+    preflight_dir = output_dir / "served_model_preflight"
+    preflight_summary = preflight_dir / "summary.json"
+    if preflight_summary.exists():
+        payload = json.loads(preflight_summary.read_text(encoding="utf-8"))
+        endpoint_probe = payload.get("endpoint_probe")
+        if isinstance(endpoint_probe, dict):
+            endpoint_probe["base_url"] = "MOCK_BASE_URL"
+            endpoint_probe.pop("latency_sec", None)
+        preflight_summary.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    preflight_report = preflight_dir / "report.md"
+    if preflight_report.exists():
+        preflight_report.write_text(
+            preflight_report.read_text(encoding="utf-8").replace(base_url, "MOCK_BASE_URL"),
+            encoding="utf-8",
+        )
+    endpoint_models = preflight_dir / "endpoint_models.json"
+    if endpoint_models.exists():
+        payload = json.loads(endpoint_models.read_text(encoding="utf-8"))
+        endpoint_probe = payload.get("probe")
+        if isinstance(endpoint_probe, dict):
+            endpoint_probe["base_url"] = "MOCK_BASE_URL"
+            endpoint_probe.pop("latency_sec", None)
+        endpoint_models.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
 
 class MockOpenAIHandler(BaseHTTPRequestHandler):
     server_version = "MockOpenAI/1.0"
@@ -172,20 +196,39 @@ def run_smoke(output_dir: Path) -> dict[str, Any]:
         "--timeout",
         "10",
     ]
+    preflight_dir = output_dir / "served_model_preflight"
+    preflight_command = [
+        sys.executable,
+        str(REPO_ROOT / "scripts" / "audit_vllm_served_model_preflight.py"),
+        "--eval-jobs",
+        str(output_dir / "eval_plan.csv"),
+        "--base-url",
+        base_url,
+        "--output-dir",
+        str(preflight_dir),
+        "--fail-on-blocking",
+    ]
     try:
         completed = subprocess.run(command, cwd=REPO_ROOT, text=True, capture_output=True, check=False)
+        if completed.returncode != 0:
+            raise RuntimeError(
+                "run_vllm_downstream_eval.py failed\n"
+                f"command: {' '.join(command)}\nstdout:\n{completed.stdout}\nstderr:\n{completed.stderr}"
+            )
+        preflight = subprocess.run(preflight_command, cwd=REPO_ROOT, text=True, capture_output=True, check=False)
     finally:
         server.shutdown()
         server.server_close()
         thread.join(timeout=5)
-    if completed.returncode != 0:
+    if preflight.returncode != 0:
         raise RuntimeError(
-            "run_vllm_downstream_eval.py failed\n"
-            f"command: {' '.join(command)}\nstdout:\n{completed.stdout}\nstderr:\n{completed.stderr}"
+            "audit_vllm_served_model_preflight.py failed\n"
+            f"command: {' '.join(preflight_command)}\nstdout:\n{preflight.stdout}\nstderr:\n{preflight.stderr}"
         )
 
     sanitize_generated_eval_artifacts(output_dir, base_url=base_url)
     summary = json.loads((output_dir / "summary.json").read_text(encoding="utf-8"))
+    preflight_summary = json.loads((preflight_dir / "summary.json").read_text(encoding="utf-8"))
     metrics = pd.read_csv(output_dir / "metrics.csv")
     model_summary = pd.read_csv(output_dir / "model_summary.csv")
     good = model_summary[model_summary["model"] == "mock-good"].iloc[0]
@@ -198,6 +241,8 @@ def run_smoke(output_dir: Path) -> dict[str, Any]:
         "task_rows": int(len(metrics)),
         "task_manifest_written": (output_dir / "task_manifest.json").exists(),
         "task_manifest_sha_present": bool(summary.get("task_manifest_sha256")),
+        "served_model_preflight_ready": preflight_summary.get("status") == "served_model_preflight_ready",
+        "served_model_preflight_missing": int(preflight_summary.get("missing_required_model_count") or 0),
     }
     checks["passed"] = (
         checks["status_complete"]
@@ -206,6 +251,8 @@ def run_smoke(output_dir: Path) -> dict[str, Any]:
         and checks["task_rows"] == 8
         and checks["task_manifest_written"]
         and checks["task_manifest_sha_present"]
+        and checks["served_model_preflight_ready"]
+        and checks["served_model_preflight_missing"] == 0
     )
     smoke_summary = {
         "schema_version": 1,
@@ -220,6 +267,7 @@ def run_smoke(output_dir: Path) -> dict[str, Any]:
             "task_manifest": rel(output_dir / "task_manifest.json"),
             "eval_summary": rel(output_dir / "summary.json"),
             "report": rel(output_dir / "report.md"),
+            "served_model_preflight": rel(preflight_dir / "summary.json"),
             "smoke_summary": rel(output_dir / "smoke_summary.json"),
         },
     }
@@ -234,11 +282,13 @@ def run_smoke(output_dir: Path) -> dict[str, Any]:
         f"- Bad model avg primary: `{checks['mock_bad_avg_primary_score']:.3f}`",
         f"- Metric rows: `{checks['task_rows']}`",
         f"- Task manifest sha: `{summary.get('task_manifest_sha256')}`",
+        f"- Served-model preflight: `{preflight_summary.get('status')}`",
         "",
         "## Files",
         "",
         f"- `{smoke_summary['outputs']['metrics']}`",
         f"- `{smoke_summary['outputs']['model_summary']}`",
+        f"- `{smoke_summary['outputs']['served_model_preflight']}`",
         f"- `{smoke_summary['outputs']['smoke_summary']}`",
     ]
     (output_dir / "smoke_report.md").write_text("\n".join(report_lines) + "\n", encoding="utf-8")

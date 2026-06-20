@@ -6,6 +6,12 @@
 
 关键修正：runner 的 HumanEval 任务名是 `humaneval_compile`，这里所有 vLLM 命令都使用该任务名，避免把 HumanEval 计划写成 runner 不会执行的 `humaneval`。
 
+在真正跑任务前，先执行 served-model preflight，确认计划里的 model id 已经出现在 vLLM `/models` 里。
+
+```bash
+python scripts/audit_vllm_served_model_preflight.py --eval-jobs results/qwen_source_discovery_eval_plan/vllm_eval_jobs.csv --base-url http://127.0.0.1:8000/v1 --output-dir results/qwen_source_discovery_served_model_preflight
+```
+
 ## vLLM Jobs
 
 | rank | job | scenario | models | tasks | status | extra gain needed |
@@ -33,5 +39,6 @@
 - `results/qwen_source_discovery_eval_plan/vllm_eval_jobs.csv`
 - `results/qwen_source_discovery_eval_plan/manifest_jobs.csv`
 - `results/qwen_source_discovery_eval_plan/run_source_frontier_eval.sh`
+- `results/qwen_source_discovery_served_model_preflight/summary.json`
 - `results/qwen_source_discovery_eval_plan/summary.json`
 - `results/qwen_source_discovery_eval_plan/report.md`

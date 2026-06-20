@@ -1,0 +1,7 @@
+{
+  "models": [],
+  "probe": {
+    "message": "Pass --base-url or --endpoint-models-json to verify served model ids.",
+    "status": "not_requested"
+  }
+}

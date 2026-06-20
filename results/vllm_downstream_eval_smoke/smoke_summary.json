@@ -5,6 +5,8 @@
     "mock_good_avg_primary_score": 1.0,
     "mock_good_rank_1": true,
     "passed": true,
+    "served_model_preflight_missing": 0,
+    "served_model_preflight_ready": true,
     "status_complete": true,
     "task_manifest_sha_present": true,
     "task_manifest_written": true,
@@ -17,6 +19,7 @@
     "model_summary": "results/vllm_downstream_eval_smoke/model_summary.csv",
     "predictions": "results/vllm_downstream_eval_smoke/predictions.csv",
     "report": "results/vllm_downstream_eval_smoke/report.md",
+    "served_model_preflight": "results/vllm_downstream_eval_smoke/served_model_preflight/summary.json",
     "smoke_summary": "results/vllm_downstream_eval_smoke/smoke_summary.json",
     "task_manifest": "results/vllm_downstream_eval_smoke/task_manifest.json"
   },

@@ -1,0 +1,27 @@
+{
+  "blocking_reason": "Start the vLLM server and rerun this preflight with --base-url.",
+  "endpoint_model_count": 0,
+  "endpoint_model_list_available": false,
+  "endpoint_models": [],
+  "endpoint_probe": {
+    "message": "Pass --base-url or --endpoint-models-json to verify served model ids.",
+    "status": "not_requested"
+  },
+  "endpoint_probe_status": "not_requested",
+  "eval_jobs": "results/qwen_source_discovery_eval_plan/vllm_eval_jobs.csv",
+  "manifest_check_count": 8,
+  "missing_required_model_count": 0,
+  "missing_required_models": [],
+  "outputs": {
+    "endpoint_models": "results/qwen_source_discovery_served_model_preflight/endpoint_models.json",
+    "manifest_checks": "results/qwen_source_discovery_served_model_preflight/task_manifest_checks.csv",
+    "report": "results/qwen_source_discovery_served_model_preflight/report.md",
+    "required_models": "results/qwen_source_discovery_served_model_preflight/required_served_models.csv",
+    "summary": "results/qwen_source_discovery_served_model_preflight/summary.json"
+  },
+  "ready_manifest_count": 4,
+  "required_model_row_count": 13,
+  "schema_version": 1,
+  "status": "static_preflight_ready_waiting_for_endpoint_model_list",
+  "unique_required_model_count": 12
+}

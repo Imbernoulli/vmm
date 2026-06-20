@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-20T14:44:10.136660+00:00`
+Generated at: `2026-06-20T15:01:25.088156+00:00`
 
 ## Coverage
 
-Complete: `99`; partial: `1`; missing: `0`.
+Complete: `100`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -30,6 +30,7 @@ Complete: `99`; partial: `1`; missing: `0`.
 | Qwen3 average source-set surplus optimizer | complete | results/qwen3_average_source_set_optimizer/report.md compares source-frontier gain against observed merge-interference budget and keeps the top Coder+Thinking source set probe-only because its surplus is still negative. |
 | Qwen source discovery and endpoint-expansion plan | complete | results/qwen_source_discovery_plan/report.md turns the negative source-set surplus into concrete Qwen endpoint/source-set discovery queues, including Dense 7B and Qwen3 MoE route-aware scenarios. |
 | Qwen source discovery vLLM eval plan | complete | results/qwen_source_discovery_eval_plan/report.md converts the discovered source sets into concrete vLLM jobs, task manifests, and runner commands using the runner-compatible humaneval_compile task name. |
+| Qwen source discovery served-model preflight | complete | results/qwen_source_discovery_served_model_preflight/report.md checks the planned vLLM served model ids against an endpoint model list when available and reports task-manifest readiness before downstream eval launch. |
 | Formal LLM benchmark slices | complete | Representative Qwen2.5-1.5B benchmark slices cover MMLU, GSM8K, HumanEval canonical-solution NLL, and BeaverTails safety/refusal NLL. |
 | vLLM hosted downstream evaluation | partial | scripts/run_vllm_downstream_eval.py can build a served-model eval plan from the Qwen target registry; the generic registry run remains endpoint_unavailable, while checkpoint-specific hosted eval is tracked separately. |
 | Materialized checkpoint vLLM hosted eval | complete | results/vllm_checkpoint_eval/qwen_0_5b_instruct_coder_uniform_average/report.md contains a real vLLM-hosted GSM8K/MMLU/safety/HumanEval compile eval for the materialized Qwen2.5-0.5B uniform-average checkpoint. |
@@ -37,7 +38,7 @@ Complete: `99`; partial: `1`; missing: `0`.
 | Probe-guided dense average candidate vLLM eval | complete | results/probe_guided_dense_average_candidate/report.md selects a non-uniform Qwen instruct/coder bridge from the NLL grid, materializes the same-shape checkpoint locally, and records its real vLLM downstream eval. |
 | Qwen dense module-wise guard ablation vLLM eval | complete | results/qwen_dense_module_guarded_candidate/report.md, results/qwen_dense_norm_guarded_candidate/report.md, and results/qwen_dense_selective_norm_guarded_candidate/report.md compare module-level, norm-only, and selective-norm tensor-rule variants against the global bridge under the same vLLM downstream tasks. |
 | Qwen dense sparse-method candidate | complete | results/qwen_dense_sparse_method_candidate/report.md and results/qwen_dense_attention_sparse_method_candidate/report.md compare broad attention+MLP sparse rules against an attention-only sparse rule under real vLLM eval. |
-| vLLM downstream eval contract smoke | complete | results/vllm_downstream_eval_smoke/smoke_report.md validates the OpenAI-compatible HTTP request, answer parsing, scoring, model ranking, and artifact writing path using a local mock endpoint. |
+| vLLM downstream eval contract smoke | complete | results/vllm_downstream_eval_smoke/smoke_report.md validates the OpenAI-compatible HTTP request, /models served-id preflight, answer parsing, scoring, model ranking, and artifact writing path using a local mock endpoint. |
 | vLLM checkpoint eval plan | complete | results/vllm_checkpoint_eval_plan/report.md turns same-shape checkpoint candidates into one-checkpoint-at-a-time vLLM serve/eval commands while keeping missing checkpoints separate from completed metrics. |
 | Checkpoint materialization readiness audit | complete | results/checkpoint_materialization_readiness/report.md audits writer commands, placeholders, dry-run outputs, checkpoint existence, and vLLM eval readiness in one table. |
 | MoE materialization pipeline plan | complete | results/moe_materialization_pipeline_plan/report.md connects Qwen MoE target selection, topology, routing probe, readiness, route weights, expert remap, router-bias deltas, checkpoint writer, and vLLM eval gates. |
@@ -164,6 +165,8 @@ Complete: `99`; partial: `1`; missing: `0`.
 | Qwen source discovery plan | measured set / additional avg gain needed / top queue | coder+thinking / 0.061 / measured_coder_thinking_endpoint_expansion |
 | Qwen source discovery eval plan | jobs / top job / tasks | 4 / measured_coder_thinking_source_frontier / mmlu,gsm8k,humaneval_compile |
 | Qwen source discovery eval plan | task-name compatibility / task names | passed_humaneval_compile_task_name / ['gsm8k', 'humaneval_compile', 'mmlu', 'safety'] |
+| Qwen source discovery served-model preflight | status / endpoint / missing | static_preflight_ready_waiting_for_endpoint_model_list / not_requested / 0 |
+| Qwen source discovery served-model preflight | required models / manifest ready | 12 / 4/8 |
 | first-principles MoE mechanism | gauge-equivalent B MSE | 7.66e-16 |
 | first-principles MoE mechanism | router agreement raw to aligned | 0.035 to 0.795 |
 | first-principles MoE mechanism | same-name to aligned worst loss | 0.511 to 0.125 |
@@ -317,8 +320,8 @@ Complete: `99`; partial: `1`; missing: `0`.
 | Qwen3 MoE router-coupled retention frontier | gate / constrained / stress | direct_router_boundary_term_not_default / router_q0.85_s0.00020_cap0.00010 / router_q0.75_s0.01000_cap0.01000 |
 | Qwen3 MoE router-coupled retention frontier | pass default / effect fraction / action | 146/770 / 0.0103 / keep_router_fragility_inside_BHI_and_keep_direct_extra_shrink_as_ablation |
 | Qwen3 MoE mechanistic unified smoke | status / passed cases | passed / 4/4 |
-| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | passed / 33/33 / 0/13 |
-| Qwen3 MoE post-eval refresh | selection / final selection / attribution scored / plan steps | awaiting_source_eval / awaiting_source_eval / 0/10 / 33/33 |
+| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | passed / 34/34 / 0/13 |
+| Qwen3 MoE post-eval refresh | selection / final selection / attribution scored / plan steps | awaiting_source_eval / awaiting_source_eval / 0/10 / 34/34 |
 | Qwen3 MoE post-eval refresh | feedback status / scored tasks / changed groups | awaiting_eval / 0/4 / 0 |
 | Qwen3 MoE post-eval refresh | mechanistic status / retention / hard-cap violations | mechanistic_unified_candidate_ready / 0.965 / 0 |
 | Qwen3 MoE post-eval refresh | sensitivity objective / scale | no_category_prior 0.003 / no_subspace_conflict 0.0086 |
@@ -478,6 +481,7 @@ Complete: `99`; partial: `1`; missing: `0`.
 | vLLM hosted downstream eval | candidate table | results/qwen_target_model_registry/model_registry.csv |
 | vLLM downstream eval smoke | status | passed |
 | vLLM downstream eval smoke | good / bad avg primary | 1.000 / 0.000 |
+| vLLM downstream eval smoke | served-model preflight / missing | True / 0 |
 | vLLM checkpoint eval plan | status | hosted_eval_complete |
 | vLLM checkpoint eval plan | ready / missing / not-loadable | 13 / 3 / 1 |
 | vLLM checkpoint eval plan | unified serve / eval output | ready_to_host / results/vllm_checkpoint_eval/qwen3_moe_unified_mechanism_candidate |

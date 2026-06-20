@@ -127,6 +127,7 @@ def collect_artifacts() -> list[dict[str, Any]]:
         "scripts/fp_materialize_merge.py",  # scratch materialization helper outside the maintained writer path
         "scripts/fp_make_figures.py",  # stale draft figures with old first-principles numbers
         "scripts/fp_collect_matrix.py",  # scratch matrix collector awaiting vLLM-backed replacement
+        "scripts/fp_vllm_eval.py",  # scratch hosted-eval helper outside the maintained vLLM runner
         "results/fp_curvature_law/run.log",
         "results/fp_dense_lambda/run.log",
         "results/fp_merge_compare_dense/run.log",
@@ -141,6 +142,7 @@ def collect_artifacts() -> list[dict[str, Any]]:
         "results/fp_figures/",
         "results/fp_gen_eval_moe/",
         "results/fp_moe_real_probe/olmoe/",
+        "results/fp_vllm_matrix/",
         "results/qwen3_moe_router_calibration_selection_manifest_mismatch_negative_smoke/",
     }
     files: list[Path] = []
@@ -887,12 +889,41 @@ def summarize_qwen_source_discovery_eval_plan() -> dict[str, Any]:
         "top_eval_tasks": top.get("tasks"),
         "top_eval_models": top.get("served_models"),
         "top_eval_command": top.get("eval_command"),
+        "served_model_preflight_command": summary.get("served_model_preflight_command"),
         "eval_job_rows": [clean_row(row) for _, row in eval_jobs.iterrows()],
         "manifest_job_rows": [clean_row(row) for _, row in manifest_jobs.iterrows()],
         "report": rel(root / "report.md"),
         "vllm_eval_jobs": rel(root / "vllm_eval_jobs.csv"),
         "manifest_jobs": rel(root / "manifest_jobs.csv"),
         "run_script": rel(root / "run_source_frontier_eval.sh"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
+def summarize_qwen_source_discovery_served_model_preflight() -> dict[str, Any]:
+    root = repo_path("results/qwen_source_discovery_served_model_preflight")
+    summary = read_json(root / "summary.json")
+    required = read_csv(root / "required_served_models.csv")
+    manifests = read_csv(root / "task_manifest_checks.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "endpoint_probe_status": summary.get("endpoint_probe_status"),
+        "endpoint_model_list_available": bool(summary.get("endpoint_model_list_available")),
+        "endpoint_model_count": maybe_int(summary.get("endpoint_model_count")),
+        "unique_required_model_count": maybe_int(summary.get("unique_required_model_count")),
+        "required_model_row_count": maybe_int(summary.get("required_model_row_count")),
+        "missing_required_model_count": maybe_int(summary.get("missing_required_model_count")),
+        "missing_required_models": summary.get("missing_required_models", []),
+        "manifest_check_count": maybe_int(summary.get("manifest_check_count")),
+        "ready_manifest_count": maybe_int(summary.get("ready_manifest_count")),
+        "blocking_reason": summary.get("blocking_reason"),
+        "required_rows": [clean_row(row) for _, row in required.iterrows()],
+        "manifest_rows": [clean_row(row) for _, row in manifests.iterrows()],
+        "report": rel(root / "report.md"),
+        "required_served_models": rel(root / "required_served_models.csv"),
+        "task_manifest_checks": rel(root / "task_manifest_checks.csv"),
+        "endpoint_models": rel(root / "endpoint_models.json"),
         "summary_path": rel(root / "summary.json"),
     }
 
@@ -4361,10 +4392,13 @@ def summarize_vllm_downstream_eval_smoke() -> dict[str, Any]:
         "mock_good_avg_primary_score": maybe_float(checks.get("mock_good_avg_primary_score")),
         "mock_bad_avg_primary_score": maybe_float(checks.get("mock_bad_avg_primary_score")),
         "mock_good_rank_1": bool(checks.get("mock_good_rank_1", False)),
+        "served_model_preflight_ready": bool(checks.get("served_model_preflight_ready", False)),
+        "served_model_preflight_missing": maybe_int(checks.get("served_model_preflight_missing")),
         "model_summary": [clean_row(row) for _, row in model_summary.iterrows()],
         "report": rel("results/vllm_downstream_eval_smoke/smoke_report.md"),
         "metrics": rel("results/vllm_downstream_eval_smoke/metrics.csv"),
         "model_summary_path": rel("results/vllm_downstream_eval_smoke/model_summary.csv"),
+        "served_model_preflight": rel("results/vllm_downstream_eval_smoke/served_model_preflight/summary.json"),
         "smoke_summary": rel("results/vllm_downstream_eval_smoke/smoke_summary.json"),
     }
 
@@ -5005,6 +5039,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/qwen_source_discovery_eval_plan/report.md converts the discovered source sets into concrete vLLM jobs, task manifests, and runner commands using the runner-compatible humaneval_compile task name.",
         },
         {
+            "item": "Qwen source discovery served-model preflight",
+            "status": "complete",
+            "evidence": "results/qwen_source_discovery_served_model_preflight/report.md checks the planned vLLM served model ids against an endpoint model list when available and reports task-manifest readiness before downstream eval launch.",
+        },
+        {
             "item": "Formal LLM benchmark slices",
             "status": "complete",
             "evidence": "Representative Qwen2.5-1.5B benchmark slices cover MMLU, GSM8K, HumanEval canonical-solution NLL, and BeaverTails safety/refusal NLL.",
@@ -5042,7 +5081,7 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "vLLM downstream eval contract smoke",
             "status": "complete",
-            "evidence": "results/vllm_downstream_eval_smoke/smoke_report.md validates the OpenAI-compatible HTTP request, answer parsing, scoring, model ranking, and artifact writing path using a local mock endpoint.",
+            "evidence": "results/vllm_downstream_eval_smoke/smoke_report.md validates the OpenAI-compatible HTTP request, /models served-id preflight, answer parsing, scoring, model ranking, and artifact writing path using a local mock endpoint.",
         },
         {
             "item": "vLLM checkpoint eval plan",
@@ -5421,6 +5460,9 @@ def build_summary() -> dict[str, Any]:
         "qwen3_average_source_set_optimizer": summarize_qwen3_average_source_set_optimizer(),
         "qwen_source_discovery_plan": summarize_qwen_source_discovery_plan(),
         "qwen_source_discovery_eval_plan": summarize_qwen_source_discovery_eval_plan(),
+        "qwen_source_discovery_served_model_preflight": (
+            summarize_qwen_source_discovery_served_model_preflight()
+        ),
         "qwen_probe_smoke": summarize_qwen_probe_smoke(),
         "average_decision_report": summarize_average_decision_report(),
         "model_averaging_literature_review": summarize_model_averaging_literature_review(),
@@ -5617,6 +5659,7 @@ def build_summary() -> dict[str, Any]:
             "python scripts/build_average_invariant_audit.py --output-dir results/average_invariant_audit",
             "python scripts/smoke_moe_routing_probe_contract.py",
             "python scripts/smoke_vllm_downstream_eval_contract.py --output-dir results/vllm_downstream_eval_smoke",
+            "python scripts/audit_vllm_served_model_preflight.py --eval-jobs results/qwen_source_discovery_eval_plan/vllm_eval_jobs.csv --output-dir results/qwen_source_discovery_served_model_preflight",
             "PYTHONPATH=src python scripts/build_vllm_checkpoint_eval_plan.py --output-dir results/vllm_checkpoint_eval_plan",
             "PYTHONPATH=src python scripts/build_vllm_source_merge_comparison.py --output-dir results/vllm_source_merge_comparison",
             "PYTHONPATH=src python scripts/build_probe_guided_dense_average_candidate.py --output-dir results/probe_guided_dense_average_candidate",
@@ -5745,6 +5788,9 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_average_source_set_optimizer = exp["qwen3_average_source_set_optimizer"]
     qwen_source_discovery_plan = exp["qwen_source_discovery_plan"]
     qwen_source_discovery_eval_plan = exp["qwen_source_discovery_eval_plan"]
+    qwen_source_discovery_served_model_preflight = exp[
+        "qwen_source_discovery_served_model_preflight"
+    ]
     average_decision = exp["average_decision_report"]
     literature_review = exp["model_averaging_literature_review"]
     average_method_gate_matrix = exp["average_method_gate_matrix"]
@@ -6160,6 +6206,18 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 "| Qwen source discovery eval plan | task-name compatibility / task names | "
                 f"{qwen_source_discovery_eval_plan['task_name_compatibility_status']} / "
                 f"{qwen_source_discovery_eval_plan['task_names']} |"
+            ),
+            (
+                "| Qwen source discovery served-model preflight | status / endpoint / missing | "
+                f"{qwen_source_discovery_served_model_preflight['status']} / "
+                f"{qwen_source_discovery_served_model_preflight['endpoint_probe_status']} / "
+                f"{qwen_source_discovery_served_model_preflight['missing_required_model_count']} |"
+            ),
+            (
+                "| Qwen source discovery served-model preflight | required models / manifest ready | "
+                f"{qwen_source_discovery_served_model_preflight['unique_required_model_count']} / "
+                f"{qwen_source_discovery_served_model_preflight['ready_manifest_count']}"
+                f"/{qwen_source_discovery_served_model_preflight['manifest_check_count']} |"
             ),
             (
                 "| first-principles MoE mechanism | gauge-equivalent B MSE | "
@@ -7836,6 +7894,11 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| vLLM downstream eval smoke | good / bad avg primary | "
                 f"{fmt(vllm_eval_smoke['mock_good_avg_primary_score'])} / {fmt(vllm_eval_smoke['mock_bad_avg_primary_score'])} |"
+            ),
+            (
+                "| vLLM downstream eval smoke | served-model preflight / missing | "
+                f"{vllm_eval_smoke['served_model_preflight_ready']} / "
+                f"{vllm_eval_smoke['served_model_preflight_missing']} |"
             ),
             (
                 "| vLLM checkpoint eval plan | status | "

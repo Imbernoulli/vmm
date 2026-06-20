@@ -8,10 +8,10 @@
   },
   "passed_step_count": 0,
   "plan_only": true,
-  "planned_step_count": 33,
+  "planned_step_count": 34,
   "schema_version": 1,
   "status": "planned",
-  "step_count": 33,
+  "step_count": 34,
   "steps": [
     {
       "command": "python scripts/build_qwen3_moe_candidate_trust_region_gate.py --gate-plan results/qwen3_moe_mechanism_eval_gate/eval_gate_plan.csv --output-dir results/qwen3_moe_candidate_trust_region_gate",
@@ -182,6 +182,16 @@
       "stderr_tail": "",
       "stdout_tail": "",
       "step": "build_qwen_source_discovery_eval_plan"
+    },
+    {
+      "command": "python scripts/audit_vllm_served_model_preflight.py --eval-jobs results/qwen_source_discovery_eval_plan/vllm_eval_jobs.csv --output-dir results/qwen_source_discovery_served_model_preflight",
+      "duration_sec": 0.0,
+      "kind": "gate",
+      "returncode": null,
+      "status": "planned",
+      "stderr_tail": "",
+      "stdout_tail": "",
+      "step": "audit_qwen_source_discovery_served_model_preflight"
     },
     {
       "command": "python scripts/build_qwen3_moe_router_calibration_frontier.py --output-dir results/qwen3_moe_router_calibration_frontier",

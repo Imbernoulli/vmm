@@ -214,6 +214,21 @@ def eval_command(
     return shell_join(tokens)
 
 
+def served_model_preflight_command(*, eval_jobs_path: str, base_url: str, output_dir: str) -> str:
+    return shell_join(
+        [
+            "python",
+            "scripts/audit_vllm_served_model_preflight.py",
+            "--eval-jobs",
+            eval_jobs_path,
+            "--base-url",
+            base_url,
+            "--output-dir",
+            output_dir,
+        ]
+    )
+
+
 def build_eval_jobs(args: argparse.Namespace, candidates: pd.DataFrame, queue: pd.DataFrame) -> pd.DataFrame:
     queue_by_scenario = {
         str(row["scenario_id"]): row.to_dict() for _, row in queue.iterrows() if "scenario_id" in row
@@ -377,10 +392,14 @@ def build_manifest_jobs(eval_jobs: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def build_run_script(eval_jobs: pd.DataFrame) -> str:
+def build_run_script(eval_jobs: pd.DataFrame, preflight_command: str) -> str:
     lines = [
         "#!/usr/bin/env bash",
         "set -euo pipefail",
+        "",
+        "# First check that the running vLLM endpoint exposes every served model id",
+        "# referenced by this plan.",
+        preflight_command,
         "",
         "# Prepare production task manifests first. These commands use the dataset-backed",
         "# runner and should be executed in an environment with the required datasets/cache.",
@@ -410,6 +429,12 @@ def build_report(summary: dict[str, Any], eval_jobs: pd.DataFrame, manifest_jobs
             "关键修正：runner 的 HumanEval 任务名是 `humaneval_compile`，这里所有 vLLM 命令都使用该任务名，"
             "避免把 HumanEval 计划写成 runner 不会执行的 `humaneval`。"
         ),
+        "",
+        "在真正跑任务前，先执行 served-model preflight，确认计划里的 model id 已经出现在 vLLM `/models` 里。",
+        "",
+        "```bash",
+        summary["served_model_preflight_command"],
+        "```",
         "",
         "## vLLM Jobs",
         "",
@@ -444,6 +469,7 @@ def build_report(summary: dict[str, Any], eval_jobs: pd.DataFrame, manifest_jobs
             f"- `{summary['outputs']['vllm_eval_jobs']}`",
             f"- `{summary['outputs']['manifest_jobs']}`",
             f"- `{summary['outputs']['run_script']}`",
+            f"- `{summary['outputs']['served_model_preflight']}`",
             f"- `{summary['outputs']['summary']}`",
             f"- `{summary['outputs']['report']}`",
         ]
@@ -461,6 +487,14 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
     output_dir = repo_path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     (output_dir / "task_manifests").mkdir(parents=True, exist_ok=True)
+    eval_jobs_path = output_dir / "vllm_eval_jobs.csv"
+    manifest_jobs_path = output_dir / "manifest_jobs.csv"
+    preflight_output_dir = repo_path(args.served_model_preflight_dir)
+    preflight_command = served_model_preflight_command(
+        eval_jobs_path=rel(eval_jobs_path),
+        base_url=args.base_url,
+        output_dir=rel(preflight_output_dir),
+    )
 
     top_job = eval_jobs.iloc[0].to_dict() if not eval_jobs.empty else {}
     task_names = sorted({task for raw in eval_jobs.get("tasks", pd.Series(dtype=str)) for task in str(raw).split(",") if task})
@@ -491,17 +525,22 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         "measured_additional_frontier_avg_gain_needed": source_summary.get(
             "measured_additional_frontier_avg_gain_needed"
         ),
+        "served_model_preflight_command": preflight_command,
         "outputs": {
-            "vllm_eval_jobs": rel(output_dir / "vllm_eval_jobs.csv"),
-            "manifest_jobs": rel(output_dir / "manifest_jobs.csv"),
+            "vllm_eval_jobs": rel(eval_jobs_path),
+            "manifest_jobs": rel(manifest_jobs_path),
             "run_script": rel(output_dir / "run_source_frontier_eval.sh"),
+            "served_model_preflight": rel(preflight_output_dir / "summary.json"),
             "summary": rel(output_dir / "summary.json"),
             "report": rel(output_dir / "report.md"),
         },
     }
-    eval_jobs.to_csv(output_dir / "vllm_eval_jobs.csv", index=False)
-    manifest_jobs.to_csv(output_dir / "manifest_jobs.csv", index=False)
-    (output_dir / "run_source_frontier_eval.sh").write_text(build_run_script(eval_jobs), encoding="utf-8")
+    eval_jobs.to_csv(eval_jobs_path, index=False)
+    manifest_jobs.to_csv(manifest_jobs_path, index=False)
+    (output_dir / "run_source_frontier_eval.sh").write_text(
+        build_run_script(eval_jobs, preflight_command),
+        encoding="utf-8",
+    )
     (output_dir / "summary.json").write_text(
         json.dumps(json_safe(summary), indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
@@ -523,6 +562,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-examples", type=int, default=256)
     parser.add_argument("--smoke-max-examples", type=int, default=2)
     parser.add_argument("--subjects", default="all")
+    parser.add_argument(
+        "--served-model-preflight-dir",
+        type=Path,
+        default=Path("results/qwen_source_discovery_served_model_preflight"),
+    )
     return parser.parse_args()
 
 

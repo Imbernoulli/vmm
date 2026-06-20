@@ -4,7 +4,7 @@
 
 - Status: `planned`
 - Plan only: `True`
-- Steps passed: `0/33`
+- Steps passed: `0/34`
 - Audit: `n/a` (`n/a/n/a` usable)
 - Selection: `n/a` -> `n/a`
 - Final selection: `n/a` -> `n/a` (`n/a/n/a` eligible)
@@ -23,6 +23,7 @@
 - Average source-set optimizer: `n/a` for `n/a` (gain `n/a` vs interference budget `n/a`, surplus `n/a`, final-budget `n/a`, probe-only `n/a`)
 - Qwen source discovery plan: `n/a` (top scenario `n/a`, queue `n/a`, additional gain needed `n/a`)
 - Qwen source discovery eval plan: `n/a` (`n/a` jobs, top `n/a`, tasks `n/a`, task names `n/a`)
+- Qwen source discovery served-model preflight: `n/a` (endpoint `n/a`, required `n/a`, missing `n/a`, manifests `n/a/n/a`, blocker `n/a`)
 - Router calibration frontier: `n/a` (`n/a/n/a` default, recommended `n/a`, blocker `n/a`, nll `n/a`, generation `n/a`)
 - Unified average optimizer: `n/a` (top next experiment `n/a` / `n/a`)
 - Unified algorithm contract: `n/a` (`n/a/n/a` passed, blocking `[]`)
@@ -53,6 +54,7 @@
 | `build_average_source_set_optimizer` | `optimizer` | `planned` | None | 0.00 |
 | `build_qwen_source_discovery_plan` | `planner` | `planned` | None | 0.00 |
 | `build_qwen_source_discovery_eval_plan` | `planner` | `planned` | None | 0.00 |
+| `audit_qwen_source_discovery_served_model_preflight` | `gate` | `planned` | None | 0.00 |
 | `build_router_calibration_frontier` | `gate` | `planned` | None | 0.00 |
 | `build_unified_average_optimizer` | `optimizer` | `planned` | None | 0.00 |
 | `build_average_method_gate_matrix` | `optimizer` | `planned` | None | 0.00 |
@@ -89,6 +91,7 @@
 - `python scripts/build_qwen3_average_source_set_optimizer.py --output-dir results/qwen3_average_source_set_optimizer`
 - `python scripts/build_qwen_source_discovery_plan.py --output-dir results/qwen_source_discovery_plan`
 - `python scripts/build_qwen_source_discovery_eval_plan.py --source-discovery-dir results/qwen_source_discovery_plan --output-dir results/qwen_source_discovery_eval_plan`
+- `python scripts/audit_vllm_served_model_preflight.py --eval-jobs results/qwen_source_discovery_eval_plan/vllm_eval_jobs.csv --output-dir results/qwen_source_discovery_served_model_preflight`
 - `python scripts/build_qwen3_moe_router_calibration_frontier.py --output-dir results/qwen3_moe_router_calibration_frontier`
 - `python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer --qwen-source-discovery-plan results/qwen_source_discovery_plan/summary.json --qwen-source-discovery-eval-plan results/qwen_source_discovery_eval_plan/summary.json --qwen3-router-calibration-frontier results/qwen3_moe_router_calibration_frontier/summary.json`
 - `python scripts/build_average_method_gate_matrix.py --output-dir results/average_method_gate_matrix --optimizer-summary results/unified_average_optimizer/summary.json --optimizer-features results/unified_average_optimizer/mechanism_features.csv`
