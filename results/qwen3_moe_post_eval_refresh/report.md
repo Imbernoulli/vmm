@@ -4,7 +4,7 @@
 
 - Status: `passed`
 - Plan only: `False`
-- Steps passed: `19/19`
+- Steps passed: `20/20`
 - Audit: `awaiting_eval` (`0/12` usable)
 - Selection: `awaiting_source_eval` -> `None`
 - Final selection: `awaiting_source_eval` -> `None` (`0/10` eligible)
@@ -18,28 +18,30 @@
 - Average method gate matrix: `built_from_current_probe_evidence` (`accepted_by_default=0`, `rejected=1`, `conditional=3`)
 - Average method gate smoke: `passed` (`5/5` assertions)
 - Average trust-region bounds: `trust_region_bounds_ready_waiting_vllm` (`passed=2`, `rejected=7`, `waiting=2`); dense lambda bound `0.34155204135935996`, router midpoint over safe bound `25.34834674551614`
+- Average trust-region smoke: `passed` (`11/11` assertions)
 
 | step | kind | status | returncode | seconds |
 | --- | --- | --- | ---: | ---: |
-| `audit_eval_bundles` | `gate` | `passed` | 0 | 0.45 |
-| `select_unified_result` | `selector` | `passed` | 0 | 0.48 |
-| `select_final_candidate` | `selector` | `passed` | 0 | 0.55 |
-| `attribute_mechanism_effects` | `attribution` | `passed` | 0 | 0.50 |
-| `build_feedback_optimizer` | `optimizer` | `passed` | 0 | 1.28 |
-| `build_mechanistic_unified_candidate` | `optimizer` | `passed` | 0 | 3.11 |
-| `audit_mechanistic_evidence` | `attribution` | `passed` | 0 | 1.62 |
-| `build_unified_average_optimizer` | `optimizer` | `passed` | 0 | 0.50 |
-| `build_average_method_gate_matrix` | `optimizer` | `passed` | 0 | 0.61 |
-| `build_average_trust_region_bounds` | `optimizer` | `passed` | 0 | 0.53 |
-| `audit_eval_bundles_smoke` | `smoke` | `passed` | 0 | 0.62 |
-| `select_unified_result_smoke` | `smoke` | `passed` | 0 | 0.41 |
-| `select_final_candidate_smoke` | `smoke` | `passed` | 0 | 0.50 |
-| `attribute_mechanism_effects_smoke` | `smoke` | `passed` | 0 | 0.42 |
-| `build_feedback_optimizer_smoke` | `smoke` | `passed` | 0 | 0.48 |
-| `build_mechanistic_unified_candidate_smoke` | `smoke` | `passed` | 0 | 1.60 |
-| `unified_average_optimizer_ledger_smoke` | `smoke` | `passed` | 0 | 0.41 |
-| `average_method_gate_matrix_consistency_smoke` | `smoke` | `passed` | 0 | 0.43 |
-| `collect_results` | `summary` | `passed` | 0 | 1.62 |
+| `audit_eval_bundles` | `gate` | `passed` | 0 | 0.44 |
+| `select_unified_result` | `selector` | `passed` | 0 | 0.42 |
+| `select_final_candidate` | `selector` | `passed` | 0 | 0.45 |
+| `attribute_mechanism_effects` | `attribution` | `passed` | 0 | 0.44 |
+| `build_feedback_optimizer` | `optimizer` | `passed` | 0 | 1.08 |
+| `build_mechanistic_unified_candidate` | `optimizer` | `passed` | 0 | 2.51 |
+| `audit_mechanistic_evidence` | `attribution` | `passed` | 0 | 1.43 |
+| `build_unified_average_optimizer` | `optimizer` | `passed` | 0 | 0.44 |
+| `build_average_method_gate_matrix` | `optimizer` | `passed` | 0 | 0.41 |
+| `build_average_trust_region_bounds` | `optimizer` | `passed` | 0 | 0.40 |
+| `audit_eval_bundles_smoke` | `smoke` | `passed` | 0 | 0.64 |
+| `select_unified_result_smoke` | `smoke` | `passed` | 0 | 0.43 |
+| `select_final_candidate_smoke` | `smoke` | `passed` | 0 | 0.52 |
+| `attribute_mechanism_effects_smoke` | `smoke` | `passed` | 0 | 0.41 |
+| `build_feedback_optimizer_smoke` | `smoke` | `passed` | 0 | 0.47 |
+| `build_mechanistic_unified_candidate_smoke` | `smoke` | `passed` | 0 | 1.59 |
+| `unified_average_optimizer_ledger_smoke` | `smoke` | `passed` | 0 | 0.42 |
+| `average_method_gate_matrix_consistency_smoke` | `smoke` | `passed` | 0 | 0.45 |
+| `average_trust_region_bounds_smoke` | `smoke` | `passed` | 0 | 0.39 |
+| `collect_results` | `summary` | `passed` | 0 | 1.63 |
 
 ## Commands
 
@@ -61,4 +63,5 @@
 - `python scripts/build_qwen3_moe_mechanistic_unified_candidate.py --smoke-matrix --output-dir results/qwen3_moe_mechanistic_unified_candidate_smoke`
 - `python scripts/smoke_unified_average_optimizer_ledger.py --summary results/unified_average_optimizer/summary.json --output-dir results/unified_average_optimizer_ledger_smoke`
 - `python scripts/smoke_average_method_gate_matrix.py --optimizer-summary results/unified_average_optimizer/summary.json --method-gate-dir results/average_method_gate_matrix --output-dir results/average_method_gate_matrix_consistency_smoke`
+- `python scripts/smoke_average_trust_region_bounds.py --bounds-dir results/average_trust_region_bounds --output-dir results/average_trust_region_bounds_smoke`
 - `python scripts/collect_results.py`

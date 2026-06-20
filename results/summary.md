@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-20T11:24:34.248352+00:00`
+Generated at: `2026-06-20T11:29:45.206317+00:00`
 
 ## Coverage
 
@@ -287,8 +287,8 @@ Complete: `93`; partial: `1`; missing: `0`.
 | Qwen3 MoE mechanistic evidence audit | gradient agree / objective improved / hard-cap bound | 1.000 / 0.945 / 319 |
 | Qwen3 MoE mechanistic evidence audit | dominant binding / suppressing features | cost_gradient_shrink / curvature_score, feature_router_instability, feature_expert_internal_geometry |
 | Qwen3 MoE mechanistic unified smoke | status / passed cases | passed / 4/4 |
-| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | passed / 19/19 / 0/12 |
-| Qwen3 MoE post-eval refresh | selection / final selection / attribution scored / plan steps | awaiting_source_eval / awaiting_source_eval / 0/10 / 19/19 |
+| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | passed / 20/20 / 0/12 |
+| Qwen3 MoE post-eval refresh | selection / final selection / attribution scored / plan steps | awaiting_source_eval / awaiting_source_eval / 0/10 / 20/20 |
 | Qwen3 MoE post-eval refresh | feedback status / scored tasks / changed groups | awaiting_eval / 0/4 / 0 |
 | Qwen3 MoE post-eval refresh | mechanistic status / retention / hard-cap violations | mechanistic_unified_candidate_ready / 0.965 / 0 |
 | Qwen3 MoE router move gate | status / action / allowed layers | router_move_rejected_freeze_router / freeze_router / 0/48 |
@@ -477,6 +477,7 @@ Complete: `93`; partial: `1`; missing: `0`.
 | average trust-region bounds | status / constraints / passed-rejected-waiting | trust_region_bounds_ready_waiting_vllm / 11 / 2-7-2 |
 | average trust-region bounds | Dense lambda bound / safe uniform lambda / router safe lambda | 0.342 / 0.000 / 0.020 |
 | average trust-region bounds | router midpoint over bound / mechanistic cap / selected max delta | 25.348 / 0.649 / 0.649 |
+| average trust-region bounds smoke | status / assertions | passed / 11/11 |
 | average connectivity diagnostic | path rejected / midpoint rejected / frontier wins | 5/6 / 5/6 / 1 |
 | average connectivity diagnostic | Dense midpoint gap / Dense anchor gap / Qwen3 MoE gap | 2.917 / -0.101 / 0.119 |
 | average invariant audit | invariants / hard blockers / default accepted methods | 10 / 4 / 0 |

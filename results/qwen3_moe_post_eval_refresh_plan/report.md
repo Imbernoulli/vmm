@@ -4,7 +4,7 @@
 
 - Status: `planned`
 - Plan only: `True`
-- Steps passed: `0/19`
+- Steps passed: `0/20`
 - Audit: `n/a` (`n/a/n/a` usable)
 - Selection: `n/a` -> `n/a`
 - Final selection: `n/a` -> `n/a` (`n/a/n/a` eligible)
@@ -18,6 +18,7 @@
 - Average method gate matrix: `n/a` (`accepted_by_default=n/a`, `rejected=n/a`, `conditional=n/a`)
 - Average method gate smoke: `n/a` (`n/a/n/a` assertions)
 - Average trust-region bounds: `n/a` (`passed=n/a`, `rejected=n/a`, `waiting=n/a`); dense lambda bound `n/a`, router midpoint over safe bound `n/a`
+- Average trust-region smoke: `n/a` (`n/a/n/a` assertions)
 
 | step | kind | status | returncode | seconds |
 | --- | --- | --- | ---: | ---: |
@@ -39,6 +40,7 @@
 | `build_mechanistic_unified_candidate_smoke` | `smoke` | `planned` | None | 0.00 |
 | `unified_average_optimizer_ledger_smoke` | `smoke` | `planned` | None | 0.00 |
 | `average_method_gate_matrix_consistency_smoke` | `smoke` | `planned` | None | 0.00 |
+| `average_trust_region_bounds_smoke` | `smoke` | `planned` | None | 0.00 |
 | `collect_results` | `summary` | `planned` | None | 0.00 |
 
 ## Commands
@@ -61,4 +63,5 @@
 - `python scripts/build_qwen3_moe_mechanistic_unified_candidate.py --smoke-matrix --output-dir results/qwen3_moe_mechanistic_unified_candidate_smoke`
 - `python scripts/smoke_unified_average_optimizer_ledger.py --summary results/unified_average_optimizer/summary.json --output-dir results/unified_average_optimizer_ledger_smoke`
 - `python scripts/smoke_average_method_gate_matrix.py --optimizer-summary results/unified_average_optimizer/summary.json --method-gate-dir results/average_method_gate_matrix --output-dir results/average_method_gate_matrix_consistency_smoke`
+- `python scripts/smoke_average_trust_region_bounds.py --bounds-dir results/average_trust_region_bounds --output-dir results/average_trust_region_bounds_smoke`
 - `python scripts/collect_results.py`

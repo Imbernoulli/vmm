@@ -17,4 +17,5 @@ build_feedback_optimizer_smoke,smoke,python scripts/build_qwen3_moe_feedback_opt
 build_mechanistic_unified_candidate_smoke,smoke,python scripts/build_qwen3_moe_mechanistic_unified_candidate.py --smoke-matrix --output-dir results/qwen3_moe_mechanistic_unified_candidate_smoke,planned,,0.0,,
 unified_average_optimizer_ledger_smoke,smoke,python scripts/smoke_unified_average_optimizer_ledger.py --summary results/unified_average_optimizer/summary.json --output-dir results/unified_average_optimizer_ledger_smoke,planned,,0.0,,
 average_method_gate_matrix_consistency_smoke,smoke,python scripts/smoke_average_method_gate_matrix.py --optimizer-summary results/unified_average_optimizer/summary.json --method-gate-dir results/average_method_gate_matrix --output-dir results/average_method_gate_matrix_consistency_smoke,planned,,0.0,,
+average_trust_region_bounds_smoke,smoke,python scripts/smoke_average_trust_region_bounds.py --bounds-dir results/average_trust_region_bounds --output-dir results/average_trust_region_bounds_smoke,planned,,0.0,,
 collect_results,summary,python scripts/collect_results.py,planned,,0.0,,

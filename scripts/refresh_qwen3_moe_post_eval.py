@@ -313,6 +313,18 @@ def build_steps(args: argparse.Namespace) -> list[dict[str, Any]]:
                         str(args.average_method_gate_smoke_dir),
                     ],
                 },
+                {
+                    "step": "average_trust_region_bounds_smoke",
+                    "kind": "smoke",
+                    "command": [
+                        py,
+                        "scripts/smoke_average_trust_region_bounds.py",
+                        "--bounds-dir",
+                        str(args.average_trust_region_bounds_dir),
+                        "--output-dir",
+                        str(args.average_trust_region_bounds_smoke_dir),
+                    ],
+                },
             ]
         )
     if not args.skip_collect:
@@ -340,6 +352,9 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
     average_method_gate_smoke = read_json(repo_path(args.average_method_gate_smoke_dir) / "summary.json")
     average_trust_region_bounds = read_json(
         repo_path(args.average_trust_region_bounds_dir) / "summary.json"
+    )
+    average_trust_region_bounds_smoke = read_json(
+        repo_path(args.average_trust_region_bounds_smoke_dir) / "summary.json"
     )
     final_current = final_selection.get("current_selection") or {}
     optimizer_moe = unified_optimizer.get("moe") or {}
@@ -404,6 +419,13 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
         "moe_direct_router_average_over_safe_bound": average_trust_region_bounds.get(
             "moe_direct_router_average_over_safe_bound"
         ),
+        "average_trust_region_bounds_smoke_status": average_trust_region_bounds_smoke.get("status"),
+        "average_trust_region_bounds_smoke_passed": average_trust_region_bounds_smoke.get(
+            "passed_assertion_count"
+        ),
+        "average_trust_region_bounds_smoke_assertions": average_trust_region_bounds_smoke.get(
+            "assertion_count"
+        ),
     }
 
 
@@ -430,6 +452,7 @@ def build_report(summary: dict[str, Any]) -> str:
         f"- Average method gate matrix: `{downstream.get('average_method_gate_status', 'n/a')}` (`accepted_by_default={downstream.get('average_method_gate_default_accepted', 'n/a')}`, `rejected={downstream.get('average_method_gate_default_rejected', 'n/a')}`, `conditional={downstream.get('average_method_gate_conditional', 'n/a')}`)",
         f"- Average method gate smoke: `{downstream.get('average_method_gate_smoke_status', 'n/a')}` (`{downstream.get('average_method_gate_smoke_passed', 'n/a')}/{downstream.get('average_method_gate_smoke_assertions', 'n/a')}` assertions)",
         f"- Average trust-region bounds: `{downstream.get('average_trust_region_bounds_status', 'n/a')}` (`passed={downstream.get('average_trust_region_bounds_passed', 'n/a')}`, `rejected={downstream.get('average_trust_region_bounds_rejected', 'n/a')}`, `waiting={downstream.get('average_trust_region_bounds_waiting', 'n/a')}`); dense lambda bound `{downstream.get('dense_local_task_vector_lambda_bound', 'n/a')}`, router midpoint over safe bound `{downstream.get('moe_direct_router_average_over_safe_bound', 'n/a')}`",
+        f"- Average trust-region smoke: `{downstream.get('average_trust_region_bounds_smoke_status', 'n/a')}` (`{downstream.get('average_trust_region_bounds_smoke_passed', 'n/a')}/{downstream.get('average_trust_region_bounds_smoke_assertions', 'n/a')}` assertions)",
         "",
         "| step | kind | status | returncode | seconds |",
         "| --- | --- | --- | ---: | ---: |",
@@ -544,6 +567,11 @@ def parse_args() -> argparse.Namespace:
         "--average-method-gate-smoke-dir",
         type=Path,
         default=Path("results/average_method_gate_matrix_consistency_smoke"),
+    )
+    parser.add_argument(
+        "--average-trust-region-bounds-smoke-dir",
+        type=Path,
+        default=Path("results/average_trust_region_bounds_smoke"),
     )
     parser.add_argument("--output-dir", type=Path, default=Path("results/qwen3_moe_post_eval_refresh"))
     parser.add_argument("--include-smoke", action="store_true")

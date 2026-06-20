@@ -4198,6 +4198,23 @@ def summarize_average_trust_region_bounds() -> dict[str, Any]:
     }
 
 
+def summarize_average_trust_region_bounds_smoke() -> dict[str, Any]:
+    root = repo_path("results/average_trust_region_bounds_smoke")
+    summary = read_json(root / "summary.json")
+    matrix = read_csv(root / "trust_region_bounds_smoke_matrix.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "assertion_count": int(summary.get("assertion_count", len(matrix))),
+        "passed_assertion_count": int(summary.get("passed_assertion_count", 0)),
+        "failed_assertion_count": int(summary.get("failed_assertion_count", 0)),
+        "assertion_rows": [clean_row(row) for _, row in matrix.iterrows()],
+        "report": rel(root / "report.md"),
+        "matrix": rel(root / "trust_region_bounds_smoke_matrix.csv"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_average_connectivity_diagnostic() -> dict[str, Any]:
     root = repo_path("results/average_connectivity_diagnostic")
     summary = read_json(root / "summary.json")
@@ -4826,6 +4843,7 @@ def build_summary() -> dict[str, Any]:
         "model_averaging_literature_review": summarize_model_averaging_literature_review(),
         "average_method_gate_matrix": summarize_average_method_gate_matrix(),
         "average_trust_region_bounds": summarize_average_trust_region_bounds(),
+        "average_trust_region_bounds_smoke": summarize_average_trust_region_bounds_smoke(),
         "average_connectivity_diagnostic": summarize_average_connectivity_diagnostic(),
         "average_invariant_audit": summarize_average_invariant_audit(),
         "qwen_target_model_registry": summarize_qwen_target_model_registry(),
@@ -5129,6 +5147,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     literature_review = exp["model_averaging_literature_review"]
     average_method_gate_matrix = exp["average_method_gate_matrix"]
     average_trust_region_bounds = exp["average_trust_region_bounds"]
+    average_trust_region_bounds_smoke = exp["average_trust_region_bounds_smoke"]
     average_connectivity = exp["average_connectivity_diagnostic"]
     average_invariant_audit = exp["average_invariant_audit"]
     qwen_registry = exp["qwen_target_model_registry"]
@@ -7202,6 +7221,12 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(average_trust_region_bounds['moe_direct_router_average_over_safe_bound'])} / "
                 f"{fmt(average_trust_region_bounds['mechanistic_effective_expert_delta_cap'])} / "
                 f"{fmt(average_trust_region_bounds['mechanistic_selected_max_predicted_relative_delta'])} |"
+            ),
+            (
+                "| average trust-region bounds smoke | status / assertions | "
+                f"{average_trust_region_bounds_smoke['status']} / "
+                f"{average_trust_region_bounds_smoke['passed_assertion_count']}"
+                f"/{average_trust_region_bounds_smoke['assertion_count']} |"
             ),
             (
                 "| average connectivity diagnostic | path rejected / midpoint rejected / frontier wins | "

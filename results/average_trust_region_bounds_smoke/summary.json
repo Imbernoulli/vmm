@@ -1,0 +1,12 @@
+{
+  "assertion_count": 11,
+  "failed_assertion_count": 0,
+  "outputs": {
+    "matrix": "results/average_trust_region_bounds_smoke/trust_region_bounds_smoke_matrix.csv",
+    "report": "results/average_trust_region_bounds_smoke/report.md",
+    "summary": "results/average_trust_region_bounds_smoke/summary.json"
+  },
+  "passed_assertion_count": 11,
+  "schema_version": 1,
+  "status": "passed"
+}
