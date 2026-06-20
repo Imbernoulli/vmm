@@ -9708,6 +9708,7 @@
     "qwen3_moe_eval_budget_plan": {
       "assumed_paired_discordance_rate": 0.25,
       "candidate_count": 11,
+      "canonical_task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
       "current_gate_examples": 64,
       "dataset_capped_tasks": "humaneval_compile",
       "mechanism_budget": "results/qwen3_moe_eval_budget_plan/mechanism_budget.csv",
@@ -9853,6 +9854,7 @@
           "serve_status": "ready_to_host",
           "served_model_id": "candidate_source_qwen3_30b_instruct",
           "task_count": 4,
+          "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
           "tasks": "gsm8k,mmlu,safety,humaneval_compile"
         },
         {
@@ -9882,6 +9884,7 @@
           "serve_status": "ready_to_host",
           "served_model_id": "candidate_source_qwen3_30b_coder",
           "task_count": 4,
+          "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
           "tasks": "gsm8k,mmlu,safety,humaneval_compile"
         },
         {
@@ -9911,6 +9914,7 @@
           "serve_status": "ready_to_host",
           "served_model_id": "candidate_qwen3_moe_unified_route_guarded_candidate",
           "task_count": 4,
+          "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
           "tasks": "gsm8k,mmlu,safety,humaneval_compile"
         },
         {
@@ -9940,6 +9944,7 @@
           "serve_status": "ready_to_host",
           "served_model_id": "candidate_qwen3_moe_audit_gated_candidate",
           "task_count": 4,
+          "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
           "tasks": "gsm8k,mmlu,safety,humaneval_compile"
         },
         {
@@ -9969,6 +9974,7 @@
           "serve_status": "ready_to_host",
           "served_model_id": "candidate_qwen3_moe_trust_region_candidate",
           "task_count": 4,
+          "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
           "tasks": "gsm8k,mmlu,safety,humaneval_compile"
         },
         {
@@ -9998,6 +10004,7 @@
           "serve_status": "ready_to_host",
           "served_model_id": "candidate_qwen3_moe_expert_only_trust_region_candidate",
           "task_count": 4,
+          "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
           "tasks": "gsm8k,mmlu,safety,humaneval_compile"
         },
         {
@@ -10027,6 +10034,7 @@
           "serve_status": "ready_to_host",
           "served_model_id": "candidate_qwen3_moe_tail_trimmed_expert_only_candidate",
           "task_count": 4,
+          "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
           "tasks": "gsm8k,mmlu,safety,humaneval_compile"
         },
         {
@@ -10056,6 +10064,7 @@
           "serve_status": "ready_to_host",
           "served_model_id": "candidate_qwen3_moe_searched_no_gt065_max_retention_candidate",
           "task_count": 4,
+          "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
           "tasks": "gsm8k,mmlu,safety,humaneval_compile"
         },
         {
@@ -10085,6 +10094,7 @@
           "serve_status": "ready_to_host",
           "served_model_id": "candidate_qwen3_moe_layer_chunk_candidate",
           "task_count": 4,
+          "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
           "tasks": "gsm8k,mmlu,safety,humaneval_compile"
         },
         {
@@ -10114,6 +10124,7 @@
           "serve_status": "ready_to_host",
           "served_model_id": "candidate_qwen3_moe_unified_mechanism_candidate",
           "task_count": 4,
+          "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
           "tasks": "gsm8k,mmlu,safety,humaneval_compile"
         },
         {
@@ -10143,6 +10154,7 @@
           "serve_status": "ready_to_host",
           "served_model_id": "candidate_qwen3_moe_subspace_scaled_candidate",
           "task_count": 4,
+          "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
           "tasks": "gsm8k,mmlu,safety,humaneval_compile"
         },
         {
@@ -10155,8 +10167,8 @@
           "checkpoint_path": "results/checkpoints/qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate",
           "current_max_examples": 64,
           "current_prompt_budget": 256,
-          "eval_command_current": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8108/v1 --models candidate_qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate --task-manifest results/qwen3_moe_router_calibration_job/task_manifest.json --create-task-manifest-if-missing",
-          "eval_command_recommended": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8108/v1 --models candidate_qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 384 --output-dir results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate --task-manifest results/qwen3_moe_router_calibration_job/task_manifest.json --create-task-manifest-if-missing",
+          "eval_command_current": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8108/v1 --models candidate_qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
+          "eval_command_recommended": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8108/v1 --models candidate_qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 384 --output-dir results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate",
           "eval_status": "not_run",
           "gate_order": 11,
@@ -10172,6 +10184,7 @@
           "serve_status": "pending_materialization",
           "served_model_id": "candidate_qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate",
           "task_count": 4,
+          "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
           "tasks": "gsm8k,mmlu,safety,humaneval_compile"
         },
         {
@@ -10184,8 +10197,8 @@
           "checkpoint_path": "results/checkpoints/qwen3_moe_router_calibrated_searched_no_gt065_margin_profile_candidate",
           "current_max_examples": 64,
           "current_prompt_budget": 256,
-          "eval_command_current": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8111/v1 --models candidate_qwen3_moe_router_calibrated_searched_no_gt065_margin_profile_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_margin_profile_candidate --task-manifest results/qwen3_moe_router_calibration_job/task_manifest.json --create-task-manifest-if-missing",
-          "eval_command_recommended": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8111/v1 --models candidate_qwen3_moe_router_calibrated_searched_no_gt065_margin_profile_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 384 --output-dir results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_margin_profile_candidate --task-manifest results/qwen3_moe_router_calibration_job/task_manifest.json --create-task-manifest-if-missing",
+          "eval_command_current": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8111/v1 --models candidate_qwen3_moe_router_calibrated_searched_no_gt065_margin_profile_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_margin_profile_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
+          "eval_command_recommended": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8111/v1 --models candidate_qwen3_moe_router_calibrated_searched_no_gt065_margin_profile_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 384 --output-dir results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_margin_profile_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_margin_profile_candidate",
           "eval_status": "not_run",
           "gate_order": 12,
@@ -10201,6 +10214,7 @@
           "serve_status": "pending_materialization",
           "served_model_id": "candidate_qwen3_moe_router_calibrated_searched_no_gt065_margin_profile_candidate",
           "task_count": 4,
+          "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
           "tasks": "gsm8k,mmlu,safety,humaneval_compile"
         }
       ],
@@ -10225,6 +10239,7 @@
       "summary": {
         "assumed_paired_discordance_rate": 0.25,
         "candidate_count": 11,
+        "canonical_task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
         "confidence_z": 1.96,
         "current_gate_examples": 64,
         "method_count": 13,
@@ -10235,7 +10250,8 @@
           "router_calibration_budget": "results/qwen3_moe_eval_budget_plan/router_calibration_budget.csv",
           "run_script": "results/qwen3_moe_eval_budget_plan/run_eval_budget.sh",
           "summary": "results/qwen3_moe_eval_budget_plan/summary.json",
-          "task_budget": "results/qwen3_moe_eval_budget_plan/task_budget.csv"
+          "task_budget": "results/qwen3_moe_eval_budget_plan/task_budget.csv",
+          "task_manifest_alignment": "results/qwen3_moe_eval_budget_plan/task_manifest_alignment.csv"
         },
         "paired_alpha": 0.05,
         "paired_required_discordant": 62,
@@ -10259,11 +10275,15 @@
           "plan_pruned_candidate_count": 2,
           "selection_table": "results/qwen3_moe_router_calibration_selection/selection_table.csv"
         },
-        "schema_version": 2,
+        "schema_version": 3,
         "source_count": 2,
         "status": "ready_for_budgeted_remote_vllm_eval",
         "target_paired_net_loss_rate": 0.05,
         "target_wilson_half_width": 0.05,
+        "task_manifest_aligned_method_count": 13,
+        "task_manifest_pairing_contract": "All source and candidate eval commands must use the same task manifest so final paired prediction comparisons share task/example keys.",
+        "task_manifest_path_count": 1,
+        "task_manifest_unaligned_method_count": 0,
         "total_additional_prompt_budget": 16640,
         "total_current_prompt_budget": 3328,
         "total_recommended_prompt_budget": 19968,
@@ -10274,6 +10294,156 @@
       "target_paired_net_loss_rate": 0.05,
       "target_wilson_half_width": 0.05,
       "task_budget": "results/qwen3_moe_eval_budget_plan/task_budget.csv",
+      "task_manifest_aligned_method_count": 13,
+      "task_manifest_alignment": "results/qwen3_moe_eval_budget_plan/task_manifest_alignment.csv",
+      "task_manifest_alignment_rows": [
+        {
+          "canonical_task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "method": "source_qwen3_30b_instruct",
+          "pairing_contract": "all final-selection source and candidate evals must read/write the same task manifest so paired prediction keys compare identical task/example rows",
+          "recommended_max_examples": 384,
+          "role": "source",
+          "serve_status": "ready_to_host",
+          "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "task_manifest_aligned": true,
+          "tasks": "gsm8k,mmlu,safety,humaneval_compile"
+        },
+        {
+          "canonical_task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "method": "source_qwen3_30b_coder",
+          "pairing_contract": "all final-selection source and candidate evals must read/write the same task manifest so paired prediction keys compare identical task/example rows",
+          "recommended_max_examples": 384,
+          "role": "source",
+          "serve_status": "ready_to_host",
+          "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "task_manifest_aligned": true,
+          "tasks": "gsm8k,mmlu,safety,humaneval_compile"
+        },
+        {
+          "canonical_task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "method": "qwen3_moe_unified_route_guarded_candidate",
+          "pairing_contract": "all final-selection source and candidate evals must read/write the same task manifest so paired prediction keys compare identical task/example rows",
+          "recommended_max_examples": 384,
+          "role": "candidate",
+          "serve_status": "ready_to_host",
+          "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "task_manifest_aligned": true,
+          "tasks": "gsm8k,mmlu,safety,humaneval_compile"
+        },
+        {
+          "canonical_task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "method": "qwen3_moe_audit_gated_candidate",
+          "pairing_contract": "all final-selection source and candidate evals must read/write the same task manifest so paired prediction keys compare identical task/example rows",
+          "recommended_max_examples": 384,
+          "role": "candidate",
+          "serve_status": "ready_to_host",
+          "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "task_manifest_aligned": true,
+          "tasks": "gsm8k,mmlu,safety,humaneval_compile"
+        },
+        {
+          "canonical_task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "method": "qwen3_moe_trust_region_candidate",
+          "pairing_contract": "all final-selection source and candidate evals must read/write the same task manifest so paired prediction keys compare identical task/example rows",
+          "recommended_max_examples": 384,
+          "role": "candidate",
+          "serve_status": "ready_to_host",
+          "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "task_manifest_aligned": true,
+          "tasks": "gsm8k,mmlu,safety,humaneval_compile"
+        },
+        {
+          "canonical_task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "method": "qwen3_moe_expert_only_trust_region_candidate",
+          "pairing_contract": "all final-selection source and candidate evals must read/write the same task manifest so paired prediction keys compare identical task/example rows",
+          "recommended_max_examples": 384,
+          "role": "candidate",
+          "serve_status": "ready_to_host",
+          "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "task_manifest_aligned": true,
+          "tasks": "gsm8k,mmlu,safety,humaneval_compile"
+        },
+        {
+          "canonical_task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "method": "qwen3_moe_tail_trimmed_expert_only_candidate",
+          "pairing_contract": "all final-selection source and candidate evals must read/write the same task manifest so paired prediction keys compare identical task/example rows",
+          "recommended_max_examples": 384,
+          "role": "candidate",
+          "serve_status": "ready_to_host",
+          "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "task_manifest_aligned": true,
+          "tasks": "gsm8k,mmlu,safety,humaneval_compile"
+        },
+        {
+          "canonical_task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "method": "qwen3_moe_searched_no_gt065_max_retention_candidate",
+          "pairing_contract": "all final-selection source and candidate evals must read/write the same task manifest so paired prediction keys compare identical task/example rows",
+          "recommended_max_examples": 384,
+          "role": "candidate",
+          "serve_status": "ready_to_host",
+          "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "task_manifest_aligned": true,
+          "tasks": "gsm8k,mmlu,safety,humaneval_compile"
+        },
+        {
+          "canonical_task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "method": "qwen3_moe_layer_chunk_candidate",
+          "pairing_contract": "all final-selection source and candidate evals must read/write the same task manifest so paired prediction keys compare identical task/example rows",
+          "recommended_max_examples": 384,
+          "role": "candidate",
+          "serve_status": "ready_to_host",
+          "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "task_manifest_aligned": true,
+          "tasks": "gsm8k,mmlu,safety,humaneval_compile"
+        },
+        {
+          "canonical_task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "method": "qwen3_moe_unified_mechanism_candidate",
+          "pairing_contract": "all final-selection source and candidate evals must read/write the same task manifest so paired prediction keys compare identical task/example rows",
+          "recommended_max_examples": 384,
+          "role": "candidate",
+          "serve_status": "ready_to_host",
+          "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "task_manifest_aligned": true,
+          "tasks": "gsm8k,mmlu,safety,humaneval_compile"
+        },
+        {
+          "canonical_task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "method": "qwen3_moe_subspace_scaled_candidate",
+          "pairing_contract": "all final-selection source and candidate evals must read/write the same task manifest so paired prediction keys compare identical task/example rows",
+          "recommended_max_examples": 384,
+          "role": "candidate",
+          "serve_status": "ready_to_host",
+          "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "task_manifest_aligned": true,
+          "tasks": "gsm8k,mmlu,safety,humaneval_compile"
+        },
+        {
+          "canonical_task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "method": "qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate",
+          "pairing_contract": "all final-selection source and candidate evals must read/write the same task manifest so paired prediction keys compare identical task/example rows",
+          "recommended_max_examples": 384,
+          "role": "candidate",
+          "serve_status": "pending_materialization",
+          "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "task_manifest_aligned": true,
+          "tasks": "gsm8k,mmlu,safety,humaneval_compile"
+        },
+        {
+          "canonical_task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "method": "qwen3_moe_router_calibrated_searched_no_gt065_margin_profile_candidate",
+          "pairing_contract": "all final-selection source and candidate evals must read/write the same task manifest so paired prediction keys compare identical task/example rows",
+          "recommended_max_examples": 384,
+          "role": "candidate",
+          "serve_status": "pending_materialization",
+          "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "task_manifest_aligned": true,
+          "tasks": "gsm8k,mmlu,safety,humaneval_compile"
+        }
+      ],
+      "task_manifest_pairing_contract": "All source and candidate eval commands must use the same task manifest so final paired prediction comparisons share task/example keys.",
+      "task_manifest_path_count": 1,
+      "task_manifest_unaligned_method_count": 0,
       "task_rows": [
         {
           "achievable_examples": 384,
@@ -37458,7 +37628,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-20T06:34:12.221260+00:00",
+  "generated_at": "2026-06-20T06:40:28.879825+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [

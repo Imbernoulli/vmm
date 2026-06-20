@@ -1,6 +1,7 @@
 {
   "assumed_paired_discordance_rate": 0.25,
   "candidate_count": 11,
+  "canonical_task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
   "confidence_z": 1.96,
   "current_gate_examples": 64,
   "method_count": 13,
@@ -11,7 +12,8 @@
     "router_calibration_budget": "results/qwen3_moe_eval_budget_plan/router_calibration_budget.csv",
     "run_script": "results/qwen3_moe_eval_budget_plan/run_eval_budget.sh",
     "summary": "results/qwen3_moe_eval_budget_plan/summary.json",
-    "task_budget": "results/qwen3_moe_eval_budget_plan/task_budget.csv"
+    "task_budget": "results/qwen3_moe_eval_budget_plan/task_budget.csv",
+    "task_manifest_alignment": "results/qwen3_moe_eval_budget_plan/task_manifest_alignment.csv"
   },
   "paired_alpha": 0.05,
   "paired_required_discordant": 62,
@@ -35,11 +37,15 @@
     "plan_pruned_candidate_count": 2,
     "selection_table": "results/qwen3_moe_router_calibration_selection/selection_table.csv"
   },
-  "schema_version": 2,
+  "schema_version": 3,
   "source_count": 2,
   "status": "ready_for_budgeted_remote_vllm_eval",
   "target_paired_net_loss_rate": 0.05,
   "target_wilson_half_width": 0.05,
+  "task_manifest_aligned_method_count": 13,
+  "task_manifest_pairing_contract": "All source and candidate eval commands must use the same task manifest so final paired prediction comparisons share task/example keys.",
+  "task_manifest_path_count": 1,
+  "task_manifest_unaligned_method_count": 0,
   "total_additional_prompt_budget": 16640,
   "total_current_prompt_budget": 3328,
   "total_recommended_prompt_budget": 19968,

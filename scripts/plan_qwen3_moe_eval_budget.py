@@ -185,6 +185,19 @@ def replace_cli_arg(command: str, option: str, value: int) -> str:
     return " ".join(shlex.quote(token) for token in tokens)
 
 
+def cli_arg_value(command: str, option: str) -> str | None:
+    if not command:
+        return None
+    tokens = shlex.split(command)
+    for idx, token in enumerate(tokens):
+        if token == option and idx + 1 < len(tokens):
+            return tokens[idx + 1]
+        prefix = option + "="
+        if token.startswith(prefix):
+            return token[len(prefix) :]
+    return None
+
+
 def shell_quote(value: str) -> str:
     return shlex.quote(value)
 
@@ -203,6 +216,14 @@ def first_gate_example_source(gate: pd.DataFrame) -> str:
         if example_source:
             return example_source
     return "datasets"
+
+
+def first_gate_task_manifest(gate: pd.DataFrame) -> str:
+    for _, row in gate.iterrows():
+        task_manifest = cli_arg_value(str(row.get("eval_command") or ""), "--task-manifest")
+        if task_manifest:
+            return task_manifest
+    return "results/qwen3_moe_mechanism_eval_gate/task_manifest.json"
 
 
 def observed_examples_by_task(eval_output_dir: str | Path) -> dict[str, int]:
@@ -310,6 +331,7 @@ def build_method_budget(gate: pd.DataFrame, task_budget_meta: dict[str, Any]) ->
         current = int(row.get("max_examples") or 0)
         eval_command = str(row.get("eval_command") or "")
         recommended_command = replace_cli_arg(eval_command, "--max-examples", recommended)
+        task_manifest = cli_arg_value(recommended_command, "--task-manifest")
         current_prompt_budget = current * len(tasks)
         recommended_prompt_budget = recommended * len(tasks)
         rows.append(
@@ -330,6 +352,7 @@ def build_method_budget(gate: pd.DataFrame, task_budget_meta: dict[str, Any]) ->
                 "recommended_prompt_budget": recommended_prompt_budget,
                 "additional_prompt_budget": max(0, recommended_prompt_budget - current_prompt_budget),
                 "eval_output_dir": row.get("eval_output_dir"),
+                "task_manifest": task_manifest,
                 "serve_command": row.get("serve_command"),
                 "eval_command_current": eval_command,
                 "eval_command_recommended": recommended_command,
@@ -431,7 +454,7 @@ def build_router_calibration_budget(
     recommended = int(task_budget_meta["recommended_command_max_examples"])
     tasks = first_gate_tasks(gate)
     example_source = first_gate_example_source(gate)
-    task_manifest = rel(candidate_plan_file.parent / "task_manifest.json")
+    task_manifest = first_gate_task_manifest(gate)
     next_order = int(method_budget["gate_order"].max()) + 1 if not method_budget.empty else 0
 
     additions = []
@@ -502,6 +525,7 @@ def build_router_calibration_budget(
                 "recommended_prompt_budget": recommended_prompt_budget,
                 "additional_prompt_budget": max(0, recommended_prompt_budget - current_prompt_budget),
                 "eval_output_dir": eval_dir,
+                "task_manifest": task_manifest,
                 "serve_command": router_calibration_serve_command(
                     checkpoint_dir=checkpoint_dir,
                     served_model=served_model,
@@ -578,6 +602,39 @@ def build_mechanism_budget(
                 "required_methods": ",".join(methods),
                 "recommended_max_examples_per_task": recommended_max_examples,
                 "recommended_prompt_budget": prompt_budget,
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def build_task_manifest_alignment(method_budget: pd.DataFrame) -> pd.DataFrame:
+    if method_budget.empty:
+        return pd.DataFrame()
+    manifests = sorted(
+        {
+            str(value)
+            for value in method_budget.get("task_manifest", pd.Series(dtype=object)).tolist()
+            if clean_value(value) is not None and str(value).strip()
+        }
+    )
+    canonical = manifests[0] if len(manifests) == 1 else ""
+    rows = []
+    for _, row in method_budget.iterrows():
+        task_manifest = str(clean_value(row.get("task_manifest")) or "")
+        rows.append(
+            {
+                "method": row.get("method"),
+                "role": row.get("role"),
+                "serve_status": row.get("serve_status"),
+                "tasks": row.get("tasks"),
+                "recommended_max_examples": row.get("recommended_max_examples"),
+                "task_manifest": task_manifest,
+                "canonical_task_manifest": canonical,
+                "task_manifest_aligned": bool(canonical and task_manifest == canonical),
+                "pairing_contract": (
+                    "all final-selection source and candidate evals must read/write the same task manifest "
+                    "so paired prediction keys compare identical task/example rows"
+                ),
             }
         )
     return pd.DataFrame(rows)
@@ -660,6 +717,7 @@ def build_report(
     method_budget: pd.DataFrame,
     mechanism_budget: pd.DataFrame,
     router_calibration_budget: pd.DataFrame,
+    task_manifest_alignment: pd.DataFrame,
 ) -> str:
     router_meta = summary.get("router_calibration", {})
     lines = [
@@ -675,6 +733,8 @@ def build_report(
         f"- Total current prompt budget: `{summary['total_current_prompt_budget']}`",
         f"- Total recommended prompt budget: `{summary['total_recommended_prompt_budget']}`",
         f"- Additional prompt budget: `{summary['total_additional_prompt_budget']}`",
+        f"- Canonical task manifest: `{summary['canonical_task_manifest']}`",
+        f"- Task manifest aligned methods: `{summary['task_manifest_aligned_method_count']}/{summary['method_count']}`",
         (
             f"- Router calibration active / ready / plan-pruned caps: "
             f"`{router_meta.get('active_candidate_count', 0)}` / "
@@ -698,6 +758,11 @@ def build_report(
         ),
         "",
         "因此这里推荐的不是“静态多跑一点”，而是让下游 eval 能真正支持 source dominance、task regression、score confidence 和 paired-prediction regression 这些机制判断。",
+        "",
+        (
+            "Pairing contract: every final-selection source and candidate command now uses the same task manifest path. "
+            "This moves the paired-prediction requirement before the run instead of discovering mismatched examples only after vLLM output is written."
+        ),
         "",
         (
             "Router calibration: budget planning now reads the route-margin-gated calibration plan. "
@@ -733,6 +798,21 @@ def build_report(
             f"{int(row['current_max_examples'])} | {int(row['recommended_max_examples'])} | "
             f"{int(row['additional_prompt_budget'])} | `{row['eval_status']}` |"
         )
+    if not task_manifest_alignment.empty:
+        lines.extend(
+            [
+                "",
+                "## Task Manifest Alignment",
+                "",
+                "| method | role | serve | manifest aligned | task manifest |",
+                "| --- | --- | --- | --- | --- |",
+            ]
+        )
+        for _, row in task_manifest_alignment.iterrows():
+            lines.append(
+                f"| `{row['method']}` | `{row['role']}` | `{row['serve_status']}` | "
+                f"`{bool_value(row['task_manifest_aligned'])}` | `{row['task_manifest']}` |"
+            )
     if not router_calibration_budget.empty:
         lines.extend(
             [
@@ -795,6 +875,7 @@ def build_report(
             f"- `{summary['outputs']['method_budget']}`",
             f"- `{summary['outputs']['mechanism_budget']}`",
             f"- `{summary['outputs']['router_calibration_budget']}`",
+            f"- `{summary['outputs']['task_manifest_alignment']}`",
             f"- `{summary['outputs']['run_script']}`",
             f"- `{summary['outputs']['summary']}`",
         ]
@@ -823,14 +904,17 @@ def write_outputs(
     method_path = output_dir / "method_budget.csv"
     mechanism_path = output_dir / "mechanism_budget.csv"
     router_calibration_path = output_dir / "router_calibration_budget.csv"
+    task_manifest_alignment_path = output_dir / "task_manifest_alignment.csv"
     run_script_path = output_dir / "run_eval_budget.sh"
     summary_path = output_dir / "summary.json"
     report_path = output_dir / "report.md"
+    task_manifest_alignment = build_task_manifest_alignment(method_budget)
 
     task_budget.to_csv(task_path, index=False)
     method_budget.to_csv(method_path, index=False)
     mechanism_budget.to_csv(mechanism_path, index=False)
     router_calibration_budget.to_csv(router_calibration_path, index=False)
+    task_manifest_alignment.to_csv(task_manifest_alignment_path, index=False)
     run_script_path.write_text(build_shell_script(method_budget, output_dir), encoding="utf-8")
     os.chmod(run_script_path, 0o755)
 
@@ -838,9 +922,23 @@ def write_outputs(
     total_recommended = int(method_budget["recommended_prompt_budget"].sum())
     total_additional = int(method_budget["additional_prompt_budget"].sum())
     ready = method_budget[method_budget["serve_status"] == "ready_to_host"]
+    aligned_count = (
+        int(task_manifest_alignment["task_manifest_aligned"].astype(bool).sum())
+        if not task_manifest_alignment.empty
+        else 0
+    )
+    task_manifest_values = sorted(
+        {
+            str(value)
+            for value in method_budget.get("task_manifest", pd.Series(dtype=object)).tolist()
+            if clean_value(value) is not None and str(value).strip()
+        }
+    )
     summary = {
-        "schema_version": 2,
-        "status": "ready_for_budgeted_remote_vllm_eval",
+        "schema_version": 3,
+        "status": "ready_for_budgeted_remote_vllm_eval"
+        if aligned_count == len(method_budget)
+        else "task_manifest_alignment_failed",
         "method_count": int(len(method_budget)),
         "ready_to_host_method_count": int(len(ready)),
         "pending_materialization_method_count": int((method_budget["serve_status"] == "pending_materialization").sum()),
@@ -864,12 +962,21 @@ def write_outputs(
         "ready_to_host_current_prompt_budget": int(ready["current_prompt_budget"].sum()),
         "ready_to_host_recommended_prompt_budget": int(ready["recommended_prompt_budget"].sum()),
         "ready_to_host_additional_prompt_budget": int(ready["additional_prompt_budget"].sum()),
+        "canonical_task_manifest": task_manifest_values[0] if len(task_manifest_values) == 1 else None,
+        "task_manifest_path_count": int(len(task_manifest_values)),
+        "task_manifest_aligned_method_count": aligned_count,
+        "task_manifest_unaligned_method_count": int(len(method_budget) - aligned_count),
+        "task_manifest_pairing_contract": (
+            "All source and candidate eval commands must use the same task manifest so final paired "
+            "prediction comparisons share task/example keys."
+        ),
         "router_calibration": json_safe(router_calibration_meta),
         "outputs": {
             "task_budget": rel(task_path),
             "method_budget": rel(method_path),
             "mechanism_budget": rel(mechanism_path),
             "router_calibration_budget": rel(router_calibration_path),
+            "task_manifest_alignment": rel(task_manifest_alignment_path),
             "run_script": rel(run_script_path),
             "summary": rel(summary_path),
             "report": rel(report_path),
@@ -877,7 +984,14 @@ def write_outputs(
     }
     summary_path.write_text(json.dumps(json_safe(summary), indent=2, sort_keys=True) + "\n", encoding="utf-8")
     report_path.write_text(
-        build_report(summary, task_budget, method_budget, mechanism_budget, router_calibration_budget),
+        build_report(
+            summary,
+            task_budget,
+            method_budget,
+            mechanism_budget,
+            router_calibration_budget,
+            task_manifest_alignment,
+        ),
         encoding="utf-8",
     )
     return summary

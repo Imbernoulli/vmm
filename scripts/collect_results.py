@@ -1407,6 +1407,7 @@ def summarize_qwen3_moe_eval_budget_plan() -> dict[str, Any]:
     task_budget = read_csv(root / "task_budget.csv")
     method_budget = read_csv(root / "method_budget.csv")
     mechanism_budget = read_csv(root / "mechanism_budget.csv")
+    task_manifest_alignment = read_csv(root / "task_manifest_alignment.csv")
     capped_tasks = task_budget[task_budget["budget_status"] == "target_not_met_dataset_cap"]
     return {
         "summary": summary,
@@ -1433,6 +1434,11 @@ def summarize_qwen3_moe_eval_budget_plan() -> dict[str, Any]:
         "ready_to_host_current_prompt_budget": maybe_int(summary.get("ready_to_host_current_prompt_budget")),
         "ready_to_host_recommended_prompt_budget": maybe_int(summary.get("ready_to_host_recommended_prompt_budget")),
         "ready_to_host_additional_prompt_budget": maybe_int(summary.get("ready_to_host_additional_prompt_budget")),
+        "canonical_task_manifest": summary.get("canonical_task_manifest"),
+        "task_manifest_path_count": maybe_int(summary.get("task_manifest_path_count")),
+        "task_manifest_aligned_method_count": maybe_int(summary.get("task_manifest_aligned_method_count")),
+        "task_manifest_unaligned_method_count": maybe_int(summary.get("task_manifest_unaligned_method_count")),
+        "task_manifest_pairing_contract": summary.get("task_manifest_pairing_contract"),
         "router_calibration_active_candidate_count": int(
             (summary.get("router_calibration") or {}).get("active_candidate_count", 0)
         ),
@@ -1449,11 +1455,13 @@ def summarize_qwen3_moe_eval_budget_plan() -> dict[str, Any]:
         "task_rows": [clean_row(row) for _, row in task_budget.iterrows()],
         "method_rows": [clean_row(row) for _, row in method_budget.iterrows()],
         "mechanism_rows": [clean_row(row) for _, row in mechanism_budget.iterrows()],
+        "task_manifest_alignment_rows": [clean_row(row) for _, row in task_manifest_alignment.iterrows()],
         "report": rel(root / "report.md"),
         "task_budget": rel(root / "task_budget.csv"),
         "method_budget": rel(root / "method_budget.csv"),
         "mechanism_budget": rel(root / "mechanism_budget.csv"),
         "router_calibration_budget": rel(root / "router_calibration_budget.csv"),
+        "task_manifest_alignment": rel(root / "task_manifest_alignment.csv"),
         "run_script": rel(root / "run_eval_budget.sh"),
         "summary_path": rel(root / "summary.json"),
     }
@@ -5297,6 +5305,12 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_eval_budget_plan['wilson_required_examples']} / "
                 f"{qwen3_moe_eval_budget_plan['paired_required_examples']} / "
                 f"{qwen3_moe_eval_budget_plan['dataset_capped_tasks']} |"
+            ),
+            (
+                "| Qwen3 MoE eval budget plan | task manifest aligned / canonical manifest | "
+                f"{qwen3_moe_eval_budget_plan['task_manifest_aligned_method_count']}"
+                f"/{qwen3_moe_eval_budget_plan['method_count']} / "
+                f"{qwen3_moe_eval_budget_plan['canonical_task_manifest']} |"
             ),
             (
                 "| Qwen3 MoE eval budget plan | router active / ready / pending / plan-pruned caps | "

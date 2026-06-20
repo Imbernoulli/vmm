@@ -10,6 +10,8 @@
 - Total current prompt budget: `3328`
 - Total recommended prompt budget: `19968`
 - Additional prompt budget: `16640`
+- Canonical task manifest: `results/qwen3_moe_mechanism_eval_gate/task_manifest.json`
+- Task manifest aligned methods: `13/13`
 - Router calibration active / ready / plan-pruned caps: `2` / `0` / `2`
 
 ## Why This Budget
@@ -19,6 +21,8 @@ Wilson gate: for a binary task score near the worst case `p=0.5`, choose `n` so 
 Paired gate: final selection compares source and candidate predictions on the same examples. The planner asks for enough shared examples to make a `0.05` net source advantage significant at alpha `0.05`, assuming `0.25` paired discordance. This requires `62` discordant examples, about `248` total shared examples before rounding.
 
 因此这里推荐的不是“静态多跑一点”，而是让下游 eval 能真正支持 source dominance、task regression、score confidence 和 paired-prediction regression 这些机制判断。
+
+Pairing contract: every final-selection source and candidate command now uses the same task manifest path. This moves the paired-prediction requirement before the run instead of discovering mismatched examples only after vLLM output is written.
 
 Router calibration: budget planning now reads the route-margin-gated calibration plan. Only caps that pass the planned margin gate and are enabled by the job default-run list enter the default budget; plan-pruned caps remain explicit ablations.
 
@@ -48,6 +52,24 @@ Router calibration: budget planning now reads the route-margin-gated calibration
 | 10 | `qwen3_moe_subspace_scaled_candidate` | `candidate` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
 | 11 | `qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate` | `candidate` | `pending_materialization` | 64 | 384 | 1280 | `not_run` |
 | 12 | `qwen3_moe_router_calibrated_searched_no_gt065_margin_profile_candidate` | `candidate` | `pending_materialization` | 64 | 384 | 1280 | `not_run` |
+
+## Task Manifest Alignment
+
+| method | role | serve | manifest aligned | task manifest |
+| --- | --- | --- | --- | --- |
+| `source_qwen3_30b_instruct` | `source` | `ready_to_host` | `True` | `results/qwen3_moe_mechanism_eval_gate/task_manifest.json` |
+| `source_qwen3_30b_coder` | `source` | `ready_to_host` | `True` | `results/qwen3_moe_mechanism_eval_gate/task_manifest.json` |
+| `qwen3_moe_unified_route_guarded_candidate` | `candidate` | `ready_to_host` | `True` | `results/qwen3_moe_mechanism_eval_gate/task_manifest.json` |
+| `qwen3_moe_audit_gated_candidate` | `candidate` | `ready_to_host` | `True` | `results/qwen3_moe_mechanism_eval_gate/task_manifest.json` |
+| `qwen3_moe_trust_region_candidate` | `candidate` | `ready_to_host` | `True` | `results/qwen3_moe_mechanism_eval_gate/task_manifest.json` |
+| `qwen3_moe_expert_only_trust_region_candidate` | `candidate` | `ready_to_host` | `True` | `results/qwen3_moe_mechanism_eval_gate/task_manifest.json` |
+| `qwen3_moe_tail_trimmed_expert_only_candidate` | `candidate` | `ready_to_host` | `True` | `results/qwen3_moe_mechanism_eval_gate/task_manifest.json` |
+| `qwen3_moe_searched_no_gt065_max_retention_candidate` | `candidate` | `ready_to_host` | `True` | `results/qwen3_moe_mechanism_eval_gate/task_manifest.json` |
+| `qwen3_moe_layer_chunk_candidate` | `candidate` | `ready_to_host` | `True` | `results/qwen3_moe_mechanism_eval_gate/task_manifest.json` |
+| `qwen3_moe_unified_mechanism_candidate` | `candidate` | `ready_to_host` | `True` | `results/qwen3_moe_mechanism_eval_gate/task_manifest.json` |
+| `qwen3_moe_subspace_scaled_candidate` | `candidate` | `ready_to_host` | `True` | `results/qwen3_moe_mechanism_eval_gate/task_manifest.json` |
+| `qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate` | `candidate` | `pending_materialization` | `True` | `results/qwen3_moe_mechanism_eval_gate/task_manifest.json` |
+| `qwen3_moe_router_calibrated_searched_no_gt065_margin_profile_candidate` | `candidate` | `pending_materialization` | `True` | `results/qwen3_moe_mechanism_eval_gate/task_manifest.json` |
 
 ## Router Calibration Budget
 
@@ -97,5 +119,6 @@ results/qwen3_moe_eval_budget_plan/run_eval_budget.sh qwen3_moe_tail_trimmed_exp
 - `results/qwen3_moe_eval_budget_plan/method_budget.csv`
 - `results/qwen3_moe_eval_budget_plan/mechanism_budget.csv`
 - `results/qwen3_moe_eval_budget_plan/router_calibration_budget.csv`
+- `results/qwen3_moe_eval_budget_plan/task_manifest_alignment.csv`
 - `results/qwen3_moe_eval_budget_plan/run_eval_budget.sh`
 - `results/qwen3_moe_eval_budget_plan/summary.json`

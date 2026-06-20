@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 89766,
+      "bytes": 89978,
       "kind": "document",
       "path": "README.md",
-      "sha256": "369a2b60a45ff3309c8d87e1a0eaf905794ecb82370df6e852eccb4e2df43b62"
+      "sha256": "a2682661e0f74e0591cbe5243ff035a374a0b7009a4d927419d8f5f24ce3c77e"
     },
     {
       "bytes": 33211,
@@ -2005,16 +2005,16 @@
       "sha256": "d447270a879f0191b5696b85360511cccaf7f90c5bc0228fdc39d7a36269150b"
     },
     {
-      "bytes": 21162,
+      "bytes": 21905,
       "kind": "data",
       "path": "results/qwen3_moe_eval_budget_plan/method_budget.csv",
-      "sha256": "e5bc71e682496771b0f45cdf5d1e66a6c2e281a62e616a808221f8831d1e2bac"
+      "sha256": "15fb5cd3d20ab8f7cdea9a69f41f25ff7ca0f2e3cfbc200a79ab949c9abc63ab"
     },
     {
-      "bytes": 8098,
+      "bytes": 10616,
       "kind": "document",
       "path": "results/qwen3_moe_eval_budget_plan/report.md",
-      "sha256": "6566cb0f571a8c20ba257468ab951abb05eab0828a50605cf05667e7fc04d92a"
+      "sha256": "cea87901b3c8c0cd9c211dc19156b1de3b9770e636ad455a1d39c3816f0b7492"
     },
     {
       "bytes": 1330,
@@ -2023,16 +2023,22 @@
       "sha256": "ca7cf60de8717ddc0177bc71d08b2a8c769f803d9615613b355d6a835f3da8d0"
     },
     {
-      "bytes": 1912,
+      "bytes": 2394,
       "kind": "data",
       "path": "results/qwen3_moe_eval_budget_plan/summary.json",
-      "sha256": "75c8c42664134a92f8c704c47f7d5a220be814147527cc92b8ecd90804bdbb08"
+      "sha256": "488fc839a73c7cc3195bbac6cbcc5c5f6a586bb0e14fd1675175cedf4a6aece5"
     },
     {
       "bytes": 1152,
       "kind": "data",
       "path": "results/qwen3_moe_eval_budget_plan/task_budget.csv",
       "sha256": "af0e6eaff803c79952343a8dc858ebf6a10acba7311716c8485417208cc8464a"
+    },
+    {
+      "bytes": 5014,
+      "kind": "data",
+      "path": "results/qwen3_moe_eval_budget_plan/task_manifest_alignment.csv",
+      "sha256": "8259945dda96443754712a8286bb11b73ab7ccb0d7b4b99545a84d4320388f9e"
     },
     {
       "bytes": 7166,
@@ -5071,16 +5077,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 1781585,
+      "bytes": 1792438,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "79b82a360ad459fa243b0673650426f31dcb4eab46412c1c53c1828366f14487"
+      "sha256": "0aef018a7f49550815b0b8e9196ab0f4670fdc1660060b4309b49b0380061177"
     },
     {
-      "bytes": 57026,
+      "bytes": 57169,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "22ec92ca9448c9cf14ee10100329414c6355d20fe4506135efc5372821deaaaa"
+      "sha256": "3c82ae218a26b4b3699b6c08970ec86196848da9b982ce86cc49ce7c9c95480c"
     },
     {
       "bytes": 288,
@@ -6355,10 +6361,10 @@
       "sha256": "cd588bc1804013f4043bd95c245b066dbae86bfd3e3f9c18317ef33eb506f123"
     },
     {
-      "bytes": 400583,
+      "bytes": 401672,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "c786b6ca3cce32041775a5ad78d8972742cd549c8f722d005e23b95020d6dc7e"
+      "sha256": "f0ef347b8efd1567c5936cebc127585f5cd2d41caac7272eba8519ea56708dff"
     },
     {
       "bytes": 16101,
@@ -6427,10 +6433,10 @@
       "sha256": "0c439772685d64f1707671b0d906058d7e350c172e2c9d30942253e558c34ebc"
     },
     {
-      "bytes": 40682,
+      "bytes": 45577,
       "kind": "code",
       "path": "scripts/plan_qwen3_moe_eval_budget.py",
-      "sha256": "30d3662a202f11aeaa4d389ec16495b5bdadfebf6ab09f226c209bc78729239b"
+      "sha256": "4bc184d86095fdd6c1bd322f8c02e5d316a5df7f5564d42ee8aafe3d813bca52"
     },
     {
       "bytes": 24018,
@@ -6655,7 +6661,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-20T06:34:12.262150+00:00",
+  "generated_at": "2026-06-20T06:40:28.897564+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"
