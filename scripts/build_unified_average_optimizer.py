@@ -358,7 +358,7 @@ def moe_feature_rows(
             "probe": "qwen3_unified_mechanism_optimizer",
             "value": unified_candidate.get("selected_risk_weighted_predicted_relative_delta"),
             "threshold": unified_candidate.get("hard_cap"),
-            "decision_signal": "use_router_evidence_geometry_risk_caps",
+            "decision_signal": "use_router_evidence_geometry_subspace_risk_caps",
             "evidence": (
                 f"selected = {unified_candidate.get('selected_candidate_id')}; "
                 f"family = {unified_candidate.get('selected_candidate_family')}; "
@@ -366,7 +366,10 @@ def moe_feature_rows(
                 f"risk-weighted predicted rel delta = "
                 f"{fmt(unified_candidate.get('selected_risk_weighted_predicted_relative_delta'))}; "
                 f"geometry-weighted predicted rel delta = "
-                f"{fmt(unified_candidate.get('selected_geometry_weighted_predicted_relative_delta'))}"
+                f"{fmt(unified_candidate.get('selected_geometry_weighted_predicted_relative_delta'))}; "
+                f"subspace-weighted predicted rel delta = "
+                f"{fmt(unified_candidate.get('selected_subspace_weighted_predicted_relative_delta'))}; "
+                f"high-subspace mean scale = {fmt(unified_candidate.get('selected_high_subspace_mean_scale'))}"
             ),
         },
         {
@@ -376,6 +379,7 @@ def moe_feature_rows(
             "threshold": delta_frontier.get("layer_chunk_total_relative_delta_norm"),
             "decision_signal": "materialized_same_shape_tail_reduction",
             "evidence": (
+                f"rule status = {unified_candidate.get('materialized_checkpoint_rule_status')}; "
                 f"audit status = {unified_audit.get('status')}; "
                 f"total relative norm = {fmt(unified_audit.get('relative_delta_norm'))}; "
                 f"router changed = {unified_audit.get('router_changed_tensors')}/"
@@ -603,17 +607,20 @@ def build_decisions(
         },
         {
             "stage": "moe_expert_delta_optimizer",
-            "operation": "apply retention-constrained router/evidence/geometry caps",
-            "condition": "expert identity is aligned, direct router movement is rejected, and real expert geometry exposes nonuniform risk",
+            "operation": "apply retention-constrained router/evidence/geometry/subspace caps",
+            "condition": "expert identity is aligned, direct router movement is rejected, and real expert geometry/subspace probes expose nonuniform risk",
             "selected_action": (
                 f"{unified_candidate.get('selected_candidate_id')} with hard cap "
                 f"{fmt(unified_candidate.get('hard_cap'))}; "
+                f"subspace-weighted rel-delta = "
+                f"{fmt(unified_candidate.get('selected_subspace_weighted_predicted_relative_delta'))}; "
+                f"materialized rule status = {unified_candidate.get('materialized_checkpoint_rule_status')}; "
                 f"layer/chunk->unified routed >0.65 reduction = "
                 f"{delta_frontier.get('layer_chunk_to_unified_routed_gt_065_reduction')}; "
                 f"unified->subspace extra norm reduction = "
                 f"{fmt(delta_frontier.get('unified_to_subspace_relative_norm_reduction'), 6)}"
             ),
-            "why_it_should_improve": "It keeps useful Coder-route mass while shrinking high-risk routed expert deltas instead of using one global coefficient.",
+            "why_it_should_improve": "It keeps useful Coder-route mass while shrinking high-risk routed expert deltas and local subspace conflicts instead of using one global coefficient.",
             "same_shape_invariant": "only routed expert tensor values change; router, attention, embeddings, norms, names, and shapes stay fixed",
         },
         {
@@ -666,6 +673,7 @@ def build_algorithm(decisions: pd.DataFrame) -> dict[str, Any]:
         "mechanism_equations": {
             "dense_second_order_gate": "accept a straight-line average only when the measured path loss does not exceed the endpoint frontier; local Fisher/RegMean curvature is treated as a proxy, not a proof",
             "moe_router_margin_gate": "for router logits z_lambda = z_A + lambda * (z_B - z_A), a top-k assignment can flip when lambda * ||Delta z|| reaches the observed top-k margin; therefore small empirical margins imply a near-zero safe router lambda",
+            "moe_expert_subspace_cap": "for each routed expert group g, choose scale s_g to preserve route-mass-weighted nonbase contribution while reducing predicted delta under route, geometry, and subspace-conflict weights",
             "same_shape_constraint": "all accepted operations must preserve model config, tokenizer, class, tensor names, tensor shapes, and MoE expert/router cardinalities",
         },
     }
@@ -687,7 +695,7 @@ def build_report(summary: dict[str, Any], features: pd.DataFrame, decisions: pd.
         f"- Qwen3 MoE straight-line connectivity: best interior worst NLL `{fmt(moe['qwen3_interpolation_best_interior_worst_nll'])}` vs best endpoint `{fmt(moe['qwen3_interpolation_endpoint_best_worst_nll'])}`；interior gap `{fmt(moe['qwen3_interpolation_interior_gap_nll'])}`，general barrier `{fmt(moe['qwen3_interpolation_general_barrier_nll'])}`。",
         f"- Qwen3 complementary path: best merge avg NLL `{fmt(moe['qwen3_complementary_best_merge_avg_nll'])}` vs best source avg `{fmt(moe['qwen3_complementary_best_source_avg_nll'])}`；merge beats sources `{moe['qwen3_complementary_merge_beats_sources']}`。",
         f"- Qwen3 Base->Coder path: best interior worst NLL `{fmt(moe['qwen3_base_coder_best_interior_worst_nll'])}` vs best endpoint `{fmt(moe['qwen3_base_coder_endpoint_best_worst_nll'])}`；interior gap `{fmt(moe['qwen3_base_coder_interior_gap_nll'])}`，general barrier `{fmt(moe['qwen3_base_coder_general_barrier_nll'])}`。",
-        f"- Qwen3 unified mechanism: `{moe['qwen3_unified_candidate_id']}`；audit relative norm `{fmt(moe['qwen3_unified_relative_delta_norm'])}`，routed >0.65 `{moe['qwen3_unified_routed_gt_065']}`。",
+        f"- Qwen3 unified mechanism: `{moe['qwen3_unified_candidate_id']}`；retention `{fmt(moe['qwen3_unified_nonbase_mass_retention'])}`，subspace-weighted rel-delta `{fmt(moe['qwen3_unified_subspace_weighted_predicted_relative_delta'])}`，high-subspace mean scale `{fmt(moe['qwen3_unified_high_subspace_mean_scale'])}`，materialized rules `{moe['qwen3_unified_materialized_rule_status']}`，audit relative norm `{fmt(moe['qwen3_unified_relative_delta_norm'])}`，routed >0.65 `{moe['qwen3_unified_routed_gt_065']}`。",
         f"- Qwen3 subspace-scaled ablation: audit relative norm `{fmt(moe['qwen3_subspace_total_relative_delta_norm'])}`，unified->subspace norm reduction `{fmt(moe['qwen3_unified_to_subspace_relative_norm_reduction'], 6)}`，routed >0.65 `{moe['qwen3_subspace_routed_gt_065']}`。",
         f"- Qwen3 router margin fragility: high layers `{moe['qwen3_router_margin_high_fragility_layers']}/{moe['qwen3_router_margin_layer_count']}`，top `L{moe['qwen3_router_margin_top_layer']}` score `{fmt(moe['qwen3_router_margin_top_score'])}`，min safe-lambda proxy `{fmt(moe['qwen3_router_margin_min_safe_lambda_proxy'])}`。",
         f"- Qwen3 router NLL probe: worst-NLL reduction `{fmt(moe['qwen3_router_calibration_nll_worst_reduction'])}`，code gap to best source `{fmt(moe['qwen3_router_calibration_nll_code_gap_to_best_source'])}`。",
@@ -805,11 +813,16 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
     dense_results = dense_selector.get("results") or {}
     final_current = final_selection.get("current_selection") or {}
     router_current = router_calibration.get("current_selection") or {}
+    materialized_rule_status = unified_candidate.get("materialized_checkpoint_rule_status")
+    if materialized_rule_status != "fresh":
+        status = "built_waiting_for_qwen3_materialization_and_vllm_eval"
+    elif final_current.get("status") == "awaiting_source_eval":
+        status = "built_waiting_for_qwen3_vllm_eval"
+    else:
+        status = "built"
     summary = {
         "schema_version": 1,
-        "status": "built_waiting_for_qwen3_vllm_eval"
-        if final_current.get("status") == "awaiting_source_eval"
-        else "built",
+        "status": status,
         "dense": {
             "decision": "avoid_linear_midpoint_use_probe_selected_anchor_or_low_lambda",
             "curvature_ratio_general": fnum((curvature.get("curvature_law") or {}).get("ratio_general")),
@@ -841,6 +854,24 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
             "qwen3_unified_geometry_weighted_predicted_relative_delta": fnum(
                 unified_candidate.get("selected_geometry_weighted_predicted_relative_delta")
             ),
+            "qwen3_unified_subspace_weighted_predicted_relative_delta": fnum(
+                unified_candidate.get("selected_subspace_weighted_predicted_relative_delta")
+            ),
+            "qwen3_unified_subspace_risk_weighted_coder_retention": fnum(
+                unified_candidate.get("selected_subspace_risk_weighted_coder_retention")
+            ),
+            "qwen3_unified_high_subspace_mean_scale": fnum(
+                unified_candidate.get("selected_high_subspace_mean_scale")
+            ),
+            "qwen3_unified_subspace_conflict_probe_used": unified_candidate.get("subspace_conflict_probe_used"),
+            "qwen3_unified_materialized_rule_status": materialized_rule_status,
+            "qwen3_unified_matches_materialized_checkpoint_manifest": unified_candidate.get(
+                "matches_materialized_checkpoint_manifest"
+            ),
+            "qwen3_unified_max_manifest_weight_abs_diff": fnum(
+                unified_candidate.get("max_materialized_checkpoint_weight_abs_diff")
+            ),
+            "qwen3_unified_tensor_rules_sha256": unified_candidate.get("tensor_rules_sha256"),
             "qwen3_unified_audit_status": unified_audit.get("status"),
             "qwen3_unified_relative_delta_norm": fnum(unified_audit.get("relative_delta_norm")),
             "qwen3_unified_router_changed_tensors": unified_audit.get("router_changed_tensors"),

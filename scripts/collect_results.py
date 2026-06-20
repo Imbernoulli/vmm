@@ -1830,6 +1830,22 @@ def summarize_unified_average_optimizer() -> dict[str, Any]:
         "qwen3_unified_nonbase_mass_retention": maybe_float(
             moe.get("qwen3_unified_nonbase_mass_retention")
         ),
+        "qwen3_unified_subspace_weighted_predicted_relative_delta": maybe_float(
+            moe.get("qwen3_unified_subspace_weighted_predicted_relative_delta")
+        ),
+        "qwen3_unified_subspace_risk_weighted_coder_retention": maybe_float(
+            moe.get("qwen3_unified_subspace_risk_weighted_coder_retention")
+        ),
+        "qwen3_unified_high_subspace_mean_scale": maybe_float(
+            moe.get("qwen3_unified_high_subspace_mean_scale")
+        ),
+        "qwen3_unified_materialized_rule_status": moe.get("qwen3_unified_materialized_rule_status"),
+        "qwen3_unified_matches_materialized_checkpoint_manifest": bool(
+            moe.get("qwen3_unified_matches_materialized_checkpoint_manifest", False)
+        ),
+        "qwen3_unified_max_manifest_weight_abs_diff": maybe_float(
+            moe.get("qwen3_unified_max_manifest_weight_abs_diff")
+        ),
         "qwen3_unified_relative_delta_norm": maybe_float(
             moe.get("qwen3_unified_relative_delta_norm")
         ),
@@ -2367,17 +2383,32 @@ def summarize_qwen3_moe_unified_mechanism_candidate() -> dict[str, Any]:
         "selected_geometry_weighted_predicted_relative_delta": maybe_float(
             summary.get("selected_geometry_weighted_predicted_relative_delta")
         ),
+        "selected_subspace_weighted_predicted_relative_delta": maybe_float(
+            summary.get("selected_subspace_weighted_predicted_relative_delta")
+        ),
         "selected_route_geometry_risk_weighted_coder_retention": maybe_float(
             summary.get("selected_route_geometry_risk_weighted_coder_retention")
         ),
+        "selected_subspace_risk_weighted_coder_retention": maybe_float(
+            summary.get("selected_subspace_risk_weighted_coder_retention")
+        ),
         "selected_high_geometry_mean_scale": maybe_float(summary.get("selected_high_geometry_mean_scale")),
+        "selected_high_subspace_mean_scale": maybe_float(summary.get("selected_high_subspace_mean_scale")),
         "selected_routed_gt_hard_cap_groups": int(summary.get("selected_routed_gt_hard_cap_groups", 0)),
         "selected_routed_gt_065_groups": int(summary.get("selected_routed_gt_065_groups", 0)),
         "selected_routed_gt_075_groups": int(summary.get("selected_routed_gt_075_groups", 0)),
         "selected_scaled_group_count": int(summary.get("selected_scaled_group_count", 0)),
         "expert_geometry_probe_used": bool(summary.get("expert_geometry_probe_used", False)),
+        "subspace_conflict_probe_used": bool(summary.get("subspace_conflict_probe_used", False)),
         "layer_coefficients_used": bool(summary.get("layer_coefficients_used", False)),
         "matches_validated_reference_rules": bool(summary.get("matches_validated_reference_rules", False)),
+        "materialized_checkpoint_rule_status": summary.get("materialized_checkpoint_rule_status"),
+        "matches_materialized_checkpoint_manifest": bool(
+            summary.get("matches_materialized_checkpoint_manifest", False)
+        ),
+        "max_materialized_checkpoint_weight_abs_diff": maybe_float(
+            summary.get("max_materialized_checkpoint_weight_abs_diff")
+        ),
         "candidate_rule_count": int(summary.get("candidate_rule_count", 0)),
         "reference_rule_count": int(summary.get("reference_rule_count", 0)),
         "max_reference_weight_abs_diff": maybe_float(summary.get("max_reference_weight_abs_diff")),
@@ -4297,7 +4328,7 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "Qwen3 MoE unified mechanism candidate",
             "status": "complete",
-            "evidence": "results/qwen3_moe_unified_mechanism_candidate/report.md turns route mass, router fragility, load, source-conflict, and delta probes into one same-shape constrained optimizer and writer-ready candidate.",
+            "evidence": "results/qwen3_moe_unified_mechanism_candidate/report.md turns route mass, router fragility, load, source-conflict, delta, expert geometry, and subspace-conflict probes into one same-shape constrained optimizer and writer-ready candidate.",
         },
         {
             "item": "Toy MoE multi-method routing readiness",
@@ -5525,10 +5556,16 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"/{unified_average_optimizer['qwen3_candidate_count']}) |"
             ),
             (
-                "| unified average optimizer | Qwen3 unified candidate / audit norm / >0.65 | "
+                "| unified average optimizer | Qwen3 unified candidate / subspace-delta / rule status | "
                 f"{unified_average_optimizer['qwen3_unified_candidate_id']} / "
+                f"{fmt(unified_average_optimizer['qwen3_unified_subspace_weighted_predicted_relative_delta'])} / "
+                f"{unified_average_optimizer['qwen3_unified_materialized_rule_status']} |"
+            ),
+            (
+                "| unified average optimizer | Qwen3 unified audit norm / >0.65 / manifest max diff | "
                 f"{unified_average_optimizer['qwen3_unified_relative_delta_norm']:.3f} / "
-                f"{unified_average_optimizer['qwen3_unified_routed_gt_065']} |"
+                f"{unified_average_optimizer['qwen3_unified_routed_gt_065']} / "
+                f"{fmt(unified_average_optimizer['qwen3_unified_max_manifest_weight_abs_diff'])} |"
             ),
             (
                 "| unified average optimizer | router margin high layers / top / min safe-lambda | "
@@ -5833,15 +5870,27 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_unified_mechanism_candidate['selected_routed_gt_hard_cap_groups']} |"
             ),
             (
-                "| Qwen3 MoE unified mechanism candidate | risk-delta / geometry-delta / geometry used | "
+                "| Qwen3 MoE unified mechanism candidate | risk-delta / geometry-delta / subspace-delta | "
                 f"{fmt(qwen3_moe_unified_mechanism_candidate['selected_risk_weighted_predicted_relative_delta'])} / "
                 f"{fmt(qwen3_moe_unified_mechanism_candidate['selected_geometry_weighted_predicted_relative_delta'])} / "
-                f"{qwen3_moe_unified_mechanism_candidate['expert_geometry_probe_used']} |"
+                f"{fmt(qwen3_moe_unified_mechanism_candidate['selected_subspace_weighted_predicted_relative_delta'])} |"
+            ),
+            (
+                "| Qwen3 MoE unified mechanism candidate | geometry used / subspace used / high-subspace scale | "
+                f"{qwen3_moe_unified_mechanism_candidate['expert_geometry_probe_used']} / "
+                f"{qwen3_moe_unified_mechanism_candidate['subspace_conflict_probe_used']} / "
+                f"{fmt(qwen3_moe_unified_mechanism_candidate['selected_high_subspace_mean_scale'])} |"
             ),
             (
                 "| Qwen3 MoE unified mechanism candidate | router / attention policy | "
                 f"{qwen3_moe_unified_mechanism_candidate['router_policy']} / "
                 f"{qwen3_moe_unified_mechanism_candidate['shared_attention_policy']} |"
+            ),
+            (
+                "| Qwen3 MoE unified mechanism candidate | materialized rules / manifest match / max diff | "
+                f"{qwen3_moe_unified_mechanism_candidate['materialized_checkpoint_rule_status']} / "
+                f"{qwen3_moe_unified_mechanism_candidate['matches_materialized_checkpoint_manifest']} / "
+                f"{fmt(qwen3_moe_unified_mechanism_candidate['max_materialized_checkpoint_weight_abs_diff'])} |"
             ),
             (
                 "| Qwen3 MoE unified mechanism candidate | matches validated no-gt-0.65 rules / max diff | "

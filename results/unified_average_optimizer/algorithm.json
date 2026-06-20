@@ -59,6 +59,7 @@
   ],
   "mechanism_equations": {
     "dense_second_order_gate": "accept a straight-line average only when the measured path loss does not exceed the endpoint frontier; local Fisher/RegMean curvature is treated as a proxy, not a proof",
+    "moe_expert_subspace_cap": "for each routed expert group g, choose scale s_g to preserve route-mass-weighted nonbase contribution while reducing predicted delta under route, geometry, and subspace-conflict weights",
     "moe_router_margin_gate": "for router logits z_lambda = z_A + lambda * (z_B - z_A), a top-k assignment can flip when lambda * ||Delta z|| reaches the observed top-k margin; therefore small empirical margins imply a near-zero safe router lambda",
     "same_shape_constraint": "all accepted operations must preserve model config, tokenizer, class, tensor names, tensor shapes, and MoE expert/router cardinalities"
   },
@@ -108,9 +109,9 @@
       "step": 6
     },
     {
-      "condition": "expert identity is aligned, direct router movement is rejected, and real expert geometry exposes nonuniform risk",
-      "operation": "apply retention-constrained router/evidence/geometry caps",
-      "selected_action": "router_evidence_risk_s0.75 with hard cap 0.6500; layer/chunk->unified routed >0.65 reduction = 89; unified->subspace extra norm reduction = 0.000100",
+      "condition": "expert identity is aligned, direct router movement is rejected, and real expert geometry/subspace probes expose nonuniform risk",
+      "operation": "apply retention-constrained router/evidence/geometry/subspace caps",
+      "selected_action": "subspace_cap_s1.00 with hard cap 0.6500; subspace-weighted rel-delta = 0.2148; materialized rule status = stale_or_different_rules; layer/chunk->unified routed >0.65 reduction = 89; unified->subspace extra norm reduction = 0.000100",
       "stage": "moe_expert_delta_optimizer",
       "step": 7
     },

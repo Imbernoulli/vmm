@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import re
@@ -115,6 +116,7 @@ def merge_geometry_context(
     df: pd.DataFrame,
     expert_geometry_path: Path,
     layer_coefficients_path: Path,
+    subspace_conflicts_path: Path,
 ) -> pd.DataFrame:
     out = df.copy()
     expert_geometry_path = repo_path(expert_geometry_path)
@@ -167,6 +169,41 @@ def merge_geometry_context(
         )
         out = out.merge(layers, on="layer_id", how="left")
 
+    subspace_conflicts_path = repo_path(subspace_conflicts_path)
+    if subspace_conflicts_path.exists():
+        subspace = pd.read_csv(subspace_conflicts_path)
+        keep = [
+            "layer_id",
+            "expert_id",
+            "subspace_conflict_score",
+            "route_weighted_subspace_conflict_score",
+            "high_subspace_conflict",
+            "route_important",
+            "mean_projection_subspace_conflict_score",
+            "max_projection_subspace_conflict_score",
+            "min_channel_cosine_p05",
+            "max_chunk_relative_delta_p95",
+            "subspace_recommended_relative_cap",
+            "subspace_extra_scale",
+            "subspace_coder_weight_reduction",
+            "current_unified_subspace_covered",
+            "worst_subspace_conflict_driver",
+            "subspace_action",
+        ]
+        present = [column for column in keep if column in subspace.columns]
+        subspace = subspace[present].rename(
+            columns={
+                "route_weighted_subspace_conflict_score": "subspace_route_weighted_conflict_score",
+                "high_subspace_conflict": "subspace_high_conflict_flag",
+                "route_important": "subspace_route_important_flag",
+                "mean_projection_subspace_conflict_score": "subspace_mean_projection_conflict_score",
+                "max_projection_subspace_conflict_score": "subspace_max_projection_conflict_score",
+                "min_channel_cosine_p05": "subspace_min_channel_cosine_p05",
+                "max_chunk_relative_delta_p95": "subspace_max_chunk_relative_delta_p95",
+            }
+        )
+        out = out.merge(subspace, on=["layer_id", "expert_id"], how="left")
+
     defaults = {
         "geometry_combined_relative_delta": 0.0,
         "geometry_combined_cosine": 1.0,
@@ -180,6 +217,17 @@ def merge_geometry_context(
         "high_route_geometry_risk_experts": 0,
         "layer_p95_combined_relative_delta": 0.0,
         "layer_min_combined_cosine": 1.0,
+        "subspace_conflict_score": 0.0,
+        "subspace_route_weighted_conflict_score": 0.0,
+        "subspace_high_conflict_flag": 0.0,
+        "subspace_route_important_flag": 0.0,
+        "subspace_mean_projection_conflict_score": 0.0,
+        "subspace_max_projection_conflict_score": 0.0,
+        "subspace_min_channel_cosine_p05": 1.0,
+        "subspace_max_chunk_relative_delta_p95": 0.0,
+        "subspace_recommended_relative_cap": 1.0,
+        "subspace_extra_scale": 1.0,
+        "subspace_coder_weight_reduction": 0.0,
     }
     for column, default in defaults.items():
         if column not in out.columns:
@@ -191,6 +239,19 @@ def merge_geometry_context(
         out["layer_chunk_policy"] = ""
     out["geometry_action"] = out["geometry_action"].fillna("")
     out["layer_chunk_policy"] = out["layer_chunk_policy"].fillna("")
+    if "current_unified_subspace_covered" not in out.columns:
+        out["current_unified_subspace_covered"] = True
+    covered = out["current_unified_subspace_covered"].fillna(True)
+    if covered.dtype == object:
+        out["current_unified_subspace_covered"] = covered.map(
+            lambda value: str(value).strip().lower() in {"1", "true", "yes"}
+        )
+    else:
+        out["current_unified_subspace_covered"] = covered.astype(bool)
+    for column in ["worst_subspace_conflict_driver", "subspace_action"]:
+        if column not in out.columns:
+            out[column] = ""
+        out[column] = out[column].fillna("")
     return out
 
 
@@ -229,19 +290,38 @@ def add_mechanism_features(df: pd.DataFrame) -> pd.DataFrame:
     out["feature_layer_shrink_pressure"] = (
         1.0 - pd.to_numeric(out.get("layer_prior_coder_coefficient", 1.0), errors="coerce").fillna(1.0)
     ).clip(0.0, 1.0)
+    out["feature_subspace_conflict"] = pd.to_numeric(
+        out.get("subspace_conflict_score", 0.0), errors="coerce"
+    ).fillna(0.0).clip(0.0, 1.0)
+    out["feature_subspace_route_conflict"] = pd.to_numeric(
+        out.get("subspace_route_weighted_conflict_score", 0.0), errors="coerce"
+    ).fillna(0.0).clip(0.0, 1.0)
+    out["feature_high_subspace_conflict_flag"] = pd.to_numeric(
+        out.get("subspace_high_conflict_flag", 0.0), errors="coerce"
+    ).fillna(0.0).clip(0.0, 1.0)
+    out["feature_subspace_uncovered_flag"] = (~out["current_unified_subspace_covered"].astype(bool)).astype(float)
+    out["feature_subspace_channel_angle"] = (
+        1.0 - pd.to_numeric(out.get("subspace_min_channel_cosine_p05", 1.0), errors="coerce").fillna(1.0)
+    ).clip(0.0, 1.0)
+    out["feature_subspace_chunk_delta"] = robust01(out.get("subspace_max_chunk_relative_delta_p95", 0.0))
     out["mechanism_risk_score"] = (
-        0.24 * out["feature_delta_pressure"]
-        + 0.16 * out["feature_router_instability"]
-        + 0.10 * out["feature_load_pressure"]
-        + 0.09 * out["feature_source_conflict"]
-        + 0.07 * out["feature_low_route_mass"]
-        + 0.14 * out["feature_expert_route_geometry"]
-        + 0.08 * out["feature_expert_internal_geometry"]
-        + 0.05 * out["feature_layer_geometry"]
-        + 0.05 * out["feature_high_load_flag"]
-        + 0.05 * out["feature_low_route_evidence_flag"]
-        + 0.03 * out["feature_category_mismatch_flag"]
-        + 0.02 * out["feature_shared_mixed_flag"]
+        0.18 * out["feature_delta_pressure"]
+        + 0.13 * out["feature_router_instability"]
+        + 0.08 * out["feature_load_pressure"]
+        + 0.07 * out["feature_source_conflict"]
+        + 0.05 * out["feature_low_route_mass"]
+        + 0.11 * out["feature_expert_route_geometry"]
+        + 0.06 * out["feature_expert_internal_geometry"]
+        + 0.04 * out["feature_layer_geometry"]
+        + 0.12 * out["feature_subspace_conflict"]
+        + 0.06 * out["feature_subspace_route_conflict"]
+        + 0.03 * out["feature_subspace_channel_angle"]
+        + 0.02 * out["feature_subspace_chunk_delta"]
+        + 0.03 * out["feature_high_load_flag"]
+        + 0.03 * out["feature_low_route_evidence_flag"]
+        + 0.02 * out["feature_category_mismatch_flag"]
+        + 0.01 * out["feature_shared_mixed_flag"]
+        + 0.02 * out["feature_subspace_uncovered_flag"]
     ).clip(0.0, 1.0)
     return out
 
@@ -273,7 +353,13 @@ def candidate_target_caps(
     route_geometry = df["feature_expert_route_geometry"].clip(0.0, 1.0)
     internal_geometry = df["feature_expert_internal_geometry"].clip(0.0, 1.0)
     layer_geometry = df["feature_layer_geometry"].clip(0.0, 1.0)
+    subspace_conflict = df["feature_subspace_conflict"].clip(0.0, 1.0)
+    subspace_route_conflict = df["feature_subspace_route_conflict"].clip(0.0, 1.0)
+    subspace_uncovered = df["feature_subspace_uncovered_flag"].clip(0.0, 1.0)
     layer_prior = pd.to_numeric(df["layer_prior_coder_coefficient"], errors="coerce").fillna(1.0).clip(0.0, 1.0)
+    subspace_extra_prior = pd.to_numeric(df["subspace_extra_scale"], errors="coerce").fillna(1.0).clip(0.0, 1.0)
+    subspace_probe_cap = pd.to_numeric(df["subspace_recommended_relative_cap"], errors="coerce").fillna(hard_cap)
+    subspace_probe_cap = subspace_probe_cap.clip(lower=min_cap, upper=hard_cap)
     unit_prior = pd.Series(1.0, index=df.index)
     rows: list[tuple[str, str, pd.Series, pd.Series]] = [
         (
@@ -306,6 +392,35 @@ def candidate_target_caps(
         mixed = (0.65 * route_geometry + 0.20 * internal_geometry + 0.15 * layer_geometry).clip(0.0, 1.0)
         prior = (layer_prior * (1.0 - strength * mixed)).clip(0.80, 1.0)
         rows.append((f"layer_geometry_prior_s{strength:.2f}", "layer_and_expert_geometry_prior", pd.Series(hard_cap, index=df.index), prior))
+    rows.append(("subspace_probe_cap", "subspace_conflict_probe_cap", subspace_probe_cap, unit_prior))
+    rows.append(
+        (
+            "subspace_probe_prior",
+            "subspace_conflict_probe_prior",
+            pd.Series(hard_cap, index=df.index),
+            subspace_extra_prior,
+        )
+    )
+    for strength in (0.25, 0.50, 0.75, 1.00):
+        mixed = (0.55 * subspace_conflict + 0.25 * subspace_route_conflict + 0.20 * route_geometry).clip(0.0, 1.0)
+        cap = hard_cap - strength * (hard_cap - min_cap) * mixed
+        rows.append((f"subspace_cap_s{strength:.2f}", "subspace_weighted_cap", cap.clip(lower=min_cap), unit_prior))
+    for strength in (0.04, 0.08, 0.12):
+        mixed = (
+            0.50 * subspace_conflict
+            + 0.25 * subspace_route_conflict
+            + 0.15 * route_geometry
+            + 0.10 * subspace_uncovered
+        ).clip(0.0, 1.0)
+        prior = (layer_prior * subspace_extra_prior * (1.0 - strength * mixed)).clip(0.76, 1.0)
+        rows.append(
+            (
+                f"subspace_geometry_prior_s{strength:.2f}",
+                "subspace_and_geometry_prior",
+                pd.Series(hard_cap, index=df.index),
+                prior,
+            )
+        )
     return rows
 
 
@@ -331,6 +446,8 @@ def metrics_from_scale(
     route_geometry = df["feature_expert_route_geometry"].clip(0.0, 1.0)
     internal_geometry = df["feature_expert_internal_geometry"].clip(0.0, 1.0)
     layer_geometry = df["feature_layer_geometry"].clip(0.0, 1.0)
+    subspace_conflict = df["feature_subspace_conflict"].clip(0.0, 1.0)
+    subspace_route_conflict = df["feature_subspace_route_conflict"].clip(0.0, 1.0)
     combined_risk = (
         0.50 * risk
         + 0.25 * route_geometry
@@ -339,11 +456,15 @@ def metrics_from_scale(
     ).clip(0.0, 1.0)
     risk_weight = (route_mass * combined_risk).clip(lower=0.0)
     geometry_weight = (route_mass * route_geometry).clip(lower=0.0)
+    subspace_weight = (route_mass * (0.65 * subspace_conflict + 0.35 * subspace_route_conflict)).clip(lower=0.0)
     risk_weight_sum = float(risk_weight.sum())
     geometry_weight_sum = float(geometry_weight.sum())
+    subspace_weight_sum = float(subspace_weight.sum())
     risk_weighted_delta = float((risk_weight * predicted_max).sum() / max(EPS, risk_weight_sum))
     geometry_weighted_delta = float((geometry_weight * predicted_max).sum() / max(EPS, geometry_weight_sum))
+    subspace_weighted_delta = float((subspace_weight * predicted_max).sum() / max(EPS, subspace_weight_sum))
     high_geometry_mask = route_geometry >= 0.75
+    high_subspace_mask = subspace_conflict >= 0.72
     hard_violation = (predicted_max > hard_cap + 1e-9)
     retention = preserved_mass / max(EPS, original_mass)
     norm_ratio = predicted_norm / max(EPS, original_norm)
@@ -354,6 +475,7 @@ def metrics_from_scale(
         + 1.0 * norm_ratio
         + 1.20 * risk_weighted_delta
         + 0.80 * geometry_weighted_delta
+        + 0.90 * subspace_weighted_delta
     )
     return {
         "candidate_id": candidate_id,
@@ -375,11 +497,18 @@ def metrics_from_scale(
         "delta_norm_proxy_ratio_vs_uncapped": norm_ratio,
         "risk_weighted_predicted_relative_delta": risk_weighted_delta,
         "geometry_weighted_predicted_relative_delta": geometry_weighted_delta,
+        "subspace_weighted_predicted_relative_delta": subspace_weighted_delta,
         "high_geometry_group_count": int(high_geometry_mask.sum()),
         "high_geometry_mean_scale": float(scale.loc[high_geometry_mask].mean()) if bool(high_geometry_mask.any()) else 1.0,
+        "high_subspace_group_count": int(high_subspace_mask.sum()),
+        "high_subspace_mean_scale": float(scale.loc[high_subspace_mask].mean()) if bool(high_subspace_mask.any()) else 1.0,
         "route_geometry_risk_weighted_coder_retention": float(
             (geometry_weight * original_nonbase * scale).sum()
             / max(EPS, float((geometry_weight * original_nonbase).sum()))
+        ),
+        "subspace_risk_weighted_coder_retention": float(
+            (subspace_weight * original_nonbase * scale).sum()
+            / max(EPS, float((subspace_weight * original_nonbase).sum()))
         ),
         "mean_delta_scale": float(scale.mean()),
         "min_delta_scale": float(scale.min()),
@@ -409,10 +538,11 @@ def search_candidates(df: pd.DataFrame, *, hard_cap: float, min_cap: float) -> t
             "passes_hard_cap",
             "unified_objective",
             "risk_weighted_predicted_relative_delta",
+            "subspace_weighted_predicted_relative_delta",
             "nonbase_mass_retention",
             "delta_norm_proxy_ratio_vs_uncapped",
         ],
-        ascending=[False, True, True, False, True],
+        ascending=[False, True, True, True, False, True],
     )
     return search, scales
 
@@ -431,11 +561,12 @@ def select_candidate(search: pd.DataFrame, *, min_retention: float) -> pd.Series
         [
             "risk_weighted_predicted_relative_delta",
             "geometry_weighted_predicted_relative_delta",
+            "subspace_weighted_predicted_relative_delta",
             "delta_norm_proxy_ratio_vs_uncapped",
             "unified_objective",
             "nonbase_mass_retention",
         ],
-        ascending=[True, True, True, True, False],
+        ascending=[True, True, True, True, True, False],
     ).iloc[0]
 
 
@@ -517,6 +648,14 @@ def parse_tensor_rules(path: Path) -> dict[str, dict[str, float]]:
     return rules
 
 
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def compare_tensor_rules(left: Path, right: Path) -> dict[str, Any]:
     left_rules = parse_tensor_rules(left)
     if not right.exists():
@@ -548,6 +687,49 @@ def compare_tensor_rules(left: Path, right: Path) -> dict[str, Any]:
     }
 
 
+def compare_tensor_rules_to_manifest(rules_path: Path, manifest_path: Path) -> dict[str, Any]:
+    current_rules = parse_tensor_rules(rules_path)
+    if not manifest_path.exists():
+        return {
+            "materialized_checkpoint_manifest": rel(manifest_path),
+            "materialized_checkpoint_manifest_exists": False,
+            "matches_materialized_checkpoint_manifest": False,
+            "materialized_checkpoint_rule_status": "not_materialized",
+            "materialized_checkpoint_rule_count": 0,
+            "current_rule_count": len(current_rules),
+            "materialized_checkpoint_missing_patterns": len(current_rules),
+            "materialized_checkpoint_extra_patterns": 0,
+            "max_materialized_checkpoint_weight_abs_diff": None,
+        }
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest_rules = {
+        str(item["pattern"]): {str(source): float(weight) for source, weight in dict(item["weights"]).items()}
+        for item in manifest.get("tensor_rules", [])
+    }
+    missing_patterns = sorted(set(current_rules) - set(manifest_rules))
+    extra_patterns = sorted(set(manifest_rules) - set(current_rules))
+    max_diff = 0.0
+    for pattern in set(current_rules) & set(manifest_rules):
+        sources = set(current_rules[pattern]) | set(manifest_rules[pattern])
+        for source in sources:
+            max_diff = max(
+                max_diff,
+                abs(current_rules[pattern].get(source, 0.0) - manifest_rules[pattern].get(source, 0.0)),
+            )
+    matches = not missing_patterns and not extra_patterns and max_diff <= 1e-6
+    return {
+        "materialized_checkpoint_manifest": rel(manifest_path),
+        "materialized_checkpoint_manifest_exists": True,
+        "matches_materialized_checkpoint_manifest": matches,
+        "materialized_checkpoint_rule_status": "fresh" if matches else "stale_or_different_rules",
+        "materialized_checkpoint_rule_count": len(manifest_rules),
+        "current_rule_count": len(current_rules),
+        "materialized_checkpoint_missing_patterns": len(missing_patterns),
+        "materialized_checkpoint_extra_patterns": len(extra_patterns),
+        "max_materialized_checkpoint_weight_abs_diff": max_diff,
+    }
+
+
 def mechanism_feature_summary(df: pd.DataFrame) -> dict[str, Any]:
     return {
         "mean_mechanism_risk_score": float(df["mechanism_risk_score"].mean()),
@@ -559,6 +741,16 @@ def mechanism_feature_summary(df: pd.DataFrame) -> dict[str, Any]:
         "high_route_geometry_group_count": int((df["feature_expert_route_geometry"] >= 0.75).sum()),
         "layer_coefficients_used": bool("layer_prior_coder_coefficient" in df.columns and df["layer_prior_coder_coefficient"].min() < 1.0),
         "min_layer_prior_coder_coefficient": float(df["layer_prior_coder_coefficient"].min()),
+        "subspace_conflict_probe_used": bool(
+            "subspace_conflict_score" in df.columns and df["subspace_conflict_score"].max() > 0.0
+        ),
+        "mean_subspace_conflict_score": float(df["feature_subspace_conflict"].mean()),
+        "p95_subspace_conflict_score": float(df["feature_subspace_conflict"].quantile(0.95)),
+        "high_subspace_conflict_group_count": int((df["feature_subspace_conflict"] >= 0.72).sum()),
+        "route_important_high_subspace_conflict_group_count": int(
+            ((df["feature_subspace_conflict"] >= 0.72) & (df["subspace_route_important_flag"] >= 0.5)).sum()
+        ),
+        "subspace_uncovered_group_count": int(df["feature_subspace_uncovered_flag"].sum()),
         "flag_high_load_group_count": int(df["feature_high_load_flag"].sum()),
         "flag_low_route_evidence_group_count": int(df["feature_low_route_evidence_flag"].sum()),
         "flag_fragile_router_group_count": int(df["feature_fragile_router_flag"].sum()),
@@ -595,6 +787,17 @@ def build_group_rules(df: pd.DataFrame, scale: pd.Series, selected: pd.Series) -
         "feature_expert_route_geometry",
         "feature_expert_internal_geometry",
         "feature_layer_geometry",
+        "feature_subspace_conflict",
+        "feature_subspace_route_conflict",
+        "feature_subspace_channel_angle",
+        "feature_subspace_chunk_delta",
+        "feature_subspace_uncovered_flag",
+        "subspace_conflict_score",
+        "subspace_route_weighted_conflict_score",
+        "subspace_recommended_relative_cap",
+        "subspace_extra_scale",
+        "subspace_action",
+        "worst_subspace_conflict_driver",
         "layer_prior_coder_coefficient",
         "geometry_combined_relative_delta",
         "geometry_combined_cosine",
@@ -614,7 +817,7 @@ def build_report(summary: dict[str, Any], search: pd.DataFrame, selected: pd.Ser
     lines = [
         "# Qwen3 MoE Unified Mechanism Candidate",
         "",
-        "这个实验把“Average”写成同结构约束优化，而不是命名算法选择：先冻结高风险 router，保持 expert identity，再用真实 route mass、router fragility、load、source conflict 和 safetensors delta probe 生成 per-expert 缩放。",
+        "这个实验把“Average”写成同结构约束优化，而不是命名算法选择：先冻结高风险 router，保持 expert identity，再用真实 route mass、router fragility、load、source conflict、safetensors delta 和 expert subspace conflict probe 生成 per-expert 缩放。",
         "",
         "## Result",
         "",
@@ -628,18 +831,22 @@ def build_report(summary: dict[str, Any], search: pd.DataFrame, selected: pd.Ser
         f"- Groups over hard cap `{summary['hard_cap']}`: `{summary['selected_routed_gt_hard_cap_groups']}`",
         f"- Risk-weighted predicted relative delta: `{fmt(summary['selected_risk_weighted_predicted_relative_delta'])}`",
         f"- Geometry-weighted predicted relative delta: `{fmt(summary['selected_geometry_weighted_predicted_relative_delta'])}`",
+        f"- Subspace-weighted predicted relative delta: `{fmt(summary['selected_subspace_weighted_predicted_relative_delta'])}`",
         f"- Expert geometry used: `{summary['expert_geometry_probe_used']}`",
+        f"- Subspace conflict probe used: `{summary['subspace_conflict_probe_used']}`",
+        f"- High-subspace-conflict mean scale: `{fmt(summary['selected_high_subspace_mean_scale'])}`",
+        f"- Materialized checkpoint rule status: `{summary['materialized_checkpoint_rule_status']}`",
         "",
         "## Why This Is The Current Unified Rule",
         "",
-        "理论上，uniform average、task-vector merge、TIES、Fisher/RegMean 都可以看成在同一个参数空间里求一个同结构解；真正的区别是约束和局部几何假设。对当前 Qwen3 MoE，最强的内部证据不是“某个算法名更好”，而是 router/top-k dispatch 对扰动敏感、expert identity 必须先固定、routed expert 的 high-delta tail 和 expert 内部几何风险必须被同时限制。",
+        "理论上，uniform average、task-vector merge、TIES、Fisher/RegMean 都可以看成在同一个参数空间里求一个同结构解；真正的区别是约束和局部几何假设。对当前 Qwen3 MoE，最强的内部证据不是“某个算法名更好”，而是 router/top-k dispatch 对扰动敏感、expert identity 必须先固定、routed expert 的 high-delta tail、expert 内部几何风险和局部子空间冲突必须被同时限制。",
         "",
-        "因此本脚本求的是：在不改结构、不改 router、不增加 expert 的条件下，保留足够的 route-mass-weighted Coder contribution，同时最小化 route/risk/geometry weighted predicted delta。旧的 uniform `0.65` cap 仍作为 baseline 参与搜索；如果 layer/geometry-aware prior 在 retention 约束内降低高风险 expert 的移动，它会被选中。",
+        "因此本脚本求的是：在不改结构、不改 router、不增加 expert 的条件下，保留足够的 route-mass-weighted Coder contribution，同时最小化 route/risk/geometry/subspace weighted predicted delta。旧的 uniform `0.65` cap 仍作为 baseline 参与搜索；如果 layer/geometry/subspace-aware prior 在 retention 约束内降低高风险 expert 的移动，它会被选中。",
         "",
         "## Candidate Search",
         "",
-        "| candidate | family | pass cap | retention | norm ratio | max rel-delta | risk rel-delta | geom rel-delta | objective |",
-        "| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |",
+        "| candidate | family | pass cap | retention | norm ratio | max rel-delta | risk rel-delta | geom rel-delta | subspace rel-delta | objective |",
+        "| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for _, row in search.head(12).iterrows():
         lines.append(
@@ -649,7 +856,28 @@ def build_report(summary: dict[str, Any], search: pd.DataFrame, selected: pd.Ser
             f"{fmt(float(row['max_predicted_relative_delta']))} | "
             f"{fmt(float(row['risk_weighted_predicted_relative_delta']))} | "
             f"{fmt(float(row['geometry_weighted_predicted_relative_delta']))} | "
+            f"{fmt(float(row['subspace_weighted_predicted_relative_delta']))} | "
             f"{fmt(float(row['unified_objective']))} |"
+        )
+    if str(selected["candidate_id"]) not in set(search.head(12)["candidate_id"].astype(str)):
+        lines.extend(["", "Selected row outside the top objective slice:"])
+        row = selected
+        lines.extend(
+            [
+                "",
+                "| candidate | family | pass cap | retention | norm ratio | max rel-delta | risk rel-delta | geom rel-delta | subspace rel-delta | objective |",
+                "| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+                (
+                    f"| `{row['candidate_id']}` | `{row['candidate_family']}` | `{bool(row['passes_hard_cap'])}` | "
+                    f"{fmt(float(row['nonbase_mass_retention']))} | "
+                    f"{fmt(float(row['delta_norm_proxy_ratio_vs_uncapped']))} | "
+                    f"{fmt(float(row['max_predicted_relative_delta']))} | "
+                    f"{fmt(float(row['risk_weighted_predicted_relative_delta']))} | "
+                    f"{fmt(float(row['geometry_weighted_predicted_relative_delta']))} | "
+                    f"{fmt(float(row['subspace_weighted_predicted_relative_delta']))} | "
+                    f"{fmt(float(row['unified_objective']))} |"
+                ),
+            ]
         )
     lines.extend(
         [
@@ -660,6 +888,7 @@ def build_report(summary: dict[str, Any], search: pd.DataFrame, selected: pd.Ser
             "- Router: `freeze_router`; router calibration remains a separately gated ablation.",
             "- Shared attention: frozen in this candidate because delta frontier says attention utility needs downstream eval, not norm-only evidence.",
             "- Endpoint fallback: downstream selector must still reject this candidate if source endpoints dominate it.",
+            "- Materialization freshness: `fresh` means the existing checkpoint manifest was written from the current tensor rules; `stale_or_different_rules` means rerun the writer and delta audit before treating checkpoint metrics as final.",
             "",
             "## Literature Priors",
             "",
@@ -706,6 +935,11 @@ def parse_args() -> argparse.Namespace:
         default=Path("results/qwen3_moe_layer_chunk_candidate/layer_coefficients.csv"),
     )
     parser.add_argument(
+        "--subspace-conflicts",
+        type=Path,
+        default=Path("results/qwen3_moe_expert_subspace_conflict_probe/expert_subspace_conflicts.csv"),
+    )
+    parser.add_argument(
         "--validated-reference-rules",
         type=Path,
         default=Path("results/qwen3_moe_trust_region_cap_search/searched_no_gt065_max_retention_tensor_rules.txt"),
@@ -718,7 +952,7 @@ def main() -> None:
     output_dir = repo_path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     df = pd.read_csv(repo_path(args.expert_rules))
-    df = merge_geometry_context(df, args.expert_geometry, args.layer_coefficients)
+    df = merge_geometry_context(df, args.expert_geometry, args.layer_coefficients, args.subspace_conflicts)
     df = add_mechanism_features(df)
     search, scales = search_candidates(df, hard_cap=args.hard_cap, min_cap=args.min_cap)
     selected = select_candidate(search, min_retention=args.min_retention)
@@ -733,7 +967,12 @@ def main() -> None:
 
     group_rules = build_group_rules(df, selected_scale, selected)
     artifacts = build_rules_and_commands(df, selected_scale, output_dir, repo_path(args.writer_context_command))
-    reference_check = compare_tensor_rules(output_dir / "tensor_rules.txt", repo_path(args.validated_reference_rules))
+    tensor_rules_path = output_dir / "tensor_rules.txt"
+    reference_check = compare_tensor_rules(tensor_rules_path, repo_path(args.validated_reference_rules))
+    materialized_rule_check = compare_tensor_rules_to_manifest(
+        tensor_rules_path,
+        repo_path(artifacts["checkpoint_output_dir"]) / "merge_manifest.json",
+    )
     search.to_csv(search_path, index=False)
     group_rules.to_csv(group_rules_path, index=False)
 
@@ -758,21 +997,30 @@ def main() -> None:
         "selected_geometry_weighted_predicted_relative_delta": float(
             selected["geometry_weighted_predicted_relative_delta"]
         ),
+        "selected_subspace_weighted_predicted_relative_delta": float(
+            selected["subspace_weighted_predicted_relative_delta"]
+        ),
         "selected_route_geometry_risk_weighted_coder_retention": float(
             selected["route_geometry_risk_weighted_coder_retention"]
         ),
+        "selected_subspace_risk_weighted_coder_retention": float(
+            selected["subspace_risk_weighted_coder_retention"]
+        ),
         "selected_high_geometry_mean_scale": float(selected["high_geometry_mean_scale"]),
+        "selected_high_subspace_mean_scale": float(selected["high_subspace_mean_scale"]),
         "selected_routed_gt_hard_cap_groups": int(selected["routed_gt_hard_cap_groups"]),
         "selected_routed_gt_065_groups": int(selected["routed_gt_065_groups"]),
         "selected_routed_gt_075_groups": int(selected["routed_gt_075_groups"]),
         "selected_scaled_group_count": int(selected["scaled_group_count"]),
         "selected_mean_delta_scale": float(selected["mean_delta_scale"]),
+        "tensor_rules_sha256": sha256_file(tensor_rules_path),
         **reference_check,
+        **materialized_rule_check,
         "router_policy": "freeze_router",
         "shared_attention_policy": "freeze_shared_attention_pending_downstream_eval",
         "selection_rule": (
             "Select candidates that satisfy the hard routed-expert cap and minimum route-mass nonbase "
-            "retention; within that feasible set minimize the unified risk/geometry weighted objective."
+            "retention; within that feasible set minimize the unified risk/geometry/subspace weighted objective."
         ),
         "mechanism_features": mechanism_feature_summary(df),
         "expert_geometry_probe_used": bool(
@@ -780,6 +1028,9 @@ def main() -> None:
         ),
         "layer_coefficients_used": bool(
             "layer_prior_coder_coefficient" in df.columns and float(df["layer_prior_coder_coefficient"].min()) < 1.0
+        ),
+        "subspace_conflict_probe_used": bool(
+            "subspace_conflict_score" in df.columns and float(df["subspace_conflict_score"].max()) > 0.0
         ),
         "literature_priors": LITERATURE_PRIORS,
         "outputs": {
