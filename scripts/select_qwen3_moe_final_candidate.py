@@ -1072,6 +1072,38 @@ def smoke_rows(case: str) -> pd.DataFrame:
             nearest_structural_candidate="subspace_scaled",
         )
         rows = add_smoke_intervals(rows)
+    elif case == "confidence_separated_point_leader":
+        for column in TASK_SCORE_COLUMNS:
+            rows[2][f"{column}_n"] = 10000
+            rows[3][f"{column}_n"] = 10000
+        rows[2].update(
+            avg_primary_score=0.80,
+            worst_primary_score=0.80,
+            task_gsm8k_score=0.80,
+            task_mmlu_score=0.80,
+            task_safety_score=0.80,
+            task_humaneval_compile_score=0.80,
+            total_relative_delta_norm=0.230,
+            structural_frontier_member=False,
+            structurally_dominated=True,
+            structural_safety_score=0.93,
+            nearest_structural_candidate="mechanistic_unified",
+        )
+        rows[3].update(
+            method="qwen3_moe_mechanistic_unified_candidate",
+            avg_primary_score=0.70,
+            worst_primary_score=0.70,
+            task_gsm8k_score=0.70,
+            task_mmlu_score=0.70,
+            task_safety_score=0.70,
+            task_humaneval_compile_score=0.70,
+            total_relative_delta_norm=0.240,
+            structural_frontier_member=True,
+            structurally_dominated=False,
+            structural_safety_score=0.99,
+            nearest_structural_candidate="subspace_scaled",
+        )
+        rows = add_smoke_intervals(rows)
     elif case == "partial":
         rows[3]["eval_usable"] = False
     elif case != "candidate_win":
@@ -1089,6 +1121,10 @@ def run_smoke_matrix(args: argparse.Namespace) -> dict[str, Any]:
         "paired_noisy_delta": ("provisional_candidate", "qwen3_moe_tail_trimmed_expert_only_candidate"),
         "structural_tie_break": ("select_candidate", "qwen3_moe_mechanistic_unified_candidate"),
         "confidence_structural_band": ("select_candidate", "qwen3_moe_mechanistic_unified_candidate"),
+        "confidence_separated_point_leader": (
+            "select_candidate",
+            "qwen3_moe_tail_trimmed_expert_only_candidate",
+        ),
         "partial": ("provisional_candidate", "qwen3_moe_tail_trimmed_expert_only_candidate"),
     }
     rows = []

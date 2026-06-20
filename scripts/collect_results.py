@@ -4691,7 +4691,7 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "Qwen3 MoE post-vLLM eval refresh pipeline",
             "status": "complete",
-            "evidence": "results/qwen3_moe_post_eval_refresh/report.md runs eval-bundle audit, unified result selection, mechanism attribution, downstream feedback optimization, mechanistic unified candidate generation, mechanistic evidence audit, smoke checks, and collect_results in a fixed post-eval order after remote vLLM outputs land.",
+            "evidence": "results/qwen3_moe_post_eval_refresh/report.md runs eval-bundle audit, unified/final selection, mechanism attribution, downstream feedback optimization, mechanistic unified candidate generation, mechanistic evidence audit, unified average optimizer refresh, smoke checks, and collect_results in a fixed post-eval order after remote vLLM outputs land.",
         },
         {
             "item": "Qwen3 MoE searched cap-law materialized candidate",

@@ -183,6 +183,16 @@ def build_steps(args: argparse.Namespace) -> list[dict[str, Any]]:
                 str(args.mechanistic_evidence_dir),
             ],
         },
+        {
+            "step": "build_unified_average_optimizer",
+            "kind": "optimizer",
+            "command": [
+                py,
+                "scripts/build_unified_average_optimizer.py",
+                "--output-dir",
+                str(args.unified_optimizer_dir),
+            ],
+        },
     ]
     if args.include_smoke:
         steps.extend(
@@ -253,6 +263,18 @@ def build_steps(args: argparse.Namespace) -> list[dict[str, Any]]:
                         str(args.mechanistic_smoke_dir),
                     ],
                 },
+                {
+                    "step": "unified_average_optimizer_ledger_smoke",
+                    "kind": "smoke",
+                    "command": [
+                        py,
+                        "scripts/smoke_unified_average_optimizer_ledger.py",
+                        "--summary",
+                        str(args.unified_optimizer_dir / "summary.json"),
+                        "--output-dir",
+                        str(args.unified_optimizer_smoke_dir),
+                    ],
+                },
             ]
         )
     if not args.skip_collect:
@@ -274,7 +296,11 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
     feedback = read_json(repo_path(args.feedback_dir) / "summary.json")
     mechanistic = read_json(repo_path(args.mechanistic_dir) / "summary.json")
     mechanistic_evidence = read_json(repo_path(args.mechanistic_evidence_dir) / "summary.json")
+    unified_optimizer = read_json(repo_path(args.unified_optimizer_dir) / "summary.json")
+    unified_optimizer_smoke = read_json(repo_path(args.unified_optimizer_smoke_dir) / "summary.json")
     final_current = final_selection.get("current_selection") or {}
+    optimizer_moe = unified_optimizer.get("moe") or {}
+    optimizer_top = unified_optimizer.get("top_next_experiment") or {}
     return {
         "audit_status": audit.get("status"),
         "audit_usable_for_selection": audit.get("usable_for_selection_count"),
@@ -307,6 +333,15 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
         "mechanistic_evidence_hard_cap_bound_group_count": mechanistic_evidence.get(
             "hard_cap_bound_group_count"
         ),
+        "unified_optimizer_status": unified_optimizer.get("status"),
+        "unified_optimizer_top_experiment": optimizer_top.get("experiment"),
+        "unified_optimizer_top_experiment_status": optimizer_top.get("status"),
+        "unified_optimizer_final_confidence_tie_band": optimizer_moe.get("qwen3_final_confidence_tie_band"),
+        "unified_optimizer_final_rank_mode": optimizer_moe.get("qwen3_final_selection_rank_mode"),
+        "unified_optimizer_final_rank_band_size": optimizer_moe.get("qwen3_final_selection_rank_band_size"),
+        "unified_optimizer_smoke_status": unified_optimizer_smoke.get("status"),
+        "unified_optimizer_smoke_passed": unified_optimizer_smoke.get("passed_case_count"),
+        "unified_optimizer_smoke_cases": unified_optimizer_smoke.get("case_count"),
     }
 
 
@@ -315,7 +350,7 @@ def build_report(summary: dict[str, Any]) -> str:
     lines = [
         "# Qwen3 MoE Post-Eval Refresh",
         "",
-        "这个脚本在远端 vLLM eval 落盘后按固定顺序刷新 eval bundle audit、unified selector、mechanism attribution 和总汇总，避免手工漏跑或用到旧结果。",
+        "这个脚本在远端 vLLM eval 落盘后按固定顺序刷新 eval bundle audit、unified/final selector、mechanism attribution、feedback/mechanistic optimizer、unified average optimizer 和总汇总，避免手工漏跑或用到旧结果。",
         "",
         f"- Status: `{summary['status']}`",
         f"- Plan only: `{summary['plan_only']}`",
@@ -327,6 +362,9 @@ def build_report(summary: dict[str, Any]) -> str:
         f"- Feedback optimizer: `{downstream.get('feedback_status', 'n/a')}` (`{downstream.get('feedback_scored_task_count', 'n/a')}/{downstream.get('feedback_task_count', 'n/a')}` scored, `{downstream.get('feedback_changed_group_count', 'n/a')}` changed groups)",
         f"- Mechanistic unified: `{downstream.get('mechanistic_status', 'n/a')}` -> `{downstream.get('mechanistic_selected_candidate', 'n/a')}` (`retention={downstream.get('mechanistic_retention', 'n/a')}`, `violations={downstream.get('mechanistic_hard_cap_violations', 'n/a')}`)",
         f"- Mechanistic evidence: `{downstream.get('mechanistic_evidence_status', 'n/a')}` (`gradient_agreement={downstream.get('mechanistic_evidence_gradient_agreement', 'n/a')}`, `objective_improved={downstream.get('mechanistic_evidence_objective_improved_fraction', 'n/a')}`)",
+        f"- Unified average optimizer: `{downstream.get('unified_optimizer_status', 'n/a')}` (top next experiment `{downstream.get('unified_optimizer_top_experiment', 'n/a')}` / `{downstream.get('unified_optimizer_top_experiment_status', 'n/a')}`)",
+        f"- Unified selector rank gate in optimizer: confidence band `{downstream.get('unified_optimizer_final_confidence_tie_band', 'n/a')}`, rank mode `{downstream.get('unified_optimizer_final_rank_mode', 'n/a')}`, band size `{downstream.get('unified_optimizer_final_rank_band_size', 'n/a')}`",
+        f"- Unified optimizer ledger smoke: `{downstream.get('unified_optimizer_smoke_status', 'n/a')}` (`{downstream.get('unified_optimizer_smoke_passed', 'n/a')}/{downstream.get('unified_optimizer_smoke_cases', 'n/a')}` cases)",
         "",
         "| step | kind | status | returncode | seconds |",
         "| --- | --- | --- | ---: | ---: |",
@@ -395,6 +433,11 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=Path("results/qwen3_moe_mechanistic_evidence_audit"),
     )
+    parser.add_argument(
+        "--unified-optimizer-dir",
+        type=Path,
+        default=Path("results/unified_average_optimizer"),
+    )
     parser.add_argument("--audit-smoke-dir", type=Path, default=Path("results/qwen3_moe_eval_bundle_audit_smoke"))
     parser.add_argument("--selection-smoke-dir", type=Path, default=Path("results/qwen3_moe_unified_result_selection_smoke"))
     parser.add_argument(
@@ -416,6 +459,11 @@ def parse_args() -> argparse.Namespace:
         "--mechanistic-smoke-dir",
         type=Path,
         default=Path("results/qwen3_moe_mechanistic_unified_candidate_smoke"),
+    )
+    parser.add_argument(
+        "--unified-optimizer-smoke-dir",
+        type=Path,
+        default=Path("results/unified_average_optimizer_ledger_smoke"),
     )
     parser.add_argument("--output-dir", type=Path, default=Path("results/qwen3_moe_post_eval_refresh"))
     parser.add_argument("--include-smoke", action="store_true")
