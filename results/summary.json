@@ -10984,19 +10984,19 @@
       "summary_path": "results/qwen3_moe_eval_bundle_audit_smoke/summary.json"
     },
     "qwen3_moe_eval_manifest_preflight": {
-      "blocking_reason": "Run the prepare_manifest_command before launching vLLM evals.",
+      "blocking_reason": "",
       "canonical_task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
-      "manifest_exists": false,
-      "manifest_sha256": null,
+      "manifest_exists": true,
+      "manifest_sha256": "84945db35ae5a366be5df909a53820bbfbfdeaaa5850ca5d7e03e29ebe8e5082",
       "method_count": 13,
       "prepare_manifest_command": "results/qwen3_moe_eval_manifest_preflight/prepare_manifest_command.txt",
       "report": "results/qwen3_moe_eval_manifest_preflight/report.md",
-      "status": "task_manifest_missing",
+      "status": "task_manifest_ready",
       "summary": {
-        "blocking_reason": "Run the prepare_manifest_command before launching vLLM evals.",
+        "blocking_reason": "",
         "canonical_task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
-        "manifest_exists": false,
-        "manifest_sha256": null,
+        "manifest_exists": true,
+        "manifest_sha256": "84945db35ae5a366be5df909a53820bbfbfdeaaa5850ca5d7e03e29ebe8e5082",
         "method_count": 13,
         "outputs": {
           "prepare_manifest_command": "results/qwen3_moe_eval_manifest_preflight/prepare_manifest_command.txt",
@@ -11006,12 +11006,12 @@
         },
         "prepare_manifest_command": "python scripts/run_vllm_downstream_eval.py --tasks gsm8k,humaneval_compile,mmlu,safety --example-source datasets --max-examples 384 --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing --prepare-task-manifest-only",
         "schema_version": 1,
-        "status": "task_manifest_missing",
+        "status": "task_manifest_ready",
         "task_count": 4,
         "task_manifest_aligned_method_count": 13,
         "task_manifest_unaligned_method_count": 0,
-        "task_sufficient_count": 0,
-        "total_manifest_examples": 0,
+        "task_sufficient_count": 4,
+        "total_manifest_examples": 1316,
         "total_required_examples": 1316
       },
       "summary_path": "results/qwen3_moe_eval_manifest_preflight/summary.json",
@@ -11021,40 +11021,40 @@
       "task_manifest_unaligned_method_count": 0,
       "task_rows": [
         {
-          "count_sufficient": false,
-          "deficit": 384,
-          "manifest_examples": 0,
+          "count_sufficient": true,
+          "deficit": 0,
+          "manifest_examples": 384,
           "required_examples": 384,
           "task": "gsm8k",
-          "task_present": false
+          "task_present": true
         },
         {
-          "count_sufficient": false,
-          "deficit": 164,
-          "manifest_examples": 0,
+          "count_sufficient": true,
+          "deficit": 0,
+          "manifest_examples": 164,
           "required_examples": 164,
           "task": "humaneval_compile",
-          "task_present": false
+          "task_present": true
         },
         {
-          "count_sufficient": false,
-          "deficit": 384,
-          "manifest_examples": 0,
+          "count_sufficient": true,
+          "deficit": 0,
+          "manifest_examples": 384,
           "required_examples": 384,
           "task": "mmlu",
-          "task_present": false
+          "task_present": true
         },
         {
-          "count_sufficient": false,
-          "deficit": 384,
-          "manifest_examples": 0,
+          "count_sufficient": true,
+          "deficit": 0,
+          "manifest_examples": 384,
           "required_examples": 384,
           "task": "safety",
-          "task_present": false
+          "task_present": true
         }
       ],
-      "task_sufficient_count": 0,
-      "total_manifest_examples": 0,
+      "task_sufficient_count": 4,
+      "total_manifest_examples": 1316,
       "total_required_examples": 1316
     },
     "qwen3_moe_expert_geometry_probe": {
@@ -38118,7 +38118,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-20T07:14:40.629919+00:00",
+  "generated_at": "2026-06-20T07:22:39.075374+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
