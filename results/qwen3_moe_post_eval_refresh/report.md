@@ -4,7 +4,7 @@
 
 - Status: `passed`
 - Plan only: `False`
-- Steps passed: `29/29`
+- Steps passed: `30/30`
 - Audit: `awaiting_eval` (`0/13` usable)
 - Selection: `awaiting_source_eval` -> `None`
 - Final selection: `awaiting_source_eval` -> `None` (`0/11` eligible)
@@ -20,8 +20,9 @@
 - Router-coupled candidate: `ablation_only_waiting_vllm` -> `router_q0.75_s0.0100_cap0.0100` (`retention=0.9619428055490395`, `retention_delta=-0.0030916992358726025`, `coupled_delta_reduction=0.0011349698502332028`)
 - Router-coupled retention frontier: `direct_router_boundary_term_not_default` (`effect_fraction=0.010260661865575978`, candidates `146/770` pass default gate)
 - Source-set complementarity: `source_dominated_not_averageable_as_final` (dominant `instruct`, frontier avg gain `0.0`, best observed gap `-0.06944444444444431`, complementary sets `2`)
+- Average source-set optimizer: `probe_only_below_interference_budget` for `coder+thinking` (gain `0.0083333333333333` vs interference budget `0.0694444444444443`, surplus `-0.06111111111111099`, final-budget `0`, probe-only `2`)
 - Unified average optimizer: `built_waiting_for_qwen3_vllm_eval` (top next experiment `budgeted_qwen3_moe_downstream_eval` / `blocked_on_gpu_vllm`)
-- Unified algorithm contract: `blocked_on_downstream_eval` (`10/12` passed, blocking `['downstream_source_dominance_gate', 'final_unified_average_acceptance']`)
+- Unified algorithm contract: `blocked_on_downstream_eval` (`11/13` passed, blocking `['downstream_source_dominance_gate', 'final_unified_average_acceptance']`)
 - Unified selector rank gate in optimizer: confidence band `True`, rank mode `None`, band size `0`
 - Unified optimizer ledger smoke: `passed` (`5/5` cases)
 - Average method gate matrix: `built_from_current_probe_evidence` (`accepted_by_default=0`, `rejected=1`, `conditional=3`)
@@ -32,35 +33,36 @@
 
 | step | kind | status | returncode | seconds |
 | --- | --- | --- | ---: | ---: |
-| `build_candidate_trust_region_gate` | `gate` | `passed` | 0 | 0.44 |
-| `plan_eval_budget` | `planner` | `passed` | 0 | 0.46 |
-| `audit_eval_bundles` | `gate` | `passed` | 0 | 0.43 |
-| `select_unified_result` | `selector` | `passed` | 0 | 0.42 |
-| `select_final_candidate` | `selector` | `passed` | 0 | 0.43 |
-| `attribute_mechanism_effects` | `attribution` | `passed` | 0 | 0.42 |
-| `build_feedback_optimizer` | `optimizer` | `passed` | 0 | 1.09 |
-| `build_mechanistic_unified_candidate` | `optimizer` | `passed` | 0 | 2.61 |
-| `audit_mechanistic_evidence` | `attribution` | `passed` | 0 | 1.58 |
-| `analyze_mechanistic_sensitivity` | `attribution` | `passed` | 0 | 17.06 |
-| `analyze_router_expert_coupling` | `attribution` | `passed` | 0 | 0.83 |
-| `build_router_coupled_candidate` | `optimizer` | `passed` | 0 | 1.30 |
-| `analyze_router_coupled_retention_frontier` | `attribution` | `passed` | 0 | 3.54 |
-| `build_source_set_complementarity_gate` | `gate` | `passed` | 0 | 0.48 |
-| `build_unified_average_optimizer` | `optimizer` | `passed` | 0 | 0.42 |
+| `build_candidate_trust_region_gate` | `gate` | `passed` | 0 | 0.39 |
+| `plan_eval_budget` | `planner` | `passed` | 0 | 0.48 |
+| `audit_eval_bundles` | `gate` | `passed` | 0 | 0.57 |
+| `select_unified_result` | `selector` | `passed` | 0 | 0.50 |
+| `select_final_candidate` | `selector` | `passed` | 0 | 0.55 |
+| `attribute_mechanism_effects` | `attribution` | `passed` | 0 | 0.47 |
+| `build_feedback_optimizer` | `optimizer` | `passed` | 0 | 1.15 |
+| `build_mechanistic_unified_candidate` | `optimizer` | `passed` | 0 | 2.79 |
+| `audit_mechanistic_evidence` | `attribution` | `passed` | 0 | 1.53 |
+| `analyze_mechanistic_sensitivity` | `attribution` | `passed` | 0 | 17.04 |
+| `analyze_router_expert_coupling` | `attribution` | `passed` | 0 | 0.80 |
+| `build_router_coupled_candidate` | `optimizer` | `passed` | 0 | 1.35 |
+| `analyze_router_coupled_retention_frontier` | `attribution` | `passed` | 0 | 3.56 |
+| `build_source_set_complementarity_gate` | `gate` | `passed` | 0 | 0.40 |
+| `build_average_source_set_optimizer` | `optimizer` | `passed` | 0 | 0.44 |
+| `build_unified_average_optimizer` | `optimizer` | `passed` | 0 | 0.47 |
 | `build_average_method_gate_matrix` | `optimizer` | `passed` | 0 | 0.42 |
-| `build_average_trust_region_bounds` | `optimizer` | `passed` | 0 | 0.40 |
-| `analyze_mechanism_levers` | `attribution` | `passed` | 0 | 0.44 |
+| `build_average_trust_region_bounds` | `optimizer` | `passed` | 0 | 0.44 |
+| `analyze_mechanism_levers` | `attribution` | `passed` | 0 | 0.43 |
 | `audit_eval_bundles_smoke` | `smoke` | `passed` | 0 | 0.69 |
 | `select_unified_result_smoke` | `smoke` | `passed` | 0 | 0.40 |
-| `select_final_candidate_smoke` | `smoke` | `passed` | 0 | 0.50 |
-| `eval_budget_queue_smoke` | `smoke` | `passed` | 0 | 0.42 |
-| `attribute_mechanism_effects_smoke` | `smoke` | `passed` | 0 | 0.41 |
-| `build_feedback_optimizer_smoke` | `smoke` | `passed` | 0 | 0.46 |
-| `build_mechanistic_unified_candidate_smoke` | `smoke` | `passed` | 0 | 1.68 |
-| `unified_average_optimizer_ledger_smoke` | `smoke` | `passed` | 0 | 0.44 |
-| `average_method_gate_matrix_consistency_smoke` | `smoke` | `passed` | 0 | 0.44 |
-| `average_trust_region_bounds_smoke` | `smoke` | `passed` | 0 | 0.41 |
-| `collect_results` | `summary` | `passed` | 0 | 1.68 |
+| `select_final_candidate_smoke` | `smoke` | `passed` | 0 | 0.52 |
+| `eval_budget_queue_smoke` | `smoke` | `passed` | 0 | 0.43 |
+| `attribute_mechanism_effects_smoke` | `smoke` | `passed` | 0 | 0.44 |
+| `build_feedback_optimizer_smoke` | `smoke` | `passed` | 0 | 0.48 |
+| `build_mechanistic_unified_candidate_smoke` | `smoke` | `passed` | 0 | 1.67 |
+| `unified_average_optimizer_ledger_smoke` | `smoke` | `passed` | 0 | 0.82 |
+| `average_method_gate_matrix_consistency_smoke` | `smoke` | `passed` | 0 | 0.60 |
+| `average_trust_region_bounds_smoke` | `smoke` | `passed` | 0 | 0.69 |
+| `collect_results` | `summary` | `passed` | 0 | 1.72 |
 
 ## Commands
 
@@ -78,6 +80,7 @@
 - `python scripts/build_qwen3_moe_router_coupled_candidate.py --output-dir results/qwen3_moe_router_coupled_candidate`
 - `python scripts/analyze_qwen3_moe_router_coupled_retention_frontier.py --output-dir results/qwen3_moe_router_coupled_retention_frontier`
 - `python scripts/build_qwen3_source_set_complementarity_gate.py --output-dir results/qwen3_source_set_complementarity_gate`
+- `python scripts/build_qwen3_average_source_set_optimizer.py --output-dir results/qwen3_average_source_set_optimizer`
 - `python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer`
 - `python scripts/build_average_method_gate_matrix.py --output-dir results/average_method_gate_matrix --optimizer-summary results/unified_average_optimizer/summary.json --optimizer-features results/unified_average_optimizer/mechanism_features.csv`
 - `python scripts/build_average_trust_region_bounds.py --output-dir results/average_trust_region_bounds`

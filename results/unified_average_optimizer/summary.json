@@ -5,8 +5,8 @@
     "final_unified_average_acceptance"
   ],
   "contract_failed_requirement_count": 0,
-  "contract_passed_requirement_count": 10,
-  "contract_requirement_count": 12,
+  "contract_passed_requirement_count": 11,
+  "contract_requirement_count": 13,
   "contract_status": "blocked_on_downstream_eval",
   "dense": {
     "best_endpoint_worst_nll": 5.150962227269223,
@@ -26,14 +26,14 @@
     "linear_worst_nll": 8.947735033537212,
     "unified_worst_nll": 5.182952077765214
   },
-  "evidence_ledger_count": 11,
+  "evidence_ledger_count": 12,
   "evidence_verdict_counts": {
     "awaiting_downstream_eval": 2,
     "promising_but_unaccepted": 1,
     "supports_conditional_action": 1,
-    "supports_current_action": 7
+    "supports_current_action": 8
   },
-  "hypothesis_count": 11,
+  "hypothesis_count": 12,
   "hypothesis_status_counts": {
     "alignment_required": 1,
     "awaiting_source_eval": 1,
@@ -45,7 +45,8 @@
     "promising_but_unaccepted": 1,
     "rejected_for_current_midpoint": 1,
     "straight_line_rejected": 1,
-    "structurally_passed_waiting_downstream_eval": 1
+    "structurally_passed_waiting_downstream_eval": 1,
+    "top_measured_source_set_probe_only_below_interference_budget": 1
   },
   "moe": {
     "controlled_gauge_mse": 7.66403245730453e-16,
@@ -140,9 +141,22 @@
     "qwen3_source_set_current_frontier_avg": 0.8972222222222221,
     "qwen3_source_set_current_frontier_avg_gain": 0.0,
     "qwen3_source_set_current_gate": "source_dominated_not_averageable_as_final",
+    "qwen3_source_set_final_budget_candidate_count": 0,
     "qwen3_source_set_gate_status": "source_set_complementarity_gate_ready",
+    "qwen3_source_set_interference_budget": 0.0694444444444443,
+    "qwen3_source_set_interference_budget_source": "max_floor_observed_negative_gap_q0.50",
+    "qwen3_source_set_probe_only_count": 2,
     "qwen3_source_set_recommended_action": "do_not_expect_average_to_beat_current_source_frontier; use average only as repair_ablation_until_new_complementary_sources_pass_endpoint_eval",
     "qwen3_source_set_source_dominated_count": 9,
+    "qwen3_source_set_surplus_optimizer_status": "source_set_surplus_optimizer_ready",
+    "qwen3_source_set_top_action": "run_larger_endpoint_eval_and_small_weighted_probe_no_final_acceptance",
+    "qwen3_source_set_top_candidate_id": "qwen3_moe_coder_thinking_frontier_weighted_probe",
+    "qwen3_source_set_top_frontier_avg_gain": 0.0083333333333333,
+    "qwen3_source_set_top_frontier_worst_gain": 0.0249999999999999,
+    "qwen3_source_set_top_optimizer_gate": "probe_only_below_interference_budget",
+    "qwen3_source_set_top_source_set": "coder+thinking",
+    "qwen3_source_set_top_source_weights": "{\"coder\": 0.6666666666666666, \"thinking\": 0.3333333333333333}",
+    "qwen3_source_set_top_surplus_vs_interference": -0.06111111111111099,
     "qwen3_subspace_routed_gt_065": 0,
     "qwen3_subspace_routed_gt_06505": 0,
     "qwen3_subspace_router_changed_tensors": 0,
@@ -170,7 +184,7 @@
     "real_gauge_naive_degradation": 5.490968298724317,
     "router_action": "freeze_router"
   },
-  "next_experiment_count": 5,
+  "next_experiment_count": 6,
   "outputs": {
     "algorithm": "results/unified_average_optimizer/algorithm.json",
     "algorithm_contract": "results/unified_average_optimizer/algorithm_contract.csv",

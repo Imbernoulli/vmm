@@ -96,6 +96,11 @@
       "status": "complete"
     },
     {
+      "evidence": "results/qwen3_average_source_set_optimizer/report.md compares source-frontier gain against observed merge-interference budget and keeps the top Coder+Thinking source set probe-only because its surplus is still negative.",
+      "item": "Qwen3 average source-set surplus optimizer",
+      "status": "complete"
+    },
+    {
       "evidence": "Representative Qwen2.5-1.5B benchmark slices cover MMLU, GSM8K, HumanEval canonical-solution NLL, and BeaverTails safety/refusal NLL.",
       "item": "Formal LLM benchmark slices",
       "status": "complete"
@@ -482,7 +487,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 95,
+    "complete": 96,
     "missing": 0,
     "partial": 1
   },
@@ -8577,6 +8582,734 @@
       "vllm_worst_primary_score": 0.0,
       "worst_nll": 7.632229374904258,
       "writer_command": "results/probe_guided_dense_average_candidate/writer_command.txt"
+    },
+    "qwen3_average_source_set_optimizer": {
+      "candidate_rows": [
+        {
+          "active_source_count": 2,
+          "active_source_set_key": "coder+thinking",
+          "best_observed_avg_gap_to_frontier": null,
+          "best_observed_merge": null,
+          "best_observed_variant": null,
+          "best_single_avg_source": "coder",
+          "best_single_worst_source": "coder",
+          "candidate_id": "qwen3_moe_coder_thinking_frontier_weighted_probe",
+          "dominant_source": null,
+          "expert_policy": "identity_or_aligned_experts_with_task_frontier_source_weights",
+          "frontier_avg_gain_vs_best_single": 0.0083333333333333,
+          "frontier_avg_surplus_vs_interference": -0.0611111111111109,
+          "frontier_worst_gain_vs_best_single": 0.0249999999999999,
+          "gate_from_complementarity": "complementary_source_set_candidate",
+          "interference_budget": 0.0694444444444443,
+          "optimizer_gate": "probe_only_below_interference_budget",
+          "priority_score": 0.6333333333333333,
+          "recommended_action": "run_larger_endpoint_eval_and_small_weighted_probe_no_final_acceptance",
+          "router_policy": "freeze_router_to_best_single_or_anchor_until_router_gate_passes",
+          "same_shape_policy": "preserve config tokenizer model class tensor names tensor shapes expert count and router shape",
+          "source_set": "coder+thinking",
+          "source_set_key": "coder+thinking",
+          "source_weight_entropy": 0.9182958340544894,
+          "source_weights": "{\"coder\": 0.6666666666666666, \"thinking\": 0.3333333333333333}",
+          "strict_task_winner_count": 2,
+          "task_frontier_tied_winners": "{\"gsm8k\": [\"coder\"], \"humaneval\": [\"coder\"], \"mmlu\": [\"thinking\"]}",
+          "task_frontier_winners": "{\"gsm8k\": \"coder\", \"humaneval\": \"coder\", \"mmlu\": \"thinking\"}"
+        },
+        {
+          "active_source_count": 2,
+          "active_source_set_key": "coder+thinking",
+          "best_observed_avg_gap_to_frontier": null,
+          "best_observed_merge": null,
+          "best_observed_variant": null,
+          "best_single_avg_source": "coder",
+          "best_single_worst_source": "coder",
+          "candidate_id": "qwen3_moe_base_coder_thinking_frontier_weighted_probe",
+          "dominant_source": null,
+          "expert_policy": "identity_or_aligned_experts_with_task_frontier_source_weights",
+          "frontier_avg_gain_vs_best_single": 0.0083333333333333,
+          "frontier_avg_surplus_vs_interference": -0.0611111111111109,
+          "frontier_worst_gain_vs_best_single": 0.0249999999999999,
+          "gate_from_complementarity": "complementary_source_set_candidate",
+          "interference_budget": 0.0694444444444443,
+          "optimizer_gate": "probe_only_below_interference_budget",
+          "priority_score": 0.6333333333333333,
+          "recommended_action": "run_larger_endpoint_eval_and_small_weighted_probe_no_final_acceptance; drop_zero_vote_sources_or_keep_as_anchor_only",
+          "router_policy": "freeze_router_to_best_single_or_anchor_until_router_gate_passes",
+          "same_shape_policy": "preserve config tokenizer model class tensor names tensor shapes expert count and router shape",
+          "source_set": "base+coder+thinking",
+          "source_set_key": "base+coder+thinking",
+          "source_weight_entropy": 0.5793801642856949,
+          "source_weights": "{\"base\": 0.0, \"coder\": 0.6666666666666666, \"thinking\": 0.3333333333333333}",
+          "strict_task_winner_count": 2,
+          "task_frontier_tied_winners": "{\"gsm8k\": [\"coder\"], \"humaneval\": [\"coder\"], \"mmlu\": [\"thinking\"]}",
+          "task_frontier_winners": "{\"gsm8k\": \"coder\", \"humaneval\": \"coder\", \"mmlu\": \"thinking\"}"
+        },
+        {
+          "active_source_count": 1,
+          "active_source_set_key": "instruct",
+          "best_observed_avg_gap_to_frontier": null,
+          "best_observed_merge": null,
+          "best_observed_variant": null,
+          "best_single_avg_source": "instruct",
+          "best_single_worst_source": "instruct",
+          "candidate_id": "qwen3_moe_base_instruct_frontier_weighted_probe",
+          "dominant_source": "instruct",
+          "expert_policy": "identity_or_aligned_experts_with_task_frontier_source_weights",
+          "frontier_avg_gain_vs_best_single": 0.0,
+          "frontier_avg_surplus_vs_interference": -0.0694444444444443,
+          "frontier_worst_gain_vs_best_single": 0.0,
+          "gate_from_complementarity": "source_dominated_not_averageable_as_final",
+          "interference_budget": 0.0694444444444443,
+          "optimizer_gate": "reject_source_dominated",
+          "priority_score": 0.1,
+          "recommended_action": "do_not_materialize_except_negative_control; drop_zero_vote_sources_or_keep_as_anchor_only",
+          "router_policy": "freeze_router_to_best_single_or_anchor_until_router_gate_passes",
+          "same_shape_policy": "preserve config tokenizer model class tensor names tensor shapes expert count and router shape",
+          "source_set": "base+instruct",
+          "source_set_key": "base+instruct",
+          "source_weight_entropy": 0.0,
+          "source_weights": "{\"base\": 0.0, \"instruct\": 1.0}",
+          "strict_task_winner_count": 1,
+          "task_frontier_tied_winners": "{\"gsm8k\": [\"instruct\"], \"humaneval\": [\"instruct\"], \"mmlu\": [\"instruct\"]}",
+          "task_frontier_winners": "{\"gsm8k\": \"instruct\", \"humaneval\": \"instruct\", \"mmlu\": \"instruct\"}"
+        },
+        {
+          "active_source_count": 2,
+          "active_source_set_key": "base+coder",
+          "best_observed_avg_gap_to_frontier": null,
+          "best_observed_merge": null,
+          "best_observed_variant": null,
+          "best_single_avg_source": "coder",
+          "best_single_worst_source": "coder",
+          "candidate_id": "qwen3_moe_base_coder_frontier_weighted_probe",
+          "dominant_source": "coder",
+          "expert_policy": "identity_or_aligned_experts_with_task_frontier_source_weights",
+          "frontier_avg_gain_vs_best_single": 0.0,
+          "frontier_avg_surplus_vs_interference": -0.0694444444444443,
+          "frontier_worst_gain_vs_best_single": 0.0,
+          "gate_from_complementarity": "source_dominated_not_averageable_as_final",
+          "interference_budget": 0.0694444444444443,
+          "optimizer_gate": "reject_source_dominated",
+          "priority_score": 0.1,
+          "recommended_action": "do_not_materialize_except_negative_control",
+          "router_policy": "freeze_router_to_best_single_or_anchor_until_router_gate_passes",
+          "same_shape_policy": "preserve config tokenizer model class tensor names tensor shapes expert count and router shape",
+          "source_set": "base+coder",
+          "source_set_key": "base+coder",
+          "source_weight_entropy": 0.6500224216483541,
+          "source_weights": "{\"base\": 0.16666666666666666, \"coder\": 0.8333333333333334}",
+          "strict_task_winner_count": 1,
+          "task_frontier_tied_winners": "{\"gsm8k\": [\"coder\"], \"humaneval\": [\"coder\"], \"mmlu\": [\"base\", \"coder\"]}",
+          "task_frontier_winners": "{\"gsm8k\": \"coder\", \"humaneval\": \"coder\", \"mmlu\": \"tie:base+coder\"}"
+        },
+        {
+          "active_source_count": 1,
+          "active_source_set_key": "thinking",
+          "best_observed_avg_gap_to_frontier": null,
+          "best_observed_merge": null,
+          "best_observed_variant": null,
+          "best_single_avg_source": "thinking",
+          "best_single_worst_source": "thinking",
+          "candidate_id": "qwen3_moe_base_thinking_frontier_weighted_probe",
+          "dominant_source": "thinking",
+          "expert_policy": "identity_or_aligned_experts_with_task_frontier_source_weights",
+          "frontier_avg_gain_vs_best_single": 0.0,
+          "frontier_avg_surplus_vs_interference": -0.0694444444444443,
+          "frontier_worst_gain_vs_best_single": 0.0,
+          "gate_from_complementarity": "source_dominated_not_averageable_as_final",
+          "interference_budget": 0.0694444444444443,
+          "optimizer_gate": "reject_source_dominated",
+          "priority_score": 0.1,
+          "recommended_action": "do_not_materialize_except_negative_control; drop_zero_vote_sources_or_keep_as_anchor_only",
+          "router_policy": "freeze_router_to_best_single_or_anchor_until_router_gate_passes",
+          "same_shape_policy": "preserve config tokenizer model class tensor names tensor shapes expert count and router shape",
+          "source_set": "base+thinking",
+          "source_set_key": "base+thinking",
+          "source_weight_entropy": 0.0,
+          "source_weights": "{\"base\": 0.0, \"thinking\": 1.0}",
+          "strict_task_winner_count": 1,
+          "task_frontier_tied_winners": "{\"gsm8k\": [\"thinking\"], \"humaneval\": [\"thinking\"], \"mmlu\": [\"thinking\"]}",
+          "task_frontier_winners": "{\"gsm8k\": \"thinking\", \"humaneval\": \"thinking\", \"mmlu\": \"thinking\"}"
+        },
+        {
+          "active_source_count": 1,
+          "active_source_set_key": "instruct",
+          "best_observed_avg_gap_to_frontier": null,
+          "best_observed_merge": null,
+          "best_observed_variant": null,
+          "best_single_avg_source": "instruct",
+          "best_single_worst_source": "instruct",
+          "candidate_id": "qwen3_moe_instruct_thinking_frontier_weighted_probe",
+          "dominant_source": "instruct",
+          "expert_policy": "identity_or_aligned_experts_with_task_frontier_source_weights",
+          "frontier_avg_gain_vs_best_single": 0.0,
+          "frontier_avg_surplus_vs_interference": -0.0694444444444443,
+          "frontier_worst_gain_vs_best_single": 0.0,
+          "gate_from_complementarity": "source_dominated_not_averageable_as_final",
+          "interference_budget": 0.0694444444444443,
+          "optimizer_gate": "reject_source_dominated",
+          "priority_score": 0.1,
+          "recommended_action": "do_not_materialize_except_negative_control; drop_zero_vote_sources_or_keep_as_anchor_only",
+          "router_policy": "freeze_router_to_best_single_or_anchor_until_router_gate_passes",
+          "same_shape_policy": "preserve config tokenizer model class tensor names tensor shapes expert count and router shape",
+          "source_set": "instruct+thinking",
+          "source_set_key": "instruct+thinking",
+          "source_weight_entropy": 0.0,
+          "source_weights": "{\"instruct\": 1.0, \"thinking\": 0.0}",
+          "strict_task_winner_count": 1,
+          "task_frontier_tied_winners": "{\"gsm8k\": [\"instruct\"], \"humaneval\": [\"instruct\"], \"mmlu\": [\"instruct\"]}",
+          "task_frontier_winners": "{\"gsm8k\": \"instruct\", \"humaneval\": \"instruct\", \"mmlu\": \"instruct\"}"
+        },
+        {
+          "active_source_count": 2,
+          "active_source_set_key": "coder+instruct",
+          "best_observed_avg_gap_to_frontier": null,
+          "best_observed_merge": null,
+          "best_observed_variant": null,
+          "best_single_avg_source": "instruct",
+          "best_single_worst_source": "instruct",
+          "candidate_id": "qwen3_moe_base_coder_instruct_frontier_weighted_probe",
+          "dominant_source": "instruct",
+          "expert_policy": "identity_or_aligned_experts_with_task_frontier_source_weights",
+          "frontier_avg_gain_vs_best_single": 0.0,
+          "frontier_avg_surplus_vs_interference": -0.0694444444444443,
+          "frontier_worst_gain_vs_best_single": 0.0,
+          "gate_from_complementarity": "source_dominated_not_averageable_as_final",
+          "interference_budget": 0.0694444444444443,
+          "optimizer_gate": "reject_source_dominated",
+          "priority_score": 0.1,
+          "recommended_action": "do_not_materialize_except_negative_control; drop_zero_vote_sources_or_keep_as_anchor_only",
+          "router_policy": "freeze_router_to_best_single_or_anchor_until_router_gate_passes",
+          "same_shape_policy": "preserve config tokenizer model class tensor names tensor shapes expert count and router shape",
+          "source_set": "base+instruct+coder",
+          "source_set_key": "base+coder+instruct",
+          "source_weight_entropy": 0.5793801642856949,
+          "source_weights": "{\"base\": 0.0, \"coder\": 0.3333333333333333, \"instruct\": 0.6666666666666666}",
+          "strict_task_winner_count": 1,
+          "task_frontier_tied_winners": "{\"gsm8k\": [\"instruct\", \"coder\"], \"humaneval\": [\"instruct\", \"coder\"], \"mmlu\": [\"instruct\"]}",
+          "task_frontier_winners": "{\"gsm8k\": \"tie:instruct+coder\", \"humaneval\": \"tie:instruct+coder\", \"mmlu\": \"instruct\"}"
+        },
+        {
+          "active_source_count": 1,
+          "active_source_set_key": "instruct",
+          "best_observed_avg_gap_to_frontier": null,
+          "best_observed_merge": null,
+          "best_observed_variant": null,
+          "best_single_avg_source": "instruct",
+          "best_single_worst_source": "instruct",
+          "candidate_id": "qwen3_moe_base_instruct_thinking_frontier_weighted_probe",
+          "dominant_source": "instruct",
+          "expert_policy": "identity_or_aligned_experts_with_task_frontier_source_weights",
+          "frontier_avg_gain_vs_best_single": 0.0,
+          "frontier_avg_surplus_vs_interference": -0.0694444444444443,
+          "frontier_worst_gain_vs_best_single": 0.0,
+          "gate_from_complementarity": "source_dominated_not_averageable_as_final",
+          "interference_budget": 0.0694444444444443,
+          "optimizer_gate": "reject_source_dominated",
+          "priority_score": 0.1,
+          "recommended_action": "do_not_materialize_except_negative_control; drop_zero_vote_sources_or_keep_as_anchor_only",
+          "router_policy": "freeze_router_to_best_single_or_anchor_until_router_gate_passes",
+          "same_shape_policy": "preserve config tokenizer model class tensor names tensor shapes expert count and router shape",
+          "source_set": "base+instruct+thinking",
+          "source_set_key": "base+instruct+thinking",
+          "source_weight_entropy": 0.0,
+          "source_weights": "{\"base\": 0.0, \"instruct\": 1.0, \"thinking\": 0.0}",
+          "strict_task_winner_count": 1,
+          "task_frontier_tied_winners": "{\"gsm8k\": [\"instruct\"], \"humaneval\": [\"instruct\"], \"mmlu\": [\"instruct\"]}",
+          "task_frontier_winners": "{\"gsm8k\": \"instruct\", \"humaneval\": \"instruct\", \"mmlu\": \"instruct\"}"
+        },
+        {
+          "active_source_count": 2,
+          "active_source_set_key": "coder+instruct",
+          "best_observed_avg_gap_to_frontier": null,
+          "best_observed_merge": null,
+          "best_observed_variant": null,
+          "best_single_avg_source": "instruct",
+          "best_single_worst_source": "instruct",
+          "candidate_id": "qwen3_moe_base_coder_instruct_thinking_frontier_weighted_probe",
+          "dominant_source": "instruct",
+          "expert_policy": "identity_or_aligned_experts_with_task_frontier_source_weights",
+          "frontier_avg_gain_vs_best_single": 0.0,
+          "frontier_avg_surplus_vs_interference": -0.0694444444444443,
+          "frontier_worst_gain_vs_best_single": 0.0,
+          "gate_from_complementarity": "source_dominated_not_averageable_as_final",
+          "interference_budget": 0.0694444444444443,
+          "optimizer_gate": "reject_source_dominated",
+          "priority_score": 0.1,
+          "recommended_action": "do_not_materialize_except_negative_control; drop_zero_vote_sources_or_keep_as_anchor_only",
+          "router_policy": "freeze_router_to_best_single_or_anchor_until_router_gate_passes",
+          "same_shape_policy": "preserve config tokenizer model class tensor names tensor shapes expert count and router shape",
+          "source_set": "base+instruct+coder+thinking",
+          "source_set_key": "base+coder+instruct+thinking",
+          "source_weight_entropy": 0.4591479170272447,
+          "source_weights": "{\"base\": 0.0, \"coder\": 0.3333333333333333, \"instruct\": 0.6666666666666666, \"thinking\": 0.0}",
+          "strict_task_winner_count": 1,
+          "task_frontier_tied_winners": "{\"gsm8k\": [\"instruct\", \"coder\"], \"humaneval\": [\"instruct\", \"coder\"], \"mmlu\": [\"instruct\"]}",
+          "task_frontier_winners": "{\"gsm8k\": \"tie:instruct+coder\", \"humaneval\": \"tie:instruct+coder\", \"mmlu\": \"instruct\"}"
+        },
+        {
+          "active_source_count": 2,
+          "active_source_set_key": "coder+instruct",
+          "best_observed_avg_gap_to_frontier": -0.0638888888888887,
+          "best_observed_merge": "merge_instruct+coder+thinking",
+          "best_observed_variant": "naive_average",
+          "best_single_avg_source": "instruct",
+          "best_single_worst_source": "instruct",
+          "candidate_id": "qwen3_moe_coder_instruct_thinking_frontier_weighted_probe",
+          "dominant_source": "instruct",
+          "expert_policy": "identity_or_aligned_experts_with_task_frontier_source_weights",
+          "frontier_avg_gain_vs_best_single": 0.0,
+          "frontier_avg_surplus_vs_interference": -0.0694444444444443,
+          "frontier_worst_gain_vs_best_single": 0.0,
+          "gate_from_complementarity": "source_dominated_not_averageable_as_final",
+          "interference_budget": 0.0694444444444443,
+          "optimizer_gate": "reject_source_dominated",
+          "priority_score": 0.0361111111111113,
+          "recommended_action": "do_not_materialize_except_negative_control; drop_zero_vote_sources_or_keep_as_anchor_only",
+          "router_policy": "freeze_router_to_best_single_or_anchor_until_router_gate_passes",
+          "same_shape_policy": "preserve config tokenizer model class tensor names tensor shapes expert count and router shape",
+          "source_set": "instruct+coder+thinking",
+          "source_set_key": "coder+instruct+thinking",
+          "source_weight_entropy": 0.5793801642856949,
+          "source_weights": "{\"coder\": 0.3333333333333333, \"instruct\": 0.6666666666666666, \"thinking\": 0.0}",
+          "strict_task_winner_count": 1,
+          "task_frontier_tied_winners": "{\"gsm8k\": [\"instruct\", \"coder\"], \"humaneval\": [\"instruct\", \"coder\"], \"mmlu\": [\"instruct\"]}",
+          "task_frontier_winners": "{\"gsm8k\": \"tie:instruct+coder\", \"humaneval\": \"tie:instruct+coder\", \"mmlu\": \"instruct\"}"
+        },
+        {
+          "active_source_count": 2,
+          "active_source_set_key": "coder+instruct",
+          "best_observed_avg_gap_to_frontier": -0.0694444444444443,
+          "best_observed_merge": "merge_instruct+coder_routercal",
+          "best_observed_variant": "router_calibrated",
+          "best_single_avg_source": "instruct",
+          "best_single_worst_source": "instruct",
+          "candidate_id": "qwen3_moe_coder_instruct_frontier_weighted_probe",
+          "dominant_source": "instruct",
+          "expert_policy": "identity_or_aligned_experts_with_task_frontier_source_weights",
+          "frontier_avg_gain_vs_best_single": 0.0,
+          "frontier_avg_surplus_vs_interference": -0.0694444444444443,
+          "frontier_worst_gain_vs_best_single": 0.0,
+          "gate_from_complementarity": "source_dominated_not_averageable_as_final",
+          "interference_budget": 0.0694444444444443,
+          "optimizer_gate": "reject_source_dominated",
+          "priority_score": 0.0305555555555557,
+          "recommended_action": "do_not_materialize_except_negative_control",
+          "router_policy": "freeze_router_to_best_single_or_anchor_until_router_gate_passes",
+          "same_shape_policy": "preserve config tokenizer model class tensor names tensor shapes expert count and router shape",
+          "source_set": "instruct+coder",
+          "source_set_key": "coder+instruct",
+          "source_weight_entropy": 0.9182958340544894,
+          "source_weights": "{\"coder\": 0.3333333333333333, \"instruct\": 0.6666666666666666}",
+          "strict_task_winner_count": 1,
+          "task_frontier_tied_winners": "{\"gsm8k\": [\"instruct\", \"coder\"], \"humaneval\": [\"instruct\", \"coder\"], \"mmlu\": [\"instruct\"]}",
+          "task_frontier_winners": "{\"gsm8k\": \"tie:instruct+coder\", \"humaneval\": \"tie:instruct+coder\", \"mmlu\": \"instruct\"}"
+        }
+      ],
+      "candidate_source_sets": "results/qwen3_average_source_set_optimizer/candidate_source_sets.csv",
+      "discovery_rows": [
+        {
+          "action": "search_for_stronger_endpoint_complementarity_then_apply_surplus_gate",
+          "carry_forward_measured_probe_set": "coder+thinking",
+          "priority": "p0_moe_wave",
+          "priority_score": 0.9,
+          "required_models": "Qwen/Qwen3-30B-A3B-Base; Qwen/Qwen3-30B-A3B; Qwen/Qwen3-Coder-30B-A3B-Instruct",
+          "scenario_id": "moe_30b_general_code_route_aware",
+          "source_roles": "moe_base; moe_general_anchor; moe_code_agent_expert"
+        },
+        {
+          "action": "expand_endpoint_eval_or_materialize_small_probe_only_because_surplus_is_below_interference_budget",
+          "carry_forward_measured_probe_set": "coder+thinking",
+          "priority": "p0_probe_only",
+          "priority_score": 0.88,
+          "required_models": "measured source names: coder; thinking",
+          "scenario_id": "measured_qwen3_moe_coder_thinking_probe",
+          "source_roles": "code_agent_expert; reasoning_thinking_expert"
+        },
+        {
+          "action": "run_endpoint_frontier_before_average",
+          "carry_forward_measured_probe_set": "coder+thinking",
+          "priority": "p0_first_wave",
+          "priority_score": 0.75,
+          "required_models": "Qwen/Qwen2.5-7B-Instruct; Qwen/Qwen2.5-Coder-7B-Instruct; Qwen/Qwen2.5-Math-7B-Instruct; deepseek-ai/DeepSeek-R1-Distill-Qwen-7B",
+          "scenario_id": "dense_7b_general_code_math_reasoning",
+          "source_roles": "general_instruction_anchor; code_expert; math_expert; reasoning_distill_expert"
+        },
+        {
+          "action": "search_for_stronger_endpoint_complementarity_then_apply_surplus_gate",
+          "carry_forward_measured_probe_set": "coder+thinking",
+          "priority": "p1_after_real_routing_probe",
+          "priority_score": 0.7,
+          "required_models": "verified Qwen3-30B-A3B or Qwen3-Coder-30B-A3B same-shape downstream candidates",
+          "scenario_id": "moe_30b_downstream_adapter_average",
+          "source_roles": "moe_general_anchor; moe_downstream_adapter_or_finetune; optional moe_code_agent_expert"
+        },
+        {
+          "action": "run_endpoint_frontier_before_average",
+          "carry_forward_measured_probe_set": "coder+thinking",
+          "priority": "p1_scale_validation",
+          "priority_score": 0.5,
+          "required_models": "Qwen/Qwen2.5-32B; Qwen/Qwen2.5-32B-Instruct; a-m-team/AM-Thinking-v1; deepseek-ai/DeepSeek-R1-Distill-Qwen-32B; optional Long1K-32B",
+          "scenario_id": "dense_32b_reasoning_long_reasoning",
+          "source_roles": "base_anchor; general_instruction_anchor; reasoning_rl_expert; reasoning_distill_expert; optional long_reasoning_expert"
+        },
+        {
+          "action": "run_endpoint_frontier_before_average",
+          "carry_forward_measured_probe_set": "coder+thinking",
+          "priority": "p1_after_7b_core",
+          "priority_score": 0.5,
+          "required_models": "Qwen/Qwen2.5-7B-Instruct plus a verified same-shape downstream full-finetune or adapter",
+          "scenario_id": "dense_7b_domain_extension",
+          "source_roles": "general_instruction_anchor; selected_domain_expert; optional code/math/reasoning expert"
+        },
+        {
+          "action": "keep_controls_only",
+          "carry_forward_measured_probe_set": "coder+thinking",
+          "priority": "always",
+          "priority_score": 0.05,
+          "required_models": "same endpoints as each scenario",
+          "scenario_id": "negative_controls",
+          "source_roles": "all selected scenarios"
+        }
+      ],
+      "eval_plan": "results/qwen3_average_source_set_optimizer/eval_plan.csv",
+      "eval_plan_rows": [
+        {
+          "candidate_id": "qwen3_moe_coder_thinking_frontier_weighted_probe",
+          "command": "python scripts/build_fp_downstream_matrix.py --help",
+          "examples_per_task": 32,
+          "optimizer_gate": "probe_only_below_interference_budget",
+          "prompt_budget": 96,
+          "reason": "run_larger_endpoint_eval_and_small_weighted_probe_no_final_acceptance",
+          "source_set": "coder+thinking",
+          "status": "endpoint_expansion_or_probe_only",
+          "tasks": "mmlu,gsm8k,humaneval"
+        },
+        {
+          "candidate_id": "qwen3_moe_base_coder_thinking_frontier_weighted_probe",
+          "command": "python scripts/build_fp_downstream_matrix.py --help",
+          "examples_per_task": 32,
+          "optimizer_gate": "probe_only_below_interference_budget",
+          "prompt_budget": 96,
+          "reason": "run_larger_endpoint_eval_and_small_weighted_probe_no_final_acceptance; drop_zero_vote_sources_or_keep_as_anchor_only",
+          "source_set": "base+coder+thinking",
+          "status": "endpoint_expansion_or_probe_only",
+          "tasks": "mmlu,gsm8k,humaneval"
+        },
+        {
+          "candidate_id": "qwen3_moe_base_instruct_frontier_weighted_probe",
+          "command": null,
+          "examples_per_task": 0,
+          "optimizer_gate": "reject_source_dominated",
+          "prompt_budget": 0,
+          "reason": "do_not_materialize_except_negative_control; drop_zero_vote_sources_or_keep_as_anchor_only",
+          "source_set": "base+instruct",
+          "status": "hold_source_dominated",
+          "tasks": null
+        },
+        {
+          "candidate_id": "qwen3_moe_base_coder_frontier_weighted_probe",
+          "command": null,
+          "examples_per_task": 0,
+          "optimizer_gate": "reject_source_dominated",
+          "prompt_budget": 0,
+          "reason": "do_not_materialize_except_negative_control",
+          "source_set": "base+coder",
+          "status": "hold_source_dominated",
+          "tasks": null
+        },
+        {
+          "candidate_id": "qwen3_moe_base_thinking_frontier_weighted_probe",
+          "command": null,
+          "examples_per_task": 0,
+          "optimizer_gate": "reject_source_dominated",
+          "prompt_budget": 0,
+          "reason": "do_not_materialize_except_negative_control; drop_zero_vote_sources_or_keep_as_anchor_only",
+          "source_set": "base+thinking",
+          "status": "hold_source_dominated",
+          "tasks": null
+        },
+        {
+          "candidate_id": "qwen3_moe_instruct_thinking_frontier_weighted_probe",
+          "command": null,
+          "examples_per_task": 0,
+          "optimizer_gate": "reject_source_dominated",
+          "prompt_budget": 0,
+          "reason": "do_not_materialize_except_negative_control; drop_zero_vote_sources_or_keep_as_anchor_only",
+          "source_set": "instruct+thinking",
+          "status": "hold_source_dominated",
+          "tasks": null
+        },
+        {
+          "candidate_id": "qwen3_moe_base_coder_instruct_frontier_weighted_probe",
+          "command": null,
+          "examples_per_task": 0,
+          "optimizer_gate": "reject_source_dominated",
+          "prompt_budget": 0,
+          "reason": "do_not_materialize_except_negative_control; drop_zero_vote_sources_or_keep_as_anchor_only",
+          "source_set": "base+instruct+coder",
+          "status": "hold_source_dominated",
+          "tasks": null
+        },
+        {
+          "candidate_id": "qwen3_moe_base_instruct_thinking_frontier_weighted_probe",
+          "command": null,
+          "examples_per_task": 0,
+          "optimizer_gate": "reject_source_dominated",
+          "prompt_budget": 0,
+          "reason": "do_not_materialize_except_negative_control; drop_zero_vote_sources_or_keep_as_anchor_only",
+          "source_set": "base+instruct+thinking",
+          "status": "hold_source_dominated",
+          "tasks": null
+        },
+        {
+          "candidate_id": "qwen3_moe_base_coder_instruct_thinking_frontier_weighted_probe",
+          "command": null,
+          "examples_per_task": 0,
+          "optimizer_gate": "reject_source_dominated",
+          "prompt_budget": 0,
+          "reason": "do_not_materialize_except_negative_control; drop_zero_vote_sources_or_keep_as_anchor_only",
+          "source_set": "base+instruct+coder+thinking",
+          "status": "hold_source_dominated",
+          "tasks": null
+        },
+        {
+          "candidate_id": "qwen3_moe_coder_instruct_thinking_frontier_weighted_probe",
+          "command": null,
+          "examples_per_task": 0,
+          "optimizer_gate": "reject_source_dominated",
+          "prompt_budget": 0,
+          "reason": "do_not_materialize_except_negative_control; drop_zero_vote_sources_or_keep_as_anchor_only",
+          "source_set": "instruct+coder+thinking",
+          "status": "hold_source_dominated",
+          "tasks": null
+        },
+        {
+          "candidate_id": "qwen3_moe_coder_instruct_frontier_weighted_probe",
+          "command": null,
+          "examples_per_task": 0,
+          "optimizer_gate": "reject_source_dominated",
+          "prompt_budget": 0,
+          "reason": "do_not_materialize_except_negative_control",
+          "source_set": "instruct+coder",
+          "status": "hold_source_dominated",
+          "tasks": null
+        }
+      ],
+      "final_average_budget_candidate_count": 0,
+      "interference_budget": 0.0694444444444443,
+      "interference_budget_source": "max_floor_observed_negative_gap_q0.50",
+      "probe_only_source_set_count": 2,
+      "recipe_rows": [
+        {
+          "active_source_set_key": "coder+thinking",
+          "candidate_id": "qwen3_moe_coder_thinking_frontier_weighted_probe",
+          "expert_policy": "identity_or_aligned_experts_with_task_frontier_source_weights",
+          "optimizer_gate": "probe_only_below_interference_budget",
+          "recommended_action": "run_larger_endpoint_eval_and_small_weighted_probe_no_final_acceptance",
+          "router_policy": "freeze_router_to_best_single_or_anchor_until_router_gate_passes",
+          "same_shape_policy": "preserve config tokenizer model class tensor names tensor shapes expert count and router shape",
+          "source_set": "coder+thinking",
+          "source_weights": "{\"coder\": 0.6666666666666666, \"thinking\": 0.3333333333333333}"
+        },
+        {
+          "active_source_set_key": "coder+thinking",
+          "candidate_id": "qwen3_moe_base_coder_thinking_frontier_weighted_probe",
+          "expert_policy": "identity_or_aligned_experts_with_task_frontier_source_weights",
+          "optimizer_gate": "probe_only_below_interference_budget",
+          "recommended_action": "run_larger_endpoint_eval_and_small_weighted_probe_no_final_acceptance; drop_zero_vote_sources_or_keep_as_anchor_only",
+          "router_policy": "freeze_router_to_best_single_or_anchor_until_router_gate_passes",
+          "same_shape_policy": "preserve config tokenizer model class tensor names tensor shapes expert count and router shape",
+          "source_set": "base+coder+thinking",
+          "source_weights": "{\"base\": 0.0, \"coder\": 0.6666666666666666, \"thinking\": 0.3333333333333333}"
+        },
+        {
+          "active_source_set_key": "instruct",
+          "candidate_id": "qwen3_moe_base_instruct_frontier_weighted_probe",
+          "expert_policy": "identity_or_aligned_experts_with_task_frontier_source_weights",
+          "optimizer_gate": "reject_source_dominated",
+          "recommended_action": "do_not_materialize_except_negative_control; drop_zero_vote_sources_or_keep_as_anchor_only",
+          "router_policy": "freeze_router_to_best_single_or_anchor_until_router_gate_passes",
+          "same_shape_policy": "preserve config tokenizer model class tensor names tensor shapes expert count and router shape",
+          "source_set": "base+instruct",
+          "source_weights": "{\"base\": 0.0, \"instruct\": 1.0}"
+        },
+        {
+          "active_source_set_key": "base+coder",
+          "candidate_id": "qwen3_moe_base_coder_frontier_weighted_probe",
+          "expert_policy": "identity_or_aligned_experts_with_task_frontier_source_weights",
+          "optimizer_gate": "reject_source_dominated",
+          "recommended_action": "do_not_materialize_except_negative_control",
+          "router_policy": "freeze_router_to_best_single_or_anchor_until_router_gate_passes",
+          "same_shape_policy": "preserve config tokenizer model class tensor names tensor shapes expert count and router shape",
+          "source_set": "base+coder",
+          "source_weights": "{\"base\": 0.16666666666666666, \"coder\": 0.8333333333333334}"
+        },
+        {
+          "active_source_set_key": "thinking",
+          "candidate_id": "qwen3_moe_base_thinking_frontier_weighted_probe",
+          "expert_policy": "identity_or_aligned_experts_with_task_frontier_source_weights",
+          "optimizer_gate": "reject_source_dominated",
+          "recommended_action": "do_not_materialize_except_negative_control; drop_zero_vote_sources_or_keep_as_anchor_only",
+          "router_policy": "freeze_router_to_best_single_or_anchor_until_router_gate_passes",
+          "same_shape_policy": "preserve config tokenizer model class tensor names tensor shapes expert count and router shape",
+          "source_set": "base+thinking",
+          "source_weights": "{\"base\": 0.0, \"thinking\": 1.0}"
+        },
+        {
+          "active_source_set_key": "instruct",
+          "candidate_id": "qwen3_moe_instruct_thinking_frontier_weighted_probe",
+          "expert_policy": "identity_or_aligned_experts_with_task_frontier_source_weights",
+          "optimizer_gate": "reject_source_dominated",
+          "recommended_action": "do_not_materialize_except_negative_control; drop_zero_vote_sources_or_keep_as_anchor_only",
+          "router_policy": "freeze_router_to_best_single_or_anchor_until_router_gate_passes",
+          "same_shape_policy": "preserve config tokenizer model class tensor names tensor shapes expert count and router shape",
+          "source_set": "instruct+thinking",
+          "source_weights": "{\"instruct\": 1.0, \"thinking\": 0.0}"
+        },
+        {
+          "active_source_set_key": "coder+instruct",
+          "candidate_id": "qwen3_moe_base_coder_instruct_frontier_weighted_probe",
+          "expert_policy": "identity_or_aligned_experts_with_task_frontier_source_weights",
+          "optimizer_gate": "reject_source_dominated",
+          "recommended_action": "do_not_materialize_except_negative_control; drop_zero_vote_sources_or_keep_as_anchor_only",
+          "router_policy": "freeze_router_to_best_single_or_anchor_until_router_gate_passes",
+          "same_shape_policy": "preserve config tokenizer model class tensor names tensor shapes expert count and router shape",
+          "source_set": "base+instruct+coder",
+          "source_weights": "{\"base\": 0.0, \"coder\": 0.3333333333333333, \"instruct\": 0.6666666666666666}"
+        },
+        {
+          "active_source_set_key": "instruct",
+          "candidate_id": "qwen3_moe_base_instruct_thinking_frontier_weighted_probe",
+          "expert_policy": "identity_or_aligned_experts_with_task_frontier_source_weights",
+          "optimizer_gate": "reject_source_dominated",
+          "recommended_action": "do_not_materialize_except_negative_control; drop_zero_vote_sources_or_keep_as_anchor_only",
+          "router_policy": "freeze_router_to_best_single_or_anchor_until_router_gate_passes",
+          "same_shape_policy": "preserve config tokenizer model class tensor names tensor shapes expert count and router shape",
+          "source_set": "base+instruct+thinking",
+          "source_weights": "{\"base\": 0.0, \"instruct\": 1.0, \"thinking\": 0.0}"
+        },
+        {
+          "active_source_set_key": "coder+instruct",
+          "candidate_id": "qwen3_moe_base_coder_instruct_thinking_frontier_weighted_probe",
+          "expert_policy": "identity_or_aligned_experts_with_task_frontier_source_weights",
+          "optimizer_gate": "reject_source_dominated",
+          "recommended_action": "do_not_materialize_except_negative_control; drop_zero_vote_sources_or_keep_as_anchor_only",
+          "router_policy": "freeze_router_to_best_single_or_anchor_until_router_gate_passes",
+          "same_shape_policy": "preserve config tokenizer model class tensor names tensor shapes expert count and router shape",
+          "source_set": "base+instruct+coder+thinking",
+          "source_weights": "{\"base\": 0.0, \"coder\": 0.3333333333333333, \"instruct\": 0.6666666666666666, \"thinking\": 0.0}"
+        },
+        {
+          "active_source_set_key": "coder+instruct",
+          "candidate_id": "qwen3_moe_coder_instruct_thinking_frontier_weighted_probe",
+          "expert_policy": "identity_or_aligned_experts_with_task_frontier_source_weights",
+          "optimizer_gate": "reject_source_dominated",
+          "recommended_action": "do_not_materialize_except_negative_control; drop_zero_vote_sources_or_keep_as_anchor_only",
+          "router_policy": "freeze_router_to_best_single_or_anchor_until_router_gate_passes",
+          "same_shape_policy": "preserve config tokenizer model class tensor names tensor shapes expert count and router shape",
+          "source_set": "instruct+coder+thinking",
+          "source_weights": "{\"coder\": 0.3333333333333333, \"instruct\": 0.6666666666666666, \"thinking\": 0.0}"
+        },
+        {
+          "active_source_set_key": "coder+instruct",
+          "candidate_id": "qwen3_moe_coder_instruct_frontier_weighted_probe",
+          "expert_policy": "identity_or_aligned_experts_with_task_frontier_source_weights",
+          "optimizer_gate": "reject_source_dominated",
+          "recommended_action": "do_not_materialize_except_negative_control",
+          "router_policy": "freeze_router_to_best_single_or_anchor_until_router_gate_passes",
+          "same_shape_policy": "preserve config tokenizer model class tensor names tensor shapes expert count and router shape",
+          "source_set": "instruct+coder",
+          "source_weights": "{\"coder\": 0.3333333333333333, \"instruct\": 0.6666666666666666}"
+        }
+      ],
+      "rejected_source_dominated_count": 9,
+      "report": "results/qwen3_average_source_set_optimizer/report.md",
+      "source_discovery_queue": "results/qwen3_average_source_set_optimizer/source_discovery_queue.csv",
+      "source_set_count": 11,
+      "source_weight_recipes": "results/qwen3_average_source_set_optimizer/source_weight_recipes.csv",
+      "status": "source_set_surplus_optimizer_ready",
+      "summary": {
+        "best_repaired_abs_observed_gap": 0.0638888888888887,
+        "final_average_budget_candidate_count": 0,
+        "interference_budget": 0.0694444444444443,
+        "interference_budget_source": "max_floor_observed_negative_gap_q0.50",
+        "literature_priors": [
+          {
+            "key": "mode_connectivity",
+            "mechanism": "A source-set average is plausible only when the probed path stays in a low-loss component.",
+            "source": "https://arxiv.org/abs/1802.10026"
+          },
+          {
+            "key": "model_soups",
+            "mechanism": "Weight averaging helps when fine-tunes are in one basin; endpoint fallback remains part of the recipe.",
+            "source": "https://arxiv.org/abs/2203.05482"
+          },
+          {
+            "key": "ties",
+            "mechanism": "Coordinate interference can erase useful deltas, so source/task gains must exceed merge interference.",
+            "source": "https://arxiv.org/abs/2306.01708"
+          },
+          {
+            "key": "expert_merging",
+            "mechanism": "Layer/chunk coefficients should be driven by calibration behavior, not a fixed global coefficient.",
+            "source": "https://arxiv.org/abs/2509.25712"
+          },
+          {
+            "key": "sub_moe",
+            "mechanism": "MoE expert similarity and subspace conflict are better signals than tensor names alone.",
+            "source": "https://arxiv.org/abs/2506.23266"
+          },
+          {
+            "key": "harc",
+            "mechanism": "MoE router perturbations can break top-k dispatch, so source-set averaging must keep router repair as a separate gate.",
+            "source": "https://arxiv.org/abs/2606.03391"
+          }
+        ],
+        "matrix": "results/fp_downstream_matrix/matrix.csv",
+        "mechanism_equation": "promote average only if source_frontier_gain - observed_merge_interference_budget >= 0; otherwise use the source set for endpoint expansion or probe-only materialization",
+        "median_abs_negative_observed_gap": 0.0694444444444443,
+        "min_interference_budget": 0.03,
+        "negative_observed_merge_gap_count": 3,
+        "observed_merge_gaps": "results/qwen3_source_set_complementarity_gate/observed_merge_gaps.csv",
+        "outputs": {
+          "candidate_source_sets": "results/qwen3_average_source_set_optimizer/candidate_source_sets.csv",
+          "eval_plan": "results/qwen3_average_source_set_optimizer/eval_plan.csv",
+          "report": "results/qwen3_average_source_set_optimizer/report.md",
+          "source_discovery_queue": "results/qwen3_average_source_set_optimizer/source_discovery_queue.csv",
+          "source_weight_recipes": "results/qwen3_average_source_set_optimizer/source_weight_recipes.csv",
+          "summary": "results/qwen3_average_source_set_optimizer/summary.json"
+        },
+        "probe_only_source_set_count": 2,
+        "probe_surplus_margin": 0.0,
+        "rejected_source_dominated_count": 9,
+        "schema_version": 1,
+        "source_set_count": 11,
+        "source_set_gate": "results/qwen3_source_set_complementarity_gate/source_set_gate.csv",
+        "status": "source_set_surplus_optimizer_ready",
+        "task_win_margin": 0.005,
+        "top_source_set": {
+          "active_source_set_key": "coder+thinking",
+          "candidate_id": "qwen3_moe_coder_thinking_frontier_weighted_probe",
+          "frontier_avg_gain_vs_best_single": 0.0083333333333333,
+          "frontier_avg_surplus_vs_interference": -0.06111111111111099,
+          "frontier_worst_gain_vs_best_single": 0.0249999999999999,
+          "optimizer_gate": "probe_only_below_interference_budget",
+          "priority_score": 0.6333333333333333,
+          "recommended_action": "run_larger_endpoint_eval_and_small_weighted_probe_no_final_acceptance",
+          "source_set": "coder+thinking",
+          "source_set_key": "coder+thinking",
+          "source_weights": "{\"coder\": 0.6666666666666666, \"thinking\": 0.3333333333333333}"
+        }
+      },
+      "summary_path": "results/qwen3_average_source_set_optimizer/summary.json",
+      "top_candidate_id": "qwen3_moe_coder_thinking_frontier_weighted_probe",
+      "top_frontier_avg_gain_vs_best_single": 0.0083333333333333,
+      "top_frontier_avg_surplus_vs_interference": -0.06111111111111099,
+      "top_frontier_worst_gain_vs_best_single": 0.0249999999999999,
+      "top_optimizer_gate": "probe_only_below_interference_budget",
+      "top_recommended_action": "run_larger_endpoint_eval_and_small_weighted_probe_no_final_acceptance",
+      "top_source_set": "coder+thinking",
+      "top_source_weights": "{\"coder\": 0.6666666666666666, \"thinking\": 0.3333333333333333}"
     },
     "qwen3_moe_adaptive_eval_schedule": {
       "best_structural_method": "qwen3_moe_mechanistic_unified_candidate",
@@ -33479,7 +34212,7 @@
       "mechanistic_sensitivity_strongest_objective_delta": 0.0033572134591372538,
       "mechanistic_sensitivity_strongest_scale_ablation": "no_subspace_conflict",
       "mechanistic_status": "mechanistic_unified_candidate_ready",
-      "passed_step_count": 29,
+      "passed_step_count": 30,
       "report": "results/qwen3_moe_post_eval_refresh/report.md",
       "router_coupled_candidate_delta_reduction": 0.0011349698502332028,
       "router_coupled_candidate_retention": 0.9619428055490395,
@@ -33503,11 +34236,11 @@
       "selection_reason": "Both Qwen3 source endpoints must complete matched vLLM downstream eval before accepting an average.",
       "selection_status": "awaiting_source_eval",
       "status": "passed",
-      "step_count": 29,
+      "step_count": 30,
       "step_rows": [
         {
           "command": "python scripts/build_qwen3_moe_candidate_trust_region_gate.py --gate-plan results/qwen3_moe_mechanism_eval_gate/eval_gate_plan.csv --output-dir results/qwen3_moe_candidate_trust_region_gate",
-          "duration_sec": 0.4409523010253906,
+          "duration_sec": 0.3921253681182861,
           "kind": "gate",
           "returncode": 0,
           "status": "passed",
@@ -33517,7 +34250,7 @@
         },
         {
           "command": "python scripts/plan_qwen3_moe_eval_budget.py --gate-dir results/qwen3_moe_mechanism_eval_gate --candidate-trust-gate results/qwen3_moe_candidate_trust_region_gate/candidate_trust_region_gate.csv --output-dir results/qwen3_moe_eval_budget_plan",
-          "duration_sec": 0.4591047763824463,
+          "duration_sec": 0.480332612991333,
           "kind": "planner",
           "returncode": 0,
           "status": "passed",
@@ -33527,7 +34260,7 @@
         },
         {
           "command": "python scripts/audit_qwen3_moe_eval_bundle.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_eval_bundle_audit",
-          "duration_sec": 0.4278433322906494,
+          "duration_sec": 0.5686647891998291,
           "kind": "gate",
           "returncode": 0,
           "status": "passed",
@@ -33537,7 +34270,7 @@
         },
         {
           "command": "python scripts/select_qwen3_moe_unified_result.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_unified_result_selection",
-          "duration_sec": 0.4195747375488281,
+          "duration_sec": 0.4960875511169433,
           "kind": "selector",
           "returncode": 0,
           "status": "passed",
@@ -33547,7 +34280,7 @@
         },
         {
           "command": "python scripts/select_qwen3_moe_final_candidate.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_final_candidate_selection --candidate-trust-gate results/qwen3_moe_candidate_trust_region_gate/candidate_trust_region_gate.csv",
-          "duration_sec": 0.4328725337982178,
+          "duration_sec": 0.5484249591827393,
           "kind": "selector",
           "returncode": 0,
           "status": "passed",
@@ -33557,7 +34290,7 @@
         },
         {
           "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_mechanism_effect_attribution",
-          "duration_sec": 0.4196474552154541,
+          "duration_sec": 0.466989517211914,
           "kind": "attribution",
           "returncode": 0,
           "status": "passed",
@@ -33567,7 +34300,7 @@
         },
         {
           "command": "python scripts/build_qwen3_moe_feedback_optimizer.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_feedback_optimizer",
-          "duration_sec": 1.0912189483642578,
+          "duration_sec": 1.1542952060699463,
           "kind": "optimizer",
           "returncode": 0,
           "status": "passed",
@@ -33577,7 +34310,7 @@
         },
         {
           "command": "python scripts/build_qwen3_moe_mechanistic_unified_candidate.py --output-dir results/qwen3_moe_mechanistic_unified_candidate",
-          "duration_sec": 2.6083381175994877,
+          "duration_sec": 2.793190717697144,
           "kind": "optimizer",
           "returncode": 0,
           "status": "passed",
@@ -33587,7 +34320,7 @@
         },
         {
           "command": "python scripts/audit_qwen3_moe_mechanistic_evidence.py --output-dir results/qwen3_moe_mechanistic_evidence_audit",
-          "duration_sec": 1.5779788494110107,
+          "duration_sec": 1.532829523086548,
           "kind": "attribution",
           "returncode": 0,
           "status": "passed",
@@ -33597,7 +34330,7 @@
         },
         {
           "command": "python scripts/analyze_qwen3_moe_mechanistic_sensitivity.py --output-dir results/qwen3_moe_mechanistic_sensitivity",
-          "duration_sec": 17.059817790985107,
+          "duration_sec": 17.040668964385986,
           "kind": "attribution",
           "returncode": 0,
           "status": "passed",
@@ -33607,7 +34340,7 @@
         },
         {
           "command": "python scripts/analyze_qwen3_moe_router_expert_coupling.py --output-dir results/qwen3_moe_router_expert_coupling",
-          "duration_sec": 0.827908992767334,
+          "duration_sec": 0.8019986152648926,
           "kind": "attribution",
           "returncode": 0,
           "status": "passed",
@@ -33617,7 +34350,7 @@
         },
         {
           "command": "python scripts/build_qwen3_moe_router_coupled_candidate.py --output-dir results/qwen3_moe_router_coupled_candidate",
-          "duration_sec": 1.2981808185577393,
+          "duration_sec": 1.352795124053955,
           "kind": "optimizer",
           "returncode": 0,
           "status": "passed",
@@ -33627,7 +34360,7 @@
         },
         {
           "command": "python scripts/analyze_qwen3_moe_router_coupled_retention_frontier.py --output-dir results/qwen3_moe_router_coupled_retention_frontier",
-          "duration_sec": 3.5353353023529053,
+          "duration_sec": 3.5627307891845703,
           "kind": "attribution",
           "returncode": 0,
           "status": "passed",
@@ -33637,7 +34370,7 @@
         },
         {
           "command": "python scripts/build_qwen3_source_set_complementarity_gate.py --output-dir results/qwen3_source_set_complementarity_gate",
-          "duration_sec": 0.480154275894165,
+          "duration_sec": 0.4048423767089844,
           "kind": "gate",
           "returncode": 0,
           "status": "passed",
@@ -33646,8 +34379,18 @@
           "step": "build_source_set_complementarity_gate"
         },
         {
+          "command": "python scripts/build_qwen3_average_source_set_optimizer.py --output-dir results/qwen3_average_source_set_optimizer",
+          "duration_sec": 0.443321943283081,
+          "kind": "optimizer",
+          "returncode": 0,
+          "status": "passed",
+          "stderr_tail": null,
+          "stdout_tail": "Wrote Qwen3 average source-set optimizer to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_average_source_set_optimizer\nStatus: source_set_surplus_optimizer_ready; top=coder+thinking gate=probe_only_below_interference_budget\n",
+          "step": "build_average_source_set_optimizer"
+        },
+        {
           "command": "python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer",
-          "duration_sec": 0.4238419532775879,
+          "duration_sec": 0.4748287200927734,
           "kind": "optimizer",
           "returncode": 0,
           "status": "passed",
@@ -33657,7 +34400,7 @@
         },
         {
           "command": "python scripts/build_average_method_gate_matrix.py --output-dir results/average_method_gate_matrix --optimizer-summary results/unified_average_optimizer/summary.json --optimizer-features results/unified_average_optimizer/mechanism_features.csv",
-          "duration_sec": 0.4244017601013183,
+          "duration_sec": 0.4177236557006836,
           "kind": "optimizer",
           "returncode": 0,
           "status": "passed",
@@ -33667,7 +34410,7 @@
         },
         {
           "command": "python scripts/build_average_trust_region_bounds.py --output-dir results/average_trust_region_bounds",
-          "duration_sec": 0.3985896110534668,
+          "duration_sec": 0.4385085105895996,
           "kind": "optimizer",
           "returncode": 0,
           "status": "passed",
@@ -33677,7 +34420,7 @@
         },
         {
           "command": "python scripts/analyze_qwen3_moe_mechanism_levers.py --eval-budget-dir results/qwen3_moe_eval_budget_plan --output-dir results/qwen3_moe_mechanism_levers",
-          "duration_sec": 0.4391353130340576,
+          "duration_sec": 0.4298276901245117,
           "kind": "attribution",
           "returncode": 0,
           "status": "passed",
@@ -33687,7 +34430,7 @@
         },
         {
           "command": "python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke",
-          "duration_sec": 0.6864182949066162,
+          "duration_sec": 0.6865618228912354,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -33697,7 +34440,7 @@
         },
         {
           "command": "python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke",
-          "duration_sec": 0.3992195129394531,
+          "duration_sec": 0.397472620010376,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -33707,7 +34450,7 @@
         },
         {
           "command": "python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke",
-          "duration_sec": 0.5028798580169678,
+          "duration_sec": 0.5195794105529785,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -33717,7 +34460,7 @@
         },
         {
           "command": "python scripts/smoke_qwen3_moe_eval_budget_queue.py --eval-budget-dir results/qwen3_moe_eval_budget_plan --candidate-trust-gate results/qwen3_moe_candidate_trust_region_gate/candidate_trust_region_gate.csv --output-dir results/qwen3_moe_eval_budget_queue_smoke",
-          "duration_sec": 0.4235403537750244,
+          "duration_sec": 0.4335556030273437,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -33727,7 +34470,7 @@
         },
         {
           "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --smoke-matrix --output-dir results/qwen3_moe_mechanism_effect_attribution_smoke",
-          "duration_sec": 0.4098556041717529,
+          "duration_sec": 0.4366593360900879,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -33737,7 +34480,7 @@
         },
         {
           "command": "python scripts/build_qwen3_moe_feedback_optimizer.py --smoke-matrix --output-dir results/qwen3_moe_feedback_optimizer_smoke",
-          "duration_sec": 0.4606437683105469,
+          "duration_sec": 0.4788160324096679,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -33747,7 +34490,7 @@
         },
         {
           "command": "python scripts/build_qwen3_moe_mechanistic_unified_candidate.py --smoke-matrix --output-dir results/qwen3_moe_mechanistic_unified_candidate_smoke",
-          "duration_sec": 1.6806364059448242,
+          "duration_sec": 1.6693501472473145,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -33757,7 +34500,7 @@
         },
         {
           "command": "python scripts/smoke_unified_average_optimizer_ledger.py --summary results/unified_average_optimizer/summary.json --output-dir results/unified_average_optimizer_ledger_smoke",
-          "duration_sec": 0.4374661445617676,
+          "duration_sec": 0.8167243003845215,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -33767,7 +34510,7 @@
         },
         {
           "command": "python scripts/smoke_average_method_gate_matrix.py --optimizer-summary results/unified_average_optimizer/summary.json --method-gate-dir results/average_method_gate_matrix --output-dir results/average_method_gate_matrix_consistency_smoke",
-          "duration_sec": 0.4378292560577392,
+          "duration_sec": 0.5987820625305176,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -33777,7 +34520,7 @@
         },
         {
           "command": "python scripts/smoke_average_trust_region_bounds.py --bounds-dir results/average_trust_region_bounds --output-dir results/average_trust_region_bounds_smoke",
-          "duration_sec": 0.410830020904541,
+          "duration_sec": 0.6909263134002686,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -33787,12 +34530,12 @@
         },
         {
           "command": "python scripts/collect_results.py",
-          "duration_sec": 1.6791722774505615,
+          "duration_sec": 1.723590612411499,
           "kind": "summary",
           "returncode": 0,
           "status": "passed",
           "stderr_tail": null,
-          "stdout_tail": "Wrote results/summary.json\nWrote results/summary.md\nWrote ARTIFACT_MANIFEST.json\nArtifacts indexed: 1234\n",
+          "stdout_tail": "Wrote results/summary.json\nWrote results/summary.md\nWrote ARTIFACT_MANIFEST.json\nArtifacts indexed: 1241\n",
           "step": "collect_results"
         }
       ],
@@ -33812,6 +34555,14 @@
           "average_method_gate_smoke_passed": 5,
           "average_method_gate_smoke_status": "passed",
           "average_method_gate_status": "built_from_current_probe_evidence",
+          "average_source_set_optimizer_final_budget_candidates": 0,
+          "average_source_set_optimizer_interference_budget": 0.0694444444444443,
+          "average_source_set_optimizer_probe_only": 2,
+          "average_source_set_optimizer_status": "source_set_surplus_optimizer_ready",
+          "average_source_set_optimizer_top_gain": 0.0083333333333333,
+          "average_source_set_optimizer_top_gate": "probe_only_below_interference_budget",
+          "average_source_set_optimizer_top_source_set": "coder+thinking",
+          "average_source_set_optimizer_top_surplus": -0.06111111111111099,
           "average_trust_region_bounds_constraints": 11,
           "average_trust_region_bounds_passed": 2,
           "average_trust_region_bounds_rejected": 7,
@@ -33893,8 +34644,8 @@
             "downstream_source_dominance_gate",
             "final_unified_average_acceptance"
           ],
-          "unified_optimizer_contract_passed": 10,
-          "unified_optimizer_contract_requirements": 12,
+          "unified_optimizer_contract_passed": 11,
+          "unified_optimizer_contract_requirements": 13,
           "unified_optimizer_contract_status": "blocked_on_downstream_eval",
           "unified_optimizer_final_confidence_tie_band": true,
           "unified_optimizer_final_rank_band_size": 0,
@@ -33912,16 +34663,16 @@
           "steps": "results/qwen3_moe_post_eval_refresh/steps.csv",
           "summary": "results/qwen3_moe_post_eval_refresh/summary.json"
         },
-        "passed_step_count": 29,
+        "passed_step_count": 30,
         "plan_only": false,
         "planned_step_count": 0,
         "schema_version": 1,
         "status": "passed",
-        "step_count": 29,
+        "step_count": 30,
         "steps": [
           {
             "command": "python scripts/build_qwen3_moe_candidate_trust_region_gate.py --gate-plan results/qwen3_moe_mechanism_eval_gate/eval_gate_plan.csv --output-dir results/qwen3_moe_candidate_trust_region_gate",
-            "duration_sec": 0.4409523010253906,
+            "duration_sec": 0.39212536811828613,
             "kind": "gate",
             "returncode": 0,
             "status": "passed",
@@ -33931,7 +34682,7 @@
           },
           {
             "command": "python scripts/plan_qwen3_moe_eval_budget.py --gate-dir results/qwen3_moe_mechanism_eval_gate --candidate-trust-gate results/qwen3_moe_candidate_trust_region_gate/candidate_trust_region_gate.csv --output-dir results/qwen3_moe_eval_budget_plan",
-            "duration_sec": 0.4591047763824463,
+            "duration_sec": 0.480332612991333,
             "kind": "planner",
             "returncode": 0,
             "status": "passed",
@@ -33941,7 +34692,7 @@
           },
           {
             "command": "python scripts/audit_qwen3_moe_eval_bundle.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_eval_bundle_audit",
-            "duration_sec": 0.4278433322906494,
+            "duration_sec": 0.5686647891998291,
             "kind": "gate",
             "returncode": 0,
             "status": "passed",
@@ -33951,7 +34702,7 @@
           },
           {
             "command": "python scripts/select_qwen3_moe_unified_result.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_unified_result_selection",
-            "duration_sec": 0.4195747375488281,
+            "duration_sec": 0.49608755111694336,
             "kind": "selector",
             "returncode": 0,
             "status": "passed",
@@ -33961,7 +34712,7 @@
           },
           {
             "command": "python scripts/select_qwen3_moe_final_candidate.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_final_candidate_selection --candidate-trust-gate results/qwen3_moe_candidate_trust_region_gate/candidate_trust_region_gate.csv",
-            "duration_sec": 0.4328725337982178,
+            "duration_sec": 0.5484249591827393,
             "kind": "selector",
             "returncode": 0,
             "status": "passed",
@@ -33971,7 +34722,7 @@
           },
           {
             "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_mechanism_effect_attribution",
-            "duration_sec": 0.4196474552154541,
+            "duration_sec": 0.46698951721191406,
             "kind": "attribution",
             "returncode": 0,
             "status": "passed",
@@ -33981,7 +34732,7 @@
           },
           {
             "command": "python scripts/build_qwen3_moe_feedback_optimizer.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_feedback_optimizer",
-            "duration_sec": 1.0912189483642578,
+            "duration_sec": 1.1542952060699463,
             "kind": "optimizer",
             "returncode": 0,
             "status": "passed",
@@ -33991,7 +34742,7 @@
           },
           {
             "command": "python scripts/build_qwen3_moe_mechanistic_unified_candidate.py --output-dir results/qwen3_moe_mechanistic_unified_candidate",
-            "duration_sec": 2.6083381175994873,
+            "duration_sec": 2.7931907176971436,
             "kind": "optimizer",
             "returncode": 0,
             "status": "passed",
@@ -34001,7 +34752,7 @@
           },
           {
             "command": "python scripts/audit_qwen3_moe_mechanistic_evidence.py --output-dir results/qwen3_moe_mechanistic_evidence_audit",
-            "duration_sec": 1.5779788494110107,
+            "duration_sec": 1.5328295230865479,
             "kind": "attribution",
             "returncode": 0,
             "status": "passed",
@@ -34011,7 +34762,7 @@
           },
           {
             "command": "python scripts/analyze_qwen3_moe_mechanistic_sensitivity.py --output-dir results/qwen3_moe_mechanistic_sensitivity",
-            "duration_sec": 17.059817790985107,
+            "duration_sec": 17.040668964385986,
             "kind": "attribution",
             "returncode": 0,
             "status": "passed",
@@ -34021,7 +34772,7 @@
           },
           {
             "command": "python scripts/analyze_qwen3_moe_router_expert_coupling.py --output-dir results/qwen3_moe_router_expert_coupling",
-            "duration_sec": 0.827908992767334,
+            "duration_sec": 0.8019986152648926,
             "kind": "attribution",
             "returncode": 0,
             "status": "passed",
@@ -34031,7 +34782,7 @@
           },
           {
             "command": "python scripts/build_qwen3_moe_router_coupled_candidate.py --output-dir results/qwen3_moe_router_coupled_candidate",
-            "duration_sec": 1.2981808185577393,
+            "duration_sec": 1.352795124053955,
             "kind": "optimizer",
             "returncode": 0,
             "status": "passed",
@@ -34041,7 +34792,7 @@
           },
           {
             "command": "python scripts/analyze_qwen3_moe_router_coupled_retention_frontier.py --output-dir results/qwen3_moe_router_coupled_retention_frontier",
-            "duration_sec": 3.5353353023529053,
+            "duration_sec": 3.5627307891845703,
             "kind": "attribution",
             "returncode": 0,
             "status": "passed",
@@ -34051,7 +34802,7 @@
           },
           {
             "command": "python scripts/build_qwen3_source_set_complementarity_gate.py --output-dir results/qwen3_source_set_complementarity_gate",
-            "duration_sec": 0.48015427589416504,
+            "duration_sec": 0.4048423767089844,
             "kind": "gate",
             "returncode": 0,
             "status": "passed",
@@ -34060,8 +34811,18 @@
             "step": "build_source_set_complementarity_gate"
           },
           {
+            "command": "python scripts/build_qwen3_average_source_set_optimizer.py --output-dir results/qwen3_average_source_set_optimizer",
+            "duration_sec": 0.44332194328308105,
+            "kind": "optimizer",
+            "returncode": 0,
+            "status": "passed",
+            "stderr_tail": "",
+            "stdout_tail": "Wrote Qwen3 average source-set optimizer to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_average_source_set_optimizer\nStatus: source_set_surplus_optimizer_ready; top=coder+thinking gate=probe_only_below_interference_budget\n",
+            "step": "build_average_source_set_optimizer"
+          },
+          {
             "command": "python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer",
-            "duration_sec": 0.4238419532775879,
+            "duration_sec": 0.47482872009277344,
             "kind": "optimizer",
             "returncode": 0,
             "status": "passed",
@@ -34071,7 +34832,7 @@
           },
           {
             "command": "python scripts/build_average_method_gate_matrix.py --output-dir results/average_method_gate_matrix --optimizer-summary results/unified_average_optimizer/summary.json --optimizer-features results/unified_average_optimizer/mechanism_features.csv",
-            "duration_sec": 0.42440176010131836,
+            "duration_sec": 0.4177236557006836,
             "kind": "optimizer",
             "returncode": 0,
             "status": "passed",
@@ -34081,7 +34842,7 @@
           },
           {
             "command": "python scripts/build_average_trust_region_bounds.py --output-dir results/average_trust_region_bounds",
-            "duration_sec": 0.3985896110534668,
+            "duration_sec": 0.4385085105895996,
             "kind": "optimizer",
             "returncode": 0,
             "status": "passed",
@@ -34091,7 +34852,7 @@
           },
           {
             "command": "python scripts/analyze_qwen3_moe_mechanism_levers.py --eval-budget-dir results/qwen3_moe_eval_budget_plan --output-dir results/qwen3_moe_mechanism_levers",
-            "duration_sec": 0.4391353130340576,
+            "duration_sec": 0.4298276901245117,
             "kind": "attribution",
             "returncode": 0,
             "status": "passed",
@@ -34101,7 +34862,7 @@
           },
           {
             "command": "python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke",
-            "duration_sec": 0.6864182949066162,
+            "duration_sec": 0.6865618228912354,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -34111,7 +34872,7 @@
           },
           {
             "command": "python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke",
-            "duration_sec": 0.3992195129394531,
+            "duration_sec": 0.397472620010376,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -34121,7 +34882,7 @@
           },
           {
             "command": "python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke",
-            "duration_sec": 0.5028798580169678,
+            "duration_sec": 0.5195794105529785,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -34131,7 +34892,7 @@
           },
           {
             "command": "python scripts/smoke_qwen3_moe_eval_budget_queue.py --eval-budget-dir results/qwen3_moe_eval_budget_plan --candidate-trust-gate results/qwen3_moe_candidate_trust_region_gate/candidate_trust_region_gate.csv --output-dir results/qwen3_moe_eval_budget_queue_smoke",
-            "duration_sec": 0.4235403537750244,
+            "duration_sec": 0.43355560302734375,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -34141,7 +34902,7 @@
           },
           {
             "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --smoke-matrix --output-dir results/qwen3_moe_mechanism_effect_attribution_smoke",
-            "duration_sec": 0.40985560417175293,
+            "duration_sec": 0.4366593360900879,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -34151,7 +34912,7 @@
           },
           {
             "command": "python scripts/build_qwen3_moe_feedback_optimizer.py --smoke-matrix --output-dir results/qwen3_moe_feedback_optimizer_smoke",
-            "duration_sec": 0.4606437683105469,
+            "duration_sec": 0.47881603240966797,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -34161,7 +34922,7 @@
           },
           {
             "command": "python scripts/build_qwen3_moe_mechanistic_unified_candidate.py --smoke-matrix --output-dir results/qwen3_moe_mechanistic_unified_candidate_smoke",
-            "duration_sec": 1.6806364059448242,
+            "duration_sec": 1.6693501472473145,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -34171,7 +34932,7 @@
           },
           {
             "command": "python scripts/smoke_unified_average_optimizer_ledger.py --summary results/unified_average_optimizer/summary.json --output-dir results/unified_average_optimizer_ledger_smoke",
-            "duration_sec": 0.4374661445617676,
+            "duration_sec": 0.8167243003845215,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -34181,7 +34942,7 @@
           },
           {
             "command": "python scripts/smoke_average_method_gate_matrix.py --optimizer-summary results/unified_average_optimizer/summary.json --method-gate-dir results/average_method_gate_matrix --output-dir results/average_method_gate_matrix_consistency_smoke",
-            "duration_sec": 0.43782925605773926,
+            "duration_sec": 0.5987820625305176,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -34191,7 +34952,7 @@
           },
           {
             "command": "python scripts/smoke_average_trust_region_bounds.py --bounds-dir results/average_trust_region_bounds --output-dir results/average_trust_region_bounds_smoke",
-            "duration_sec": 0.410830020904541,
+            "duration_sec": 0.6909263134002686,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -34201,12 +34962,12 @@
           },
           {
             "command": "python scripts/collect_results.py",
-            "duration_sec": 1.6791722774505615,
+            "duration_sec": 1.723590612411499,
             "kind": "summary",
             "returncode": 0,
             "status": "passed",
             "stderr_tail": "",
-            "stdout_tail": "Wrote results/summary.json\nWrote results/summary.md\nWrote ARTIFACT_MANIFEST.json\nArtifacts indexed: 1234\n",
+            "stdout_tail": "Wrote results/summary.json\nWrote results/summary.md\nWrote ARTIFACT_MANIFEST.json\nArtifacts indexed: 1241\n",
             "step": "collect_results"
           }
         ]
@@ -34214,10 +34975,10 @@
       "summary_path": "results/qwen3_moe_post_eval_refresh/summary.json"
     },
     "qwen3_moe_post_eval_refresh_plan": {
-      "planned_step_count": 29,
+      "planned_step_count": 30,
       "report": "results/qwen3_moe_post_eval_refresh_plan/report.md",
       "status": "planned",
-      "step_count": 29,
+      "step_count": 30,
       "step_rows": [
         {
           "command": "python scripts/build_qwen3_moe_candidate_trust_region_gate.py --gate-plan results/qwen3_moe_mechanism_eval_gate/eval_gate_plan.csv --output-dir results/qwen3_moe_candidate_trust_region_gate",
@@ -34358,6 +35119,16 @@
           "stderr_tail": null,
           "stdout_tail": null,
           "step": "build_source_set_complementarity_gate"
+        },
+        {
+          "command": "python scripts/build_qwen3_average_source_set_optimizer.py --output-dir results/qwen3_average_source_set_optimizer",
+          "duration_sec": 0.0,
+          "kind": "optimizer",
+          "returncode": null,
+          "status": "planned",
+          "stderr_tail": null,
+          "stdout_tail": null,
+          "step": "build_average_source_set_optimizer"
         },
         {
           "command": "python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer",
@@ -34521,10 +35292,10 @@
         },
         "passed_step_count": 0,
         "plan_only": true,
-        "planned_step_count": 29,
+        "planned_step_count": 30,
         "schema_version": 1,
         "status": "planned",
-        "step_count": 29,
+        "step_count": 30,
         "steps": [
           {
             "command": "python scripts/build_qwen3_moe_candidate_trust_region_gate.py --gate-plan results/qwen3_moe_mechanism_eval_gate/eval_gate_plan.csv --output-dir results/qwen3_moe_candidate_trust_region_gate",
@@ -34665,6 +35436,16 @@
             "stderr_tail": "",
             "stdout_tail": "",
             "step": "build_source_set_complementarity_gate"
+          },
+          {
+            "command": "python scripts/build_qwen3_average_source_set_optimizer.py --output-dir results/qwen3_average_source_set_optimizer",
+            "duration_sec": 0.0,
+            "kind": "optimizer",
+            "returncode": null,
+            "status": "planned",
+            "stderr_tail": "",
+            "stdout_tail": "",
+            "step": "build_average_source_set_optimizer"
           },
           {
             "command": "python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer",
@@ -57627,6 +58408,15 @@
         },
         {
           "blocking_status": "passed",
+          "mechanism": "frontier_gain_minus_merge_interference",
+          "next_command": "python scripts/build_qwen3_average_source_set_optimizer.py --output-dir results/qwen3_average_source_set_optimizer",
+          "observed_state": "top_source_set=coder+thinking; top_gate=probe_only_below_interference_budget; frontier_avg_gain=0.0083; interference_budget=0.0694; surplus=-0.0611; final_budget_sets=0; verdict=supports_current_action",
+          "passed": true,
+          "required_state": "a source set is promoted to final average budget only when frontier gain exceeds observed merge interference; otherwise it remains probe-only or rejected",
+          "requirement": "source_set_surplus_budget_gate"
+        },
+        {
+          "blocking_status": "passed",
           "mechanism": "route_geometry_subspace_cap_audit",
           "next_command": "python scripts/audit_materialized_checkpoint_delta.py --base BASE --candidate results/checkpoints/qwen3_moe_unified_mechanism_candidate --output-dir results/qwen3_moe_unified_mechanism_delta_audit",
           "observed_state": "rule_status=fresh; audit_status=passed; routed_gt_0.65=0; router_changed=0/48; manifest_match=True",
@@ -57677,8 +58467,8 @@
         "final_unified_average_acceptance"
       ],
       "contract_failed_requirement_count": 0,
-      "contract_passed_requirement_count": 10,
-      "contract_requirement_count": 12,
+      "contract_passed_requirement_count": 11,
+      "contract_requirement_count": 13,
       "contract_status": "blocked_on_downstream_eval",
       "decision_rows": [
         {
@@ -57746,6 +58536,14 @@
           "why_it_should_improve": "It avoids spending algorithmic effort trying to make an average beat a source set whose measured frontier is already a single dominant endpoint."
         },
         {
+          "condition": "best measured complementary set coder+thinking has frontier avg gain 0.0083, but observed merge interference budget is 0.0694; surplus -0.0611",
+          "operation": "require complementarity surplus to cover observed merge interference",
+          "same_shape_invariant": "the gate only changes source discovery and eval priority; any probe candidate still keeps one same-shape checkpoint",
+          "selected_action": "probe_only_below_interference_budget: run_larger_endpoint_eval_and_small_weighted_probe_no_final_acceptance; source_weights={\"coder\": 0.6666666666666666, \"thinking\": 0.3333333333333333}",
+          "stage": "moe_source_set_surplus_gate",
+          "why_it_should_improve": "It prevents a weakly complementary source set from being promoted to final-average budget when measured average interference is larger than the available task-frontier gain."
+        },
+        {
           "condition": "expert identity is aligned, direct router movement is rejected, and real expert geometry/subspace probes expose nonuniform risk",
           "operation": "apply retention-constrained router/evidence/geometry/subspace caps",
           "same_shape_invariant": "only routed expert tensor values change; router, attention, embeddings, norms, names, and shapes stay fixed",
@@ -57788,7 +58586,7 @@
       "dense_linear_worst_nll": 8.947735033537212,
       "dense_unified_worst_nll": 5.182952077765214,
       "evidence_ledger": "results/unified_average_optimizer/hypothesis_evidence_ledger.csv",
-      "evidence_ledger_count": 11,
+      "evidence_ledger_count": 12,
       "evidence_ledger_rows": [
         {
           "acceptance_gate_still_needed": "held-out generation or vLLM eval for any new interior dense point",
@@ -57868,6 +58666,17 @@
           "why_verdict": "The current measured source frontier is a single dominant Instruct endpoint; the best observed merge remains below that frontier, so averaging is not yet a source-beating prior."
         },
         {
+          "acceptance_gate_still_needed": "find a source set whose frontier gain exceeds observed interference, then pass locked downstream eval",
+          "confidence_score": 0.84,
+          "current_algorithm_action": "keep_top_measured_complementary_source_set_probe_only_until_surplus_beats_interference",
+          "current_status": "top_measured_source_set_probe_only_below_interference_budget",
+          "evidence_tier": "source_frontier_gain_vs_observed_merge_gap",
+          "hypothesis_id": "source_set_surplus_must_exceed_interference",
+          "numeric_signal": -0.0611111111111109,
+          "verdict": "supports_current_action",
+          "why_verdict": "The top measured source set is complementary, but its frontier avg gain is smaller than the observed merge-interference budget, so final average budget would be premature."
+        },
+        {
           "acceptance_gate_still_needed": "budgeted vLLM eval versus both sources and registered candidates",
           "confidence_score": 0.66,
           "current_algorithm_action": "keep_unified_mechanism_candidate_provisional",
@@ -57916,7 +58725,7 @@
         "awaiting_downstream_eval": 2,
         "promising_but_unaccepted": 1,
         "supports_conditional_action": 1,
-        "supports_current_action": 7
+        "supports_current_action": 8
       },
       "feature_rows": [
         {
@@ -58096,6 +58905,14 @@
           "value": 0.0
         },
         {
+          "decision_signal": "measured_complementarity_is_below_observed_interference_budget",
+          "domain": "moe",
+          "evidence": "status = source_set_surplus_optimizer_ready; top source set = coder+thinking; top gate = probe_only_below_interference_budget; frontier avg gain = 0.0083; interference budget = 0.0694; surplus = -0.0611; final-budget sets = 0; probe-only sets = 2",
+          "probe": "qwen3_source_set_surplus_optimizer",
+          "threshold": 0.0,
+          "value": -0.0611111111111109
+        },
+        {
           "decision_signal": "do_not_accept_router_delta_without_baseline_eval",
           "domain": "moe",
           "evidence": "status = awaiting_baseline_eval; eligible router-cal candidates = 0/4; reason = Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps.",
@@ -58122,7 +58939,7 @@
       ],
       "features": "results/unified_average_optimizer/mechanism_features.csv",
       "hypotheses": "results/unified_average_optimizer/mechanism_hypotheses.csv",
-      "hypothesis_count": 11,
+      "hypothesis_count": 12,
       "hypothesis_rows": [
         {
           "action_if_falsified": "fall back to endpoint/anchor or keep the current probe-selected low-lambda bridge",
@@ -58209,6 +59026,18 @@
           "next_command": "python scripts/build_qwen3_source_set_complementarity_gate.py --output-dir results/qwen3_source_set_complementarity_gate"
         },
         {
+          "action_if_falsified": "keep the source set probe-only and search for stronger endpoint complementarity",
+          "action_if_supported": "promote the source set to final materialization budget",
+          "current_evidence": "top source set = coder+thinking; top gate = probe_only_below_interference_budget; frontier avg gain = 0.0083; interference budget = 0.0694; surplus = -0.0611; source weights = {\"coder\": 0.6666666666666666, \"thinking\": 0.3333333333333333}",
+          "current_status": "top_measured_source_set_probe_only_below_interference_budget",
+          "domain": "dense_and_moe",
+          "falsification_test": "A measured source set must show frontier_avg_gain minus observed merge-interference budget >= 0, then its same-shape average must pass locked downstream eval.",
+          "hypothesis_id": "source_set_surplus_must_exceed_interference",
+          "literature_keys": "model_soups,ties,expert_merging,harc",
+          "mechanism": "Endpoint complementarity is necessary but not sufficient: the measured source-frontier gain must exceed the known merge-interference budget before an average is promoted beyond probe-only.",
+          "next_command": "python scripts/build_qwen3_average_source_set_optimizer.py --output-dir results/qwen3_average_source_set_optimizer"
+        },
+        {
           "action_if_falsified": "select endpoint or simpler searched_no_gt065/layer_chunk rule and inspect failed transition attribution",
           "action_if_supported": "promote unified mechanism candidate as the same-shape MoE default",
           "current_evidence": "candidate = subspace_cap_s1.00; retention = 0.9763; subspace-weighted rel-delta = 0.2148; routed >0.65 = 0",
@@ -58268,10 +59097,11 @@
         "promising_but_unaccepted": 1,
         "rejected_for_current_midpoint": 1,
         "straight_line_rejected": 1,
-        "structurally_passed_waiting_downstream_eval": 1
+        "structurally_passed_waiting_downstream_eval": 1,
+        "top_measured_source_set_probe_only_below_interference_budget": 1
       },
       "moe_decision": "align_experts_freeze_router_then_gate_candidate_by_vllm",
-      "next_experiment_count": 5,
+      "next_experiment_count": 6,
       "next_experiment_queue": "results/unified_average_optimizer/next_experiment_queue.csv",
       "next_experiment_rows": [
         {
@@ -58303,6 +59133,20 @@
           "why_now": "Router NLL/generation probes are positive directionally, but paired vLLM acceptance evidence is still missing."
         },
         {
+          "command": "python scripts/build_qwen3_average_source_set_optimizer.py --output-dir results/qwen3_average_source_set_optimizer",
+          "driving_hypothesis_id": "source_set_surplus_must_exceed_interference",
+          "driving_verdict": "supports_current_action",
+          "expected_decision_update": "expand endpoint/source-set eval or add more complementary downstream sources before final average materialization",
+          "experiment": "source_set_surplus_discovery",
+          "gate_type": "source_set_selection_before_average",
+          "mechanism_target": "find source sets whose endpoint-frontier gain can overcome measured merging interference",
+          "preflight_command": "python scripts/build_qwen3_source_set_complementarity_gate.py --output-dir results/qwen3_source_set_complementarity_gate",
+          "priority_score": 0.91,
+          "rank": 3,
+          "status": "ready_for_endpoint_expansion_no_final_candidate",
+          "why_now": "The best measured complementary source set is still below the observed merge-interference budget, so source discovery is the next useful non-GPU-blocked direction."
+        },
+        {
           "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py",
           "driving_hypothesis_id": "moe_risk_weighted_expert_caps_preserve_useful_route_mass",
           "driving_verdict": "awaiting_downstream_eval",
@@ -58312,7 +59156,7 @@
           "mechanism_target": "which structural intervention actually changes downstream scores",
           "preflight_command": "python scripts/audit_qwen3_moe_eval_bundle.py --output-dir results/qwen3_moe_eval_bundle_audit",
           "priority_score": 0.88,
-          "rank": 3,
+          "rank": 4,
           "status": "awaiting_eval_bundle",
           "why_now": "After vLLM eval, this converts score deltas into pass/fail evidence for tail caps, layer chunks, unified caps, and subspace scaling."
         },
@@ -58326,7 +59170,7 @@
           "mechanism_target": "update the Dense/MoE unified average policy after new eval or router-calibration evidence",
           "preflight_command": "python -m py_compile scripts/build_unified_average_optimizer.py",
           "priority_score": 0.82,
-          "rank": 4,
+          "rank": 5,
           "status": "ready",
           "why_now": "The optimizer is the place where mechanism evidence becomes a same-shape algorithm contract."
         },
@@ -58340,7 +59184,7 @@
           "mechanism_target": "whether Dense same-base averages become valid under a different coefficient/path family",
           "preflight_command": "python scripts/fp_dense_lambda.py --help",
           "priority_score": 0.55,
-          "rank": 5,
+          "rank": 6,
           "status": "lower_priority_until_qwen_moe_eval_unblocked",
           "why_now": "Dense midpoint failure is already measured; only a new source pair or coefficient family can overturn it."
         }
@@ -58420,8 +59264,8 @@
           "final_unified_average_acceptance"
         ],
         "contract_failed_requirement_count": 0,
-        "contract_passed_requirement_count": 10,
-        "contract_requirement_count": 12,
+        "contract_passed_requirement_count": 11,
+        "contract_requirement_count": 13,
         "contract_status": "blocked_on_downstream_eval",
         "dense": {
           "best_endpoint_worst_nll": 5.150962227269223,
@@ -58441,14 +59285,14 @@
           "linear_worst_nll": 8.947735033537212,
           "unified_worst_nll": 5.182952077765214
         },
-        "evidence_ledger_count": 11,
+        "evidence_ledger_count": 12,
         "evidence_verdict_counts": {
           "awaiting_downstream_eval": 2,
           "promising_but_unaccepted": 1,
           "supports_conditional_action": 1,
-          "supports_current_action": 7
+          "supports_current_action": 8
         },
-        "hypothesis_count": 11,
+        "hypothesis_count": 12,
         "hypothesis_status_counts": {
           "alignment_required": 1,
           "awaiting_source_eval": 1,
@@ -58460,7 +59304,8 @@
           "promising_but_unaccepted": 1,
           "rejected_for_current_midpoint": 1,
           "straight_line_rejected": 1,
-          "structurally_passed_waiting_downstream_eval": 1
+          "structurally_passed_waiting_downstream_eval": 1,
+          "top_measured_source_set_probe_only_below_interference_budget": 1
         },
         "moe": {
           "controlled_gauge_mse": 7.66403245730453e-16,
@@ -58555,9 +59400,22 @@
           "qwen3_source_set_current_frontier_avg": 0.8972222222222221,
           "qwen3_source_set_current_frontier_avg_gain": 0.0,
           "qwen3_source_set_current_gate": "source_dominated_not_averageable_as_final",
+          "qwen3_source_set_final_budget_candidate_count": 0,
           "qwen3_source_set_gate_status": "source_set_complementarity_gate_ready",
+          "qwen3_source_set_interference_budget": 0.0694444444444443,
+          "qwen3_source_set_interference_budget_source": "max_floor_observed_negative_gap_q0.50",
+          "qwen3_source_set_probe_only_count": 2,
           "qwen3_source_set_recommended_action": "do_not_expect_average_to_beat_current_source_frontier; use average only as repair_ablation_until_new_complementary_sources_pass_endpoint_eval",
           "qwen3_source_set_source_dominated_count": 9,
+          "qwen3_source_set_surplus_optimizer_status": "source_set_surplus_optimizer_ready",
+          "qwen3_source_set_top_action": "run_larger_endpoint_eval_and_small_weighted_probe_no_final_acceptance",
+          "qwen3_source_set_top_candidate_id": "qwen3_moe_coder_thinking_frontier_weighted_probe",
+          "qwen3_source_set_top_frontier_avg_gain": 0.0083333333333333,
+          "qwen3_source_set_top_frontier_worst_gain": 0.0249999999999999,
+          "qwen3_source_set_top_optimizer_gate": "probe_only_below_interference_budget",
+          "qwen3_source_set_top_source_set": "coder+thinking",
+          "qwen3_source_set_top_source_weights": "{\"coder\": 0.6666666666666666, \"thinking\": 0.3333333333333333}",
+          "qwen3_source_set_top_surplus_vs_interference": -0.06111111111111099,
           "qwen3_subspace_routed_gt_065": 0,
           "qwen3_subspace_routed_gt_06505": 0,
           "qwen3_subspace_router_changed_tensors": 0,
@@ -58585,7 +59443,7 @@
           "real_gauge_naive_degradation": 5.490968298724317,
           "router_action": "freeze_router"
         },
-        "next_experiment_count": 5,
+        "next_experiment_count": 6,
         "outputs": {
           "algorithm": "results/unified_average_optimizer/algorithm.json",
           "algorithm_contract": "results/unified_average_optimizer/algorithm_contract.csv",
@@ -60847,7 +61705,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-20T13:41:05.050109+00:00",
+  "generated_at": "2026-06-20T13:57:17.910558+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [

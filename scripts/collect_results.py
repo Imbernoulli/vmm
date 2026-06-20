@@ -769,6 +769,52 @@ def summarize_qwen3_source_set_complementarity_gate() -> dict[str, Any]:
     }
 
 
+def summarize_qwen3_average_source_set_optimizer() -> dict[str, Any]:
+    root = repo_path("results/qwen3_average_source_set_optimizer")
+    summary = read_json(root / "summary.json")
+    candidates = read_csv(root / "candidate_source_sets.csv")
+    recipes = read_csv(root / "source_weight_recipes.csv")
+    eval_plan = read_csv(root / "eval_plan.csv")
+    discovery = read_csv(root / "source_discovery_queue.csv")
+    top = summary.get("top_source_set") or {}
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "source_set_count": maybe_int(summary.get("source_set_count")),
+        "final_average_budget_candidate_count": maybe_int(
+            summary.get("final_average_budget_candidate_count")
+        ),
+        "probe_only_source_set_count": maybe_int(summary.get("probe_only_source_set_count")),
+        "rejected_source_dominated_count": maybe_int(summary.get("rejected_source_dominated_count")),
+        "interference_budget": maybe_float(summary.get("interference_budget")),
+        "interference_budget_source": summary.get("interference_budget_source"),
+        "top_source_set": top.get("source_set"),
+        "top_optimizer_gate": top.get("optimizer_gate"),
+        "top_candidate_id": top.get("candidate_id"),
+        "top_frontier_avg_gain_vs_best_single": maybe_float(
+            top.get("frontier_avg_gain_vs_best_single")
+        ),
+        "top_frontier_worst_gain_vs_best_single": maybe_float(
+            top.get("frontier_worst_gain_vs_best_single")
+        ),
+        "top_frontier_avg_surplus_vs_interference": maybe_float(
+            top.get("frontier_avg_surplus_vs_interference")
+        ),
+        "top_source_weights": top.get("source_weights"),
+        "top_recommended_action": top.get("recommended_action"),
+        "candidate_rows": [clean_row(row) for _, row in candidates.iterrows()],
+        "recipe_rows": [clean_row(row) for _, row in recipes.iterrows()],
+        "eval_plan_rows": [clean_row(row) for _, row in eval_plan.iterrows()],
+        "discovery_rows": [clean_row(row) for _, row in discovery.iterrows()],
+        "report": rel(root / "report.md"),
+        "candidate_source_sets": rel(root / "candidate_source_sets.csv"),
+        "source_weight_recipes": rel(root / "source_weight_recipes.csv"),
+        "eval_plan": rel(root / "eval_plan.csv"),
+        "source_discovery_queue": rel(root / "source_discovery_queue.csv"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_average_decision_report() -> dict[str, Any]:
     summary = read_json("results/average_decision_report/summary.json")
     decisions = summary.get("decisions", [])
@@ -4821,6 +4867,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/qwen3_source_set_complementarity_gate/report.md separates endpoint-frontier complementarity from merge quality and marks the current Instruct+Coder pair as source-dominated rather than final-averageable.",
         },
         {
+            "item": "Qwen3 average source-set surplus optimizer",
+            "status": "complete",
+            "evidence": "results/qwen3_average_source_set_optimizer/report.md compares source-frontier gain against observed merge-interference budget and keeps the top Coder+Thinking source set probe-only because its surplus is still negative.",
+        },
+        {
             "item": "Formal LLM benchmark slices",
             "status": "complete",
             "evidence": "Representative Qwen2.5-1.5B benchmark slices cover MMLU, GSM8K, HumanEval canonical-solution NLL, and BeaverTails safety/refusal NLL.",
@@ -5229,6 +5280,7 @@ def build_summary() -> dict[str, Any]:
         "fp_downstream_attribution": summarize_fp_downstream_attribution(),
         "fp_downstream_confidence_audit": summarize_fp_downstream_confidence_audit(),
         "qwen3_source_set_complementarity_gate": summarize_qwen3_source_set_complementarity_gate(),
+        "qwen3_average_source_set_optimizer": summarize_qwen3_average_source_set_optimizer(),
         "qwen_probe_smoke": summarize_qwen_probe_smoke(),
         "average_decision_report": summarize_average_decision_report(),
         "model_averaging_literature_review": summarize_model_averaging_literature_review(),
@@ -5548,6 +5600,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     fp_downstream_attribution = exp["fp_downstream_attribution"]
     fp_downstream_confidence = exp["fp_downstream_confidence_audit"]
     qwen3_source_set_complementarity = exp["qwen3_source_set_complementarity_gate"]
+    qwen3_average_source_set_optimizer = exp["qwen3_average_source_set_optimizer"]
     average_decision = exp["average_decision_report"]
     literature_review = exp["model_averaging_literature_review"]
     average_method_gate_matrix = exp["average_method_gate_matrix"]
@@ -5927,6 +5980,19 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(qwen3_source_set_complementarity['current_frontier_avg_gain_vs_best_single'])} / "
                 f"{fmt(qwen3_source_set_complementarity['current_best_observed_avg_gap_to_frontier'])} / "
                 f"{qwen3_source_set_complementarity['complementary_source_set_count']} |"
+            ),
+            (
+                "| Qwen3 average source-set optimizer | top set / gate / source weights | "
+                f"{qwen3_average_source_set_optimizer['top_source_set']} / "
+                f"{qwen3_average_source_set_optimizer['top_optimizer_gate']} / "
+                f"{qwen3_average_source_set_optimizer['top_source_weights']} |"
+            ),
+            (
+                "| Qwen3 average source-set optimizer | gain / interference budget / surplus / final-budget sets | "
+                f"{fmt(qwen3_average_source_set_optimizer['top_frontier_avg_gain_vs_best_single'])} / "
+                f"{fmt(qwen3_average_source_set_optimizer['interference_budget'])} / "
+                f"{fmt(qwen3_average_source_set_optimizer['top_frontier_avg_surplus_vs_interference'])} / "
+                f"{qwen3_average_source_set_optimizer['final_average_budget_candidate_count']} |"
             ),
             (
                 "| first-principles MoE mechanism | gauge-equivalent B MSE | "

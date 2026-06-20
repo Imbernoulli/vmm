@@ -1,0 +1,73 @@
+{
+  "best_repaired_abs_observed_gap": 0.0638888888888887,
+  "final_average_budget_candidate_count": 0,
+  "interference_budget": 0.0694444444444443,
+  "interference_budget_source": "max_floor_observed_negative_gap_q0.50",
+  "literature_priors": [
+    {
+      "key": "mode_connectivity",
+      "mechanism": "A source-set average is plausible only when the probed path stays in a low-loss component.",
+      "source": "https://arxiv.org/abs/1802.10026"
+    },
+    {
+      "key": "model_soups",
+      "mechanism": "Weight averaging helps when fine-tunes are in one basin; endpoint fallback remains part of the recipe.",
+      "source": "https://arxiv.org/abs/2203.05482"
+    },
+    {
+      "key": "ties",
+      "mechanism": "Coordinate interference can erase useful deltas, so source/task gains must exceed merge interference.",
+      "source": "https://arxiv.org/abs/2306.01708"
+    },
+    {
+      "key": "expert_merging",
+      "mechanism": "Layer/chunk coefficients should be driven by calibration behavior, not a fixed global coefficient.",
+      "source": "https://arxiv.org/abs/2509.25712"
+    },
+    {
+      "key": "sub_moe",
+      "mechanism": "MoE expert similarity and subspace conflict are better signals than tensor names alone.",
+      "source": "https://arxiv.org/abs/2506.23266"
+    },
+    {
+      "key": "harc",
+      "mechanism": "MoE router perturbations can break top-k dispatch, so source-set averaging must keep router repair as a separate gate.",
+      "source": "https://arxiv.org/abs/2606.03391"
+    }
+  ],
+  "matrix": "results/fp_downstream_matrix/matrix.csv",
+  "mechanism_equation": "promote average only if source_frontier_gain - observed_merge_interference_budget >= 0; otherwise use the source set for endpoint expansion or probe-only materialization",
+  "median_abs_negative_observed_gap": 0.0694444444444443,
+  "min_interference_budget": 0.03,
+  "negative_observed_merge_gap_count": 3,
+  "observed_merge_gaps": "results/qwen3_source_set_complementarity_gate/observed_merge_gaps.csv",
+  "outputs": {
+    "candidate_source_sets": "results/qwen3_average_source_set_optimizer/candidate_source_sets.csv",
+    "eval_plan": "results/qwen3_average_source_set_optimizer/eval_plan.csv",
+    "report": "results/qwen3_average_source_set_optimizer/report.md",
+    "source_discovery_queue": "results/qwen3_average_source_set_optimizer/source_discovery_queue.csv",
+    "source_weight_recipes": "results/qwen3_average_source_set_optimizer/source_weight_recipes.csv",
+    "summary": "results/qwen3_average_source_set_optimizer/summary.json"
+  },
+  "probe_only_source_set_count": 2,
+  "probe_surplus_margin": 0.0,
+  "rejected_source_dominated_count": 9,
+  "schema_version": 1,
+  "source_set_count": 11,
+  "source_set_gate": "results/qwen3_source_set_complementarity_gate/source_set_gate.csv",
+  "status": "source_set_surplus_optimizer_ready",
+  "task_win_margin": 0.005,
+  "top_source_set": {
+    "active_source_set_key": "coder+thinking",
+    "candidate_id": "qwen3_moe_coder_thinking_frontier_weighted_probe",
+    "frontier_avg_gain_vs_best_single": 0.0083333333333333,
+    "frontier_avg_surplus_vs_interference": -0.06111111111111099,
+    "frontier_worst_gain_vs_best_single": 0.0249999999999999,
+    "optimizer_gate": "probe_only_below_interference_budget",
+    "priority_score": 0.6333333333333333,
+    "recommended_action": "run_larger_endpoint_eval_and_small_weighted_probe_no_final_acceptance",
+    "source_set": "coder+thinking",
+    "source_set_key": "coder+thinking",
+    "source_weights": "{\"coder\": 0.6666666666666666, \"thinking\": 0.3333333333333333}"
+  }
+}

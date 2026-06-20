@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-20T13:41:05.050109+00:00`
+Generated at: `2026-06-20T13:57:17.910558+00:00`
 
 ## Coverage
 
-Complete: `95`; partial: `1`; missing: `0`.
+Complete: `96`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -27,6 +27,7 @@ Complete: `95`; partial: `1`; missing: `0`.
 | Qwen3 MoE generation-level mechanism attribution | complete | results/fp_downstream_attribution/report.md attributes the generation matrix into naive-average regression, router-calibration recovery, and remaining source-frontier gap by task. |
 | Qwen3 MoE generation confidence audit | complete | results/fp_downstream_confidence_audit/report.md adds Wilson aggregate uncertainty bounds to the generation matrix and shows router calibration is directional but not yet a confident source-frontier win. |
 | Qwen3 source-set complementarity gate | complete | results/qwen3_source_set_complementarity_gate/report.md separates endpoint-frontier complementarity from merge quality and marks the current Instruct+Coder pair as source-dominated rather than final-averageable. |
+| Qwen3 average source-set surplus optimizer | complete | results/qwen3_average_source_set_optimizer/report.md compares source-frontier gain against observed merge-interference budget and keeps the top Coder+Thinking source set probe-only because its surplus is still negative. |
 | Formal LLM benchmark slices | complete | Representative Qwen2.5-1.5B benchmark slices cover MMLU, GSM8K, HumanEval canonical-solution NLL, and BeaverTails safety/refusal NLL. |
 | vLLM hosted downstream evaluation | partial | scripts/run_vllm_downstream_eval.py can build a served-model eval plan from the Qwen target registry; the generic registry run remains endpoint_unavailable, while checkpoint-specific hosted eval is tracked separately. |
 | Materialized checkpoint vLLM hosted eval | complete | results/vllm_checkpoint_eval/qwen_0_5b_instruct_coder_uniform_average/report.md contains a real vLLM-hosted GSM8K/MMLU/safety/HumanEval compile eval for the materialized Qwen2.5-0.5B uniform-average checkpoint. |
@@ -154,6 +155,8 @@ Complete: `95`; partial: `1`; missing: `0`.
 | Qwen3 MoE downstream confidence | confident source-frontier wins / avg gain interval | 0/3 / [-0.170, 0.231] |
 | Qwen3 source-set complementarity gate | current / gate / dominant source | instruct+coder / source_dominated_not_averageable_as_final / instruct |
 | Qwen3 source-set complementarity gate | frontier gain / best observed gap / complementary sets | 0.000 / -0.069 / 2 |
+| Qwen3 average source-set optimizer | top set / gate / source weights | coder+thinking / probe_only_below_interference_budget / {"coder": 0.6666666666666666, "thinking": 0.3333333333333333} |
+| Qwen3 average source-set optimizer | gain / interference budget / surplus / final-budget sets | 0.008 / 0.069 / -0.061 / 0 |
 | first-principles MoE mechanism | gauge-equivalent B MSE | 7.66e-16 |
 | first-principles MoE mechanism | router agreement raw to aligned | 0.035 to 0.795 |
 | first-principles MoE mechanism | same-name to aligned worst loss | 0.511 to 0.125 |
@@ -261,9 +264,9 @@ Complete: `95`; partial: `1`; missing: `0`.
 | Qwen3 MoE final candidate selector | rank mode / confidence band / band size / point leader | None / True / 0 / None |
 | Qwen3 MoE final candidate selector smoke | status / passed cases | passed / 11/11 |
 | unified average optimizer | status / dense / MoE | built_waiting_for_qwen3_vllm_eval / avoid_linear_midpoint_use_probe_selected_anchor_or_low_lambda / align_experts_freeze_router_then_gate_candidate_by_vllm |
-| unified average optimizer | hypotheses / queue / top experiment | 11 / 5 / budgeted_qwen3_moe_downstream_eval |
-| unified average optimizer | evidence ledger / verdicts | 11 / {'awaiting_downstream_eval': 2, 'promising_but_unaccepted': 1, 'supports_conditional_action': 1, 'supports_current_action': 7} |
-| unified average optimizer | contract status / passed / blocked | blocked_on_downstream_eval / 10/12 / ['downstream_source_dominance_gate', 'final_unified_average_acceptance'] |
+| unified average optimizer | hypotheses / queue / top experiment | 12 / 6 / budgeted_qwen3_moe_downstream_eval |
+| unified average optimizer | evidence ledger / verdicts | 12 / {'awaiting_downstream_eval': 2, 'promising_but_unaccepted': 1, 'supports_conditional_action': 1, 'supports_current_action': 8} |
+| unified average optimizer | contract status / passed / blocked | blocked_on_downstream_eval / 11/13 / ['downstream_source_dominance_gate', 'final_unified_average_acceptance'] |
 | unified average optimizer ledger smoke | status / passed cases / assertions | passed / 5/5 / 29/29 |
 | unified average optimizer | dense linear / unified / endpoint worst NLL | 8.948 / 5.183 / 5.151 |
 | unified average optimizer | dense lambda midpoint / best-family worst NLL | 6.040 / 3.073 |
@@ -307,8 +310,8 @@ Complete: `95`; partial: `1`; missing: `0`.
 | Qwen3 MoE router-coupled retention frontier | gate / constrained / stress | direct_router_boundary_term_not_default / router_q0.85_s0.00020_cap0.00010 / router_q0.75_s0.01000_cap0.01000 |
 | Qwen3 MoE router-coupled retention frontier | pass default / effect fraction / action | 146/770 / 0.0103 / keep_router_fragility_inside_BHI_and_keep_direct_extra_shrink_as_ablation |
 | Qwen3 MoE mechanistic unified smoke | status / passed cases | passed / 4/4 |
-| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | passed / 29/29 / 0/13 |
-| Qwen3 MoE post-eval refresh | selection / final selection / attribution scored / plan steps | awaiting_source_eval / awaiting_source_eval / 0/10 / 29/29 |
+| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | passed / 30/30 / 0/13 |
+| Qwen3 MoE post-eval refresh | selection / final selection / attribution scored / plan steps | awaiting_source_eval / awaiting_source_eval / 0/10 / 30/30 |
 | Qwen3 MoE post-eval refresh | feedback status / scored tasks / changed groups | awaiting_eval / 0/4 / 0 |
 | Qwen3 MoE post-eval refresh | mechanistic status / retention / hard-cap violations | mechanistic_unified_candidate_ready / 0.965 / 0 |
 | Qwen3 MoE post-eval refresh | sensitivity objective / scale | no_category_prior 0.003 / no_subspace_conflict 0.0086 |
