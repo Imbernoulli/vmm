@@ -11,15 +11,15 @@
 
 | mechanism | priority | confidence | evidence | action |
 | --- | ---: | --- | --- | --- |
-| `source_and_candidate_downstream_eval` | 0.98 | `high` | examples 64 -> 384; extra prompts 12800 | run budgeted one-model-at-a-time vLLM eval before accepting any average |
+| `source_and_candidate_downstream_eval` | 0.98 | `high` | examples 64 -> 384; extra prompts 15360 | run budgeted one-model-at-a-time vLLM eval before accepting any average |
 | `router_direct_movement` | 0.94 | `high` | allowed layers 0/48; min top1 0.0689655169844627; router rel-norm 0.7392916983133861 | freeze router for same-shape candidate; only consider calibrated router deltas |
 | `routed_expert_tail_cap_0_75` | 0.86 | `high` | route->audit removes >0.75 by 675 and >1.0 by 182 | keep file-level/audit-level relative-delta cap as a mandatory safety gate |
 | `risk_penalty_complexity` | 0.83 | `medium_high` | risk flag ablation tail reductions 0; summed retention loss 0.00525858; searched no-gt-0.65 rel norm 0.2475948491291486 | prefer the simpler uniform 0.65 cap unless downstream eval proves risk penalties preserve task behavior |
 | `tail_cap_0_65` | 0.8 | `medium_high` | expert_only->tail_trimmed removes >0.75 by 14 and >0.65 by 286; tail max rel 0.650082822181077 | evaluate tail-trimmed as the conservative expert-only candidate |
 | `route_load_trust_region` | 0.78 | `medium_high` | audit->trust removes >0.75 by 150 and >0.65 by 780 | keep trust-region as an ablation, but do not assume its extra risk flags improve utility |
 | `shared_attention_delta` | 0.74 | `medium` | trust->expert-only removes attention relative norm 0.188546444938151 with routed-tail reduction 0 | freeze attention in current unified candidate, but keep trust_region vs expert_only eval as the utility test |
+| `expert_identity_and_subspace_probe` | 0.73 | `medium` | projection tensors 18432; high-conflict experts 1323; route-important high-conflict experts 242; extra-scaled experts 17; top layer L17 | use subspace-conflict score as a pre-materialization gate; keep current unified caps for covered experts and reserve a subspace-scaled ablation for the 17 uncovered experts |
 | `importance_guided_layer_chunking` | 0.72 | `medium` | top fine-calibration layers: 12,13,17,20,21,22,23,26; top expert-geometry layers: 12,13,14,15,16,17,22,23 | use high-sensitivity layers for future unlabeled coefficient calibration; keep low-sensitivity layers coarse |
-| `expert_identity_and_subspace_probe` | 0.66 | `medium` | Qwen3 identity gate passes, but no expert-output subspace clustering artifact is tracked for candidate generation. | keep identity as required preflight; add expert-output/subspace probe before averaging unrelated downstream MoE fine-tunes |
 
 ## Next Experiments
 

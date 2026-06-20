@@ -1302,6 +1302,10 @@ def summarize_qwen3_moe_mechanism_levers() -> dict[str, Any]:
         "top_lever_priority": maybe_float(summary.get("top_lever_priority")),
         "fine_calibration_layers": summary.get("fine_calibration_layers"),
         "expert_geometry_probe_used": bool(summary.get("expert_geometry_probe_used", False)),
+        "expert_subspace_probe_used": bool(summary.get("expert_subspace_probe_used", False)),
+        "high_subspace_conflict_expert_count": maybe_int(summary.get("high_subspace_conflict_expert_count")),
+        "subspace_extra_scaled_expert_count": maybe_int(summary.get("subspace_extra_scaled_expert_count")),
+        "top_subspace_conflict_layer": maybe_int(summary.get("top_subspace_conflict_layer")),
         "top_expert_geometry_layer": maybe_int(summary.get("top_expert_geometry_layer")),
         "top_expert_geometry_layer_risk": maybe_float(summary.get("top_expert_geometry_layer_risk")),
         "queue_count": int(summary.get("queue_count", len(queue))),
@@ -1318,6 +1322,52 @@ def summarize_qwen3_moe_mechanism_levers() -> dict[str, Any]:
         "next_experiment_queue": rel(root / "next_experiment_queue.csv"),
         "layer_chunking_plan": rel(root / "layer_chunking_plan.csv"),
         "literature_sources": rel(root / "literature_sources.json"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
+def summarize_qwen3_moe_expert_subspace_conflict_probe() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_expert_subspace_conflict_probe")
+    summary = read_json(root / "summary.json")
+    experts = read_csv(root / "expert_subspace_conflicts.csv")
+    layers = read_csv(root / "layer_subspace_conflicts.csv")
+    actions = read_csv(root / "subspace_action_summary.csv")
+    top_layer = clean_row(layers.iloc[0]) if not layers.empty else {}
+    top_extra_scaled = (
+        clean_row(experts[experts["subspace_extra_scale"] < 0.999].sort_values("subspace_extra_scale").iloc[0])
+        if not experts.empty and "subspace_extra_scale" in experts and (experts["subspace_extra_scale"] < 0.999).any()
+        else {}
+    )
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "projection_tensor_count": int(summary.get("projection_tensor_count", 0)),
+        "expert_count": int(summary.get("expert_count", 0)),
+        "layer_count": int(summary.get("layer_count", 0)),
+        "high_subspace_conflict_expert_count": int(summary.get("high_subspace_conflict_expert_count", 0)),
+        "route_important_high_subspace_conflict_expert_count": int(
+            summary.get("route_important_high_subspace_conflict_expert_count", 0)
+        ),
+        "subspace_extra_scaled_expert_count": int(summary.get("subspace_extra_scaled_expert_count", 0)),
+        "subspace_adjusted_tensor_rule_count": int(summary.get("subspace_adjusted_tensor_rule_count", 0)),
+        "mean_subspace_conflict_score": maybe_float(summary.get("mean_subspace_conflict_score")),
+        "max_subspace_conflict_score": maybe_float(summary.get("max_subspace_conflict_score")),
+        "mean_coder_weight_reduction": maybe_float(summary.get("mean_coder_weight_reduction")),
+        "total_coder_weight_reduction": maybe_float(summary.get("total_coder_weight_reduction")),
+        "top_subspace_conflict_layer": maybe_int(summary.get("top_subspace_conflict_layer")),
+        "next_action": summary.get("next_action"),
+        "top_layer": top_layer,
+        "top_extra_scaled": top_extra_scaled,
+        "action_rows": [clean_row(row) for _, row in actions.iterrows()],
+        "top_layer_rows": [clean_row(row) for _, row in layers.head(12).iterrows()],
+        "top_expert_rows": [clean_row(row) for _, row in experts.head(16).iterrows()],
+        "report": rel(root / "report.md"),
+        "projection_scores": rel(root / "projection_subspace_scores.csv"),
+        "expert_conflicts": rel(root / "expert_subspace_conflicts.csv"),
+        "layer_conflicts": rel(root / "layer_subspace_conflicts.csv"),
+        "action_summary": rel(root / "subspace_action_summary.csv"),
+        "subspace_adjusted_group_rules": rel(root / "subspace_adjusted_group_rules.csv"),
+        "subspace_adjusted_tensor_rules": rel(root / "subspace_adjusted_tensor_rules.txt"),
         "summary_path": rel(root / "summary.json"),
     }
 
@@ -3891,12 +3941,17 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "Qwen3 MoE mechanism leverage map",
             "status": "complete",
-            "evidence": "results/qwen3_moe_mechanism_levers/report.md ranks MoE-specific failure mechanisms, next experiments, and importance-guided layer/chunk calibration slots from real Qwen3 probes, including the expert geometry probe.",
+            "evidence": "results/qwen3_moe_mechanism_levers/report.md ranks MoE-specific failure mechanisms, next experiments, and importance-guided layer/chunk calibration slots from real Qwen3 probes, including expert geometry and subspace conflict probes.",
         },
         {
             "item": "Qwen3 MoE expert geometry probe",
             "status": "complete",
             "evidence": "results/qwen3_moe_expert_geometry_probe/report.md reads 18,432 routed expert tensors from real Qwen3 Instruct/Coder safetensors and joins internal geometry risk with route/load context.",
+        },
+        {
+            "item": "Qwen3 MoE expert subspace conflict probe",
+            "status": "complete",
+            "evidence": "results/qwen3_moe_expert_subspace_conflict_probe/report.md converts real expert channel/chunk geometry into subspace conflict gates and a candidate scale plan for uncovered high-risk experts.",
         },
         {
             "item": "Qwen3 MoE layer/chunk coefficient candidate",
@@ -4069,6 +4124,7 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_eval_budget_plan": summarize_qwen3_moe_eval_budget_plan(),
         "qwen3_moe_mechanism_levers": summarize_qwen3_moe_mechanism_levers(),
         "qwen3_moe_expert_geometry_probe": summarize_qwen3_moe_expert_geometry_probe(),
+        "qwen3_moe_expert_subspace_conflict_probe": summarize_qwen3_moe_expert_subspace_conflict_probe(),
         "qwen3_moe_layer_chunk_candidate": summarize_qwen3_moe_layer_chunk_candidate(),
         "qwen3_moe_unified_result_selection": summarize_qwen3_moe_unified_result_selection(),
         "qwen3_moe_unified_result_selection_smoke": summarize_qwen3_moe_unified_result_selection_smoke(),
@@ -4232,6 +4288,7 @@ def build_summary() -> dict[str, Any]:
             "python scripts/build_qwen3_moe_delta_frontier.py --output-dir results/qwen3_moe_delta_frontier",
             "python scripts/plan_qwen3_moe_eval_budget.py --output-dir results/qwen3_moe_eval_budget_plan",
             "python scripts/probe_qwen3_moe_expert_geometry.py --output-dir results/qwen3_moe_expert_geometry_probe",
+            "python scripts/analyze_qwen3_moe_expert_subspace_conflicts.py --output-dir results/qwen3_moe_expert_subspace_conflict_probe",
             "python scripts/analyze_qwen3_moe_mechanism_levers.py --output-dir results/qwen3_moe_mechanism_levers",
             "python scripts/build_qwen3_moe_layer_chunk_candidate.py --output-dir results/qwen3_moe_layer_chunk_candidate",
             "bash results/qwen3_moe_layer_chunk_candidate/writer_command.txt",
@@ -4343,6 +4400,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_eval_budget_plan = exp["qwen3_moe_eval_budget_plan"]
     qwen3_moe_mechanism_levers = exp["qwen3_moe_mechanism_levers"]
     qwen3_moe_expert_geometry_probe = exp["qwen3_moe_expert_geometry_probe"]
+    qwen3_moe_expert_subspace_conflict_probe = exp["qwen3_moe_expert_subspace_conflict_probe"]
     qwen3_moe_layer_chunk_candidate = exp["qwen3_moe_layer_chunk_candidate"]
     qwen3_moe_unified_result_selection = exp["qwen3_moe_unified_result_selection"]
     qwen3_moe_unified_result_selection_smoke = exp["qwen3_moe_unified_result_selection_smoke"]
@@ -4984,6 +5042,13 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(qwen3_moe_mechanism_levers['top_expert_geometry_layer_risk'])} |"
             ),
             (
+                "| Qwen3 MoE mechanism levers | expert subspace used / high / extra-scaled / top layer | "
+                f"{qwen3_moe_mechanism_levers['expert_subspace_probe_used']} / "
+                f"{qwen3_moe_mechanism_levers['high_subspace_conflict_expert_count']} / "
+                f"{qwen3_moe_mechanism_levers['subspace_extra_scaled_expert_count']} / "
+                f"{qwen3_moe_mechanism_levers['top_subspace_conflict_layer']} |"
+            ),
+            (
                 "| Qwen3 MoE expert geometry probe | projection tensors / experts / layers | "
                 f"{qwen3_moe_expert_geometry_probe['projection_tensor_count']} / "
                 f"{qwen3_moe_expert_geometry_probe['expert_count']} / "
@@ -5007,6 +5072,20 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_expert_geometry_probe['top_expert_layer']}:"
                 f"{qwen3_moe_expert_geometry_probe['top_expert_id']} "
                 f"({fmt(qwen3_moe_expert_geometry_probe['top_expert_route_geometry_risk_score'])}) |"
+            ),
+            (
+                "| Qwen3 MoE expert subspace conflict probe | projections / high / route-high / extra-scaled | "
+                f"{qwen3_moe_expert_subspace_conflict_probe['projection_tensor_count']} / "
+                f"{qwen3_moe_expert_subspace_conflict_probe['high_subspace_conflict_expert_count']} / "
+                f"{qwen3_moe_expert_subspace_conflict_probe['route_important_high_subspace_conflict_expert_count']} / "
+                f"{qwen3_moe_expert_subspace_conflict_probe['subspace_extra_scaled_expert_count']} |"
+            ),
+            (
+                "| Qwen3 MoE expert subspace conflict probe | top layer / max conflict / coder reduction / next action | "
+                f"{qwen3_moe_expert_subspace_conflict_probe['top_subspace_conflict_layer']} / "
+                f"{fmt(qwen3_moe_expert_subspace_conflict_probe['max_subspace_conflict_score'])} / "
+                f"{fmt(qwen3_moe_expert_subspace_conflict_probe['total_coder_weight_reduction'], 6)} / "
+                f"{qwen3_moe_expert_subspace_conflict_probe['next_action']} |"
             ),
             (
                 "| Qwen3 MoE layer/chunk candidate | schedule / feasible schedules / changed groups | "

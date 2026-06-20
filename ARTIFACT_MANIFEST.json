@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 85420,
+      "bytes": 86161,
       "kind": "document",
       "path": "README.md",
-      "sha256": "45712ab415dc64a3beedd73fc73a62de613481a4bbf9d2a7abc87fa08ba42f6b"
+      "sha256": "1491de80499e6074b312851a8809a933e903d998f3f7c37fcf7a137205ccf730"
     },
     {
       "bytes": 33211,
@@ -2089,6 +2089,54 @@
       "sha256": "4b23f3659915d83589c7375623bb9fc75854f4fd11a2ce7f3a525f7d9ea43246"
     },
     {
+      "bytes": 3739460,
+      "kind": "data",
+      "path": "results/qwen3_moe_expert_subspace_conflict_probe/expert_subspace_conflicts.csv",
+      "sha256": "6db23157b6e867cbbc3598ca345c791d90c7f7be8f24f1279a4d8c677cea6b82"
+    },
+    {
+      "bytes": 6303,
+      "kind": "data",
+      "path": "results/qwen3_moe_expert_subspace_conflict_probe/layer_subspace_conflicts.csv",
+      "sha256": "6851e44c32779bf79b1c0b093e646d13f81ec9b04ddf74c3ab7e04d019fe2251"
+    },
+    {
+      "bytes": 6595542,
+      "kind": "data",
+      "path": "results/qwen3_moe_expert_subspace_conflict_probe/projection_subspace_scores.csv",
+      "sha256": "d9da74a4ae36a3d9eb9dd570c8b3c6e97aa8de1df13dadc83962cde41cdbd95f"
+    },
+    {
+      "bytes": 8201,
+      "kind": "document",
+      "path": "results/qwen3_moe_expert_subspace_conflict_probe/report.md",
+      "sha256": "d5425ed88909b0f8083fa757d1a6cb0cffa2b50c8eb86db2117c75cc96bff599"
+    },
+    {
+      "bytes": 653,
+      "kind": "data",
+      "path": "results/qwen3_moe_expert_subspace_conflict_probe/subspace_action_summary.csv",
+      "sha256": "59414efa7587c16371b3e640df55152a2e372a2d838c7acf9c40e17e6d644545"
+    },
+    {
+      "bytes": 1056335,
+      "kind": "data",
+      "path": "results/qwen3_moe_expert_subspace_conflict_probe/subspace_adjusted_group_rules.csv",
+      "sha256": "eb111b70aa6975e27ab902f553a33d12a684939f561256c69fa6f1a90dd0d131"
+    },
+    {
+      "bytes": 345681,
+      "kind": "data",
+      "path": "results/qwen3_moe_expert_subspace_conflict_probe/subspace_adjusted_tensor_rules.txt",
+      "sha256": "e4a9a2b3e380ff0e4527be02cd69fceff107f67aee15876a6005ce3a71e7ba5f"
+    },
+    {
+      "bytes": 2335,
+      "kind": "data",
+      "path": "results/qwen3_moe_expert_subspace_conflict_probe/summary.json",
+      "sha256": "fac4bd192df7039d5265bcc062b3b8cbf023fe918cb244dc9d5f8c5fb8483c7f"
+    },
+    {
       "bytes": 948,
       "kind": "data",
       "path": "results/qwen3_moe_final_candidate_selection/decision_rules.json",
@@ -2341,10 +2389,10 @@
       "sha256": "b52826fa1f598a3d69c37e1e565857e213ebf805b6c348f2bec0fc7271fd101e"
     },
     {
-      "bytes": 4371,
+      "bytes": 4505,
       "kind": "data",
       "path": "results/qwen3_moe_mechanism_levers/mechanism_levers.csv",
-      "sha256": "a506717fd316dfecbbf65f0ac7e0622803200dc32150f4f22e23efc56eb7c8e3"
+      "sha256": "6540d495fbcceec30c94c6682025493ef0aebc56cce418744658dc816ee69553"
     },
     {
       "bytes": 1247,
@@ -2353,16 +2401,16 @@
       "sha256": "45d876c79feb6588d373c078bd2b4a2848130a8558ab12d488d3e95d38a6ba3e"
     },
     {
-      "bytes": 6964,
+      "bytes": 7035,
       "kind": "document",
       "path": "results/qwen3_moe_mechanism_levers/report.md",
-      "sha256": "4c95bd8def46c4bb7188d4d6c1b9968f7c80b845b42377c3ba81c63a89d9aa9a"
+      "sha256": "5ae29e6097ade1aab1fe118dd0edf6419a7b5c4153d7d6cc6e3d66bb1e32b2ec"
     },
     {
-      "bytes": 905,
+      "bytes": 1071,
       "kind": "data",
       "path": "results/qwen3_moe_mechanism_levers/summary.json",
-      "sha256": "deade2152799320cefbd23995da018cd7e3f1f4bf646ccab15fda402bc33ea55"
+      "sha256": "2839e5be32ea957d000ee2cbb66d83e4b81dc721f18490cbf1d5a86ddaf354f7"
     },
     {
       "bytes": 2447,
@@ -4867,16 +4915,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 1660879,
+      "bytes": 1715776,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "07bbcf990706de41bebfc077894b004c1fd0fc65ccb3f3c9ddeb2cff603b172b"
+      "sha256": "f95b69c73c3645d6c9370129aabfbad0eefdd13a93f3b34e4160e5a59ea621fb"
     },
     {
-      "bytes": 54525,
+      "bytes": 55218,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "ee70e6ea840c33da5518f023215c6ae6b0dbe4fbf3d953a5bc07b2ce8bdb5c6b"
+      "sha256": "53efd1b4b46033dedd221d0b1ec13441748aaeabe455fcfc758ccafab8831cbf"
     },
     {
       "bytes": 288,
@@ -5875,10 +5923,16 @@
       "sha256": "bbc62bccc12e36bcf2302539fa82ef2a2476cbbadd540efa70d284e9b69fba60"
     },
     {
-      "bytes": 29342,
+      "bytes": 33456,
+      "kind": "code",
+      "path": "scripts/analyze_qwen3_moe_expert_subspace_conflicts.py",
+      "sha256": "f143f5fc4436fd76f19c78e8fd00a904893d7ef32290ae6f63af321deae70556"
+    },
+    {
+      "bytes": 31804,
       "kind": "code",
       "path": "scripts/analyze_qwen3_moe_mechanism_levers.py",
-      "sha256": "de5c9bc6151010d1b83435b5d0f6d25de1ba46dbbf671453a0107725a22fd914"
+      "sha256": "0b8ac919487b86d915c3450b8af9cbd84f7e9e6d51f33223333d49b393712555"
     },
     {
       "bytes": 22944,
@@ -6127,10 +6181,10 @@
       "sha256": "cd588bc1804013f4043bd95c245b066dbae86bfd3e3f9c18317ef33eb506f123"
     },
     {
-      "bytes": 379287,
+      "bytes": 384884,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "87e8df913378de6661e7934da295a3e14dae446418da49b8f21dda180b92a407"
+      "sha256": "cbfcd4477e0dc2dcd0f0bcf3d1636b5dfbf87a20476a8293053b91ff6d65eeee"
     },
     {
       "bytes": 16101,
@@ -6421,7 +6475,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-20T05:17:39.844883+00:00",
+  "generated_at": "2026-06-20T05:28:31.727976+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

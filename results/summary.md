@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-20T05:17:39.809718+00:00`
+Generated at: `2026-06-20T05:28:31.680236+00:00`
 
 ## Coverage
 
-Complete: `84`; partial: `1`; missing: `0`.
+Complete: `85`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -72,8 +72,9 @@ Complete: `84`; partial: `1`; missing: `0`.
 | Qwen3 MoE route-guarded unified candidate | complete | results/qwen3_moe_unified_route_guarded_candidate/report.md converts the real Qwen3 route/load probe into source-route-conditioned same-shape tensor rules and a validated writer dry-run command. |
 | Qwen3 MoE mechanism-gated vLLM eval gate | complete | results/qwen3_moe_mechanism_eval_gate/report.md turns two source endpoints and eight same-shape Qwen3 MoE candidates into mechanism tests, a one-model-at-a-time vLLM run script, and endpoint-fallback selection rules. |
 | Qwen3 MoE statistically powered vLLM eval budget | complete | results/qwen3_moe_eval_budget_plan/report.md raises the Qwen3 source/candidate vLLM run from a 64-example smoke floor to a Wilson/paired-test budgeted eval script. |
-| Qwen3 MoE mechanism leverage map | complete | results/qwen3_moe_mechanism_levers/report.md ranks MoE-specific failure mechanisms, next experiments, and importance-guided layer/chunk calibration slots from real Qwen3 probes, including the expert geometry probe. |
+| Qwen3 MoE mechanism leverage map | complete | results/qwen3_moe_mechanism_levers/report.md ranks MoE-specific failure mechanisms, next experiments, and importance-guided layer/chunk calibration slots from real Qwen3 probes, including expert geometry and subspace conflict probes. |
 | Qwen3 MoE expert geometry probe | complete | results/qwen3_moe_expert_geometry_probe/report.md reads 18,432 routed expert tensors from real Qwen3 Instruct/Coder safetensors and joins internal geometry risk with route/load context. |
+| Qwen3 MoE expert subspace conflict probe | complete | results/qwen3_moe_expert_subspace_conflict_probe/report.md converts real expert channel/chunk geometry into subspace conflict gates and a candidate scale plan for uncovered high-risk experts. |
 | Qwen3 MoE layer/chunk coefficient candidate | complete | results/qwen3_moe_layer_chunk_candidate/report.md converts the mechanism leverage layer scores into writer-ready same-shape tensor rules; results/qwen3_moe_layer_chunk_delta_audit/report.md verifies the materialized same-shape checkpoint. |
 | Qwen3 MoE unified downstream result selector | complete | results/qwen3_moe_unified_result_selection/report.md gates the unified same-shape average against both Qwen3 source endpoints after matched vLLM eval; results/qwen3_moe_unified_result_selection_smoke/report.md covers candidate-win, source-dominance, task-regression, and no-gain branches. |
 | Qwen3 MoE final candidate selector | complete | results/qwen3_moe_final_candidate_selection/report.md ranks all eight same-shape Qwen3 MoE candidates against both source endpoints after eval-bundle audit, with source-dominance, task-regression, score-confidence, paired-prediction, checkpoint-audit, and provisional-selection gates. |
@@ -201,10 +202,13 @@ Complete: `84`; partial: `1`; missing: `0`.
 | Qwen3 MoE mechanism levers | top lever / priority / next test | source_and_candidate_downstream_eval / 0.98 / results/qwen3_moe_eval_budget_plan/run_eval_budget.sh all |
 | Qwen3 MoE mechanism levers | fine calibration layers / top layer score | 12,13,17,20,21,22,23,26 / 17:0.905 |
 | Qwen3 MoE mechanism levers | expert geometry used / top geometry layer | True / 17:0.714 |
+| Qwen3 MoE mechanism levers | expert subspace used / high / extra-scaled / top layer | True / 1323 / 17 / 17 |
 | Qwen3 MoE expert geometry probe | projection tensors / experts / layers | 18432 / 6144 / 48 |
 | Qwen3 MoE expert geometry probe | mean-p05 cosine / mean-p95 rel-delta | 0.386-0.118 / 1.062-1.275 |
 | Qwen3 MoE expert geometry probe | high internal / route+geometry risk experts | 931 / 204 |
 | Qwen3 MoE expert geometry probe | top layer / top expert risk | 17 / 13:104 (0.930) |
+| Qwen3 MoE expert subspace conflict probe | projections / high / route-high / extra-scaled | 18432 / 1323 / 242 / 17 |
+| Qwen3 MoE expert subspace conflict probe | top layer / max conflict / coder reduction / next action | 17 / 1.000 / 0.253078 / materialize_subspace_scaled_ablation_after_source_eval_budget |
 | Qwen3 MoE layer/chunk candidate | schedule / feasible schedules / changed groups | policy_095_098_100 / 3/15 / 2623 |
 | Qwen3 MoE layer/chunk candidate | retention / risk delta reduction / max rel-delta | 0.985 / 0.021 / 0.650 |
 | Qwen3 MoE layer/chunk candidate | dry-run / floating / frozen / tensor-rule hits | True / 18867 / 3891 / 15729 |

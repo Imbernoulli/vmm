@@ -249,6 +249,7 @@ def build_levers(
     eval_budget_summary: dict[str, Any],
     final_selection_summary: dict[str, Any],
     chunking_plan: pd.DataFrame,
+    subspace_summary: dict[str, Any],
 ) -> pd.DataFrame:
     route_to_audit = find_pair(pairwise, "route_guarded", "audit_gated")
     audit_to_trust = find_pair(pairwise, "audit_gated", "trust_region")
@@ -280,6 +281,25 @@ def build_levers(
         .sort_values("layer")
         .iterrows()
     ) if not chunking_plan.empty and "route_mass_weighted_route_geometry_risk_score" in chunking_plan else ""
+    subspace_available = bool(subspace_summary)
+    subspace_quantitative_evidence = (
+        f"projection tensors {subspace_summary.get('projection_tensor_count')}; "
+        f"high-conflict experts {subspace_summary.get('high_subspace_conflict_expert_count')}; "
+        f"route-important high-conflict experts "
+        f"{subspace_summary.get('route_important_high_subspace_conflict_expert_count')}; "
+        f"extra-scaled experts {subspace_summary.get('subspace_extra_scaled_expert_count')}; "
+        f"top layer L{subspace_summary.get('top_subspace_conflict_layer')}"
+    ) if subspace_available else "Qwen3 identity gate passes, but no expert-output subspace clustering artifact is tracked for candidate generation."
+    subspace_current_action = (
+        "use subspace-conflict score as a pre-materialization gate; keep current unified caps for covered experts and reserve a subspace-scaled ablation for the 17 uncovered experts"
+        if subspace_available
+        else "keep identity as required preflight; add expert-output/subspace probe before averaging unrelated downstream MoE fine-tunes"
+    )
+    subspace_next_test = (
+        "materialize/evaluate the subspace-scaled candidate only after the source/candidate budgeted vLLM gate, or use the gate before third-party MoE merges"
+        if subspace_available
+        else "collect per-expert output embeddings and cluster/subspace similarity before materializing third-party MoE merges"
+    )
     levers = [
         {
             "mechanism": "source_and_candidate_downstream_eval",
@@ -400,14 +420,17 @@ def build_levers(
         },
         {
             "mechanism": "expert_identity_and_subspace_probe",
-            "evidence_type": "literature_gap",
-            "quantitative_evidence": "Qwen3 identity gate passes, but no expert-output subspace clustering artifact is tracked for candidate generation.",
-            "inferred_failure_mode": "same-index experts may be shape-compatible while still hiding functional subspace conflicts in downstream fine-tunes.",
-            "current_action": "keep identity as required preflight; add expert-output/subspace probe before averaging unrelated downstream MoE fine-tunes",
-            "next_test": "collect per-expert output embeddings and cluster/subspace similarity before materializing third-party MoE merges",
-            "priority_score": 0.66,
+            "evidence_type": "subspace_conflict_probe" if subspace_available else "literature_gap",
+            "quantitative_evidence": subspace_quantitative_evidence,
+            "inferred_failure_mode": "same-index experts may be shape-compatible while still hiding localized channel/chunk subspace conflicts.",
+            "current_action": subspace_current_action,
+            "next_test": subspace_next_test,
+            "priority_score": 0.73 if subspace_available else 0.66,
             "confidence": "medium",
-            "source_artifacts": "results/fp_moe_real_probe/report.md; results/moe_probe_gated_selector/report.md",
+            "source_artifacts": (
+                "results/qwen3_moe_expert_subspace_conflict_probe/report.md; "
+                "results/qwen3_moe_expert_geometry_probe/report.md"
+            ) if subspace_available else "results/fp_moe_real_probe/report.md; results/moe_probe_gated_selector/report.md",
         },
     ]
     final_status = (final_selection_summary.get("current_selection") or {}).get("status")
@@ -518,7 +541,13 @@ def build_report(summary: dict[str, Any], levers: pd.DataFrame, queue: pd.DataFr
     return "\n".join(lines) + "\n"
 
 
-def write_outputs(output_dir: Path, levers: pd.DataFrame, queue: pd.DataFrame, chunking: pd.DataFrame) -> dict[str, Any]:
+def write_outputs(
+    output_dir: Path,
+    levers: pd.DataFrame,
+    queue: pd.DataFrame,
+    chunking: pd.DataFrame,
+    subspace_summary: dict[str, Any],
+) -> dict[str, Any]:
     output_dir = repo_path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     levers_path = output_dir / "mechanism_levers.csv"
@@ -558,6 +587,20 @@ def write_outputs(output_dir: Path, levers: pd.DataFrame, queue: pd.DataFrame, c
         "top_lever_priority": maybe_float(top.get("priority_score")),
         "fine_calibration_layers": fine_layers,
         "expert_geometry_probe_used": geometry_available,
+        "expert_subspace_probe_used": bool(subspace_summary),
+        "high_subspace_conflict_expert_count": maybe_int(
+            subspace_summary.get("high_subspace_conflict_expert_count")
+        )
+        if subspace_summary
+        else None,
+        "subspace_extra_scaled_expert_count": maybe_int(
+            subspace_summary.get("subspace_extra_scaled_expert_count")
+        )
+        if subspace_summary
+        else None,
+        "top_subspace_conflict_layer": maybe_int(subspace_summary.get("top_subspace_conflict_layer"))
+        if subspace_summary
+        else None,
         "top_expert_geometry_layer": maybe_int(top_geometry.get("layer")) if top_geometry else None,
         "top_expert_geometry_layer_risk": maybe_float(
             top_geometry.get("route_mass_weighted_route_geometry_risk_score")
@@ -593,6 +636,11 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=Path("results/qwen3_moe_expert_geometry_probe/layer_geometry.csv"),
     )
+    parser.add_argument(
+        "--expert-subspace-dir",
+        type=Path,
+        default=Path("results/qwen3_moe_expert_subspace_conflict_probe"),
+    )
     return parser.parse_args()
 
 
@@ -603,6 +651,7 @@ def main() -> None:
     router_dir = repo_path(args.router_gate_dir)
     eval_budget_dir = repo_path(args.eval_budget_dir)
     final_dir = repo_path(args.final_selection_dir)
+    subspace_dir = repo_path(args.expert_subspace_dir)
     delta_summary = read_json(delta_dir / "summary.json")
     pairwise = read_csv(delta_dir / "pairwise_delta_reductions.csv")
     candidate_frontier = read_csv(delta_dir / "candidate_delta_frontier.csv")
@@ -614,6 +663,7 @@ def main() -> None:
     expert_geometry_layers = read_csv(args.expert_geometry_layer)
     eval_budget_summary = read_json(eval_budget_dir / "summary.json")
     final_selection_summary = read_json(final_dir / "summary.json")
+    subspace_summary = read_json(subspace_dir / "summary.json")
     chunking = build_layer_chunking_plan(layer_frontier, router_layers, expert_geometry_layers)
     levers = build_levers(
         delta_summary=delta_summary,
@@ -625,9 +675,10 @@ def main() -> None:
         eval_budget_summary=eval_budget_summary,
         final_selection_summary=final_selection_summary,
         chunking_plan=chunking,
+        subspace_summary=subspace_summary,
     )
     queue = build_experiment_queue(levers)
-    summary = write_outputs(args.output_dir, levers, queue, chunking)
+    summary = write_outputs(args.output_dir, levers, queue, chunking, subspace_summary)
     print(f"Wrote Qwen3 MoE mechanism leverage map to {repo_path(args.output_dir).resolve()}")
     print(f"Top lever: {summary['top_lever']} ({summary['top_lever_priority']:.3f})")
 
