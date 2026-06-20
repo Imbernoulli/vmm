@@ -18,6 +18,7 @@
     "source_count": 2,
     "sources_complete": false,
     "status": "awaiting_source_eval",
+    "uncertainty_gate": true,
     "usable_candidate_count": 0
   },
   "outputs": {

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 from pathlib import Path
 from typing import Any
 
@@ -17,6 +18,12 @@ TASK_SCORE_COLUMNS = [
     "task_safety_score",
     "task_humaneval_compile_score",
 ]
+TASK_TO_SCORE_COLUMN = {
+    "gsm8k": "task_gsm8k_score",
+    "mmlu": "task_mmlu_score",
+    "safety": "task_safety_score",
+    "humaneval_compile": "task_humaneval_compile_score",
+}
 SCORE_COLUMNS = ["avg_primary_score", "worst_primary_score", *TASK_SCORE_COLUMNS]
 
 
@@ -82,7 +89,46 @@ def primary_metric(row: pd.Series | dict[str, Any]) -> tuple[str, float] | None:
     return None
 
 
-def read_eval_scores(eval_dir: str | Path) -> dict[str, Any]:
+def wilson_interval(score: float | None, n: int | None, z: float) -> tuple[float | None, float | None]:
+    if score is None or n is None or n <= 0:
+        return None, None
+    p = min(1.0, max(0.0, float(score)))
+    z2 = z * z
+    denom = 1.0 + z2 / n
+    center = (p + z2 / (2.0 * n)) / denom
+    margin = z * math.sqrt((p * (1.0 - p) / n) + (z2 / (4.0 * n * n))) / denom
+    return max(0.0, center - margin), min(1.0, center + margin)
+
+
+def aggregate_interval(
+    scores: dict[str, float],
+    bounds: dict[str, tuple[float | None, float | None]],
+) -> dict[str, float | None]:
+    if not scores:
+        return {
+            "avg_primary_lower": None,
+            "avg_primary_upper": None,
+            "worst_primary_lower": None,
+            "worst_primary_upper": None,
+        }
+    lowers = [bounds[task][0] for task in scores if bounds.get(task, (None, None))[0] is not None]
+    uppers = [bounds[task][1] for task in scores if bounds.get(task, (None, None))[1] is not None]
+    if len(lowers) != len(scores) or len(uppers) != len(scores):
+        return {
+            "avg_primary_lower": None,
+            "avg_primary_upper": None,
+            "worst_primary_lower": None,
+            "worst_primary_upper": None,
+        }
+    return {
+        "avg_primary_lower": sum(lowers) / len(lowers),
+        "avg_primary_upper": sum(uppers) / len(uppers),
+        "worst_primary_lower": min(lowers),
+        "worst_primary_upper": min(uppers),
+    }
+
+
+def read_eval_scores(eval_dir: str | Path, *, confidence_z: float) -> dict[str, Any]:
     root = repo_path(eval_dir)
     summary = read_json(root / "summary.json")
     model_summary = read_csv(root / "model_summary.csv")
@@ -90,21 +136,36 @@ def read_eval_scores(eval_dir: str | Path) -> dict[str, Any]:
     status = str(summary.get("status", "missing"))
     model_row = model_summary.iloc[0].to_dict() if not model_summary.empty else {}
     task_scores: dict[str, float] = {}
+    task_bounds: dict[str, tuple[float | None, float | None]] = {}
+    task_examples: dict[str, int] = {}
     if not metrics.empty:
         for _, metric_row in metrics.iterrows():
             task = str(metric_row.get("task", ""))
             primary = primary_metric(metric_row)
             if primary is not None:
                 task_scores[task] = primary[1]
+                examples = clean_value(metric_row.get("examples"))
+                n = int(examples) if examples is not None else None
+                task_examples[task] = n or 0
+                task_bounds[task] = wilson_interval(primary[1], n, confidence_z)
+    intervals = aggregate_interval(task_scores, task_bounds)
+    task_interval_values: dict[str, float | int | None] = {}
+    for task, column in TASK_TO_SCORE_COLUMN.items():
+        lower, upper = task_bounds.get(task, (None, None))
+        task_interval_values[f"{column}_n"] = task_examples.get(task)
+        task_interval_values[f"{column}_lower"] = lower
+        task_interval_values[f"{column}_upper"] = upper
     return {
         "eval_status": status,
         "eval_completed": status == "complete",
         "avg_primary_score": maybe_float(model_row.get("avg_primary_score")),
         "worst_primary_score": maybe_float(model_row.get("worst_primary_score")),
+        **intervals,
         "task_gsm8k_score": task_scores.get("gsm8k"),
         "task_mmlu_score": task_scores.get("mmlu"),
         "task_safety_score": task_scores.get("safety"),
         "task_humaneval_compile_score": task_scores.get("humaneval_compile"),
+        **task_interval_values,
     }
 
 
@@ -146,7 +207,39 @@ def task_regressions(sources: pd.DataFrame, candidate: pd.Series, tolerance: flo
     return regressions
 
 
-def load_real_rows(gate_dir: Path, audit_dir: Path) -> pd.DataFrame:
+def confidence_task_regressions(sources: pd.DataFrame, candidate: pd.Series, tolerance: float) -> list[str]:
+    regressions = []
+    for column in TASK_SCORE_COLUMNS:
+        candidate_lower = maybe_float(candidate.get(f"{column}_lower"))
+        if f"{column}_lower" not in sources:
+            continue
+        source_lowers = [
+            maybe_float(value)
+            for value in sources[f"{column}_lower"].tolist()
+            if maybe_float(value) is not None
+        ]
+        if candidate_lower is None or len(source_lowers) < len(SOURCE_METHODS):
+            continue
+        if candidate_lower < min(source_lowers) - tolerance:
+            regressions.append(column)
+    return regressions
+
+
+def interval_dominates(left: pd.Series | dict[str, Any], right: pd.Series | dict[str, Any], eps: float = 1e-9) -> bool:
+    pairs = []
+    for column in SCORE_COLUMNS:
+        left_lower = maybe_float(left.get(f"{column}_lower"))
+        right_upper = maybe_float(right.get(f"{column}_upper"))
+        if left_lower is not None and right_upper is not None:
+            pairs.append((left_lower, right_upper))
+    if not pairs:
+        return False
+    return all(left_lower >= right_upper - eps for left_lower, right_upper in pairs) and any(
+        left_lower > right_upper + eps for left_lower, right_upper in pairs
+    )
+
+
+def load_real_rows(gate_dir: Path, audit_dir: Path, *, confidence_z: float) -> pd.DataFrame:
     gate = read_csv(repo_path(gate_dir) / "eval_gate_plan.csv")
     usable = bundle_usable_map(audit_dir)
     rows = []
@@ -155,12 +248,17 @@ def load_real_rows(gate_dir: Path, audit_dir: Path) -> pd.DataFrame:
         method = str(item["method"])
         item["eval_usable"] = bool(usable.get(method, False))
         if item["eval_usable"]:
-            item.update(read_eval_scores(str(item.get("eval_output_dir", ""))))
+            item.update(read_eval_scores(str(item.get("eval_output_dir", "")), confidence_z=confidence_z))
         else:
             item["eval_status"] = item.get("eval_status") or "not_usable"
             item["eval_completed"] = False
             for column in SCORE_COLUMNS:
                 item[column] = None
+            for column in ["avg_primary", "worst_primary", *TASK_SCORE_COLUMNS]:
+                item[f"{column}_lower"] = None
+                item[f"{column}_upper"] = None
+            for column in TASK_SCORE_COLUMNS:
+                item[f"{column}_n"] = None
         rows.append(item)
     return pd.DataFrame(rows)
 
@@ -169,6 +267,7 @@ def build_selection_table(
     rows: pd.DataFrame,
     *,
     task_regression_tolerance: float,
+    use_uncertainty_gate: bool,
 ) -> tuple[pd.DataFrame, dict[str, Any]]:
     rows = rows.copy()
     sources = rows[rows["method"].isin(SOURCE_METHODS)].copy()
@@ -192,7 +291,9 @@ def build_selection_table(
     for _, row in rows.iterrows():
         is_candidate = str(row.get("role")) == "candidate"
         dominated_by = []
+        confidence_dominated_by = []
         regressions = []
+        confidence_regressions = []
         eligible = False
         rejection_reasons = []
         if is_candidate:
@@ -204,11 +305,19 @@ def build_selection_table(
                 for _, source in sources.iterrows():
                     if dominates(source, row):
                         dominated_by.append(str(source["method"]))
+                    if use_uncertainty_gate and interval_dominates(source, row):
+                        confidence_dominated_by.append(str(source["method"]))
                 regressions = task_regressions(sources, row, task_regression_tolerance)
+                if use_uncertainty_gate:
+                    confidence_regressions = confidence_task_regressions(sources, row, task_regression_tolerance)
                 if dominated_by:
                     rejection_reasons.append("source_endpoint_dominates")
+                if confidence_dominated_by:
+                    rejection_reasons.append("source_confidence_interval_dominates")
                 if regressions:
                     rejection_reasons.append("task_score_regression")
+                if confidence_regressions:
+                    rejection_reasons.append("task_confidence_regression")
             elif is_candidate and bool(row.get("eval_usable", False)):
                 rejection_reasons.append("awaiting_source_eval")
             eligible = bool(
@@ -217,7 +326,9 @@ def build_selection_table(
                 and bool(row.get("eval_usable", False))
                 and bool(row.get("audit_passed", False))
                 and not dominated_by
+                and not confidence_dominated_by
                 and not regressions
+                and not confidence_regressions
             )
         table_rows.append(
             {
@@ -227,6 +338,10 @@ def build_selection_table(
                 "audit_passed": bool(row.get("audit_passed", False)),
                 "avg_primary_score": row.get("avg_primary_score"),
                 "worst_primary_score": row.get("worst_primary_score"),
+                "avg_primary_lower": row.get("avg_primary_lower"),
+                "avg_primary_upper": row.get("avg_primary_upper"),
+                "worst_primary_lower": row.get("worst_primary_lower"),
+                "worst_primary_upper": row.get("worst_primary_upper"),
                 "task_gsm8k_score": row.get("task_gsm8k_score"),
                 "task_mmlu_score": row.get("task_mmlu_score"),
                 "task_safety_score": row.get("task_safety_score"),
@@ -234,7 +349,9 @@ def build_selection_table(
                 "total_relative_delta_norm": row.get("total_relative_delta_norm"),
                 "routed_tensors_gt_0_75": row.get("routed_tensors_gt_0_75"),
                 "dominated_by_source": ",".join(dominated_by),
+                "confidence_dominated_by_source": ",".join(confidence_dominated_by),
                 "task_regression_columns": ",".join(regressions),
+                "task_confidence_regression_columns": ",".join(confidence_regressions),
                 "rejection_reasons": ",".join(rejection_reasons),
                 "selection_eligible": eligible,
             }
@@ -282,6 +399,7 @@ def build_selection_table(
             "best_source_by_avg": best_source_by_avg,
             "best_source_by_worst": best_source_by_worst,
             "score_columns": SCORE_COLUMNS,
+            "uncertainty_gate": use_uncertainty_gate,
         }
     )
     return table, selection
@@ -308,16 +426,23 @@ def build_report(summary: dict[str, Any], table: pd.DataFrame) -> str:
         f"- Sources complete: `{selection.get('sources_complete')}`",
         f"- Candidates complete: `{selection.get('candidates_complete')}`",
         f"- Eligible candidates: `{selection.get('eligible_candidate_count')}/{selection.get('candidate_count')}`",
+        f"- Uncertainty gate: `{selection.get('uncertainty_gate')}`",
         "",
-        "| method | role | usable | audit | avg | worst | rel norm | dominated | regressions | eligible |",
-        "| --- | --- | --- | --- | ---: | ---: | ---: | --- | --- | --- |",
+        "| method | role | usable | audit | avg | avg CI | worst | worst CI | rel norm | dominated | conf dom | regressions | conf regressions | eligible |",
+        "| --- | --- | --- | --- | ---: | --- | ---: | --- | ---: | --- | --- | --- | --- | --- |",
     ]
     for _, row in table.iterrows():
         lines.append(
             f"| `{row['method']}` | `{row['role']}` | `{bool(row['eval_usable'])}` | "
             f"`{bool(row['audit_passed'])}` | {fmt(row.get('avg_primary_score'))} | "
-            f"{fmt(row.get('worst_primary_score'))} | {fmt(row.get('total_relative_delta_norm'))} | "
-            f"`{row.get('dominated_by_source', '')}` | `{row.get('task_regression_columns', '')}` | "
+            f"[{fmt(row.get('avg_primary_lower'))}, {fmt(row.get('avg_primary_upper'))}] | "
+            f"{fmt(row.get('worst_primary_score'))} | "
+            f"[{fmt(row.get('worst_primary_lower'))}, {fmt(row.get('worst_primary_upper'))}] | "
+            f"{fmt(row.get('total_relative_delta_norm'))} | "
+            f"`{row.get('dominated_by_source', '')}` | "
+            f"`{row.get('confidence_dominated_by_source', '')}` | "
+            f"`{row.get('task_regression_columns', '')}` | "
+            f"`{row.get('task_confidence_regression_columns', '')}` | "
             f"`{bool(row.get('selection_eligible'))}` |"
         )
     lines.extend(
@@ -356,7 +481,9 @@ def write_outputs(
             "candidate must pass eval-bundle audit",
             "candidate checkpoint audit must pass",
             "candidate must not be dominated by either source endpoint",
+            "candidate must not be dominated by either source endpoint after score confidence intervals",
             "candidate must not regress a task below both source endpoints",
+            "candidate task confidence lower bound must not fall below both source lower bounds",
             "rank eligible candidates by avg primary score, then worst primary score, then lower total relative delta norm",
         ],
     }
@@ -376,6 +503,25 @@ def write_outputs(
     summary_path.write_text(json.dumps(json_safe(summary), indent=2, sort_keys=True) + "\n", encoding="utf-8")
     report_path.write_text(build_report(summary, table), encoding="utf-8")
     return summary
+
+
+def add_smoke_intervals(rows: list[dict[str, Any]], *, default_n: int = 128, z: float = 1.96) -> list[dict[str, Any]]:
+    for row in rows:
+        task_scores = {}
+        task_bounds = {}
+        for _, column in TASK_TO_SCORE_COLUMN.items():
+            score = maybe_float(row.get(column))
+            n = int(row.get(f"{column}_n") or default_n)
+            row[f"{column}_n"] = n
+            lower, upper = wilson_interval(score, n, z)
+            row[f"{column}_lower"] = lower
+            row[f"{column}_upper"] = upper
+            if score is not None:
+                task_scores[column] = score
+                task_bounds[column] = (lower, upper)
+        intervals = aggregate_interval(task_scores, task_bounds)
+        row.update(intervals)
+    return rows
 
 
 def smoke_rows(case: str) -> pd.DataFrame:
@@ -436,6 +582,7 @@ def smoke_rows(case: str) -> pd.DataFrame:
             "routed_tensors_gt_0_75": 0,
         },
     ]
+    rows = add_smoke_intervals(rows)
     if case == "source_dominance":
         rows[2].update(
             avg_primary_score=0.55,
@@ -453,9 +600,24 @@ def smoke_rows(case: str) -> pd.DataFrame:
             task_safety_score=0.39,
             task_humaneval_compile_score=0.29,
         )
+        rows = add_smoke_intervals(rows)
     elif case == "task_regression":
         rows[2]["task_safety_score"] = 0.30
         rows[3]["task_safety_score"] = 0.31
+        rows = add_smoke_intervals(rows)
+    elif case == "uncertain_small_sample":
+        for column in TASK_SCORE_COLUMNS:
+            rows[2][f"{column}_n"] = 6
+        rows[2].update(
+            avg_primary_score=0.67,
+            worst_primary_score=0.46,
+            task_gsm8k_score=0.59,
+            task_mmlu_score=0.62,
+            task_safety_score=0.69,
+            task_humaneval_compile_score=0.46,
+        )
+        rows[3]["eval_usable"] = False
+        rows = add_smoke_intervals(rows)
     elif case == "partial":
         rows[3]["eval_usable"] = False
     elif case != "candidate_win":
@@ -468,6 +630,7 @@ def run_smoke_matrix(args: argparse.Namespace) -> dict[str, Any]:
         "candidate_win": ("select_candidate", "qwen3_moe_tail_trimmed_expert_only_candidate"),
         "source_dominance": ("keep_source_endpoint", "source_qwen3_30b_instruct"),
         "task_regression": ("keep_source_endpoint", "source_qwen3_30b_instruct"),
+        "uncertain_small_sample": ("awaiting_candidate_eval", "source_qwen3_30b_instruct"),
         "partial": ("provisional_candidate", "qwen3_moe_tail_trimmed_expert_only_candidate"),
     }
     rows = []
@@ -475,6 +638,7 @@ def run_smoke_matrix(args: argparse.Namespace) -> dict[str, Any]:
         table, selection = build_selection_table(
             smoke_rows(case),
             task_regression_tolerance=args.task_regression_tolerance,
+            use_uncertainty_gate=not args.disable_uncertainty_gate,
         )
         rows.append(
             {
@@ -537,6 +701,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", type=Path, default=Path("results/qwen3_moe_final_candidate_selection"))
     parser.add_argument("--smoke-matrix", action="store_true")
     parser.add_argument("--task-regression-tolerance", type=float, default=1e-9)
+    parser.add_argument("--confidence-z", type=float, default=1.96)
+    parser.add_argument("--disable-uncertainty-gate", action="store_true")
     return parser.parse_args()
 
 
@@ -547,10 +713,11 @@ def main() -> None:
         print(f"Wrote Qwen3 MoE final candidate selector smoke to {repo_path(args.output_dir).resolve()}")
         print(f"Status: {summary['status']}; cases {summary['passed_case_count']}/{summary['case_count']}")
         return
-    rows = load_real_rows(args.gate_dir, args.audit_dir)
+    rows = load_real_rows(args.gate_dir, args.audit_dir, confidence_z=args.confidence_z)
     table, selection = build_selection_table(
         rows,
         task_regression_tolerance=args.task_regression_tolerance,
+        use_uncertainty_gate=not args.disable_uncertainty_gate,
     )
     summary = write_outputs(args.output_dir, table, selection)
     print(f"Wrote Qwen3 MoE final candidate selection to {repo_path(args.output_dir).resolve()}")

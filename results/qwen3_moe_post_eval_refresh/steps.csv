@@ -1,30 +1,30 @@
 step,kind,command,status,returncode,duration_sec,stdout_tail,stderr_tail
-audit_eval_bundles,gate,python scripts/audit_qwen3_moe_eval_bundle.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_eval_bundle_audit,passed,0,0.4018988609313965,"Wrote Qwen3 MoE eval bundle audit to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_eval_bundle_audit
+audit_eval_bundles,gate,python scripts/audit_qwen3_moe_eval_bundle.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_eval_bundle_audit,passed,0,0.400376558303833,"Wrote Qwen3 MoE eval bundle audit to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_eval_bundle_audit
 Status: awaiting_eval; usable=0/9
 ",
-select_unified_result,selector,python scripts/select_qwen3_moe_unified_result.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_unified_result_selection,passed,0,0.391589879989624,"Wrote Qwen3 MoE unified result selection to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_unified_result_selection
+select_unified_result,selector,python scripts/select_qwen3_moe_unified_result.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_unified_result_selection,passed,0,0.394728422164917,"Wrote Qwen3 MoE unified result selection to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_unified_result_selection
 Status: awaiting_source_eval; selected=None
 ",
-select_final_candidate,selector,python scripts/select_qwen3_moe_final_candidate.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_final_candidate_selection,passed,0,0.39862608909606934,"Wrote Qwen3 MoE final candidate selection to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_final_candidate_selection
+select_final_candidate,selector,python scripts/select_qwen3_moe_final_candidate.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_final_candidate_selection,passed,0,0.3839097023010254,"Wrote Qwen3 MoE final candidate selection to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_final_candidate_selection
 Status: awaiting_source_eval; selected=None
 ",
-attribute_mechanism_effects,attribution,python scripts/attribute_qwen3_moe_mechanism_effects.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_mechanism_effect_attribution,passed,0,0.39402103424072266,"Wrote Qwen3 MoE mechanism effect attribution to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_mechanism_effect_attribution
+attribute_mechanism_effects,attribution,python scripts/attribute_qwen3_moe_mechanism_effects.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_mechanism_effect_attribution,passed,0,0.38700056076049805,"Wrote Qwen3 MoE mechanism effect attribution to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_mechanism_effect_attribution
 Status: awaiting_eval; scored=0/7
 ",
-audit_eval_bundles_smoke,smoke,python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke,passed,0,0.689903974533081,"Wrote Qwen3 MoE eval bundle audit smoke to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_eval_bundle_audit_smoke
+audit_eval_bundles_smoke,smoke,python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke,passed,0,0.5510399341583252,"Wrote Qwen3 MoE eval bundle audit smoke to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_eval_bundle_audit_smoke
 Status: passed; cases 4/4
 ",
-select_unified_result_smoke,smoke,python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke,passed,0,0.3854098320007324,"Wrote smoke matrix to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_unified_result_selection_smoke
+select_unified_result_smoke,smoke,python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke,passed,0,0.39949584007263184,"Wrote smoke matrix to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_unified_result_selection_smoke
 Status: passed; cases 4/4
 ",
-select_final_candidate_smoke,smoke,python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke,passed,0,0.40331602096557617,"Wrote Qwen3 MoE final candidate selector smoke to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_final_candidate_selection_smoke
-Status: passed; cases 4/4
+select_final_candidate_smoke,smoke,python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke,passed,0,0.3996739387512207,"Wrote Qwen3 MoE final candidate selector smoke to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_final_candidate_selection_smoke
+Status: passed; cases 5/5
 ",
-attribute_mechanism_effects_smoke,smoke,python scripts/attribute_qwen3_moe_mechanism_effects.py --smoke-matrix --output-dir results/qwen3_moe_mechanism_effect_attribution_smoke,passed,0,0.3855624198913574,"Wrote Qwen3 MoE mechanism attribution smoke to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_mechanism_effect_attribution_smoke
+attribute_mechanism_effects_smoke,smoke,python scripts/attribute_qwen3_moe_mechanism_effects.py --smoke-matrix --output-dir results/qwen3_moe_mechanism_effect_attribution_smoke,passed,0,0.4188094139099121,"Wrote Qwen3 MoE mechanism attribution smoke to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_mechanism_effect_attribution_smoke
 Status: passed; cases 3/3
 ",
-collect_results,summary,python scripts/collect_results.py,passed,0,1.2476928234100342,"Wrote results/summary.json
+collect_results,summary,python scripts/collect_results.py,passed,0,1.2592206001281738,"Wrote results/summary.json
 Wrote results/summary.md
 Wrote ARTIFACT_MANIFEST.json
-Artifacts indexed: 976
+Artifacts indexed: 982
 ",

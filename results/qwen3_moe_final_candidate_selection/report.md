@@ -8,18 +8,19 @@
 - Sources complete: `False`
 - Candidates complete: `False`
 - Eligible candidates: `0/7`
+- Uncertainty gate: `True`
 
-| method | role | usable | audit | avg | worst | rel norm | dominated | regressions | eligible |
-| --- | --- | --- | --- | ---: | ---: | ---: | --- | --- | --- |
-| `source_qwen3_30b_instruct` | `source` | `False` | `True` | n/a | n/a | n/a | `` | `` | `False` |
-| `source_qwen3_30b_coder` | `source` | `False` | `True` | n/a | n/a | n/a | `` | `` | `False` |
-| `qwen3_moe_unified_route_guarded_candidate` | `candidate` | `False` | `True` | n/a | n/a | 0.285637 | `` | `` | `False` |
-| `qwen3_moe_audit_gated_candidate` | `candidate` | `False` | `True` | n/a | n/a | 0.263844 | `` | `` | `False` |
-| `qwen3_moe_trust_region_candidate` | `candidate` | `False` | `True` | n/a | n/a | 0.248661 | `` | `` | `False` |
-| `qwen3_moe_expert_only_trust_region_candidate` | `candidate` | `False` | `True` | n/a | n/a | 0.246033 | `` | `` | `False` |
-| `qwen3_moe_tail_trimmed_expert_only_candidate` | `candidate` | `False` | `True` | n/a | n/a | 0.243145 | `` | `` | `False` |
-| `qwen3_moe_searched_no_gt065_max_retention_candidate` | `candidate` | `False` | `True` | n/a | n/a | 0.247595 | `` | `` | `False` |
-| `qwen3_moe_unified_mechanism_candidate` | `candidate` | `False` | `True` | n/a | n/a | 0.247595 | `` | `` | `False` |
+| method | role | usable | audit | avg | avg CI | worst | worst CI | rel norm | dominated | conf dom | regressions | conf regressions | eligible |
+| --- | --- | --- | --- | ---: | --- | ---: | --- | ---: | --- | --- | --- | --- | --- |
+| `source_qwen3_30b_instruct` | `source` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | n/a | `` | `` | `` | `` | `False` |
+| `source_qwen3_30b_coder` | `source` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | n/a | `` | `` | `` | `` | `False` |
+| `qwen3_moe_unified_route_guarded_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.285637 | `` | `` | `` | `` | `False` |
+| `qwen3_moe_audit_gated_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.263844 | `` | `` | `` | `` | `False` |
+| `qwen3_moe_trust_region_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.248661 | `` | `` | `` | `` | `False` |
+| `qwen3_moe_expert_only_trust_region_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.246033 | `` | `` | `` | `` | `False` |
+| `qwen3_moe_tail_trimmed_expert_only_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.243145 | `` | `` | `` | `` | `False` |
+| `qwen3_moe_searched_no_gt065_max_retention_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.247595 | `` | `` | `` | `` | `False` |
+| `qwen3_moe_unified_mechanism_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.247595 | `` | `` | `` | `` | `False` |
 
 ## Outputs
 

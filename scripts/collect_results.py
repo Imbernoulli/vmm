@@ -1241,6 +1241,7 @@ def summarize_qwen3_moe_final_candidate_selection() -> dict[str, Any]:
         "selection_reason": selection.get("reason"),
         "sources_complete": bool(selection.get("sources_complete", False)),
         "candidates_complete": bool(selection.get("candidates_complete", False)),
+        "uncertainty_gate": bool(selection.get("uncertainty_gate", False)),
         "usable_candidate_count": int(selection.get("usable_candidate_count", 0)),
         "eligible_candidate_count": int(selection.get("eligible_candidate_count", len(eligible))),
         "candidate_count": int(selection.get("candidate_count", len(table[table["role"] == "candidate"]))),
@@ -4300,6 +4301,10 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"/{qwen3_moe_final_candidate_selection['candidate_count']} / "
                 f"{qwen3_moe_final_candidate_selection['candidates_complete']} / "
                 f"{qwen3_moe_final_candidate_selection['best_source_by_avg']} |"
+            ),
+            (
+                "| Qwen3 MoE final candidate selector | uncertainty gate | "
+                f"{qwen3_moe_final_candidate_selection['uncertainty_gate']} |"
             ),
             (
                 "| Qwen3 MoE final candidate selector smoke | status / passed cases | "

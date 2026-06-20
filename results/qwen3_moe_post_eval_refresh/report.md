@@ -14,13 +14,13 @@
 | --- | --- | --- | ---: | ---: |
 | `audit_eval_bundles` | `gate` | `passed` | 0 | 0.40 |
 | `select_unified_result` | `selector` | `passed` | 0 | 0.39 |
-| `select_final_candidate` | `selector` | `passed` | 0 | 0.40 |
+| `select_final_candidate` | `selector` | `passed` | 0 | 0.38 |
 | `attribute_mechanism_effects` | `attribution` | `passed` | 0 | 0.39 |
-| `audit_eval_bundles_smoke` | `smoke` | `passed` | 0 | 0.69 |
-| `select_unified_result_smoke` | `smoke` | `passed` | 0 | 0.39 |
+| `audit_eval_bundles_smoke` | `smoke` | `passed` | 0 | 0.55 |
+| `select_unified_result_smoke` | `smoke` | `passed` | 0 | 0.40 |
 | `select_final_candidate_smoke` | `smoke` | `passed` | 0 | 0.40 |
-| `attribute_mechanism_effects_smoke` | `smoke` | `passed` | 0 | 0.39 |
-| `collect_results` | `summary` | `passed` | 0 | 1.25 |
+| `attribute_mechanism_effects_smoke` | `smoke` | `passed` | 0 | 0.42 |
+| `collect_results` | `summary` | `passed` | 0 | 1.26 |
 
 ## Commands
 

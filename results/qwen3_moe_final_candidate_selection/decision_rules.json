@@ -4,7 +4,9 @@
     "candidate must pass eval-bundle audit",
     "candidate checkpoint audit must pass",
     "candidate must not be dominated by either source endpoint",
+    "candidate must not be dominated by either source endpoint after score confidence intervals",
     "candidate must not regress a task below both source endpoints",
+    "candidate task confidence lower bound must not fall below both source lower bounds",
     "rank eligible candidates by avg primary score, then worst primary score, then lower total relative delta norm"
   ],
   "required_controls": [

@@ -8863,7 +8863,10 @@
       "candidate_rows": [
         {
           "audit_passed": true,
+          "avg_primary_lower": null,
           "avg_primary_score": null,
+          "avg_primary_upper": null,
+          "confidence_dominated_by_source": null,
           "dominated_by_source": null,
           "eval_usable": false,
           "method": "source_qwen3_30b_instruct",
@@ -8871,17 +8874,23 @@
           "role": "source",
           "routed_tensors_gt_0_75": null,
           "selection_eligible": false,
+          "task_confidence_regression_columns": null,
           "task_gsm8k_score": null,
           "task_humaneval_compile_score": null,
           "task_mmlu_score": null,
           "task_regression_columns": null,
           "task_safety_score": null,
           "total_relative_delta_norm": null,
-          "worst_primary_score": null
+          "worst_primary_lower": null,
+          "worst_primary_score": null,
+          "worst_primary_upper": null
         },
         {
           "audit_passed": true,
+          "avg_primary_lower": null,
           "avg_primary_score": null,
+          "avg_primary_upper": null,
+          "confidence_dominated_by_source": null,
           "dominated_by_source": null,
           "eval_usable": false,
           "method": "source_qwen3_30b_coder",
@@ -8889,17 +8898,23 @@
           "role": "source",
           "routed_tensors_gt_0_75": null,
           "selection_eligible": false,
+          "task_confidence_regression_columns": null,
           "task_gsm8k_score": null,
           "task_humaneval_compile_score": null,
           "task_mmlu_score": null,
           "task_regression_columns": null,
           "task_safety_score": null,
           "total_relative_delta_norm": null,
-          "worst_primary_score": null
+          "worst_primary_lower": null,
+          "worst_primary_score": null,
+          "worst_primary_upper": null
         },
         {
           "audit_passed": true,
+          "avg_primary_lower": null,
           "avg_primary_score": null,
+          "avg_primary_upper": null,
+          "confidence_dominated_by_source": null,
           "dominated_by_source": null,
           "eval_usable": false,
           "method": "qwen3_moe_unified_route_guarded_candidate",
@@ -8907,17 +8922,23 @@
           "role": "candidate",
           "routed_tensors_gt_0_75": 839.0,
           "selection_eligible": false,
+          "task_confidence_regression_columns": null,
           "task_gsm8k_score": null,
           "task_humaneval_compile_score": null,
           "task_mmlu_score": null,
           "task_regression_columns": null,
           "task_safety_score": null,
           "total_relative_delta_norm": 0.2856374928013712,
-          "worst_primary_score": null
+          "worst_primary_lower": null,
+          "worst_primary_score": null,
+          "worst_primary_upper": null
         },
         {
           "audit_passed": true,
+          "avg_primary_lower": null,
           "avg_primary_score": null,
+          "avg_primary_upper": null,
+          "confidence_dominated_by_source": null,
           "dominated_by_source": null,
           "eval_usable": false,
           "method": "qwen3_moe_audit_gated_candidate",
@@ -8925,17 +8946,23 @@
           "role": "candidate",
           "routed_tensors_gt_0_75": 164.0,
           "selection_eligible": false,
+          "task_confidence_regression_columns": null,
           "task_gsm8k_score": null,
           "task_humaneval_compile_score": null,
           "task_mmlu_score": null,
           "task_regression_columns": null,
           "task_safety_score": null,
           "total_relative_delta_norm": 0.263843627182202,
-          "worst_primary_score": null
+          "worst_primary_lower": null,
+          "worst_primary_score": null,
+          "worst_primary_upper": null
         },
         {
           "audit_passed": true,
+          "avg_primary_lower": null,
           "avg_primary_score": null,
+          "avg_primary_upper": null,
+          "confidence_dominated_by_source": null,
           "dominated_by_source": null,
           "eval_usable": false,
           "method": "qwen3_moe_trust_region_candidate",
@@ -8943,17 +8970,23 @@
           "role": "candidate",
           "routed_tensors_gt_0_75": 14.0,
           "selection_eligible": false,
+          "task_confidence_regression_columns": null,
           "task_gsm8k_score": null,
           "task_humaneval_compile_score": null,
           "task_mmlu_score": null,
           "task_regression_columns": null,
           "task_safety_score": null,
           "total_relative_delta_norm": 0.2486605810368496,
-          "worst_primary_score": null
+          "worst_primary_lower": null,
+          "worst_primary_score": null,
+          "worst_primary_upper": null
         },
         {
           "audit_passed": true,
+          "avg_primary_lower": null,
           "avg_primary_score": null,
+          "avg_primary_upper": null,
+          "confidence_dominated_by_source": null,
           "dominated_by_source": null,
           "eval_usable": false,
           "method": "qwen3_moe_expert_only_trust_region_candidate",
@@ -8961,17 +8994,23 @@
           "role": "candidate",
           "routed_tensors_gt_0_75": 14.0,
           "selection_eligible": false,
+          "task_confidence_regression_columns": null,
           "task_gsm8k_score": null,
           "task_humaneval_compile_score": null,
           "task_mmlu_score": null,
           "task_regression_columns": null,
           "task_safety_score": null,
           "total_relative_delta_norm": 0.2460330539488216,
-          "worst_primary_score": null
+          "worst_primary_lower": null,
+          "worst_primary_score": null,
+          "worst_primary_upper": null
         },
         {
           "audit_passed": true,
+          "avg_primary_lower": null,
           "avg_primary_score": null,
+          "avg_primary_upper": null,
+          "confidence_dominated_by_source": null,
           "dominated_by_source": null,
           "eval_usable": false,
           "method": "qwen3_moe_tail_trimmed_expert_only_candidate",
@@ -8979,17 +9018,23 @@
           "role": "candidate",
           "routed_tensors_gt_0_75": 0.0,
           "selection_eligible": false,
+          "task_confidence_regression_columns": null,
           "task_gsm8k_score": null,
           "task_humaneval_compile_score": null,
           "task_mmlu_score": null,
           "task_regression_columns": null,
           "task_safety_score": null,
           "total_relative_delta_norm": 0.2431453154573603,
-          "worst_primary_score": null
+          "worst_primary_lower": null,
+          "worst_primary_score": null,
+          "worst_primary_upper": null
         },
         {
           "audit_passed": true,
+          "avg_primary_lower": null,
           "avg_primary_score": null,
+          "avg_primary_upper": null,
+          "confidence_dominated_by_source": null,
           "dominated_by_source": null,
           "eval_usable": false,
           "method": "qwen3_moe_searched_no_gt065_max_retention_candidate",
@@ -8997,17 +9042,23 @@
           "role": "candidate",
           "routed_tensors_gt_0_75": 0.0,
           "selection_eligible": false,
+          "task_confidence_regression_columns": null,
           "task_gsm8k_score": null,
           "task_humaneval_compile_score": null,
           "task_mmlu_score": null,
           "task_regression_columns": null,
           "task_safety_score": null,
           "total_relative_delta_norm": 0.2475948491291486,
-          "worst_primary_score": null
+          "worst_primary_lower": null,
+          "worst_primary_score": null,
+          "worst_primary_upper": null
         },
         {
           "audit_passed": true,
+          "avg_primary_lower": null,
           "avg_primary_score": null,
+          "avg_primary_upper": null,
+          "confidence_dominated_by_source": null,
           "dominated_by_source": null,
           "eval_usable": false,
           "method": "qwen3_moe_unified_mechanism_candidate",
@@ -9015,13 +9066,16 @@
           "role": "candidate",
           "routed_tensors_gt_0_75": 0.0,
           "selection_eligible": false,
+          "task_confidence_regression_columns": null,
           "task_gsm8k_score": null,
           "task_humaneval_compile_score": null,
           "task_mmlu_score": null,
           "task_regression_columns": null,
           "task_safety_score": null,
           "total_relative_delta_norm": 0.2475948491291486,
-          "worst_primary_score": null
+          "worst_primary_lower": null,
+          "worst_primary_score": null,
+          "worst_primary_upper": null
         }
       ],
       "candidates_complete": false,
@@ -9053,6 +9107,7 @@
           "source_count": 2,
           "sources_complete": false,
           "status": "awaiting_source_eval",
+          "uncertainty_gate": true,
           "usable_candidate_count": 0
         },
         "outputs": {
@@ -9066,10 +9121,11 @@
         "status": "awaiting_source_eval"
       },
       "summary_path": "results/qwen3_moe_final_candidate_selection/summary.json",
+      "uncertainty_gate": true,
       "usable_candidate_count": 0
     },
     "qwen3_moe_final_candidate_selection_smoke": {
-      "case_count": 4,
+      "case_count": 5,
       "case_rows": [
         {
           "case": "candidate_win",
@@ -9099,6 +9155,15 @@
           "status": "keep_source_endpoint"
         },
         {
+          "case": "uncertain_small_sample",
+          "eligible_candidate_count": 0,
+          "expected_selected_method": "source_qwen3_30b_instruct",
+          "expected_status": "awaiting_candidate_eval",
+          "passed": true,
+          "selected_method": "source_qwen3_30b_instruct",
+          "status": "awaiting_candidate_eval"
+        },
+        {
           "case": "partial",
           "eligible_candidate_count": 1,
           "expected_selected_method": "qwen3_moe_tail_trimmed_expert_only_candidate",
@@ -9110,11 +9175,11 @@
       ],
       "failed_case_count": 0,
       "matrix": "results/qwen3_moe_final_candidate_selection_smoke/selector_matrix.csv",
-      "passed_case_count": 4,
+      "passed_case_count": 5,
       "report": "results/qwen3_moe_final_candidate_selection_smoke/report.md",
       "status": "passed",
       "summary": {
-        "case_count": 4,
+        "case_count": 5,
         "cases": [
           {
             "case": "candidate_win",
@@ -9144,6 +9209,15 @@
             "status": "keep_source_endpoint"
           },
           {
+            "case": "uncertain_small_sample",
+            "eligible_candidate_count": 0,
+            "expected_selected_method": "source_qwen3_30b_instruct",
+            "expected_status": "awaiting_candidate_eval",
+            "passed": true,
+            "selected_method": "source_qwen3_30b_instruct",
+            "status": "awaiting_candidate_eval"
+          },
+          {
             "case": "partial",
             "eligible_candidate_count": 1,
             "expected_selected_method": "qwen3_moe_tail_trimmed_expert_only_candidate",
@@ -9159,7 +9233,7 @@
           "report": "results/qwen3_moe_final_candidate_selection_smoke/report.md",
           "summary": "results/qwen3_moe_final_candidate_selection_smoke/summary.json"
         },
-        "passed_case_count": 4,
+        "passed_case_count": 5,
         "schema_version": 1,
         "status": "passed"
       },
@@ -11031,7 +11105,7 @@
       "step_rows": [
         {
           "command": "python scripts/audit_qwen3_moe_eval_bundle.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_eval_bundle_audit",
-          "duration_sec": 0.4018988609313965,
+          "duration_sec": 0.400376558303833,
           "kind": "gate",
           "returncode": 0,
           "status": "passed",
@@ -11041,7 +11115,7 @@
         },
         {
           "command": "python scripts/select_qwen3_moe_unified_result.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_unified_result_selection",
-          "duration_sec": 0.391589879989624,
+          "duration_sec": 0.394728422164917,
           "kind": "selector",
           "returncode": 0,
           "status": "passed",
@@ -11051,7 +11125,7 @@
         },
         {
           "command": "python scripts/select_qwen3_moe_final_candidate.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_final_candidate_selection",
-          "duration_sec": 0.3986260890960693,
+          "duration_sec": 0.3839097023010254,
           "kind": "selector",
           "returncode": 0,
           "status": "passed",
@@ -11061,7 +11135,7 @@
         },
         {
           "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_mechanism_effect_attribution",
-          "duration_sec": 0.3940210342407226,
+          "duration_sec": 0.387000560760498,
           "kind": "attribution",
           "returncode": 0,
           "status": "passed",
@@ -11071,7 +11145,7 @@
         },
         {
           "command": "python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke",
-          "duration_sec": 0.689903974533081,
+          "duration_sec": 0.5510399341583252,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -11081,7 +11155,7 @@
         },
         {
           "command": "python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke",
-          "duration_sec": 0.3854098320007324,
+          "duration_sec": 0.3994958400726318,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -11091,17 +11165,17 @@
         },
         {
           "command": "python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke",
-          "duration_sec": 0.4033160209655761,
+          "duration_sec": 0.3996739387512207,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
           "stderr_tail": null,
-          "stdout_tail": "Wrote Qwen3 MoE final candidate selector smoke to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_final_candidate_selection_smoke\nStatus: passed; cases 4/4\n",
+          "stdout_tail": "Wrote Qwen3 MoE final candidate selector smoke to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_final_candidate_selection_smoke\nStatus: passed; cases 5/5\n",
           "step": "select_final_candidate_smoke"
         },
         {
           "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --smoke-matrix --output-dir results/qwen3_moe_mechanism_effect_attribution_smoke",
-          "duration_sec": 0.3855624198913574,
+          "duration_sec": 0.4188094139099121,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -11111,12 +11185,12 @@
         },
         {
           "command": "python scripts/collect_results.py",
-          "duration_sec": 1.2476928234100342,
+          "duration_sec": 1.2592206001281738,
           "kind": "summary",
           "returncode": 0,
           "status": "passed",
           "stderr_tail": null,
-          "stdout_tail": "Wrote results/summary.json\nWrote results/summary.md\nWrote ARTIFACT_MANIFEST.json\nArtifacts indexed: 976\n",
+          "stdout_tail": "Wrote results/summary.json\nWrote results/summary.md\nWrote ARTIFACT_MANIFEST.json\nArtifacts indexed: 982\n",
           "step": "collect_results"
         }
       ],
@@ -11153,7 +11227,7 @@
         "steps": [
           {
             "command": "python scripts/audit_qwen3_moe_eval_bundle.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_eval_bundle_audit",
-            "duration_sec": 0.4018988609313965,
+            "duration_sec": 0.400376558303833,
             "kind": "gate",
             "returncode": 0,
             "status": "passed",
@@ -11163,7 +11237,7 @@
           },
           {
             "command": "python scripts/select_qwen3_moe_unified_result.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_unified_result_selection",
-            "duration_sec": 0.391589879989624,
+            "duration_sec": 0.394728422164917,
             "kind": "selector",
             "returncode": 0,
             "status": "passed",
@@ -11173,7 +11247,7 @@
           },
           {
             "command": "python scripts/select_qwen3_moe_final_candidate.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_final_candidate_selection",
-            "duration_sec": 0.39862608909606934,
+            "duration_sec": 0.3839097023010254,
             "kind": "selector",
             "returncode": 0,
             "status": "passed",
@@ -11183,7 +11257,7 @@
           },
           {
             "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_mechanism_effect_attribution",
-            "duration_sec": 0.39402103424072266,
+            "duration_sec": 0.38700056076049805,
             "kind": "attribution",
             "returncode": 0,
             "status": "passed",
@@ -11193,7 +11267,7 @@
           },
           {
             "command": "python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke",
-            "duration_sec": 0.689903974533081,
+            "duration_sec": 0.5510399341583252,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -11203,7 +11277,7 @@
           },
           {
             "command": "python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke",
-            "duration_sec": 0.3854098320007324,
+            "duration_sec": 0.39949584007263184,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -11213,17 +11287,17 @@
           },
           {
             "command": "python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke",
-            "duration_sec": 0.40331602096557617,
+            "duration_sec": 0.3996739387512207,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
             "stderr_tail": "",
-            "stdout_tail": "Wrote Qwen3 MoE final candidate selector smoke to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_final_candidate_selection_smoke\nStatus: passed; cases 4/4\n",
+            "stdout_tail": "Wrote Qwen3 MoE final candidate selector smoke to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_final_candidate_selection_smoke\nStatus: passed; cases 5/5\n",
             "step": "select_final_candidate_smoke"
           },
           {
             "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --smoke-matrix --output-dir results/qwen3_moe_mechanism_effect_attribution_smoke",
-            "duration_sec": 0.3855624198913574,
+            "duration_sec": 0.4188094139099121,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -11233,12 +11307,12 @@
           },
           {
             "command": "python scripts/collect_results.py",
-            "duration_sec": 1.2476928234100342,
+            "duration_sec": 1.2592206001281738,
             "kind": "summary",
             "returncode": 0,
             "status": "passed",
             "stderr_tail": "",
-            "stdout_tail": "Wrote results/summary.json\nWrote results/summary.md\nWrote ARTIFACT_MANIFEST.json\nArtifacts indexed: 976\n",
+            "stdout_tail": "Wrote results/summary.json\nWrote results/summary.md\nWrote ARTIFACT_MANIFEST.json\nArtifacts indexed: 982\n",
             "step": "collect_results"
           }
         ]
@@ -26438,7 +26512,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-20T00:48:39.314634+00:00",
+  "generated_at": "2026-06-20T00:56:34.626669+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
