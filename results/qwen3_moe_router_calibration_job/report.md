@@ -8,6 +8,7 @@
 - Prompt pack exists: `True`
 - Local GPU status: `unavailable`
 - Router caps: `0.01, 0.025, 0.05`
+- Task manifest: `results/qwen3_moe_router_calibration_job/task_manifest.json`
 - Baseline eval dir: `results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate`
 - Source control count: `2`
 - Candidate count: `3`
@@ -40,6 +41,7 @@ The selector requires group-heldout route-KD validation by default: prompt/batch
 | stage | cap | expected output |
 |---|---:|---|
 | `collect_router_cache` | `shared` | `results/qwen3_moe_router_calibration_job/cache/router_calibration_cache.pt` |
+| `prepare_task_manifest` | `shared` | `results/qwen3_moe_router_calibration_job/task_manifest.json` |
 | `vllm_eval_source_control` | `source` | `results/vllm_checkpoint_eval/source_qwen3_30b_instruct` |
 | `vllm_eval_source_control` | `source` | `results/vllm_checkpoint_eval/source_qwen3_30b_coder` |
 | `vllm_eval_baseline` | `baseline` | `results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate` |

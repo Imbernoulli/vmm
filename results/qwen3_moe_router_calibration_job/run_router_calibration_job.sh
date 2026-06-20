@@ -6,6 +6,7 @@ set -euo pipefail
 
 GPUS="${GPUS:-0,1,2,3}"
 HOST="${HOST:-127.0.0.1}"
+TASK_MANIFEST=results/qwen3_moe_router_calibration_job/task_manifest.json
 mkdir -p results/qwen3_moe_router_calibration_job/logs
 
 wait_for_server() {
@@ -32,12 +33,16 @@ collect_cache() {
   PYTHONPATH=scripts python scripts/collect_moe_router_calibration_cache.py --student-model results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate --teacher-model /srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-Coder-30B-A3B-Instruct/snapshots/b2cff646eb4bb1d68355c01b18ae02e7cf42d120 --tokenizer /srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe --prompts prompts/qwen_moe_route_probe_prompts.jsonl --device-map auto --dtype bfloat16 --max-length 768 --top-k 8 --capacity-factor 1.25 --max-samples-per-router 4096 --use-chat-template --local-files-only --output-dir /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_router_calibration_job/cache
 }
 
+prepare_task_manifest() {
+  python scripts/run_vllm_downstream_eval.py --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --task-manifest /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_router_calibration_job/task_manifest.json --create-task-manifest-if-missing --prepare-task-manifest-only
+}
+
 eval_source_source_qwen3_30b_instruct() {
   CUDA_VISIBLE_DEVICES="${GPUS}" vllm serve /srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe --served-model-name candidate_source_qwen3_30b_instruct --host "${HOST}" --port 8100 --dtype bfloat16 --tensor-parallel-size 4 > results/qwen3_moe_router_calibration_job/logs/source_qwen3_30b_instruct.serve.log 2>&1 &
   local serve_pid=$!
   trap 'stop_server ${serve_pid}' RETURN
   wait_for_server 8100
-  python scripts/run_vllm_downstream_eval.py --base-url "http://${HOST}:8100/v1" --models candidate_source_qwen3_30b_instruct --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/source_qwen3_30b_instruct
+  python scripts/run_vllm_downstream_eval.py --base-url "http://${HOST}:8100/v1" --models candidate_source_qwen3_30b_instruct --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/source_qwen3_30b_instruct --task-manifest "${TASK_MANIFEST}" --create-task-manifest-if-missing
 }
 
 eval_source_source_qwen3_30b_coder() {
@@ -45,7 +50,7 @@ eval_source_source_qwen3_30b_coder() {
   local serve_pid=$!
   trap 'stop_server ${serve_pid}' RETURN
   wait_for_server 8101
-  python scripts/run_vllm_downstream_eval.py --base-url "http://${HOST}:8101/v1" --models candidate_source_qwen3_30b_coder --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/source_qwen3_30b_coder
+  python scripts/run_vllm_downstream_eval.py --base-url "http://${HOST}:8101/v1" --models candidate_source_qwen3_30b_coder --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/source_qwen3_30b_coder --task-manifest "${TASK_MANIFEST}" --create-task-manifest-if-missing
 }
 
 eval_sources() {
@@ -58,7 +63,7 @@ eval_baseline() {
   local serve_pid=$!
   trap 'stop_server ${serve_pid}' RETURN
   wait_for_server 8107
-  python scripts/run_vllm_downstream_eval.py --base-url "http://${HOST}:8107/v1" --models baseline_qwen3_moe_searched_no_gt065 --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate
+  python scripts/run_vllm_downstream_eval.py --base-url "http://${HOST}:8107/v1" --models baseline_qwen3_moe_searched_no_gt065 --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate --task-manifest "${TASK_MANIFEST}" --create-task-manifest-if-missing
 }
 
 select_result() {
@@ -79,7 +84,7 @@ eval_cap001() {
   local serve_pid=$!
   trap 'stop_server ${serve_pid}' RETURN
   wait_for_server 8108
-  python scripts/run_vllm_downstream_eval.py --base-url "http://${HOST}:8108/v1" --models candidate_qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate
+  python scripts/run_vllm_downstream_eval.py --base-url "http://${HOST}:8108/v1" --models candidate_qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate --task-manifest "${TASK_MANIFEST}" --create-task-manifest-if-missing
 }
 
 run_cap001() {
@@ -102,7 +107,7 @@ eval_cap0025() {
   local serve_pid=$!
   trap 'stop_server ${serve_pid}' RETURN
   wait_for_server 8109
-  python scripts/run_vllm_downstream_eval.py --base-url "http://${HOST}:8109/v1" --models candidate_qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate
+  python scripts/run_vllm_downstream_eval.py --base-url "http://${HOST}:8109/v1" --models candidate_qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate --task-manifest "${TASK_MANIFEST}" --create-task-manifest-if-missing
 }
 
 run_cap0025() {
@@ -125,7 +130,7 @@ eval_cap005() {
   local serve_pid=$!
   trap 'stop_server ${serve_pid}' RETURN
   wait_for_server 8110
-  python scripts/run_vllm_downstream_eval.py --base-url "http://${HOST}:8110/v1" --models candidate_qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate
+  python scripts/run_vllm_downstream_eval.py --base-url "http://${HOST}:8110/v1" --models candidate_qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate --task-manifest "${TASK_MANIFEST}" --create-task-manifest-if-missing
 }
 
 run_cap005() {
@@ -136,6 +141,7 @@ run_cap005() {
 
 run_all() {
   collect_cache
+  prepare_task_manifest
   eval_sources
   eval_baseline
   run_cap001
@@ -147,6 +153,7 @@ run_all() {
 case "${1:-all}" in
   all) run_all ;;
   collect) collect_cache ;;
+  prepare_manifest) prepare_task_manifest ;;
   sources) eval_sources ;;
   baseline) eval_baseline ;;
   source_qwen3_30b_instruct) eval_source_source_qwen3_30b_instruct ;;

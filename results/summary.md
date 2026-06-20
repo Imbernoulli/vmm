@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-20T03:29:57.797977+00:00`
+Generated at: `2026-06-20T03:41:25.302866+00:00`
 
 ## Coverage
 
@@ -81,7 +81,7 @@ Complete: `80`; partial: `1`; missing: `0`.
 | Qwen3 MoE searched cap-law materialized candidate | complete | results/qwen3_moe_searched_no_gt065_delta_audit/report.md verifies the materialized searched 0.65 cap-law checkpoint and adds it to the Qwen3 MoE eval gate. |
 | Qwen3 MoE router move gate | complete | results/qwen3_moe_router_move_gate/report.md combines router tensor deltas with real routing readiness and rejects direct router-weight movement for all 48 layers. |
 | Qwen3 MoE router calibration NLL probe | complete | results/qwen3_moe_router_calibration_nll_probe/report.md formalizes the real Qwen3 router-only training probe, showing the averaged MoE improves when only router dispatch is recalibrated while keeping experts frozen. |
-| Qwen3 MoE router calibration job | complete | results/qwen3_moe_router_calibration_job/report.md turns the rejected direct-router-move result into a capped route-KD router-calibration sweep job over the searched no-gt-0.65 candidate. |
+| Qwen3 MoE router calibration job | complete | results/qwen3_moe_router_calibration_job/report.md turns the rejected direct-router-move result into a capped route-KD router-calibration sweep job and locks source/baseline/candidate vLLM evals to one task manifest. |
 | Qwen3 MoE router calibration result selector | complete | results/qwen3_moe_router_calibration_selection/report.md accepts a router-calibrated cap only when matched vLLM eval, router-only tensor audit, cap compliance, and source/baseline dominance gates pass. |
 | Qwen3 MoE trust-region cap-law search | complete | results/qwen3_moe_trust_region_cap_search/report.md searches interpretable expert cap laws over real Qwen3 route-mass, risk-flag, and safetensors-delta probes and emits writer-ready next-candidate rules. |
 | Qwen3 MoE unified mechanism candidate | complete | results/qwen3_moe_unified_mechanism_candidate/report.md turns route mass, router fragility, load, source-conflict, and delta probes into one same-shape constrained optimizer and writer-ready candidate. |
@@ -229,8 +229,9 @@ Complete: `80`; partial: `1`; missing: `0`.
 | Qwen3 MoE router move gate | router rel-norm / mean-min top-k Jaccard / min top1 | 0.739 / 0.454-0.242 / 0.069 |
 | Qwen3 MoE router calibration NLL probe | status / worst / avg reduction | router_calibration_improves_linear_merge_but_needs_downstream_gate / 0.221 / 0.161 |
 | Qwen3 MoE router calibration NLL probe | code gap / worst gap to best source | -0.014 / 0.127 |
-| Qwen3 MoE router calibration job | status / local GPU / candidates / stages | job_ready_awaiting_gpu / unavailable / 3 / 17 |
+| Qwen3 MoE router calibration job | status / local GPU / candidates / stages | job_ready_awaiting_gpu / unavailable / 3 / 18 |
 | Qwen3 MoE router calibration job | source controls / ready | 2 / True |
+| Qwen3 MoE router calibration job | task manifest / create-if-missing | results/qwen3_moe_router_calibration_job/task_manifest.json / True |
 | Qwen3 MoE router calibration job | inputs student / teacher / prompts | True / True / True |
 | Qwen3 MoE router calibration selector | status / selected / eligible | awaiting_baseline_eval / None / 0/3 |
 | Qwen3 MoE router calibration selector | source required-complete / baseline eval / candidate eval / audit | True-False / False / False / False |
@@ -243,7 +244,7 @@ Complete: `80`; partial: `1`; missing: `0`.
 | Qwen3 MoE router no-gain negative smoke | first decision reason | no_downstream_gain |
 | Qwen3 MoE router task-regression negative smoke | status / selected / eligible | keep_frozen_router_baseline / qwen3_moe_searched_no_gt065_max_retention_candidate / 0/3 |
 | Qwen3 MoE router task-regression negative smoke | first decision reason | task_score_regression |
-| Qwen3 MoE router selector matrix smoke | status / passed cases | passed / 5/5 |
+| Qwen3 MoE router selector matrix smoke | status / passed cases | passed / 6/6 |
 | Qwen3 MoE cap-law search | searched / frontier / expert groups | 432 / 88 / 5243 |
 | Qwen3 MoE cap-law search | current trust vs uniform 0.65 retention | 0.982 / 0.982 |
 | Qwen3 MoE cap-law search | current trust vs uniform 0.65 >0.65 groups | 129 / 0 |

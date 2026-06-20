@@ -1776,6 +1776,8 @@ def summarize_qwen3_moe_router_calibration_job() -> dict[str, Any]:
         "prompts_exists": bool(summary.get("prompts_exists", False)),
         "local_gpu_status": summary.get("local_gpu_status"),
         "router_caps": summary.get("router_caps", []),
+        "task_manifest": summary.get("task_manifest"),
+        "create_task_manifest_if_missing": bool(summary.get("create_task_manifest_if_missing", False)),
         "source_control_count": int(summary.get("source_control_count", len(source_plan))),
         "source_controls_ready": bool(summary.get("source_controls_ready", False)),
         "candidate_count": int(summary.get("candidate_count", len(candidate_plan))),
@@ -3687,7 +3689,7 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "Qwen3 MoE router calibration job",
             "status": "complete",
-            "evidence": "results/qwen3_moe_router_calibration_job/report.md turns the rejected direct-router-move result into a capped route-KD router-calibration sweep job over the searched no-gt-0.65 candidate.",
+            "evidence": "results/qwen3_moe_router_calibration_job/report.md turns the rejected direct-router-move result into a capped route-KD router-calibration sweep job and locks source/baseline/candidate vLLM evals to one task manifest.",
         },
         {
             "item": "Qwen3 MoE router calibration result selector",
@@ -4919,6 +4921,11 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 "| Qwen3 MoE router calibration job | source controls / ready | "
                 f"{qwen3_moe_router_calibration_job['source_control_count']} / "
                 f"{qwen3_moe_router_calibration_job['source_controls_ready']} |"
+            ),
+            (
+                "| Qwen3 MoE router calibration job | task manifest / create-if-missing | "
+                f"{qwen3_moe_router_calibration_job['task_manifest']} / "
+                f"{qwen3_moe_router_calibration_job['create_task_manifest_if_missing']} |"
             ),
             (
                 "| Qwen3 MoE router calibration job | inputs student / teacher / prompts | "

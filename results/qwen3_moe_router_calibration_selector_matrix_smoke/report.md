@@ -3,7 +3,7 @@
 这个 smoke 不是再造一个候选算法，而是把 router-calibration selector 的核心选择/拒绝边界变成一次性回归测试。
 
 - Status: `passed`
-- Cases: `5/5`
+- Cases: `6/6`
 
 ## Cases
 
@@ -14,6 +14,7 @@
 | `source_dominance_abstains` | `keep_frozen_router_baseline` | `qwen3_moe_searched_no_gt065_max_retention_candidate` | 0 | `source_endpoint_dominates` | `True` |
 | `no_downstream_gain_abstains` | `keep_frozen_router_baseline` | `qwen3_moe_searched_no_gt065_max_retention_candidate` | 0 | `no_downstream_gain` | `True` |
 | `task_regression_abstains` | `keep_frozen_router_baseline` | `qwen3_moe_searched_no_gt065_max_retention_candidate` | 0 | `task_score_regression` | `True` |
+| `manifest_mismatch_abstains` | `keep_frozen_router_baseline` | `qwen3_moe_searched_no_gt065_max_retention_candidate` | 0 | `task_manifest_sha_mismatch` | `True` |
 
 ## Outputs
 

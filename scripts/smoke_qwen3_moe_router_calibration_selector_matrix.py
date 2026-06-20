@@ -68,6 +68,14 @@ CASES = [
         expected_eligible_count=0,
         expected_reason_marker="task_score_regression",
     ),
+    SelectorCase(
+        name="manifest_mismatch_abstains",
+        flag="--manifest-mismatch-negative-smoke",
+        expected_status="keep_frozen_router_baseline",
+        expected_selected_method=BASELINE_METHOD,
+        expected_eligible_count=0,
+        expected_reason_marker="task_manifest_sha_mismatch",
+    ),
 ]
 
 

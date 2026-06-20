@@ -171,6 +171,8 @@ def read_eval_state(eval_dir: str | Path) -> dict[str, Any]:
         "eval_status": status,
         "eval_completed": status == "complete",
         "model": clean_value(model_row.get("model")),
+        "task_manifest_path": clean_value(summary.get("task_manifest_path")),
+        "task_manifest_sha256": clean_value(summary.get("task_manifest_sha256")),
         "avg_primary_score": maybe_float(model_row.get("avg_primary_score")),
         "worst_primary_score": maybe_float(model_row.get("worst_primary_score")),
         "task_scores": task_scores,
@@ -388,6 +390,22 @@ def build_candidate_rows(
     baseline_complete = bool(baseline_eval.get("eval_completed"))
     source_complete = all(bool(row.get("eval_completed")) for row in source_evals) if source_evals else False
     source_required = not bool(args.allow_missing_source_eval)
+    baseline_manifest_sha = clean_value(baseline_eval.get("task_manifest_sha256"))
+    source_manifest_shas = {
+        str(clean_value(row.get("task_manifest_sha256")))
+        for row in source_evals
+        if row.get("eval_completed") and clean_value(row.get("task_manifest_sha256")) is not None
+    }
+    complete_source_count = sum(1 for row in source_evals if row.get("eval_completed"))
+    source_manifest_consistent = (
+        not source_evals
+        or complete_source_count < len(source_evals)
+        or (
+            len(source_manifest_shas) == 1
+            and baseline_manifest_sha is not None
+            and str(baseline_manifest_sha) in source_manifest_shas
+        )
+    )
 
     for _, plan_row in candidate_plan.iterrows():
         method = str(plan_row["method"])
@@ -484,6 +502,33 @@ def build_candidate_rows(
             "group_validation_metrics_ready": group_validation_metrics_ready,
             "group_validation_passed": group_validation_passed,
         }
+        candidate_manifest_sha = clean_value(eval_state.get("task_manifest_sha256"))
+        row["baseline_task_manifest_sha256"] = baseline_manifest_sha
+        row["source_task_manifest_consistent"] = source_manifest_consistent
+        row["task_manifest_sha_present"] = bool(candidate_manifest_sha)
+        row["task_manifest_matches_baseline"] = bool(
+            candidate_manifest_sha is not None
+            and baseline_manifest_sha is not None
+            and str(candidate_manifest_sha) == str(baseline_manifest_sha)
+        )
+        manifest_gate_passed = bool(
+            (not eval_state["eval_completed"])
+            or (baseline_complete and row["task_manifest_matches_baseline"] and source_manifest_consistent)
+        )
+        row["task_manifest_gate_passed"] = manifest_gate_passed
+        if not eval_state["eval_completed"]:
+            manifest_status = "awaiting_eval"
+        elif not source_manifest_consistent:
+            manifest_status = "source_manifest_mismatch"
+        elif not candidate_manifest_sha:
+            manifest_status = "missing_candidate_manifest"
+        elif not baseline_complete:
+            manifest_status = "awaiting_baseline_manifest"
+        elif row["task_manifest_matches_baseline"]:
+            manifest_status = "matched"
+        else:
+            manifest_status = "mismatch"
+        row["task_manifest_status"] = manifest_status
 
         deltas = {
             column: score_delta(row, baseline_eval, column)
@@ -523,6 +568,8 @@ def build_candidate_rows(
             rejection_reasons.append("awaiting_baseline_eval")
         if source_required and not source_complete:
             rejection_reasons.append("awaiting_source_eval")
+        if source_complete and not source_manifest_consistent:
+            rejection_reasons.append("source_task_manifest_sha_mismatch")
         if not training_state["training_summary_exists"]:
             rejection_reasons.append("awaiting_router_training")
         elif not training_passed:
@@ -549,6 +596,10 @@ def build_candidate_rows(
             rejection_reasons.append("insufficient_router_validation_groups")
         if not eval_state["eval_completed"]:
             rejection_reasons.append("awaiting_candidate_eval")
+        elif not row["task_manifest_sha_present"]:
+            rejection_reasons.append("missing_task_manifest_sha")
+        elif baseline_complete and not row["task_manifest_matches_baseline"]:
+            rejection_reasons.append("task_manifest_sha_mismatch")
         if not audit_state["audit_exists"]:
             rejection_reasons.append("awaiting_audit")
         if audit_state["audit_exists"] and not audit_state["router_only_changed"]:
@@ -574,6 +625,7 @@ def build_candidate_rows(
             and router_generalization_passed
             and group_validation_passed
             and eval_state["eval_completed"]
+            and manifest_gate_passed
             and audit_state["audit_passed_for_router_calibration"]
             and preserves_average
             and preserves_worst
@@ -637,9 +689,18 @@ def build_selection(
     audit_complete = bool((table["audit_exists"].astype(bool)).all()) if not table.empty else False
     training_complete = bool((table["training_summary_exists"].astype(bool)).all()) if not table.empty else False
     capacity_metrics_complete = bool((table["capacity_metrics_ready"].astype(bool)).all()) if not table.empty else False
-    group_validation_complete = bool((table["group_validation_passed"].astype(bool)).all()) if not table.empty else False
     source_complete = all(bool(row.get("eval_completed")) for row in source_evals) if source_evals else False
     source_required = not bool(args.allow_missing_source_eval)
+    group_validation_complete = bool((table["group_validation_passed"].astype(bool)).all()) if not table.empty else False
+    candidate_manifest_gates_passed = (
+        bool((table["task_manifest_gate_passed"].astype(bool)).all()) if not table.empty else False
+    )
+    task_manifest_gate_complete = bool(
+        baseline_complete
+        and candidate_eval_complete
+        and (source_complete or not source_required)
+        and candidate_manifest_gates_passed
+    )
     eligible = table[table["selection_eligible"].astype(bool)].copy() if not table.empty else pd.DataFrame()
 
     if not baseline_complete:
@@ -691,6 +752,11 @@ def build_selection(
         "training_completed": training_complete,
         "capacity_metrics_completed": capacity_metrics_complete,
         "group_validation_completed": group_validation_complete,
+        "task_manifest_gate_completed": task_manifest_gate_complete,
+        "baseline_task_manifest_sha256": clean_value(baseline_eval.get("task_manifest_sha256")),
+        "source_task_manifest_sha256": [
+            clean_value(row.get("task_manifest_sha256")) for row in source_evals if row.get("eval_completed")
+        ],
         "source_eval_completed": source_complete,
         "source_eval_required": source_required,
         "eligible_candidate_count": int(len(eligible)),
@@ -747,6 +813,7 @@ def build_decision_rules(args: argparse.Namespace, selection: dict[str, Any]) ->
                 f"with at least {args.min_train_groups} train groups and {args.min_validation_groups} validation groups, "
                 "unless --allow-row-validation is explicitly set."
             ),
+            "Baseline, source, and candidate downstream eval summaries must carry the same task_manifest_sha256.",
             "The audit must show only router tensors changed, with no shape/dtype mismatch.",
             "The maximum per-router relative delta norm must stay inside the planned cap.",
             f"Hard top-1 route capacity overflow may not exceed {args.max_top1_capacity_overflow}.",
@@ -803,7 +870,9 @@ def build_report(
         f"- Training completed: `{selection['training_completed']}`",
         f"- Capacity metrics completed: `{selection['capacity_metrics_completed']}`",
         f"- Group validation completed: `{selection['group_validation_completed']}`",
+        f"- Task manifest gate completed: `{selection['task_manifest_gate_completed']}`",
         f"- Eligible candidates: `{selection['eligible_candidate_count']}/{selection['candidate_count']}`",
+        f"- Baseline task manifest sha: `{selection.get('baseline_task_manifest_sha256')}`",
         "",
         "## Baseline",
         "",
@@ -818,8 +887,8 @@ def build_report(
         "",
         "## Candidate Gate",
         "",
-        "| cap | method | split | groups | selected epoch | KL gap | top1 drop | decision | avg delta | worst delta | worst task delta | router max rel | top1/top-k overflow | top1/top-k increase | load pass | gen pass | group pass | router-only | cap pass | score | reason |",
-        "| ---: | --- | --- | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- | --- | ---: | --- |",
+        "| cap | method | manifest | split | groups | selected epoch | KL gap | top1 drop | decision | avg delta | worst delta | worst task delta | router max rel | top1/top-k overflow | top1/top-k increase | load pass | gen pass | group pass | router-only | cap pass | score | reason |",
+        "| ---: | --- | --- | --- | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- | --- | ---: | --- |",
     ]
     for _, row in table.iterrows():
         overflow_text = (
@@ -832,6 +901,7 @@ def build_report(
         )
         lines.append(
             f"| {fmt(row['router_max_relative_norm'])} | `{row['method']}` | "
+            f"`{row.get('task_manifest_status')}` | "
             f"`{row.get('selection_split')}` | "
             f"{fmt(row.get('mean_train_group_count'), 1)}/{fmt(row.get('mean_validation_group_count'), 1)} | "
             f"{fmt(row.get('mean_selected_epoch'), 1)} | "
@@ -896,7 +966,13 @@ def build_report(
     return "\n".join(lines) + "\n"
 
 
-def write_eval_dir(root: Path, model: str, scores: dict[str, float]) -> None:
+def write_eval_dir(
+    root: Path,
+    model: str,
+    scores: dict[str, float],
+    *,
+    manifest_sha: str = "smoke-shared-manifest-sha",
+) -> None:
     root.mkdir(parents=True, exist_ok=True)
     avg = float(scores["avg_primary_score"])
     worst = float(scores["worst_primary_score"])
@@ -928,6 +1004,8 @@ def write_eval_dir(root: Path, model: str, scores: dict[str, float]) -> None:
         json.dumps(
             {
                 "status": "complete",
+                "task_manifest_path": "smoke_task_manifest.json",
+                "task_manifest_sha256": manifest_sha,
                 "best_avg_primary_model": model,
                 "model_summary": [
                     {
@@ -1089,6 +1167,7 @@ def write_smoke_inputs(
     source_dominance_negative: bool = False,
     no_downstream_gain_negative: bool = False,
     task_regression_negative: bool = False,
+    manifest_mismatch_negative: bool = False,
 ) -> Path:
     job_dir = output_dir / "input_job"
     if job_dir.exists():
@@ -1245,6 +1324,9 @@ def write_smoke_inputs(
                 "task_safety_score": safety,
                 "task_humaneval_compile_score": humaneval,
             },
+            manifest_sha="smoke-other-manifest-sha"
+            if manifest_mismatch_negative and label == "cap0025"
+            else "smoke-shared-manifest-sha",
         )
         candidate_rows.append(
             {
@@ -1285,6 +1367,7 @@ def run_selection(args: argparse.Namespace) -> dict[str, Any]:
         bool(args.source_dominance_negative_smoke),
         bool(args.no_downstream_gain_negative_smoke),
         bool(args.task_regression_negative_smoke),
+        bool(args.manifest_mismatch_negative_smoke),
     ]
     if sum(smoke_modes) > 1:
         raise ValueError("Use only one smoke mode at a time.")
@@ -1295,6 +1378,7 @@ def run_selection(args: argparse.Namespace) -> dict[str, Any]:
             source_dominance_negative=args.source_dominance_negative_smoke,
             no_downstream_gain_negative=args.no_downstream_gain_negative_smoke,
             task_regression_negative=args.task_regression_negative_smoke,
+            manifest_mismatch_negative=args.manifest_mismatch_negative_smoke,
         )
         args.baseline_eval_dir = args.job_dir / "eval_baseline"
         args.source_eval_dir = [args.job_dir / "eval_source_instruct", args.job_dir / "eval_source_coder"]
@@ -1328,6 +1412,7 @@ def run_selection(args: argparse.Namespace) -> dict[str, Any]:
         "source_dominance_negative_smoke": bool(args.source_dominance_negative_smoke),
         "no_downstream_gain_negative_smoke": bool(args.no_downstream_gain_negative_smoke),
         "task_regression_negative_smoke": bool(args.task_regression_negative_smoke),
+        "manifest_mismatch_negative_smoke": bool(args.manifest_mismatch_negative_smoke),
         "job_dir": rel(args.job_dir),
         "baseline_eval": baseline_eval,
         "baseline_audit_status": baseline_audit.get("status") if baseline_audit else "not_available",
@@ -1433,6 +1518,11 @@ def parse_args() -> argparse.Namespace:
         "--task-regression-negative-smoke",
         action="store_true",
         help="Build a complete smoke job where a candidate has aggregate gain but fails one task-specific regression gate.",
+    )
+    parser.add_argument(
+        "--manifest-mismatch-negative-smoke",
+        action="store_true",
+        help="Build a complete smoke job where an otherwise valid candidate used a different task manifest sha.",
     )
     parser.add_argument(
         "--allow-missing-source-eval",

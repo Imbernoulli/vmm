@@ -1,5 +1,5 @@
 {
-  "case_count": 5,
+  "case_count": 6,
   "cases": [
     {
       "candidate_count": 3,
@@ -100,6 +100,26 @@
       "selection_table": null,
       "status": "keep_frozen_router_baseline",
       "status_passed": true
+    },
+    {
+      "candidate_count": 3,
+      "case": "manifest_mismatch_abstains",
+      "case_output_dir": null,
+      "eligible_candidate_count": 0,
+      "eligible_passed": true,
+      "expected_eligible_candidate_count": 0,
+      "expected_reason_marker": "task_manifest_sha_mismatch",
+      "expected_selected_method": "qwen3_moe_searched_no_gt065_max_retention_candidate",
+      "expected_status": "keep_frozen_router_baseline",
+      "flag": "--manifest-mismatch-negative-smoke",
+      "passed": true,
+      "reason_found": true,
+      "report": null,
+      "selected_method": "qwen3_moe_searched_no_gt065_max_retention_candidate",
+      "selected_passed": true,
+      "selection_table": null,
+      "status": "keep_frozen_router_baseline",
+      "status_passed": true
     }
   ],
   "failed_case_count": 0,
@@ -109,7 +129,7 @@
     "report": "results/qwen3_moe_router_calibration_selector_matrix_smoke/report.md",
     "summary": "results/qwen3_moe_router_calibration_selector_matrix_smoke/summary.json"
   },
-  "passed_case_count": 5,
+  "passed_case_count": 6,
   "schema_version": 1,
   "status": "passed"
 }

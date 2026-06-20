@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 80152,
+      "bytes": 80618,
       "kind": "document",
       "path": "README.md",
-      "sha256": "86c0ec8e20403c7716731e8d1e441167dbca31abec1c36726e8d3605a4e5a3ee"
+      "sha256": "d74c20c399092f8eda2ca92a4286402f49f85804b1fbc8152d89fbd46c804860"
     },
     {
       "bytes": 33211,
@@ -2242,19 +2242,19 @@
       "bytes": 2447,
       "kind": "document",
       "path": "results/qwen3_moe_post_eval_refresh/report.md",
-      "sha256": "768d26d5a652c3d8badb249feedd582eb7fe5b324938d25e1bd2ca73245d6d8e"
+      "sha256": "51380b117318fe30b4d61b53f797307214ab1e868deb0dcd41c298a60b979d68"
     },
     {
-      "bytes": 3342,
+      "bytes": 3341,
       "kind": "data",
       "path": "results/qwen3_moe_post_eval_refresh/steps.csv",
-      "sha256": "608ce581dbdaa1a338377801ef4c64f2538f91256f7581958cc9a6dc8f7b7873"
+      "sha256": "bdd6da83e4e462c3c9ee481df18c829599286bc2793cf94247377e0a9709ce11"
     },
     {
-      "bytes": 6007,
+      "bytes": 6006,
       "kind": "data",
       "path": "results/qwen3_moe_post_eval_refresh/summary.json",
-      "sha256": "7181f7b8c7f2aac2350d941b437163e43b83353c35326cc120a458141e40dde2"
+      "sha256": "f1eba4656ef64f86045197a252d79d586a85f5105c26e9c04ba8378d583a8e9e"
     },
     {
       "bytes": 2438,
@@ -2281,10 +2281,10 @@
       "sha256": "b80e05112d975ea424456f6a7ee3db03a3cc39324755ff3adf31241a96c26013"
     },
     {
-      "bytes": 5351,
+      "bytes": 5533,
       "kind": "document",
       "path": "results/qwen3_moe_router_calibration_job/report.md",
-      "sha256": "5464195d19d90427a896ffec9be0d3ead08e79b6319a461fa9bfe223f6920e71"
+      "sha256": "470bad4fed7908c6e802464b1df4ace9553476a0dbb30fc32b6af6339da41d49"
     },
     {
       "bytes": 773,
@@ -2293,16 +2293,16 @@
       "sha256": "51553f20d6def8587f87f6343f02f7ed8fefe2ea040d2969ca0d0a61b0c701bc"
     },
     {
-      "bytes": 10959,
+      "bytes": 12421,
       "kind": "data",
       "path": "results/qwen3_moe_router_calibration_job/stage_plan.csv",
-      "sha256": "ba6fa7d8fd79135175a8fb28f4f65eef37bad3813582c0254d7f1e491eb7d190"
+      "sha256": "b80b272e7b0e48f07234333635da41b47a96d7fe35aa932276f58cfa17a1dcfb"
     },
     {
-      "bytes": 1871,
+      "bytes": 1996,
       "kind": "data",
       "path": "results/qwen3_moe_router_calibration_job/summary.json",
-      "sha256": "f757fa24daaadcebd1b111945a6f5039888a7a537918f53cceda028a87bab9db"
+      "sha256": "74ab243ad0d815394e2c7e82a23903c8d0adf91424723d02271cb9501eaf6755"
     },
     {
       "bytes": 851,
@@ -2335,10 +2335,10 @@
       "sha256": "3bb1f51e87b6f7c78a51f344894c95e20dfaae8c629c903527a0b621ffccf3b4"
     },
     {
-      "bytes": 7089,
+      "bytes": 7321,
       "kind": "data",
       "path": "results/qwen3_moe_router_calibration_selection/decision_rules.json",
-      "sha256": "b497c746d5c435c4bc32738fcd3ca708dd68721cf27c6ce67141431a8cd2b452"
+      "sha256": "afed9bc8fbc9c85e19f313c025d60b7a87a2cb81aec5c22d86945a22366d234e"
     },
     {
       "bytes": 2075,
@@ -2347,22 +2347,22 @@
       "sha256": "7fb8f444b1e915eb84b68d618e3cbc20dad81aedc9fb43ad83fd3efa249a27a1"
     },
     {
-      "bytes": 6365,
+      "bytes": 6615,
       "kind": "document",
       "path": "results/qwen3_moe_router_calibration_selection/report.md",
-      "sha256": "51a1e89c648500b7c3476b2aaa6b2221518a64f5a09e5c380a2f368c1fc122e1"
+      "sha256": "dadbed7e6091eeebf0c81c6eea47f5fc3c8cdde8d6fba348200db6f4341ba69c"
     },
     {
-      "bytes": 5151,
+      "bytes": 5474,
       "kind": "data",
       "path": "results/qwen3_moe_router_calibration_selection/selection_table.csv",
-      "sha256": "7742e8e98bdb4c6ac2fbc4f91621c3594dd38ce216f831a786bf95ab48c8dce3"
+      "sha256": "8cf6e634087b498ce34caf8c61339f7433db4fbac4ee0f945606cc87149b4ec8"
     },
     {
-      "bytes": 3003,
+      "bytes": 3379,
       "kind": "data",
       "path": "results/qwen3_moe_router_calibration_selection/summary.json",
-      "sha256": "63a974e14566e9c675fde8a80cc2cd7e009d9fae07f98745979d0e619bc6825b"
+      "sha256": "05eb8638bef523a701f1d7b415d79f32f9d07ea09c9740434ee6f22729051aa5"
     },
     {
       "bytes": 7132,
@@ -3655,22 +3655,22 @@
       "sha256": "098520d7089234ecf9427652d79299a3c66905f15900af37d8a49a138558e6fd"
     },
     {
-      "bytes": 1328,
+      "bytes": 1493,
       "kind": "document",
       "path": "results/qwen3_moe_router_calibration_selector_matrix_smoke/report.md",
-      "sha256": "c16f7612f524854e364ea6e6f4fc86140694b0ca545808409b05e2ce4267da61"
+      "sha256": "5095c301c8fe80ebe3562b7502fdbc076d0ac108fa7a9c02277fb5c2b7b5a009"
     },
     {
-      "bytes": 1522,
+      "bytes": 1805,
       "kind": "data",
       "path": "results/qwen3_moe_router_calibration_selector_matrix_smoke/selector_matrix.csv",
-      "sha256": "f7704b6cae964462245a890459d54877537e9a53d2ef5704d61c53f777693a5a"
+      "sha256": "1732d4ae89cccd66814c7668dad66802dcad75f6ac0e5c98cb49b5cf9417cbf4"
     },
     {
-      "bytes": 4181,
+      "bytes": 4959,
       "kind": "data",
       "path": "results/qwen3_moe_router_calibration_selector_matrix_smoke/summary.json",
-      "sha256": "e648257bff020e61dadd3bb0b799822e0ae0414ef84e50840913349af108313e"
+      "sha256": "30857dd9425a24d6cde5eaa41395270a4abb87adc942025fd6135d55bc4f6d7a"
     },
     {
       "bytes": 11586,
@@ -4693,16 +4693,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 1506040,
+      "bytes": 1511269,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "69c3a731cf6deaaa6c9519740c4029349d23d1abe315652279cd1efd3c40a5b5"
+      "sha256": "dfa74bd1b7420ddbbca41e4d4baa35255688392026637752ff69b0be72af1a29"
     },
     {
-      "bytes": 51079,
+      "bytes": 51250,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "53b248f5252756278a64167fc6c30d3ba458745b42fab353bfabd3b9edf0c2e6"
+      "sha256": "4f728fa065f3138a39c7c474c5fcd95e92611af75400a6e17c0bf450b246212b"
     },
     {
       "bytes": 288,
@@ -5851,10 +5851,10 @@
       "sha256": "ce1c470f5a39620041138b76867a4dbec2b4da0e20e45ed017840236e3ce94e8"
     },
     {
-      "bytes": 31672,
+      "bytes": 34041,
       "kind": "code",
       "path": "scripts/build_qwen3_moe_router_calibration_job.py",
-      "sha256": "4be0d3ac77e036eb5e44d92e14df1d0bf04f282b5fd0c6ce0aa9529bd734f066"
+      "sha256": "9285ea410a85c5c822b3b2cd3258df87afc89e3b9146003908c073de4b3f20dd"
     },
     {
       "bytes": 13531,
@@ -5929,10 +5929,10 @@
       "sha256": "cd588bc1804013f4043bd95c245b066dbae86bfd3e3f9c18317ef33eb506f123"
     },
     {
-      "bytes": 351022,
+      "bytes": 351496,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "9d129e480d75d57316c7c0e029f075aa6c60c79366e179e5349f255617b9dc8e"
+      "sha256": "f2fe0195ac0777f8c087553b22d89b81e579b90055289918fe96da60301a8ee3"
     },
     {
       "bytes": 16101,
@@ -6109,10 +6109,10 @@
       "sha256": "5fe8b580e29cc9126d9b10c89a28a54112d845d885fd4ee69dd5cf1f9d4f2748"
     },
     {
-      "bytes": 66802,
+      "bytes": 71378,
       "kind": "code",
       "path": "scripts/select_qwen3_moe_router_calibration_result.py",
-      "sha256": "f8033ef22d3236b5fbb82d9dc7f86d9260aee0981da92f3ad6652b006118c915"
+      "sha256": "665ee43e9c211204d365febd033c81426f2eda30392840b7d0f8284ea2590d10"
     },
     {
       "bytes": 23378,
@@ -6157,10 +6157,10 @@
       "sha256": "b87e7222a8cb43e30e0561cbe96ec7a2bc53d7fe3d86becd7beb4fd898861b20"
     },
     {
-      "bytes": 9045,
+      "bytes": 9365,
       "kind": "code",
       "path": "scripts/smoke_qwen3_moe_router_calibration_selector_matrix.py",
-      "sha256": "bd4fa74002f76624274e417916d4ed69c21c793f59717812912f839549735c3a"
+      "sha256": "f817660a9541790840183c1e4d0265d38da500b344db69a8b92172b860ab7480"
     },
     {
       "bytes": 10376,
@@ -6205,7 +6205,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-20T03:29:57.813789+00:00",
+  "generated_at": "2026-06-20T03:41:25.348529+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

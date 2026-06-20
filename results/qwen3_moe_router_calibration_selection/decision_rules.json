@@ -5,6 +5,7 @@
     "Every cap candidate must have a materialized delta audit and vLLM eval before final selection.",
     "Every cap candidate must have router training metrics with hard top-1/top-k route-load statistics.",
     "Router route-KD validation must use group-heldout prompt/batch splits with at least 1 train groups and 1 validation groups, unless --allow-row-validation is explicitly set.",
+    "Baseline, source, and candidate downstream eval summaries must carry the same task_manifest_sha256.",
     "The audit must show only router tensors changed, with no shape/dtype mismatch.",
     "The maximum per-router relative delta norm must stay inside the planned cap.",
     "Hard top-1 route capacity overflow may not exceed 0.1.",
@@ -22,6 +23,7 @@
   "current_selection": {
     "audit_completed": false,
     "baseline_eval_completed": false,
+    "baseline_task_manifest_sha256": null,
     "candidate_count": 3,
     "candidate_eval_completed": false,
     "capacity_metrics_completed": false,
@@ -32,7 +34,9 @@
     "selected_method": null,
     "source_eval_completed": false,
     "source_eval_required": true,
+    "source_task_manifest_sha256": [],
     "status": "awaiting_baseline_eval",
+    "task_manifest_gate_completed": false,
     "training_completed": false
   },
   "literature_hooks": [

@@ -220,6 +220,29 @@ def train_command(row: dict[str, Any], args: argparse.Namespace) -> str:
     )
 
 
+def eval_manifest_parts(args: argparse.Namespace) -> list[str | Path]:
+    parts: list[str | Path] = ["--task-manifest", args.task_manifest]
+    if not args.no_create_task_manifest:
+        parts.append("--create-task-manifest-if-missing")
+    return parts
+
+
+def prepare_task_manifest_command(args: argparse.Namespace) -> str:
+    parts: list[str | Path | int | float] = [
+        "python",
+        "scripts/run_vllm_downstream_eval.py",
+        "--tasks",
+        args.tasks,
+        "--example-source",
+        args.example_source,
+        "--max-examples",
+        args.max_examples,
+        *eval_manifest_parts(args),
+        "--prepare-task-manifest-only",
+    ]
+    return shell_join(parts)
+
+
 def writer_command(row: dict[str, Any], args: argparse.Namespace) -> str:
     return shell_join(
         [
@@ -272,6 +295,7 @@ def eval_command(row: dict[str, Any], args: argparse.Namespace) -> str:
             args.max_examples,
             "--output-dir",
             row["eval_dir"],
+            *eval_manifest_parts(args),
         ]
     )
 
@@ -293,6 +317,7 @@ def source_eval_command(row: dict[str, Any], args: argparse.Namespace) -> str:
             args.max_examples,
             "--output-dir",
             row["eval_dir"],
+            *eval_manifest_parts(args),
         ]
     )
 
@@ -314,6 +339,7 @@ def baseline_eval_command(args: argparse.Namespace) -> str:
             args.max_examples,
             "--output-dir",
             args.baseline_eval_dir,
+            *eval_manifest_parts(args),
         ]
     )
 
@@ -369,6 +395,14 @@ def build_stage_rows(
             "command": collect_command(args, output_dir),
             "expected_output": rel(output_dir / "cache/router_calibration_cache.pt"),
             "purpose": "Capture student router hidden states and teacher router logits on the shared prompt pack.",
+        },
+        {
+            "stage": "prepare_task_manifest",
+            "cap_label": "shared",
+            "method": "shared_eval_manifest",
+            "command": prepare_task_manifest_command(args),
+            "expected_output": rel(args.task_manifest),
+            "purpose": "Lock the downstream eval tasks and sample IDs before any source, baseline, or candidate endpoint runs.",
         }
     ]
     for row in source_rows:
@@ -448,6 +482,9 @@ def build_run_script(
     source_rows: list[dict[str, Any]],
     candidate_rows: list[dict[str, Any]],
 ) -> str:
+    manifest_eval_args = "--task-manifest \"${TASK_MANIFEST}\""
+    if not args.no_create_task_manifest:
+        manifest_eval_args += " --create-task-manifest-if-missing"
     lines = [
         "#!/usr/bin/env bash",
         "set -euo pipefail",
@@ -457,6 +494,7 @@ def build_run_script(
         "",
         f"GPUS=\"${{GPUS:-{args.gpus}}}\"",
         f"HOST=\"${{HOST:-{args.host}}}\"",
+        f"TASK_MANIFEST={shlex.quote(rel(args.task_manifest))}",
         "mkdir -p results/qwen3_moe_router_calibration_job/logs",
         "",
         "wait_for_server() {",
@@ -483,6 +521,10 @@ def build_run_script(
         f"  {collect_command(args, output_dir)}",
         "}",
         "",
+        "prepare_task_manifest() {",
+        f"  {prepare_task_manifest_command(args)}",
+        "}",
+        "",
     ]
     for row in source_rows:
         func = "eval_source_" + shell_func_name(str(row["method"]))
@@ -504,7 +546,8 @@ def build_run_script(
                     f"--tasks {shlex.quote(args.tasks)} "
                     f"--example-source {shlex.quote(args.example_source)} "
                     f"--max-examples {int(args.max_examples)} "
-                    f"--output-dir {shlex.quote(row['eval_dir'])}"
+                    f"--output-dir {shlex.quote(row['eval_dir'])} "
+                    f"{manifest_eval_args}"
                 ),
                 "}",
                 "",
@@ -537,7 +580,8 @@ def build_run_script(
             f"--tasks {shlex.quote(args.tasks)} "
             f"--example-source {shlex.quote(args.example_source)} "
             f"--max-examples {int(args.max_examples)} "
-            f"--output-dir {shlex.quote(args.baseline_eval_dir)}"
+            f"--output-dir {shlex.quote(args.baseline_eval_dir)} "
+            f"{manifest_eval_args}"
         ),
         "}",
         "",
@@ -576,7 +620,8 @@ def build_run_script(
                     f"--tasks {shlex.quote(args.tasks)} "
                     f"--example-source {shlex.quote(args.example_source)} "
                     f"--max-examples {int(args.max_examples)} "
-                    f"--output-dir {shlex.quote(row['eval_dir'])}"
+                    f"--output-dir {shlex.quote(row['eval_dir'])} "
+                    f"{manifest_eval_args}"
                 ),
                 "}",
                 "",
@@ -593,6 +638,7 @@ def build_run_script(
         [
             "run_all() {",
             "  collect_cache",
+            "  prepare_task_manifest",
             "  eval_sources",
             "  eval_baseline",
         ]
@@ -607,6 +653,7 @@ def build_run_script(
             "case \"${1:-all}\" in",
             "  all) run_all ;;",
             "  collect) collect_cache ;;",
+            "  prepare_manifest) prepare_task_manifest ;;",
             "  sources) eval_sources ;;",
             "  baseline) eval_baseline ;;",
         ]
@@ -651,6 +698,7 @@ def build_report(
         f"- Prompt pack exists: `{summary['prompts_exists']}`",
         f"- Local GPU status: `{summary['local_gpu_status']}`",
         f"- Router caps: `{', '.join(str(item) for item in summary['router_caps'])}`",
+        f"- Task manifest: `{summary['task_manifest']}`",
         f"- Baseline eval dir: `{summary['baseline_eval_dir']}`",
         f"- Source control count: `{summary['source_control_count']}`",
         f"- Candidate count: `{summary['candidate_count']}`",
@@ -750,6 +798,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--example-source", default="datasets")
     parser.add_argument("--max-examples", type=int, default=64)
     parser.add_argument(
+        "--task-manifest",
+        type=Path,
+        default=None,
+        help="Shared downstream task/example lockfile for source, baseline, and router-calibrated candidate evals.",
+    )
+    parser.add_argument("--no-create-task-manifest", action="store_true")
+    parser.add_argument(
         "--baseline-eval-dir",
         default="results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate",
     )
@@ -764,6 +819,8 @@ def main() -> None:
         args.router_cap = [0.01, 0.025, 0.05]
     output_dir = repo_path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
+    if args.task_manifest is None:
+        args.task_manifest = output_dir / "task_manifest.json"
     source_rows = build_source_control_rows(args)
     candidate_rows = build_candidate_rows(args, output_dir)
     stage_rows = build_stage_rows(args, output_dir, source_rows, candidate_rows)
@@ -805,6 +862,8 @@ def main() -> None:
         "prompts_exists": prompts_exists,
         "local_gpu_status": local_gpu_status,
         "router_caps": [float(item) for item in args.router_cap],
+        "task_manifest": rel(args.task_manifest),
+        "create_task_manifest_if_missing": not bool(args.no_create_task_manifest),
         "baseline_eval_dir": rel(args.baseline_eval_dir),
         "baseline_served_model": args.baseline_served_model,
         "baseline_port": int(args.baseline_port),

@@ -366,7 +366,7 @@
       "status": "complete"
     },
     {
-      "evidence": "results/qwen3_moe_router_calibration_job/report.md turns the rejected direct-router-move result into a capped route-KD router-calibration sweep job over the searched no-gt-0.65 candidate.",
+      "evidence": "results/qwen3_moe_router_calibration_job/report.md turns the rejected direct-router-move result into a capped route-KD router-calibration sweep job and locks source/baseline/candidate vLLM evals to one task manifest.",
       "item": "Qwen3 MoE router calibration job",
       "status": "complete"
     },
@@ -16336,7 +16336,7 @@
       "step_rows": [
         {
           "command": "python scripts/audit_qwen3_moe_eval_bundle.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_eval_bundle_audit",
-          "duration_sec": 0.4380257129669189,
+          "duration_sec": 0.4016563892364502,
           "kind": "gate",
           "returncode": 0,
           "status": "passed",
@@ -16346,7 +16346,7 @@
         },
         {
           "command": "python scripts/select_qwen3_moe_unified_result.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_unified_result_selection",
-          "duration_sec": 0.3990228176116943,
+          "duration_sec": 0.389467716217041,
           "kind": "selector",
           "returncode": 0,
           "status": "passed",
@@ -16356,7 +16356,7 @@
         },
         {
           "command": "python scripts/select_qwen3_moe_final_candidate.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_final_candidate_selection",
-          "duration_sec": 0.3970460891723633,
+          "duration_sec": 0.4056315422058105,
           "kind": "selector",
           "returncode": 0,
           "status": "passed",
@@ -16366,7 +16366,7 @@
         },
         {
           "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_mechanism_effect_attribution",
-          "duration_sec": 0.3952116966247558,
+          "duration_sec": 0.3933634757995605,
           "kind": "attribution",
           "returncode": 0,
           "status": "passed",
@@ -16376,7 +16376,7 @@
         },
         {
           "command": "python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke",
-          "duration_sec": 0.6279654502868652,
+          "duration_sec": 0.6312482357025146,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -16386,7 +16386,7 @@
         },
         {
           "command": "python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke",
-          "duration_sec": 0.4329953193664551,
+          "duration_sec": 0.394752025604248,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -16396,7 +16396,7 @@
         },
         {
           "command": "python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke",
-          "duration_sec": 0.4244241714477539,
+          "duration_sec": 0.4616870880126953,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -16406,7 +16406,7 @@
         },
         {
           "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --smoke-matrix --output-dir results/qwen3_moe_mechanism_effect_attribution_smoke",
-          "duration_sec": 0.3985037803649902,
+          "duration_sec": 0.431147813796997,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -16416,12 +16416,12 @@
         },
         {
           "command": "python scripts/collect_results.py",
-          "duration_sec": 1.4384233951568604,
+          "duration_sec": 1.4153766632080078,
           "kind": "summary",
           "returncode": 0,
           "status": "passed",
           "stderr_tail": null,
-          "stdout_tail": "Wrote results/summary.json\nWrote results/summary.md\nWrote ARTIFACT_MANIFEST.json\nArtifacts indexed: 1032\n",
+          "stdout_tail": "Wrote results/summary.json\nWrote results/summary.md\nWrote ARTIFACT_MANIFEST.json\nArtifacts indexed: 1034\n",
           "step": "collect_results"
         }
       ],
@@ -16458,7 +16458,7 @@
         "steps": [
           {
             "command": "python scripts/audit_qwen3_moe_eval_bundle.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_eval_bundle_audit",
-            "duration_sec": 0.43802571296691895,
+            "duration_sec": 0.4016563892364502,
             "kind": "gate",
             "returncode": 0,
             "status": "passed",
@@ -16468,7 +16468,7 @@
           },
           {
             "command": "python scripts/select_qwen3_moe_unified_result.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_unified_result_selection",
-            "duration_sec": 0.39902281761169434,
+            "duration_sec": 0.389467716217041,
             "kind": "selector",
             "returncode": 0,
             "status": "passed",
@@ -16478,7 +16478,7 @@
           },
           {
             "command": "python scripts/select_qwen3_moe_final_candidate.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_final_candidate_selection",
-            "duration_sec": 0.3970460891723633,
+            "duration_sec": 0.40563154220581055,
             "kind": "selector",
             "returncode": 0,
             "status": "passed",
@@ -16488,7 +16488,7 @@
           },
           {
             "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_mechanism_effect_attribution",
-            "duration_sec": 0.39521169662475586,
+            "duration_sec": 0.39336347579956055,
             "kind": "attribution",
             "returncode": 0,
             "status": "passed",
@@ -16498,7 +16498,7 @@
           },
           {
             "command": "python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke",
-            "duration_sec": 0.6279654502868652,
+            "duration_sec": 0.6312482357025146,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -16508,7 +16508,7 @@
           },
           {
             "command": "python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke",
-            "duration_sec": 0.4329953193664551,
+            "duration_sec": 0.39475202560424805,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -16518,7 +16518,7 @@
           },
           {
             "command": "python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke",
-            "duration_sec": 0.4244241714477539,
+            "duration_sec": 0.4616870880126953,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -16528,7 +16528,7 @@
           },
           {
             "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --smoke-matrix --output-dir results/qwen3_moe_mechanism_effect_attribution_smoke",
-            "duration_sec": 0.39850378036499023,
+            "duration_sec": 0.43114781379699707,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -16538,12 +16538,12 @@
           },
           {
             "command": "python scripts/collect_results.py",
-            "duration_sec": 1.4384233951568604,
+            "duration_sec": 1.4153766632080078,
             "kind": "summary",
             "returncode": 0,
             "status": "passed",
             "stderr_tail": "",
-            "stdout_tail": "Wrote results/summary.json\nWrote results/summary.md\nWrote ARTIFACT_MANIFEST.json\nArtifacts indexed: 1032\n",
+            "stdout_tail": "Wrote results/summary.json\nWrote results/summary.md\nWrote ARTIFACT_MANIFEST.json\nArtifacts indexed: 1034\n",
             "step": "collect_results"
           }
         ]
@@ -17039,6 +17039,7 @@
           "teacher_checkpoint": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-Coder-30B-A3B-Instruct/snapshots/b2cff646eb4bb1d68355c01b18ae02e7cf42d120"
         }
       ],
+      "create_task_manifest_if_missing": true,
       "local_gpu_status": "unavailable",
       "mechanism": "route_kd_router_delta_after_frozen_router_expert_cap_law_candidate",
       "prompts_exists": true,
@@ -17077,7 +17078,7 @@
           "served_model": "candidate_source_qwen3_30b_coder"
         }
       ],
-      "stage_count": 17,
+      "stage_count": 18,
       "stage_plan": "results/qwen3_moe_router_calibration_job/stage_plan.csv",
       "stage_rows": [
         {
@@ -17089,8 +17090,16 @@
           "stage": "collect_router_cache"
         },
         {
+          "cap_label": "shared",
+          "command": "python scripts/run_vllm_downstream_eval.py --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --task-manifest /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_router_calibration_job/task_manifest.json --create-task-manifest-if-missing --prepare-task-manifest-only",
+          "expected_output": "results/qwen3_moe_router_calibration_job/task_manifest.json",
+          "method": "shared_eval_manifest",
+          "purpose": "Lock the downstream eval tasks and sample IDs before any source, baseline, or candidate endpoint runs.",
+          "stage": "prepare_task_manifest"
+        },
+        {
           "cap_label": "source",
-          "command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8100/v1 --models candidate_source_qwen3_30b_instruct --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/source_qwen3_30b_instruct",
+          "command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8100/v1 --models candidate_source_qwen3_30b_instruct --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/source_qwen3_30b_instruct --task-manifest /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_router_calibration_job/task_manifest.json --create-task-manifest-if-missing",
           "expected_output": "results/vllm_checkpoint_eval/source_qwen3_30b_instruct",
           "method": "source_qwen3_30b_instruct",
           "purpose": "Run a source endpoint control on the same downstream task set.",
@@ -17098,7 +17107,7 @@
         },
         {
           "cap_label": "source",
-          "command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8101/v1 --models candidate_source_qwen3_30b_coder --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/source_qwen3_30b_coder",
+          "command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8101/v1 --models candidate_source_qwen3_30b_coder --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/source_qwen3_30b_coder --task-manifest /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_router_calibration_job/task_manifest.json --create-task-manifest-if-missing",
           "expected_output": "results/vllm_checkpoint_eval/source_qwen3_30b_coder",
           "method": "source_qwen3_30b_coder",
           "purpose": "Run a source endpoint control on the same downstream task set.",
@@ -17106,7 +17115,7 @@
         },
         {
           "cap_label": "baseline",
-          "command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8107/v1 --models baseline_qwen3_moe_searched_no_gt065 --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate",
+          "command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8107/v1 --models baseline_qwen3_moe_searched_no_gt065 --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate --task-manifest /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_router_calibration_job/task_manifest.json --create-task-manifest-if-missing",
           "expected_output": "results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate",
           "method": "qwen3_moe_searched_no_gt065_max_retention_candidate",
           "purpose": "Run the frozen-router searched no-gt-0.65 baseline on the same downstream tasks.",
@@ -17138,7 +17147,7 @@
         },
         {
           "cap_label": "cap001",
-          "command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8108/v1 --models candidate_qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate",
+          "command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8108/v1 --models candidate_qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate --task-manifest /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_router_calibration_job/task_manifest.json --create-task-manifest-if-missing",
           "expected_output": "results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate",
           "method": "qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate",
           "purpose": "Run downstream tasks against the router-calibrated ablation candidate.",
@@ -17170,7 +17179,7 @@
         },
         {
           "cap_label": "cap0025",
-          "command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8109/v1 --models candidate_qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate",
+          "command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8109/v1 --models candidate_qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate --task-manifest /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_router_calibration_job/task_manifest.json --create-task-manifest-if-missing",
           "expected_output": "results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate",
           "method": "qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate",
           "purpose": "Run downstream tasks against the router-calibrated ablation candidate.",
@@ -17202,7 +17211,7 @@
         },
         {
           "cap_label": "cap005",
-          "command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8110/v1 --models candidate_qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate",
+          "command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8110/v1 --models candidate_qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate --task-manifest /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_router_calibration_job/task_manifest.json --create-task-manifest-if-missing",
           "expected_output": "results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate",
           "method": "qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate",
           "purpose": "Run downstream tasks against the router-calibrated ablation candidate.",
@@ -17224,6 +17233,7 @@
         "baseline_port": 8107,
         "baseline_served_model": "baseline_qwen3_moe_searched_no_gt065",
         "candidate_count": 3,
+        "create_task_manifest_if_missing": true,
         "local_gpu_status": "unavailable",
         "mechanism": "route_kd_router_delta_after_frozen_router_expert_cap_law_candidate",
         "outputs": {
@@ -17247,16 +17257,18 @@
         "schema_version": 1,
         "source_control_count": 2,
         "source_controls_ready": true,
-        "stage_count": 17,
+        "stage_count": 18,
         "status": "job_ready_awaiting_gpu",
         "student": "results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate",
         "student_exists": true,
+        "task_manifest": "results/qwen3_moe_router_calibration_job/task_manifest.json",
         "teacher": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-Coder-30B-A3B-Instruct/snapshots/b2cff646eb4bb1d68355c01b18ae02e7cf42d120",
         "teacher_exists": true,
         "tokenizer": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe",
         "tokenizer_exists": true
       },
       "summary_path": "results/qwen3_moe_router_calibration_job/summary.json",
+      "task_manifest": "results/qwen3_moe_router_calibration_job/task_manifest.json",
       "teacher_exists": true,
       "tokenizer_exists": true
     },
@@ -18402,6 +18414,7 @@
           "audit_summary_path": null,
           "avg_primary_score": null,
           "baseline_dominates": false,
+          "baseline_task_manifest_sha256": null,
           "best_task_delta_vs_baseline": null,
           "cap_label": "cap001",
           "cap_passed": false,
@@ -18487,9 +18500,16 @@
           "selection_policy": null,
           "selection_score": -0.0001,
           "selection_split": null,
+          "source_task_manifest_consistent": true,
           "summary_path": null,
           "task_gsm8k_score": null,
           "task_humaneval_compile_score": null,
+          "task_manifest_gate_passed": true,
+          "task_manifest_matches_baseline": false,
+          "task_manifest_path": null,
+          "task_manifest_sha256": null,
+          "task_manifest_sha_present": false,
+          "task_manifest_status": "awaiting_eval",
           "task_mmlu_score": null,
           "task_safety_score": null,
           "task_scores": "{}",
@@ -18515,6 +18535,7 @@
           "audit_summary_path": null,
           "avg_primary_score": null,
           "baseline_dominates": false,
+          "baseline_task_manifest_sha256": null,
           "best_task_delta_vs_baseline": null,
           "cap_label": "cap0025",
           "cap_passed": false,
@@ -18600,9 +18621,16 @@
           "selection_policy": null,
           "selection_score": -0.00025,
           "selection_split": null,
+          "source_task_manifest_consistent": true,
           "summary_path": null,
           "task_gsm8k_score": null,
           "task_humaneval_compile_score": null,
+          "task_manifest_gate_passed": true,
+          "task_manifest_matches_baseline": false,
+          "task_manifest_path": null,
+          "task_manifest_sha256": null,
+          "task_manifest_sha_present": false,
+          "task_manifest_status": "awaiting_eval",
           "task_mmlu_score": null,
           "task_safety_score": null,
           "task_scores": "{}",
@@ -18628,6 +18656,7 @@
           "audit_summary_path": null,
           "avg_primary_score": null,
           "baseline_dominates": false,
+          "baseline_task_manifest_sha256": null,
           "best_task_delta_vs_baseline": null,
           "cap_label": "cap005",
           "cap_passed": false,
@@ -18713,9 +18742,16 @@
           "selection_policy": null,
           "selection_score": -0.0005,
           "selection_split": null,
+          "source_task_manifest_consistent": true,
           "summary_path": null,
           "task_gsm8k_score": null,
           "task_humaneval_compile_score": null,
+          "task_manifest_gate_passed": true,
+          "task_manifest_matches_baseline": false,
+          "task_manifest_path": null,
+          "task_manifest_sha256": null,
+          "task_manifest_sha_present": false,
+          "task_manifest_status": "awaiting_eval",
           "task_mmlu_score": null,
           "task_safety_score": null,
           "task_scores": "{}",
@@ -18757,6 +18793,8 @@
           "summary_path": null,
           "task_gsm8k_score": null,
           "task_humaneval_compile_score": null,
+          "task_manifest_path": null,
+          "task_manifest_sha256": null,
           "task_mmlu_score": null,
           "task_safety_score": null,
           "task_scores": {},
@@ -18765,6 +18803,7 @@
         "current_selection": {
           "audit_completed": false,
           "baseline_eval_completed": false,
+          "baseline_task_manifest_sha256": null,
           "candidate_count": 3,
           "candidate_eval_completed": false,
           "capacity_metrics_completed": false,
@@ -18775,10 +18814,13 @@
           "selected_method": null,
           "source_eval_completed": false,
           "source_eval_required": true,
+          "source_task_manifest_sha256": [],
           "status": "awaiting_baseline_eval",
+          "task_manifest_gate_completed": false,
           "training_completed": false
         },
         "job_dir": "results/qwen3_moe_router_calibration_job",
+        "manifest_mismatch_negative_smoke": false,
         "no_downstream_gain_negative_smoke": false,
         "outputs": {
           "decision_rules": "results/qwen3_moe_router_calibration_selection/decision_rules.json",
@@ -18804,6 +18846,8 @@
             "summary_path": null,
             "task_gsm8k_score": null,
             "task_humaneval_compile_score": null,
+            "task_manifest_path": null,
+            "task_manifest_sha256": null,
             "task_mmlu_score": null,
             "task_safety_score": null,
             "task_scores": {},
@@ -18821,6 +18865,8 @@
             "summary_path": null,
             "task_gsm8k_score": null,
             "task_humaneval_compile_score": null,
+            "task_manifest_path": null,
+            "task_manifest_sha256": null,
             "task_mmlu_score": null,
             "task_safety_score": null,
             "task_scores": {},
@@ -18834,7 +18880,7 @@
       "training_completed": false
     },
     "qwen3_moe_router_calibration_selector_matrix_smoke": {
-      "case_count": 5,
+      "case_count": 6,
       "case_rows": [
         {
           "candidate_count": 3,
@@ -18935,15 +18981,35 @@
           "selection_table": null,
           "status": "keep_frozen_router_baseline",
           "status_passed": true
+        },
+        {
+          "candidate_count": 3,
+          "case": "manifest_mismatch_abstains",
+          "case_output_dir": null,
+          "eligible_candidate_count": 0,
+          "eligible_passed": true,
+          "expected_eligible_candidate_count": 0,
+          "expected_reason_marker": "task_manifest_sha_mismatch",
+          "expected_selected_method": "qwen3_moe_searched_no_gt065_max_retention_candidate",
+          "expected_status": "keep_frozen_router_baseline",
+          "flag": "--manifest-mismatch-negative-smoke",
+          "passed": true,
+          "reason_found": true,
+          "report": null,
+          "selected_method": "qwen3_moe_searched_no_gt065_max_retention_candidate",
+          "selected_passed": true,
+          "selection_table": null,
+          "status": "keep_frozen_router_baseline",
+          "status_passed": true
         }
       ],
       "failed_case_count": 0,
       "matrix": "results/qwen3_moe_router_calibration_selector_matrix_smoke/selector_matrix.csv",
-      "passed_case_count": 5,
+      "passed_case_count": 6,
       "report": "results/qwen3_moe_router_calibration_selector_matrix_smoke/report.md",
       "status": "passed",
       "summary": {
-        "case_count": 5,
+        "case_count": 6,
         "cases": [
           {
             "candidate_count": 3,
@@ -19044,6 +19110,26 @@
             "selection_table": null,
             "status": "keep_frozen_router_baseline",
             "status_passed": true
+          },
+          {
+            "candidate_count": 3,
+            "case": "manifest_mismatch_abstains",
+            "case_output_dir": null,
+            "eligible_candidate_count": 0,
+            "eligible_passed": true,
+            "expected_eligible_candidate_count": 0,
+            "expected_reason_marker": "task_manifest_sha_mismatch",
+            "expected_selected_method": "qwen3_moe_searched_no_gt065_max_retention_candidate",
+            "expected_status": "keep_frozen_router_baseline",
+            "flag": "--manifest-mismatch-negative-smoke",
+            "passed": true,
+            "reason_found": true,
+            "report": null,
+            "selected_method": "qwen3_moe_searched_no_gt065_max_retention_candidate",
+            "selected_passed": true,
+            "selection_table": null,
+            "status": "keep_frozen_router_baseline",
+            "status_passed": true
           }
         ],
         "failed_case_count": 0,
@@ -19053,7 +19139,7 @@
           "report": "results/qwen3_moe_router_calibration_selector_matrix_smoke/report.md",
           "summary": "results/qwen3_moe_router_calibration_selector_matrix_smoke/summary.json"
         },
-        "passed_case_count": 5,
+        "passed_case_count": 6,
         "schema_version": 1,
         "status": "passed"
       },
@@ -32337,7 +32423,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-20T03:29:57.797977+00:00",
+  "generated_at": "2026-06-20T03:41:25.302866+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
