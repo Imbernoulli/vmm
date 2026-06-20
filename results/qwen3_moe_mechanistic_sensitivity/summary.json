@@ -1,0 +1,43 @@
+{
+  "ablation_count": 9,
+  "affected_group_rows": 192,
+  "baseline_candidate_id": "s0.08_b1.65_h0.75_i0.75",
+  "baseline_fixed_objective": 0.18220851802618143,
+  "baseline_nonbase_mass_retention": 0.9650345047849123,
+  "baseline_reselected_candidate_id": "s0.08_b1.65_h0.75_i0.75",
+  "baseline_reselected_objective": 0.18220851802618143,
+  "baseline_risk_weighted_predicted_delta": 0.23042348145965702,
+  "effective_hard_cap": 0.649,
+  "feature_correlation_count": 14,
+  "min_retention": 0.965,
+  "outputs": {
+    "feature_correlations": "results/qwen3_moe_mechanistic_sensitivity/feature_correlations.csv",
+    "feature_family_ablation": "results/qwen3_moe_mechanistic_sensitivity/feature_family_ablation.csv",
+    "report": "results/qwen3_moe_mechanistic_sensitivity/report.md",
+    "summary": "results/qwen3_moe_mechanistic_sensitivity/summary.json",
+    "top_affected_groups": "results/qwen3_moe_mechanistic_sensitivity/top_affected_groups.csv"
+  },
+  "schema_version": 1,
+  "status": "mechanistic_sensitivity_ready",
+  "strongest_fixed_objective_regression": {
+    "ablation": "no_category_prior",
+    "fixed_nonbase_mass_retention_delta": -0.0015437830794288177,
+    "fixed_objective_delta": 0.0033572134591372538,
+    "reselected_candidate_id": "s0.04_b1.15_h1.25_i0.75"
+  },
+  "strongest_scale_sensitivity": {
+    "ablation": "no_subspace_conflict",
+    "groups_changed_gt_0_01": 2282,
+    "route_mass_weighted_abs_scale_shift": 0.00861034446007345
+  },
+  "top_shrink_feature": {
+    "abs_shrink_corr": 0.6980780071550652,
+    "feature": "feature_layer_geometry",
+    "feature_family": "layer_geometry",
+    "mean_value": 0.5903476070936806,
+    "route_mass_weighted_value": 0.5898077702918125,
+    "weighted_corr_with_predicted_delta": 0.09066543781811295,
+    "weighted_corr_with_restore": -0.04071519312912757,
+    "weighted_corr_with_shrink": 0.6980780071550652
+  }
+}

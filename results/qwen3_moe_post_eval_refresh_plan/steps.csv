@@ -8,6 +8,7 @@ attribute_mechanism_effects,attribution,python scripts/attribute_qwen3_moe_mecha
 build_feedback_optimizer,optimizer,python scripts/build_qwen3_moe_feedback_optimizer.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_feedback_optimizer,planned,,0.0,,
 build_mechanistic_unified_candidate,optimizer,python scripts/build_qwen3_moe_mechanistic_unified_candidate.py --output-dir results/qwen3_moe_mechanistic_unified_candidate,planned,,0.0,,
 audit_mechanistic_evidence,attribution,python scripts/audit_qwen3_moe_mechanistic_evidence.py --output-dir results/qwen3_moe_mechanistic_evidence_audit,planned,,0.0,,
+analyze_mechanistic_sensitivity,attribution,python scripts/analyze_qwen3_moe_mechanistic_sensitivity.py --output-dir results/qwen3_moe_mechanistic_sensitivity,planned,,0.0,,
 build_unified_average_optimizer,optimizer,python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer,planned,,0.0,,
 build_average_method_gate_matrix,optimizer,python scripts/build_average_method_gate_matrix.py --output-dir results/average_method_gate_matrix --optimizer-summary results/unified_average_optimizer/summary.json --optimizer-features results/unified_average_optimizer/mechanism_features.csv,planned,,0.0,,
 build_average_trust_region_bounds,optimizer,python scripts/build_average_trust_region_bounds.py --output-dir results/average_trust_region_bounds,planned,,0.0,,

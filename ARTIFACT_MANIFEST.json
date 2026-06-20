@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 94104,
+      "bytes": 95280,
       "kind": "document",
       "path": "README.md",
-      "sha256": "ecd69cde9457a3afb3a9348f4a4e9492da8f0bb926b7ac5aad76eedf73a3981d"
+      "sha256": "935d82e57861c1efeabc2f4a3e3d668d342fc33fe47619ae828465c40bc92324"
     },
     {
       "bytes": 33211,
@@ -2839,6 +2839,36 @@
       "sha256": "528b01e9bbc6a96130f30d8ad87fc49a9a4515eee7a86ba045ac45c19b399671"
     },
     {
+      "bytes": 2343,
+      "kind": "data",
+      "path": "results/qwen3_moe_mechanistic_sensitivity/feature_correlations.csv",
+      "sha256": "b7749a538509034b0e4e73681090f770aa612457d139c6d9146860da9eea09a2"
+    },
+    {
+      "bytes": 5997,
+      "kind": "data",
+      "path": "results/qwen3_moe_mechanistic_sensitivity/feature_family_ablation.csv",
+      "sha256": "734cd809adc3739e3ea3a6f6976255455fdf38b6fe37ac5ec00384d57cf98ff0"
+    },
+    {
+      "bytes": 4149,
+      "kind": "document",
+      "path": "results/qwen3_moe_mechanistic_sensitivity/report.md",
+      "sha256": "d9e864a9f9ee32d14afdba4b9ca1ebc9fa594eec418650050434c3be11a9e5aa"
+    },
+    {
+      "bytes": 1880,
+      "kind": "data",
+      "path": "results/qwen3_moe_mechanistic_sensitivity/summary.json",
+      "sha256": "c46a80f02d1ecc78f2681ef46980c221f68beaa71d887bfab35da7322f8e5134"
+    },
+    {
+      "bytes": 61699,
+      "kind": "data",
+      "path": "results/qwen3_moe_mechanistic_sensitivity/top_affected_groups.csv",
+      "sha256": "8af867a4304aab6e20a934f65f133e1e42a25dcf13376d43a6f8e03b06c5557e"
+    },
+    {
       "bytes": 46088,
       "kind": "data",
       "path": "results/qwen3_moe_mechanistic_unified_candidate/candidate_search.csv",
@@ -2941,40 +2971,40 @@
       "sha256": "16040e4106918bfa5bcc11154b4fde0dea87231b51ff334f4546f583c8a3b464"
     },
     {
-      "bytes": 8096,
+      "bytes": 8497,
       "kind": "document",
       "path": "results/qwen3_moe_post_eval_refresh/report.md",
-      "sha256": "edc5f8e512dec2ba8b204d0d098cc64cb0642c1e3c0b5c0d8eee1264ec4b638e"
+      "sha256": "96e3d5c099bf129d5f9197c418feec62829d2108fa4c1da6525558e8c15a0d52"
     },
     {
-      "bytes": 9569,
+      "bytes": 9983,
       "kind": "data",
       "path": "results/qwen3_moe_post_eval_refresh/steps.csv",
-      "sha256": "18fae71ca4d0f7f75882480e69810fa730b60188fb45f95b81f8d45abb45ba3f"
+      "sha256": "ace59ed72483100fe9b64b4bbe950468ae216fb6c09bc44350d92c44f46c6b8d"
     },
     {
-      "bytes": 18225,
+      "bytes": 19192,
       "kind": "data",
       "path": "results/qwen3_moe_post_eval_refresh/summary.json",
-      "sha256": "5253fa2409f0e1eab66e730bd778cb4c840139c24a18d11400b27d7ef75d141c"
+      "sha256": "957d2cf23fd36630dbdf99551700958ed0492ab7f3c234b6b42ea67d5fc4be77"
     },
     {
-      "bytes": 7610,
+      "bytes": 7923,
       "kind": "document",
       "path": "results/qwen3_moe_post_eval_refresh_plan/report.md",
-      "sha256": "a144abf5536048884d3ffcc187712d786826cc54a9ac9ca18ebb3d0b43958bcc"
+      "sha256": "4b9ba14247c34f41d169a39f2181def444bca0b4d450b5a35c09c9b5d8421b9a"
     },
     {
-      "bytes": 5251,
+      "bytes": 5425,
       "kind": "data",
       "path": "results/qwen3_moe_post_eval_refresh_plan/steps.csv",
-      "sha256": "8dc31ea5b1aa22ccf4d0ed2ea2299ba8be52b1bf45204645aeb4e52fb4ad40cf"
+      "sha256": "5b3ef87954d2fc5bf10b73f5beec26633a96c4ddf7bf37104d0ad773c82d0e65"
     },
     {
-      "bytes": 9955,
+      "bytes": 10310,
       "kind": "data",
       "path": "results/qwen3_moe_post_eval_refresh_plan/summary.json",
-      "sha256": "4553da9dbadd466c1cb92f9f02c12dc3338f4f73d13914f48dd7531d94eb3bd1"
+      "sha256": "1042666e91591c8f5058715e19d8f727d985d74b0077e2226405859554732b7f"
     },
     {
       "bytes": 5214,
@@ -5473,16 +5503,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 2345542,
+      "bytes": 2556986,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "c1cd9d8142fb2efc513ce2272d3e19447fa0206c3665e5a873b4da2650c57808"
+      "sha256": "c3889b2adb6803cc831f3c5cfdc549a1bc06f1896dc9d194cc8b079b0bbc79d7"
     },
     {
-      "bytes": 65338,
+      "bytes": 65963,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "3ba11f779a76083fa5e1c982209bb8e8622b90eee8b0e85bc790a6380c5c358d"
+      "sha256": "b2680d93959050f2f1a558de6b933546c6874ea3ce7b953aefad7b3d7bb3cc08"
     },
     {
       "bytes": 288,
@@ -6547,6 +6577,12 @@
       "sha256": "f661faf58920eebf75e2a38f55c0b002d796c8dab07bb26fd4a2bfc9e4cd92e0"
     },
     {
+      "bytes": 28667,
+      "kind": "code",
+      "path": "scripts/analyze_qwen3_moe_mechanistic_sensitivity.py",
+      "sha256": "8e75d6be0fd04b013ca4d14e88705981740dc30f10b6e2d37b835aa61a80570d"
+    },
+    {
       "bytes": 11052,
       "kind": "code",
       "path": "scripts/attribute_fp_downstream_matrix.py",
@@ -6847,10 +6883,10 @@
       "sha256": "cd588bc1804013f4043bd95c245b066dbae86bfd3e3f9c18317ef33eb506f123"
     },
     {
-      "bytes": 461128,
+      "bytes": 466720,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "42463858188fa0288b9d2388954d0bf832ff5ce0643f1764fd57f196d82619a9"
+      "sha256": "c967eb5f1a52023e2d811580040540a6a430fc3b9034015ef28dc58fe789821b"
     },
     {
       "bytes": 16101,
@@ -6943,10 +6979,10 @@
       "sha256": "9f211e934ffbcd7d5a0df9eed38a4cdd7d5d601adf2d4877519bb4cef8ac9f02"
     },
     {
-      "bytes": 33727,
+      "bytes": 35572,
       "kind": "code",
       "path": "scripts/refresh_qwen3_moe_post_eval.py",
-      "sha256": "e95b17f51d6fb97a886a3c35a84a3bb695a2169d814451f19f752334bc9dd125"
+      "sha256": "fe98090121b022b1be2a3880caad5d37a2947f08c9350f62d3eb9e9f3ee931da"
     },
     {
       "bytes": 10141,
@@ -7177,7 +7213,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-20T12:11:08.909585+00:00",
+  "generated_at": "2026-06-20T12:29:00.723103+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

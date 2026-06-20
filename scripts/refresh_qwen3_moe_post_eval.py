@@ -212,6 +212,16 @@ def build_steps(args: argparse.Namespace) -> list[dict[str, Any]]:
             ],
         },
         {
+            "step": "analyze_mechanistic_sensitivity",
+            "kind": "attribution",
+            "command": [
+                py,
+                "scripts/analyze_qwen3_moe_mechanistic_sensitivity.py",
+                "--output-dir",
+                str(args.mechanistic_sensitivity_dir),
+            ],
+        },
+        {
             "step": "build_unified_average_optimizer",
             "kind": "optimizer",
             "command": [
@@ -402,6 +412,7 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
     feedback = read_json(repo_path(args.feedback_dir) / "summary.json")
     mechanistic = read_json(repo_path(args.mechanistic_dir) / "summary.json")
     mechanistic_evidence = read_json(repo_path(args.mechanistic_evidence_dir) / "summary.json")
+    mechanistic_sensitivity = read_json(repo_path(args.mechanistic_sensitivity_dir) / "summary.json")
     unified_optimizer = read_json(repo_path(args.unified_optimizer_dir) / "summary.json")
     unified_optimizer_smoke = read_json(repo_path(args.unified_optimizer_smoke_dir) / "summary.json")
     average_method_gate = read_json(repo_path(args.average_method_gate_dir) / "summary.json")
@@ -466,6 +477,19 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
         "mechanistic_evidence_hard_cap_bound_group_count": mechanistic_evidence.get(
             "hard_cap_bound_group_count"
         ),
+        "mechanistic_sensitivity_status": mechanistic_sensitivity.get("status"),
+        "mechanistic_sensitivity_strongest_objective_ablation": (
+            mechanistic_sensitivity.get("strongest_fixed_objective_regression") or {}
+        ).get("ablation"),
+        "mechanistic_sensitivity_strongest_objective_delta": (
+            mechanistic_sensitivity.get("strongest_fixed_objective_regression") or {}
+        ).get("fixed_objective_delta"),
+        "mechanistic_sensitivity_strongest_scale_ablation": (
+            mechanistic_sensitivity.get("strongest_scale_sensitivity") or {}
+        ).get("ablation"),
+        "mechanistic_sensitivity_scale_shift": (
+            mechanistic_sensitivity.get("strongest_scale_sensitivity") or {}
+        ).get("route_mass_weighted_abs_scale_shift"),
         "unified_optimizer_status": unified_optimizer.get("status"),
         "unified_optimizer_contract_status": unified_optimizer.get("contract_status"),
         "unified_optimizer_contract_passed": unified_optimizer.get("contract_passed_requirement_count"),
@@ -516,7 +540,7 @@ def build_report(summary: dict[str, Any]) -> str:
     lines = [
         "# Qwen3 MoE Post-Eval Refresh",
         "",
-        "这个脚本在远端 vLLM eval 落盘后按固定顺序刷新 eval bundle audit、unified/final selector、mechanism attribution、feedback/mechanistic optimizer、unified average optimizer、average method gate matrix、average trust-region bounds 和总汇总，避免手工漏跑或用到旧结果。",
+        "这个脚本在远端 vLLM eval 落盘后按固定顺序刷新 eval bundle audit、unified/final selector、mechanism attribution、feedback/mechanistic optimizer、mechanistic sensitivity、unified average optimizer、average method gate matrix、average trust-region bounds 和总汇总，避免手工漏跑或用到旧结果。",
         "",
         f"- Status: `{summary['status']}`",
         f"- Plan only: `{summary['plan_only']}`",
@@ -531,6 +555,7 @@ def build_report(summary: dict[str, Any]) -> str:
         f"- Feedback optimizer: `{downstream.get('feedback_status', 'n/a')}` (`{downstream.get('feedback_scored_task_count', 'n/a')}/{downstream.get('feedback_task_count', 'n/a')}` scored, `{downstream.get('feedback_changed_group_count', 'n/a')}` changed groups)",
         f"- Mechanistic unified: `{downstream.get('mechanistic_status', 'n/a')}` -> `{downstream.get('mechanistic_selected_candidate', 'n/a')}` (`retention={downstream.get('mechanistic_retention', 'n/a')}`, `violations={downstream.get('mechanistic_hard_cap_violations', 'n/a')}`)",
         f"- Mechanistic evidence: `{downstream.get('mechanistic_evidence_status', 'n/a')}` (`gradient_agreement={downstream.get('mechanistic_evidence_gradient_agreement', 'n/a')}`, `objective_improved={downstream.get('mechanistic_evidence_objective_improved_fraction', 'n/a')}`)",
+        f"- Mechanistic sensitivity: `{downstream.get('mechanistic_sensitivity_status', 'n/a')}` (objective `{downstream.get('mechanistic_sensitivity_strongest_objective_ablation', 'n/a')}` delta `{downstream.get('mechanistic_sensitivity_strongest_objective_delta', 'n/a')}`, scale `{downstream.get('mechanistic_sensitivity_strongest_scale_ablation', 'n/a')}` shift `{downstream.get('mechanistic_sensitivity_scale_shift', 'n/a')}`)",
         f"- Unified average optimizer: `{downstream.get('unified_optimizer_status', 'n/a')}` (top next experiment `{downstream.get('unified_optimizer_top_experiment', 'n/a')}` / `{downstream.get('unified_optimizer_top_experiment_status', 'n/a')}`)",
         f"- Unified algorithm contract: `{downstream.get('unified_optimizer_contract_status', 'n/a')}` (`{downstream.get('unified_optimizer_contract_passed', 'n/a')}/{downstream.get('unified_optimizer_contract_requirements', 'n/a')}` passed, blocking `{downstream.get('unified_optimizer_contract_blocking', [])}`)",
         f"- Unified selector rank gate in optimizer: confidence band `{downstream.get('unified_optimizer_final_confidence_tie_band', 'n/a')}`, rank mode `{downstream.get('unified_optimizer_final_rank_mode', 'n/a')}`, band size `{downstream.get('unified_optimizer_final_rank_band_size', 'n/a')}`",
@@ -613,6 +638,11 @@ def parse_args() -> argparse.Namespace:
         "--mechanistic-evidence-dir",
         type=Path,
         default=Path("results/qwen3_moe_mechanistic_evidence_audit"),
+    )
+    parser.add_argument(
+        "--mechanistic-sensitivity-dir",
+        type=Path,
+        default=Path("results/qwen3_moe_mechanistic_sensitivity"),
     )
     parser.add_argument(
         "--unified-optimizer-dir",
