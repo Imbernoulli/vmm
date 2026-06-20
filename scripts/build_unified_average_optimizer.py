@@ -240,9 +240,12 @@ def moe_feature_rows(
     qwen3_downstream_matrix: dict[str, Any],
     qwen3_downstream_attribution: dict[str, Any],
     qwen3_downstream_confidence: dict[str, Any],
+    qwen3_router_coupled_retention_frontier: dict[str, Any],
 ) -> list[dict[str, Any]]:
     selection = final_selection.get("current_selection") or {}
     router_selection = router_calibration.get("current_selection") or {}
+    constrained_router = qwen3_router_coupled_retention_frontier.get("constrained") or {}
+    stress_router = qwen3_router_coupled_retention_frontier.get("stress") or {}
     interpolation_gap = None
     if qwen3_moe_interpolation.get("best_interior_worst") is not None and qwen3_moe_interpolation.get(
         "endpoint_best_worst"
@@ -333,6 +336,28 @@ def moe_feature_rows(
                 f"top category = {router_margin_fragility.get('top_fragile_category')} "
                 f"score {fmt(router_margin_fragility.get('top_category_fragility_score'))}; "
                 f"min safe-lambda proxy = {fmt(router_margin_fragility.get('min_safe_lambda_proxy'))}"
+            ),
+        },
+        {
+            "domain": "moe",
+            "probe": "qwen3_router_coupled_retention_frontier",
+            "value": qwen3_router_coupled_retention_frontier.get(
+                "constrained_effect_fraction_vs_stress"
+            ),
+            "threshold": qwen3_router_coupled_retention_frontier.get("minimum_effective_fraction"),
+            "decision_signal": "direct_router_boundary_shrink_not_default_under_retention",
+            "evidence": (
+                f"gate = {qwen3_router_coupled_retention_frontier.get('gate')}; "
+                f"default-gate candidates = "
+                f"{qwen3_router_coupled_retention_frontier.get('default_gate_candidate_count')}/"
+                f"{qwen3_router_coupled_retention_frontier.get('candidate_count')}; "
+                f"constrained = {constrained_router.get('candidate_id')} "
+                f"retention_delta {fmt(constrained_router.get('retention_delta_vs_base'), 6)} "
+                f"coupled_reduction {fmt(constrained_router.get('router_coupled_delta_reduction_vs_base'), 8)}; "
+                f"stress = {stress_router.get('candidate_id')} "
+                f"coupled_reduction {fmt(stress_router.get('router_coupled_delta_reduction_vs_base'), 6)}; "
+                f"effect fraction = "
+                f"{fmt(qwen3_router_coupled_retention_frontier.get('constrained_effect_fraction_vs_stress'), 4)}"
             ),
         },
         {
@@ -556,10 +581,13 @@ def build_decisions(
     qwen3_downstream_matrix: dict[str, Any],
     qwen3_downstream_attribution: dict[str, Any],
     qwen3_downstream_confidence: dict[str, Any],
+    qwen3_router_coupled_retention_frontier: dict[str, Any],
 ) -> pd.DataFrame:
     dense_config = ((dense_selector.get("results") or {}).get("unified") or {}).get("config") or {}
     final_current = final_selection.get("current_selection") or {}
     router_selection = router_calibration.get("current_selection") or {}
+    constrained_router = qwen3_router_coupled_retention_frontier.get("constrained") or {}
+    stress_router = qwen3_router_coupled_retention_frontier.get("stress") or {}
     interpolation_gap = None
     if qwen3_moe_interpolation.get("best_interior_worst") is not None and qwen3_moe_interpolation.get(
         "endpoint_best_worst"
@@ -633,6 +661,27 @@ def build_decisions(
             ),
             "why_it_should_improve": "It prevents a small weight-space router step from crossing a discrete dispatch boundary and sending tokens to untrained expert combinations.",
             "same_shape_invariant": "router tensors remain same-shape; any later route-KD delta must pass the same margin, load, and downstream gates",
+        },
+        {
+            "stage": "moe_router_coupled_shrink_gate",
+            "operation": "keep router-boundary fragility inside B/H/I instead of direct extra shrink",
+            "condition": (
+                "a fine router-coupled shrink frontier found "
+                f"{qwen3_router_coupled_retention_frontier.get('default_gate_candidate_count')}/"
+                f"{qwen3_router_coupled_retention_frontier.get('candidate_count')} candidates that pass "
+                "hard cap and retention, but the best retention-safe direct shrink gives only "
+                f"{fmt(qwen3_router_coupled_retention_frontier.get('constrained_effect_fraction_vs_stress'), 4)} "
+                "of the aggressive ablation proxy effect"
+            ),
+            "selected_action": (
+                f"{qwen3_router_coupled_retention_frontier.get('recommended_unified_action')}; "
+                f"constrained={constrained_router.get('candidate_id')} "
+                f"coupled_reduction={fmt(constrained_router.get('router_coupled_delta_reduction_vs_base'), 8)}; "
+                f"stress={stress_router.get('candidate_id')} "
+                f"coupled_reduction={fmt(stress_router.get('router_coupled_delta_reduction_vs_base'), 6)}"
+            ),
+            "why_it_should_improve": "It avoids spending retention budget on a direct router-boundary term whose safe version is too weak; the same signal stays useful as an interference feature inside the expert scale objective.",
+            "same_shape_invariant": "direct-shrink ablations still use same-shape expert tensor rules; the default algorithm does not add another tensor movement term",
         },
         {
             "stage": "moe_straight_line_connectivity_gate",
@@ -742,6 +791,16 @@ def build_mechanism_hypotheses(summary: dict[str, Any]) -> pd.DataFrame:
             and float(moe["qwen3_router_margin_min_safe_lambda_proxy"]) < 0.05
         )
     )
+    router_direct_shrink_not_default = (
+        str(moe.get("qwen3_router_coupled_frontier_gate"))
+        == "direct_router_boundary_term_not_default"
+        or (
+            fnum(moe.get("qwen3_router_coupled_frontier_effect_fraction")) is not None
+            and fnum(moe.get("qwen3_router_coupled_frontier_minimum_effect_fraction")) is not None
+            and float(moe["qwen3_router_coupled_frontier_effect_fraction"])
+            < float(moe["qwen3_router_coupled_frontier_minimum_effect_fraction"])
+        )
+    )
     unified_structural_passed = (
         moe.get("qwen3_unified_materialized_rule_status") == "fresh"
         and moe.get("qwen3_unified_audit_status") == "passed"
@@ -827,6 +886,29 @@ def build_mechanism_hypotheses(summary: dict[str, Any]) -> pd.DataFrame:
             "action_if_falsified": "freeze router and move only expert tensors",
             "next_command": "results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh preflight",
             "literature_keys": "harc,router_calibration,mergeme",
+        },
+        {
+            "hypothesis_id": "moe_direct_router_boundary_shrink_is_not_default",
+            "domain": "moe",
+            "current_status": "direct_shrink_ablation_only"
+            if router_direct_shrink_not_default
+            else "direct_shrink_candidate_needs_acceptance",
+            "mechanism": "Router-boundary fragility is a useful interference feature, but a direct extra shrink term must buy enough proxy reduction without violating non-base retention.",
+            "current_evidence": (
+                f"frontier gate = {moe.get('qwen3_router_coupled_frontier_gate')}; "
+                f"default-gate candidates = "
+                f"{moe.get('qwen3_router_coupled_frontier_default_gate_candidates')}/"
+                f"{moe.get('qwen3_router_coupled_frontier_candidate_count')}; "
+                f"effect fraction = {fmt(moe.get('qwen3_router_coupled_frontier_effect_fraction'), 4)}; "
+                f"constrained reduction = "
+                f"{fmt(moe.get('qwen3_router_coupled_frontier_constrained_reduction'), 8)}; "
+                f"stress reduction = {fmt(moe.get('qwen3_router_coupled_frontier_stress_reduction'), 6)}"
+            ),
+            "falsification_test": "A direct router-boundary shrink must pass retention/hard-cap gates and achieve a material fraction of the aggressive ablation effect, then beat the B/H/I-only default under the locked downstream manifest.",
+            "action_if_supported": "keep router fragility inside B/H/I and leave direct shrink as ablation",
+            "action_if_falsified": "promote a retention-safe direct router-boundary shrink term into the expert scale objective",
+            "next_command": "python scripts/analyze_qwen3_moe_router_coupled_retention_frontier.py --output-dir results/qwen3_moe_router_coupled_retention_frontier",
+            "literature_keys": "harc,router_kd_calibration,expert_merging",
         },
         {
             "hypothesis_id": "moe_source_to_source_line_not_averageable",
@@ -1260,6 +1342,23 @@ def build_evidence_ledger(summary: dict[str, Any], hypotheses: pd.DataFrame) -> 
             "confidence_score": 0.93,
         },
         {
+            "hypothesis_id": "moe_direct_router_boundary_shrink_is_not_default",
+            "evidence_tier": "retention_constrained_router_coupled_frontier",
+            "verdict": "supports_current_action"
+            if str(moe.get("qwen3_router_coupled_frontier_gate"))
+            == "direct_router_boundary_term_not_default"
+            else "needs_more_frontier_evidence",
+            "current_status": hypothesis_status("moe_direct_router_boundary_shrink_is_not_default"),
+            "current_algorithm_action": "use_router_fragility_as_BHI_interference_feature_keep_direct_shrink_ablation_only",
+            "why_verdict": (
+                "The retention-safe direct shrink frontier has a tiny proxy effect compared with the aggressive "
+                "ablation, so the default should not spend non-base retention on a separate direct shrink term."
+            ),
+            "acceptance_gate_still_needed": "a direct-shrink ablation must beat the B/H/I-only default under matched vLLM eval before promotion",
+            "numeric_signal": fnum(moe.get("qwen3_router_coupled_frontier_effect_fraction")),
+            "confidence_score": 0.88,
+        },
+        {
             "hypothesis_id": "moe_source_to_source_line_not_averageable",
             "evidence_tier": "source_to_source_nll_path_probe",
             "verdict": "supports_current_action",
@@ -1358,6 +1457,9 @@ def build_algorithm_contract(
     dense_gate = verdict("dense_same_basin_required") == "supports_current_action"
     expert_gate = verdict("moe_expert_gauge_alignment_precedes_average") == "supports_current_action"
     router_gate = verdict("moe_direct_router_average_crosses_topk_boundaries") == "supports_current_action"
+    router_shrink_gate = (
+        verdict("moe_direct_router_boundary_shrink_is_not_default") == "supports_current_action"
+    )
     connectivity_gate = verdict("moe_source_to_source_line_not_averageable") == "supports_current_action"
     structural_gate = (
         moe.get("qwen3_unified_materialized_rule_status") == "fresh"
@@ -1434,6 +1536,23 @@ def build_algorithm_contract(
             "passed": router_gate,
             "blocking_status": "passed" if router_gate else "failed_router_boundary_gate",
             "next_command": "python scripts/build_qwen3_moe_router_margin_fragility.py --output-dir results/qwen3_moe_router_margin_fragility",
+        },
+        {
+            "requirement": "moe_router_coupled_retention_frontier_gate",
+            "mechanism": "router_boundary_signal_budgeting",
+            "required_state": "router-boundary fragility may shape B/H/I interference, but direct extra shrink is not default unless retention-safe effect is material",
+            "observed_state": (
+                f"frontier_gate={moe.get('qwen3_router_coupled_frontier_gate')}; "
+                f"default_gate_candidates={moe.get('qwen3_router_coupled_frontier_default_gate_candidates')}/"
+                f"{moe.get('qwen3_router_coupled_frontier_candidate_count')}; "
+                f"effect_fraction={fmt(moe.get('qwen3_router_coupled_frontier_effect_fraction'), 4)}; "
+                f"constrained={moe.get('qwen3_router_coupled_frontier_constrained_candidate_id')}; "
+                f"stress={moe.get('qwen3_router_coupled_frontier_stress_candidate_id')}; "
+                f"verdict={verdict('moe_direct_router_boundary_shrink_is_not_default')}"
+            ),
+            "passed": router_shrink_gate,
+            "blocking_status": "passed" if router_shrink_gate else "failed_router_coupled_retention_frontier_gate",
+            "next_command": "python scripts/analyze_qwen3_moe_router_coupled_retention_frontier.py --output-dir results/qwen3_moe_router_coupled_retention_frontier",
         },
         {
             "requirement": "moe_connectivity_gate",
@@ -1597,6 +1716,7 @@ def build_algorithm(
         "mechanism_equations": {
             "dense_second_order_gate": "accept a straight-line average only when the measured path loss does not exceed the endpoint frontier; local Fisher/RegMean curvature is treated as a proxy, not a proof",
             "moe_router_margin_gate": "for router logits z_lambda = z_A + lambda * (z_B - z_A), a top-k assignment can flip when lambda * ||Delta z|| reaches the observed top-k margin; therefore small empirical margins imply a near-zero safe router lambda",
+            "moe_router_coupled_shrink_gate": "let router fragility enter the expert-scale interference score, but add a separate direct shrink term only if the retention-safe frontier achieves a material fraction of the aggressive ablation effect and then passes matched downstream eval",
             "moe_expert_subspace_cap": "for each routed expert group g, choose scale s_g to preserve route-mass-weighted nonbase contribution while reducing predicted delta under route, geometry, and subspace-conflict weights",
             "moe_confidence_tie_band_gate": "after source, task-regression, confidence-dominance, and paired-prediction gates, find the point-estimate leader; candidates whose aggregate confidence upper bounds overlap the leader lower bounds form the rank band, and structural frontier/safety can break ties only inside that band",
             "same_shape_constraint": "all accepted operations must preserve model config, tokenizer, class, tensor names, tensor shapes, and MoE expert/router cardinalities",
@@ -1631,6 +1751,7 @@ def build_report(
         f"- Qwen3 unified mechanism: `{moe['qwen3_unified_candidate_id']}`；retention `{fmt(moe['qwen3_unified_nonbase_mass_retention'])}`，subspace-weighted rel-delta `{fmt(moe['qwen3_unified_subspace_weighted_predicted_relative_delta'])}`，high-subspace mean scale `{fmt(moe['qwen3_unified_high_subspace_mean_scale'])}`，materialized rules `{moe['qwen3_unified_materialized_rule_status']}`，audit relative norm `{fmt(moe['qwen3_unified_relative_delta_norm'])}`，routed >0.65 `{moe['qwen3_unified_routed_gt_065']}`。",
         f"- Qwen3 subspace-scaled ablation: audit relative norm `{fmt(moe['qwen3_subspace_total_relative_delta_norm'])}`，mechanistic->subspace norm delta `{fmt(moe['qwen3_mechanistic_to_subspace_relative_norm_delta'], 6)}`，routed >0.65 `{moe['qwen3_subspace_routed_gt_065']}`。",
         f"- Qwen3 router margin fragility: high layers `{moe['qwen3_router_margin_high_fragility_layers']}/{moe['qwen3_router_margin_layer_count']}`，top `L{moe['qwen3_router_margin_top_layer']}` score `{fmt(moe['qwen3_router_margin_top_score'])}`，min safe-lambda proxy `{fmt(moe['qwen3_router_margin_min_safe_lambda_proxy'])}`。",
+        f"- Qwen3 router-coupled retention frontier: gate `{moe['qwen3_router_coupled_frontier_gate']}`，default-gate candidates `{moe['qwen3_router_coupled_frontier_default_gate_candidates']}/{moe['qwen3_router_coupled_frontier_candidate_count']}`，effect fraction `{fmt(moe['qwen3_router_coupled_frontier_effect_fraction'], 4)}`，constrained `{moe['qwen3_router_coupled_frontier_constrained_candidate_id']}`，stress `{moe['qwen3_router_coupled_frontier_stress_candidate_id']}`。",
         f"- Qwen3 router NLL probe: worst-NLL reduction `{fmt(moe['qwen3_router_calibration_nll_worst_reduction'])}`，code gap to best source `{fmt(moe['qwen3_router_calibration_nll_code_gap_to_best_source'])}`。",
         f"- Qwen3 generation matrix: Instruct+Coder avg `{fmt(moe['qwen3_generation_pair_merge_avg'])}` -> router-cal avg `{fmt(moe['qwen3_generation_pair_routercal_avg'])}`；avg gain `{fmt(moe['qwen3_generation_pair_routercal_avg_gain'])}`，gap to best parent `{fmt(moe['qwen3_generation_pair_routercal_gap_to_best_parent_avg'])}`。",
         f"- Qwen3 generation attribution: router-cal recovers `{fmt(moe['qwen3_generation_avg_routercal_recovery_fraction'])}` of avg naive drop and beats pair frontier on `{moe['qwen3_generation_routercal_beats_pair_frontier_count']}/{moe['qwen3_generation_attribution_score_count']}` scores。",
@@ -1768,6 +1889,9 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
     qwen3_downstream_matrix = read_json(args.qwen3_downstream_matrix)
     qwen3_downstream_attribution = read_json(args.qwen3_downstream_attribution)
     qwen3_downstream_confidence = read_json(args.qwen3_downstream_confidence)
+    qwen3_router_coupled_retention_frontier = read_json(
+        args.qwen3_router_coupled_retention_frontier
+    )
 
     feature_rows = dense_feature_rows(curvature, dense_selector, dense_lambda, gen_eval)
     feature_rows.extend(
@@ -1789,6 +1913,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
             qwen3_downstream_matrix,
             qwen3_downstream_attribution,
             qwen3_downstream_confidence,
+            qwen3_router_coupled_retention_frontier,
         )
     )
     features = pd.DataFrame(feature_rows)
@@ -1808,11 +1933,14 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         qwen3_downstream_matrix,
         qwen3_downstream_attribution,
         qwen3_downstream_confidence,
+        qwen3_router_coupled_retention_frontier,
     )
 
     dense_results = dense_selector.get("results") or {}
     final_current = final_selection.get("current_selection") or {}
     router_current = router_calibration.get("current_selection") or {}
+    router_frontier_constrained = qwen3_router_coupled_retention_frontier.get("constrained") or {}
+    router_frontier_stress = qwen3_router_coupled_retention_frontier.get("stress") or {}
     materialized_rule_status = unified_candidate.get("materialized_checkpoint_rule_status")
     if materialized_rule_status != "fresh":
         status = "built_waiting_for_qwen3_materialization_and_vllm_eval"
@@ -1890,6 +2018,50 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
             ),
             "qwen3_router_margin_min_safe_lambda_proxy": fnum(
                 router_margin_fragility.get("min_safe_lambda_proxy")
+            ),
+            "qwen3_router_coupled_frontier_status": qwen3_router_coupled_retention_frontier.get(
+                "status"
+            ),
+            "qwen3_router_coupled_frontier_gate": qwen3_router_coupled_retention_frontier.get(
+                "gate"
+            ),
+            "qwen3_router_coupled_frontier_action": qwen3_router_coupled_retention_frontier.get(
+                "recommended_unified_action"
+            ),
+            "qwen3_router_coupled_frontier_candidate_count": qwen3_router_coupled_retention_frontier.get(
+                "candidate_count"
+            ),
+            "qwen3_router_coupled_frontier_default_gate_candidates": qwen3_router_coupled_retention_frontier.get(
+                "default_gate_candidate_count"
+            ),
+            "qwen3_router_coupled_frontier_minimum_effect_fraction": fnum(
+                qwen3_router_coupled_retention_frontier.get("minimum_effective_fraction")
+            ),
+            "qwen3_router_coupled_frontier_effect_fraction": fnum(
+                qwen3_router_coupled_retention_frontier.get(
+                    "constrained_effect_fraction_vs_stress"
+                )
+            ),
+            "qwen3_router_coupled_frontier_constrained_candidate_id": router_frontier_constrained.get(
+                "candidate_id"
+            ),
+            "qwen3_router_coupled_frontier_constrained_retention": fnum(
+                router_frontier_constrained.get("nonbase_mass_retention")
+            ),
+            "qwen3_router_coupled_frontier_constrained_retention_delta": fnum(
+                router_frontier_constrained.get("retention_delta_vs_base")
+            ),
+            "qwen3_router_coupled_frontier_constrained_reduction": fnum(
+                router_frontier_constrained.get("router_coupled_delta_reduction_vs_base")
+            ),
+            "qwen3_router_coupled_frontier_stress_candidate_id": router_frontier_stress.get(
+                "candidate_id"
+            ),
+            "qwen3_router_coupled_frontier_stress_retention_delta": fnum(
+                router_frontier_stress.get("retention_delta_vs_base")
+            ),
+            "qwen3_router_coupled_frontier_stress_reduction": fnum(
+                router_frontier_stress.get("router_coupled_delta_reduction_vs_base")
             ),
             "qwen3_router_calibration_nll_status": router_calibration_nll_probe.get("status"),
             "qwen3_router_calibration_nll_worst_reduction": fnum(
@@ -2178,6 +2350,11 @@ def parse_args() -> argparse.Namespace:
         "--qwen3-router-margin-fragility",
         type=Path,
         default=Path("results/qwen3_moe_router_margin_fragility/summary.json"),
+    )
+    parser.add_argument(
+        "--qwen3-router-coupled-retention-frontier",
+        type=Path,
+        default=Path("results/qwen3_moe_router_coupled_retention_frontier/summary.json"),
     )
     parser.add_argument(
         "--qwen3-moe-interpolation",

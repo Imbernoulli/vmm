@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-20T13:15:44.693209+00:00`
+Generated at: `2026-06-20T13:27:47.878472+00:00`
 
 ## Coverage
 
@@ -258,9 +258,9 @@ Complete: `94`; partial: `1`; missing: `0`.
 | Qwen3 MoE final candidate selector | rank mode / confidence band / band size / point leader | None / True / 0 / None |
 | Qwen3 MoE final candidate selector smoke | status / passed cases | passed / 11/11 |
 | unified average optimizer | status / dense / MoE | built_waiting_for_qwen3_vllm_eval / avoid_linear_midpoint_use_probe_selected_anchor_or_low_lambda / align_experts_freeze_router_then_gate_candidate_by_vllm |
-| unified average optimizer | hypotheses / queue / top experiment | 9 / 5 / budgeted_qwen3_moe_downstream_eval |
-| unified average optimizer | evidence ledger / verdicts | 9 / {'awaiting_downstream_eval': 2, 'promising_but_unaccepted': 1, 'supports_conditional_action': 1, 'supports_current_action': 5} |
-| unified average optimizer | contract status / passed / blocked | blocked_on_downstream_eval / 8/10 / ['downstream_source_dominance_gate', 'final_unified_average_acceptance'] |
+| unified average optimizer | hypotheses / queue / top experiment | 10 / 5 / budgeted_qwen3_moe_downstream_eval |
+| unified average optimizer | evidence ledger / verdicts | 10 / {'awaiting_downstream_eval': 2, 'promising_but_unaccepted': 1, 'supports_conditional_action': 1, 'supports_current_action': 6} |
+| unified average optimizer | contract status / passed / blocked | blocked_on_downstream_eval / 9/11 / ['downstream_source_dominance_gate', 'final_unified_average_acceptance'] |
 | unified average optimizer ledger smoke | status / passed cases / assertions | passed / 5/5 / 29/29 |
 | unified average optimizer | dense linear / unified / endpoint worst NLL | 8.948 / 5.183 / 5.151 |
 | unified average optimizer | dense lambda midpoint / best-family worst NLL | 6.040 / 3.073 |
@@ -269,6 +269,7 @@ Complete: `94`; partial: `1`; missing: `0`.
 | unified average optimizer | Qwen3 unified audit norm / >0.65 / manifest max diff | 0.240 / 0 / 0.000 |
 | unified average optimizer | final selector confidence band / rank mode / band size | True / None / 0 |
 | unified average optimizer | router margin high layers / top / min safe-lambda | 24/48 / L17 0.752 / 0.020 |
+| unified average optimizer | router-coupled frontier gate / pass / effect | direct_router_boundary_term_not_default / 146/770 / 0.0103 |
 | unified average optimizer | Qwen3 MoE straight-line interior gap / general barrier | 0.119 / 0.110 |
 | unified average optimizer | Qwen3 Base->Coder interior gap / complementary win | 0.106 / False |
 | unified average optimizer | layer/chunk->unified norm / >0.65 reduction | 0.003 / 89 |

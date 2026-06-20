@@ -105,6 +105,7 @@ def build_gate_rows(
     moe_base_coder = features.get("qwen3_base_to_coder_connectivity", {})
     moe_complementary = features.get("qwen3_complementary_pair_connectivity", {})
     router_gate = features.get("qwen3_router_move_gate", {})
+    router_coupled = features.get("qwen3_router_coupled_retention_frontier", {})
     router_calibration = features.get("qwen3_router_calibration_nll_probe", {})
     final_gate = features.get("qwen3_final_candidate_selection", {})
     olmoe_gauge = features.get("real_olmoe_gauge_selfmerge", {})
@@ -185,6 +186,8 @@ def build_gate_rows(
             "moe_status": "freeze_router_or_train_audited_route_kd_delta",
             "why": (
                 f"Direct router movement allows {fmt(router_gate.get('value'), 0)}/{fmt(router_gate.get('threshold'), 0)} layers; "
+                f"direct router-boundary shrink has retention-safe effect fraction {fmt(router_coupled.get('value'), 4)} "
+                f"against threshold {fmt(router_coupled.get('threshold'), 4)}; "
                 f"router calibration NLL reduction is {fmt(router_calibration.get('value'))}, but candidate acceptance is still "
                 f"{moe.get('qwen3_router_calibration_status')}."
             ),
@@ -275,6 +278,15 @@ def build_probe_rows(optimizer_summary: dict[str, Any], optimizer_features: pd.D
             "required_before_accepting": "direct router weight average",
             "status": "failed_freeze_or_calibrate",
             "evidence": (features.get("qwen3_router_move_gate") or {}).get("evidence"),
+        },
+        {
+            "gate": "router_coupled_direct_shrink",
+            "probe": "qwen3_router_coupled_retention_frontier",
+            "value": moe.get("qwen3_router_coupled_frontier_effect_fraction"),
+            "threshold": moe.get("qwen3_router_coupled_frontier_minimum_effect_fraction"),
+            "required_before_accepting": "direct router-boundary extra shrink as a default expert-scale term",
+            "status": moe.get("qwen3_router_coupled_frontier_gate"),
+            "evidence": (features.get("qwen3_router_coupled_retention_frontier") or {}).get("evidence"),
         },
         {
             "gate": "router_calibration",
@@ -380,6 +392,12 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         "qwen3_final_selection_status": (optimizer_summary.get("moe") or {}).get("qwen3_final_selection_status"),
         "qwen3_router_calibration_status": (optimizer_summary.get("moe") or {}).get(
             "qwen3_router_calibration_status"
+        ),
+        "qwen3_router_coupled_frontier_gate": (optimizer_summary.get("moe") or {}).get(
+            "qwen3_router_coupled_frontier_gate"
+        ),
+        "qwen3_router_coupled_frontier_effect_fraction": (optimizer_summary.get("moe") or {}).get(
+            "qwen3_router_coupled_frontier_effect_fraction"
         ),
         "dense_lambda_linear_worst_nll": (optimizer_summary.get("dense") or {}).get("lambda_linear_worst_nll"),
         "dense_lambda_best_worst_nll": (optimizer_summary.get("dense") or {}).get("lambda_best_worst_nll"),

@@ -20,7 +20,7 @@
 - Router-coupled candidate: `ablation_only_waiting_vllm` -> `router_q0.75_s0.0100_cap0.0100` (`retention=0.9619428055490395`, `retention_delta=-0.0030916992358726025`, `coupled_delta_reduction=0.0011349698502332028`)
 - Router-coupled retention frontier: `direct_router_boundary_term_not_default` (`effect_fraction=0.010260661865575978`, candidates `146/770` pass default gate)
 - Unified average optimizer: `built_waiting_for_qwen3_vllm_eval` (top next experiment `budgeted_qwen3_moe_downstream_eval` / `blocked_on_gpu_vllm`)
-- Unified algorithm contract: `blocked_on_downstream_eval` (`8/10` passed, blocking `['downstream_source_dominance_gate', 'final_unified_average_acceptance']`)
+- Unified algorithm contract: `blocked_on_downstream_eval` (`9/11` passed, blocking `['downstream_source_dominance_gate', 'final_unified_average_acceptance']`)
 - Unified selector rank gate in optimizer: confidence band `True`, rank mode `None`, band size `0`
 - Unified optimizer ledger smoke: `passed` (`5/5` cases)
 - Average method gate matrix: `built_from_current_probe_evidence` (`accepted_by_default=0`, `rejected=1`, `conditional=3`)
@@ -31,34 +31,34 @@
 
 | step | kind | status | returncode | seconds |
 | --- | --- | --- | ---: | ---: |
-| `build_candidate_trust_region_gate` | `gate` | `passed` | 0 | 0.44 |
-| `plan_eval_budget` | `planner` | `passed` | 0 | 0.46 |
-| `audit_eval_bundles` | `gate` | `passed` | 0 | 0.43 |
-| `select_unified_result` | `selector` | `passed` | 0 | 0.41 |
-| `select_final_candidate` | `selector` | `passed` | 0 | 0.43 |
-| `attribute_mechanism_effects` | `attribution` | `passed` | 0 | 0.42 |
+| `build_candidate_trust_region_gate` | `gate` | `passed` | 0 | 0.41 |
+| `plan_eval_budget` | `planner` | `passed` | 0 | 0.42 |
+| `audit_eval_bundles` | `gate` | `passed` | 0 | 0.40 |
+| `select_unified_result` | `selector` | `passed` | 0 | 0.42 |
+| `select_final_candidate` | `selector` | `passed` | 0 | 0.47 |
+| `attribute_mechanism_effects` | `attribution` | `passed` | 0 | 0.43 |
 | `build_feedback_optimizer` | `optimizer` | `passed` | 0 | 1.07 |
-| `build_mechanistic_unified_candidate` | `optimizer` | `passed` | 0 | 2.58 |
-| `audit_mechanistic_evidence` | `attribution` | `passed` | 0 | 1.45 |
-| `analyze_mechanistic_sensitivity` | `attribution` | `passed` | 0 | 17.31 |
-| `analyze_router_expert_coupling` | `attribution` | `passed` | 0 | 0.90 |
-| `build_router_coupled_candidate` | `optimizer` | `passed` | 0 | 1.34 |
-| `analyze_router_coupled_retention_frontier` | `attribution` | `passed` | 0 | 3.60 |
-| `build_unified_average_optimizer` | `optimizer` | `passed` | 0 | 0.40 |
-| `build_average_method_gate_matrix` | `optimizer` | `passed` | 0 | 0.43 |
-| `build_average_trust_region_bounds` | `optimizer` | `passed` | 0 | 0.40 |
-| `analyze_mechanism_levers` | `attribution` | `passed` | 0 | 0.43 |
-| `audit_eval_bundles_smoke` | `smoke` | `passed` | 0 | 0.72 |
+| `build_mechanistic_unified_candidate` | `optimizer` | `passed` | 0 | 2.61 |
+| `audit_mechanistic_evidence` | `attribution` | `passed` | 0 | 1.51 |
+| `analyze_mechanistic_sensitivity` | `attribution` | `passed` | 0 | 16.96 |
+| `analyze_router_expert_coupling` | `attribution` | `passed` | 0 | 0.81 |
+| `build_router_coupled_candidate` | `optimizer` | `passed` | 0 | 1.32 |
+| `analyze_router_coupled_retention_frontier` | `attribution` | `passed` | 0 | 3.65 |
+| `build_unified_average_optimizer` | `optimizer` | `passed` | 0 | 0.42 |
+| `build_average_method_gate_matrix` | `optimizer` | `passed` | 0 | 0.40 |
+| `build_average_trust_region_bounds` | `optimizer` | `passed` | 0 | 0.42 |
+| `analyze_mechanism_levers` | `attribution` | `passed` | 0 | 0.41 |
+| `audit_eval_bundles_smoke` | `smoke` | `passed` | 0 | 0.69 |
 | `select_unified_result_smoke` | `smoke` | `passed` | 0 | 0.43 |
-| `select_final_candidate_smoke` | `smoke` | `passed` | 0 | 0.52 |
+| `select_final_candidate_smoke` | `smoke` | `passed` | 0 | 0.49 |
 | `eval_budget_queue_smoke` | `smoke` | `passed` | 0 | 0.40 |
-| `attribute_mechanism_effects_smoke` | `smoke` | `passed` | 0 | 0.42 |
-| `build_feedback_optimizer_smoke` | `smoke` | `passed` | 0 | 0.48 |
-| `build_mechanistic_unified_candidate_smoke` | `smoke` | `passed` | 0 | 1.60 |
-| `unified_average_optimizer_ledger_smoke` | `smoke` | `passed` | 0 | 0.42 |
-| `average_method_gate_matrix_consistency_smoke` | `smoke` | `passed` | 0 | 0.40 |
-| `average_trust_region_bounds_smoke` | `smoke` | `passed` | 0 | 0.47 |
-| `collect_results` | `summary` | `passed` | 0 | 1.71 |
+| `attribute_mechanism_effects_smoke` | `smoke` | `passed` | 0 | 0.44 |
+| `build_feedback_optimizer_smoke` | `smoke` | `passed` | 0 | 0.50 |
+| `build_mechanistic_unified_candidate_smoke` | `smoke` | `passed` | 0 | 1.63 |
+| `unified_average_optimizer_ledger_smoke` | `smoke` | `passed` | 0 | 0.44 |
+| `average_method_gate_matrix_consistency_smoke` | `smoke` | `passed` | 0 | 0.41 |
+| `average_trust_region_bounds_smoke` | `smoke` | `passed` | 0 | 0.38 |
+| `collect_results` | `summary` | `passed` | 0 | 1.61 |
 
 ## Commands
 

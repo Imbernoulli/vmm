@@ -15,6 +15,8 @@
   "qwen3_final_selection_status": "awaiting_source_eval",
   "qwen3_interpolation_interior_gap_nll": 0.11892671273424771,
   "qwen3_router_calibration_status": "awaiting_baseline_eval",
+  "qwen3_router_coupled_frontier_effect_fraction": 0.010260661865575978,
+  "qwen3_router_coupled_frontier_gate": "direct_router_boundary_term_not_default",
   "required_precondition_count": 2,
   "schema_version": 1,
   "status": "built_from_current_probe_evidence"

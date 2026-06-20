@@ -2082,6 +2082,22 @@ def summarize_unified_average_optimizer() -> dict[str, Any]:
         "qwen3_router_margin_min_safe_lambda_proxy": maybe_float(
             moe.get("qwen3_router_margin_min_safe_lambda_proxy")
         ),
+        "qwen3_router_coupled_frontier_gate": moe.get("qwen3_router_coupled_frontier_gate"),
+        "qwen3_router_coupled_frontier_effect_fraction": maybe_float(
+            moe.get("qwen3_router_coupled_frontier_effect_fraction")
+        ),
+        "qwen3_router_coupled_frontier_default_gate_candidates": maybe_int(
+            moe.get("qwen3_router_coupled_frontier_default_gate_candidates")
+        ),
+        "qwen3_router_coupled_frontier_candidate_count": maybe_int(
+            moe.get("qwen3_router_coupled_frontier_candidate_count")
+        ),
+        "qwen3_router_coupled_frontier_constrained_candidate_id": moe.get(
+            "qwen3_router_coupled_frontier_constrained_candidate_id"
+        ),
+        "qwen3_router_coupled_frontier_stress_candidate_id": moe.get(
+            "qwen3_router_coupled_frontier_stress_candidate_id"
+        ),
         "qwen3_layer_chunk_to_unified_relative_norm_reduction": maybe_float(
             moe.get("qwen3_layer_chunk_to_unified_relative_norm_reduction")
         ),
@@ -4463,6 +4479,10 @@ def summarize_average_method_gate_matrix() -> dict[str, Any]:
         "default_rejected_count": int(summary.get("default_rejected_count", len(rejected_rows))),
         "qwen3_final_selection_status": summary.get("qwen3_final_selection_status"),
         "qwen3_router_calibration_status": summary.get("qwen3_router_calibration_status"),
+        "qwen3_router_coupled_frontier_gate": summary.get("qwen3_router_coupled_frontier_gate"),
+        "qwen3_router_coupled_frontier_effect_fraction": maybe_float(
+            summary.get("qwen3_router_coupled_frontier_effect_fraction")
+        ),
         "dense_lambda_linear_worst_nll": maybe_float(summary.get("dense_lambda_linear_worst_nll")),
         "dense_lambda_best_worst_nll": maybe_float(summary.get("dense_lambda_best_worst_nll")),
         "qwen3_interpolation_interior_gap_nll": maybe_float(
@@ -6560,6 +6580,13 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"L{unified_average_optimizer['qwen3_router_margin_top_layer']} "
                 f"{unified_average_optimizer['qwen3_router_margin_top_score']:.3f} / "
                 f"{unified_average_optimizer['qwen3_router_margin_min_safe_lambda_proxy']:.3f} |"
+            ),
+            (
+                "| unified average optimizer | router-coupled frontier gate / pass / effect | "
+                f"{unified_average_optimizer['qwen3_router_coupled_frontier_gate']} / "
+                f"{unified_average_optimizer['qwen3_router_coupled_frontier_default_gate_candidates']}"
+                f"/{unified_average_optimizer['qwen3_router_coupled_frontier_candidate_count']} / "
+                f"{fmt(unified_average_optimizer['qwen3_router_coupled_frontier_effect_fraction'], 4)} |"
             ),
             (
                 "| unified average optimizer | Qwen3 MoE straight-line interior gap / general barrier | "
