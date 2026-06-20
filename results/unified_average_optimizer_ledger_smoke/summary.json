@@ -1,0 +1,15 @@
+{
+  "assertion_count": 9,
+  "case_count": 5,
+  "failed_assertion_count": 0,
+  "failed_case_count": 0,
+  "outputs": {
+    "matrix": "results/unified_average_optimizer_ledger_smoke/ledger_matrix.csv",
+    "report": "results/unified_average_optimizer_ledger_smoke/report.md",
+    "summary": "results/unified_average_optimizer_ledger_smoke/summary.json"
+  },
+  "passed_assertion_count": 9,
+  "passed_case_count": 5,
+  "schema_version": 1,
+  "status": "passed"
+}

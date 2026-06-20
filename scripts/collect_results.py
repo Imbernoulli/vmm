@@ -1964,6 +1964,26 @@ def summarize_unified_average_optimizer() -> dict[str, Any]:
     }
 
 
+def summarize_unified_average_optimizer_ledger_smoke() -> dict[str, Any]:
+    root = repo_path("results/unified_average_optimizer_ledger_smoke")
+    summary = read_json(root / "summary.json")
+    matrix = read_csv(root / "ledger_matrix.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "case_count": int(summary.get("case_count", matrix["case"].nunique() if not matrix.empty else 0)),
+        "assertion_count": int(summary.get("assertion_count", len(matrix))),
+        "passed_case_count": int(summary.get("passed_case_count", 0)),
+        "failed_case_count": int(summary.get("failed_case_count", 0)),
+        "passed_assertion_count": int(summary.get("passed_assertion_count", 0)),
+        "failed_assertion_count": int(summary.get("failed_assertion_count", 0)),
+        "case_rows": [clean_row(row) for _, row in matrix.iterrows()],
+        "report": rel(root / "report.md"),
+        "matrix": rel(root / "ledger_matrix.csv"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_qwen3_moe_router_calibration_nll_probe() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_router_calibration_nll_probe")
     summary = read_json(root / "summary.json")
@@ -4452,6 +4472,7 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_final_candidate_selection": summarize_qwen3_moe_final_candidate_selection(),
         "qwen3_moe_final_candidate_selection_smoke": summarize_qwen3_moe_final_candidate_selection_smoke(),
         "unified_average_optimizer": summarize_unified_average_optimizer(),
+        "unified_average_optimizer_ledger_smoke": summarize_unified_average_optimizer_ledger_smoke(),
         "qwen3_moe_eval_bundle_audit": summarize_qwen3_moe_eval_bundle_audit(),
         "qwen3_moe_eval_bundle_audit_smoke": summarize_qwen3_moe_eval_bundle_audit_smoke(),
         "qwen3_moe_mechanism_effect_attribution": summarize_qwen3_moe_mechanism_effect_attribution(),
@@ -4633,6 +4654,7 @@ def build_summary() -> dict[str, Any]:
             "python scripts/select_qwen3_moe_final_candidate.py --output-dir results/qwen3_moe_final_candidate_selection",
             "python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke",
             "python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer",
+            "python scripts/smoke_unified_average_optimizer_ledger.py --output-dir results/unified_average_optimizer_ledger_smoke",
             "python scripts/audit_qwen3_moe_eval_bundle.py --output-dir results/qwen3_moe_eval_bundle_audit",
             "python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke",
             "python scripts/attribute_qwen3_moe_mechanism_effects.py --output-dir results/qwen3_moe_mechanism_effect_attribution",
@@ -4732,6 +4754,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_final_candidate_selection = exp["qwen3_moe_final_candidate_selection"]
     qwen3_moe_final_candidate_selection_smoke = exp["qwen3_moe_final_candidate_selection_smoke"]
     unified_average_optimizer = exp["unified_average_optimizer"]
+    unified_average_optimizer_ledger_smoke = exp["unified_average_optimizer_ledger_smoke"]
     qwen3_moe_eval_bundle_audit = exp["qwen3_moe_eval_bundle_audit"]
     qwen3_moe_eval_bundle_audit_smoke = exp["qwen3_moe_eval_bundle_audit_smoke"]
     qwen3_moe_mechanism_effect_attribution = exp["qwen3_moe_mechanism_effect_attribution"]
@@ -5560,6 +5583,14 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 "| unified average optimizer | evidence ledger / verdicts | "
                 f"{unified_average_optimizer['evidence_ledger_count']} / "
                 f"{unified_average_optimizer['evidence_verdict_counts']} |"
+            ),
+            (
+                "| unified average optimizer ledger smoke | status / passed cases / assertions | "
+                f"{unified_average_optimizer_ledger_smoke['status']} / "
+                f"{unified_average_optimizer_ledger_smoke['passed_case_count']}"
+                f"/{unified_average_optimizer_ledger_smoke['case_count']} / "
+                f"{unified_average_optimizer_ledger_smoke['passed_assertion_count']}"
+                f"/{unified_average_optimizer_ledger_smoke['assertion_count']} |"
             ),
             (
                 "| unified average optimizer | dense linear / unified / endpoint worst NLL | "

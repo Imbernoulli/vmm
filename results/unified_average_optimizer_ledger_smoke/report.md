@@ -1,0 +1,24 @@
+# Unified Average Optimizer Ledger Smoke
+
+This smoke matrix verifies that the mechanism evidence ledger changes verdicts when downstream or router-selection evidence changes. It guards against treating structural/NLL probes as final acceptance.
+
+- Status: `passed`
+- Passed cases: `5/5`
+
+| case | hypothesis | expected | actual | passed |
+| --- | --- | --- | --- | --- |
+| `awaiting_eval_keeps_provisional` | `moe_risk_weighted_expert_caps_preserve_useful_route_mass` | `awaiting_downstream_eval` | `awaiting_downstream_eval` | `True` |
+| `awaiting_eval_keeps_provisional` | `downstream_source_dominance_is_final_gate` | `awaiting_downstream_eval` | `awaiting_downstream_eval` | `True` |
+| `awaiting_eval_keeps_provisional` | `router_calibration_repairs_dispatch_but_is_not_acceptance` | `promising_but_unaccepted` | `promising_but_unaccepted` | `True` |
+| `unified_candidate_downstream_win` | `moe_risk_weighted_expert_caps_preserve_useful_route_mass` | `supports_current_action` | `supports_current_action` | `True` |
+| `unified_candidate_downstream_win` | `downstream_source_dominance_is_final_gate` | `supports_current_action` | `supports_current_action` | `True` |
+| `source_endpoint_dominates` | `moe_risk_weighted_expert_caps_preserve_useful_route_mass` | `falsified_by_downstream_eval` | `falsified_by_downstream_eval` | `True` |
+| `source_endpoint_dominates` | `downstream_source_dominance_is_final_gate` | `supports_source_fallback` | `supports_source_fallback` | `True` |
+| `router_calibration_selected` | `router_calibration_repairs_dispatch_but_is_not_acceptance` | `supports_current_action` | `supports_current_action` | `True` |
+| `router_calibration_rejected` | `router_calibration_repairs_dispatch_but_is_not_acceptance` | `supports_freeze_router_baseline` | `supports_freeze_router_baseline` | `True` |
+
+## Outputs
+
+- `results/unified_average_optimizer_ledger_smoke/ledger_matrix.csv`
+- `results/unified_average_optimizer_ledger_smoke/summary.json`
+- `results/unified_average_optimizer_ledger_smoke/report.md`

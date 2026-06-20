@@ -946,10 +946,65 @@ def build_evidence_ledger(summary: dict[str, Any], hypotheses: pd.DataFrame) -> 
     dense = summary["dense"]
     moe = summary["moe"]
     hypothesis_by_id = {str(row["hypothesis_id"]): row for _, row in hypotheses.iterrows()}
+    final_status = str(moe.get("qwen3_final_selection_status") or "")
+    final_selected = str(moe.get("qwen3_final_selected_method") or "")
+    router_cal_status = str(moe.get("qwen3_router_calibration_status") or "")
+    router_cal_selected = str(moe.get("qwen3_router_calibration_selected_method") or "")
+    unified_selected = final_status == "select_unified_candidate" and (
+        final_selected == "qwen3_moe_unified_mechanism_candidate"
+        or final_selected == str(moe.get("qwen3_unified_candidate_id"))
+    )
+    source_fallback_selected = final_status == "keep_source_endpoint"
+    router_cal_selected = router_cal_status == "selected_router_calibrated_candidate" and bool(
+        router_cal_selected
+    )
+    router_cal_rejected = router_cal_status == "keep_frozen_router_baseline"
 
     def hypothesis_status(hypothesis_id: str) -> str:
         row = hypothesis_by_id.get(hypothesis_id)
         return "" if row is None else str(row["current_status"])
+
+    unified_verdict = "awaiting_downstream_eval"
+    unified_action = "keep_unified_mechanism_candidate_provisional"
+    unified_gate = "budgeted vLLM eval versus both sources and registered candidates"
+    unified_confidence = 0.66
+    if unified_selected:
+        unified_verdict = "supports_current_action"
+        unified_action = "promote_unified_mechanism_candidate"
+        unified_gate = "post-selection regression monitoring on new task packs"
+        unified_confidence = 0.94
+    elif source_fallback_selected:
+        unified_verdict = "falsified_by_downstream_eval"
+        unified_action = "reject_unified_mechanism_candidate_for_current_pair"
+        unified_gate = "inspect transition attribution before designing the next candidate"
+        unified_confidence = 0.90
+
+    router_cal_verdict = "promising_but_unaccepted"
+    router_cal_action = "train_and_eval_router_calibration_as_ablation_not_default"
+    router_cal_gate = "paired vLLM eval with frozen-router baseline and source controls"
+    router_cal_confidence = 0.62
+    if router_cal_selected:
+        router_cal_verdict = "supports_current_action"
+        router_cal_action = "attach_selected_capped_router_delta"
+        router_cal_gate = "continue router-only audit and task-regression monitoring"
+        router_cal_confidence = 0.92
+    elif router_cal_rejected:
+        router_cal_verdict = "supports_freeze_router_baseline"
+        router_cal_action = "keep_router_frozen_for_current_candidate"
+        router_cal_gate = "design a new router-calibration mechanism before retrying"
+        router_cal_confidence = 0.88
+
+    downstream_verdict = "awaiting_downstream_eval"
+    downstream_action = "do_not_accept_any_average_until_locked_manifest_eval_completes"
+    downstream_gate = "complete budgeted vLLM eval bundle audit"
+    if unified_selected:
+        downstream_verdict = "supports_current_action"
+        downstream_action = "select_best_non_dominated_same_shape_candidate"
+        downstream_gate = "monitor additional task packs and source frontier drift"
+    elif source_fallback_selected:
+        downstream_verdict = "supports_source_fallback"
+        downstream_action = "return_source_endpoint_for_current_pair"
+        downstream_gate = "use failed mechanism attribution to design the next candidate"
 
     rows = [
         {
@@ -1031,42 +1086,41 @@ def build_evidence_ledger(summary: dict[str, Any], hypotheses: pd.DataFrame) -> 
         {
             "hypothesis_id": "moe_risk_weighted_expert_caps_preserve_useful_route_mass",
             "evidence_tier": "structural_audit_without_downstream_acceptance",
-            "verdict": "awaiting_downstream_eval",
+            "verdict": unified_verdict,
             "current_status": hypothesis_status("moe_risk_weighted_expert_caps_preserve_useful_route_mass"),
-            "current_algorithm_action": "keep_unified_mechanism_candidate_provisional",
+            "current_algorithm_action": unified_action,
             "why_verdict": (
                 "The candidate is structurally clean, keeps high non-base route mass, and removes routed >0.65 tails, "
-                "but structural cleanliness is not downstream evidence."
+                "but final acceptance follows the downstream selector."
             ),
-            "acceptance_gate_still_needed": "budgeted vLLM eval versus both sources and registered candidates",
+            "acceptance_gate_still_needed": unified_gate,
             "numeric_signal": fnum(moe.get("qwen3_unified_nonbase_mass_retention")),
-            "confidence_score": 0.66,
+            "confidence_score": unified_confidence,
         },
         {
             "hypothesis_id": "router_calibration_repairs_dispatch_but_is_not_acceptance",
             "evidence_tier": "nll_probe_and_generation_smoke",
-            "verdict": "promising_but_unaccepted",
+            "verdict": router_cal_verdict,
             "current_status": hypothesis_status("router_calibration_repairs_dispatch_but_is_not_acceptance"),
-            "current_algorithm_action": "train_and_eval_router_calibration_as_ablation_not_default",
+            "current_algorithm_action": router_cal_action,
             "why_verdict": (
                 "Router calibration improves NLL and the generation matrix directionally, but confidence intervals and "
-                "source-frontier checks do not prove final dominance."
+                "source-frontier checks do not prove final dominance unless the router selector passes."
             ),
-            "acceptance_gate_still_needed": "paired vLLM eval with frozen-router baseline and source controls",
+            "acceptance_gate_still_needed": router_cal_gate,
             "numeric_signal": fnum(moe.get("qwen3_router_calibration_nll_worst_reduction")),
-            "confidence_score": 0.62,
+            "confidence_score": router_cal_confidence,
         },
         {
             "hypothesis_id": "downstream_source_dominance_is_final_gate",
             "evidence_tier": "missing_required_downstream_eval",
-            "verdict": "awaiting_downstream_eval",
+            "verdict": downstream_verdict,
             "current_status": hypothesis_status("downstream_source_dominance_is_final_gate"),
-            "current_algorithm_action": "do_not_accept_any_average_until_locked_manifest_eval_completes",
+            "current_algorithm_action": downstream_action,
             "why_verdict": (
-                "The final selector has zero eligible candidates because source and candidate vLLM evaluations are not "
-                "complete on the locked manifest."
+                "The final selector is the acceptance authority for source dominance and task-regression gates."
             ),
-            "acceptance_gate_still_needed": "complete budgeted vLLM eval bundle audit",
+            "acceptance_gate_still_needed": downstream_gate,
             "numeric_signal": maybe_int(moe.get("qwen3_eligible_candidates")),
             "confidence_score": 1.0,
         },
@@ -1472,6 +1526,8 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
                 "unified_to_subspace_routed_gt_065_reduction"
             ),
             "qwen3_router_calibration_status": router_current.get("status"),
+            "qwen3_router_calibration_selected_method": router_current.get("selected_method"),
+            "qwen3_router_calibration_reason": router_current.get("reason"),
             "qwen3_router_calibration_eligible_candidates": router_current.get(
                 "eligible_candidate_count"
             ),
@@ -1506,6 +1562,8 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
             ),
             "qwen3_base_coder_general_barrier_nll": fnum(qwen3_moe_base_coder.get("barrier_general")),
             "qwen3_final_selection_status": final_current.get("status"),
+            "qwen3_final_selected_method": final_current.get("selected_method"),
+            "qwen3_final_selection_reason": final_current.get("reason"),
             "qwen3_eligible_candidates": final_current.get("eligible_candidate_count"),
             "qwen3_candidate_count": final_current.get("candidate_count"),
         },
