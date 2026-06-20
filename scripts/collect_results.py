@@ -1354,6 +1354,13 @@ def summarize_qwen3_moe_expert_subspace_conflict_probe() -> dict[str, Any]:
         "max_subspace_conflict_score": maybe_float(summary.get("max_subspace_conflict_score")),
         "mean_coder_weight_reduction": maybe_float(summary.get("mean_coder_weight_reduction")),
         "total_coder_weight_reduction": maybe_float(summary.get("total_coder_weight_reduction")),
+        "dry_run_validated": bool(summary.get("dry_run_validated", False)),
+        "dry_run_floating_tensors": int(summary.get("dry_run_floating_tensors", 0)),
+        "dry_run_frozen_tensors": int(summary.get("dry_run_frozen_tensors", 0)),
+        "dry_run_tensor_rule_count": int(summary.get("dry_run_tensor_rule_count", 0)),
+        "dry_run_tensor_rule_hit_count": int(summary.get("dry_run_tensor_rule_hit_count", 0)),
+        "dry_run_default_tensor_count": int(summary.get("dry_run_default_tensor_count", 0)),
+        "dry_run_freeze_router_hits": int(summary.get("dry_run_freeze_router_hits", 0)),
         "top_subspace_conflict_layer": maybe_int(summary.get("top_subspace_conflict_layer")),
         "next_action": summary.get("next_action"),
         "top_layer": top_layer,
@@ -1368,6 +1375,8 @@ def summarize_qwen3_moe_expert_subspace_conflict_probe() -> dict[str, Any]:
         "action_summary": rel(root / "subspace_action_summary.csv"),
         "subspace_adjusted_group_rules": rel(root / "subspace_adjusted_group_rules.csv"),
         "subspace_adjusted_tensor_rules": rel(root / "subspace_adjusted_tensor_rules.txt"),
+        "dry_run_command": rel(root / "dry_run_command.txt"),
+        "dry_run_manifest": rel(root / "dry_run/merge_manifest.json"),
         "summary_path": rel(root / "summary.json"),
     }
 
@@ -4288,7 +4297,7 @@ def build_summary() -> dict[str, Any]:
             "python scripts/build_qwen3_moe_delta_frontier.py --output-dir results/qwen3_moe_delta_frontier",
             "python scripts/plan_qwen3_moe_eval_budget.py --output-dir results/qwen3_moe_eval_budget_plan",
             "python scripts/probe_qwen3_moe_expert_geometry.py --output-dir results/qwen3_moe_expert_geometry_probe",
-            "python scripts/analyze_qwen3_moe_expert_subspace_conflicts.py --output-dir results/qwen3_moe_expert_subspace_conflict_probe",
+            "python scripts/analyze_qwen3_moe_expert_subspace_conflicts.py --output-dir results/qwen3_moe_expert_subspace_conflict_probe --validate-dry-run",
             "python scripts/analyze_qwen3_moe_mechanism_levers.py --output-dir results/qwen3_moe_mechanism_levers",
             "python scripts/build_qwen3_moe_layer_chunk_candidate.py --output-dir results/qwen3_moe_layer_chunk_candidate",
             "bash results/qwen3_moe_layer_chunk_candidate/writer_command.txt",
@@ -5086,6 +5095,13 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(qwen3_moe_expert_subspace_conflict_probe['max_subspace_conflict_score'])} / "
                 f"{fmt(qwen3_moe_expert_subspace_conflict_probe['total_coder_weight_reduction'], 6)} / "
                 f"{qwen3_moe_expert_subspace_conflict_probe['next_action']} |"
+            ),
+            (
+                "| Qwen3 MoE expert subspace conflict probe | dry-run / floating / tensor-rule hits / frozen-router hits | "
+                f"{qwen3_moe_expert_subspace_conflict_probe['dry_run_validated']} / "
+                f"{qwen3_moe_expert_subspace_conflict_probe['dry_run_floating_tensors']} / "
+                f"{qwen3_moe_expert_subspace_conflict_probe['dry_run_tensor_rule_hit_count']} / "
+                f"{qwen3_moe_expert_subspace_conflict_probe['dry_run_freeze_router_hits']} |"
             ),
             (
                 "| Qwen3 MoE layer/chunk candidate | schedule / feasible schedules / changed groups | "

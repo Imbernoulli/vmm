@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-20T05:28:31.680236+00:00`
+Generated at: `2026-06-20T05:35:42.390923+00:00`
 
 ## Coverage
 
@@ -209,6 +209,7 @@ Complete: `85`; partial: `1`; missing: `0`.
 | Qwen3 MoE expert geometry probe | top layer / top expert risk | 17 / 13:104 (0.930) |
 | Qwen3 MoE expert subspace conflict probe | projections / high / route-high / extra-scaled | 18432 / 1323 / 242 / 17 |
 | Qwen3 MoE expert subspace conflict probe | top layer / max conflict / coder reduction / next action | 17 / 1.000 / 0.253078 / materialize_subspace_scaled_ablation_after_source_eval_budget |
+| Qwen3 MoE expert subspace conflict probe | dry-run / floating / tensor-rule hits / frozen-router hits | True / 18867 / 15729 / 48 |
 | Qwen3 MoE layer/chunk candidate | schedule / feasible schedules / changed groups | policy_095_098_100 / 3/15 / 2623 |
 | Qwen3 MoE layer/chunk candidate | retention / risk delta reduction / max rel-delta | 0.985 / 0.021 / 0.650 |
 | Qwen3 MoE layer/chunk candidate | dry-run / floating / frozen / tensor-rule hits | True / 18867 / 3891 / 15729 |

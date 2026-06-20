@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 86161,
+      "bytes": 86335,
       "kind": "document",
       "path": "README.md",
-      "sha256": "1491de80499e6074b312851a8809a933e903d998f3f7c37fcf7a137205ccf730"
+      "sha256": "20919c976ccdf3d9e1999e80aefc8881ca9633ef67e89495c27745e3d7b8171a"
     },
     {
       "bytes": 33211,
@@ -2089,6 +2089,18 @@
       "sha256": "4b23f3659915d83589c7375623bb9fc75854f4fd11a2ce7f3a525f7d9ea43246"
     },
     {
+      "bytes": 1085988,
+      "kind": "data",
+      "path": "results/qwen3_moe_expert_subspace_conflict_probe/dry_run/merge_manifest.json",
+      "sha256": "af9b5414073461f5467a03f95909e85264901106115524742477068b05b720c1"
+    },
+    {
+      "bytes": 754,
+      "kind": "data",
+      "path": "results/qwen3_moe_expert_subspace_conflict_probe/dry_run_command.txt",
+      "sha256": "0fdf6dcc285706e71e1f4b5825fa371231b05026942fb8485799971435d671a5"
+    },
+    {
       "bytes": 3739460,
       "kind": "data",
       "path": "results/qwen3_moe_expert_subspace_conflict_probe/expert_subspace_conflicts.csv",
@@ -2107,10 +2119,10 @@
       "sha256": "d9da74a4ae36a3d9eb9dd570c8b3c6e97aa8de1df13dadc83962cde41cdbd95f"
     },
     {
-      "bytes": 8201,
+      "bytes": 9233,
       "kind": "document",
       "path": "results/qwen3_moe_expert_subspace_conflict_probe/report.md",
-      "sha256": "d5425ed88909b0f8083fa757d1a6cb0cffa2b50c8eb86db2117c75cc96bff599"
+      "sha256": "c84534f44cc9b7b3977a928994e32e8c0633cba0d056c9e00a8cc7a15a4f2bf7"
     },
     {
       "bytes": 653,
@@ -2131,10 +2143,10 @@
       "sha256": "e4a9a2b3e380ff0e4527be02cd69fceff107f67aee15876a6005ce3a71e7ba5f"
     },
     {
-      "bytes": 2335,
+      "bytes": 3669,
       "kind": "data",
       "path": "results/qwen3_moe_expert_subspace_conflict_probe/summary.json",
-      "sha256": "fac4bd192df7039d5265bcc062b3b8cbf023fe918cb244dc9d5f8c5fb8483c7f"
+      "sha256": "1a93dc16e7aefb7a86e06ff27a24e42bbd56adf681087b322fd24a2b5def82b8"
     },
     {
       "bytes": 948,
@@ -4915,16 +4927,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 1715776,
+      "bytes": 1717681,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "f95b69c73c3645d6c9370129aabfbad0eefdd13a93f3b34e4160e5a59ea621fb"
+      "sha256": "67391da6c35967843c2ad88dd0e1d1d5afcedd7993f7da21775ac2a4f74019cf"
     },
     {
-      "bytes": 55218,
+      "bytes": 55352,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "53efd1b4b46033dedd221d0b1ec13441748aaeabe455fcfc758ccafab8831cbf"
+      "sha256": "570218a0733360b21196dacc8687c64f121564586c93bf39fb609bb19e33acc1"
     },
     {
       "bytes": 288,
@@ -5923,10 +5935,10 @@
       "sha256": "bbc62bccc12e36bcf2302539fa82ef2a2476cbbadd540efa70d284e9b69fba60"
     },
     {
-      "bytes": 33456,
+      "bytes": 36373,
       "kind": "code",
       "path": "scripts/analyze_qwen3_moe_expert_subspace_conflicts.py",
-      "sha256": "f143f5fc4436fd76f19c78e8fd00a904893d7ef32290ae6f63af321deae70556"
+      "sha256": "a4d5b4fb7092d59c8db28785a42e493c360851d260476494c1c44ecd407e4b95"
     },
     {
       "bytes": 31804,
@@ -6181,10 +6193,10 @@
       "sha256": "cd588bc1804013f4043bd95c245b066dbae86bfd3e3f9c18317ef33eb506f123"
     },
     {
-      "bytes": 384884,
+      "bytes": 386167,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "cbfcd4477e0dc2dcd0f0bcf3d1636b5dfbf87a20476a8293053b91ff6d65eeee"
+      "sha256": "5383b23aaab66ed09feee4634c0a98f9b028b37d32d8f6c8f2f927fdf6544e7b"
     },
     {
       "bytes": 16101,
@@ -6475,7 +6487,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-20T05:28:31.727976+00:00",
+  "generated_at": "2026-06-20T05:35:42.407813+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

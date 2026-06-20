@@ -5,6 +5,7 @@ import argparse
 import json
 import math
 import shlex
+import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -446,28 +447,68 @@ def write_adjusted_rules(expert_conflicts: pd.DataFrame, path: Path) -> int:
     return len(lines)
 
 
-def build_writer_command(args: argparse.Namespace, tensor_rules_path: Path) -> str:
-    return " ".join(
-        [
-            "python",
-            "scripts/write_same_shape_average_checkpoint.py",
-            "--base",
-            shlex.quote(str(args.base)),
-            "--source",
-            f"instruct={shlex.quote(str(args.instruct_source))}",
-            "--source",
-            f"coder={shlex.quote(str(args.coder_source))}",
-            "--source-weight",
-            "instruct=0.0",
-            "--source-weight",
-            "coder=0.0",
-            "--freeze-router",
-            "--tensor-rule-file",
-            shlex.quote(rel(tensor_rules_path)),
-            "--output-dir",
-            shlex.quote(rel(args.checkpoint_output_dir)),
-        ]
+def build_writer_args(
+    args: argparse.Namespace,
+    tensor_rules_path: Path,
+    output_dir: Path,
+    *,
+    dry_run: bool,
+) -> list[str]:
+    parts = [
+        "python",
+        "scripts/write_same_shape_average_checkpoint.py",
+        "--base",
+        str(args.base),
+        "--source",
+        f"instruct={args.instruct_source}",
+        "--source",
+        f"coder={args.coder_source}",
+        "--source-weight",
+        "instruct=0.0",
+        "--source-weight",
+        "coder=0.0",
+        "--freeze-router",
+        "--tensor-rule-file",
+        rel(tensor_rules_path),
+        "--output-dir",
+        rel(output_dir),
+    ]
+    if dry_run:
+        parts.append("--dry-run")
+    return parts
+
+
+def format_command(parts: list[str]) -> str:
+    return " ".join(shlex.quote(part) for part in parts)
+
+
+def summarize_dry_run_manifest(path: Path) -> dict[str, Any]:
+    if not path.exists() or path.stat().st_size == 0:
+        return {
+            "dry_run_validated": False,
+            "dry_run_manifest": rel(path),
+            "dry_run_floating_tensors": 0,
+            "dry_run_frozen_tensors": 0,
+            "dry_run_tensor_rule_count": 0,
+            "dry_run_tensor_rule_hit_count": 0,
+            "dry_run_default_tensor_count": 0,
+            "dry_run_freeze_router_hits": 0,
+        }
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    rule_counts = manifest.get("rule_counts") or {}
+    tensor_rule_hits = int(
+        sum(int(value) for key, value in rule_counts.items() if str(key).startswith("tensor_rule:"))
     )
+    return {
+        "dry_run_validated": bool(manifest.get("dry_run")) and tensor_rule_hits > 0,
+        "dry_run_manifest": rel(path),
+        "dry_run_floating_tensors": int(manifest.get("floating_tensors", 0)),
+        "dry_run_frozen_tensors": int(manifest.get("frozen_tensors", 0)),
+        "dry_run_tensor_rule_count": int(len(manifest.get("tensor_rules") or [])),
+        "dry_run_tensor_rule_hit_count": tensor_rule_hits,
+        "dry_run_default_tensor_count": int(rule_counts.get("default", 0)),
+        "dry_run_freeze_router_hits": int(rule_counts.get("freeze_router", 0)),
+    }
 
 
 def build_report(
@@ -490,6 +531,9 @@ def build_report(
         f"- Experts needing extra subspace scale beyond current unified rule: `{summary['subspace_extra_scaled_expert_count']}`",
         f"- Mean coder weight reduction if this ablation is materialized: `{summary['mean_coder_weight_reduction']:.6f}`",
         f"- Total coder weight reduction if this ablation is materialized: `{summary['total_coder_weight_reduction']:.6f}`",
+        f"- Dry-run validated: `{summary['dry_run_validated']}`",
+        f"- Dry-run tensor-rule hits: `{summary['dry_run_tensor_rule_hit_count']}`",
+        f"- Dry-run freeze-router hits: `{summary['dry_run_freeze_router_hits']}`",
         f"- Top layer by route-weighted subspace conflict: `L{summary['top_subspace_conflict_layer']}`",
         f"- Next action: `{summary['next_action']}`",
         "",
@@ -570,6 +614,12 @@ def build_report(
             summary["writer_command"],
             "```",
             "",
+            "## Dry-Run",
+            "",
+            "```bash",
+            summary["dry_run_command"],
+            "```",
+            "",
             "## Files",
             "",
             f"- `{summary['outputs']['projection_scores']}`",
@@ -578,6 +628,8 @@ def build_report(
             f"- `{summary['outputs']['action_summary']}`",
             f"- `{summary['outputs']['subspace_adjusted_group_rules']}`",
             f"- `{summary['outputs']['subspace_adjusted_tensor_rules']}`",
+            f"- `{summary['outputs']['dry_run_command']}`",
+            f"- `{summary['outputs']['dry_run_manifest']}`",
             f"- `{summary['outputs']['summary']}`",
         ]
     )
@@ -599,6 +651,8 @@ def write_outputs(
     action_path = output_dir / "subspace_action_summary.csv"
     adjusted_group_path = output_dir / "subspace_adjusted_group_rules.csv"
     adjusted_rules_path = output_dir / "subspace_adjusted_tensor_rules.txt"
+    dry_run_command_path = output_dir / "dry_run_command.txt"
+    dry_run_output_dir = output_dir / "dry_run"
     summary_path = output_dir / "summary.json"
     report_path = output_dir / "report.md"
     projection_scores.to_csv(projection_path, index=False)
@@ -622,6 +676,15 @@ def write_outputs(
         index=False,
     )
     rule_count = write_adjusted_rules(expert_conflicts, adjusted_rules_path)
+    writer_command = format_command(
+        build_writer_args(args, adjusted_rules_path, args.checkpoint_output_dir, dry_run=False)
+    )
+    dry_run_command_parts = build_writer_args(args, adjusted_rules_path, dry_run_output_dir, dry_run=True)
+    dry_run_command = format_command(dry_run_command_parts)
+    dry_run_command_path.write_text(dry_run_command + "\n", encoding="utf-8")
+    if args.validate_dry_run:
+        subprocess.run(dry_run_command_parts, cwd=REPO_ROOT, check=True)
+    dry_run_summary = summarize_dry_run_manifest(dry_run_output_dir / "merge_manifest.json")
     high_count = int(expert_conflicts["high_subspace_conflict"].sum()) if not expert_conflicts.empty else 0
     route_high_count = int(
         (expert_conflicts["high_subspace_conflict"] & expert_conflicts["route_important"]).sum()
@@ -636,7 +699,6 @@ def write_outputs(
         if extra_scaled_count
         else "keep_current_unified_and_use_subspace_probe_as_gate_for_third_party_moe"
     )
-    writer_command = build_writer_command(args, adjusted_rules_path)
     summary = {
         "schema_version": 1,
         "status": status,
@@ -659,9 +721,11 @@ def write_outputs(
         else 0.0,
         "mean_coder_weight_reduction": mean_reduction,
         "total_coder_weight_reduction": total_reduction,
+        **dry_run_summary,
         "top_subspace_conflict_layer": top_layer,
         "next_action": next_action,
         "writer_command": writer_command,
+        "dry_run_command": dry_run_command,
         "outputs": {
             "projection_scores": rel(projection_path),
             "expert_conflicts": rel(expert_path),
@@ -669,6 +733,8 @@ def write_outputs(
             "action_summary": rel(action_path),
             "subspace_adjusted_group_rules": rel(adjusted_group_path),
             "subspace_adjusted_tensor_rules": rel(adjusted_rules_path),
+            "dry_run_command": rel(dry_run_command_path),
+            "dry_run_manifest": dry_run_summary["dry_run_manifest"],
             "summary": rel(summary_path),
             "report": rel(report_path),
         },
@@ -732,6 +798,11 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--high-threshold", type=float, default=0.72)
     parser.add_argument("--medium-threshold", type=float, default=0.55)
+    parser.add_argument(
+        "--validate-dry-run",
+        action="store_true",
+        help="Run the same-shape checkpoint writer in dry-run mode and summarize the emitted merge manifest.",
+    )
     return parser.parse_args()
 
 

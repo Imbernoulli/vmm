@@ -11,6 +11,9 @@
 - Experts needing extra subspace scale beyond current unified rule: `17`
 - Mean coder weight reduction if this ablation is materialized: `0.000041`
 - Total coder weight reduction if this ablation is materialized: `0.253078`
+- Dry-run validated: `True`
+- Dry-run tensor-rule hits: `15729`
+- Dry-run freeze-router hits: `48`
 - Top layer by route-weighted subspace conflict: `L17`
 - Next action: `materialize_subspace_scaled_ablation_after_source_eval_budget`
 
@@ -86,6 +89,12 @@
 python scripts/write_same_shape_average_checkpoint.py --base /srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe --source instruct=/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe --source coder=/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-Coder-30B-A3B-Instruct/snapshots/b2cff646eb4bb1d68355c01b18ae02e7cf42d120 --source-weight instruct=0.0 --source-weight coder=0.0 --freeze-router --tensor-rule-file results/qwen3_moe_expert_subspace_conflict_probe/subspace_adjusted_tensor_rules.txt --output-dir results/checkpoints/qwen3_moe_subspace_scaled_candidate
 ```
 
+## Dry-Run
+
+```bash
+python scripts/write_same_shape_average_checkpoint.py --base /srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe --source instruct=/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe --source coder=/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-Coder-30B-A3B-Instruct/snapshots/b2cff646eb4bb1d68355c01b18ae02e7cf42d120 --source-weight instruct=0.0 --source-weight coder=0.0 --freeze-router --tensor-rule-file results/qwen3_moe_expert_subspace_conflict_probe/subspace_adjusted_tensor_rules.txt --output-dir results/qwen3_moe_expert_subspace_conflict_probe/dry_run --dry-run
+```
+
 ## Files
 
 - `results/qwen3_moe_expert_subspace_conflict_probe/projection_subspace_scores.csv`
@@ -94,4 +103,6 @@ python scripts/write_same_shape_average_checkpoint.py --base /srv/home/bohanlyu/
 - `results/qwen3_moe_expert_subspace_conflict_probe/subspace_action_summary.csv`
 - `results/qwen3_moe_expert_subspace_conflict_probe/subspace_adjusted_group_rules.csv`
 - `results/qwen3_moe_expert_subspace_conflict_probe/subspace_adjusted_tensor_rules.txt`
+- `results/qwen3_moe_expert_subspace_conflict_probe/dry_run_command.txt`
+- `results/qwen3_moe_expert_subspace_conflict_probe/dry_run/merge_manifest.json`
 - `results/qwen3_moe_expert_subspace_conflict_probe/summary.json`

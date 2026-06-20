@@ -11858,6 +11858,15 @@
         }
       ],
       "action_summary": "results/qwen3_moe_expert_subspace_conflict_probe/subspace_action_summary.csv",
+      "dry_run_command": "results/qwen3_moe_expert_subspace_conflict_probe/dry_run_command.txt",
+      "dry_run_default_tensor_count": 3090,
+      "dry_run_floating_tensors": 18867,
+      "dry_run_freeze_router_hits": 48,
+      "dry_run_frozen_tensors": 3891,
+      "dry_run_manifest": "results/qwen3_moe_expert_subspace_conflict_probe/dry_run/merge_manifest.json",
+      "dry_run_tensor_rule_count": 5243,
+      "dry_run_tensor_rule_hit_count": 15729,
+      "dry_run_validated": true,
       "expert_conflicts": "results/qwen3_moe_expert_subspace_conflict_probe/expert_subspace_conflicts.csv",
       "expert_count": 6144,
       "high_subspace_conflict_expert_count": 1323,
@@ -11877,6 +11886,15 @@
       "subspace_adjusted_tensor_rules": "results/qwen3_moe_expert_subspace_conflict_probe/subspace_adjusted_tensor_rules.txt",
       "subspace_extra_scaled_expert_count": 17,
       "summary": {
+        "dry_run_command": "python scripts/write_same_shape_average_checkpoint.py --base /srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe --source instruct=/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe --source coder=/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-Coder-30B-A3B-Instruct/snapshots/b2cff646eb4bb1d68355c01b18ae02e7cf42d120 --source-weight instruct=0.0 --source-weight coder=0.0 --freeze-router --tensor-rule-file results/qwen3_moe_expert_subspace_conflict_probe/subspace_adjusted_tensor_rules.txt --output-dir results/qwen3_moe_expert_subspace_conflict_probe/dry_run --dry-run",
+        "dry_run_default_tensor_count": 3090,
+        "dry_run_floating_tensors": 18867,
+        "dry_run_freeze_router_hits": 48,
+        "dry_run_frozen_tensors": 3891,
+        "dry_run_manifest": "results/qwen3_moe_expert_subspace_conflict_probe/dry_run/merge_manifest.json",
+        "dry_run_tensor_rule_count": 5243,
+        "dry_run_tensor_rule_hit_count": 15729,
+        "dry_run_validated": true,
         "expert_count": 6144,
         "high_subspace_conflict_expert_count": 1323,
         "high_threshold": 0.72,
@@ -11888,6 +11906,8 @@
         "next_action": "materialize_subspace_scaled_ablation_after_source_eval_budget",
         "outputs": {
           "action_summary": "results/qwen3_moe_expert_subspace_conflict_probe/subspace_action_summary.csv",
+          "dry_run_command": "results/qwen3_moe_expert_subspace_conflict_probe/dry_run_command.txt",
+          "dry_run_manifest": "results/qwen3_moe_expert_subspace_conflict_probe/dry_run/merge_manifest.json",
           "expert_conflicts": "results/qwen3_moe_expert_subspace_conflict_probe/expert_subspace_conflicts.csv",
           "layer_conflicts": "results/qwen3_moe_expert_subspace_conflict_probe/layer_subspace_conflicts.csv",
           "projection_scores": "results/qwen3_moe_expert_subspace_conflict_probe/projection_subspace_scores.csv",
@@ -36134,7 +36154,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-20T05:28:31.680236+00:00",
+  "generated_at": "2026-06-20T05:35:42.390923+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -36215,7 +36235,7 @@
     "python scripts/build_qwen3_moe_delta_frontier.py --output-dir results/qwen3_moe_delta_frontier",
     "python scripts/plan_qwen3_moe_eval_budget.py --output-dir results/qwen3_moe_eval_budget_plan",
     "python scripts/probe_qwen3_moe_expert_geometry.py --output-dir results/qwen3_moe_expert_geometry_probe",
-    "python scripts/analyze_qwen3_moe_expert_subspace_conflicts.py --output-dir results/qwen3_moe_expert_subspace_conflict_probe",
+    "python scripts/analyze_qwen3_moe_expert_subspace_conflicts.py --output-dir results/qwen3_moe_expert_subspace_conflict_probe --validate-dry-run",
     "python scripts/analyze_qwen3_moe_mechanism_levers.py --output-dir results/qwen3_moe_mechanism_levers",
     "python scripts/build_qwen3_moe_layer_chunk_candidate.py --output-dir results/qwen3_moe_layer_chunk_candidate",
     "bash results/qwen3_moe_layer_chunk_candidate/writer_command.txt",
