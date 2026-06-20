@@ -1,6 +1,6 @@
 # Visualizing Model Merging：任务向量空间中的模型合并可视化
 
-> **最新（机制驱动 unified average，2026-06）：** 见 **[Unified Average Optimizer](results/unified_average_optimizer/report.md)**。这个脚本把 Dense barrier、MoE expert gauge、Qwen3 expert identity、router movement 和最终 vLLM 选择 gate 合成一个同构操作策略，而不是静态判断哪个算法名最好。当前证据是：(1) Dense midpoint 的二阶 Fisher 预测严重失效，general/code actual-predicted ratio 为 `42.86/26.66`，所以拒绝默认 `0.5/0.5`；(2) 真实 OLMoE gauge 反事实中，同名 average 让 NLL 从 `4.1678` 升到 `9.6588`，恢复 expert 对齐后回到 `4.1678`；(3) Qwen3-30B-A3B Instruct vs Coder 的 expert identity 通过，`48/48` 层 identity-optimal，但 router direct move gate 为 `0/48` 层通过，所以先 freeze/router-KD gate；(4) 七个 Qwen3 same-shape candidates 仍需同场 vLLM eval，当前 final selector 是 `awaiting_source_eval`、`0/7` eligible。
+> **最新（机制驱动 unified average，2026-06）：** 见 **[Unified Average Optimizer](results/unified_average_optimizer/report.md)** 和 **[Qwen3 MoE vLLM Eval Budget Plan](results/qwen3_moe_eval_budget_plan/report.md)**。这个脚本把 Dense barrier、MoE expert gauge、Qwen3 expert identity、router movement 和最终 vLLM 选择 gate 合成一个同构操作策略，而不是静态判断哪个算法名最好。当前证据是：(1) Dense midpoint 的二阶 Fisher 预测严重失效，general/code actual-predicted ratio 为 `42.86/26.66`，所以拒绝默认 `0.5/0.5`；(2) 真实 OLMoE gauge 反事实中，同名 average 让 NLL 从 `4.1678` 升到 `9.6588`，恢复 expert 对齐后回到 `4.1678`；(3) Qwen3-30B-A3B Instruct vs Coder 的 expert identity 通过，`48/48` 层 identity-optimal，但 router direct move gate 为 `0/48` 层通过，所以先 freeze/router-KD gate；(4) 七个 Qwen3 same-shape candidates 仍需同场 vLLM eval，当前 final selector 是 `awaiting_source_eval`、`0/7` eligible；(5) Qwen3 MoE 远端 eval 不再按 `64` 条 smoke 样本硬选，新的预算脚本按 Wilson 95% half-width `0.05` 和 paired sign-test alpha `0.05` 推荐 `384` max examples。
 
 这份仓库把 `proposal.md` 里的想法实现成了一个可运行的研究 artifact：从小型图像分类模型开始，逐步扩展到 ViT/pretrained ViT 和 Qwen 系列 LLM，观察模型合并点在任务向量空间中的位置、多个任务 basin 是否重叠，以及合并失败是否和 task-vector interference 有关。
 
@@ -13,6 +13,8 @@
 最新 [Qwen3 MoE Delta Frontier Probe](results/qwen3_moe_delta_frontier/report.md) 把六个已物化 candidate 加一个 unified mechanism alias 的真实 safetensors delta 放到同一张表里。结论很明确：route-guarded -> audit-gated 主要消掉 routed expert 的危险大步长（`>1.0` 从 `182` 到 `0`，`>0.75` 从 `839` 到 `164`）；audit-gated -> trust-region 继续把 `>0.75` 从 `164` 压到 `14`；trust-region -> expert-only 不再改善 routed expert tail，只是把 attention delta 从 `0.189` 清零；expert-only -> tail-trimmed 才继续压 routed tail，把 `>0.65` 从 `366` 降到 `80`（剩余都在 `0.6505` rounding slop 内）；searched cap-law 则把复杂 penalty 换成统一 `0.65` cap，total relative norm `0.248`，strict `>0.65` tensor 为 `245`，但 `>0.6505` 为 `0`；当前 unified mechanism candidate 正好等价于这个 searched no-gt-0.65 规则，router changed 仍是 `0`。因此下一版 unified MoE 规则里，trust-region/tail-trim 是安全机制，attention 是否保留、复杂 risk penalty 是否保留都是效用问题，必须交给同任务 vLLM eval 决定。
 
 最新 [Qwen3 MoE Mechanism-Gated vLLM Eval Gate](results/qwen3_moe_mechanism_eval_gate/report.md) 已把这个问题转成可执行评测：两个 source endpoint 加七个 same-shape Qwen3 MoE candidates 都是 `ready_to_host`，并生成 `run_eval_gate.sh` 逐个 `vllm serve -> eval -> stop`。这个 gate 不再问“哪个算法名最好”，而是逐项检验 tail delta cap、route/load trust-region、shared attention ablation、0.65 tail trim、risk penalty simplification、unified mechanism alias 和 endpoint fallback；如果所有 average 候选被 source 支配，selection rule 会返回同构 endpoint/no-average。当前本机 `nvidia-smi` 不可用，所以 selection 状态是 `awaiting_remote_vllm_eval`。
+
+最新 [Qwen3 MoE vLLM Eval Budget Plan](results/qwen3_moe_eval_budget_plan/report.md) 把“正当评测要跑多少”也落成脚本：原 gate 的 `64` examples 只保留为 audit floor，预算版 `run_eval_budget.sh` 会把九个 source/candidate 的 `--max-examples` 提到 `384`。这个数来自两个约束：binary task score 的 95% Wilson half-width 要压到 `0.05` 以内需要 `381` 条，四舍五入到 `384`；paired prediction gate 若要在 alpha `0.05` 下看出约 `5pp` 的净 source advantage，按 `25%` discordance 估计需要约 `248` 条 shared examples。因此下一轮远端 vLLM 不是静态 smoke，而是能支撑 source dominance、task regression、score-confidence 和 paired-prediction regression 的机制评测；HumanEval 受 `164` 条数据上限限制，selector 会按实际样本数计算区间。
 
 最新 [Qwen3 MoE Unified Result Selector](results/qwen3_moe_unified_result_selection/report.md) 单独处理“什么时候真正接受 unified average”：它要求两个 source endpoints 和 `qwen3_moe_unified_mechanism_candidate` 完成同一套 vLLM 下游评测、candidate audit 通过、没有任务分数跌破两个 source、没有被任一 source endpoint 支配，并且 avg 或 worst source frontier 有增益。当前状态是 `awaiting_source_eval`，也就是还不能声称 average 更好；[selector smoke](results/qwen3_moe_unified_result_selection_smoke/report.md) 覆盖了 candidate-win、source-dominance、task-regression 和 no-gain 四种分支，`4/4` 通过。
 
@@ -158,7 +160,7 @@ z 轴 = loss
 
 ## 结论摘要
 
-当前 coverage audit：`complete = 75`, `partial = 1`, `missing = 0`；唯一 partial 是 generic target-registry vLLM eval 还没有跑完，但 materialized checkpoint、source-vs-merge 对照、probe-guided dense candidate、dense guard ablation 的真实 vLLM eval、真实 Qwen3 MoE materialized checkpoint，以及 probe-gated/unified average selection gate 都已完成。完整汇总见 `results/summary.md` 和 `results/summary.json`。
+当前 coverage audit：`complete = 76`, `partial = 1`, `missing = 0`；唯一 partial 是 generic target-registry vLLM eval 还没有跑完，但 materialized checkpoint、source-vs-merge 对照、probe-guided dense candidate、dense guard ablation 的真实 vLLM eval、真实 Qwen3 MoE materialized checkpoint，以及 probe-gated/unified average selection gate 都已完成。完整汇总见 `results/summary.md` 和 `results/summary.json`。
 
 主要结论：
 

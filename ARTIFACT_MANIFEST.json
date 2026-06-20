@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 73700,
+      "bytes": 74813,
       "kind": "document",
       "path": "README.md",
-      "sha256": "4cbb6121362dbc4090f56ad5024febb8dfb640fb472517433b31c2b702339548"
+      "sha256": "88f70578e1f5905563d80731ce9178880f7d07bb7037d1194349c4884c3470c1"
     },
     {
       "bytes": 33211,
@@ -1757,6 +1757,36 @@
       "kind": "data",
       "path": "results/qwen3_moe_delta_frontier/tail_thresholds.csv",
       "sha256": "5c947b0714b86ed605577b071a46c3928bca4b0400a1de39d65ad97e5093fc73"
+    },
+    {
+      "bytes": 3446,
+      "kind": "data",
+      "path": "results/qwen3_moe_eval_budget_plan/mechanism_budget.csv",
+      "sha256": "794f84e480a75bdc21d211fd1cb9d4ec17d48a4e22a762e522ba475485e8e618"
+    },
+    {
+      "bytes": 12236,
+      "kind": "data",
+      "path": "results/qwen3_moe_eval_budget_plan/method_budget.csv",
+      "sha256": "1cb0b074cd08781f2f946b16e33dc11d7935d2751cdb07b6570118a8d118ba9f"
+    },
+    {
+      "bytes": 5377,
+      "kind": "document",
+      "path": "results/qwen3_moe_eval_budget_plan/report.md",
+      "sha256": "6ab1099f57a8c4094edc9896bbb962269d39498fa1c51334485be61439e811df"
+    },
+    {
+      "bytes": 1130,
+      "kind": "data",
+      "path": "results/qwen3_moe_eval_budget_plan/summary.json",
+      "sha256": "067b77c10856d9b87115b8021a25868e8142a493281c4e519fac184e07474b26"
+    },
+    {
+      "bytes": 1152,
+      "kind": "data",
+      "path": "results/qwen3_moe_eval_budget_plan/task_budget.csv",
+      "sha256": "af0e6eaff803c79952343a8dc858ebf6a10acba7311716c8485417208cc8464a"
     },
     {
       "bytes": 5309,
@@ -4417,16 +4447,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 1209880,
+      "bytes": 1240878,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "f35e7d69ca0568efa83395530bb672199ae9058f8c4c0dcc9e5fecedbe756730"
+      "sha256": "32a60ca199f03b27a2029b08b693e0b94a071faa0a26e87336b56c169ed10256"
     },
     {
-      "bytes": 46796,
+      "bytes": 47350,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "a740f91f271721431b07ce0540bf9844c3e7d65d826c405c5f7ffd4e75620cef"
+      "sha256": "123dc30c36af09ac0a1e8096606da3a9da1a10911cdc7a6184eb5c587544cbb3"
     },
     {
       "bytes": 288,
@@ -5629,10 +5659,10 @@
       "sha256": "cd588bc1804013f4043bd95c245b066dbae86bfd3e3f9c18317ef33eb506f123"
     },
     {
-      "bytes": 318863,
+      "bytes": 322984,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "8b154167bbac513d77225b475f716be2358a4b8a8021ada3fb1105322159bf4f"
+      "sha256": "e94a9a31cb24df6cc920648e05bb97d1bd72d306917adf00c600a37c627ecb85"
     },
     {
       "bytes": 16101,
@@ -5675,6 +5705,12 @@
       "kind": "code",
       "path": "scripts/inspect_checkpoint_topology.py",
       "sha256": "0c439772685d64f1707671b0d906058d7e350c172e2c9d30942253e558c34ebc"
+    },
+    {
+      "bytes": 27526,
+      "kind": "code",
+      "path": "scripts/plan_qwen3_moe_eval_budget.py",
+      "sha256": "6c43b8a795604047460f1f320ea7a53ecaa7dbca8676de7ca156a2605d54c138"
     },
     {
       "bytes": 24018,
@@ -5893,7 +5929,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-20T01:06:12.477110+00:00",
+  "generated_at": "2026-06-20T01:16:13.465355+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

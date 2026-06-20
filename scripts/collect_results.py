@@ -1178,6 +1178,44 @@ def summarize_qwen3_moe_mechanism_eval_gate() -> dict[str, Any]:
     }
 
 
+def summarize_qwen3_moe_eval_budget_plan() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_eval_budget_plan")
+    summary = read_json(root / "summary.json")
+    task_budget = read_csv(root / "task_budget.csv")
+    method_budget = read_csv(root / "method_budget.csv")
+    mechanism_budget = read_csv(root / "mechanism_budget.csv")
+    capped_tasks = task_budget[task_budget["budget_status"] == "target_not_met_dataset_cap"]
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "method_count": int(summary.get("method_count", len(method_budget))),
+        "source_count": int(summary.get("source_count", 0)),
+        "candidate_count": int(summary.get("candidate_count", 0)),
+        "current_gate_examples": maybe_int(summary.get("current_gate_examples")),
+        "recommended_max_examples": maybe_int(summary.get("recommended_max_examples")),
+        "target_wilson_half_width": maybe_float(summary.get("target_wilson_half_width")),
+        "wilson_required_examples": maybe_int(summary.get("wilson_required_examples")),
+        "paired_required_examples": maybe_int(summary.get("paired_required_examples")),
+        "paired_required_discordant": maybe_int(summary.get("paired_required_discordant")),
+        "target_paired_net_loss_rate": maybe_float(summary.get("target_paired_net_loss_rate")),
+        "paired_alpha": maybe_float(summary.get("paired_alpha")),
+        "assumed_paired_discordance_rate": maybe_float(summary.get("assumed_paired_discordance_rate")),
+        "total_current_prompt_budget": maybe_int(summary.get("total_current_prompt_budget")),
+        "total_recommended_prompt_budget": maybe_int(summary.get("total_recommended_prompt_budget")),
+        "total_additional_prompt_budget": maybe_int(summary.get("total_additional_prompt_budget")),
+        "dataset_capped_tasks": ",".join(str(row["task"]) for _, row in capped_tasks.iterrows()),
+        "task_rows": [clean_row(row) for _, row in task_budget.iterrows()],
+        "method_rows": [clean_row(row) for _, row in method_budget.iterrows()],
+        "mechanism_rows": [clean_row(row) for _, row in mechanism_budget.iterrows()],
+        "report": rel(root / "report.md"),
+        "task_budget": rel(root / "task_budget.csv"),
+        "method_budget": rel(root / "method_budget.csv"),
+        "mechanism_budget": rel(root / "mechanism_budget.csv"),
+        "run_script": rel(root / "run_eval_budget.sh"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_qwen3_moe_unified_result_selection() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_unified_result_selection")
     summary = read_json(root / "summary.json")
@@ -3316,6 +3354,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/qwen3_moe_mechanism_eval_gate/report.md turns two source endpoints and seven same-shape Qwen3 MoE candidates into mechanism tests, a one-model-at-a-time vLLM run script, and endpoint-fallback selection rules.",
         },
         {
+            "item": "Qwen3 MoE statistically powered vLLM eval budget",
+            "status": "complete",
+            "evidence": "results/qwen3_moe_eval_budget_plan/report.md raises the Qwen3 source/candidate vLLM run from a 64-example smoke floor to a Wilson/paired-test budgeted eval script.",
+        },
+        {
             "item": "Qwen3 MoE unified downstream result selector",
             "status": "complete",
             "evidence": "results/qwen3_moe_unified_result_selection/report.md gates the unified same-shape average against both Qwen3 source endpoints after matched vLLM eval; results/qwen3_moe_unified_result_selection_smoke/report.md covers candidate-win, source-dominance, task-regression, and no-gain branches.",
@@ -3464,6 +3507,7 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_searched_no_gt065_delta_audit": summarize_qwen3_moe_searched_no_gt065_delta_audit(),
         "qwen3_moe_delta_frontier": summarize_qwen3_moe_delta_frontier(),
         "qwen3_moe_mechanism_eval_gate": summarize_qwen3_moe_mechanism_eval_gate(),
+        "qwen3_moe_eval_budget_plan": summarize_qwen3_moe_eval_budget_plan(),
         "qwen3_moe_unified_result_selection": summarize_qwen3_moe_unified_result_selection(),
         "qwen3_moe_unified_result_selection_smoke": summarize_qwen3_moe_unified_result_selection_smoke(),
         "qwen3_moe_final_candidate_selection": summarize_qwen3_moe_final_candidate_selection(),
@@ -3619,6 +3663,7 @@ def build_summary() -> dict[str, Any]:
             "bash results/qwen3_moe_trust_region_cap_search/searched_no_gt065_max_retention_writer_command.txt",
             "python scripts/audit_materialized_checkpoint_delta.py --base BASE --candidate results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate --output-dir results/qwen3_moe_searched_no_gt065_delta_audit",
             "python scripts/build_qwen3_moe_delta_frontier.py --output-dir results/qwen3_moe_delta_frontier",
+            "python scripts/plan_qwen3_moe_eval_budget.py --output-dir results/qwen3_moe_eval_budget_plan",
             "python scripts/build_qwen3_moe_router_move_gate.py --output-dir results/qwen3_moe_router_move_gate",
             "python scripts/build_qwen3_moe_router_calibration_job.py --output-dir results/qwen3_moe_router_calibration_job",
             "python scripts/select_qwen3_moe_router_calibration_result.py --output-dir results/qwen3_moe_router_calibration_selection",
@@ -3715,6 +3760,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_searched_no_gt065_delta_audit = exp["qwen3_moe_searched_no_gt065_delta_audit"]
     qwen3_moe_delta_frontier = exp["qwen3_moe_delta_frontier"]
     qwen3_moe_mechanism_eval_gate = exp["qwen3_moe_mechanism_eval_gate"]
+    qwen3_moe_eval_budget_plan = exp["qwen3_moe_eval_budget_plan"]
     qwen3_moe_unified_result_selection = exp["qwen3_moe_unified_result_selection"]
     qwen3_moe_unified_result_selection_smoke = exp["qwen3_moe_unified_result_selection_smoke"]
     qwen3_moe_final_candidate_selection = exp["qwen3_moe_final_candidate_selection"]
@@ -4270,6 +4316,24 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_mechanism_eval_gate['unified_candidate_serve_status']} / "
                 f"{qwen3_moe_mechanism_eval_gate['unified_candidate_audit_passed']} / "
                 f"{qwen3_moe_mechanism_eval_gate['unified_rule_alias_validation_status']} |"
+            ),
+            (
+                "| Qwen3 MoE eval budget plan | status / current -> recommended examples | "
+                f"{qwen3_moe_eval_budget_plan['status']} / "
+                f"{qwen3_moe_eval_budget_plan['current_gate_examples']} -> "
+                f"{qwen3_moe_eval_budget_plan['recommended_max_examples']} |"
+            ),
+            (
+                "| Qwen3 MoE eval budget plan | current / recommended / extra prompt budget | "
+                f"{qwen3_moe_eval_budget_plan['total_current_prompt_budget']} / "
+                f"{qwen3_moe_eval_budget_plan['total_recommended_prompt_budget']} / "
+                f"{qwen3_moe_eval_budget_plan['total_additional_prompt_budget']} |"
+            ),
+            (
+                "| Qwen3 MoE eval budget plan | Wilson n / paired n / capped tasks | "
+                f"{qwen3_moe_eval_budget_plan['wilson_required_examples']} / "
+                f"{qwen3_moe_eval_budget_plan['paired_required_examples']} / "
+                f"{qwen3_moe_eval_budget_plan['dataset_capped_tasks']} |"
             ),
             (
                 "| Qwen3 MoE unified result selector | status / selected / reason | "

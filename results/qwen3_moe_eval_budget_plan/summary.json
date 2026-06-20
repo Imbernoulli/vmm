@@ -1,0 +1,30 @@
+{
+  "assumed_paired_discordance_rate": 0.25,
+  "candidate_count": 7,
+  "confidence_z": 1.96,
+  "current_gate_examples": 64,
+  "method_count": 9,
+  "outputs": {
+    "mechanism_budget": "results/qwen3_moe_eval_budget_plan/mechanism_budget.csv",
+    "method_budget": "results/qwen3_moe_eval_budget_plan/method_budget.csv",
+    "report": "results/qwen3_moe_eval_budget_plan/report.md",
+    "run_script": "results/qwen3_moe_eval_budget_plan/run_eval_budget.sh",
+    "summary": "results/qwen3_moe_eval_budget_plan/summary.json",
+    "task_budget": "results/qwen3_moe_eval_budget_plan/task_budget.csv"
+  },
+  "paired_alpha": 0.05,
+  "paired_required_discordant": 62,
+  "paired_required_examples": 248,
+  "paired_rounded_examples": 256,
+  "recommended_max_examples": 384,
+  "schema_version": 1,
+  "source_count": 2,
+  "status": "ready_for_budgeted_remote_vllm_eval",
+  "target_paired_net_loss_rate": 0.05,
+  "target_wilson_half_width": 0.05,
+  "total_additional_prompt_budget": 11520,
+  "total_current_prompt_budget": 2304,
+  "total_recommended_prompt_budget": 13824,
+  "wilson_required_examples": 381,
+  "wilson_rounded_examples": 384
+}

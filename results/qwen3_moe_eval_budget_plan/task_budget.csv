@@ -1,0 +1,5 @@
+task,current_gate_examples,observed_min_examples,observed_max_examples,target_wilson_half_width,confidence_z,wilson_required_examples,wilson_rounded_examples,target_paired_net_loss_rate,assumed_paired_discordance_rate,paired_alpha,paired_required_discordant,paired_required_examples,paired_rounded_examples,paired_candidate_only_at_threshold,paired_source_only_at_threshold,paired_observed_net_loss_rate,paired_threshold_pvalue,dataset_cap,recommended_command_max_examples,achievable_examples,achievable_wilson_half_width,budget_status
+gsm8k,64,0,0,0.05,1.96,381,384,0.05,0.25,0.05,62,248,256,24,38,0.056451612903225805,0.048977220259753686,,384,384,0.049762120757238626,target_met
+humaneval_compile,64,0,0,0.05,1.96,381,384,0.05,0.25,0.05,62,248,256,24,38,0.056451612903225805,0.048977220259753686,164.0,384,164,0.07564431078053913,target_not_met_dataset_cap
+mmlu,64,0,0,0.05,1.96,381,384,0.05,0.25,0.05,62,248,256,24,38,0.056451612903225805,0.048977220259753686,,384,384,0.049762120757238626,target_met
+safety,64,0,0,0.05,1.96,381,384,0.05,0.25,0.05,62,248,256,24,38,0.056451612903225805,0.048977220259753686,,384,384,0.049762120757238626,target_met
