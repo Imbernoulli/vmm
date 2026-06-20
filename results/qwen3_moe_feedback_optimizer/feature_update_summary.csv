@@ -1,0 +1,5 @@
+task,family,action,pressure,affected_group_count,mean_scale_delta
+gsm8k,math,no_parameter_update,0.0,0,0.0
+mmlu,general,no_parameter_update,0.0,0,0.0
+safety,safety,no_parameter_update,0.0,0,0.0
+humaneval_compile,code,no_parameter_update,0.0,0,0.0

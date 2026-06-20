@@ -1,0 +1,30 @@
+{
+  "candidate_method": "qwen3_moe_unified_mechanism_candidate",
+  "changed_group_count": 0,
+  "groups_over_hard_cap_after_feedback": 0,
+  "hard_cap": 0.65,
+  "materialization_gate": "do_not_materialize_feedback_candidate_yet",
+  "max_feedback_expected_relative_delta": 0.6438448490662684,
+  "max_feedback_scale_delta": 0.0,
+  "mean_feedback_scale_delta": 0.0,
+  "min_feedback_scale_delta": 0.0,
+  "outputs": {
+    "checkpoint_output_dir": "results/checkpoints/qwen3_moe_feedback_mechanism_candidate",
+    "dry_run_command": "results/qwen3_moe_feedback_optimizer/dry_run_command.txt",
+    "feature_update_summary": "results/qwen3_moe_feedback_optimizer/feature_update_summary.csv",
+    "feedback_group_rules": "results/qwen3_moe_feedback_optimizer/feedback_group_rules.csv",
+    "report": "results/qwen3_moe_feedback_optimizer/report.md",
+    "summary": "results/qwen3_moe_feedback_optimizer/summary.json",
+    "task_feedback": "results/qwen3_moe_feedback_optimizer/task_feedback.csv",
+    "tensor_rules": "results/qwen3_moe_feedback_optimizer/tensor_rules.txt",
+    "writer_command": "results/qwen3_moe_feedback_optimizer/writer_command.txt"
+  },
+  "regression_task_count": 0,
+  "route_mass_weighted_nonbase_after": 118.74270651265624,
+  "route_mass_weighted_nonbase_before": 118.74270651265624,
+  "route_mass_weighted_nonbase_ratio": 1.0,
+  "schema_version": 1,
+  "scored_task_count": 0,
+  "status": "awaiting_eval",
+  "task_count": 4
+}

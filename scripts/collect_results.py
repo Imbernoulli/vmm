@@ -2159,6 +2159,58 @@ def summarize_qwen3_moe_mechanism_effect_attribution_smoke() -> dict[str, Any]:
     }
 
 
+def summarize_qwen3_moe_feedback_optimizer() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_feedback_optimizer")
+    summary = read_json(root / "summary.json")
+    task_feedback = read_csv(root / "task_feedback.csv")
+    updates = read_csv(root / "feature_update_summary.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "candidate_method": summary.get("candidate_method"),
+        "materialization_gate": summary.get("materialization_gate"),
+        "task_count": int(summary.get("task_count", len(task_feedback))),
+        "scored_task_count": int(summary.get("scored_task_count", 0)),
+        "regression_task_count": int(summary.get("regression_task_count", 0)),
+        "changed_group_count": int(summary.get("changed_group_count", 0)),
+        "route_mass_weighted_nonbase_ratio": maybe_float(
+            summary.get("route_mass_weighted_nonbase_ratio")
+        ),
+        "max_feedback_expected_relative_delta": maybe_float(
+            summary.get("max_feedback_expected_relative_delta")
+        ),
+        "groups_over_hard_cap_after_feedback": int(
+            summary.get("groups_over_hard_cap_after_feedback", 0)
+        ),
+        "task_rows": [clean_row(row) for _, row in task_feedback.iterrows()],
+        "update_rows": [clean_row(row) for _, row in updates.iterrows()],
+        "report": rel(root / "report.md"),
+        "task_feedback": rel(root / "task_feedback.csv"),
+        "feature_update_summary": rel(root / "feature_update_summary.csv"),
+        "feedback_group_rules": rel(root / "feedback_group_rules.csv"),
+        "tensor_rules": rel(root / "tensor_rules.txt"),
+        "writer_command": rel(root / "writer_command.txt"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
+def summarize_qwen3_moe_feedback_optimizer_smoke() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_feedback_optimizer_smoke")
+    summary = read_json(root / "summary.json")
+    matrix = read_csv(root / "feedback_optimizer_smoke_matrix.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "case_count": int(summary.get("case_count", len(matrix))),
+        "passed_case_count": int(summary.get("passed_case_count", 0)),
+        "failed_case_count": int(summary.get("failed_case_count", 0)),
+        "case_rows": [clean_row(row) for _, row in matrix.iterrows()],
+        "report": rel(root / "report.md"),
+        "matrix": rel(root / "feedback_optimizer_smoke_matrix.csv"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_qwen3_moe_post_eval_refresh() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_post_eval_refresh")
     summary = read_json(root / "summary.json")
@@ -2186,6 +2238,13 @@ def summarize_qwen3_moe_post_eval_refresh() -> dict[str, Any]:
             downstream.get("attribution_scored_transition_count")
         ),
         "attribution_transition_count": maybe_int(downstream.get("attribution_transition_count")),
+        "feedback_status": downstream.get("feedback_status"),
+        "feedback_scored_task_count": maybe_int(downstream.get("feedback_scored_task_count")),
+        "feedback_task_count": maybe_int(downstream.get("feedback_task_count")),
+        "feedback_regression_task_count": maybe_int(
+            downstream.get("feedback_regression_task_count")
+        ),
+        "feedback_changed_group_count": maybe_int(downstream.get("feedback_changed_group_count")),
         "step_rows": [clean_row(row) for _, row in steps.iterrows()],
         "report": rel(root / "report.md"),
         "steps": rel(root / "steps.csv"),
@@ -4390,9 +4449,14 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/qwen3_moe_mechanism_effect_attribution/report.md decomposes the Qwen3 MoE source-frontier -> route-guarded -> audit-gated -> trust-region -> expert-only -> tail-trimmed -> searched-cap -> layer/chunk -> unified-mechanism chain into structural and downstream score deltas, gated by the eval-bundle audit.",
         },
         {
+            "item": "Qwen3 MoE downstream feedback optimizer",
+            "status": "complete",
+            "evidence": "results/qwen3_moe_feedback_optimizer/report.md converts source-frontier task regressions from vLLM eval into bounded routed-expert rule updates; results/qwen3_moe_feedback_optimizer_smoke/report.md verifies code-regression restoration, non-code source-regression shrinkage, hard-cap enforcement, and no-update awaiting-eval behavior.",
+        },
+        {
             "item": "Qwen3 MoE post-vLLM eval refresh pipeline",
             "status": "complete",
-            "evidence": "results/qwen3_moe_post_eval_refresh/report.md runs eval-bundle audit, unified result selection, mechanism attribution, smoke checks, and collect_results in a fixed post-eval order after remote vLLM outputs land.",
+            "evidence": "results/qwen3_moe_post_eval_refresh/report.md runs eval-bundle audit, unified result selection, mechanism attribution, downstream feedback optimization, smoke checks, and collect_results in a fixed post-eval order after remote vLLM outputs land.",
         },
         {
             "item": "Qwen3 MoE searched cap-law materialized candidate",
@@ -4550,6 +4614,8 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_mechanism_effect_attribution_smoke": (
             summarize_qwen3_moe_mechanism_effect_attribution_smoke()
         ),
+        "qwen3_moe_feedback_optimizer": summarize_qwen3_moe_feedback_optimizer(),
+        "qwen3_moe_feedback_optimizer_smoke": summarize_qwen3_moe_feedback_optimizer_smoke(),
         "qwen3_moe_post_eval_refresh": summarize_qwen3_moe_post_eval_refresh(),
         "qwen3_moe_post_eval_refresh_plan": summarize_qwen3_moe_post_eval_refresh_plan(),
         "qwen3_moe_router_move_gate": summarize_qwen3_moe_router_move_gate(),
@@ -4732,6 +4798,8 @@ def build_summary() -> dict[str, Any]:
             "python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke",
             "python scripts/attribute_qwen3_moe_mechanism_effects.py --output-dir results/qwen3_moe_mechanism_effect_attribution",
             "python scripts/attribute_qwen3_moe_mechanism_effects.py --smoke-matrix --output-dir results/qwen3_moe_mechanism_effect_attribution_smoke",
+            "python scripts/build_qwen3_moe_feedback_optimizer.py --output-dir results/qwen3_moe_feedback_optimizer",
+            "python scripts/build_qwen3_moe_feedback_optimizer.py --smoke-matrix --output-dir results/qwen3_moe_feedback_optimizer_smoke",
             "python scripts/refresh_qwen3_moe_post_eval.py --plan-only --include-smoke --output-dir results/qwen3_moe_post_eval_refresh_plan",
             "python scripts/refresh_qwen3_moe_post_eval.py --include-smoke --output-dir results/qwen3_moe_post_eval_refresh",
             "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
@@ -4836,6 +4904,8 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_mechanism_effect_attribution_smoke = exp[
         "qwen3_moe_mechanism_effect_attribution_smoke"
     ]
+    qwen3_moe_feedback_optimizer = exp["qwen3_moe_feedback_optimizer"]
+    qwen3_moe_feedback_optimizer_smoke = exp["qwen3_moe_feedback_optimizer_smoke"]
     qwen3_moe_post_eval_refresh = exp["qwen3_moe_post_eval_refresh"]
     qwen3_moe_post_eval_refresh_plan = exp["qwen3_moe_post_eval_refresh_plan"]
     qwen3_moe_router_move_gate = exp["qwen3_moe_router_move_gate"]
@@ -5813,6 +5883,30 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"/{qwen3_moe_mechanism_effect_attribution_smoke['case_count']} |"
             ),
             (
+                "| Qwen3 MoE feedback optimizer | status / scored tasks / regressions / changed groups | "
+                f"{qwen3_moe_feedback_optimizer['status']} / "
+                f"{qwen3_moe_feedback_optimizer['scored_task_count']}"
+                f"/{qwen3_moe_feedback_optimizer['task_count']} / "
+                f"{qwen3_moe_feedback_optimizer['regression_task_count']} / "
+                f"{qwen3_moe_feedback_optimizer['changed_group_count']} |"
+            ),
+            (
+                "| Qwen3 MoE feedback optimizer | materialization gate | "
+                f"{qwen3_moe_feedback_optimizer['materialization_gate']} |"
+            ),
+            (
+                "| Qwen3 MoE feedback optimizer | nonbase ratio / max expected delta / hard-cap violations | "
+                f"{qwen3_moe_feedback_optimizer['route_mass_weighted_nonbase_ratio']:.3f} / "
+                f"{qwen3_moe_feedback_optimizer['max_feedback_expected_relative_delta']:.3f} / "
+                f"{qwen3_moe_feedback_optimizer['groups_over_hard_cap_after_feedback']} |"
+            ),
+            (
+                "| Qwen3 MoE feedback optimizer smoke | status / passed cases | "
+                f"{qwen3_moe_feedback_optimizer_smoke['status']} / "
+                f"{qwen3_moe_feedback_optimizer_smoke['passed_case_count']}"
+                f"/{qwen3_moe_feedback_optimizer_smoke['case_count']} |"
+            ),
+            (
                 "| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | "
                 f"{qwen3_moe_post_eval_refresh['status']} / "
                 f"{qwen3_moe_post_eval_refresh['passed_step_count']}"
@@ -5828,6 +5922,13 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"/{qwen3_moe_post_eval_refresh['attribution_transition_count']} / "
                 f"{qwen3_moe_post_eval_refresh_plan['planned_step_count']}"
                 f"/{qwen3_moe_post_eval_refresh_plan['step_count']} |"
+            ),
+            (
+                "| Qwen3 MoE post-eval refresh | feedback status / scored tasks / changed groups | "
+                f"{qwen3_moe_post_eval_refresh['feedback_status']} / "
+                f"{qwen3_moe_post_eval_refresh['feedback_scored_task_count']}"
+                f"/{qwen3_moe_post_eval_refresh['feedback_task_count']} / "
+                f"{qwen3_moe_post_eval_refresh['feedback_changed_group_count']} |"
             ),
             (
                 "| Qwen3 MoE router move gate | status / action / allowed layers | "

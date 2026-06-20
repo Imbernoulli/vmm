@@ -1,0 +1,11 @@
+# Qwen3 MoE Feedback Optimizer Smoke
+
+- Status: `passed`
+- Cases passed: `4/4`
+
+| case | assertion | expected | actual | passed |
+| --- | --- | --- | --- | --- |
+| `code_regression_restore` | `code_scale_increases` | `>0.50` | `0.589298` | `True` |
+| `math_regression_shrink` | `math_scale_decreases` | `<0.80` | `0.748692` | `True` |
+| `hard_cap` | `max_delta_capped` | `<=0.65` | `0.471438` | `True` |
+| `awaiting_eval` | `no_feedback_without_scores` | `0 changed groups` | `0` | `True` |

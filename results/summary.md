@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-20T08:29:35.984384+00:00`
+Generated at: `2026-06-20T08:42:23.831905+00:00`
 
 ## Coverage
 
-Complete: `90`; partial: `1`; missing: `0`.
+Complete: `91`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -86,7 +86,8 @@ Complete: `90`; partial: `1`; missing: `0`.
 | Unified Dense/MoE average optimizer | complete | results/unified_average_optimizer/report.md converts Dense barrier probes, Dense/Qwen3 MoE straight-line connectivity, MoE gauge probes, Qwen3 expert identity, router movement, router margin fragility, router-only NLL calibration evidence, unified mechanism caps, router-calibration gating, and final candidate-selection gates into one same-shape operation policy. |
 | Qwen3 MoE vLLM eval bundle audit | complete | results/qwen3_moe_eval_bundle_audit/report.md checks every Qwen3 source/candidate eval output for model-id, task-manifest sha, task, example-count, prediction, primary-score, and paired prediction-key consistency before selector use; results/qwen3_moe_eval_bundle_audit_smoke/report.md covers valid, stale-model, missing-task, low-example, key-mismatch, and manifest-mismatch bundles. |
 | Qwen3 MoE mechanism effect attribution | complete | results/qwen3_moe_mechanism_effect_attribution/report.md decomposes the Qwen3 MoE source-frontier -> route-guarded -> audit-gated -> trust-region -> expert-only -> tail-trimmed -> searched-cap -> layer/chunk -> unified-mechanism chain into structural and downstream score deltas, gated by the eval-bundle audit. |
-| Qwen3 MoE post-vLLM eval refresh pipeline | complete | results/qwen3_moe_post_eval_refresh/report.md runs eval-bundle audit, unified result selection, mechanism attribution, smoke checks, and collect_results in a fixed post-eval order after remote vLLM outputs land. |
+| Qwen3 MoE downstream feedback optimizer | complete | results/qwen3_moe_feedback_optimizer/report.md converts source-frontier task regressions from vLLM eval into bounded routed-expert rule updates; results/qwen3_moe_feedback_optimizer_smoke/report.md verifies code-regression restoration, non-code source-regression shrinkage, hard-cap enforcement, and no-update awaiting-eval behavior. |
+| Qwen3 MoE post-vLLM eval refresh pipeline | complete | results/qwen3_moe_post_eval_refresh/report.md runs eval-bundle audit, unified result selection, mechanism attribution, downstream feedback optimization, smoke checks, and collect_results in a fixed post-eval order after remote vLLM outputs land. |
 | Qwen3 MoE searched cap-law materialized candidate | complete | results/qwen3_moe_searched_no_gt065_delta_audit/report.md verifies the materialized searched 0.65 cap-law checkpoint and adds it to the Qwen3 MoE eval gate. |
 | Qwen3 MoE router move gate | complete | results/qwen3_moe_router_move_gate/report.md combines router tensor deltas with real routing readiness and rejects direct router-weight movement for all 48 layers. |
 | Qwen3 MoE router margin fragility probe | complete | results/qwen3_moe_router_margin_fragility/report.md ranks router layers and prompt categories by top-k boundary fragility from real Qwen3 route margins, overlap, and router movement. |
@@ -263,8 +264,13 @@ Complete: `90`; partial: `1`; missing: `0`.
 | Qwen3 MoE mechanism attribution | status / scored / regressions | awaiting_eval / 0/9 / 0 |
 | Qwen3 MoE mechanism attribution | best avg / best worst transition | None / None |
 | Qwen3 MoE mechanism attribution smoke | status / passed cases | passed / 3/3 |
-| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | passed / 9/9 / 0/11 |
-| Qwen3 MoE post-eval refresh | selection / final selection / attribution scored / plan steps | awaiting_source_eval / awaiting_source_eval / 0/9 / 9/9 |
+| Qwen3 MoE feedback optimizer | status / scored tasks / regressions / changed groups | awaiting_eval / 0/4 / 0 / 0 |
+| Qwen3 MoE feedback optimizer | materialization gate | do_not_materialize_feedback_candidate_yet |
+| Qwen3 MoE feedback optimizer | nonbase ratio / max expected delta / hard-cap violations | 1.000 / 0.644 / 0 |
+| Qwen3 MoE feedback optimizer smoke | status / passed cases | passed / 4/4 |
+| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | passed / 11/11 / 0/11 |
+| Qwen3 MoE post-eval refresh | selection / final selection / attribution scored / plan steps | awaiting_source_eval / awaiting_source_eval / 0/9 / 11/11 |
+| Qwen3 MoE post-eval refresh | feedback status / scored tasks / changed groups | awaiting_eval / 0/4 / 0 |
 | Qwen3 MoE router move gate | status / action / allowed layers | router_move_rejected_freeze_router / freeze_router / 0/48 |
 | Qwen3 MoE router move gate | unsafe / calibrate / freeze rows | 499 / 493 / 6 |
 | Qwen3 MoE router move gate | router rel-norm / mean-min top-k Jaccard / min top1 | 0.739 / 0.454-0.242 / 0.069 |

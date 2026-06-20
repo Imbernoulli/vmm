@@ -8,10 +8,10 @@
   },
   "passed_step_count": 0,
   "plan_only": true,
-  "planned_step_count": 9,
+  "planned_step_count": 11,
   "schema_version": 1,
   "status": "planned",
-  "step_count": 9,
+  "step_count": 11,
   "steps": [
     {
       "command": "python scripts/audit_qwen3_moe_eval_bundle.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_eval_bundle_audit",
@@ -54,6 +54,16 @@
       "step": "attribute_mechanism_effects"
     },
     {
+      "command": "python scripts/build_qwen3_moe_feedback_optimizer.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_feedback_optimizer",
+      "duration_sec": 0.0,
+      "kind": "optimizer",
+      "returncode": null,
+      "status": "planned",
+      "stderr_tail": "",
+      "stdout_tail": "",
+      "step": "build_feedback_optimizer"
+    },
+    {
       "command": "python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke",
       "duration_sec": 0.0,
       "kind": "smoke",
@@ -92,6 +102,16 @@
       "stderr_tail": "",
       "stdout_tail": "",
       "step": "attribute_mechanism_effects_smoke"
+    },
+    {
+      "command": "python scripts/build_qwen3_moe_feedback_optimizer.py --smoke-matrix --output-dir results/qwen3_moe_feedback_optimizer_smoke",
+      "duration_sec": 0.0,
+      "kind": "smoke",
+      "returncode": null,
+      "status": "planned",
+      "stderr_tail": "",
+      "stdout_tail": "",
+      "step": "build_feedback_optimizer_smoke"
     },
     {
       "command": "python scripts/collect_results.py",

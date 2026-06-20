@@ -149,6 +149,20 @@ def build_steps(args: argparse.Namespace) -> list[dict[str, Any]]:
                 str(args.attribution_dir),
             ],
         },
+        {
+            "step": "build_feedback_optimizer",
+            "kind": "optimizer",
+            "command": [
+                py,
+                "scripts/build_qwen3_moe_feedback_optimizer.py",
+                "--gate-dir",
+                str(args.gate_dir),
+                "--audit-dir",
+                str(args.audit_dir),
+                "--output-dir",
+                str(args.feedback_dir),
+            ],
+        },
     ]
     if args.include_smoke:
         steps.extend(
@@ -197,6 +211,17 @@ def build_steps(args: argparse.Namespace) -> list[dict[str, Any]]:
                         str(args.attribution_smoke_dir),
                     ],
                 },
+                {
+                    "step": "build_feedback_optimizer_smoke",
+                    "kind": "smoke",
+                    "command": [
+                        py,
+                        "scripts/build_qwen3_moe_feedback_optimizer.py",
+                        "--smoke-matrix",
+                        "--output-dir",
+                        str(args.feedback_smoke_dir),
+                    ],
+                },
             ]
         )
     if not args.skip_collect:
@@ -215,6 +240,7 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
     selection = read_json(repo_path(args.selection_dir) / "summary.json")
     final_selection = read_json(repo_path(args.final_selection_dir) / "summary.json")
     attribution = read_json(repo_path(args.attribution_dir) / "summary.json")
+    feedback = read_json(repo_path(args.feedback_dir) / "summary.json")
     final_current = final_selection.get("current_selection") or {}
     return {
         "audit_status": audit.get("status"),
@@ -231,6 +257,11 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
         "attribution_status": attribution.get("status"),
         "attribution_scored_transition_count": attribution.get("scored_transition_count"),
         "attribution_transition_count": attribution.get("transition_count"),
+        "feedback_status": feedback.get("status"),
+        "feedback_scored_task_count": feedback.get("scored_task_count"),
+        "feedback_task_count": feedback.get("task_count"),
+        "feedback_regression_task_count": feedback.get("regression_task_count"),
+        "feedback_changed_group_count": feedback.get("changed_group_count"),
     }
 
 
@@ -248,6 +279,7 @@ def build_report(summary: dict[str, Any]) -> str:
         f"- Selection: `{downstream.get('selection_status', 'n/a')}` -> `{downstream.get('selected_method', 'n/a')}`",
         f"- Final selection: `{downstream.get('final_selection_status', 'n/a')}` -> `{downstream.get('final_selected_method', 'n/a')}` (`{downstream.get('final_eligible_candidate_count', 'n/a')}/{downstream.get('final_candidate_count', 'n/a')}` eligible)",
         f"- Attribution: `{downstream.get('attribution_status', 'n/a')}` (`{downstream.get('attribution_scored_transition_count', 'n/a')}/{downstream.get('attribution_transition_count', 'n/a')}` scored)",
+        f"- Feedback optimizer: `{downstream.get('feedback_status', 'n/a')}` (`{downstream.get('feedback_scored_task_count', 'n/a')}/{downstream.get('feedback_task_count', 'n/a')}` scored, `{downstream.get('feedback_changed_group_count', 'n/a')}` changed groups)",
         "",
         "| step | kind | status | returncode | seconds |",
         "| --- | --- | --- | ---: | ---: |",
@@ -305,6 +337,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--selection-dir", type=Path, default=Path("results/qwen3_moe_unified_result_selection"))
     parser.add_argument("--final-selection-dir", type=Path, default=Path("results/qwen3_moe_final_candidate_selection"))
     parser.add_argument("--attribution-dir", type=Path, default=Path("results/qwen3_moe_mechanism_effect_attribution"))
+    parser.add_argument("--feedback-dir", type=Path, default=Path("results/qwen3_moe_feedback_optimizer"))
     parser.add_argument("--audit-smoke-dir", type=Path, default=Path("results/qwen3_moe_eval_bundle_audit_smoke"))
     parser.add_argument("--selection-smoke-dir", type=Path, default=Path("results/qwen3_moe_unified_result_selection_smoke"))
     parser.add_argument(
@@ -316,6 +349,11 @@ def parse_args() -> argparse.Namespace:
         "--attribution-smoke-dir",
         type=Path,
         default=Path("results/qwen3_moe_mechanism_effect_attribution_smoke"),
+    )
+    parser.add_argument(
+        "--feedback-smoke-dir",
+        type=Path,
+        default=Path("results/qwen3_moe_feedback_optimizer_smoke"),
     )
     parser.add_argument("--output-dir", type=Path, default=Path("results/qwen3_moe_post_eval_refresh"))
     parser.add_argument("--include-smoke", action="store_true")
