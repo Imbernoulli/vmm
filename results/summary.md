@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-20T05:10:51.386133+00:00`
+Generated at: `2026-06-20T05:17:39.809718+00:00`
 
 ## Coverage
 
@@ -45,7 +45,7 @@ Complete: `84`; partial: `1`; missing: `0`.
 | Same-shape checkpoint writer | complete | scripts/write_same_shape_average_checkpoint.py writes same-shape safetensors checkpoints; results/same_shape_writer_smoke/report.md validates Qwen2.5-0.5B base/instruct/coder dry-run compatibility. |
 | Dense sparse-method writer smoke | complete | results/dense_sparse_method_writer_smoke/report.md verifies coordinate-wise TIES-style trim/sign-elect/merge inside the same-shape checkpoint writer. |
 | MoE tensor-rule writer materialization | complete | results/moe_tensor_rule_writer_smoke/report.md writes a tiny MoE-like safetensors checkpoint and verifies tensor-rule, freeze-router, router-bias additive deltas, full-tensor router deltas, and non-floating tensor behavior numerically. |
-| MoE router delta calibration smoke | complete | results/moe_router_delta_calibration_smoke/report.md trains a same-shape router safetensors delta from hidden/router-logit cache, improving route KL and top-1 agreement under a relative-norm cap. |
+| MoE router delta calibration smoke | complete | results/moe_router_delta_calibration_smoke/report.md trains a same-shape router safetensors delta from hidden/router-logit cache, improving route KL and top-1 agreement under global/per-router cap-table relative-norm caps. |
 | MoE router calibration cache smoke | complete | results/moe_router_calibration_cache_smoke/report.md captures student router hidden states and teacher router logits from forward hooks, then verifies the cache by training a same-shape router delta. |
 | MoE combined writer smoke | complete | results/moe_combined_writer_smoke/report.md verifies expert tensor rules, source expert alias remap, freeze-router, and router-bias additive deltas in one same-shape writer call. |
 | MoE packed-expert writer smoke | complete | results/moe_packed_expert_writer_smoke/report.md verifies first-dimension packed expert slice weights and source-expert remaps for Qwen-style packed MoE tensors. |
@@ -436,14 +436,15 @@ Complete: `84`; partial: `1`; missing: `0`.
 | MoE tensor-rule writer smoke | checked / failed tensors | 7 / 0 |
 | MoE tensor-rule writer smoke | additive bias delta tensors / values | 1 / 2 |
 | MoE tensor-rule writer smoke | safetensors tensor delta tensors / values | 1 / 4 |
-| MoE router delta calibration smoke | status / routers / delta tensors | passed / 1 / 1 |
-| MoE router delta calibration smoke | route KL initial-final / top1 initial-final / rel cap | 0.1894-0.0557 / 0.4545-0.7792 / 0.5000 |
-| MoE router delta calibration smoke | selection policy-split / selected epoch / score | capacity_aware-validation / 2.00 / 0.1738 |
+| MoE router delta calibration smoke | status / routers / delta tensors | passed / 2 / 2 |
+| MoE router delta calibration smoke | route KL initial-final / top1 initial-final / max rel delta | 0.2392-0.2153 / 0.4481-0.4870 / 0.0800 |
+| MoE router delta calibration smoke | cap mode / min-mean-max cap / max utilization | per_router_table / 0.0200-0.0500-0.0800 / 1.0000 |
+| MoE router delta calibration smoke | selection policy-split / selected epoch / score | capacity_aware-validation / 3.50 / 0.2168 |
 | MoE router delta calibration smoke | train/selection samples / validation fraction | 307.0/77.0 / 0.201 |
 | MoE router delta calibration smoke | train/validation groups | 0.0/0.0 |
-| MoE router delta calibration smoke | train-validation KL / top1 gap | 0.0519-0.0557 / 0.7720-0.7792 / 0.0038/-0.0072 |
-| MoE router delta calibration smoke | hard top1/top-k overflow initial-final / increase | 0.0122-0.0633 / 0.0000-0.0000 / 0.0511/0.0000 |
-| MoE router delta calibration smoke | hard top1/top-k max load initial-final | 0.3247-0.3636 / 0.2727-0.2922 |
+| MoE router delta calibration smoke | train-validation KL / top1 gap | 0.2013-0.2153 / 0.5244-0.4870 / 0.0169/0.0473 |
+| MoE router delta calibration smoke | hard top1/top-k overflow initial-final / increase | 0.0122-0.0122 / 0.0000-0.0000 / 0.0000/0.0000 |
+| MoE router delta calibration smoke | hard top1/top-k max load initial-final | 0.3247-0.3247 / 0.2727-0.2727 |
 | MoE router calibration cache smoke | status / ready routers / cache rows | passed / 2/2 / 192 |
 | MoE router calibration cache smoke | materialization status / checked / failed | passed / 2 / 0 |
 | MoE router calibration cache smoke | cache KL / trained KL initial-final / trained top1 initial-final | 0.0624 / 0.0474-0.0334 / 0.7292-0.8125 |

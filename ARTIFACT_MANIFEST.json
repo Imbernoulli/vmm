@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 85221,
+      "bytes": 85420,
       "kind": "document",
       "path": "README.md",
-      "sha256": "0b25c6bee83feca2e86b11e38a68225f9a624280b9760ab3d11f5a703d98b32b"
+      "sha256": "45712ab415dc64a3beedd73fc73a62de613481a4bbf9d2a7abc87fa08ba42f6b"
     },
     {
       "bytes": 33211,
@@ -1387,28 +1387,34 @@
       "sha256": "569b746cd1c1d7d2cc7d8f894b7986649fe0f506f6f6bd18b3fc995564309168"
     },
     {
-      "bytes": 2141,
+      "bytes": 2421,
       "kind": "document",
       "path": "results/moe_router_delta_calibration_smoke/report.md",
-      "sha256": "0588ec8b87ab425ab7ebe398b0e5aacc0f0f962e8fde989df116234ad7131d6d"
+      "sha256": "a60f0541e31261162007e16f3f44f0c70ffda49a140cb87b94cebd63aa02b641"
     },
     {
-      "bytes": 1552,
+      "bytes": 158,
+      "kind": "data",
+      "path": "results/moe_router_delta_calibration_smoke/router_cap_table.csv",
+      "sha256": "c8cd4f5f0a62f645e6a4320a95c27c833846aa1815de0bb69dfa2671c49f6dda"
+    },
+    {
+      "bytes": 2506,
       "kind": "data",
       "path": "results/moe_router_delta_calibration_smoke/router_delta_summary.csv",
-      "sha256": "79535bfe4fc54f09747ab4070f44f98aff585414380f2185ad646e655fa66b5b"
+      "sha256": "f4a2371971c89f685b92f9cb2b8e9a2670771b99b437c663b157318a284cd304"
     },
     {
-      "bytes": 3499,
+      "bytes": 3921,
       "kind": "data",
       "path": "results/moe_router_delta_calibration_smoke/summary.json",
-      "sha256": "6dfc9caf7a9eb24e1030b02dba51d72a20860210fb69650c3a4f5ba1268d2bde"
+      "sha256": "fe10a16724004c008f9a67a043e39b7c05d98cbd94564933b2d317ce9e1106b9"
     },
     {
-      "bytes": 5266,
+      "bytes": 3366,
       "kind": "data",
       "path": "results/moe_router_delta_calibration_smoke/training_trace.csv",
-      "sha256": "fe2b749d2ecbc94844ce79cae7c13d73c94619db7972c27c2ab6046b6afe5a44"
+      "sha256": "393323e754f4b0a128d9d1c3ab98e2541936c6aca9f5de03ce6a9d7046df1aed"
     },
     {
       "bytes": 14316044,
@@ -4861,16 +4867,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 1659966,
+      "bytes": 1660879,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "a5a135b2416d369c97e494224ef3a872c4ca0560b02b651bb8e768b17baffac8"
+      "sha256": "07bbcf990706de41bebfc077894b004c1fd0fc65ccb3f3c9ddeb2cff603b172b"
     },
     {
-      "bytes": 54355,
+      "bytes": 54525,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "382b8fb0a13575972e49194c3f056689bc76974868ae1142d4ce24d7b63739db"
+      "sha256": "ee70e6ea840c33da5518f023215c6ae6b0dbe4fbf3d953a5bc07b2ce8bdb5c6b"
     },
     {
       "bytes": 288,
@@ -6121,10 +6127,10 @@
       "sha256": "cd588bc1804013f4043bd95c245b066dbae86bfd3e3f9c18317ef33eb506f123"
     },
     {
-      "bytes": 378047,
+      "bytes": 379287,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "23a173c705c44735b150cc4a3d901569c10df8220ca88e323c3f3c324b7effdf"
+      "sha256": "87e8df913378de6661e7934da295a3e14dae446418da49b8f21dda180b92a407"
     },
     {
       "bytes": 16101,
@@ -6379,10 +6385,10 @@
       "sha256": "1eb120f38e70660d637dc001fe5114b0a51c42ee62f8a7790719930866124d20"
     },
     {
-      "bytes": 45971,
+      "bytes": 49759,
       "kind": "code",
       "path": "scripts/train_moe_router_delta_calibration.py",
-      "sha256": "f3c82dfc0ed6dc69ba6f26879b7acc291f2f1853513a5538b6e64cd1438e5c25"
+      "sha256": "4fb7a098aa4c81eef48b861f3293b0bbf29296e63c0fe1b58afa0ffcc7c9bd69"
     },
     {
       "bytes": 16731,
@@ -6415,7 +6421,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-20T05:10:51.431636+00:00",
+  "generated_at": "2026-06-20T05:17:39.844883+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

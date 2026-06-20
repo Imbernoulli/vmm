@@ -687,6 +687,11 @@ def build_report(summary: dict[str, Any], metric_df: pd.DataFrame) -> str:
             f"- `{summary['outputs']['router_delta_safetensors']}`",
             f"- `{summary['outputs']['router_delta_summary']}`",
             f"- `{summary['outputs']['training_trace']}`",
+            *(
+                [f"- `{summary['outputs']['router_cap_table']}`"]
+                if summary["outputs"].get("router_cap_table")
+                else []
+            ),
             f"- `{summary['outputs']['summary']}`",
         ]
     )
@@ -735,6 +740,7 @@ def calibrate_from_cache(args: argparse.Namespace) -> dict[str, Any]:
     initial = metric_df[metric_df["stage"] == "initial"]
     final = metric_df[metric_df["stage"] == "final"]
     final_caps = pd.to_numeric(final["max_relative_norm_cap"], errors="coerce").dropna()
+    final_cap_utilization = pd.to_numeric(final["cap_utilization"], errors="coerce").dropna()
     kl_improved = float(final["route_kl"].mean()) < float(initial["route_kl"].mean())
     top1_not_worse = float(final["top1_agreement"].mean()) >= float(initial["top1_agreement"].mean())
     status = "passed" if kl_improved and top1_not_worse else "no_improvement"
@@ -827,7 +833,7 @@ def calibrate_from_cache(args: argparse.Namespace) -> dict[str, Any]:
         "min_router_relative_norm_cap": float(final_caps.min()) if not final_caps.empty else args.max_relative_norm,
         "mean_router_relative_norm_cap": float(final_caps.mean()) if not final_caps.empty else args.max_relative_norm,
         "max_router_relative_norm_cap": float(final_caps.max()) if not final_caps.empty else args.max_relative_norm,
-        "max_cap_utilization": float(final["cap_utilization"].max()) if "cap_utilization" in final else None,
+        "max_cap_utilization": float(final_cap_utilization.max()) if not final_cap_utilization.empty else None,
         "writer_command": display_writer_command(args, delta_path),
         "outputs": {
             "router_delta_safetensors": rel(delta_path),
@@ -835,6 +841,7 @@ def calibrate_from_cache(args: argparse.Namespace) -> dict[str, Any]:
             "training_trace": rel(trace_path),
             "summary": rel(output_dir / "summary.json"),
             "report": rel(output_dir / "report.md"),
+            "router_cap_table": rel(args.router_cap_table) if args.router_cap_table else None,
         },
     }
     (output_dir / "summary.json").write_text(json.dumps(json_safe(summary), indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -875,15 +882,78 @@ def build_smoke_inputs(root: Path, seed: int) -> tuple[Path, Path]:
     return base_dir, cache_path
 
 
+def build_cap_table_smoke_inputs(root: Path, seed: int) -> tuple[Path, Path, Path]:
+    generator = torch.Generator().manual_seed(seed)
+    hidden_dim = 6
+    num_experts = 4
+    samples = 384
+    tensors: dict[str, torch.Tensor] = {}
+    routers: dict[str, dict[str, torch.Tensor]] = {}
+    cap_rows = []
+    for layer_idx, cap in [(0, 0.02), (1, 0.08)]:
+        hidden = torch.randn(samples, hidden_dim, generator=generator)
+        base_weight = 0.35 * torch.randn(num_experts, hidden_dim, generator=generator)
+        target_delta = torch.zeros_like(base_weight)
+        scale = 1.0 + 0.25 * layer_idx
+        target_delta[0, 0] = 0.9 * scale
+        target_delta[1, 1] = -0.8 * scale
+        target_delta[2, 2] = 0.7 * scale
+        target_delta[3, 3] = -0.6 * scale
+        target_delta[:, 4] = torch.tensor([0.25, -0.25, 0.15, -0.15]) * scale
+        teacher_weight = base_weight + target_delta
+        tensor_name = f"model.layers.{layer_idx}.router.weight"
+        tensors[tensor_name] = base_weight
+        routers[tensor_name] = {
+            "hidden": hidden,
+            "teacher_logits": hidden @ teacher_weight.t(),
+        }
+        cap_rows.append(
+            {
+                "layer": layer_idx,
+                "router": f"model.layers.{layer_idx}.router",
+                "tensor": tensor_name,
+                "max_relative_norm_cap": cap,
+            }
+        )
+    base_dir = root / "base"
+    base_dir.mkdir(parents=True, exist_ok=True)
+    save_file(tensors, str(base_dir / "model.safetensors"), metadata={"format": "pt"})
+    cache_path = root / "router_cache.pt"
+    torch.save({"routers": routers}, cache_path)
+    cap_table_path = root / "router_cap_table.csv"
+    pd.DataFrame(cap_rows).to_csv(cap_table_path, index=False)
+    return base_dir, cache_path, cap_table_path
+
+
 def run_smoke(args: argparse.Namespace) -> dict[str, Any]:
     with tempfile.TemporaryDirectory(prefix="moe_router_delta_calibration_") as tmp_raw:
-        base_dir, cache_path = build_smoke_inputs(Path(tmp_raw), args.seed)
         smoke_args = argparse.Namespace(**vars(args))
+        if args.smoke_cap_table:
+            base_dir, cache_path, cap_table_path = build_cap_table_smoke_inputs(Path(tmp_raw), args.seed)
+            output_cap_table = repo_path(smoke_args.output_dir) / "router_cap_table.csv"
+            output_cap_table.parent.mkdir(parents=True, exist_ok=True)
+            pd.read_csv(cap_table_path).to_csv(output_cap_table, index=False)
+            smoke_args.router_cap_table = output_cap_table
+            smoke_args.router_cap_column = "max_relative_norm_cap"
+        else:
+            base_dir, cache_path = build_smoke_inputs(Path(tmp_raw), args.seed)
         smoke_args.base = str(base_dir)
         smoke_args.cache = str(cache_path)
         summary = calibrate_from_cache(smoke_args)
     if summary["status"] != "passed":
         raise SystemExit(1)
+    if args.smoke_cap_table:
+        metric_path = repo_path(summary["outputs"]["router_delta_summary"])
+        metrics = pd.read_csv(metric_path)
+        final = metrics[metrics["stage"] == "final"].copy()
+        caps = pd.to_numeric(final["max_relative_norm_cap"], errors="coerce").dropna()
+        cap_utilization = pd.to_numeric(final["cap_utilization"], errors="coerce").dropna()
+        if summary.get("router_cap_mode") != "per_router_table":
+            raise SystemExit("cap-table smoke did not use per_router_table mode")
+        if int(final["tensor"].nunique()) < 2 or int(caps.nunique()) < 2:
+            raise SystemExit("cap-table smoke requires at least two routers with distinct caps")
+        if cap_utilization.empty or float(cap_utilization.max()) > 1.0001:
+            raise SystemExit("cap-table smoke violated a per-router relative-norm cap")
     return summary
 
 
@@ -938,12 +1008,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--trace-every", type=int, default=10)
     parser.add_argument("--seed", type=int, default=17)
     parser.add_argument("--smoke", action="store_true", help="Generate a synthetic router cache and verify training locally.")
+    parser.add_argument(
+        "--smoke-cap-table",
+        action="store_true",
+        help="Generate a two-router synthetic cache and verify distinct per-router cap-table projection.",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
-    if args.smoke:
+    if args.smoke or args.smoke_cap_table:
         summary = run_smoke(args)
     else:
         if not args.base or not args.cache:

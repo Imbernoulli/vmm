@@ -679,12 +679,19 @@ def summarize_moe_router_delta_calibration_smoke() -> dict[str, Any]:
         "max_initial_topk_load_fraction": float(summary.get("max_initial_topk_load_fraction", 0.0)),
         "max_final_topk_load_fraction": float(summary.get("max_final_topk_load_fraction", 0.0)),
         "max_relative_norm": summary.get("max_relative_norm"),
+        "router_cap_mode": summary.get("router_cap_mode"),
+        "router_cap_table": summary.get("router_cap_table"),
+        "min_router_relative_norm_cap": maybe_float(summary.get("min_router_relative_norm_cap")),
+        "mean_router_relative_norm_cap": maybe_float(summary.get("mean_router_relative_norm_cap")),
+        "max_router_relative_norm_cap": maybe_float(summary.get("max_router_relative_norm_cap")),
+        "max_cap_utilization": maybe_float(summary.get("max_cap_utilization")),
         "router_delta_safetensors": summary.get("outputs", {}).get(
             "router_delta_safetensors",
             rel("results/moe_router_delta_calibration_smoke/router_delta.safetensors"),
         ),
         "report": rel("results/moe_router_delta_calibration_smoke/report.md"),
         "router_delta_summary": rel("results/moe_router_delta_calibration_smoke/router_delta_summary.csv"),
+        "router_cap_table_path": rel("results/moe_router_delta_calibration_smoke/router_cap_table.csv"),
         "training_trace": rel("results/moe_router_delta_calibration_smoke/training_trace.csv"),
     }
 
@@ -3749,7 +3756,7 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "MoE router delta calibration smoke",
             "status": "complete",
-            "evidence": "results/moe_router_delta_calibration_smoke/report.md trains a same-shape router safetensors delta from hidden/router-logit cache, improving route KL and top-1 agreement under a relative-norm cap.",
+            "evidence": "results/moe_router_delta_calibration_smoke/report.md trains a same-shape router safetensors delta from hidden/router-logit cache, improving route KL and top-1 agreement under global/per-router cap-table relative-norm caps.",
         },
         {
             "item": "MoE router calibration cache smoke",
@@ -4192,7 +4199,7 @@ def build_summary() -> dict[str, Any]:
             "python scripts/write_same_shape_average_checkpoint.py --base BASE --source expert=EXPERT --dry-run --output-dir results/same_shape_writer_smoke",
             "PYTHONPATH=scripts python scripts/smoke_dense_sparse_method_writer.py --output-dir results/dense_sparse_method_writer_smoke",
             "python scripts/smoke_moe_tensor_rule_writer.py --output-dir results/moe_tensor_rule_writer_smoke",
-            "python scripts/train_moe_router_delta_calibration.py --smoke --output-dir results/moe_router_delta_calibration_smoke",
+            "python scripts/train_moe_router_delta_calibration.py --smoke-cap-table --output-dir results/moe_router_delta_calibration_smoke",
             "PYTHONPATH=scripts python scripts/collect_moe_router_calibration_cache.py --smoke --output-dir results/moe_router_calibration_cache_smoke",
             "PYTHONPATH=src python scripts/smoke_moe_combined_writer.py --output-dir results/moe_combined_writer_smoke",
             "PYTHONPATH=scripts python scripts/smoke_moe_packed_expert_writer.py --output-dir results/moe_packed_expert_writer_smoke",
@@ -6130,12 +6137,20 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{moe_router_delta_calibration_smoke['delta_tensor_count']} |"
             ),
             (
-                "| MoE router delta calibration smoke | route KL initial-final / top1 initial-final / rel cap | "
+                "| MoE router delta calibration smoke | route KL initial-final / top1 initial-final / max rel delta | "
                 f"{fmt(moe_router_delta_calibration_smoke['mean_initial_route_kl'], 4)}-"
                 f"{fmt(moe_router_delta_calibration_smoke['mean_final_route_kl'], 4)} / "
                 f"{fmt(moe_router_delta_calibration_smoke['mean_initial_top1_agreement'], 4)}-"
                 f"{fmt(moe_router_delta_calibration_smoke['mean_final_top1_agreement'], 4)} / "
                 f"{fmt(moe_router_delta_calibration_smoke['max_final_relative_delta_norm'], 4)} |"
+            ),
+            (
+                "| MoE router delta calibration smoke | cap mode / min-mean-max cap / max utilization | "
+                f"{moe_router_delta_calibration_smoke['router_cap_mode']} / "
+                f"{fmt(moe_router_delta_calibration_smoke['min_router_relative_norm_cap'], 4)}-"
+                f"{fmt(moe_router_delta_calibration_smoke['mean_router_relative_norm_cap'], 4)}-"
+                f"{fmt(moe_router_delta_calibration_smoke['max_router_relative_norm_cap'], 4)} / "
+                f"{fmt(moe_router_delta_calibration_smoke['max_cap_utilization'], 4)} |"
             ),
             (
                 "| MoE router delta calibration smoke | selection policy-split / selected epoch / score | "
