@@ -214,6 +214,7 @@ def moe_feature_rows(
     qwen3_moe_base_coder: dict[str, Any],
     qwen3_downstream_matrix: dict[str, Any],
     qwen3_downstream_attribution: dict[str, Any],
+    qwen3_downstream_confidence: dict[str, Any],
 ) -> list[dict[str, Any]]:
     selection = final_selection.get("current_selection") or {}
     router_selection = router_calibration.get("current_selection") or {}
@@ -447,6 +448,28 @@ def moe_feature_rows(
         },
         {
             "domain": "moe",
+            "probe": "qwen3_generation_confidence_audit",
+            "value": qwen3_downstream_confidence.get("routercal_confident_positive_task_count_vs_naive"),
+            "threshold": qwen3_downstream_confidence.get("task_count"),
+            "decision_signal": "generation_gain_directional_not_confident_or_source_dominant",
+            "evidence": (
+                f"status = {qwen3_downstream_confidence.get('status')}; "
+                f"positive tasks vs naive = "
+                f"{qwen3_downstream_confidence.get('routercal_positive_task_count_vs_naive')}/"
+                f"{qwen3_downstream_confidence.get('task_count')}; "
+                f"confident positive tasks = "
+                f"{qwen3_downstream_confidence.get('routercal_confident_positive_task_count_vs_naive')}/"
+                f"{qwen3_downstream_confidence.get('task_count')}; "
+                f"confident source-frontier wins = "
+                f"{qwen3_downstream_confidence.get('routercal_confident_beats_pair_frontier_task_count')}/"
+                f"{qwen3_downstream_confidence.get('task_count')}; "
+                f"avg gain interval = ["
+                f"{fmt(qwen3_downstream_confidence.get('routercal_avg_diff_lower_vs_naive'))}, "
+                f"{fmt(qwen3_downstream_confidence.get('routercal_avg_diff_upper_vs_naive'))}]"
+            ),
+        },
+        {
+            "domain": "moe",
             "probe": "qwen3_router_calibration_gate",
             "value": router_selection.get("eligible_candidate_count"),
             "threshold": router_selection.get("candidate_count"),
@@ -487,6 +510,7 @@ def build_decisions(
     qwen3_moe_base_coder: dict[str, Any],
     qwen3_downstream_matrix: dict[str, Any],
     qwen3_downstream_attribution: dict[str, Any],
+    qwen3_downstream_confidence: dict[str, Any],
 ) -> pd.DataFrame:
     dense_config = ((dense_selector.get("results") or {}).get("unified") or {}).get("config") or {}
     router_selection = router_calibration.get("current_selection") or {}
@@ -600,6 +624,12 @@ def build_decisions(
                 f"nll_probe_worst_reduction={fmt(router_calibration_nll_probe.get('worst_nll_reduction_vs_linear'))}; "
                 f"generation_avg_gain={fmt(qwen3_downstream_matrix.get('pair_routercal_avg_gain'))}; "
                 f"generation_recovery_fraction={fmt(qwen3_downstream_attribution.get('avg_routercal_recovery_fraction'))}; "
+                f"confidence_positive_tasks="
+                f"{qwen3_downstream_confidence.get('routercal_confident_positive_task_count_vs_naive')}/"
+                f"{qwen3_downstream_confidence.get('task_count')}; "
+                f"confidence_source_frontier_wins="
+                f"{qwen3_downstream_confidence.get('routercal_confident_beats_pair_frontier_task_count')}/"
+                f"{qwen3_downstream_confidence.get('task_count')}; "
                 f"{router_selection.get('status')}: {router_selection.get('reason')}"
             ),
             "why_it_should_improve": "It keeps router calibration as an active MoE-specific lever while still requiring source-dominance and task-regression gates before acceptance.",
@@ -663,6 +693,7 @@ def build_report(summary: dict[str, Any], features: pd.DataFrame, decisions: pd.
         f"- Qwen3 router NLL probe: worst-NLL reduction `{fmt(moe['qwen3_router_calibration_nll_worst_reduction'])}`，code gap to best source `{fmt(moe['qwen3_router_calibration_nll_code_gap_to_best_source'])}`。",
         f"- Qwen3 generation matrix: Instruct+Coder avg `{fmt(moe['qwen3_generation_pair_merge_avg'])}` -> router-cal avg `{fmt(moe['qwen3_generation_pair_routercal_avg'])}`；avg gain `{fmt(moe['qwen3_generation_pair_routercal_avg_gain'])}`，gap to best parent `{fmt(moe['qwen3_generation_pair_routercal_gap_to_best_parent_avg'])}`。",
         f"- Qwen3 generation attribution: router-cal recovers `{fmt(moe['qwen3_generation_avg_routercal_recovery_fraction'])}` of avg naive drop and beats pair frontier on `{moe['qwen3_generation_routercal_beats_pair_frontier_count']}/{moe['qwen3_generation_attribution_score_count']}` scores。",
+        f"- Qwen3 generation confidence: positive tasks vs naive `{moe['qwen3_generation_routercal_positive_tasks_vs_naive']}/{moe['qwen3_generation_confidence_task_count']}`，confident positives `{moe['qwen3_generation_routercal_confident_positive_tasks']}/{moe['qwen3_generation_confidence_task_count']}`，confident source-frontier wins `{moe['qwen3_generation_routercal_confident_source_frontier_wins']}/{moe['qwen3_generation_confidence_task_count']}`；avg gain interval `[{fmt(moe['qwen3_generation_routercal_avg_gain_lower'])}, {fmt(moe['qwen3_generation_routercal_avg_gain_upper'])}]`。",
         f"- Qwen3 router calibration: `{moe['qwen3_router_calibration_status']}`。",
         f"- Qwen3 final selection: `{moe['qwen3_final_selection_status']}`，eligible `{moe['qwen3_eligible_candidates']}/{moe['qwen3_candidate_count']}`。",
         "",
@@ -728,6 +759,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
     qwen3_moe_base_coder = read_json(args.qwen3_moe_base_coder)
     qwen3_downstream_matrix = read_json(args.qwen3_downstream_matrix)
     qwen3_downstream_attribution = read_json(args.qwen3_downstream_attribution)
+    qwen3_downstream_confidence = read_json(args.qwen3_downstream_confidence)
 
     feature_rows = dense_feature_rows(curvature, dense_selector, dense_lambda, gen_eval)
     feature_rows.extend(
@@ -748,6 +780,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
             qwen3_moe_base_coder,
             qwen3_downstream_matrix,
             qwen3_downstream_attribution,
+            qwen3_downstream_confidence,
         )
     )
     features = pd.DataFrame(feature_rows)
@@ -765,6 +798,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         qwen3_moe_base_coder,
         qwen3_downstream_matrix,
         qwen3_downstream_attribution,
+        qwen3_downstream_confidence,
     )
     algorithm = build_algorithm(decisions)
 
@@ -868,6 +902,29 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
             ),
             "qwen3_generation_routercal_beats_pair_frontier_count": qwen3_downstream_attribution.get(
                 "routercal_beats_pair_frontier_count"
+            ),
+            "qwen3_generation_confidence_status": qwen3_downstream_confidence.get("status"),
+            "qwen3_generation_confidence_task_count": qwen3_downstream_confidence.get("task_count"),
+            "qwen3_generation_routercal_positive_tasks_vs_naive": qwen3_downstream_confidence.get(
+                "routercal_positive_task_count_vs_naive"
+            ),
+            "qwen3_generation_routercal_confident_positive_tasks": qwen3_downstream_confidence.get(
+                "routercal_confident_positive_task_count_vs_naive"
+            ),
+            "qwen3_generation_routercal_confident_source_frontier_wins": qwen3_downstream_confidence.get(
+                "routercal_confident_beats_pair_frontier_task_count"
+            ),
+            "qwen3_generation_routercal_avg_gain_lower": fnum(
+                qwen3_downstream_confidence.get("routercal_avg_diff_lower_vs_naive")
+            ),
+            "qwen3_generation_routercal_avg_gain_upper": fnum(
+                qwen3_downstream_confidence.get("routercal_avg_diff_upper_vs_naive")
+            ),
+            "qwen3_generation_routercal_avg_source_frontier_gap_lower": fnum(
+                qwen3_downstream_confidence.get("routercal_avg_gap_lower_vs_pair_frontier")
+            ),
+            "qwen3_generation_routercal_avg_source_frontier_gap_upper": fnum(
+                qwen3_downstream_confidence.get("routercal_avg_gap_upper_vs_pair_frontier")
             ),
             "qwen3_layer_chunk_to_unified_relative_norm_reduction": fnum(
                 delta_frontier.get("layer_chunk_to_unified_relative_norm_reduction")
@@ -1003,6 +1060,11 @@ def parse_args() -> argparse.Namespace:
         "--qwen3-downstream-attribution",
         type=Path,
         default=Path("results/fp_downstream_attribution/summary.json"),
+    )
+    parser.add_argument(
+        "--qwen3-downstream-confidence",
+        type=Path,
+        default=Path("results/fp_downstream_confidence_audit/summary.json"),
     )
     parser.add_argument(
         "--qwen3-router-margin-fragility",

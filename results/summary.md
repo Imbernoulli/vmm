@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-20T06:24:31.376816+00:00`
+Generated at: `2026-06-20T06:34:12.221260+00:00`
 
 ## Coverage
 
-Complete: `87`; partial: `1`; missing: `0`.
+Complete: `88`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -25,6 +25,7 @@ Complete: `87`; partial: `1`; missing: `0`.
 | Dense exact-answer generation smoke | complete | results/fp_gen_eval_dense/report.md evaluates base, endpoints, linear average, and unified lambda=0 on built-in math/code-output generation tasks without executing model-generated code. |
 | Qwen3 MoE generation-level downstream matrix | complete | results/fp_downstream_matrix/report.md compares official Qwen3 MoE parents, naive averages, and router-calibrated averages on MMLU/GSM8K/HumanEval generation tasks; it is auxiliary evidence, not the final vLLM selector. |
 | Qwen3 MoE generation-level mechanism attribution | complete | results/fp_downstream_attribution/report.md attributes the generation matrix into naive-average regression, router-calibration recovery, and remaining source-frontier gap by task. |
+| Qwen3 MoE generation confidence audit | complete | results/fp_downstream_confidence_audit/report.md adds Wilson aggregate uncertainty bounds to the generation matrix and shows router calibration is directional but not yet a confident source-frontier win. |
 | Formal LLM benchmark slices | complete | Representative Qwen2.5-1.5B benchmark slices cover MMLU, GSM8K, HumanEval canonical-solution NLL, and BeaverTails safety/refusal NLL. |
 | vLLM hosted downstream evaluation | partial | scripts/run_vllm_downstream_eval.py can build a served-model eval plan from the Qwen target registry; the generic registry run remains endpoint_unavailable, while checkpoint-specific hosted eval is tracked separately. |
 | Materialized checkpoint vLLM hosted eval | complete | results/vllm_checkpoint_eval/qwen_0_5b_instruct_coder_uniform_average/report.md contains a real vLLM-hosted GSM8K/MMLU/safety/HumanEval compile eval for the materialized Qwen2.5-0.5B uniform-average checkpoint. |
@@ -142,6 +143,8 @@ Complete: `87`; partial: `1`; missing: `0`.
 | Qwen3 MoE downstream generation matrix | router-cal avg gain / HumanEval gain / gap to best parent | 0.033 / 0.075 / -0.069 |
 | Qwen3 MoE downstream attribution | avg drop / router-cal recovery fraction / gap | 0.103 / 0.324 / -0.069 |
 | Qwen3 MoE downstream attribution | HumanEval recovery / scores beating pair frontier | 0.500 / 0/5 |
+| Qwen3 MoE downstream confidence | positive / confident-positive tasks vs naive | 2/3 / 0/3 |
+| Qwen3 MoE downstream confidence | confident source-frontier wins / avg gain interval | 0/3 / [-0.170, 0.231] |
 | first-principles MoE mechanism | gauge-equivalent B MSE | 7.66e-16 |
 | first-principles MoE mechanism | router agreement raw to aligned | 0.035 to 0.795 |
 | first-principles MoE mechanism | same-name to aligned worst loss | 0.511 to 0.125 |

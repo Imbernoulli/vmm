@@ -1,0 +1,37 @@
+{
+  "best_avg": 0.8972222222222221,
+  "best_avg_model": "instruct",
+  "interpretation": "Router calibration has positive point-estimate gains over the naive pair average on some tasks, but the conservative aggregate intervals do not yet make those gains a confident acceptance signal, and no task confidently beats the source frontier. Use it as a mechanism probe and candidate repair lever, then require matched vLLM paired prediction gates.",
+  "model_count": 7,
+  "outputs": {
+    "comparison_intervals": "results/fp_downstream_confidence_audit/comparison_intervals.csv",
+    "model_task_intervals": "results/fp_downstream_confidence_audit/model_task_intervals.csv",
+    "report": "results/fp_downstream_confidence_audit/report.md",
+    "summary": "results/fp_downstream_confidence_audit/summary.json"
+  },
+  "role": "aggregate_confidence_audit_not_paired_vllm_selector",
+  "routercal_avg_diff_lower_vs_naive": -0.17034819864697093,
+  "routercal_avg_diff_upper_vs_naive": 0.2311732293636113,
+  "routercal_avg_diff_vs_naive": 0.03333333333333344,
+  "routercal_avg_gap_lower_vs_all_source_frontier": -0.24006179441267106,
+  "routercal_avg_gap_lower_vs_pair_frontier": -0.24006179441267106,
+  "routercal_avg_gap_upper_vs_all_source_frontier": 0.11019829885331078,
+  "routercal_avg_gap_upper_vs_pair_frontier": 0.11019829885331078,
+  "routercal_avg_gap_vs_all_source_frontier": -0.06944444444444431,
+  "routercal_avg_gap_vs_pair_frontier": -0.06944444444444431,
+  "routercal_confident_beats_all_source_frontier_task_count": 0,
+  "routercal_confident_beats_pair_frontier_task_count": 0,
+  "routercal_confident_loses_pair_frontier_task_count": 0,
+  "routercal_confident_negative_task_count_vs_naive": 0,
+  "routercal_confident_positive_task_count_vs_naive": 0,
+  "routercal_positive_task_count_vs_naive": 2,
+  "routercal_positive_task_count_vs_pair_frontier": 0,
+  "schema_version": 1,
+  "status": "generation_confidence_audit_ready",
+  "task_count": 3,
+  "task_sample_sizes": {
+    "gsm8k": 40,
+    "humaneval": 40,
+    "mmlu": 120
+  }
+}

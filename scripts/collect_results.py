@@ -655,6 +655,66 @@ def summarize_fp_downstream_attribution() -> dict[str, Any]:
     }
 
 
+def summarize_fp_downstream_confidence_audit() -> dict[str, Any]:
+    root = repo_path("results/fp_downstream_confidence_audit")
+    summary = read_json(root / "summary.json")
+    intervals = read_csv(root / "model_task_intervals.csv")
+    comparisons = read_csv(root / "comparison_intervals.csv")
+    if not summary:
+        return {
+            "status": "missing",
+            "task_count": 0,
+            "comparison_rows": [],
+            "report": rel(root / "report.md"),
+            "summary_path": rel(root / "summary.json"),
+            "model_task_intervals": rel(root / "model_task_intervals.csv"),
+            "comparison_intervals": rel(root / "comparison_intervals.csv"),
+        }
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "role": summary.get("role"),
+        "task_sample_sizes": summary.get("task_sample_sizes", {}),
+        "task_count": maybe_int(summary.get("task_count")),
+        "model_count": maybe_int(summary.get("model_count")),
+        "routercal_positive_task_count_vs_naive": maybe_int(
+            summary.get("routercal_positive_task_count_vs_naive")
+        ),
+        "routercal_confident_positive_task_count_vs_naive": maybe_int(
+            summary.get("routercal_confident_positive_task_count_vs_naive")
+        ),
+        "routercal_confident_beats_pair_frontier_task_count": maybe_int(
+            summary.get("routercal_confident_beats_pair_frontier_task_count")
+        ),
+        "routercal_confident_loses_pair_frontier_task_count": maybe_int(
+            summary.get("routercal_confident_loses_pair_frontier_task_count")
+        ),
+        "routercal_avg_diff_vs_naive": maybe_float(summary.get("routercal_avg_diff_vs_naive")),
+        "routercal_avg_diff_lower_vs_naive": maybe_float(
+            summary.get("routercal_avg_diff_lower_vs_naive")
+        ),
+        "routercal_avg_diff_upper_vs_naive": maybe_float(
+            summary.get("routercal_avg_diff_upper_vs_naive")
+        ),
+        "routercal_avg_gap_vs_pair_frontier": maybe_float(
+            summary.get("routercal_avg_gap_vs_pair_frontier")
+        ),
+        "routercal_avg_gap_lower_vs_pair_frontier": maybe_float(
+            summary.get("routercal_avg_gap_lower_vs_pair_frontier")
+        ),
+        "routercal_avg_gap_upper_vs_pair_frontier": maybe_float(
+            summary.get("routercal_avg_gap_upper_vs_pair_frontier")
+        ),
+        "interpretation": summary.get("interpretation"),
+        "interval_rows": [clean_row(row) for _, row in intervals.iterrows()],
+        "comparison_rows": [clean_row(row) for _, row in comparisons.iterrows()],
+        "report": rel(root / "report.md"),
+        "summary_path": rel(root / "summary.json"),
+        "model_task_intervals": rel(root / "model_task_intervals.csv"),
+        "comparison_intervals": rel(root / "comparison_intervals.csv"),
+    }
+
+
 def summarize_average_decision_report() -> dict[str, Any]:
     summary = read_json("results/average_decision_report/summary.json")
     decisions = summary.get("decisions", [])
@@ -1770,6 +1830,39 @@ def summarize_unified_average_optimizer() -> dict[str, Any]:
         ),
         "qwen3_router_calibration_nll_worst_gap_to_best_source": maybe_float(
             moe.get("qwen3_router_calibration_nll_worst_gap_to_best_source")
+        ),
+        "qwen3_generation_matrix_status": moe.get("qwen3_generation_matrix_status"),
+        "qwen3_generation_pair_routercal_avg_gain": maybe_float(
+            moe.get("qwen3_generation_pair_routercal_avg_gain")
+        ),
+        "qwen3_generation_pair_routercal_gap_to_best_parent_avg": maybe_float(
+            moe.get("qwen3_generation_pair_routercal_gap_to_best_parent_avg")
+        ),
+        "qwen3_generation_attribution_status": moe.get("qwen3_generation_attribution_status"),
+        "qwen3_generation_avg_routercal_recovery_fraction": maybe_float(
+            moe.get("qwen3_generation_avg_routercal_recovery_fraction")
+        ),
+        "qwen3_generation_routercal_beats_pair_frontier_count": maybe_int(
+            moe.get("qwen3_generation_routercal_beats_pair_frontier_count")
+        ),
+        "qwen3_generation_confidence_status": moe.get("qwen3_generation_confidence_status"),
+        "qwen3_generation_confidence_task_count": maybe_int(
+            moe.get("qwen3_generation_confidence_task_count")
+        ),
+        "qwen3_generation_routercal_positive_tasks_vs_naive": maybe_int(
+            moe.get("qwen3_generation_routercal_positive_tasks_vs_naive")
+        ),
+        "qwen3_generation_routercal_confident_positive_tasks": maybe_int(
+            moe.get("qwen3_generation_routercal_confident_positive_tasks")
+        ),
+        "qwen3_generation_routercal_confident_source_frontier_wins": maybe_int(
+            moe.get("qwen3_generation_routercal_confident_source_frontier_wins")
+        ),
+        "qwen3_generation_routercal_avg_gain_lower": maybe_float(
+            moe.get("qwen3_generation_routercal_avg_gain_lower")
+        ),
+        "qwen3_generation_routercal_avg_gain_upper": maybe_float(
+            moe.get("qwen3_generation_routercal_avg_gain_upper")
         ),
         "qwen3_router_calibration_status": moe.get("qwen3_router_calibration_status"),
         "qwen3_router_calibration_eligible_candidates": maybe_int(
@@ -3826,6 +3919,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/fp_downstream_attribution/report.md attributes the generation matrix into naive-average regression, router-calibration recovery, and remaining source-frontier gap by task.",
         },
         {
+            "item": "Qwen3 MoE generation confidence audit",
+            "status": "complete",
+            "evidence": "results/fp_downstream_confidence_audit/report.md adds Wilson aggregate uncertainty bounds to the generation matrix and shows router calibration is directional but not yet a confident source-frontier win.",
+        },
+        {
             "item": "Formal LLM benchmark slices",
             "status": "complete",
             "evidence": "Representative Qwen2.5-1.5B benchmark slices cover MMLU, GSM8K, HumanEval canonical-solution NLL, and BeaverTails safety/refusal NLL.",
@@ -4202,6 +4300,7 @@ def build_summary() -> dict[str, Any]:
         "fp_gen_eval_dense": summarize_fp_gen_eval_dense(),
         "fp_downstream_matrix": summarize_fp_downstream_matrix(),
         "fp_downstream_attribution": summarize_fp_downstream_attribution(),
+        "fp_downstream_confidence_audit": summarize_fp_downstream_confidence_audit(),
         "qwen_probe_smoke": summarize_qwen_probe_smoke(),
         "average_decision_report": summarize_average_decision_report(),
         "model_averaging_literature_review": summarize_model_averaging_literature_review(),
@@ -4484,6 +4583,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     fp_gen_eval = exp["fp_gen_eval_dense"]
     fp_downstream_matrix = exp["fp_downstream_matrix"]
     fp_downstream_attribution = exp["fp_downstream_attribution"]
+    fp_downstream_confidence = exp["fp_downstream_confidence_audit"]
     average_decision = exp["average_decision_report"]
     literature_review = exp["model_averaging_literature_review"]
     average_method_gate_matrix = exp["average_method_gate_matrix"]
@@ -4816,6 +4916,20 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(fp_downstream_attribution['humaneval_routercal_recovery_fraction'])} / "
                 f"{fp_downstream_attribution['routercal_beats_pair_frontier_count']}"
                 f"/{fp_downstream_attribution['score_count']} |"
+            ),
+            (
+                "| Qwen3 MoE downstream confidence | positive / confident-positive tasks vs naive | "
+                f"{fp_downstream_confidence['routercal_positive_task_count_vs_naive']}"
+                f"/{fp_downstream_confidence['task_count']} / "
+                f"{fp_downstream_confidence['routercal_confident_positive_task_count_vs_naive']}"
+                f"/{fp_downstream_confidence['task_count']} |"
+            ),
+            (
+                "| Qwen3 MoE downstream confidence | confident source-frontier wins / avg gain interval | "
+                f"{fp_downstream_confidence['routercal_confident_beats_pair_frontier_task_count']}"
+                f"/{fp_downstream_confidence['task_count']} / "
+                f"[{fmt(fp_downstream_confidence['routercal_avg_diff_lower_vs_naive'])}, "
+                f"{fmt(fp_downstream_confidence['routercal_avg_diff_upper_vs_naive'])}] |"
             ),
             (
                 "| first-principles MoE mechanism | gauge-equivalent B MSE | "
