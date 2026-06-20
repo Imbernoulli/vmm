@@ -13,6 +13,11 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 
 LITERATURE_PRIORS = [
     {
+        "key": "loss_landscape",
+        "source": "https://arxiv.org/abs/1712.09913",
+        "mechanism": "Loss landscapes should be inspected on meaningful weight-space directions; visual smoothness is not evidence that a source-to-source midpoint is safe.",
+    },
+    {
         "key": "mode_connectivity",
         "source": "https://arxiv.org/abs/1802.10026",
         "mechanism": "A weight average is trusted only when the probed path stays in a low-loss basin.",
@@ -53,6 +58,11 @@ LITERATURE_PRIORS = [
         "mechanism": "Expert output similarity/subspace structure is a better merge signal than tensor names alone.",
     },
     {
+        "key": "regmean++",
+        "source": "https://arxiv.org/abs/2508.03121",
+        "mechanism": "Activation regression should account for intra- and cross-layer dependencies; layer-wise closed forms are useful diagnostics but can miss propagation effects.",
+    },
+    {
         "key": "mergemoe",
         "source": "https://arxiv.org/abs/2510.14436",
         "mechanism": "MoE expert merging can be formulated through output-space matching and optimization.",
@@ -66,6 +76,16 @@ LITERATURE_PRIORS = [
         "key": "harc",
         "source": "https://arxiv.org/abs/2606.03391",
         "mechanism": "MoE router movement must be gated by top-k boundary stability, not treated like an ordinary dense tensor.",
+    },
+    {
+        "key": "router_kd_calibration",
+        "source": "https://arxiv.org/abs/2603.02217",
+        "mechanism": "Expert edits create router-expert mismatch; router-only KD is a lightweight repair lever but still needs downstream acceptance gates.",
+    },
+    {
+        "key": "output_space_projection",
+        "source": "https://arxiv.org/abs/2605.29101",
+        "mechanism": "Output residual projection provides a convex calibration objective and a captured-residual diagnostic for when output-space coefficients should improve a merge.",
     },
 ]
 
@@ -115,6 +135,11 @@ def json_safe(value: Any) -> Any:
 def fnum(value: Any) -> float | None:
     value = clean_value(value)
     return None if value is None else float(value)
+
+
+def maybe_int(value: Any) -> int | None:
+    value = clean_value(value)
+    return None if value is None else int(value)
 
 
 def fmt(value: Any, digits: int = 4) -> str:
@@ -654,7 +679,270 @@ def build_decisions(
     return pd.DataFrame(rows)
 
 
-def build_algorithm(decisions: pd.DataFrame) -> dict[str, Any]:
+def build_mechanism_hypotheses(summary: dict[str, Any]) -> pd.DataFrame:
+    dense = summary["dense"]
+    moe = summary["moe"]
+    dense_midpoint_rejected = (
+        fnum(dense.get("curvature_ratio_general")) is not None
+        and fnum(dense.get("curvature_ratio_code")) is not None
+        and float(dense["curvature_ratio_general"]) > 5.0
+        and float(dense["curvature_ratio_code"]) > 5.0
+    )
+    dense_lambda_rejected = (
+        fnum(dense.get("lambda_linear_worst_nll")) is not None
+        and fnum(dense.get("lambda_best_worst_nll")) is not None
+        and float(dense["lambda_linear_worst_nll"]) > float(dense["lambda_best_worst_nll"])
+    )
+    interpolation_rejected = (
+        fnum(moe.get("qwen3_interpolation_interior_gap_nll")) is not None
+        and float(moe["qwen3_interpolation_interior_gap_nll"]) > 0.0
+    )
+    base_coder_rejected = (
+        fnum(moe.get("qwen3_base_coder_interior_gap_nll")) is not None
+        and float(moe["qwen3_base_coder_interior_gap_nll"]) > 0.0
+    )
+    router_direct_rejected = (
+        str(moe.get("router_action")) == "freeze_router"
+        or (
+            fnum(moe.get("qwen3_router_margin_min_safe_lambda_proxy")) is not None
+            and float(moe["qwen3_router_margin_min_safe_lambda_proxy"]) < 0.05
+        )
+    )
+    unified_structural_passed = (
+        moe.get("qwen3_unified_materialized_rule_status") == "fresh"
+        and moe.get("qwen3_unified_audit_status") == "passed"
+        and maybe_int(moe.get("qwen3_unified_routed_gt_065")) == 0
+    )
+    router_cal_promising = (
+        fnum(moe.get("qwen3_router_calibration_nll_worst_reduction")) is not None
+        and float(moe["qwen3_router_calibration_nll_worst_reduction"]) > 0.0
+    )
+    generation_router_cal_directional = (
+        fnum(moe.get("qwen3_generation_pair_routercal_avg_gain")) is not None
+        and float(moe["qwen3_generation_pair_routercal_avg_gain"]) > 0.0
+    )
+
+    rows = [
+        {
+            "hypothesis_id": "dense_same_basin_required",
+            "domain": "dense",
+            "current_status": "rejected_for_current_midpoint"
+            if dense_midpoint_rejected and dense_lambda_rejected
+            else "needs_more_path_evidence",
+            "mechanism": "Dense weight averaging is useful only when the straight path stays inside a low-loss basin; local Fisher/RegMean curvature is a proxy, not proof.",
+            "current_evidence": (
+                f"curvature ratios general/code = {fmt(dense.get('curvature_ratio_general'))}/"
+                f"{fmt(dense.get('curvature_ratio_code'))}; midpoint worst NLL = "
+                f"{fmt(dense.get('lambda_linear_worst_nll'))}; best lambda-family worst NLL = "
+                f"{fmt(dense.get('lambda_best_worst_nll'))}"
+            ),
+            "falsification_test": "A lambda/path sweep plus held-out generation eval must show an interior same-shape checkpoint beating the endpoint frontier on worst-task score.",
+            "action_if_supported": "allow a low-loss dense soup/task-vector point",
+            "action_if_falsified": "fall back to endpoint/anchor or keep the current probe-selected low-lambda bridge",
+            "next_command": "python scripts/fp_dense_lambda.py --out results/fp_dense_lambda",
+            "literature_keys": "mode_connectivity,model_soups,fisher_merging,regmean++",
+        },
+        {
+            "hypothesis_id": "dense_coordinate_conflict_is_diagnostic_not_default",
+            "domain": "dense",
+            "current_status": "conditional_only",
+            "mechanism": "Sign/magnitude conflict can identify harmful deltas, but a broad sparse rule can delete useful adaptation unless it wins a held-out gate.",
+            "current_evidence": (
+                f"linear worst NLL = {fmt(dense.get('linear_worst_nll'))}; unified worst NLL = "
+                f"{fmt(dense.get('unified_worst_nll'))}; best endpoint worst NLL = "
+                f"{fmt(dense.get('best_endpoint_worst_nll'))}"
+            ),
+            "falsification_test": "A TIES/DARE/DELLA-style materialization must improve worst-task score over the current anchor without endpoint domination.",
+            "action_if_supported": "emit sparse coordinate tensor rules for dense deltas",
+            "action_if_falsified": "keep conflict probes as diagnostics and do not sparsify by default",
+            "next_command": "python scripts/fp_merge_compare.py --help",
+            "literature_keys": "ties,dare,della,star",
+        },
+        {
+            "hypothesis_id": "moe_expert_gauge_alignment_precedes_average",
+            "domain": "moe",
+            "current_status": "alignment_required"
+            if (fnum(moe.get("real_gauge_naive_degradation")) or 0.0) > 1.0
+            else "identity_alignment_sufficient_for_current_pair",
+            "mechanism": "MoE expert index is a gauge; same-name expert averaging is invalid until expert identity has been canonicalized.",
+            "current_evidence": (
+                f"real same-name degradation = {fmt(moe.get('real_gauge_naive_degradation'))}; "
+                f"aligned degradation = {fmt(moe.get('real_gauge_aligned_degradation'))}; "
+                f"Qwen3 identity fraction = {fmt(moe.get('qwen3_identity_fraction'))}"
+            ),
+            "falsification_test": "Expert output cosine/route coactivation must show same-index experts are functionally matched, or a remap must recover the self-merge baseline.",
+            "action_if_supported": "average matched experts under source tensor aliases",
+            "action_if_falsified": "reject same-name expert average and require layer-wise expert remapping",
+            "next_command": "python scripts/fp_moe_barrier.py --help",
+            "literature_keys": "git_rebasin,sub_moe,mergeme",
+        },
+        {
+            "hypothesis_id": "moe_direct_router_average_crosses_topk_boundaries",
+            "domain": "moe",
+            "current_status": "direct_router_average_rejected" if router_direct_rejected else "router_move_open",
+            "mechanism": "A small router weight delta can change sparse top-k dispatch if it exceeds the observed logit margin.",
+            "current_evidence": (
+                f"router action = {moe.get('router_action')}; high-fragility layers = "
+                f"{moe.get('qwen3_router_margin_high_fragility_layers')}/"
+                f"{moe.get('qwen3_router_margin_layer_count')}; min safe-lambda proxy = "
+                f"{fmt(moe.get('qwen3_router_margin_min_safe_lambda_proxy'))}"
+            ),
+            "falsification_test": "A router-moving candidate must preserve top-k overlap/load and beat the frozen-router candidate under the same downstream manifest.",
+            "action_if_supported": "allow a capped route-KD router delta",
+            "action_if_falsified": "freeze router and move only expert tensors",
+            "next_command": "results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh preflight",
+            "literature_keys": "harc,router_calibration,mergeme",
+        },
+        {
+            "hypothesis_id": "moe_source_to_source_line_not_averageable",
+            "domain": "moe",
+            "current_status": "straight_line_rejected"
+            if interpolation_rejected and base_coder_rejected
+            else "needs_more_connectivity_evidence",
+            "mechanism": "MoE endpoint specialization does not imply the source-to-source line is a low-loss or source-dominant path.",
+            "current_evidence": (
+                f"Instruct/Coder interior gap = {fmt(moe.get('qwen3_interpolation_interior_gap_nll'))}; "
+                f"Base/Coder interior gap = {fmt(moe.get('qwen3_base_coder_interior_gap_nll'))}; "
+                f"complementary merge beats sources = {moe.get('qwen3_complementary_merge_beats_sources')}"
+            ),
+            "falsification_test": "A straight-line or 2D plane sweep must find an interior point that beats both source endpoints on the paired downstream frontier.",
+            "action_if_supported": "allow source-to-source interpolation for this pair",
+            "action_if_falsified": "use router/evidence/geometry-constrained same-shape expert rules",
+            "next_command": "python scripts/fp_moe_barrier.py --out results/fp_moe_barrier",
+            "literature_keys": "mode_connectivity,loss_landscape,model_soups",
+        },
+        {
+            "hypothesis_id": "moe_risk_weighted_expert_caps_preserve_useful_route_mass",
+            "domain": "moe",
+            "current_status": "structurally_passed_waiting_downstream_eval"
+            if unified_structural_passed
+            else "structural_gate_failed_or_stale",
+            "mechanism": "Routed expert movement should be capped by route mass, geometry, and subspace conflict while retaining non-base specialization.",
+            "current_evidence": (
+                f"candidate = {moe.get('qwen3_unified_candidate_id')}; retention = "
+                f"{fmt(moe.get('qwen3_unified_nonbase_mass_retention'))}; "
+                f"subspace-weighted rel-delta = "
+                f"{fmt(moe.get('qwen3_unified_subspace_weighted_predicted_relative_delta'))}; "
+                f"routed >0.65 = {moe.get('qwen3_unified_routed_gt_065')}"
+            ),
+            "falsification_test": "Budgeted vLLM eval must show the unified candidate is non-dominated by both sources and does not regress any task beyond tolerance.",
+            "action_if_supported": "promote unified mechanism candidate as the same-shape MoE default",
+            "action_if_falsified": "select endpoint or simpler searched_no_gt065/layer_chunk rule and inspect failed transition attribution",
+            "next_command": "results/qwen3_moe_eval_budget_plan/run_eval_budget.sh all",
+            "literature_keys": "expert_merging,sub_moe,regmean++,output_space_projection",
+        },
+        {
+            "hypothesis_id": "router_calibration_repairs_dispatch_but_is_not_acceptance",
+            "domain": "moe",
+            "current_status": "promising_but_unaccepted"
+            if router_cal_promising and generation_router_cal_directional
+            else "awaiting_router_calibration_evidence",
+            "mechanism": "Router calibration can repair part of dispatch interference, but it is not a valid final average unless it beats source and task gates.",
+            "current_evidence": (
+                f"NLL worst reduction = {fmt(moe.get('qwen3_router_calibration_nll_worst_reduction'))}; "
+                f"generation avg gain = {fmt(moe.get('qwen3_generation_pair_routercal_avg_gain'))}; "
+                f"confident positive tasks = "
+                f"{moe.get('qwen3_generation_routercal_confident_positive_tasks')}/"
+                f"{moe.get('qwen3_generation_confidence_task_count')}; "
+                f"source-frontier wins = "
+                f"{moe.get('qwen3_generation_routercal_confident_source_frontier_wins')}/"
+                f"{moe.get('qwen3_generation_confidence_task_count')}"
+            ),
+            "falsification_test": "Router-calibrated candidates must beat the frozen-router baseline under paired source controls and maintain router-only audit caps.",
+            "action_if_supported": "attach a capped router delta after the expert-rule candidate",
+            "action_if_falsified": "keep router frozen and treat router-cal as a diagnostic repair signal",
+            "next_command": "results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh all",
+            "literature_keys": "harc,router_kd_calibration",
+        },
+        {
+            "hypothesis_id": "downstream_source_dominance_is_final_gate",
+            "domain": "dense_and_moe",
+            "current_status": moe.get("qwen3_final_selection_status") or "unknown",
+            "mechanism": "Structural probes can explain risk, but a same-shape average is only useful if it survives source dominance and task-regression tests.",
+            "current_evidence": (
+                f"final selection status = {moe.get('qwen3_final_selection_status')}; eligible candidates = "
+                f"{moe.get('qwen3_eligible_candidates')}/{moe.get('qwen3_candidate_count')}; "
+                f"router calibration status = {moe.get('qwen3_router_calibration_status')}"
+            ),
+            "falsification_test": "All candidates and sources must be scored on the locked manifest; dominated averages are rejected even if their structural audit looks clean.",
+            "action_if_supported": "select the best non-dominated same-shape candidate",
+            "action_if_falsified": "return the source endpoint and use failed mechanism attribution to design the next candidate",
+            "next_command": "python scripts/select_qwen3_moe_unified_result.py",
+            "literature_keys": "model_soups,expert_merging,harc",
+        },
+    ]
+    return pd.DataFrame(rows)
+
+
+def build_next_experiment_queue(summary: dict[str, Any]) -> pd.DataFrame:
+    moe = summary["moe"]
+    source_eval_waiting = moe.get("qwen3_final_selection_status") == "awaiting_source_eval"
+    router_waiting = moe.get("qwen3_router_calibration_status") in {
+        "awaiting_baseline_eval",
+        "awaiting_eval",
+        "awaiting_source_eval",
+    }
+    queue = [
+        {
+            "rank": 1,
+            "experiment": "budgeted_qwen3_moe_downstream_eval",
+            "mechanism_target": "source dominance and task-regression gate for all same-shape candidates",
+            "why_now": "This is the global blocker for accepting or rejecting the unified same-shape average.",
+            "command": "results/qwen3_moe_eval_budget_plan/run_eval_budget.sh all",
+            "preflight_command": "results/qwen3_moe_eval_budget_plan/run_eval_budget.sh preflight",
+            "priority_score": 1.00 if source_eval_waiting else 0.70,
+            "status": "blocked_on_gpu_vllm" if source_eval_waiting else "refresh_after_new_candidates",
+            "expected_decision_update": "select_qwen3_moe_unified_result can move from awaiting_source_eval to accept/reject/source fallback",
+        },
+        {
+            "rank": 2,
+            "experiment": "router_calibration_active_candidates",
+            "mechanism_target": "whether capped route-KD router deltas repair dispatch after frozen-router expert merge",
+            "why_now": "Router NLL/generation probes are positive directionally, but they are not acceptance evidence without paired vLLM eval.",
+            "command": "results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh all",
+            "preflight_command": "results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh preflight",
+            "priority_score": 0.95 if router_waiting else 0.60,
+            "status": "blocked_on_gpu_vllm" if router_waiting else "refresh_after_baseline_eval",
+            "expected_decision_update": "router calibration selector can decide cap001/margin_profile vs freeze-router baseline",
+        },
+        {
+            "rank": 3,
+            "experiment": "mechanism_effect_attribution_refresh",
+            "mechanism_target": "which structural intervention actually changes downstream scores",
+            "why_now": "After vLLM eval, this converts score deltas into pass/fail evidence for tail caps, layer chunks, unified caps, and subspace scaling.",
+            "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py",
+            "preflight_command": "python scripts/audit_qwen3_moe_eval_bundle.py --output-dir results/qwen3_moe_eval_bundle_audit",
+            "priority_score": 0.88,
+            "status": "awaiting_eval_bundle",
+            "expected_decision_update": "operation_decisions can stop relying on structural-only risk reductions",
+        },
+        {
+            "rank": 4,
+            "experiment": "unified_optimizer_refresh",
+            "mechanism_target": "update the Dense/MoE unified average policy after new eval or router-calibration evidence",
+            "why_now": "The optimizer is the place where mechanism evidence becomes a same-shape algorithm contract.",
+            "command": "python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer",
+            "preflight_command": "python -m py_compile scripts/build_unified_average_optimizer.py",
+            "priority_score": 0.82,
+            "status": "ready",
+            "expected_decision_update": "mechanism_hypotheses and next_experiment_queue refresh from current artifacts",
+        },
+        {
+            "rank": 5,
+            "experiment": "dense_low_loss_path_recheck",
+            "mechanism_target": "whether Dense same-base averages become valid under a different coefficient/path family",
+            "why_now": "Dense midpoint failure is already measured; only a new source pair or coefficient family can overturn it.",
+            "command": "python scripts/fp_dense_lambda.py --out results/fp_dense_lambda",
+            "preflight_command": "python scripts/fp_dense_lambda.py --help",
+            "priority_score": 0.55,
+            "status": "lower_priority_until_qwen_moe_eval_unblocked",
+            "expected_decision_update": "dense_same_basin_required hypothesis can move from rejected to supported for a specific pair",
+        },
+    ]
+    return pd.DataFrame(queue).sort_values(["priority_score", "rank"], ascending=[False, True])
+
+
+def build_algorithm(decisions: pd.DataFrame, hypotheses: pd.DataFrame) -> dict[str, Any]:
     return {
         "schema_version": 1,
         "name": "mechanism_gated_unified_average",
@@ -669,6 +957,15 @@ def build_algorithm(decisions: pd.DataFrame) -> dict[str, Any]:
             }
             for index, row in decisions.iterrows()
         ],
+        "falsification_tests": [
+            {
+                "hypothesis_id": row["hypothesis_id"],
+                "current_status": row["current_status"],
+                "falsification_test": row["falsification_test"],
+                "next_command": row["next_command"],
+            }
+            for _, row in hypotheses.iterrows()
+        ],
         "literature_priors": LITERATURE_PRIORS,
         "mechanism_equations": {
             "dense_second_order_gate": "accept a straight-line average only when the measured path loss does not exceed the endpoint frontier; local Fisher/RegMean curvature is treated as a proxy, not a proof",
@@ -679,7 +976,13 @@ def build_algorithm(decisions: pd.DataFrame) -> dict[str, Any]:
     }
 
 
-def build_report(summary: dict[str, Any], features: pd.DataFrame, decisions: pd.DataFrame) -> str:
+def build_report(
+    summary: dict[str, Any],
+    features: pd.DataFrame,
+    decisions: pd.DataFrame,
+    hypotheses: pd.DataFrame,
+    experiment_queue: pd.DataFrame,
+) -> str:
     dense = summary["dense"]
     moe = summary["moe"]
     lines = [
@@ -723,6 +1026,34 @@ def build_report(summary: dict[str, Any], features: pd.DataFrame, decisions: pd.
     lines.extend(
         [
             "",
+            "## Falsification Tests",
+            "",
+            "| hypothesis | status | current evidence | falsification test | next command |",
+            "| --- | --- | --- | --- | --- |",
+        ]
+    )
+    for _, row in hypotheses.iterrows():
+        lines.append(
+            f"| `{row['hypothesis_id']}` | `{row['current_status']}` | {row['current_evidence']} | "
+            f"{row['falsification_test']} | `{row['next_command']}` |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Next Experiments",
+            "",
+            "| rank | experiment | status | priority | command | expected update |",
+            "| ---: | --- | --- | ---: | --- | --- |",
+        ]
+    )
+    for _, row in experiment_queue.iterrows():
+        lines.append(
+            f"| {int(row['rank'])} | `{row['experiment']}` | `{row['status']}` | "
+            f"{fmt(row['priority_score'], 2)} | `{row['command']}` | {row['expected_decision_update']} |"
+        )
+    lines.extend(
+        [
+            "",
             "## Literature Priors",
             "",
             "| key | source | mechanism used here |",
@@ -738,6 +1069,8 @@ def build_report(summary: dict[str, Any], features: pd.DataFrame, decisions: pd.
             "",
             f"- `{summary['outputs']['features']}`",
             f"- `{summary['outputs']['decisions']}`",
+            f"- `{summary['outputs']['hypotheses']}`",
+            f"- `{summary['outputs']['next_experiment_queue']}`",
             f"- `{summary['outputs']['algorithm']}`",
             f"- `{summary['outputs']['summary']}`",
             f"- `{summary['outputs']['report']}`",
@@ -808,7 +1141,6 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         qwen3_downstream_attribution,
         qwen3_downstream_confidence,
     )
-    algorithm = build_algorithm(decisions)
 
     dense_results = dense_selector.get("results") or {}
     final_current = final_selection.get("current_selection") or {}
@@ -1017,17 +1349,36 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         },
         "outputs": {},
     }
+    hypotheses = build_mechanism_hypotheses(summary)
+    experiment_queue = build_next_experiment_queue(summary)
+    algorithm = build_algorithm(decisions, hypotheses)
+    status_counts = hypotheses["current_status"].value_counts().to_dict()
+    top_experiment = experiment_queue.iloc[0].to_dict() if not experiment_queue.empty else {}
+    summary["hypothesis_count"] = int(len(hypotheses))
+    summary["hypothesis_status_counts"] = {str(key): int(value) for key, value in status_counts.items()}
+    summary["next_experiment_count"] = int(len(experiment_queue))
+    summary["top_next_experiment"] = {
+        "experiment": top_experiment.get("experiment"),
+        "status": top_experiment.get("status"),
+        "priority_score": fnum(top_experiment.get("priority_score")),
+        "command": top_experiment.get("command"),
+        "preflight_command": top_experiment.get("preflight_command"),
+    }
 
     output_dir = repo_path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     features_path = output_dir / "mechanism_features.csv"
     decisions_path = output_dir / "operation_decisions.csv"
+    hypotheses_path = output_dir / "mechanism_hypotheses.csv"
+    queue_path = output_dir / "next_experiment_queue.csv"
     algorithm_path = output_dir / "algorithm.json"
     summary_path = output_dir / "summary.json"
     report_path = output_dir / "report.md"
     summary["outputs"] = {
         "features": rel(features_path),
         "decisions": rel(decisions_path),
+        "hypotheses": rel(hypotheses_path),
+        "next_experiment_queue": rel(queue_path),
         "algorithm": rel(algorithm_path),
         "summary": rel(summary_path),
         "report": rel(report_path),
@@ -1035,9 +1386,14 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
 
     features.to_csv(features_path, index=False)
     decisions.to_csv(decisions_path, index=False)
+    hypotheses.to_csv(hypotheses_path, index=False)
+    experiment_queue.to_csv(queue_path, index=False)
     algorithm_path.write_text(json.dumps(json_safe(algorithm), indent=2, sort_keys=True) + "\n", encoding="utf-8")
     summary_path.write_text(json.dumps(json_safe(summary), indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    report_path.write_text(build_report(summary, features, decisions), encoding="utf-8")
+    report_path.write_text(
+        build_report(summary, features, decisions, hypotheses, experiment_queue),
+        encoding="utf-8",
+    )
     return summary
 
 

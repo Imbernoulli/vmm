@@ -1806,11 +1806,17 @@ def summarize_unified_average_optimizer() -> dict[str, Any]:
     summary = read_json(root / "summary.json")
     features = read_csv(root / "mechanism_features.csv")
     decisions = read_csv(root / "operation_decisions.csv")
+    hypotheses = read_csv(root / "mechanism_hypotheses.csv")
+    next_queue = read_csv(root / "next_experiment_queue.csv")
     dense = summary.get("dense", {})
     moe = summary.get("moe", {})
     return {
         "summary": summary,
         "status": summary.get("status"),
+        "hypothesis_count": maybe_int(summary.get("hypothesis_count")),
+        "hypothesis_status_counts": summary.get("hypothesis_status_counts", {}),
+        "next_experiment_count": maybe_int(summary.get("next_experiment_count")),
+        "top_next_experiment": summary.get("top_next_experiment", {}),
         "dense_decision": dense.get("decision"),
         "dense_linear_worst_nll": maybe_float(dense.get("linear_worst_nll")),
         "dense_unified_worst_nll": maybe_float(dense.get("unified_worst_nll")),
@@ -1941,9 +1947,13 @@ def summarize_unified_average_optimizer() -> dict[str, Any]:
         "qwen3_candidate_count": maybe_int(moe.get("qwen3_candidate_count")),
         "feature_rows": [clean_row(row) for _, row in features.iterrows()],
         "decision_rows": [clean_row(row) for _, row in decisions.iterrows()],
+        "hypothesis_rows": [clean_row(row) for _, row in hypotheses.iterrows()],
+        "next_experiment_rows": [clean_row(row) for _, row in next_queue.iterrows()],
         "report": rel(root / "report.md"),
         "features": rel(root / "mechanism_features.csv"),
         "decisions": rel(root / "operation_decisions.csv"),
+        "hypotheses": rel(root / "mechanism_hypotheses.csv"),
+        "next_experiment_queue": rel(root / "next_experiment_queue.csv"),
         "algorithm": rel(root / "algorithm.json"),
         "summary_path": rel(root / "summary.json"),
     }
@@ -5534,6 +5544,12 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{unified_average_optimizer['status']} / "
                 f"{unified_average_optimizer['dense_decision']} / "
                 f"{unified_average_optimizer['moe_decision']} |"
+            ),
+            (
+                "| unified average optimizer | hypotheses / queue / top experiment | "
+                f"{unified_average_optimizer['hypothesis_count']} / "
+                f"{unified_average_optimizer['next_experiment_count']} / "
+                f"{(unified_average_optimizer.get('top_next_experiment') or {}).get('experiment')} |"
             ),
             (
                 "| unified average optimizer | dense linear / unified / endpoint worst NLL | "

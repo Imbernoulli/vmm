@@ -1,6 +1,61 @@
 {
   "contract": "The output model must keep the same config, tokenizer, model class, tensor names, and tensor shapes as the chosen target.",
+  "falsification_tests": [
+    {
+      "current_status": "rejected_for_current_midpoint",
+      "falsification_test": "A lambda/path sweep plus held-out generation eval must show an interior same-shape checkpoint beating the endpoint frontier on worst-task score.",
+      "hypothesis_id": "dense_same_basin_required",
+      "next_command": "python scripts/fp_dense_lambda.py --out results/fp_dense_lambda"
+    },
+    {
+      "current_status": "conditional_only",
+      "falsification_test": "A TIES/DARE/DELLA-style materialization must improve worst-task score over the current anchor without endpoint domination.",
+      "hypothesis_id": "dense_coordinate_conflict_is_diagnostic_not_default",
+      "next_command": "python scripts/fp_merge_compare.py --help"
+    },
+    {
+      "current_status": "alignment_required",
+      "falsification_test": "Expert output cosine/route coactivation must show same-index experts are functionally matched, or a remap must recover the self-merge baseline.",
+      "hypothesis_id": "moe_expert_gauge_alignment_precedes_average",
+      "next_command": "python scripts/fp_moe_barrier.py --help"
+    },
+    {
+      "current_status": "direct_router_average_rejected",
+      "falsification_test": "A router-moving candidate must preserve top-k overlap/load and beat the frozen-router candidate under the same downstream manifest.",
+      "hypothesis_id": "moe_direct_router_average_crosses_topk_boundaries",
+      "next_command": "results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh preflight"
+    },
+    {
+      "current_status": "straight_line_rejected",
+      "falsification_test": "A straight-line or 2D plane sweep must find an interior point that beats both source endpoints on the paired downstream frontier.",
+      "hypothesis_id": "moe_source_to_source_line_not_averageable",
+      "next_command": "python scripts/fp_moe_barrier.py --out results/fp_moe_barrier"
+    },
+    {
+      "current_status": "structurally_passed_waiting_downstream_eval",
+      "falsification_test": "Budgeted vLLM eval must show the unified candidate is non-dominated by both sources and does not regress any task beyond tolerance.",
+      "hypothesis_id": "moe_risk_weighted_expert_caps_preserve_useful_route_mass",
+      "next_command": "results/qwen3_moe_eval_budget_plan/run_eval_budget.sh all"
+    },
+    {
+      "current_status": "promising_but_unaccepted",
+      "falsification_test": "Router-calibrated candidates must beat the frozen-router baseline under paired source controls and maintain router-only audit caps.",
+      "hypothesis_id": "router_calibration_repairs_dispatch_but_is_not_acceptance",
+      "next_command": "results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh all"
+    },
+    {
+      "current_status": "awaiting_source_eval",
+      "falsification_test": "All candidates and sources must be scored on the locked manifest; dominated averages are rejected even if their structural audit looks clean.",
+      "hypothesis_id": "downstream_source_dominance_is_final_gate",
+      "next_command": "python scripts/select_qwen3_moe_unified_result.py"
+    }
+  ],
   "literature_priors": [
+    {
+      "key": "loss_landscape",
+      "mechanism": "Loss landscapes should be inspected on meaningful weight-space directions; visual smoothness is not evidence that a source-to-source midpoint is safe.",
+      "source": "https://arxiv.org/abs/1712.09913"
+    },
     {
       "key": "mode_connectivity",
       "mechanism": "A weight average is trusted only when the probed path stays in a low-loss basin.",
@@ -42,6 +97,11 @@
       "source": "https://arxiv.org/abs/2506.23266"
     },
     {
+      "key": "regmean++",
+      "mechanism": "Activation regression should account for intra- and cross-layer dependencies; layer-wise closed forms are useful diagnostics but can miss propagation effects.",
+      "source": "https://arxiv.org/abs/2508.03121"
+    },
+    {
       "key": "mergemoe",
       "mechanism": "MoE expert merging can be formulated through output-space matching and optimization.",
       "source": "https://arxiv.org/abs/2510.14436"
@@ -55,6 +115,16 @@
       "key": "harc",
       "mechanism": "MoE router movement must be gated by top-k boundary stability, not treated like an ordinary dense tensor.",
       "source": "https://arxiv.org/abs/2606.03391"
+    },
+    {
+      "key": "router_kd_calibration",
+      "mechanism": "Expert edits create router-expert mismatch; router-only KD is a lightweight repair lever but still needs downstream acceptance gates.",
+      "source": "https://arxiv.org/abs/2603.02217"
+    },
+    {
+      "key": "output_space_projection",
+      "mechanism": "Output residual projection provides a convex calibration objective and a captured-residual diagnostic for when output-space coefficients should improve a merge.",
+      "source": "https://arxiv.org/abs/2605.29101"
     }
   ],
   "mechanism_equations": {

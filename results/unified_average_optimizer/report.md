@@ -61,10 +61,34 @@
 | `moe_router_calibration_gate` | `treat router calibration as a separately audited ablation` | nll_probe_worst_reduction=0.2214; generation_avg_gain=0.0333; generation_recovery_fraction=0.3243; confidence_positive_tasks=0/3; confidence_source_frontier_wins=0/3; awaiting_baseline_eval: Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps. | It keeps router calibration as an active MoE-specific lever while still requiring source-dominance and task-regression gates before acceptance. |
 | `moe_candidate_gate` | `select only after audited downstream eval` | keep all registered Qwen3 candidates provisional until eval-bundle audit passes | It prevents structural cleanliness from being mistaken for actual downstream dominance. |
 
+## Falsification Tests
+
+| hypothesis | status | current evidence | falsification test | next command |
+| --- | --- | --- | --- | --- |
+| `dense_same_basin_required` | `rejected_for_current_midpoint` | curvature ratios general/code = 42.8604/26.6575; midpoint worst NLL = 6.0398; best lambda-family worst NLL = 3.0727 | A lambda/path sweep plus held-out generation eval must show an interior same-shape checkpoint beating the endpoint frontier on worst-task score. | `python scripts/fp_dense_lambda.py --out results/fp_dense_lambda` |
+| `dense_coordinate_conflict_is_diagnostic_not_default` | `conditional_only` | linear worst NLL = 8.9477; unified worst NLL = 5.1830; best endpoint worst NLL = 5.1510 | A TIES/DARE/DELLA-style materialization must improve worst-task score over the current anchor without endpoint domination. | `python scripts/fp_merge_compare.py --help` |
+| `moe_expert_gauge_alignment_precedes_average` | `alignment_required` | real same-name degradation = 5.4910; aligned degradation = 0.0000; Qwen3 identity fraction = 1.0000 | Expert output cosine/route coactivation must show same-index experts are functionally matched, or a remap must recover the self-merge baseline. | `python scripts/fp_moe_barrier.py --help` |
+| `moe_direct_router_average_crosses_topk_boundaries` | `direct_router_average_rejected` | router action = freeze_router; high-fragility layers = 24/48; min safe-lambda proxy = 0.0197 | A router-moving candidate must preserve top-k overlap/load and beat the frozen-router candidate under the same downstream manifest. | `results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh preflight` |
+| `moe_source_to_source_line_not_averageable` | `straight_line_rejected` | Instruct/Coder interior gap = 0.1189; Base/Coder interior gap = 0.1058; complementary merge beats sources = False | A straight-line or 2D plane sweep must find an interior point that beats both source endpoints on the paired downstream frontier. | `python scripts/fp_moe_barrier.py --out results/fp_moe_barrier` |
+| `moe_risk_weighted_expert_caps_preserve_useful_route_mass` | `structurally_passed_waiting_downstream_eval` | candidate = subspace_cap_s1.00; retention = 0.9763; subspace-weighted rel-delta = 0.2148; routed >0.65 = 0 | Budgeted vLLM eval must show the unified candidate is non-dominated by both sources and does not regress any task beyond tolerance. | `results/qwen3_moe_eval_budget_plan/run_eval_budget.sh all` |
+| `router_calibration_repairs_dispatch_but_is_not_acceptance` | `promising_but_unaccepted` | NLL worst reduction = 0.2214; generation avg gain = 0.0333; confident positive tasks = 0/3; source-frontier wins = 0/3 | Router-calibrated candidates must beat the frozen-router baseline under paired source controls and maintain router-only audit caps. | `results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh all` |
+| `downstream_source_dominance_is_final_gate` | `awaiting_source_eval` | final selection status = awaiting_source_eval; eligible candidates = 0/9; router calibration status = awaiting_baseline_eval | All candidates and sources must be scored on the locked manifest; dominated averages are rejected even if their structural audit looks clean. | `python scripts/select_qwen3_moe_unified_result.py` |
+
+## Next Experiments
+
+| rank | experiment | status | priority | command | expected update |
+| ---: | --- | --- | ---: | --- | --- |
+| 1 | `budgeted_qwen3_moe_downstream_eval` | `blocked_on_gpu_vllm` | 1.00 | `results/qwen3_moe_eval_budget_plan/run_eval_budget.sh all` | select_qwen3_moe_unified_result can move from awaiting_source_eval to accept/reject/source fallback |
+| 2 | `router_calibration_active_candidates` | `blocked_on_gpu_vllm` | 0.95 | `results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh all` | router calibration selector can decide cap001/margin_profile vs freeze-router baseline |
+| 3 | `mechanism_effect_attribution_refresh` | `awaiting_eval_bundle` | 0.88 | `python scripts/attribute_qwen3_moe_mechanism_effects.py` | operation_decisions can stop relying on structural-only risk reductions |
+| 4 | `unified_optimizer_refresh` | `ready` | 0.82 | `python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer` | mechanism_hypotheses and next_experiment_queue refresh from current artifacts |
+| 5 | `dense_low_loss_path_recheck` | `lower_priority_until_qwen_moe_eval_unblocked` | 0.55 | `python scripts/fp_dense_lambda.py --out results/fp_dense_lambda` | dense_same_basin_required hypothesis can move from rejected to supported for a specific pair |
+
 ## Literature Priors
 
 | key | source | mechanism used here |
 | --- | --- | --- |
+| `loss_landscape` | https://arxiv.org/abs/1712.09913 | Loss landscapes should be inspected on meaningful weight-space directions; visual smoothness is not evidence that a source-to-source midpoint is safe. |
 | `mode_connectivity` | https://arxiv.org/abs/1802.10026 | A weight average is trusted only when the probed path stays in a low-loss basin. |
 | `model_soups` | https://arxiv.org/abs/2203.05482 | Same-basin finetunes can average well, but endpoint fallback is part of the recipe. |
 | `git_rebasin` | https://arxiv.org/abs/2209.04836 | Permutation symmetry must be canonicalized before weight-space merging. |
@@ -73,14 +97,19 @@
 | `mergeme` | https://arxiv.org/abs/2502.00997 | MoE merging must handle parameter interference and routing, not just average experts. |
 | `expert_merging` | https://arxiv.org/abs/2509.25712 | Layer and chunk coefficients should be guided by unlabeled hidden/logit alignment rather than a fixed global merge weight. |
 | `sub_moe` | https://arxiv.org/abs/2506.23266 | Expert output similarity/subspace structure is a better merge signal than tensor names alone. |
+| `regmean++` | https://arxiv.org/abs/2508.03121 | Activation regression should account for intra- and cross-layer dependencies; layer-wise closed forms are useful diagnostics but can miss propagation effects. |
 | `mergemoe` | https://arxiv.org/abs/2510.14436 | MoE expert merging can be formulated through output-space matching and optimization. |
 | `namex` | https://arxiv.org/abs/2510.16138 | Expert weights should reflect cooperation/competition rather than a fixed uniform prior. |
 | `harc` | https://arxiv.org/abs/2606.03391 | MoE router movement must be gated by top-k boundary stability, not treated like an ordinary dense tensor. |
+| `router_kd_calibration` | https://arxiv.org/abs/2603.02217 | Expert edits create router-expert mismatch; router-only KD is a lightweight repair lever but still needs downstream acceptance gates. |
+| `output_space_projection` | https://arxiv.org/abs/2605.29101 | Output residual projection provides a convex calibration objective and a captured-residual diagnostic for when output-space coefficients should improve a merge. |
 
 ## Outputs
 
 - `results/unified_average_optimizer/mechanism_features.csv`
 - `results/unified_average_optimizer/operation_decisions.csv`
+- `results/unified_average_optimizer/mechanism_hypotheses.csv`
+- `results/unified_average_optimizer/next_experiment_queue.csv`
 - `results/unified_average_optimizer/algorithm.json`
 - `results/unified_average_optimizer/summary.json`
 - `results/unified_average_optimizer/report.md`

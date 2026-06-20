@@ -17,6 +17,17 @@
     "linear_worst_nll": 8.947735033537212,
     "unified_worst_nll": 5.182952077765214
   },
+  "hypothesis_count": 8,
+  "hypothesis_status_counts": {
+    "alignment_required": 1,
+    "awaiting_source_eval": 1,
+    "conditional_only": 1,
+    "direct_router_average_rejected": 1,
+    "promising_but_unaccepted": 1,
+    "rejected_for_current_midpoint": 1,
+    "straight_line_rejected": 1,
+    "structurally_passed_waiting_downstream_eval": 1
+  },
   "moe": {
     "controlled_gauge_mse": 7.66403245730453e-16,
     "decision": "align_experts_freeze_router_then_gate_candidate_by_vllm",
@@ -105,13 +116,23 @@
     "real_gauge_naive_degradation": 5.490968298724317,
     "router_action": "freeze_router"
   },
+  "next_experiment_count": 5,
   "outputs": {
     "algorithm": "results/unified_average_optimizer/algorithm.json",
     "decisions": "results/unified_average_optimizer/operation_decisions.csv",
     "features": "results/unified_average_optimizer/mechanism_features.csv",
+    "hypotheses": "results/unified_average_optimizer/mechanism_hypotheses.csv",
+    "next_experiment_queue": "results/unified_average_optimizer/next_experiment_queue.csv",
     "report": "results/unified_average_optimizer/report.md",
     "summary": "results/unified_average_optimizer/summary.json"
   },
   "schema_version": 1,
-  "status": "built_waiting_for_qwen3_vllm_eval"
+  "status": "built_waiting_for_qwen3_vllm_eval",
+  "top_next_experiment": {
+    "command": "results/qwen3_moe_eval_budget_plan/run_eval_budget.sh all",
+    "experiment": "budgeted_qwen3_moe_downstream_eval",
+    "preflight_command": "results/qwen3_moe_eval_budget_plan/run_eval_budget.sh preflight",
+    "priority_score": 1.0,
+    "status": "blocked_on_gpu_vllm"
+  }
 }
