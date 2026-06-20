@@ -1,0 +1,58 @@
+{
+  "example_source": "builtin",
+  "examples": {
+    "gsm8k": [
+      {
+        "gold": "7",
+        "question": "Jan has 3 apples and buys 4 more. How many apples does Jan have?"
+      },
+      {
+        "gold": "7",
+        "question": "A box has 12 pencils. Tom takes 5. How many pencils remain?"
+      }
+    ],
+    "humaneval_compile": [
+      {
+        "prompt": "def add_two_numbers(a, b):\n    \"\"\"Return the sum of a and b.\"\"\"\n",
+        "task_id": "builtin/0"
+      },
+      {
+        "prompt": "def is_even(n):\n    \"\"\"Return True if n is even.\"\"\"\n",
+        "task_id": "builtin/1"
+      }
+    ],
+    "mmlu": [
+      {
+        "answer_letter": "B",
+        "choices": [
+          "3",
+          "4",
+          "5",
+          "6"
+        ],
+        "question": "What is 2 + 2?",
+        "subject": "elementary_math"
+      },
+      {
+        "answer_letter": "A",
+        "choices": [
+          "Force",
+          "Energy",
+          "Power",
+          "Charge"
+        ],
+        "question": "Which quantity is measured in newtons?",
+        "subject": "physics"
+      }
+    ]
+  },
+  "max_examples": 2,
+  "schema_version": 1,
+  "seed": 41,
+  "subjects": "all",
+  "tasks": [
+    "mmlu",
+    "gsm8k",
+    "humaneval_compile"
+  ]
+}

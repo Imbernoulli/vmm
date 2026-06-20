@@ -282,6 +282,18 @@ def build_steps(args: argparse.Namespace) -> list[dict[str, Any]]:
             ],
         },
         {
+            "step": "build_qwen_source_discovery_eval_plan",
+            "kind": "planner",
+            "command": [
+                py,
+                "scripts/build_qwen_source_discovery_eval_plan.py",
+                "--source-discovery-dir",
+                str(args.qwen_source_discovery_plan_dir),
+                "--output-dir",
+                str(args.qwen_source_discovery_eval_plan_dir),
+            ],
+        },
+        {
             "step": "build_unified_average_optimizer",
             "kind": "optimizer",
             "command": [
@@ -291,6 +303,8 @@ def build_steps(args: argparse.Namespace) -> list[dict[str, Any]]:
                 str(args.unified_optimizer_dir),
                 "--qwen-source-discovery-plan",
                 str(args.qwen_source_discovery_plan_dir / "summary.json"),
+                "--qwen-source-discovery-eval-plan",
+                str(args.qwen_source_discovery_eval_plan_dir / "summary.json"),
             ],
         },
         {
@@ -489,6 +503,9 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
     qwen_source_discovery_plan = read_json(
         repo_path(args.qwen_source_discovery_plan_dir) / "summary.json"
     )
+    qwen_source_discovery_eval_plan = read_json(
+        repo_path(args.qwen_source_discovery_eval_plan_dir) / "summary.json"
+    )
     unified_optimizer = read_json(repo_path(args.unified_optimizer_dir) / "summary.json")
     unified_optimizer_smoke = read_json(repo_path(args.unified_optimizer_smoke_dir) / "summary.json")
     average_method_gate = read_json(repo_path(args.average_method_gate_dir) / "summary.json")
@@ -651,6 +668,19 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
         "qwen_source_discovery_measured_additional_gain_needed": qwen_source_discovery_plan.get(
             "measured_additional_frontier_avg_gain_needed"
         ),
+        "qwen_source_discovery_eval_plan_status": qwen_source_discovery_eval_plan.get("status"),
+        "qwen_source_discovery_eval_plan_job_count": qwen_source_discovery_eval_plan.get(
+            "eval_job_count"
+        ),
+        "qwen_source_discovery_eval_plan_top_job": (
+            qwen_source_discovery_eval_plan.get("top_eval_job") or {}
+        ).get("job_id"),
+        "qwen_source_discovery_eval_plan_task_status": qwen_source_discovery_eval_plan.get(
+            "task_name_compatibility_status"
+        ),
+        "qwen_source_discovery_eval_plan_tasks": ",".join(
+            qwen_source_discovery_eval_plan.get("task_names") or []
+        ),
         "unified_optimizer_status": unified_optimizer.get("status"),
         "unified_optimizer_contract_status": unified_optimizer.get("contract_status"),
         "unified_optimizer_contract_passed": unified_optimizer.get("contract_passed_requirement_count"),
@@ -723,6 +753,7 @@ def build_report(summary: dict[str, Any]) -> str:
         f"- Source-set complementarity: `{downstream.get('source_set_complementarity_current_gate', 'n/a')}` (dominant `{downstream.get('source_set_complementarity_current_dominant_source', 'n/a')}`, frontier avg gain `{downstream.get('source_set_complementarity_frontier_avg_gain', 'n/a')}`, best observed gap `{downstream.get('source_set_complementarity_best_observed_gap', 'n/a')}`, complementary sets `{downstream.get('source_set_complementarity_complementary_count', 'n/a')}`)",
         f"- Average source-set optimizer: `{downstream.get('average_source_set_optimizer_top_gate', 'n/a')}` for `{downstream.get('average_source_set_optimizer_top_source_set', 'n/a')}` (gain `{downstream.get('average_source_set_optimizer_top_gain', 'n/a')}` vs interference budget `{downstream.get('average_source_set_optimizer_interference_budget', 'n/a')}`, surplus `{downstream.get('average_source_set_optimizer_top_surplus', 'n/a')}`, final-budget `{downstream.get('average_source_set_optimizer_final_budget_candidates', 'n/a')}`, probe-only `{downstream.get('average_source_set_optimizer_probe_only', 'n/a')}`)",
         f"- Qwen source discovery plan: `{downstream.get('qwen_source_discovery_plan_status', 'n/a')}` (top scenario `{downstream.get('qwen_source_discovery_top_scenario', 'n/a')}`, queue `{downstream.get('qwen_source_discovery_top_queue_item', 'n/a')}`, additional gain needed `{downstream.get('qwen_source_discovery_measured_additional_gain_needed', 'n/a')}`)",
+        f"- Qwen source discovery eval plan: `{downstream.get('qwen_source_discovery_eval_plan_status', 'n/a')}` (`{downstream.get('qwen_source_discovery_eval_plan_job_count', 'n/a')}` jobs, top `{downstream.get('qwen_source_discovery_eval_plan_top_job', 'n/a')}`, tasks `{downstream.get('qwen_source_discovery_eval_plan_tasks', 'n/a')}`, task names `{downstream.get('qwen_source_discovery_eval_plan_task_status', 'n/a')}`)",
         f"- Unified average optimizer: `{downstream.get('unified_optimizer_status', 'n/a')}` (top next experiment `{downstream.get('unified_optimizer_top_experiment', 'n/a')}` / `{downstream.get('unified_optimizer_top_experiment_status', 'n/a')}`)",
         f"- Unified algorithm contract: `{downstream.get('unified_optimizer_contract_status', 'n/a')}` (`{downstream.get('unified_optimizer_contract_passed', 'n/a')}/{downstream.get('unified_optimizer_contract_requirements', 'n/a')}` passed, blocking `{downstream.get('unified_optimizer_contract_blocking', [])}`)",
         f"- Unified selector rank gate in optimizer: confidence band `{downstream.get('unified_optimizer_final_confidence_tie_band', 'n/a')}`, rank mode `{downstream.get('unified_optimizer_final_rank_mode', 'n/a')}`, band size `{downstream.get('unified_optimizer_final_rank_band_size', 'n/a')}`",
@@ -840,6 +871,11 @@ def parse_args() -> argparse.Namespace:
         "--qwen-source-discovery-plan-dir",
         type=Path,
         default=Path("results/qwen_source_discovery_plan"),
+    )
+    parser.add_argument(
+        "--qwen-source-discovery-eval-plan-dir",
+        type=Path,
+        default=Path("results/qwen_source_discovery_eval_plan"),
     )
     parser.add_argument(
         "--unified-optimizer-dir",

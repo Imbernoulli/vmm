@@ -864,6 +864,39 @@ def summarize_qwen_source_discovery_plan() -> dict[str, Any]:
     }
 
 
+def summarize_qwen_source_discovery_eval_plan() -> dict[str, Any]:
+    root = repo_path("results/qwen_source_discovery_eval_plan")
+    summary = read_json(root / "summary.json")
+    eval_jobs = read_csv(root / "vllm_eval_jobs.csv")
+    manifest_jobs = read_csv(root / "manifest_jobs.csv")
+    top = summary.get("top_eval_job") or {}
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "source_discovery_status": summary.get("source_discovery_status"),
+        "eval_job_count": maybe_int(summary.get("eval_job_count")),
+        "manifest_job_count": maybe_int(summary.get("manifest_job_count")),
+        "task_names": summary.get("task_names", []),
+        "task_name_compatibility_status": summary.get("task_name_compatibility_status"),
+        "measured_additional_frontier_avg_gain_needed": maybe_float(
+            summary.get("measured_additional_frontier_avg_gain_needed")
+        ),
+        "top_eval_job": top.get("job_id"),
+        "top_eval_scenario": top.get("scenario_id"),
+        "top_eval_status": top.get("status"),
+        "top_eval_tasks": top.get("tasks"),
+        "top_eval_models": top.get("served_models"),
+        "top_eval_command": top.get("eval_command"),
+        "eval_job_rows": [clean_row(row) for _, row in eval_jobs.iterrows()],
+        "manifest_job_rows": [clean_row(row) for _, row in manifest_jobs.iterrows()],
+        "report": rel(root / "report.md"),
+        "vllm_eval_jobs": rel(root / "vllm_eval_jobs.csv"),
+        "manifest_jobs": rel(root / "manifest_jobs.csv"),
+        "run_script": rel(root / "run_source_frontier_eval.sh"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_average_decision_report() -> dict[str, Any]:
     summary = read_json("results/average_decision_report/summary.json")
     decisions = summary.get("decisions", [])
@@ -4926,6 +4959,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/qwen_source_discovery_plan/report.md turns the negative source-set surplus into concrete Qwen endpoint/source-set discovery queues, including Dense 7B and Qwen3 MoE route-aware scenarios.",
         },
         {
+            "item": "Qwen source discovery vLLM eval plan",
+            "status": "complete",
+            "evidence": "results/qwen_source_discovery_eval_plan/report.md converts the discovered source sets into concrete vLLM jobs, task manifests, and runner commands using the runner-compatible humaneval_compile task name.",
+        },
+        {
             "item": "Formal LLM benchmark slices",
             "status": "complete",
             "evidence": "Representative Qwen2.5-1.5B benchmark slices cover MMLU, GSM8K, HumanEval canonical-solution NLL, and BeaverTails safety/refusal NLL.",
@@ -5336,6 +5374,7 @@ def build_summary() -> dict[str, Any]:
         "qwen3_source_set_complementarity_gate": summarize_qwen3_source_set_complementarity_gate(),
         "qwen3_average_source_set_optimizer": summarize_qwen3_average_source_set_optimizer(),
         "qwen_source_discovery_plan": summarize_qwen_source_discovery_plan(),
+        "qwen_source_discovery_eval_plan": summarize_qwen_source_discovery_eval_plan(),
         "qwen_probe_smoke": summarize_qwen_probe_smoke(),
         "average_decision_report": summarize_average_decision_report(),
         "model_averaging_literature_review": summarize_model_averaging_literature_review(),
@@ -5657,6 +5696,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_source_set_complementarity = exp["qwen3_source_set_complementarity_gate"]
     qwen3_average_source_set_optimizer = exp["qwen3_average_source_set_optimizer"]
     qwen_source_discovery_plan = exp["qwen_source_discovery_plan"]
+    qwen_source_discovery_eval_plan = exp["qwen_source_discovery_eval_plan"]
     average_decision = exp["average_decision_report"]
     literature_review = exp["model_averaging_literature_review"]
     average_method_gate_matrix = exp["average_method_gate_matrix"]
@@ -6060,6 +6100,17 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen_source_discovery_plan['top_measured_source_set']} / "
                 f"{fmt(qwen_source_discovery_plan['measured_additional_frontier_avg_gain_needed'])} / "
                 f"{qwen_source_discovery_plan['top_queue_item']} |"
+            ),
+            (
+                "| Qwen source discovery eval plan | jobs / top job / tasks | "
+                f"{qwen_source_discovery_eval_plan['eval_job_count']} / "
+                f"{qwen_source_discovery_eval_plan['top_eval_job']} / "
+                f"{qwen_source_discovery_eval_plan['top_eval_tasks']} |"
+            ),
+            (
+                "| Qwen source discovery eval plan | task-name compatibility / task names | "
+                f"{qwen_source_discovery_eval_plan['task_name_compatibility_status']} / "
+                f"{qwen_source_discovery_eval_plan['task_names']} |"
             ),
             (
                 "| first-principles MoE mechanism | gauge-equivalent B MSE | "

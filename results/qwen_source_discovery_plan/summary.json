@@ -67,7 +67,7 @@
     "source_weights": "{\"coder\": 0.6666666666666666, \"thinking\": 0.3333333333333333}"
   },
   "top_queue_item": {
-    "command": "python scripts/run_vllm_downstream_eval.py --models SERVED_CODER,SERVED_THINKING --tasks mmlu,gsm8k,humaneval --max-examples 256 --output-dir results/qwen_source_discovery_plan/measured_coder_thinking_vllm",
+    "command": "python scripts/run_vllm_downstream_eval.py --models SERVED_CODER,SERVED_THINKING --tasks mmlu,gsm8k,humaneval_compile --max-examples 256 --output-dir results/qwen_source_discovery_plan/measured_coder_thinking_vllm",
     "priority_score": 0.98,
     "queue_item": "measured_coder_thinking_endpoint_expansion",
     "scenario_id": "measured_qwen3_moe_source_set",

@@ -180,6 +180,16 @@
     "qwen3_unified_subspace_risk_weighted_coder_retention": 0.9737607662389383,
     "qwen3_unified_subspace_weighted_predicted_relative_delta": 0.21478052015965876,
     "qwen3_unified_tensor_rules_sha256": "3127175910edd4b1bd8cc62e2ecd5301bff92a91efc0c66b5f49874952e6c3a9",
+    "qwen_source_discovery_eval_job_count": 4,
+    "qwen_source_discovery_eval_status": "source_discovery_vllm_eval_plan_ready",
+    "qwen_source_discovery_eval_task_name_status": "passed_humaneval_compile_task_name",
+    "qwen_source_discovery_eval_task_names": [
+      "gsm8k",
+      "humaneval_compile",
+      "mmlu",
+      "safety"
+    ],
+    "qwen_source_discovery_eval_top_job": "measured_coder_thinking_source_frontier",
     "qwen_source_discovery_measured_additional_frontier_avg_gain_needed": 0.06111111111111099,
     "qwen_source_discovery_status": "source_discovery_plan_ready",
     "qwen_source_discovery_top_action": "run_endpoint_eval_plus_connectivity_probe_then_surplus_gate",

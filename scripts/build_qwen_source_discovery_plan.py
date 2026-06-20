@@ -487,7 +487,7 @@ def build_source_discovery_queue(
             ),
             "command": (
                 "python scripts/run_vllm_downstream_eval.py --models SERVED_CODER,SERVED_THINKING "
-                "--tasks mmlu,gsm8k,humaneval --max-examples 256 "
+                "--tasks mmlu,gsm8k,humaneval_compile --max-examples 256 "
                 "--output-dir results/qwen_source_discovery_plan/measured_coder_thinking_vllm"
             ),
             "preflight_command": "results/qwen3_moe_eval_budget_plan/run_eval_budget.sh preflight final",
@@ -509,14 +509,14 @@ def build_source_discovery_queue(
         if scenario["architecture_kind"] == "moe":
             command = (
                 f"python scripts/run_vllm_downstream_eval.py --models {models_arg} "
-                "--tasks mmlu,gsm8k,humaneval "
+                "--tasks mmlu,gsm8k,humaneval_compile "
                 "--max-examples 256 --output-dir results/qwen_source_discovery_plan/vllm_endpoint_eval"
             )
             expected = "router/expert probes plus endpoint frontier decide if MoE source set can enter surplus optimizer"
         else:
             command = (
                 f"python scripts/run_vllm_downstream_eval.py --models {models_arg} "
-                "--tasks mmlu,gsm8k,humaneval,safety "
+                "--tasks mmlu,gsm8k,humaneval_compile,safety "
                 "--max-examples 256 --output-dir results/qwen_source_discovery_plan/vllm_endpoint_eval"
             )
             expected = "endpoint frontier plus connectivity plane decide if Dense source set can enter average budget"

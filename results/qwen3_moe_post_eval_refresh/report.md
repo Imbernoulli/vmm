@@ -4,7 +4,7 @@
 
 - Status: `passed`
 - Plan only: `False`
-- Steps passed: `31/31`
+- Steps passed: `32/32`
 - Audit: `awaiting_eval` (`0/13` usable)
 - Selection: `awaiting_source_eval` -> `None`
 - Final selection: `awaiting_source_eval` -> `None` (`0/11` eligible)
@@ -22,6 +22,7 @@
 - Source-set complementarity: `source_dominated_not_averageable_as_final` (dominant `instruct`, frontier avg gain `0.0`, best observed gap `-0.06944444444444431`, complementary sets `2`)
 - Average source-set optimizer: `probe_only_below_interference_budget` for `coder+thinking` (gain `0.0083333333333333` vs interference budget `0.0694444444444443`, surplus `-0.06111111111111099`, final-budget `0`, probe-only `2`)
 - Qwen source discovery plan: `source_discovery_plan_ready` (top scenario `dense_7b_general_code_math_reasoning`, queue `measured_coder_thinking_endpoint_expansion`, additional gain needed `0.06111111111111099`)
+- Qwen source discovery eval plan: `source_discovery_vllm_eval_plan_ready` (`4` jobs, top `measured_coder_thinking_source_frontier`, tasks `gsm8k,humaneval_compile,mmlu,safety`, task names `passed_humaneval_compile_task_name`)
 - Unified average optimizer: `built_waiting_for_qwen3_vllm_eval` (top next experiment `budgeted_qwen3_moe_downstream_eval` / `blocked_on_gpu_vllm`)
 - Unified algorithm contract: `blocked_on_downstream_eval` (`11/13` passed, blocking `['downstream_source_dominance_gate', 'final_unified_average_acceptance']`)
 - Unified selector rank gate in optimizer: confidence band `True`, rank mode `None`, band size `0`
@@ -34,37 +35,38 @@
 
 | step | kind | status | returncode | seconds |
 | --- | --- | --- | ---: | ---: |
-| `build_candidate_trust_region_gate` | `gate` | `passed` | 0 | 0.43 |
-| `plan_eval_budget` | `planner` | `passed` | 0 | 0.42 |
-| `audit_eval_bundles` | `gate` | `passed` | 0 | 0.41 |
-| `select_unified_result` | `selector` | `passed` | 0 | 0.39 |
-| `select_final_candidate` | `selector` | `passed` | 0 | 0.43 |
-| `attribute_mechanism_effects` | `attribution` | `passed` | 0 | 0.45 |
-| `build_feedback_optimizer` | `optimizer` | `passed` | 0 | 1.07 |
-| `build_mechanistic_unified_candidate` | `optimizer` | `passed` | 0 | 2.58 |
-| `audit_mechanistic_evidence` | `attribution` | `passed` | 0 | 1.42 |
-| `analyze_mechanistic_sensitivity` | `attribution` | `passed` | 0 | 17.03 |
-| `analyze_router_expert_coupling` | `attribution` | `passed` | 0 | 0.79 |
-| `build_router_coupled_candidate` | `optimizer` | `passed` | 0 | 1.35 |
-| `analyze_router_coupled_retention_frontier` | `attribution` | `passed` | 0 | 3.58 |
-| `build_source_set_complementarity_gate` | `gate` | `passed` | 0 | 0.40 |
+| `build_candidate_trust_region_gate` | `gate` | `passed` | 0 | 0.47 |
+| `plan_eval_budget` | `planner` | `passed` | 0 | 0.45 |
+| `audit_eval_bundles` | `gate` | `passed` | 0 | 0.44 |
+| `select_unified_result` | `selector` | `passed` | 0 | 0.42 |
+| `select_final_candidate` | `selector` | `passed` | 0 | 0.40 |
+| `attribute_mechanism_effects` | `attribution` | `passed` | 0 | 0.41 |
+| `build_feedback_optimizer` | `optimizer` | `passed` | 0 | 1.17 |
+| `build_mechanistic_unified_candidate` | `optimizer` | `passed` | 0 | 2.55 |
+| `audit_mechanistic_evidence` | `attribution` | `passed` | 0 | 1.44 |
+| `analyze_mechanistic_sensitivity` | `attribution` | `passed` | 0 | 17.13 |
+| `analyze_router_expert_coupling` | `attribution` | `passed` | 0 | 0.81 |
+| `build_router_coupled_candidate` | `optimizer` | `passed` | 0 | 1.37 |
+| `analyze_router_coupled_retention_frontier` | `attribution` | `passed` | 0 | 3.57 |
+| `build_source_set_complementarity_gate` | `gate` | `passed` | 0 | 0.47 |
 | `build_average_source_set_optimizer` | `optimizer` | `passed` | 0 | 0.40 |
-| `build_qwen_source_discovery_plan` | `planner` | `passed` | 0 | 0.43 |
-| `build_unified_average_optimizer` | `optimizer` | `passed` | 0 | 0.46 |
-| `build_average_method_gate_matrix` | `optimizer` | `passed` | 0 | 0.45 |
-| `build_average_trust_region_bounds` | `optimizer` | `passed` | 0 | 0.41 |
-| `analyze_mechanism_levers` | `attribution` | `passed` | 0 | 0.50 |
-| `audit_eval_bundles_smoke` | `smoke` | `passed` | 0 | 0.68 |
-| `select_unified_result_smoke` | `smoke` | `passed` | 0 | 0.40 |
-| `select_final_candidate_smoke` | `smoke` | `passed` | 0 | 0.51 |
-| `eval_budget_queue_smoke` | `smoke` | `passed` | 0 | 0.39 |
-| `attribute_mechanism_effects_smoke` | `smoke` | `passed` | 0 | 0.43 |
-| `build_feedback_optimizer_smoke` | `smoke` | `passed` | 0 | 0.50 |
-| `build_mechanistic_unified_candidate_smoke` | `smoke` | `passed` | 0 | 1.63 |
-| `unified_average_optimizer_ledger_smoke` | `smoke` | `passed` | 0 | 0.43 |
-| `average_method_gate_matrix_consistency_smoke` | `smoke` | `passed` | 0 | 0.42 |
-| `average_trust_region_bounds_smoke` | `smoke` | `passed` | 0 | 0.41 |
-| `collect_results` | `summary` | `passed` | 0 | 1.73 |
+| `build_qwen_source_discovery_plan` | `planner` | `passed` | 0 | 0.41 |
+| `build_qwen_source_discovery_eval_plan` | `planner` | `passed` | 0 | 0.40 |
+| `build_unified_average_optimizer` | `optimizer` | `passed` | 0 | 0.47 |
+| `build_average_method_gate_matrix` | `optimizer` | `passed` | 0 | 0.39 |
+| `build_average_trust_region_bounds` | `optimizer` | `passed` | 0 | 0.38 |
+| `analyze_mechanism_levers` | `attribution` | `passed` | 0 | 0.43 |
+| `audit_eval_bundles_smoke` | `smoke` | `passed` | 0 | 0.70 |
+| `select_unified_result_smoke` | `smoke` | `passed` | 0 | 0.39 |
+| `select_final_candidate_smoke` | `smoke` | `passed` | 0 | 0.52 |
+| `eval_budget_queue_smoke` | `smoke` | `passed` | 0 | 0.45 |
+| `attribute_mechanism_effects_smoke` | `smoke` | `passed` | 0 | 0.42 |
+| `build_feedback_optimizer_smoke` | `smoke` | `passed` | 0 | 0.47 |
+| `build_mechanistic_unified_candidate_smoke` | `smoke` | `passed` | 0 | 1.58 |
+| `unified_average_optimizer_ledger_smoke` | `smoke` | `passed` | 0 | 0.46 |
+| `average_method_gate_matrix_consistency_smoke` | `smoke` | `passed` | 0 | 0.41 |
+| `average_trust_region_bounds_smoke` | `smoke` | `passed` | 0 | 0.44 |
+| `collect_results` | `summary` | `passed` | 0 | 1.70 |
 
 ## Commands
 
@@ -84,7 +86,8 @@
 - `python scripts/build_qwen3_source_set_complementarity_gate.py --output-dir results/qwen3_source_set_complementarity_gate`
 - `python scripts/build_qwen3_average_source_set_optimizer.py --output-dir results/qwen3_average_source_set_optimizer`
 - `python scripts/build_qwen_source_discovery_plan.py --output-dir results/qwen_source_discovery_plan`
-- `python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer --qwen-source-discovery-plan results/qwen_source_discovery_plan/summary.json`
+- `python scripts/build_qwen_source_discovery_eval_plan.py --source-discovery-dir results/qwen_source_discovery_plan --output-dir results/qwen_source_discovery_eval_plan`
+- `python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer --qwen-source-discovery-plan results/qwen_source_discovery_plan/summary.json --qwen-source-discovery-eval-plan results/qwen_source_discovery_eval_plan/summary.json`
 - `python scripts/build_average_method_gate_matrix.py --output-dir results/average_method_gate_matrix --optimizer-summary results/unified_average_optimizer/summary.json --optimizer-features results/unified_average_optimizer/mechanism_features.csv`
 - `python scripts/build_average_trust_region_bounds.py --output-dir results/average_trust_region_bounds`
 - `python scripts/analyze_qwen3_moe_mechanism_levers.py --eval-budget-dir results/qwen3_moe_eval_budget_plan --output-dir results/qwen3_moe_mechanism_levers`

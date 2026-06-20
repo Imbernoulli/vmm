@@ -1,0 +1,31 @@
+{
+  "eval_job_count": 4,
+  "manifest_job_count": 8,
+  "measured_additional_frontier_avg_gain_needed": 0.06111111111111099,
+  "outputs": {
+    "manifest_jobs": "results/qwen_source_discovery_eval_plan/manifest_jobs.csv",
+    "report": "results/qwen_source_discovery_eval_plan/report.md",
+    "run_script": "results/qwen_source_discovery_eval_plan/run_source_frontier_eval.sh",
+    "summary": "results/qwen_source_discovery_eval_plan/summary.json",
+    "vllm_eval_jobs": "results/qwen_source_discovery_eval_plan/vllm_eval_jobs.csv"
+  },
+  "schema_version": 1,
+  "source_discovery_status": "source_discovery_plan_ready",
+  "status": "source_discovery_vllm_eval_plan_ready",
+  "task_name_compatibility_status": "passed_humaneval_compile_task_name",
+  "task_names": [
+    "gsm8k",
+    "humaneval_compile",
+    "mmlu",
+    "safety"
+  ],
+  "top_eval_job": {
+    "additional_frontier_avg_gain_needed": 0.0611111111111109,
+    "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8000/v1 --models Qwen/Qwen3-Coder-30B-A3B-Instruct,Qwen/Qwen3-30B-A3B-Thinking-2507 --tasks mmlu,gsm8k,humaneval_compile --example-source datasets --max-examples 256 --subjects all --task-manifest results/qwen_source_discovery_eval_plan/task_manifests/measured_coder_thinking_source_frontier_task_manifest.json --create-task-manifest-if-missing --output-dir results/qwen_source_discovery_eval_plan/vllm_eval/measured_coder_thinking_source_frontier",
+    "job_id": "measured_coder_thinking_source_frontier",
+    "scenario_id": "measured_qwen3_moe_source_set",
+    "served_models": "Qwen/Qwen3-Coder-30B-A3B-Instruct,Qwen/Qwen3-30B-A3B-Thinking-2507",
+    "status": "ready_for_probe_only_endpoint_expansion",
+    "tasks": "mmlu,gsm8k,humaneval_compile"
+  }
+}

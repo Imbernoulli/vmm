@@ -4,7 +4,7 @@
 
 - Status: `planned`
 - Plan only: `True`
-- Steps passed: `0/31`
+- Steps passed: `0/32`
 - Audit: `n/a` (`n/a/n/a` usable)
 - Selection: `n/a` -> `n/a`
 - Final selection: `n/a` -> `n/a` (`n/a/n/a` eligible)
@@ -22,6 +22,7 @@
 - Source-set complementarity: `n/a` (dominant `n/a`, frontier avg gain `n/a`, best observed gap `n/a`, complementary sets `n/a`)
 - Average source-set optimizer: `n/a` for `n/a` (gain `n/a` vs interference budget `n/a`, surplus `n/a`, final-budget `n/a`, probe-only `n/a`)
 - Qwen source discovery plan: `n/a` (top scenario `n/a`, queue `n/a`, additional gain needed `n/a`)
+- Qwen source discovery eval plan: `n/a` (`n/a` jobs, top `n/a`, tasks `n/a`, task names `n/a`)
 - Unified average optimizer: `n/a` (top next experiment `n/a` / `n/a`)
 - Unified algorithm contract: `n/a` (`n/a/n/a` passed, blocking `[]`)
 - Unified selector rank gate in optimizer: confidence band `n/a`, rank mode `n/a`, band size `n/a`
@@ -50,6 +51,7 @@
 | `build_source_set_complementarity_gate` | `gate` | `planned` | None | 0.00 |
 | `build_average_source_set_optimizer` | `optimizer` | `planned` | None | 0.00 |
 | `build_qwen_source_discovery_plan` | `planner` | `planned` | None | 0.00 |
+| `build_qwen_source_discovery_eval_plan` | `planner` | `planned` | None | 0.00 |
 | `build_unified_average_optimizer` | `optimizer` | `planned` | None | 0.00 |
 | `build_average_method_gate_matrix` | `optimizer` | `planned` | None | 0.00 |
 | `build_average_trust_region_bounds` | `optimizer` | `planned` | None | 0.00 |
@@ -84,7 +86,8 @@
 - `python scripts/build_qwen3_source_set_complementarity_gate.py --output-dir results/qwen3_source_set_complementarity_gate`
 - `python scripts/build_qwen3_average_source_set_optimizer.py --output-dir results/qwen3_average_source_set_optimizer`
 - `python scripts/build_qwen_source_discovery_plan.py --output-dir results/qwen_source_discovery_plan`
-- `python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer --qwen-source-discovery-plan results/qwen_source_discovery_plan/summary.json`
+- `python scripts/build_qwen_source_discovery_eval_plan.py --source-discovery-dir results/qwen_source_discovery_plan --output-dir results/qwen_source_discovery_eval_plan`
+- `python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer --qwen-source-discovery-plan results/qwen_source_discovery_plan/summary.json --qwen-source-discovery-eval-plan results/qwen_source_discovery_eval_plan/summary.json`
 - `python scripts/build_average_method_gate_matrix.py --output-dir results/average_method_gate_matrix --optimizer-summary results/unified_average_optimizer/summary.json --optimizer-features results/unified_average_optimizer/mechanism_features.csv`
 - `python scripts/build_average_trust_region_bounds.py --output-dir results/average_trust_region_bounds`
 - `python scripts/analyze_qwen3_moe_mechanism_levers.py --eval-budget-dir results/qwen3_moe_eval_budget_plan --output-dir results/qwen3_moe_mechanism_levers`
