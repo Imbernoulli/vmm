@@ -18,7 +18,7 @@
 - Qwen3 generation attribution: router-cal recovers `0.3243` of avg naive drop and beats pair frontier on `0/5` scores。
 - Qwen3 generation confidence: positive tasks vs naive `2/3`，confident positives `0/3`，confident source-frontier wins `0/3`；avg gain interval `[-0.1703, 0.2312]`。
 - Qwen3 router calibration: `awaiting_baseline_eval`。
-- Qwen3 final selection: `awaiting_source_eval`，eligible `0/10`。
+- Qwen3 final selection: `awaiting_source_eval`，eligible `0/11`。
 - Qwen3 final selector rank gate: confidence band `True`，rank mode `None`，band size `0`，point leader `None`。
 
 ## Mechanism Features
@@ -46,7 +46,7 @@
 | `moe` | `qwen3_generation_routercal_effect_attribution` | `router_calibration_is_repair_not_acceptance_rule` | 0.3243 | 1.0000 | status = generation_mechanism_attribution_ready; avg naive drop = 0.1028; avg recovery fraction = 0.3243; HumanEval recovery = 0.5000; beats pair frontier = 0/5 |
 | `moe` | `qwen3_generation_confidence_audit` | `generation_gain_directional_not_confident_or_source_dominant` | 0.0000 | 3.0000 | status = generation_confidence_audit_ready; positive tasks vs naive = 2/3; confident positive tasks = 0/3; confident source-frontier wins = 0/3; avg gain interval = [-0.1703, 0.2312] |
 | `moe` | `qwen3_router_calibration_gate` | `do_not_accept_router_delta_without_baseline_eval` | 0.0000 | 4.0000 | status = awaiting_baseline_eval; eligible router-cal candidates = 0/4; reason = Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps. |
-| `moe` | `qwen3_final_candidate_selection` | `await_matched_vllm_before_accepting_average` | 0.0000 | 10.0000 | status = awaiting_source_eval; eligible candidates = 0/10; reason = Both Qwen3 source endpoints must complete audited vLLM eval before final candidate selection. |
+| `moe` | `qwen3_final_candidate_selection` | `await_matched_vllm_before_accepting_average` | 0.0000 | 11.0000 | status = awaiting_source_eval; eligible candidates = 0/11; reason = Both Qwen3 source endpoints must complete audited vLLM eval before final candidate selection. |
 | `moe` | `qwen3_final_selector_confidence_band` | `use_structural_tiebreak_only_when_downstream_scores_are_statistically_tied` | 0.0000 | 0.0000 | confidence tie band = True; rank mode = None; point leader = None; band size = 0; structural-frontier eligible = 0; rank band methods = [] |
 
 ## Operations
@@ -75,7 +75,7 @@
 | `moe_source_to_source_line_not_averageable` | `straight_line_rejected` | Instruct/Coder interior gap = 0.1189; Base/Coder interior gap = 0.1058; complementary merge beats sources = False | A straight-line or 2D plane sweep must find an interior point that beats both source endpoints on the paired downstream frontier. | `python scripts/fp_moe_barrier.py --out results/fp_moe_barrier` |
 | `moe_risk_weighted_expert_caps_preserve_useful_route_mass` | `structurally_passed_waiting_downstream_eval` | candidate = subspace_cap_s1.00; retention = 0.9763; subspace-weighted rel-delta = 0.2148; routed >0.65 = 0 | Budgeted vLLM eval must show the unified candidate is non-dominated by both sources and does not regress any task beyond tolerance. | `results/qwen3_moe_eval_budget_plan/run_eval_budget.sh final` |
 | `router_calibration_repairs_dispatch_but_is_not_acceptance` | `promising_but_unaccepted` | NLL worst reduction = 0.2214; generation avg gain = 0.0333; confident positive tasks = 0/3; source-frontier wins = 0/3 | Router-calibrated candidates must beat the frozen-router baseline under paired source controls and maintain router-only audit caps. | `results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh all` |
-| `downstream_source_dominance_is_final_gate` | `awaiting_source_eval` | final selection status = awaiting_source_eval; eligible candidates = 0/10; router calibration status = awaiting_baseline_eval | All candidates and sources must be scored on the locked manifest; dominated averages are rejected even if their structural audit looks clean. | `python scripts/select_qwen3_moe_unified_result.py` |
+| `downstream_source_dominance_is_final_gate` | `awaiting_source_eval` | final selection status = awaiting_source_eval; eligible candidates = 0/11; router calibration status = awaiting_baseline_eval | All candidates and sources must be scored on the locked manifest; dominated averages are rejected even if their structural audit looks clean. | `python scripts/select_qwen3_moe_unified_result.py` |
 | `moe_structural_tiebreak_requires_statistical_equivalence` | `policy_ready_waiting_eval` | confidence tie band = True; rank mode = None; point leader = None; rank band size = 0; structural-frontier eligible = 0 | Selector smoke and locked-manifest eval must show that structural frontier/safety affects rank only inside a confidence-overlap band; if intervals separate, the point leader wins. | `python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke` |
 
 ## Evidence Ledger
@@ -108,7 +108,7 @@
 | `mechanistic_candidate_structural_gate` | `route_geometry_subspace_cap_audit` | `passed` | `True` | rule_status=fresh; audit_status=passed; routed_gt_0.65=0; router_changed=0/48; manifest_match=True | `python scripts/audit_materialized_checkpoint_delta.py --base BASE --candidate results/checkpoints/qwen3_moe_unified_mechanism_candidate --output-dir results/qwen3_moe_unified_mechanism_delta_audit` |
 | `router_calibration_separate_acceptance_gate` | `router_repair_not_default_average` | `passed` | `True` | router_calibration_status=awaiting_baseline_eval; eligible=0/4; verdict=promising_but_unaccepted | `results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh all` |
 | `statistical_structural_tiebreak_gate` | `confidence_band_selector` | `passed` | `True` | tie_band=True; rank_mode=None; band_size=0; point_leader=None; verdict=supports_current_action | `python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke` |
-| `downstream_source_dominance_gate` | `locked_manifest_vllm_eval` | `blocked_on_downstream_eval` | `False` | final_status=awaiting_source_eval; eligible=0/10; downstream_verdict=awaiting_downstream_eval; unified_verdict=awaiting_downstream_eval | `results/qwen3_moe_eval_budget_plan/run_eval_budget.sh final` |
+| `downstream_source_dominance_gate` | `locked_manifest_vllm_eval` | `blocked_on_downstream_eval` | `False` | final_status=awaiting_source_eval; eligible=0/11; downstream_verdict=awaiting_downstream_eval; unified_verdict=awaiting_downstream_eval | `results/qwen3_moe_eval_budget_plan/run_eval_budget.sh final` |
 | `final_unified_average_acceptance` | `all_gates_joint` | `blocked_on_downstream_eval` | `False` | structural_gate=True; downstream_terminal=False; unified_accepted=False; source_fallback=False | `results/qwen3_moe_eval_budget_plan/run_eval_budget.sh final` |
 
 ## Next Experiments

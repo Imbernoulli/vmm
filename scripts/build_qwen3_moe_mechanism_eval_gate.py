@@ -30,6 +30,7 @@ CANDIDATE_METHODS = [
     "qwen3_moe_unified_mechanism_candidate",
     "qwen3_moe_mechanistic_unified_candidate",
     "qwen3_moe_subspace_scaled_candidate",
+    "qwen3_moe_router_coupled_candidate",
 ]
 
 METHOD_ORDER = SOURCE_METHODS + CANDIDATE_METHODS
@@ -118,6 +119,13 @@ METHOD_META: dict[str, dict[str, str]] = {
         "mechanism": "unified mechanism candidate plus extra shrink for uncovered expert channel/chunk subspace conflicts",
         "question": "Do the remaining uncovered subspace-conflict experts explain downstream regressions beyond the unified mechanism candidate?",
         "required_controls": "both sources; unified_mechanism; layer_chunk; expert subspace conflict probe",
+    },
+    "qwen3_moe_router_coupled_candidate": {
+        "role": "candidate",
+        "short_name": "router_coupled",
+        "mechanism": "mechanistic unified candidate plus extra shrink for high router-boundary-fragility expert groups",
+        "question": "Does extra router-boundary conservative expert shrink improve downstream robustness beyond mechanistic_unified?",
+        "required_controls": "both sources; mechanistic_unified; router-expert coupling probe; expert subspace conflict probe",
     },
 }
 
@@ -220,6 +228,15 @@ MECHANISM_TESTS = [
         "why_it_matters": "This tests the proposed unified algorithm as a scientific mechanism: high-benefit groups should be preserved while high-curvature/interference groups are damped.",
         "pass_signal": "Mechanistic unified matches or beats unified_mechanism without source dominance or task regression.",
         "fail_signal": "Unified_mechanism beats mechanistic_unified; the marginal-utility proxy is overfit or missing an internal signal.",
+    },
+    {
+        "test": "router_coupled_boundary_ablation",
+        "from_method": "qwen3_moe_mechanistic_unified_candidate",
+        "to_method": "qwen3_moe_router_coupled_candidate",
+        "mechanism_question": "Does the layer-level router-boundary fragility signal justify extra expert shrink after the B/H/I scale law?",
+        "why_it_matters": "The coupling probe shows router fragility already correlates with expert shrink; this ablation tests whether adding a direct router-boundary term gives real downstream robustness or only sacrifices retention.",
+        "pass_signal": "Router-coupled matches or beats mechanistic_unified on avg/worst/task scores despite lower nonbase retention; keep a direct router-boundary term.",
+        "fail_signal": "Mechanistic_unified beats router-coupled; B/H/I already captured the useful router-boundary risk and the extra shrink is over-conservative.",
     },
 ]
 
@@ -654,9 +671,21 @@ def build_mechanism_tests(gate: pd.DataFrame, pairwise: pd.DataFrame) -> pd.Data
         status = "awaiting_eval"
         interpretation = "Needs matched vLLM downstream scores."
         if completed:
-            delta_avg = maybe_float(right.get("avg_primary_score")) - maybe_float(left.get("avg_primary_score"))
-            delta_worst = maybe_float(right.get("worst_primary_score")) - maybe_float(left.get("worst_primary_score"))
-            if delta_avg >= 0.0 and delta_worst >= 0.0:
+            left_avg = maybe_float(left.get("avg_primary_score"))
+            right_avg = maybe_float(right.get("avg_primary_score"))
+            left_worst = maybe_float(left.get("worst_primary_score"))
+            right_worst = maybe_float(right.get("worst_primary_score"))
+            delta_avg = (
+                right_avg - left_avg
+                if left_avg is not None and right_avg is not None
+                else None
+            )
+            delta_worst = (
+                right_worst - left_worst
+                if left_worst is not None and right_worst is not None
+                else None
+            )
+            if delta_avg is not None and delta_worst is not None and delta_avg >= 0.0 and delta_worst >= 0.0:
                 status = "mechanism_supported"
                 interpretation = test["pass_signal"]
             else:
@@ -731,6 +760,11 @@ def build_selection_rules(selection: dict[str, Any]) -> dict[str, Any]:
                 "gate": "subspace_conflict_ablation",
                 "rule": "Apply the extra channel/chunk subspace shrink only if the subspace-scaled ablation matches or beats the unified mechanism candidate on the same downstream tasks.",
                 "mechanism": "The subspace probe isolates a small set of uncovered local expert conflicts; it should not become a global shrink rule unless behavior supports it.",
+            },
+            {
+                "gate": "router_coupled_boundary_ablation",
+                "rule": "Apply the extra router-boundary expert shrink only if the router-coupled ablation beats mechanistic_unified on the same task manifest after materialization and delta audit.",
+                "mechanism": "Router top-k boundary fragility can already enter B/H/I as an interference signal; a direct extra shrink term must prove it improves behavior rather than merely lowering retention.",
             },
             {
                 "gate": "endpoint_fallback",

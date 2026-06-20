@@ -1,6 +1,6 @@
 {
-  "ablation_only_candidate_count": 8,
-  "candidate_count": 10,
+  "ablation_only_candidate_count": 9,
+  "candidate_count": 11,
   "final_selectable_candidate_count": 2,
   "final_selectable_methods": [
     "qwen3_moe_mechanistic_unified_candidate",

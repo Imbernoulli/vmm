@@ -71,6 +71,11 @@
       "rule": "Apply the extra channel/chunk subspace shrink only if the subspace-scaled ablation matches or beats the unified mechanism candidate on the same downstream tasks."
     },
     {
+      "gate": "router_coupled_boundary_ablation",
+      "mechanism": "Router top-k boundary fragility can already enter B/H/I as an interference signal; a direct extra shrink term must prove it improves behavior rather than merely lowering retention.",
+      "rule": "Apply the extra router-boundary expert shrink only if the router-coupled ablation beats mechanistic_unified on the same task manifest after materialization and delta audit."
+    },
+    {
       "gate": "endpoint_fallback",
       "mechanism": "A unified algorithm should reject bad averages; same-shape endpoint fallback is still a valid target model.",
       "rule": "If every candidate is Pareto-dominated by a source endpoint, output the best same-shape endpoint/no-average."

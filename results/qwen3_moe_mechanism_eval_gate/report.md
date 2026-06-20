@@ -5,7 +5,7 @@
 - Gate status: `awaiting_remote_vllm_eval`
 - Local GPU available: `False` (`nvidia_smi_failed`)
 - Source endpoints: `2`
-- Same-shape candidates: `10`
+- Same-shape candidates: `11`
 - Ready-to-host rows: `12`
 - Completed Qwen3 eval rows: `0`
 - Current selection status: `awaiting_source_eval`
@@ -50,6 +50,7 @@ cap_g = f(route_load, category_specialization, router_fragility, delta_audit_tai
 | `unified_mechanism_optimizer` | `qwen3_moe_layer_chunk_candidate` -> `qwen3_moe_unified_mechanism_candidate` | `awaiting_eval` |  |  | 0.003 | 0.000 | Does the router/evidence/geometry-risk optimizer improve downstream behavior beyond the layer/chunk candidate? |
 | `expert_subspace_conflict_ablation` | `qwen3_moe_mechanistic_unified_candidate` -> `qwen3_moe_subspace_scaled_candidate` | `awaiting_eval` |  |  | -0.001 | 0.000 | Do uncovered high subspace-conflict experts need additional non-base shrink after the unified mechanism cap? |
 | `mechanistic_unified_optimizer` | `qwen3_moe_unified_mechanism_candidate` -> `qwen3_moe_mechanistic_unified_candidate` | `awaiting_eval` |  |  | 0.002 | 0.000 | Does the benefit/curvature/interference objective explain a better scale law than the current risk-weighted cap search? |
+| `router_coupled_boundary_ablation` | `qwen3_moe_mechanistic_unified_candidate` -> `qwen3_moe_router_coupled_candidate` | `awaiting_eval` |  |  |  |  | Does the layer-level router-boundary fragility signal justify extra expert shrink after the B/H/I scale law? |
 
 ## Eval Gate Plan
 
@@ -67,6 +68,7 @@ cap_g = f(route_load, category_specialization, router_fragility, delta_audit_tai
 | 9 | `qwen3_moe_unified_mechanism_candidate` | `candidate` | `ready_to_host` | `not_run` |  |  | 0.000 | 0.000 | mechanism-optimized same-shape MoE average with frozen router/attention and router/evidence/geometry-risk expert caps |
 | 10 | `qwen3_moe_mechanistic_unified_candidate` | `candidate` | `ready_to_host` | `not_run` |  |  | 0.000 | 0.000 | damped per-expert benefit/curvature/interference optimizer with frozen router/attention |
 | 11 | `qwen3_moe_subspace_scaled_candidate` | `candidate` | `ready_to_host` | `not_run` |  |  | 0.000 | 0.000 | unified mechanism candidate plus extra shrink for uncovered expert channel/chunk subspace conflicts |
+| 12 | `qwen3_moe_router_coupled_candidate` | `candidate` | `checkpoint_missing_until_materialized` | `not_run` |  |  |  |  | mechanistic unified candidate plus extra shrink for high router-boundary-fragility expert groups |
 
 ## Selection State
 
@@ -84,6 +86,7 @@ cap_g = f(route_load, category_specialization, router_fragility, delta_audit_tai
 | `qwen3_moe_unified_mechanism_candidate` | `False` | `` |  |  |  |  |  |  | 0.240 |
 | `qwen3_moe_mechanistic_unified_candidate` | `False` | `` |  |  |  |  |  |  | 0.238 |
 | `qwen3_moe_subspace_scaled_candidate` | `False` | `` |  |  |  |  |  |  | 0.240 |
+| `qwen3_moe_router_coupled_candidate` | `False` | `` |  |  |  |  |  |  |  |
 
 ## How To Run On GPU
 

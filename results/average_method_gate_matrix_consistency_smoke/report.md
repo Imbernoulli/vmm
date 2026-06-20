@@ -7,7 +7,7 @@ This smoke verifies that the method gate matrix is synchronized with the current
 
 | assertion | expected | actual | passed |
 | --- | --- | --- | --- |
-| `final_gate_threshold_matches_optimizer_candidate_count` | `10` | `10.0` | `True` |
+| `final_gate_threshold_matches_optimizer_candidate_count` | `11` | `11.0` | `True` |
 | `final_gate_value_matches_optimizer_eligible_count` | `0` | `0.0` | `True` |
 | `final_gate_status_matches_optimizer_status` | `awaiting_source_eval` | `awaiting_source_eval` | `True` |
 | `no_method_family_accepted_by_default` | `0` | `0` | `True` |

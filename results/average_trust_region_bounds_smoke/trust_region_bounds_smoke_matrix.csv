@@ -9,4 +9,4 @@ router_safe_lambda_matches_margin_probe,0.019725152295719042,0.019725152295719,T
 router_midpoint_rejected_by_margin_bound,candidate_over_bound>1,"candidate=0.5, allowed=0.019725152295719, over=25.34834674551614, status=reject_direct_router_average",True
 mechanistic_cap_matches_candidate_summary,0.649,0.649,True
 mechanistic_candidate_passes_cap_and_retention_bound,cap_passed,"status=mechanistic_cap_and_retention_passed, max=0.649, cap=0.649, retention=0.9650345047849123",True
-final_bound_status_matches_final_selector,awaiting_source_eval,final selector status = awaiting_source_eval; eligible candidates = 0/10; reason = Both Qwen3 source endpoints must complete audited vLLM eval before final candidate selection..,True
+final_bound_status_matches_final_selector,awaiting_source_eval,final selector status = awaiting_source_eval; eligible candidates = 0/11; reason = Both Qwen3 source endpoints must complete audited vLLM eval before final candidate selection..,True

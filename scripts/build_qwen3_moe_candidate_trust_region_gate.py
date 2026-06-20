@@ -145,13 +145,24 @@ def gate_row(row: dict[str, Any], structural: dict[str, Any], args: argparse.Nam
     if args.require_structural_frontier and frontier is not True:
         reasons.append("structurally_dominated")
 
-    final_selectable = not reasons
-    if final_selectable:
-        category = "final_selectable_trust_region"
-    elif audit_passed is True and router_changed == 0:
+    if method == "qwen3_moe_router_coupled_candidate":
+        final_selectable = False
         category = "ablation_only"
+        reasons = [
+            "pending_router_coupled_materialization_and_delta_audit",
+            "pending_delta_frontier_structural_audit",
+            "retention_below_default_gate",
+        ]
     else:
-        category = "structural_reject"
+        final_selectable = not reasons
+        if final_selectable:
+            category = "final_selectable_trust_region"
+        elif audit_passed is True and router_changed == 0:
+            category = "ablation_only"
+        elif str(row.get("serve_status", "")) == "checkpoint_missing_until_materialized":
+            category = "ablation_only"
+        else:
+            category = "structural_reject"
     return {
         "method": method,
         "role": role,

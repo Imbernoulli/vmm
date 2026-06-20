@@ -5,10 +5,10 @@
 - Status: `passed`
 - Plan only: `False`
 - Steps passed: `27/27`
-- Audit: `awaiting_eval` (`0/12` usable)
+- Audit: `awaiting_eval` (`0/13` usable)
 - Selection: `awaiting_source_eval` -> `None`
-- Final selection: `awaiting_source_eval` -> `None` (`0/10` eligible)
-- Candidate trust-region gate: `candidate_trust_region_gate_ready` (`2/10` final-selectable, `8` ablation-only)
+- Final selection: `awaiting_source_eval` -> `None` (`0/11` eligible)
+- Candidate trust-region gate: `candidate_trust_region_gate_ready` (`2/11` final-selectable, `9` ablation-only)
 - Eval budget queue: `ready_for_budgeted_remote_vllm_eval` (default `final`, final `4` methods / `6144` prompts, max examples `384`)
 - Eval budget queue smoke: `passed` (`11/11` assertions)
 - Attribution: `awaiting_eval` (`0/10` scored)
@@ -30,33 +30,33 @@
 
 | step | kind | status | returncode | seconds |
 | --- | --- | --- | ---: | ---: |
-| `build_candidate_trust_region_gate` | `gate` | `passed` | 0 | 0.42 |
-| `plan_eval_budget` | `planner` | `passed` | 0 | 0.43 |
-| `audit_eval_bundles` | `gate` | `passed` | 0 | 0.40 |
+| `build_candidate_trust_region_gate` | `gate` | `passed` | 0 | 0.41 |
+| `plan_eval_budget` | `planner` | `passed` | 0 | 0.45 |
+| `audit_eval_bundles` | `gate` | `passed` | 0 | 0.43 |
 | `select_unified_result` | `selector` | `passed` | 0 | 0.41 |
-| `select_final_candidate` | `selector` | `passed` | 0 | 0.40 |
-| `attribute_mechanism_effects` | `attribution` | `passed` | 0 | 0.41 |
-| `build_feedback_optimizer` | `optimizer` | `passed` | 0 | 1.12 |
-| `build_mechanistic_unified_candidate` | `optimizer` | `passed` | 0 | 2.53 |
-| `audit_mechanistic_evidence` | `attribution` | `passed` | 0 | 1.44 |
-| `analyze_mechanistic_sensitivity` | `attribution` | `passed` | 0 | 17.22 |
+| `select_final_candidate` | `selector` | `passed` | 0 | 0.42 |
+| `attribute_mechanism_effects` | `attribution` | `passed` | 0 | 0.40 |
+| `build_feedback_optimizer` | `optimizer` | `passed` | 0 | 1.05 |
+| `build_mechanistic_unified_candidate` | `optimizer` | `passed` | 0 | 2.50 |
+| `audit_mechanistic_evidence` | `attribution` | `passed` | 0 | 1.39 |
+| `analyze_mechanistic_sensitivity` | `attribution` | `passed` | 0 | 17.04 |
 | `analyze_router_expert_coupling` | `attribution` | `passed` | 0 | 0.81 |
-| `build_router_coupled_candidate` | `optimizer` | `passed` | 0 | 1.27 |
-| `build_unified_average_optimizer` | `optimizer` | `passed` | 0 | 0.41 |
+| `build_router_coupled_candidate` | `optimizer` | `passed` | 0 | 1.37 |
+| `build_unified_average_optimizer` | `optimizer` | `passed` | 0 | 0.42 |
 | `build_average_method_gate_matrix` | `optimizer` | `passed` | 0 | 0.39 |
-| `build_average_trust_region_bounds` | `optimizer` | `passed` | 0 | 0.40 |
-| `analyze_mechanism_levers` | `attribution` | `passed` | 0 | 0.45 |
-| `audit_eval_bundles_smoke` | `smoke` | `passed` | 0 | 0.67 |
-| `select_unified_result_smoke` | `smoke` | `passed` | 0 | 0.40 |
-| `select_final_candidate_smoke` | `smoke` | `passed` | 0 | 0.51 |
-| `eval_budget_queue_smoke` | `smoke` | `passed` | 0 | 0.41 |
+| `build_average_trust_region_bounds` | `optimizer` | `passed` | 0 | 0.43 |
+| `analyze_mechanism_levers` | `attribution` | `passed` | 0 | 0.42 |
+| `audit_eval_bundles_smoke` | `smoke` | `passed` | 0 | 0.64 |
+| `select_unified_result_smoke` | `smoke` | `passed` | 0 | 0.39 |
+| `select_final_candidate_smoke` | `smoke` | `passed` | 0 | 0.50 |
+| `eval_budget_queue_smoke` | `smoke` | `passed` | 0 | 0.42 |
 | `attribute_mechanism_effects_smoke` | `smoke` | `passed` | 0 | 0.40 |
-| `build_feedback_optimizer_smoke` | `smoke` | `passed` | 0 | 0.49 |
-| `build_mechanistic_unified_candidate_smoke` | `smoke` | `passed` | 0 | 1.68 |
-| `unified_average_optimizer_ledger_smoke` | `smoke` | `passed` | 0 | 0.41 |
+| `build_feedback_optimizer_smoke` | `smoke` | `passed` | 0 | 0.50 |
+| `build_mechanistic_unified_candidate_smoke` | `smoke` | `passed` | 0 | 1.59 |
+| `unified_average_optimizer_ledger_smoke` | `smoke` | `passed` | 0 | 0.43 |
 | `average_method_gate_matrix_consistency_smoke` | `smoke` | `passed` | 0 | 0.39 |
-| `average_trust_region_bounds_smoke` | `smoke` | `passed` | 0 | 0.41 |
-| `collect_results` | `summary` | `passed` | 0 | 1.96 |
+| `average_trust_region_bounds_smoke` | `smoke` | `passed` | 0 | 0.39 |
+| `collect_results` | `summary` | `passed` | 0 | 1.70 |
 
 ## Commands
 

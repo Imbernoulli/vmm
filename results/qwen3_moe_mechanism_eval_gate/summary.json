@@ -1,6 +1,6 @@
 {
   "best_delta_safety_candidate": "mechanistic_unified",
-  "candidate_count": 10,
+  "candidate_count": 11,
   "completed_eval_count": 0,
   "current_selection": {
     "best_source_by_avg": null,

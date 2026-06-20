@@ -52,7 +52,7 @@
     "qwen3_base_coder_endpoint_best_worst_nll": 2.3603474087185328,
     "qwen3_base_coder_general_barrier_nll": 0.07275096419589966,
     "qwen3_base_coder_interior_gap_nll": 0.10575581968220238,
-    "qwen3_candidate_count": 10,
+    "qwen3_candidate_count": 11,
     "qwen3_complementary_best_merge_avg_nll": 0.5658833147631409,
     "qwen3_complementary_best_source_avg_nll": 0.5658833147631409,
     "qwen3_complementary_merge_beats_sources": false,

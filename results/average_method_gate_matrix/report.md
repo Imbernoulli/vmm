@@ -33,7 +33,7 @@
 | `expert_gauge_alignment` | `real_olmoe_gauge_selfmerge` | 5.4910 | 0.0000 | `alignment_required` | baseline NLL = 4.1678; same-name average NLL = 9.6588; aligned average NLL = 4.1678; layers recovered = 16/16 |
 | `router_movement` | `qwen3_router_move_gate` | 0.0000 | 48.0000 | `failed_freeze_or_calibrate` | allowed router layers = 0/48; top-k Jaccard mean/min = 0.4539/0.2422; top1 agreement mean/min = 0.4125/0.0690 |
 | `router_calibration` | `qwen3_router_calibration_nll_probe` | 0.2214 | 0.0000 | `awaiting_baseline_eval` | status = router_calibration_improves_linear_merge_but_needs_downstream_gate; linear worst NLL = 2.6355; router-cal worst NLL = 2.4140; worst reduction = 0.2214; code gap to best source = -0.0139 |
-| `final_downstream_acceptance` | `qwen3_final_candidate_selection` | 0.0000 | 10.0000 | `awaiting_source_eval` | status = awaiting_source_eval; eligible candidates = 0/10; reason = Both Qwen3 source endpoints must complete audited vLLM eval before final candidate selection. |
+| `final_downstream_acceptance` | `qwen3_final_candidate_selection` | 0.0000 | 11.0000 | `awaiting_source_eval` | status = awaiting_source_eval; eligible candidates = 0/11; reason = Both Qwen3 source endpoints must complete audited vLLM eval before final candidate selection. |
 
 ## Outputs
 

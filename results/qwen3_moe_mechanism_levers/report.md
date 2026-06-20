@@ -12,7 +12,7 @@
 
 | mechanism | priority | confidence | evidence | action |
 | --- | ---: | --- | --- | --- |
-| `source_and_candidate_downstream_eval` | 0.98 | `high` | examples 64 -> 384; extra prompts 17920 | run budgeted one-model-at-a-time vLLM eval before accepting any average |
+| `source_and_candidate_downstream_eval` | 0.98 | `high` | examples 64 -> 384; extra prompts 19200 | run budgeted one-model-at-a-time vLLM eval before accepting any average |
 | `router_direct_movement` | 0.94 | `high` | allowed layers 0/48; min top1 0.0689655169844627; router rel-norm 0.7392916983133861 | freeze router for same-shape candidate; only consider calibrated router deltas |
 | `routed_expert_tail_cap_0_75` | 0.86 | `high` | route->audit removes >0.75 by 675 and >1.0 by 182 | keep file-level/audit-level relative-delta cap as a mandatory safety gate |
 | `risk_penalty_complexity` | 0.83 | `medium_high` | risk flag ablation tail reductions 0; summed retention loss 0.00525858; searched no-gt-0.65 rel norm 0.2475948491291486 | prefer the simpler uniform 0.65 cap unless downstream eval proves risk penalties preserve task behavior |

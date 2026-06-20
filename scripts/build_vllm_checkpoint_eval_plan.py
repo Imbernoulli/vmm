@@ -224,6 +224,15 @@ def default_candidates() -> list[dict[str, Any]]:
             "notes": "Subspace-conflict ablation: start from the unified mechanism rules, then apply extra shrink only to uncovered high channel/chunk subspace-conflict experts. This candidate must be materialized and audited before vLLM selection can use it.",
         },
         {
+            "candidate_source": "results/qwen3_moe_router_coupled_candidate/writer_command.txt",
+            "method": "qwen3_moe_router_coupled_candidate",
+            "checkpoint_path": "results/checkpoints/qwen3_moe_router_coupled_candidate",
+            "tensor_parallel_size": 4,
+            "gpu": "0,1,2,3",
+            "materialization_status": "checkpoint_missing_until_router_coupled_ablation_materialized",
+            "notes": "Router-coupled ablation: start from mechanistic_unified, then add extra shrink on expert groups whose layer-level router boundary fragility is high. It is writer-ready but below the retention gate, so it is mechanism-only until materialized, audited, and scored by vLLM.",
+        },
+        {
             "candidate_source": "local_materialized_dense_baseline",
             "method": "qwen_0_5b_instruct_coder_uniform_average",
             "checkpoint_path": "results/checkpoints/qwen_0_5b_instruct_coder_uniform_average",
