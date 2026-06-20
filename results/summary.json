@@ -20503,15 +20503,15 @@
         },
         {
           "cap_label": "shared",
-          "command": "python scripts/run_vllm_downstream_eval.py --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --task-manifest /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_router_calibration_job/task_manifest.json --create-task-manifest-if-missing --prepare-task-manifest-only",
-          "expected_output": "results/qwen3_moe_router_calibration_job/task_manifest.json",
+          "command": "python scripts/run_vllm_downstream_eval.py --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 384 --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing --prepare-task-manifest-only",
+          "expected_output": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
           "method": "shared_eval_manifest",
           "purpose": "Lock the downstream eval tasks and sample IDs before any source, baseline, or candidate endpoint runs.",
           "stage": "prepare_task_manifest"
         },
         {
           "cap_label": "source",
-          "command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8100/v1 --models candidate_source_qwen3_30b_instruct --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/source_qwen3_30b_instruct --task-manifest /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_router_calibration_job/task_manifest.json --create-task-manifest-if-missing",
+          "command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8100/v1 --models candidate_source_qwen3_30b_instruct --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 384 --output-dir results/vllm_checkpoint_eval/source_qwen3_30b_instruct --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "expected_output": "results/vllm_checkpoint_eval/source_qwen3_30b_instruct",
           "method": "source_qwen3_30b_instruct",
           "purpose": "Run a source endpoint control on the same downstream task set.",
@@ -20519,7 +20519,7 @@
         },
         {
           "cap_label": "source",
-          "command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8101/v1 --models candidate_source_qwen3_30b_coder --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/source_qwen3_30b_coder --task-manifest /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_router_calibration_job/task_manifest.json --create-task-manifest-if-missing",
+          "command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8101/v1 --models candidate_source_qwen3_30b_coder --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 384 --output-dir results/vllm_checkpoint_eval/source_qwen3_30b_coder --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "expected_output": "results/vllm_checkpoint_eval/source_qwen3_30b_coder",
           "method": "source_qwen3_30b_coder",
           "purpose": "Run a source endpoint control on the same downstream task set.",
@@ -20527,7 +20527,7 @@
         },
         {
           "cap_label": "baseline",
-          "command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8107/v1 --models baseline_qwen3_moe_searched_no_gt065 --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate --task-manifest /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_router_calibration_job/task_manifest.json --create-task-manifest-if-missing",
+          "command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8107/v1 --models baseline_qwen3_moe_searched_no_gt065 --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 384 --output-dir results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "expected_output": "results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate",
           "method": "qwen3_moe_searched_no_gt065_max_retention_candidate",
           "purpose": "Run the frozen-router searched no-gt-0.65 baseline on the same downstream tasks.",
@@ -20559,7 +20559,7 @@
         },
         {
           "cap_label": "cap001",
-          "command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8108/v1 --models candidate_qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate --task-manifest /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_router_calibration_job/task_manifest.json --create-task-manifest-if-missing",
+          "command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8108/v1 --models candidate_qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 384 --output-dir results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "expected_output": "results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate",
           "method": "qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate",
           "purpose": "Run downstream tasks against the router-calibrated ablation candidate.",
@@ -20591,7 +20591,7 @@
         },
         {
           "cap_label": "cap0025",
-          "command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8109/v1 --models candidate_qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate --task-manifest /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_router_calibration_job/task_manifest.json --create-task-manifest-if-missing",
+          "command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8109/v1 --models candidate_qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 384 --output-dir results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "expected_output": "results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate",
           "method": "qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate",
           "purpose": "Run downstream tasks against the router-calibrated ablation candidate.",
@@ -20623,7 +20623,7 @@
         },
         {
           "cap_label": "cap005",
-          "command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8110/v1 --models candidate_qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate --task-manifest /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_router_calibration_job/task_manifest.json --create-task-manifest-if-missing",
+          "command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8110/v1 --models candidate_qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 384 --output-dir results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "expected_output": "results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate",
           "method": "qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate",
           "purpose": "Run downstream tasks against the router-calibrated ablation candidate.",
@@ -20655,7 +20655,7 @@
         },
         {
           "cap_label": "margin_profile",
-          "command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8111/v1 --models candidate_qwen3_moe_router_calibrated_searched_no_gt065_margin_profile_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_margin_profile_candidate --task-manifest /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_router_calibration_job/task_manifest.json --create-task-manifest-if-missing",
+          "command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8111/v1 --models candidate_qwen3_moe_router_calibrated_searched_no_gt065_margin_profile_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 384 --output-dir results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_margin_profile_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "expected_output": "results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_margin_profile_candidate",
           "method": "qwen3_moe_router_calibrated_searched_no_gt065_margin_profile_candidate",
           "purpose": "Run downstream tasks against the router-calibrated ablation candidate.",
@@ -20679,7 +20679,9 @@
         "candidate_count": 4,
         "create_task_manifest_if_missing": true,
         "default_run_candidate_count": 2,
+        "eval_tasks": "gsm8k,mmlu,safety,humaneval_compile",
         "local_gpu_status": "unavailable",
+        "max_examples": 384,
         "mechanism": "route_kd_router_delta_after_frozen_router_expert_cap_law_candidate",
         "outputs": {
           "candidate_plan": "results/qwen3_moe_router_calibration_job/candidate_plan.csv",
@@ -20710,6 +20712,7 @@
         "router_margin_summary": "results/qwen3_moe_router_margin_fragility/summary.json",
         "router_validation_gate": "require_group_heldout_prompt_batch_validation",
         "run_script_command": "results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh all",
+        "run_script_preflight_command": "results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh preflight",
         "schema_version": 1,
         "source_control_count": 2,
         "source_controls_ready": true,
@@ -20717,14 +20720,14 @@
         "status": "job_ready_awaiting_gpu",
         "student": "results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate",
         "student_exists": true,
-        "task_manifest": "results/qwen3_moe_router_calibration_job/task_manifest.json",
+        "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
         "teacher": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-Coder-30B-A3B-Instruct/snapshots/b2cff646eb4bb1d68355c01b18ae02e7cf42d120",
         "teacher_exists": true,
         "tokenizer": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe",
         "tokenizer_exists": true
       },
       "summary_path": "results/qwen3_moe_router_calibration_job/summary.json",
-      "task_manifest": "results/qwen3_moe_router_calibration_job/task_manifest.json",
+      "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
       "teacher_exists": true,
       "tokenizer_exists": true
     },
@@ -38136,7 +38139,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-20T07:29:30.006260+00:00",
+  "generated_at": "2026-06-20T07:37:41.131146+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [

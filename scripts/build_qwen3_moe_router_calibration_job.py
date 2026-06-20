@@ -26,6 +26,7 @@ DEFAULT_TOKENIZER = Path(
 )
 DEFAULT_PROMPTS = Path("prompts/qwen_moe_route_probe_prompts.jsonl")
 DEFAULT_ROUTER_MARGIN_FRAGILITY = Path("results/qwen3_moe_router_margin_fragility/summary.json")
+DEFAULT_TASK_MANIFEST = Path("results/qwen3_moe_mechanism_eval_gate/task_manifest.json")
 DEFAULT_SOURCE_CONTROLS = [
     ("source_qwen3_30b_instruct", DEFAULT_TOKENIZER),
     ("source_qwen3_30b_coder", DEFAULT_TEACHER),
@@ -640,9 +641,20 @@ def build_run_script(
         manifest_eval_args += " --create-task-manifest-if-missing"
     candidate_targets = "|".join(str(row["cap_label"]) for row in candidate_rows)
     eval_targets = "|".join(f"eval_{row['cap_label']}" for row in candidate_rows)
+    source_targets = "|".join(str(row["method"]) for row in source_rows)
     usage_targets = "|".join(
         item
-        for item in ["all", "collect", "sources", "baseline", candidate_targets, eval_targets, "select"]
+        for item in [
+            "preflight",
+            "all",
+            "collect",
+            "prepare_manifest",
+            "sources",
+            "baseline",
+            candidate_targets,
+            eval_targets,
+            "select",
+        ]
         if item
     )
     lines = [
@@ -677,6 +689,68 @@ def build_run_script(
         "    wait \"${pid}\" || true",
         "  fi",
         "}",
+        "",
+        "preflight() {",
+        "  local target=\"${1:-all}\"",
+        "  local missing=0",
+        "  local needs_runtime=1",
+        "  case \"${target}\" in",
+        "    prepare_manifest|select) needs_runtime=0 ;;",
+        "  esac",
+        "  if [[ \"${needs_runtime}\" == \"1\" ]]; then",
+        "    if ! command -v curl >/dev/null 2>&1; then",
+        "      echo \"missing dependency: curl\" >&2",
+        "      missing=1",
+        "    fi",
+        "    if ! command -v vllm >/dev/null 2>&1; then",
+        "      echo \"missing dependency: vllm\" >&2",
+        "      missing=1",
+        "    fi",
+        "    if ! command -v nvidia-smi >/dev/null 2>&1; then",
+        "      echo \"missing dependency: nvidia-smi\" >&2",
+        "      missing=1",
+        "    elif ! nvidia-smi >/dev/null 2>&1; then",
+        "      echo \"nvidia-smi is present but not healthy\" >&2",
+        "      missing=1",
+        "    fi",
+        "  fi",
+        f"  for path in {shlex.quote(rel(args.student))} {shlex.quote(rel(args.teacher))} "
+        f"{shlex.quote(rel(args.tokenizer))} {shlex.quote(rel(args.prompts))}; do",
+        "    if [[ ! -e \"${path}\" ]]; then",
+        "      echo \"missing input: ${path}\" >&2",
+        "      missing=1",
+        "    fi",
+        "  done",
+        "  if ! python scripts/audit_qwen3_moe_eval_manifest_preflight.py --eval-budget-dir "
+        "results/qwen3_moe_eval_budget_plan --output-dir "
+        "results/qwen3_moe_eval_manifest_preflight >/dev/null; then",
+        "    echo \"eval manifest preflight failed\" >&2",
+        "    missing=1",
+        "  elif ! python -c 'import json, pathlib, sys; p=pathlib.Path(\"results/qwen3_moe_eval_manifest_preflight/summary.json\"); d=json.loads(p.read_text()); print(\"manifest sha:\", d.get(\"manifest_sha256\")); sys.exit(0 if d.get(\"status\") == \"task_manifest_ready\" else 1)'; then",
+        "    echo \"eval manifest preflight did not report task_manifest_ready\" >&2",
+        "    missing=1",
+        "  fi",
+        "  case \"${target}\" in",
+        f"    all|collect|prepare_manifest|sources|baseline|select|{source_targets}) ;;",
+        "    eval_*) ;;",
+        "    *)",
+        "      if [[ ! -f results/qwen3_moe_router_calibration_job/cache/router_calibration_cache.pt ]]; then",
+        "        echo \"missing router calibration cache for target ${target}: results/qwen3_moe_router_calibration_job/cache/router_calibration_cache.pt\" >&2",
+        "        missing=1",
+        "      fi",
+        "      ;;",
+        "  esac",
+        "  if [[ \"${missing}\" != \"0\" ]]; then",
+        "    return 1",
+        "  fi",
+        "}",
+        "",
+        "if [[ \"${1:-all}\" == \"preflight\" ]]; then",
+        "  preflight all",
+        "  exit 0",
+        "fi",
+        "",
+        "preflight \"${1:-all}\"",
         "",
         "collect_cache() {",
         f"  {collect_command(args, output_dir)}",
@@ -869,6 +943,8 @@ def build_report(
         f"- Router margin planned-pass caps: `{summary['router_margin_planned_pass_count']}/{summary['candidate_count']}`",
         f"- Default-run candidates: `{summary['default_run_candidate_count']}/{summary['candidate_count']}`",
         f"- Task manifest: `{summary['task_manifest']}`",
+        f"- Eval tasks: `{summary['eval_tasks']}`",
+        f"- Max examples per full task: `{summary['max_examples']}`",
         f"- Baseline eval dir: `{summary['baseline_eval_dir']}`",
         f"- Source control count: `{summary['source_control_count']}`",
         f"- Candidate count: `{summary['candidate_count']}`",
@@ -929,7 +1005,10 @@ def build_report(
             "",
             "## Run",
             "",
+            "先跑 preflight。它会检查 vLLM/GPU、source/checkpoint/prompt 输入、以及 downstream manifest 是否仍然满足统一预算；通过后再启动完整作业。",
+            "",
             "```bash",
+            summary["run_script_preflight_command"],
             summary["run_script_command"],
             "```",
             "",
@@ -979,11 +1058,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--start-port", type=int, default=8108)
     parser.add_argument("--tasks", default="gsm8k,mmlu,safety,humaneval_compile")
     parser.add_argument("--example-source", default="datasets")
-    parser.add_argument("--max-examples", type=int, default=64)
+    parser.add_argument("--max-examples", type=int, default=384)
     parser.add_argument(
         "--task-manifest",
         type=Path,
-        default=None,
+        default=DEFAULT_TASK_MANIFEST,
         help="Shared downstream task/example lockfile for source, baseline, and router-calibrated candidate evals.",
     )
     parser.add_argument("--no-create-task-manifest", action="store_true")
@@ -1003,7 +1082,7 @@ def main() -> None:
     output_dir = repo_path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     if args.task_manifest is None:
-        args.task_manifest = output_dir / "task_manifest.json"
+        args.task_manifest = DEFAULT_TASK_MANIFEST
     source_rows = build_source_control_rows(args)
     margin_profile = write_margin_profile_cap_table(args, output_dir)
     candidate_rows = build_candidate_rows(args, output_dir, margin_profile)
@@ -1065,6 +1144,8 @@ def main() -> None:
         "default_run_candidate_count": sum(1 for row in candidate_rows if row.get("default_run_enabled")),
         "task_manifest": rel(args.task_manifest),
         "create_task_manifest_if_missing": not bool(args.no_create_task_manifest),
+        "eval_tasks": args.tasks,
+        "max_examples": int(args.max_examples),
         "baseline_eval_dir": rel(args.baseline_eval_dir),
         "baseline_served_model": args.baseline_served_model,
         "baseline_port": int(args.baseline_port),
@@ -1072,6 +1153,7 @@ def main() -> None:
         "source_controls_ready": source_controls_ready,
         "candidate_count": int(len(candidate_rows)),
         "stage_count": int(len(stage_rows)),
+        "run_script_preflight_command": rel(run_script) + " preflight",
         "run_script_command": rel(run_script) + " all",
         "mechanism": "route_kd_router_delta_after_frozen_router_expert_cap_law_candidate",
         "router_validation_gate": "require_group_heldout_prompt_batch_validation",

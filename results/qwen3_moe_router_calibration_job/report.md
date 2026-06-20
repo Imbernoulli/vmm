@@ -13,7 +13,9 @@
 - Router margin safe-lambda proxy: `0.019725152295719042`
 - Router margin planned-pass caps: `2/4`
 - Default-run candidates: `2/4`
-- Task manifest: `results/qwen3_moe_router_calibration_job/task_manifest.json`
+- Task manifest: `results/qwen3_moe_mechanism_eval_gate/task_manifest.json`
+- Eval tasks: `gsm8k,mmlu,safety,humaneval_compile`
+- Max examples per full task: `384`
 - Baseline eval dir: `results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate`
 - Source control count: `2`
 - Candidate count: `4`
@@ -47,7 +49,7 @@ The selector requires group-heldout route-KD validation by default: prompt/batch
 | stage | cap | expected output |
 |---|---:|---|
 | `collect_router_cache` | `shared` | `results/qwen3_moe_router_calibration_job/cache/router_calibration_cache.pt` |
-| `prepare_task_manifest` | `shared` | `results/qwen3_moe_router_calibration_job/task_manifest.json` |
+| `prepare_task_manifest` | `shared` | `results/qwen3_moe_mechanism_eval_gate/task_manifest.json` |
 | `vllm_eval_source_control` | `source` | `results/vllm_checkpoint_eval/source_qwen3_30b_instruct` |
 | `vllm_eval_source_control` | `source` | `results/vllm_checkpoint_eval/source_qwen3_30b_coder` |
 | `vllm_eval_baseline` | `baseline` | `results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate` |
@@ -71,7 +73,10 @@ The selector requires group-heldout route-KD validation by default: prompt/batch
 
 ## Run
 
+先跑 preflight。它会检查 vLLM/GPU、source/checkpoint/prompt 输入、以及 downstream manifest 是否仍然满足统一预算；通过后再启动完整作业。
+
 ```bash
+results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh preflight
 results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh all
 ```
 

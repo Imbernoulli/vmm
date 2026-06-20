@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-20T07:29:30.006260+00:00`
+Generated at: `2026-06-20T07:37:41.131146+00:00`
 
 ## Coverage
 
@@ -264,7 +264,7 @@ Complete: `89`; partial: `1`; missing: `0`.
 | Qwen3 MoE router calibration NLL probe | code gap / worst gap to best source | -0.014 / 0.127 |
 | Qwen3 MoE router calibration job | status / local GPU / candidates / stages | job_ready_awaiting_gpu / unavailable / 4 / 22 |
 | Qwen3 MoE router calibration job | source controls / ready | 2 / True |
-| Qwen3 MoE router calibration job | task manifest / create-if-missing | results/qwen3_moe_router_calibration_job/task_manifest.json / True |
+| Qwen3 MoE router calibration job | task manifest / create-if-missing | results/qwen3_moe_mechanism_eval_gate/task_manifest.json / True |
 | Qwen3 MoE router calibration job | margin safe-lambda / planned-pass caps | 0.020 / 2/4 |
 | Qwen3 MoE router calibration job | default-run caps | 2/4 |
 | Qwen3 MoE router calibration job | margin-profile enabled / cap rows / min-mean-max | True / 48 / 0.020-0.045-0.050 |
