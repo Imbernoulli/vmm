@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-20T16:38:20.962364+00:00`
+Generated at: `2026-06-20T16:48:27.986813+00:00`
 
 ## Coverage
 
@@ -167,6 +167,7 @@ Complete: `106`; partial: `1`; missing: `0`.
 | Qwen3 source-set complementarity gate | frontier gain / best observed gap / complementary sets | 0.000 / -0.069 / 2 |
 | Qwen3 average source-set optimizer | top set / gate / source weights | coder+thinking / probe_only_below_interference_budget / {"coder": 0.6666666666666666, "thinking": 0.3333333333333333} |
 | Qwen3 average source-set optimizer | gain / interference budget / surplus / final-budget sets | 0.008 / 0.069 / -0.061 / 0 |
+| Qwen3 average source-set optimizer | task surplus-positive / no-gain / best task gain | 0/3 / 2/3 / mmlu 0.025 |
 | Qwen source discovery plan | top scenario / action | dense_7b_general_code_math_reasoning / run_endpoint_eval_plus_connectivity_probe_then_surplus_gate |
 | Qwen source discovery plan | measured set / additional avg gain needed / top queue | coder+thinking / 0.061 / measured_coder_thinking_endpoint_expansion |
 | Qwen source discovery eval plan | jobs / top job / tasks | 4 / measured_coder_thinking_source_frontier / mmlu,gsm8k,humaneval_compile |

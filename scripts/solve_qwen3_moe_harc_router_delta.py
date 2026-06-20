@@ -611,6 +611,8 @@ def run_smoke(args: argparse.Namespace) -> dict[str, Any]:
         smoke_args.max_relative_norm = 0.50
         smoke_args.router_cap_by_tensor = {}
         summary = solve_from_cache(smoke_args)
+        summary["base_path"] = "SMOKE_BASE_CHECKPOINT"
+        summary["cache_path"] = "SMOKE_ROUTER_CACHE"
     metrics = pd.read_csv(repo_path(summary["outputs"]["router_delta_summary"]))
     initial = metrics[metrics["stage"] == "initial"]
     final = metrics[metrics["stage"] == "final"]

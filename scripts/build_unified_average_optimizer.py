@@ -568,6 +568,13 @@ def moe_feature_rows(
                 f"interference budget = {fmt(qwen3_average_source_set_optimizer.get('interference_budget'))}; "
                 f"surplus = "
                 f"{fmt((qwen3_average_source_set_optimizer.get('top_source_set') or {}).get('frontier_avg_surplus_vs_interference'))}; "
+                f"task surplus positive = "
+                f"{qwen3_average_source_set_optimizer.get('top_task_surplus_positive_count')}/"
+                f"{qwen3_average_source_set_optimizer.get('task_count')}; "
+                f"no-gain tasks = {qwen3_average_source_set_optimizer.get('top_no_gain_task_count')}/"
+                f"{qwen3_average_source_set_optimizer.get('task_count')}; "
+                f"best task gain = {qwen3_average_source_set_optimizer.get('top_best_task_gain_task')} "
+                f"{fmt(qwen3_average_source_set_optimizer.get('top_best_task_gain'))}; "
                 f"final-budget sets = "
                 f"{qwen3_average_source_set_optimizer.get('final_average_budget_candidate_count')}; "
                 f"probe-only sets = {qwen3_average_source_set_optimizer.get('probe_only_source_set_count')}"
@@ -851,7 +858,12 @@ def build_decisions(
                 f"best measured complementary set {top_source_set.get('source_set')} has frontier avg gain "
                 f"{fmt(top_source_set.get('frontier_avg_gain_vs_best_single'))}, but observed merge interference "
                 f"budget is {fmt(qwen3_average_source_set_optimizer.get('interference_budget'))}; surplus "
-                f"{fmt(top_source_set.get('frontier_avg_surplus_vs_interference'))}"
+                f"{fmt(top_source_set.get('frontier_avg_surplus_vs_interference'))}; task surplus-positive "
+                f"{qwen3_average_source_set_optimizer.get('top_task_surplus_positive_count')}/"
+                f"{qwen3_average_source_set_optimizer.get('task_count')}; no-gain tasks "
+                f"{qwen3_average_source_set_optimizer.get('top_no_gain_task_count')}/"
+                f"{qwen3_average_source_set_optimizer.get('task_count')}; blockers "
+                f"{qwen3_average_source_set_optimizer.get('top_blocking_tasks')}"
             ),
             "selected_action": (
                 f"{top_source_set.get('optimizer_gate')}: {top_source_set.get('recommended_action')}; "
@@ -2110,7 +2122,7 @@ def build_report(
         f"- Qwen3 generation attribution: router-cal recovers `{fmt(moe['qwen3_generation_avg_routercal_recovery_fraction'])}` of avg naive drop and beats pair frontier on `{moe['qwen3_generation_routercal_beats_pair_frontier_count']}/{moe['qwen3_generation_attribution_score_count']}` scores。",
         f"- Qwen3 generation confidence: positive tasks vs naive `{moe['qwen3_generation_routercal_positive_tasks_vs_naive']}/{moe['qwen3_generation_confidence_task_count']}`，confident positives `{moe['qwen3_generation_routercal_confident_positive_tasks']}/{moe['qwen3_generation_confidence_task_count']}`，confident source-frontier wins `{moe['qwen3_generation_routercal_confident_source_frontier_wins']}/{moe['qwen3_generation_confidence_task_count']}`；avg gain interval `[{fmt(moe['qwen3_generation_routercal_avg_gain_lower'])}, {fmt(moe['qwen3_generation_routercal_avg_gain_upper'])}]`。",
         f"- Qwen3 source-set complementarity: `{moe['qwen3_source_set_current']}` gate `{moe['qwen3_source_set_current_gate']}`，dominant `{moe['qwen3_source_set_current_dominant_source']}`，frontier avg gain `{fmt(moe['qwen3_source_set_current_frontier_avg_gain'])}`，best observed merge gap `{fmt(moe['qwen3_source_set_current_best_observed_avg_gap'])}`。",
-        f"- Qwen3 source-set surplus: top `{moe['qwen3_source_set_top_source_set']}` gate `{moe['qwen3_source_set_top_optimizer_gate']}`，frontier avg gain `{fmt(moe['qwen3_source_set_top_frontier_avg_gain'])}` vs interference budget `{fmt(moe['qwen3_source_set_interference_budget'])}`，surplus `{fmt(moe['qwen3_source_set_top_surplus_vs_interference'])}`，weights `{moe['qwen3_source_set_top_source_weights']}`。",
+        f"- Qwen3 source-set surplus: top `{moe['qwen3_source_set_top_source_set']}` gate `{moe['qwen3_source_set_top_optimizer_gate']}`，frontier avg gain `{fmt(moe['qwen3_source_set_top_frontier_avg_gain'])}` vs interference budget `{fmt(moe['qwen3_source_set_interference_budget'])}`，surplus `{fmt(moe['qwen3_source_set_top_surplus_vs_interference'])}`；task surplus-positive `{moe['qwen3_source_set_top_task_surplus_positive_count']}/{moe['qwen3_source_set_task_count']}`，no-gain `{moe['qwen3_source_set_top_no_gain_task_count']}/{moe['qwen3_source_set_task_count']}`，best task `{moe['qwen3_source_set_top_best_task_gain_task']}` gain `{fmt(moe['qwen3_source_set_top_best_task_gain'])}`，weights `{moe['qwen3_source_set_top_source_weights']}`。",
         f"- Qwen source discovery: `{moe['qwen_source_discovery_status']}`，top scenario `{moe['qwen_source_discovery_top_scenario']}`，top queue `{moe['qwen_source_discovery_top_queue_item']}`，additional frontier avg gain needed `{fmt(moe['qwen_source_discovery_measured_additional_frontier_avg_gain_needed'])}`。",
         f"- Qwen source discovery eval: `{moe['qwen_source_discovery_eval_status']}`，jobs `{moe['qwen_source_discovery_eval_job_count']}`，top job `{moe['qwen_source_discovery_eval_top_job']}`，task names `{moe['qwen_source_discovery_eval_task_names']}`，compatibility `{moe['qwen_source_discovery_eval_task_name_status']}`。",
         f"- Qwen source frontier eval feedback: `{moe['qwen_source_frontier_eval_feedback_status']}`，scored `{moe['qwen_source_frontier_eval_feedback_scored']}/{moe['qwen_source_frontier_eval_feedback_jobs']}`，final `{moe['qwen_source_frontier_eval_feedback_final_candidates']}`，probe-only `{moe['qwen_source_frontier_eval_feedback_probe_only']}`，top `{moe['qwen_source_frontier_eval_feedback_top_job']}` gate `{moe['qwen_source_frontier_eval_feedback_top_gate']}`，surplus `{fmt(moe['qwen_source_frontier_eval_feedback_top_surplus'])}`，blocker `{moe['qwen_source_frontier_eval_feedback_blocker']}`。",
@@ -2546,6 +2558,28 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
             ),
             "qwen3_source_set_probe_only_count": qwen3_average_source_set_optimizer.get(
                 "probe_only_source_set_count"
+            ),
+            "qwen3_source_set_task_count": qwen3_average_source_set_optimizer.get("task_count"),
+            "qwen3_source_set_top_positive_task_count": qwen3_average_source_set_optimizer.get(
+                "top_positive_task_count"
+            ),
+            "qwen3_source_set_top_task_surplus_positive_count": qwen3_average_source_set_optimizer.get(
+                "top_task_surplus_positive_count"
+            ),
+            "qwen3_source_set_top_no_gain_task_count": qwen3_average_source_set_optimizer.get(
+                "top_no_gain_task_count"
+            ),
+            "qwen3_source_set_top_blocking_tasks": qwen3_average_source_set_optimizer.get(
+                "top_blocking_tasks"
+            ),
+            "qwen3_source_set_top_best_task_gain_task": qwen3_average_source_set_optimizer.get(
+                "top_best_task_gain_task"
+            ),
+            "qwen3_source_set_top_best_task_gain": fnum(
+                qwen3_average_source_set_optimizer.get("top_best_task_gain")
+            ),
+            "qwen3_source_set_top_best_task_frontier_source": qwen3_average_source_set_optimizer.get(
+                "top_best_task_frontier_source"
             ),
             "qwen3_source_set_top_source_set": source_set_top.get("source_set"),
             "qwen3_source_set_top_optimizer_gate": source_set_top.get("optimizer_gate"),

@@ -47,7 +47,8 @@
     "report": "results/qwen3_average_source_set_optimizer/report.md",
     "source_discovery_queue": "results/qwen3_average_source_set_optimizer/source_discovery_queue.csv",
     "source_weight_recipes": "results/qwen3_average_source_set_optimizer/source_weight_recipes.csv",
-    "summary": "results/qwen3_average_source_set_optimizer/summary.json"
+    "summary": "results/qwen3_average_source_set_optimizer/summary.json",
+    "task_surplus": "results/qwen3_average_source_set_optimizer/task_surplus.csv"
   },
   "probe_only_source_set_count": 2,
   "probe_surplus_margin": 0.0,
@@ -56,7 +57,15 @@
   "source_set_count": 11,
   "source_set_gate": "results/qwen3_source_set_complementarity_gate/source_set_gate.csv",
   "status": "source_set_surplus_optimizer_ready",
+  "task_count": 3,
   "task_win_margin": 0.005,
+  "top_best_task_frontier_source": "thinking",
+  "top_best_task_gain": 0.02499999999999991,
+  "top_best_task_gain_task": "mmlu",
+  "top_blocking_task_count": 3,
+  "top_blocking_tasks": "mmlu,gsm8k,humaneval",
+  "top_no_gain_task_count": 2,
+  "top_positive_task_count": 1,
   "top_source_set": {
     "active_source_set_key": "coder+thinking",
     "candidate_id": "qwen3_moe_coder_thinking_frontier_weighted_probe",
@@ -69,5 +78,6 @@
     "source_set": "coder+thinking",
     "source_set_key": "coder+thinking",
     "source_weights": "{\"coder\": 0.6666666666666666, \"thinking\": 0.3333333333333333}"
-  }
+  },
+  "top_task_surplus_positive_count": 0
 }

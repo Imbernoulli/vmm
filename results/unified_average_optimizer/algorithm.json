@@ -427,7 +427,7 @@
       "step": 8
     },
     {
-      "condition": "best measured complementary set coder+thinking has frontier avg gain 0.0083, but observed merge interference budget is 0.0694; surplus -0.0611",
+      "condition": "best measured complementary set coder+thinking has frontier avg gain 0.0083, but observed merge interference budget is 0.0694; surplus -0.0611; task surplus-positive 0/3; no-gain tasks 2/3; blockers mmlu,gsm8k,humaneval",
       "operation": "require complementarity surplus to cover observed merge interference",
       "selected_action": "probe_only_below_interference_budget: run_larger_endpoint_eval_and_small_weighted_probe_no_final_acceptance; source_weights={\"coder\": 0.6666666666666666, \"thinking\": 0.3333333333333333}",
       "stage": "moe_source_set_surplus_gate",

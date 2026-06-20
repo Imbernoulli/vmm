@@ -334,6 +334,104 @@ def build_eval_plan(candidate_rows: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def decode_json_dict(value: Any) -> dict[str, Any]:
+    value = clean_value(value)
+    if value is None:
+        return {}
+    if isinstance(value, dict):
+        return value
+    try:
+        parsed = json.loads(str(value))
+    except (TypeError, json.JSONDecodeError):
+        return {}
+    return parsed if isinstance(parsed, dict) else {}
+
+
+def build_task_surplus_rows(
+    candidates: pd.DataFrame,
+    observed: pd.DataFrame,
+    matrix: pd.DataFrame,
+    *,
+    interference_budget: float,
+    task_win_margin: float,
+) -> pd.DataFrame:
+    scores = source_scores(matrix)
+    tasks = task_columns(matrix)
+    observed_by_key: dict[str, dict[str, Any]] = {}
+    if not observed.empty:
+        for key, rows in observed.groupby("source_set_key"):
+            best = rows.sort_values(
+                ["avg_gap_to_source_frontier", "worst_gap_to_source_frontier"],
+                ascending=[False, False],
+            ).iloc[0]
+            observed_by_key[str(key)] = best.to_dict()
+
+    rows: list[dict[str, Any]] = []
+    for _, candidate in candidates.iterrows():
+        sources = parse_sources(str(candidate["source_set"]))
+        key = str(candidate["source_set_key"])
+        best_single = str(candidate["best_single_avg_source"])
+        observed_row = observed_by_key.get(key, {})
+        observed_task_gaps = decode_json_dict(observed_row.get("task_gaps_to_frontier"))
+        weights = decode_json_dict(candidate.get("source_weights"))
+        for task in tasks:
+            ordered = sorted(
+                ((source, scores[source][task]) for source in sources),
+                key=lambda item: item[1],
+                reverse=True,
+            )
+            frontier_source = ordered[0][0]
+            frontier_score = float(ordered[0][1])
+            tied_frontier_sources = [
+                source for source, value in ordered if frontier_score - float(value) <= task_win_margin
+            ]
+            best_single_score = float(scores[best_single][task])
+            frontier_gain = frontier_score - best_single_score
+            observed_gap = fnum(observed_task_gaps.get(task))
+            observed_score = None if observed_gap is None else frontier_score + observed_gap
+            task_surplus = frontier_gain - float(interference_budget)
+            if frontier_gain <= task_win_margin:
+                status = "no_task_frontier_gain"
+                action = "do_not_use_this_task_as_average_evidence"
+            elif task_surplus < 0.0:
+                status = "gain_below_interference_budget"
+                action = "expand_endpoint_eval_or_find_stronger_source_for_this_task"
+            elif observed_gap is not None and observed_gap < -task_win_margin:
+                status = "observed_merge_loses_frontier"
+                action = "do_not_promote_average_until_candidate_repairs_this_task"
+            else:
+                status = "task_surplus_candidate"
+                action = "eligible_task_signal_after_locked_eval"
+            rows.append(
+                {
+                    "source_set": candidate["source_set"],
+                    "source_set_key": key,
+                    "optimizer_gate": candidate["optimizer_gate"],
+                    "task": task,
+                    "frontier_source": frontier_source,
+                    "tied_frontier_sources": json.dumps(tied_frontier_sources, sort_keys=True),
+                    "frontier_score": frontier_score,
+                    "best_single_avg_source": best_single,
+                    "best_single_task_score": best_single_score,
+                    "frontier_gain_vs_best_single": frontier_gain,
+                    "interference_budget": float(interference_budget),
+                    "task_surplus_vs_interference": task_surplus,
+                    "observed_merge": observed_row.get("merge_model"),
+                    "observed_variant": observed_row.get("variant"),
+                    "observed_gap_to_frontier": observed_gap,
+                    "observed_task_score": observed_score,
+                    "source_weight_for_frontier_source": fnum(weights.get(frontier_source)),
+                    "status": status,
+                    "recommended_action": action,
+                }
+            )
+    out = pd.DataFrame(rows)
+    return out.sort_values(
+        ["source_set_key", "task_surplus_vs_interference", "frontier_gain_vs_best_single"],
+        ascending=[True, False, False],
+    ).reset_index(drop=True)
+
+
 def build_discovery_rows(candidates: pd.DataFrame, scenario_matrix: pd.DataFrame) -> pd.DataFrame:
     top_probe = candidates[candidates["optimizer_gate"] == "probe_only_below_interference_budget"]
     top_probe_source = None if top_probe.empty else str(top_probe.iloc[0]["source_set"])
@@ -379,6 +477,7 @@ def build_discovery_rows(candidates: pd.DataFrame, scenario_matrix: pd.DataFrame
 def build_report(
     summary: dict[str, Any],
     candidates: pd.DataFrame,
+    task_surplus: pd.DataFrame,
     eval_plan: pd.DataFrame,
     discovery: pd.DataFrame,
 ) -> str:
@@ -399,6 +498,10 @@ def build_report(
         f"- Top optimizer gate: `{top.get('optimizer_gate')}`",
         f"- Top frontier avg gain: `{fmt(top.get('frontier_avg_gain_vs_best_single'))}`",
         f"- Top surplus vs interference: `{fmt(top.get('frontier_avg_surplus_vs_interference'))}`",
+        f"- Top task surplus-positive: `{summary['top_task_surplus_positive_count']}/{summary['task_count']}`",
+        f"- Top no-gain tasks: `{summary['top_no_gain_task_count']}/{summary['task_count']}`",
+        f"- Top best task gain: `{summary['top_best_task_gain_task']}` / `{fmt(summary['top_best_task_gain'])}`",
+        f"- Top blocking tasks: `{summary['top_blocking_tasks']}`",
         f"- Top source weights: `{top.get('source_weights')}`",
         f"- Recommended action: `{top.get('recommended_action')}`",
         "",
@@ -413,6 +516,24 @@ def build_report(
             f"{fmt(row['frontier_avg_gain_vs_best_single'])} | {fmt(row['interference_budget'])} | "
             f"{fmt(row['frontier_avg_surplus_vs_interference'])} | `{row['source_weights']}` | "
             f"{row['recommended_action']} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Task-Level Surplus",
+            "",
+            "| source set | task | frontier source | gain | surplus | observed gap | status |",
+            "| --- | --- | --- | ---: | ---: | ---: | --- |",
+        ]
+    )
+    for _, row in task_surplus.iterrows():
+        if row["source_set"] != top.get("source_set"):
+            continue
+        lines.append(
+            f"| `{row['source_set']}` | `{row['task']}` | `{row['frontier_source']}` | "
+            f"{fmt(row['frontier_gain_vs_best_single'])} | "
+            f"{fmt(row['task_surplus_vs_interference'])} | "
+            f"{fmt(row['observed_gap_to_frontier'])} | `{row['status']}` |"
         )
     lines.extend(
         [
@@ -459,6 +580,7 @@ def build_report(
             "## Outputs",
             "",
             f"- `candidate_source_sets`: `{summary['outputs']['candidate_source_sets']}`",
+            f"- `task_surplus`: `{summary['outputs']['task_surplus']}`",
             f"- `source_weight_recipes`: `{summary['outputs']['source_weight_recipes']}`",
             f"- `eval_plan`: `{summary['outputs']['eval_plan']}`",
             f"- `source_discovery_queue`: `{summary['outputs']['source_discovery_queue']}`",
@@ -505,10 +627,33 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
             "recommended_action",
         ]
     ].copy()
+    task_surplus = build_task_surplus_rows(
+        candidates,
+        observed,
+        matrix,
+        interference_budget=float(budget_info["budget"]),
+        task_win_margin=args.task_win_margin,
+    )
     eval_plan = build_eval_plan(candidates)
     discovery = build_discovery_rows(candidates, scenario_matrix)
 
     top = candidates.iloc[0].to_dict() if not candidates.empty else {}
+    top_task_surplus = task_surplus[task_surplus["source_set_key"] == top.get("source_set_key")]
+    top_positive_tasks = top_task_surplus[
+        pd.to_numeric(top_task_surplus["frontier_gain_vs_best_single"], errors="coerce") > args.task_win_margin
+    ]
+    top_surplus_positive_tasks = top_task_surplus[
+        pd.to_numeric(top_task_surplus["task_surplus_vs_interference"], errors="coerce") >= 0.0
+    ]
+    top_no_gain_tasks = top_task_surplus[
+        pd.to_numeric(top_task_surplus["frontier_gain_vs_best_single"], errors="coerce") <= args.task_win_margin
+    ]
+    top_blockers = top_task_surplus[
+        top_task_surplus["status"].isin(["no_task_frontier_gain", "gain_below_interference_budget", "observed_merge_loses_frontier"])
+    ]
+    top_best_task = None
+    if not top_task_surplus.empty:
+        top_best_task = top_task_surplus.sort_values("frontier_gain_vs_best_single", ascending=False).iloc[0].to_dict()
     final_count = int((candidates["optimizer_gate"] == "final_average_budget_candidate").sum())
     probe_count = int((candidates["optimizer_gate"] == "probe_only_below_interference_budget").sum())
     reject_count = int((candidates["optimizer_gate"] == "reject_source_dominated").sum())
@@ -516,6 +661,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
     output_dir = repo_path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     candidate_path = output_dir / "candidate_source_sets.csv"
+    task_surplus_path = output_dir / "task_surplus.csv"
     recipe_path = output_dir / "source_weight_recipes.csv"
     eval_path = output_dir / "eval_plan.csv"
     discovery_path = output_dir / "source_discovery_queue.csv"
@@ -529,9 +675,18 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         "source_set_gate": rel(args.source_set_gate),
         "observed_merge_gaps": rel(args.observed_merge_gaps),
         "source_set_count": int(len(candidates)),
+        "task_count": int(len(task_columns(matrix))),
         "final_average_budget_candidate_count": final_count,
         "probe_only_source_set_count": probe_count,
         "rejected_source_dominated_count": reject_count,
+        "top_positive_task_count": int(len(top_positive_tasks)),
+        "top_task_surplus_positive_count": int(len(top_surplus_positive_tasks)),
+        "top_no_gain_task_count": int(len(top_no_gain_tasks)),
+        "top_blocking_task_count": int(len(top_blockers)),
+        "top_blocking_tasks": ",".join(str(task) for task in top_blockers["task"].tolist()),
+        "top_best_task_gain_task": None if top_best_task is None else top_best_task.get("task"),
+        "top_best_task_gain": None if top_best_task is None else fnum(top_best_task.get("frontier_gain_vs_best_single")),
+        "top_best_task_frontier_source": None if top_best_task is None else top_best_task.get("frontier_source"),
         "interference_budget": float(budget_info["budget"]),
         "interference_budget_source": budget_info["source"],
         "negative_observed_merge_gap_count": budget_info["negative_gap_count"],
@@ -560,6 +715,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         ),
         "outputs": {
             "candidate_source_sets": rel(candidate_path),
+            "task_surplus": rel(task_surplus_path),
             "source_weight_recipes": rel(recipe_path),
             "eval_plan": rel(eval_path),
             "source_discovery_queue": rel(discovery_path),
@@ -569,11 +725,12 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
     }
 
     candidates.to_csv(candidate_path, index=False)
+    task_surplus.to_csv(task_surplus_path, index=False)
     recipes.to_csv(recipe_path, index=False)
     eval_plan.to_csv(eval_path, index=False)
     discovery.to_csv(discovery_path, index=False)
     summary_path.write_text(json.dumps(json_safe(summary), indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    report_path.write_text(build_report(summary, candidates, eval_plan, discovery), encoding="utf-8")
+    report_path.write_text(build_report(summary, candidates, task_surplus, eval_plan, discovery), encoding="utf-8")
     return summary
 
 

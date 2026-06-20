@@ -775,6 +775,7 @@ def summarize_qwen3_average_source_set_optimizer() -> dict[str, Any]:
     root = repo_path("results/qwen3_average_source_set_optimizer")
     summary = read_json(root / "summary.json")
     candidates = read_csv(root / "candidate_source_sets.csv")
+    task_surplus = read_csv(root / "task_surplus.csv")
     recipes = read_csv(root / "source_weight_recipes.csv")
     eval_plan = read_csv(root / "eval_plan.csv")
     discovery = read_csv(root / "source_discovery_queue.csv")
@@ -788,6 +789,17 @@ def summarize_qwen3_average_source_set_optimizer() -> dict[str, Any]:
         ),
         "probe_only_source_set_count": maybe_int(summary.get("probe_only_source_set_count")),
         "rejected_source_dominated_count": maybe_int(summary.get("rejected_source_dominated_count")),
+        "task_count": maybe_int(summary.get("task_count")),
+        "top_positive_task_count": maybe_int(summary.get("top_positive_task_count")),
+        "top_task_surplus_positive_count": maybe_int(
+            summary.get("top_task_surplus_positive_count")
+        ),
+        "top_no_gain_task_count": maybe_int(summary.get("top_no_gain_task_count")),
+        "top_blocking_task_count": maybe_int(summary.get("top_blocking_task_count")),
+        "top_blocking_tasks": summary.get("top_blocking_tasks"),
+        "top_best_task_gain_task": summary.get("top_best_task_gain_task"),
+        "top_best_task_gain": maybe_float(summary.get("top_best_task_gain")),
+        "top_best_task_frontier_source": summary.get("top_best_task_frontier_source"),
         "interference_budget": maybe_float(summary.get("interference_budget")),
         "interference_budget_source": summary.get("interference_budget_source"),
         "top_source_set": top.get("source_set"),
@@ -805,11 +817,13 @@ def summarize_qwen3_average_source_set_optimizer() -> dict[str, Any]:
         "top_source_weights": top.get("source_weights"),
         "top_recommended_action": top.get("recommended_action"),
         "candidate_rows": [clean_row(row) for _, row in candidates.iterrows()],
+        "task_surplus_rows": [clean_row(row) for _, row in task_surplus.iterrows()],
         "recipe_rows": [clean_row(row) for _, row in recipes.iterrows()],
         "eval_plan_rows": [clean_row(row) for _, row in eval_plan.iterrows()],
         "discovery_rows": [clean_row(row) for _, row in discovery.iterrows()],
         "report": rel(root / "report.md"),
         "candidate_source_sets": rel(root / "candidate_source_sets.csv"),
+        "task_surplus": rel(root / "task_surplus.csv"),
         "source_weight_recipes": rel(root / "source_weight_recipes.csv"),
         "eval_plan": rel(root / "eval_plan.csv"),
         "source_discovery_queue": rel(root / "source_discovery_queue.csv"),
@@ -6591,6 +6605,15 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(qwen3_average_source_set_optimizer['interference_budget'])} / "
                 f"{fmt(qwen3_average_source_set_optimizer['top_frontier_avg_surplus_vs_interference'])} / "
                 f"{qwen3_average_source_set_optimizer['final_average_budget_candidate_count']} |"
+            ),
+            (
+                "| Qwen3 average source-set optimizer | task surplus-positive / no-gain / best task gain | "
+                f"{qwen3_average_source_set_optimizer['top_task_surplus_positive_count']}"
+                f"/{qwen3_average_source_set_optimizer['task_count']} / "
+                f"{qwen3_average_source_set_optimizer['top_no_gain_task_count']}"
+                f"/{qwen3_average_source_set_optimizer['task_count']} / "
+                f"{qwen3_average_source_set_optimizer['top_best_task_gain_task']} "
+                f"{fmt(qwen3_average_source_set_optimizer['top_best_task_gain'])} |"
             ),
             (
                 "| Qwen source discovery plan | top scenario / action | "

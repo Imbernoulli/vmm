@@ -13,6 +13,10 @@ This optimizer sits after the source-set complementarity gate. It asks whether m
 - Top optimizer gate: `probe_only_below_interference_budget`
 - Top frontier avg gain: `0.0083`
 - Top surplus vs interference: `-0.0611`
+- Top task surplus-positive: `0/3`
+- Top no-gain tasks: `2/3`
+- Top best task gain: `mmlu` / `0.0250`
+- Top blocking tasks: `mmlu,gsm8k,humaneval`
 - Top source weights: `{"coder": 0.6666666666666666, "thinking": 0.3333333333333333}`
 - Recommended action: `run_larger_endpoint_eval_and_small_weighted_probe_no_final_acceptance`
 
@@ -31,6 +35,14 @@ This optimizer sits after the source-set complementarity gate. It asks whether m
 | `base+instruct+coder+thinking` | `reject_source_dominated` | 0.100 | 0.0000 | 0.0694 | -0.0694 | `{"base": 0.0, "coder": 0.3333333333333333, "instruct": 0.6666666666666666, "thinking": 0.0}` | do_not_materialize_except_negative_control; drop_zero_vote_sources_or_keep_as_anchor_only |
 | `instruct+coder+thinking` | `reject_source_dominated` | 0.036 | 0.0000 | 0.0694 | -0.0694 | `{"coder": 0.3333333333333333, "instruct": 0.6666666666666666, "thinking": 0.0}` | do_not_materialize_except_negative_control; drop_zero_vote_sources_or_keep_as_anchor_only |
 | `instruct+coder` | `reject_source_dominated` | 0.031 | 0.0000 | 0.0694 | -0.0694 | `{"coder": 0.3333333333333333, "instruct": 0.6666666666666666}` | do_not_materialize_except_negative_control |
+
+## Task-Level Surplus
+
+| source set | task | frontier source | gain | surplus | observed gap | status |
+| --- | --- | --- | ---: | ---: | ---: | --- |
+| `coder+thinking` | `mmlu` | `thinking` | 0.0250 | -0.0444 | n/a | `gain_below_interference_budget` |
+| `coder+thinking` | `gsm8k` | `coder` | 0.0000 | -0.0694 | n/a | `no_task_frontier_gain` |
+| `coder+thinking` | `humaneval` | `coder` | 0.0000 | -0.0694 | n/a | `no_task_frontier_gain` |
 
 ## Eval Plan
 
@@ -74,6 +86,7 @@ This optimizer sits after the source-set complementarity gate. It asks whether m
 ## Outputs
 
 - `candidate_source_sets`: `results/qwen3_average_source_set_optimizer/candidate_source_sets.csv`
+- `task_surplus`: `results/qwen3_average_source_set_optimizer/task_surplus.csv`
 - `source_weight_recipes`: `results/qwen3_average_source_set_optimizer/source_weight_recipes.csv`
 - `eval_plan`: `results/qwen3_average_source_set_optimizer/eval_plan.csv`
 - `source_discovery_queue`: `results/qwen3_average_source_set_optimizer/source_discovery_queue.csv`
