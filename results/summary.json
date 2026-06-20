@@ -146,6 +146,11 @@
       "status": "complete"
     },
     {
+      "evidence": "results/average_method_gate_matrix/report.md turns common Dense/MoE averaging method families into current-evidence accept/reject/conditional gates.",
+      "item": "Average method gate matrix",
+      "status": "complete"
+    },
+    {
       "evidence": "results/qwen_target_model_registry/report.md maps representative official, third-party, downstream, and adapter-pool Qwen candidates to scenarios, eval slices, probes, and same-shape topology gates.",
       "item": "Qwen target model registry",
       "status": "complete"
@@ -407,7 +412,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 80,
+    "complete": 81,
     "missing": 0,
     "partial": 1
   },
@@ -878,6 +883,220 @@
         "avoid_uniform_average": 3,
         "coefficient_search": 2
       }
+    },
+    "average_method_gate_matrix": {
+      "accepted_by_default_count": 0,
+      "active_lever_count": 1,
+      "active_method_families": [
+        "Output-space calibrated average"
+      ],
+      "conditional_count": 3,
+      "default_rejected_count": 1,
+      "dense_lambda_best_worst_nll": 3.072743579141455,
+      "dense_lambda_linear_worst_nll": 6.039756754956215,
+      "method_family_count": 7,
+      "method_gate_matrix": "results/average_method_gate_matrix/method_gate_matrix.csv",
+      "method_rows": [
+        {
+          "allowed_action": "Use only as a negative baseline; do not materialize as the selected average.",
+          "blocking_probe": "connectivity_path_must_beat_endpoint_frontier",
+          "current_gate": "rejected_as_default",
+          "dense_status": "reject_midpoint_for_current_qwen_dense_pair",
+          "failure_signal": "merged NLL higher than both endpoints; worst-task retention collapse",
+          "literature_sources": "Model soups; Task arithmetic",
+          "method_family": "Uniform / linear average",
+          "moe_status": "reject_source_to_source_midpoint_for_current_qwen3_moe_pair",
+          "primary_probe": "endpoint score; lambda sweep; midpoint barrier; worst-task score",
+          "same_shape_constraint": "output checkpoint keeps target config/tokenizer/model class/tensor names/tensor shapes",
+          "source_links": "[{\"short_name\": \"Model soups\", \"url\": \"https://arxiv.org/abs/2203.05482\", \"year\": \"2022\"}, {\"short_name\": \"Task arithmetic\", \"url\": \"https://arxiv.org/abs/2212.04089\", \"year\": \"2022\"}]",
+          "why": "Dense midpoint worst NLL 6.0398 is far above the best lambda-family value 3.0727; Qwen3 MoE best interior worst NLL is above the best endpoint by 0.1189."
+        },
+        {
+          "allowed_action": "Search coefficients under endpoint fallback and same-shape writer constraints.",
+          "blocking_probe": "heldout_loss_or_vllm_gate_must_accept_coefficients",
+          "current_gate": "conditional_allowed",
+          "dense_status": "allowed_only_with_heldout_lambda_selection",
+          "failure_signal": "best grid is endpoint; high plane barrier; layer-wise conflict",
+          "literature_sources": "Task arithmetic; AdaMerging; DAM",
+          "method_family": "Task arithmetic / coefficient search",
+          "moe_status": "allowed_only_as_layer_expert_coefficient_rules",
+          "primary_probe": "alpha/beta grid; layer cosine; held-in retention",
+          "same_shape_constraint": "output checkpoint keeps target config/tokenizer/model class/tensor names/tensor shapes",
+          "source_links": "[{\"short_name\": \"Task arithmetic\", \"url\": \"https://arxiv.org/abs/2212.04089\", \"year\": \"2022\"}, {\"short_name\": \"AdaMerging\", \"url\": \"https://arxiv.org/abs/2310.02575\", \"year\": \"2023\"}, {\"short_name\": \"DAM\", \"url\": \"https://arxiv.org/abs/2410.08371\", \"year\": \"2024\"}]",
+          "why": "Current Dense coefficient family selects lambda config {'code': 0.5414439073133305, 'general': 3.072743579141455, 'lambda': 0.0, 'mode': 'uniform', 'worst': 3.072743579141455}; Qwen3 MoE uses route/evidence/geometry coefficients rather than a global source delta."
+        },
+        {
+          "allowed_action": "Emit tensor rules only for modules that pass held-out and vLLM gates.",
+          "blocking_probe": "sparse_rule_must_improve_worst_task_and_preserve_critical_tensors",
+          "current_gate": "conditional_diagnostic",
+          "dense_status": "diagnostic_until_it_beats_anchor",
+          "failure_signal": "large important deltas dropped; conflict concentrated in norms/lm_head/router",
+          "literature_sources": "TIES; DARE; DELLA; STAR",
+          "method_family": "Sign / sparsity conflict methods",
+          "moe_status": "expert_ffn_only_after_alignment_never_raw_router",
+          "primary_probe": "sign conflict; weighted conflict; delta magnitude distribution; singular spectrum",
+          "same_shape_constraint": "output checkpoint keeps target config/tokenizer/model class/tensor names/tensor shapes",
+          "source_links": "[{\"short_name\": \"TIES\", \"url\": \"https://arxiv.org/abs/2306.01708\", \"year\": \"2023\"}, {\"short_name\": \"DARE\", \"url\": \"https://arxiv.org/abs/2311.03099\", \"year\": \"2023\"}, {\"short_name\": \"DELLA\", \"url\": \"https://arxiv.org/abs/2406.11617\", \"year\": \"2024\"}, {\"short_name\": \"STAR\", \"url\": \"https://arxiv.org/abs/2502.10339\", \"year\": \"2025\"}]",
+          "why": "Dense unified worst NLL 5.1830 is used as the held-out gate; sparse rules are not accepted just because sign conflict exists."
+        },
+        {
+          "allowed_action": "Use Fisher/RegMean-style weights only after activation or NLL sensitivity predicts held-out behavior.",
+          "blocking_probe": "activation_covariance_or_fisher_prediction_must_match_actual_path_loss",
+          "current_gate": "conditional_needs_calibration_match",
+          "dense_status": "fisher_is_not_sufficient_on_current_qwen_dense_probe",
+          "failure_signal": "calibration data does not match target tasks; off-plane residual is large",
+          "literature_sources": "Fisher merging; RegMean++; FroM",
+          "method_family": "Importance / activation-aware average",
+          "moe_status": "needs_route_conditioned_sensitivity_before_acceptance",
+          "primary_probe": "diagonal Fisher; activation covariance; NLL sensitivity",
+          "same_shape_constraint": "output checkpoint keeps target config/tokenizer/model class/tensor names/tensor shapes",
+          "source_links": "[{\"short_name\": \"Fisher merging\", \"url\": \"https://arxiv.org/abs/2111.09832\", \"year\": \"2021\"}, {\"short_name\": \"FroM\", \"url\": \"https://arxiv.org/abs/2506.02478\", \"year\": \"2025\"}, {\"short_name\": \"RegMean++\", \"url\": \"https://arxiv.org/abs/2508.03121\", \"year\": \"2025\"}]",
+          "why": "Dense curvature ratios general/code are 42.8604/26.6575, so local quadratic/Fisher evidence is too weak alone."
+        },
+        {
+          "allowed_action": "Train or fit output/router residual corrections, then require source/baseline vLLM dominance gates.",
+          "blocking_probe": "matched_baseline_source_candidate_vllm_eval_required",
+          "current_gate": "active_moe_lever_pending_downstream_gate",
+          "dense_status": "available_when_output_residual_is_measured",
+          "failure_signal": "low parameter conflict but high output residual; soft objective does not transfer to sparse top-k dispatch",
+          "literature_sources": "Output-space projection; MergeMoE; WEMoE",
+          "method_family": "Output-space calibrated average",
+          "moe_status": "router_route_kd_active_but_not_accepted_yet",
+          "primary_probe": "output residual energy; source-logit KL; layer-wise projection residual",
+          "same_shape_constraint": "output checkpoint keeps target config/tokenizer/model class/tensor names/tensor shapes",
+          "source_links": "[{\"short_name\": \"WEMoE\", \"url\": \"https://arxiv.org/abs/2410.21804\", \"year\": \"2024\"}, {\"short_name\": \"MergeMoE\", \"url\": \"https://arxiv.org/abs/2510.14436\", \"year\": \"2025\"}, {\"short_name\": \"Output-space projection\", \"url\": \"https://arxiv.org/abs/2605.29101\", \"year\": \"2026\"}]",
+          "why": "Router-only calibration reduces linear MoE worst NLL by 0.2214, but final router-calibration selector status is awaiting_baseline_eval."
+        },
+        {
+          "allowed_action": "Canonicalize or remap features/experts before any average; Qwen3 can use identity expert mapping for this pair.",
+          "blocking_probe": "expert_or_feature_matching_must_be_known_before_tensor_average",
+          "current_gate": "required_precondition",
+          "dense_status": "required_when_barrier_or_permutation_symmetry_is_detected",
+          "failure_signal": "same score endpoints but high interpolation barrier",
+          "literature_sources": "Git Re-Basin; ZipIt; Sub-MoE; MergeMoE",
+          "method_family": "Alignment before averaging",
+          "moe_status": "required_for_expert_gauge_qwen3_identity_currently_passes",
+          "primary_probe": "permutation residual; feature CKA; expert output cosine",
+          "same_shape_constraint": "output checkpoint keeps target config/tokenizer/model class/tensor names/tensor shapes",
+          "source_links": "[{\"short_name\": \"Git Re-Basin\", \"url\": \"https://arxiv.org/abs/2209.04836\", \"year\": \"2022\"}, {\"short_name\": \"ZipIt\", \"url\": \"https://arxiv.org/abs/2305.03053\", \"year\": \"2023\"}, {\"short_name\": \"Sub-MoE\", \"url\": \"https://arxiv.org/abs/2506.23266\", \"year\": \"2025\"}, {\"short_name\": \"MergeMoE\", \"url\": \"https://arxiv.org/abs/2510.14436\", \"year\": \"2025\"}]",
+          "why": "Real OLMoE same-name degradation is 5.4910 while aligned degradation is 0.0000; Qwen3 expert identity fraction is 1.0000."
+        },
+        {
+          "allowed_action": "Freeze routers for expert candidate generation; treat router delta as separately audited ablation.",
+          "blocking_probe": "hard_route_load_capacity_and_matched_vllm_eval_must_pass",
+          "current_gate": "required_for_moe",
+          "dense_status": "not_applicable",
+          "failure_signal": "routing breakdown; route collapse; low top-k agreement after merge",
+          "literature_sources": "MergeME; HARC; Qwen3; WEMoE",
+          "method_family": "Router-aware MoE average",
+          "moe_status": "freeze_router_or_train_audited_route_kd_delta",
+          "primary_probe": "route overlap; router entropy; max expert fraction; top-k margin",
+          "same_shape_constraint": "output checkpoint keeps target config/tokenizer/model class/tensor names/tensor shapes",
+          "source_links": "[{\"short_name\": \"WEMoE\", \"url\": \"https://arxiv.org/abs/2410.21804\", \"year\": \"2024\"}, {\"short_name\": \"MergeME\", \"url\": \"https://arxiv.org/abs/2502.00997\", \"year\": \"2025\"}, {\"short_name\": \"Qwen3\", \"url\": \"https://arxiv.org/abs/2505.09388\", \"year\": \"2025\"}, {\"short_name\": \"HARC\", \"url\": \"https://arxiv.org/abs/2606.03391\", \"year\": \"2026\"}]",
+          "why": "Direct router movement allows 0/48 layers; router calibration NLL reduction is 0.2214, but candidate acceptance is still awaiting_baseline_eval."
+        }
+      ],
+      "probe_gate_matrix": "results/average_method_gate_matrix/probe_gate_matrix.csv",
+      "probe_rows": [
+        {
+          "evidence": "linear midpoint worst NLL = 6.0398; best lambda-family worst NLL = 3.0727; best config = {\"code\": 0.5414439073133305, \"general\": 3.072743579141455, \"lambda\": 0.0, \"mode\": \"uniform\", \"worst\": 3.072743579141455}; best source endpoint worst NLL = 3.1737",
+          "gate": "dense_midpoint_rejection",
+          "probe": "dense_lambda_connectivity",
+          "required_before_accepting": "uniform average or fixed lambda midpoint",
+          "status": "failed_for_current_dense_pair",
+          "threshold": 3.072743579141455,
+          "value": 6.039756754956215
+        },
+        {
+          "evidence": "best interior worst NLL = 2.5947; best endpoint worst NLL = 2.4757; interior gap = 0.1189; general barrier = 0.1097; task-vector cosine vs base = 0.1799",
+          "gate": "moe_source_to_source_interpolation",
+          "probe": "qwen3_straight_line_connectivity",
+          "required_before_accepting": "Qwen3 MoE source-to-source midpoint",
+          "status": "failed_for_current_qwen3_pair",
+          "threshold": 0.0,
+          "value": 0.1189267127342477
+        },
+        {
+          "evidence": "best merge avg NLL = 0.5659; best source avg NLL = 0.5659; merge-source gap = 0.0000; best merge t = 0.0000; merge beats both sources = False",
+          "gate": "moe_complementarity_claim",
+          "probe": "qwen3_complementary_pair_connectivity",
+          "required_before_accepting": "claim that specialist endpoints combine under averaging",
+          "status": "not_supported_by_current_probe",
+          "threshold": 0.5658833147631409,
+          "value": 0.5658833147631409
+        },
+        {
+          "evidence": "baseline NLL = 4.1678; same-name average NLL = 9.6588; aligned average NLL = 4.1678; layers recovered = 16/16",
+          "gate": "expert_gauge_alignment",
+          "probe": "real_olmoe_gauge_selfmerge",
+          "required_before_accepting": "same-name expert average",
+          "status": "alignment_required",
+          "threshold": 0.0,
+          "value": 5.490968298724317
+        },
+        {
+          "evidence": "allowed router layers = 0/48; top-k Jaccard mean/min = 0.4539/0.2422; top1 agreement mean/min = 0.4125/0.0690",
+          "gate": "router_movement",
+          "probe": "qwen3_router_move_gate",
+          "required_before_accepting": "direct router weight average",
+          "status": "failed_freeze_or_calibrate",
+          "threshold": 48.0,
+          "value": 0.0
+        },
+        {
+          "evidence": "status = router_calibration_improves_linear_merge_but_needs_downstream_gate; linear worst NLL = 2.6355; router-cal worst NLL = 2.4140; worst reduction = 0.2214; code gap to best source = -0.0139",
+          "gate": "router_calibration",
+          "probe": "qwen3_router_calibration_nll_probe",
+          "required_before_accepting": "router-only delta after expert candidate",
+          "status": "awaiting_baseline_eval",
+          "threshold": 0.0,
+          "value": 0.2214274487464256
+        },
+        {
+          "evidence": "status = awaiting_source_eval; eligible candidates = 0/8; reason = Both Qwen3 source endpoints must complete audited vLLM eval before final candidate selection.",
+          "gate": "final_downstream_acceptance",
+          "probe": "qwen3_final_candidate_selection",
+          "required_before_accepting": "any Qwen3 same-shape average as final answer",
+          "status": "awaiting_source_eval",
+          "threshold": 8.0,
+          "value": 0.0
+        }
+      ],
+      "qwen3_final_selection_status": "awaiting_source_eval",
+      "qwen3_interpolation_interior_gap_nll": 0.11892671273424771,
+      "qwen3_router_calibration_status": "awaiting_baseline_eval",
+      "rejected_method_families": [
+        "Uniform / linear average"
+      ],
+      "report": "results/average_method_gate_matrix/report.md",
+      "required_method_families": [
+        "Alignment before averaging",
+        "Router-aware MoE average"
+      ],
+      "required_precondition_count": 2,
+      "status": "built_from_current_probe_evidence",
+      "summary": {
+        "accepted_by_default_count": 0,
+        "active_lever_count": 1,
+        "conditional_count": 3,
+        "default_rejected_count": 1,
+        "dense_lambda_best_worst_nll": 3.072743579141455,
+        "dense_lambda_linear_worst_nll": 6.039756754956215,
+        "method_family_count": 7,
+        "outputs": {
+          "method_gate_matrix": "results/average_method_gate_matrix/method_gate_matrix.csv",
+          "probe_gate_matrix": "results/average_method_gate_matrix/probe_gate_matrix.csv",
+          "report": "results/average_method_gate_matrix/report.md",
+          "summary": "results/average_method_gate_matrix/summary.json"
+        },
+        "qwen3_final_selection_status": "awaiting_source_eval",
+        "qwen3_interpolation_interior_gap_nll": 0.11892671273424771,
+        "qwen3_router_calibration_status": "awaiting_baseline_eval",
+        "required_precondition_count": 2,
+        "schema_version": 1,
+        "status": "built_from_current_probe_evidence"
+      },
+      "summary_path": "results/average_method_gate_matrix/summary.json"
     },
     "checkpoint_materialization_readiness": {
       "blocked_by_placeholder_count": 4,
@@ -32490,7 +32709,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-20T03:50:22.829677+00:00",
+  "generated_at": "2026-06-20T03:56:55.989628+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -32519,6 +32738,7 @@
     "PYTHONPATH=scripts python scripts/smoke_moe_layerwise_expert_remap.py --output-dir results/moe_layerwise_expert_remap_smoke",
     "python scripts/run_vllm_downstream_eval.py --candidate-table results/qwen_target_model_registry/model_registry.csv --candidate-method-column model_id --candidate-model-id-template '{model_id}' --candidate-query \"priority == 'p0' and phase in ['dense_7b', 'moe_30b_a3b']\" --base-url http://HOST:PORT/v1 --tasks gsm8k,mmlu,safety,humaneval_compile",
     "python scripts/build_model_averaging_literature_review.py",
+    "python scripts/build_average_method_gate_matrix.py --output-dir results/average_method_gate_matrix",
     "python scripts/smoke_moe_routing_probe_contract.py",
     "python scripts/smoke_vllm_downstream_eval_contract.py --output-dir results/vllm_downstream_eval_smoke",
     "PYTHONPATH=src python scripts/build_vllm_checkpoint_eval_plan.py --output-dir results/vllm_checkpoint_eval_plan",

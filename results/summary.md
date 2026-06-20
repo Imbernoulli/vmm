@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-20T03:50:22.829677+00:00`
+Generated at: `2026-06-20T03:56:55.989628+00:00`
 
 ## Coverage
 
-Complete: `80`; partial: `1`; missing: `0`.
+Complete: `81`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -37,6 +37,7 @@ Complete: `80`; partial: `1`; missing: `0`.
 | Probe-gated unified average plan | complete | results/probe_gated_unified_average_plan/report.md turns Dense vLLM ablations and toy MoE mechanism contrasts into a same-shape intervention gate rather than a static method ranking. |
 | Probe-guided Average decision report | complete | results/average_decision_report/report.md converts merge grids, conflict probes, and optional MoE routing probes into same-shape average decisions. |
 | Dense/MoE averaging literature matrix | complete | results/model_averaging_literature_review/report.md maps recent model averaging and MoE merging papers to probes, failure signals, and same-shape writer actions. |
+| Average method gate matrix | complete | results/average_method_gate_matrix/report.md turns common Dense/MoE averaging method families into current-evidence accept/reject/conditional gates. |
 | Qwen target model registry | complete | results/qwen_target_model_registry/report.md maps representative official, third-party, downstream, and adapter-pool Qwen candidates to scenarios, eval slices, probes, and same-shape topology gates. |
 | MoE same-shape averaging plan | complete | results/moe_average_plan/report.md maps router/expert probes into same-shape router, shared-module, expert, and adapter averaging actions. |
 | Same-shape checkpoint writer | complete | scripts/write_same_shape_average_checkpoint.py writes same-shape safetensors checkpoints; results/same_shape_writer_smoke/report.md validates Qwen2.5-0.5B base/instruct/coder dry-run compatibility. |
@@ -399,6 +400,8 @@ Complete: `80`; partial: `1`; missing: `0`.
 | Average decision report | coefficient-search decisions | 2 |
 | model averaging literature review | sources reviewed | 22 |
 | model averaging literature review | method / probe / MoE-stage counts | 7 / 7 / 7 |
+| average method gate matrix | accepted / rejected-default / conditional / active / required | 0 / 1 / 3 / 1 / 2 |
+| average method gate matrix | dense midpoint / best-family / Qwen3 interior gap | 6.040 / 3.073 / 0.119 |
 | Qwen target model registry | candidate dense / MoE models | 12 / 5 |
 | Qwen target model registry | downstream or third-party candidates | 9 |
 | Qwen target model registry | recommended first scenario | dense_7b_general_code_math_reasoning |

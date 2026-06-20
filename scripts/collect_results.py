@@ -3284,6 +3284,42 @@ def summarize_model_averaging_literature_review() -> dict[str, Any]:
     }
 
 
+def summarize_average_method_gate_matrix() -> dict[str, Any]:
+    root = repo_path("results/average_method_gate_matrix")
+    summary = read_json(root / "summary.json")
+    method_gates = read_csv(root / "method_gate_matrix.csv")
+    probe_gates = read_csv(root / "probe_gate_matrix.csv")
+    rejected_rows = method_gates[method_gates["current_gate"].astype(str) == "rejected_as_default"]
+    active_rows = method_gates[method_gates["current_gate"].astype(str).str.startswith("active")]
+    required_rows = method_gates[method_gates["current_gate"].astype(str).str.startswith("required")]
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "method_family_count": int(summary.get("method_family_count", len(method_gates))),
+        "accepted_by_default_count": int(summary.get("accepted_by_default_count", 0)),
+        "conditional_count": int(summary.get("conditional_count", 0)),
+        "active_lever_count": int(summary.get("active_lever_count", len(active_rows))),
+        "required_precondition_count": int(summary.get("required_precondition_count", len(required_rows))),
+        "default_rejected_count": int(summary.get("default_rejected_count", len(rejected_rows))),
+        "qwen3_final_selection_status": summary.get("qwen3_final_selection_status"),
+        "qwen3_router_calibration_status": summary.get("qwen3_router_calibration_status"),
+        "dense_lambda_linear_worst_nll": maybe_float(summary.get("dense_lambda_linear_worst_nll")),
+        "dense_lambda_best_worst_nll": maybe_float(summary.get("dense_lambda_best_worst_nll")),
+        "qwen3_interpolation_interior_gap_nll": maybe_float(
+            summary.get("qwen3_interpolation_interior_gap_nll")
+        ),
+        "rejected_method_families": [str(row["method_family"]) for _, row in rejected_rows.iterrows()],
+        "active_method_families": [str(row["method_family"]) for _, row in active_rows.iterrows()],
+        "required_method_families": [str(row["method_family"]) for _, row in required_rows.iterrows()],
+        "method_rows": [clean_row(row) for _, row in method_gates.iterrows()],
+        "probe_rows": [clean_row(row) for _, row in probe_gates.iterrows()],
+        "report": rel(root / "report.md"),
+        "method_gate_matrix": rel(root / "method_gate_matrix.csv"),
+        "probe_gate_matrix": rel(root / "probe_gate_matrix.csv"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_qwen_target_model_registry() -> dict[str, Any]:
     summary = read_json("results/qwen_target_model_registry/summary.json")
     models = read_csv("results/qwen_target_model_registry/model_registry.csv")
@@ -3479,6 +3515,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "item": "Dense/MoE averaging literature matrix",
             "status": "complete",
             "evidence": "results/model_averaging_literature_review/report.md maps recent model averaging and MoE merging papers to probes, failure signals, and same-shape writer actions.",
+        },
+        {
+            "item": "Average method gate matrix",
+            "status": "complete",
+            "evidence": "results/average_method_gate_matrix/report.md turns common Dense/MoE averaging method families into current-evidence accept/reject/conditional gates.",
         },
         {
             "item": "Qwen target model registry",
@@ -3763,6 +3804,7 @@ def build_summary() -> dict[str, Any]:
         "qwen_probe_smoke": summarize_qwen_probe_smoke(),
         "average_decision_report": summarize_average_decision_report(),
         "model_averaging_literature_review": summarize_model_averaging_literature_review(),
+        "average_method_gate_matrix": summarize_average_method_gate_matrix(),
         "qwen_target_model_registry": summarize_qwen_target_model_registry(),
         "moe_routing_probe_smoke": summarize_moe_routing_probe_smoke(),
         "moe_average_plan": summarize_moe_average_plan(),
@@ -3923,6 +3965,7 @@ def build_summary() -> dict[str, Any]:
                 "--base-url http://HOST:PORT/v1 --tasks gsm8k,mmlu,safety,humaneval_compile"
             ),
             "python scripts/build_model_averaging_literature_review.py",
+            "python scripts/build_average_method_gate_matrix.py --output-dir results/average_method_gate_matrix",
             "python scripts/smoke_moe_routing_probe_contract.py",
             "python scripts/smoke_vllm_downstream_eval_contract.py --output-dir results/vllm_downstream_eval_smoke",
             "PYTHONPATH=src python scripts/build_vllm_checkpoint_eval_plan.py --output-dir results/vllm_checkpoint_eval_plan",
@@ -4032,6 +4075,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     fp_gen_eval = exp["fp_gen_eval_dense"]
     average_decision = exp["average_decision_report"]
     literature_review = exp["model_averaging_literature_review"]
+    average_method_gate_matrix = exp["average_method_gate_matrix"]
     qwen_registry = exp["qwen_target_model_registry"]
     routing_probe_smoke = exp["moe_routing_probe_smoke"]
     moe_average_plan = exp["moe_average_plan"]
@@ -5685,6 +5729,20 @@ def build_markdown(summary: dict[str, Any]) -> str:
             (
                 "| model averaging literature review | method / probe / MoE-stage counts | "
                 f"{literature_review['method_family_count']} / {literature_review['probe_count']} / {literature_review['moe_stage_count']} |"
+            ),
+            (
+                "| average method gate matrix | accepted / rejected-default / conditional / active / required | "
+                f"{average_method_gate_matrix['accepted_by_default_count']} / "
+                f"{average_method_gate_matrix['default_rejected_count']} / "
+                f"{average_method_gate_matrix['conditional_count']} / "
+                f"{average_method_gate_matrix['active_lever_count']} / "
+                f"{average_method_gate_matrix['required_precondition_count']} |"
+            ),
+            (
+                "| average method gate matrix | dense midpoint / best-family / Qwen3 interior gap | "
+                f"{fmt(average_method_gate_matrix['dense_lambda_linear_worst_nll'])} / "
+                f"{fmt(average_method_gate_matrix['dense_lambda_best_worst_nll'])} / "
+                f"{fmt(average_method_gate_matrix['qwen3_interpolation_interior_gap_nll'])} |"
             ),
             (
                 "| Qwen target model registry | candidate dense / MoE models | "

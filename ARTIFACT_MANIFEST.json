@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 80878,
+      "bytes": 81314,
       "kind": "document",
       "path": "README.md",
-      "sha256": "091062d39f65783918b376889c35bfa5bd95ba0fc494dbe0dbc63e9df156bdc3"
+      "sha256": "36a1a760919e25da032d1aba3f633b789c9dbaedf3220953d02b14e1fa26f548"
     },
     {
       "bytes": 33211,
@@ -107,6 +107,30 @@
       "kind": "data",
       "path": "results/average_decision_report/summary.json",
       "sha256": "0d96089876a6d351544e0d393c80824155d324738f462d9e96fb888e41042d5e"
+    },
+    {
+      "bytes": 7416,
+      "kind": "data",
+      "path": "results/average_method_gate_matrix/method_gate_matrix.csv",
+      "sha256": "7c61c17edfa7c418825336425142c9e86c9da98b62363c9d8bbc0a54bb4bdfd6"
+    },
+    {
+      "bytes": 2206,
+      "kind": "data",
+      "path": "results/average_method_gate_matrix/probe_gate_matrix.csv",
+      "sha256": "4c58c19683566f2f692ebdcbe3bdd1a1eb2bbdc1c39dd00f2c6190284aca63bb"
+    },
+    {
+      "bytes": 5269,
+      "kind": "document",
+      "path": "results/average_method_gate_matrix/report.md",
+      "sha256": "9c7fea5d22bc06e99907bd101e767893ddaf2f48f13061e8803ade3bc7c9166d"
+    },
+    {
+      "bytes": 866,
+      "kind": "data",
+      "path": "results/average_method_gate_matrix/summary.json",
+      "sha256": "b5c1445e666a0b6a10d3bc664ecee4b4d8274314869fafff90c57de2ade341bb"
     },
     {
       "bytes": 18432,
@@ -4711,16 +4735,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 1515595,
+      "bytes": 1531623,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "7162f939953486aec33c2e3a68e0b8b201657c3a53548b7194d761dd0c9f8eca"
+      "sha256": "e4939760039d40f3563e9d4334c4aa965703b77a7ad871144f051b8414fb727d"
     },
     {
-      "bytes": 51590,
+      "bytes": 52005,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "e5ea51693203a690bf1497c5db2a6139cd4bb50088dd3b1ecf4b46c824c1fb48"
+      "sha256": "dd2c12493271b6d4cd0cbefec955cdd755f1bc30f993c82e94e6a43530b2ba62"
     },
     {
       "bytes": 288,
@@ -5761,6 +5785,12 @@
       "sha256": "373617da0d049ac13d0700fbbd9aa9b680c7ad8d01304170227e1b8c7abfafa7"
     },
     {
+      "bytes": 20016,
+      "kind": "code",
+      "path": "scripts/build_average_method_gate_matrix.py",
+      "sha256": "c7cd554c0aaad5a1e1f20708355c2f523645a1e7f3a1c2255477415e0c4b3804"
+    },
+    {
       "bytes": 18044,
       "kind": "code",
       "path": "scripts/build_checkpoint_materialization_readiness.py",
@@ -5947,10 +5977,10 @@
       "sha256": "cd588bc1804013f4043bd95c245b066dbae86bfd3e3f9c18317ef33eb506f123"
     },
     {
-      "bytes": 353232,
+      "bytes": 357122,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "86fd9b2b6da6c6c2b9e519ef3358010b2c8bcc3bfe8fbf90fba7f8f84c16d151"
+      "sha256": "05995a3a7cd51008ef4d592bd3f8ed6fb994381e374bb940303647ef5c5ac7d4"
     },
     {
       "bytes": 16101,
@@ -6241,7 +6271,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-20T03:50:22.869432+00:00",
+  "generated_at": "2026-06-20T03:56:56.007221+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

@@ -1,0 +1,21 @@
+{
+  "accepted_by_default_count": 0,
+  "active_lever_count": 1,
+  "conditional_count": 3,
+  "default_rejected_count": 1,
+  "dense_lambda_best_worst_nll": 3.072743579141455,
+  "dense_lambda_linear_worst_nll": 6.039756754956215,
+  "method_family_count": 7,
+  "outputs": {
+    "method_gate_matrix": "results/average_method_gate_matrix/method_gate_matrix.csv",
+    "probe_gate_matrix": "results/average_method_gate_matrix/probe_gate_matrix.csv",
+    "report": "results/average_method_gate_matrix/report.md",
+    "summary": "results/average_method_gate_matrix/summary.json"
+  },
+  "qwen3_final_selection_status": "awaiting_source_eval",
+  "qwen3_interpolation_interior_gap_nll": 0.11892671273424771,
+  "qwen3_router_calibration_status": "awaiting_baseline_eval",
+  "required_precondition_count": 2,
+  "schema_version": 1,
+  "status": "built_from_current_probe_evidence"
+}
