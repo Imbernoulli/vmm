@@ -1,0 +1,89 @@
+{
+  "contract": "The output model must keep the same config, tokenizer, model class, tensor names, and tensor shapes as the chosen target.",
+  "literature_priors": [
+    {
+      "key": "mode_connectivity",
+      "mechanism": "A weight average is trusted only when the probed path stays in a low-loss basin.",
+      "source": "https://arxiv.org/abs/1802.10026"
+    },
+    {
+      "key": "model_soups",
+      "mechanism": "Same-basin finetunes can average well, but endpoint fallback is part of the recipe.",
+      "source": "https://arxiv.org/abs/2203.05482"
+    },
+    {
+      "key": "git_rebasin",
+      "mechanism": "Permutation symmetry must be canonicalized before weight-space merging.",
+      "source": "https://arxiv.org/abs/2209.04836"
+    },
+    {
+      "key": "ties",
+      "mechanism": "Coordinate sign conflict is a real dense failure signal, but it still needs held-out gating.",
+      "source": "https://arxiv.org/abs/2306.01708"
+    },
+    {
+      "key": "dare",
+      "mechanism": "Delta pruning/rescaling is useful only when the retained delta is not too large or noisy.",
+      "source": "https://arxiv.org/abs/2311.03099"
+    },
+    {
+      "key": "mergeme",
+      "mechanism": "MoE merging must handle parameter interference and routing, not just average experts.",
+      "source": "https://arxiv.org/abs/2502.00997"
+    },
+    {
+      "key": "sub_moe",
+      "mechanism": "Expert output similarity/subspace structure is a better merge signal than tensor names alone.",
+      "source": "https://arxiv.org/abs/2506.23266"
+    },
+    {
+      "key": "mergemoe",
+      "mechanism": "MoE expert merging can be formulated through output-space matching and optimization.",
+      "source": "https://arxiv.org/abs/2510.14436"
+    },
+    {
+      "key": "namex",
+      "mechanism": "Expert weights should reflect cooperation/competition rather than a fixed uniform prior.",
+      "source": "https://arxiv.org/abs/2510.16138"
+    }
+  ],
+  "name": "mechanism_gated_unified_average",
+  "schema_version": 1,
+  "steps": [
+    {
+      "condition": "actual Fisher-prediction error ratio is far above local-quadratic range",
+      "operation": "do_not_use_linear_midpoint_by_default",
+      "selected_action": "search base-anchored coefficient family; current config = {\"density\": 1.0, \"importance\": \"uniform\", \"lam\": 0.0, \"router\": \"average\", \"sign_resolve\": true}",
+      "stage": "dense_connectivity_gate",
+      "step": 1
+    },
+    {
+      "condition": "coordinate conflict rules must beat the anchor on held-out worst-task loss",
+      "operation": "make TIES/DARE-style sparsity conditional",
+      "selected_action": "only materialize sparse conflict rules when held-out and vLLM gates pass",
+      "stage": "dense_sparse_coordinate_gate",
+      "step": 2
+    },
+    {
+      "condition": "MoE expert/router row permutation is function preserving but breaks same-name average",
+      "operation": "canonicalize expert gauge before averaging",
+      "selected_action": "run layer-wise expert alignment; for Qwen3 Instruct/Coder the mapping is currently identity",
+      "stage": "moe_expert_identity_gate",
+      "step": 3
+    },
+    {
+      "condition": "no Qwen3 router layer passes the all-category movement guard",
+      "operation": "freeze direct router movement",
+      "selected_action": "freeze_router",
+      "stage": "moe_router_gate",
+      "step": 4
+    },
+    {
+      "condition": "structural probes can rank risk, but source dominance and task regression need vLLM scores",
+      "operation": "select only after audited downstream eval",
+      "selected_action": "keep all seven Qwen3 candidates provisional until eval-bundle audit passes",
+      "stage": "moe_candidate_gate",
+      "step": 5
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # Visualizing Model Merging：任务向量空间中的模型合并可视化
 
-> **最新（真实第一性原理实证，2026-06）：** 见 **[第一性原理发现：为什么线性平均失败 & MoE 该怎么合并](FIRST_PRINCIPLES_FINDINGS.md)**（真实权重+真实数据，非 plan/recipe）。核心四点：(1) dense 线性平均失败的本质是 loss **barrier**——二阶曲率定律低估真实退化 30–43×；(2) MoE 有精确的 **expert gauge 对称性**，真实 OLMoE-1B-7B 上 naive 同名平均把 NLL 从 `2.857` 砸到 `9.975`，weight-align 后完美恢复；(3) Qwen3-30B-A3B Instruct vs Coder 在**全部 48 层天然 index-aligned**（首次在真实 LLM 尺度上测量）；(4) **同一对能力 dense 不可合并、MoE 却能平滑合并**（worst-NLL barrier `≈3.0`→`0.11`），因为 routing 把干扰局部化。脚本 `scripts/fp_*.py`，结果 `results/fp_*`，图 `results/fp_figures/`。
+> **最新（机制驱动 unified average，2026-06）：** 见 **[Unified Average Optimizer](results/unified_average_optimizer/report.md)**。这个脚本把 Dense barrier、MoE expert gauge、Qwen3 expert identity、router movement 和最终 vLLM 选择 gate 合成一个同构操作策略，而不是静态判断哪个算法名最好。当前证据是：(1) Dense midpoint 的二阶 Fisher 预测严重失效，general/code actual-predicted ratio 为 `42.86/26.66`，所以拒绝默认 `0.5/0.5`；(2) 真实 OLMoE gauge 反事实中，同名 average 让 NLL 从 `4.1678` 升到 `9.6588`，恢复 expert 对齐后回到 `4.1678`；(3) Qwen3-30B-A3B Instruct vs Coder 的 expert identity 通过，`48/48` 层 identity-optimal，但 router direct move gate 为 `0/48` 层通过，所以先 freeze/router-KD gate；(4) 七个 Qwen3 same-shape candidates 仍需同场 vLLM eval，当前 final selector 是 `awaiting_source_eval`、`0/7` eligible。
 
 这份仓库把 `proposal.md` 里的想法实现成了一个可运行的研究 artifact：从小型图像分类模型开始，逐步扩展到 ViT/pretrained ViT 和 Qwen 系列 LLM，观察模型合并点在任务向量空间中的位置、多个任务 basin 是否重叠，以及合并失败是否和 task-vector interference 有关。
 
@@ -158,7 +158,7 @@ z 轴 = loss
 
 ## 结论摘要
 
-当前 coverage audit：`complete = 74`, `partial = 1`, `missing = 0`；唯一 partial 是 generic target-registry vLLM eval 还没有跑完，但 materialized checkpoint、source-vs-merge 对照、probe-guided dense candidate、dense guard ablation 的真实 vLLM eval、真实 Qwen3 MoE materialized checkpoint，以及 probe-gated/unified average selection gate 都已完成。完整汇总见 `results/summary.md` 和 `results/summary.json`。
+当前 coverage audit：`complete = 75`, `partial = 1`, `missing = 0`；唯一 partial 是 generic target-registry vLLM eval 还没有跑完，但 materialized checkpoint、source-vs-merge 对照、probe-guided dense candidate、dense guard ablation 的真实 vLLM eval、真实 Qwen3 MoE materialized checkpoint，以及 probe-gated/unified average selection gate 都已完成。完整汇总见 `results/summary.md` 和 `results/summary.json`。
 
 主要结论：
 

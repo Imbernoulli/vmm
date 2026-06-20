@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 73369,
+      "bytes": 73460,
       "kind": "document",
       "path": "README.md",
-      "sha256": "530d85e0bb9a3ac9473efb1f890c33ec194ba635064645eab5e766340b6c0853"
+      "sha256": "2a686183be9f70aa6b43514a1f28fab8c878080a2edc19333b838789b1e4b814"
     },
     {
       "bytes": 33211,
@@ -4417,16 +4417,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 1193851,
+      "bytes": 1203009,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "c0fb4f400da989bfa63adf3aeafeecf3152877459ac7b7ad18ea25b9534ac7b6"
+      "sha256": "84379ea374f5906bae93724848e9da1f9ae3d68bf0d67c5657a7900d4db78979"
     },
     {
-      "bytes": 45951,
+      "bytes": 46654,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "21a45f631aad83b02cd5de417d389fb2f5e63a41cd3c86c27fa218d5fcbd5860"
+      "sha256": "ee229ad0a5af79fa054d687859a9d1f3b06026d26fb61de58d29efb9aae6795d"
     },
     {
       "bytes": 288,
@@ -4889,6 +4889,36 @@
       "kind": "data",
       "path": "results/toy_moe_routing_readiness/summary.json",
       "sha256": "705ff7f538a7f3a83a558a8ba6479ebe53428592377d01a278f0b8a2a6130e64"
+    },
+    {
+      "bytes": 3742,
+      "kind": "data",
+      "path": "results/unified_average_optimizer/algorithm.json",
+      "sha256": "e3f58241ad6a67b877a830507e2f6927ae9c07c22adbc2e3a29c62f3d9092b78"
+    },
+    {
+      "bytes": 1653,
+      "kind": "data",
+      "path": "results/unified_average_optimizer/mechanism_features.csv",
+      "sha256": "563882ae1994a6278c4fea8673def1869f6d123160bf8858698c4337a34e9ae1"
+    },
+    {
+      "bytes": 1991,
+      "kind": "data",
+      "path": "results/unified_average_optimizer/operation_decisions.csv",
+      "sha256": "b010427aff3a560abc4e7285c23df816afe7152d33babd429087e11485dc1567"
+    },
+    {
+      "bytes": 5499,
+      "kind": "document",
+      "path": "results/unified_average_optimizer/report.md",
+      "sha256": "84ecb47673aae5f3176caf68f7582d8881f5c563e1d84de540fe4bcf1ea48929"
+    },
+    {
+      "bytes": 1254,
+      "kind": "data",
+      "path": "results/unified_average_optimizer/summary.json",
+      "sha256": "af770aae09ca7f9791c1955b3d446049dc1535140fbf0030c50a64706612c1c2"
     },
     {
       "bytes": 125,
@@ -5575,6 +5605,12 @@
       "sha256": "a1d54b8d275c55bbdc12aa051e4cb6888ce0371ff7698b547c1d7aa17f79c8e4"
     },
     {
+      "bytes": 21096,
+      "kind": "code",
+      "path": "scripts/build_unified_average_optimizer.py",
+      "sha256": "0459a269e28890cbd14169aad630b1f20ec07893df2b178968c3ab4174ce5c3d"
+    },
+    {
       "bytes": 23217,
       "kind": "code",
       "path": "scripts/build_vllm_checkpoint_eval_plan.py",
@@ -5593,10 +5629,10 @@
       "sha256": "cd588bc1804013f4043bd95c245b066dbae86bfd3e3f9c18317ef33eb506f123"
     },
     {
-      "bytes": 314405,
+      "bytes": 318218,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "f46bd1c7af14981c651142fd9c57f4db87c83a1e6658e33aa9134324ce34dbe0"
+      "sha256": "c6c844099b9d80e01b0cb5e2cae7e0c4593f80de1f0c5c63600b515ca45d185d"
     },
     {
       "bytes": 16101,
@@ -5857,7 +5893,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-20T00:39:34.507447+00:00",
+  "generated_at": "2026-06-20T00:48:39.358356+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

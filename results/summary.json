@@ -311,6 +311,11 @@
       "status": "complete"
     },
     {
+      "evidence": "results/unified_average_optimizer/report.md converts Dense barrier probes, MoE gauge probes, Qwen3 expert identity, router movement, and final candidate-selection gates into one same-shape operation policy.",
+      "item": "Unified Dense/MoE average optimizer",
+      "status": "complete"
+    },
+    {
       "evidence": "results/qwen3_moe_eval_bundle_audit/report.md checks every Qwen3 source/candidate eval output for model-id, task, example-count, prediction, and primary-score consistency before selector use; results/qwen3_moe_eval_bundle_audit_smoke/report.md covers valid, stale-model, missing-task, and low-example bundles.",
       "item": "Qwen3 MoE vLLM eval bundle audit",
       "status": "complete"
@@ -377,7 +382,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 74,
+    "complete": 75,
     "missing": 0,
     "partial": 1
   },
@@ -24392,6 +24397,175 @@
         "topology": null
       }
     },
+    "unified_average_optimizer": {
+      "algorithm": "results/unified_average_optimizer/algorithm.json",
+      "decision_rows": [
+        {
+          "condition": "actual Fisher-prediction error ratio is far above local-quadratic range",
+          "operation": "do_not_use_linear_midpoint_by_default",
+          "same_shape_invariant": "same tokenizer, model class, tensor names, and tensor shapes",
+          "selected_action": "search base-anchored coefficient family; current config = {\"density\": 1.0, \"importance\": \"uniform\", \"lam\": 0.0, \"router\": \"average\", \"sign_resolve\": true}",
+          "stage": "dense_connectivity_gate",
+          "why_it_should_improve": "It prevents a fixed 0.5 midpoint from crossing a measured high-loss barrier."
+        },
+        {
+          "condition": "coordinate conflict rules must beat the anchor on held-out worst-task loss",
+          "operation": "make TIES/DARE-style sparsity conditional",
+          "same_shape_invariant": "same dense architecture; only values change",
+          "selected_action": "only materialize sparse conflict rules when held-out and vLLM gates pass",
+          "stage": "dense_sparse_coordinate_gate",
+          "why_it_should_improve": "It keeps sign-conflict probes as diagnostics without letting them delete useful dense capacity."
+        },
+        {
+          "condition": "MoE expert/router row permutation is function preserving but breaks same-name average",
+          "operation": "canonicalize expert gauge before averaging",
+          "same_shape_invariant": "expert count and router shape are unchanged; only source tensor aliases are remapped",
+          "selected_action": "run layer-wise expert alignment; for Qwen3 Instruct/Coder the mapping is currently identity",
+          "stage": "moe_expert_identity_gate",
+          "why_it_should_improve": "It removes a discrete symmetry error before any continuous weight interpolation is attempted."
+        },
+        {
+          "condition": "no Qwen3 router layer passes the all-category movement guard",
+          "operation": "freeze direct router movement",
+          "same_shape_invariant": "router tensor shape is unchanged; optional route-KD writes a capped same-shape delta",
+          "selected_action": "freeze_router",
+          "stage": "moe_router_gate",
+          "why_it_should_improve": "It avoids averaging a discrete top-k dispatch boundary that has high measured source disagreement."
+        },
+        {
+          "condition": "structural probes can rank risk, but source dominance and task regression need vLLM scores",
+          "operation": "select only after audited downstream eval",
+          "same_shape_invariant": "all candidates remain same-shape Qwen3 MoE checkpoints",
+          "selected_action": "keep all seven Qwen3 candidates provisional until eval-bundle audit passes",
+          "stage": "moe_candidate_gate",
+          "why_it_should_improve": "It prevents structural cleanliness from being mistaken for actual downstream dominance."
+        }
+      ],
+      "decisions": "results/unified_average_optimizer/operation_decisions.csv",
+      "dense_best_endpoint_worst_nll": 5.150962227269223,
+      "dense_curvature_ratio_code": 26.657526023465977,
+      "dense_curvature_ratio_general": 42.8604013656617,
+      "dense_decision": "avoid_linear_midpoint_use_probe_selected_anchor_or_low_lambda",
+      "dense_linear_worst_nll": 8.947735033537212,
+      "dense_unified_worst_nll": 5.182952077765214,
+      "feature_rows": [
+        {
+          "decision_signal": "high_nonlocal_barrier",
+          "domain": "dense",
+          "evidence": "actual/predicted general degradation = 42.8604; uniform worst NLL = 5.9109; fisher worst NLL = 5.2492",
+          "probe": "curvature_law_general",
+          "threshold": 5.0,
+          "value": 42.8604013656617
+        },
+        {
+          "decision_signal": "high_nonlocal_barrier",
+          "domain": "dense",
+          "evidence": "actual/predicted code degradation = 26.6575",
+          "probe": "curvature_law_code",
+          "threshold": 5.0,
+          "value": 26.657526023465977
+        },
+        {
+          "decision_signal": "allow_endpoint_or_anchor_fallback",
+          "domain": "dense",
+          "evidence": "unified test worst NLL = 5.1830; linear = 8.9477; TIES = 9.1097; best endpoint = 5.1510",
+          "probe": "heldout_unified_selector",
+          "threshold": 8.947735033537212,
+          "value": 5.182952077765214
+        },
+        {
+          "decision_signal": "linear_generation_regression",
+          "domain": "dense",
+          "evidence": "linear avg accuracy = 0.0000; unified avg accuracy = 0.5000; best smoke method = coder",
+          "probe": "generation_smoke",
+          "threshold": 0.5,
+          "value": 0.0
+        },
+        {
+          "decision_signal": "expert_permutation_is_function_preserving",
+          "domain": "moe",
+          "evidence": "gauge-equivalent B MSE = 0.00000000; same-name worst = 0.5105; aligned worst = 0.1252",
+          "probe": "controlled_expert_gauge",
+          "threshold": 1e-09,
+          "value": 7.6640324573045295e-16
+        },
+        {
+          "decision_signal": "reject_same_name_average_without_alignment",
+          "domain": "moe",
+          "evidence": "baseline NLL = 4.1678; same-name average NLL = 9.6588; aligned average NLL = 4.1678; layers recovered = 16/16",
+          "probe": "real_olmoe_gauge_selfmerge",
+          "threshold": 1.0,
+          "value": 5.490968298724317
+        },
+        {
+          "decision_signal": "identity_alignment_is_allowed_for_this_pair",
+          "domain": "moe",
+          "evidence": "identity-optimal layer fraction = 1.0000; argmax identity fraction = 1.0000",
+          "probe": "qwen3_expert_identity",
+          "threshold": 1.0,
+          "value": 1.0
+        },
+        {
+          "decision_signal": "freeze_router_or_train_route_kd_delta",
+          "domain": "moe",
+          "evidence": "allowed router layers = 0/48; top-k Jaccard mean/min = 0.4539/0.2422; top1 agreement mean/min = 0.4125/0.0690",
+          "probe": "qwen3_router_move_gate",
+          "threshold": 48.0,
+          "value": 0.0
+        },
+        {
+          "decision_signal": "await_matched_vllm_before_accepting_average",
+          "domain": "moe",
+          "evidence": "status = awaiting_source_eval; eligible candidates = 0/7; reason = Both Qwen3 source endpoints must complete audited vLLM eval before final candidate selection.",
+          "probe": "qwen3_final_candidate_selection",
+          "threshold": 7.0,
+          "value": 0.0
+        }
+      ],
+      "features": "results/unified_average_optimizer/mechanism_features.csv",
+      "moe_decision": "align_experts_freeze_router_then_gate_candidate_by_vllm",
+      "qwen3_candidate_count": 7,
+      "qwen3_eligible_candidates": 0,
+      "qwen3_final_selection_status": "awaiting_source_eval",
+      "qwen3_identity_fraction": 1.0,
+      "real_gauge_aligned_degradation": 0.0,
+      "real_gauge_naive_degradation": 5.490968298724317,
+      "report": "results/unified_average_optimizer/report.md",
+      "router_action": "freeze_router",
+      "status": "built_waiting_for_qwen3_vllm_eval",
+      "summary": {
+        "dense": {
+          "best_endpoint_worst_nll": 5.150962227269223,
+          "curvature_ratio_code": 26.657526023465977,
+          "curvature_ratio_general": 42.8604013656617,
+          "decision": "avoid_linear_midpoint_use_probe_selected_anchor_or_low_lambda",
+          "generation_best_method": "coder",
+          "linear_worst_nll": 8.947735033537212,
+          "unified_worst_nll": 5.182952077765214
+        },
+        "moe": {
+          "controlled_gauge_mse": 7.66403245730453e-16,
+          "decision": "align_experts_freeze_router_then_gate_candidate_by_vllm",
+          "qwen3_candidate_count": 7,
+          "qwen3_eligible_candidates": 0,
+          "qwen3_final_selection_status": "awaiting_source_eval",
+          "qwen3_identity_fraction": 1.0,
+          "real_gauge_aligned_degradation": 0.0,
+          "real_gauge_naive_degradation": 5.490968298724317,
+          "router_action": "freeze_router"
+        },
+        "outputs": {
+          "algorithm": "results/unified_average_optimizer/algorithm.json",
+          "decisions": "results/unified_average_optimizer/operation_decisions.csv",
+          "features": "results/unified_average_optimizer/mechanism_features.csv",
+          "report": "results/unified_average_optimizer/report.md",
+          "summary": "results/unified_average_optimizer/summary.json"
+        },
+        "schema_version": 1,
+        "status": "built_waiting_for_qwen3_vllm_eval"
+      },
+      "summary_path": "results/unified_average_optimizer/summary.json"
+    },
     "vllm_checkpoint_eval_plan": {
       "candidate_count": 13,
       "completed_eval_count": 1,
@@ -26264,7 +26438,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-20T00:39:34.479164+00:00",
+  "generated_at": "2026-06-20T00:48:39.314634+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -26354,6 +26528,7 @@
     "python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke",
     "python scripts/select_qwen3_moe_final_candidate.py --output-dir results/qwen3_moe_final_candidate_selection",
     "python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke",
+    "python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer",
     "python scripts/audit_qwen3_moe_eval_bundle.py --output-dir results/qwen3_moe_eval_bundle_audit",
     "python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke",
     "python scripts/attribute_qwen3_moe_mechanism_effects.py --output-dir results/qwen3_moe_mechanism_effect_attribution",

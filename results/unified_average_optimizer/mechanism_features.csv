@@ -1,0 +1,10 @@
+domain,probe,value,threshold,decision_signal,evidence
+dense,curvature_law_general,42.8604013656617,5.0,high_nonlocal_barrier,actual/predicted general degradation = 42.8604; uniform worst NLL = 5.9109; fisher worst NLL = 5.2492
+dense,curvature_law_code,26.657526023465977,5.0,high_nonlocal_barrier,actual/predicted code degradation = 26.6575
+dense,heldout_unified_selector,5.182952077765214,8.947735033537212,allow_endpoint_or_anchor_fallback,unified test worst NLL = 5.1830; linear = 8.9477; TIES = 9.1097; best endpoint = 5.1510
+dense,generation_smoke,0.0,0.5,linear_generation_regression,linear avg accuracy = 0.0000; unified avg accuracy = 0.5000; best smoke method = coder
+moe,controlled_expert_gauge,7.66403245730453e-16,1e-09,expert_permutation_is_function_preserving,gauge-equivalent B MSE = 0.00000000; same-name worst = 0.5105; aligned worst = 0.1252
+moe,real_olmoe_gauge_selfmerge,5.490968298724317,1.0,reject_same_name_average_without_alignment,baseline NLL = 4.1678; same-name average NLL = 9.6588; aligned average NLL = 4.1678; layers recovered = 16/16
+moe,qwen3_expert_identity,1.0,1.0,identity_alignment_is_allowed_for_this_pair,identity-optimal layer fraction = 1.0000; argmax identity fraction = 1.0000
+moe,qwen3_router_move_gate,0.0,48.0,freeze_router_or_train_route_kd_delta,allowed router layers = 0/48; top-k Jaccard mean/min = 0.4539/0.2422; top1 agreement mean/min = 0.4125/0.0690
+moe,qwen3_final_candidate_selection,0.0,7.0,await_matched_vllm_before_accepting_average,status = awaiting_source_eval; eligible candidates = 0/7; reason = Both Qwen3 source endpoints must complete audited vLLM eval before final candidate selection.

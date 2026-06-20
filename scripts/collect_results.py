@@ -1271,6 +1271,40 @@ def summarize_qwen3_moe_final_candidate_selection_smoke() -> dict[str, Any]:
     }
 
 
+def summarize_unified_average_optimizer() -> dict[str, Any]:
+    root = repo_path("results/unified_average_optimizer")
+    summary = read_json(root / "summary.json")
+    features = read_csv(root / "mechanism_features.csv")
+    decisions = read_csv(root / "operation_decisions.csv")
+    dense = summary.get("dense", {})
+    moe = summary.get("moe", {})
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "dense_decision": dense.get("decision"),
+        "dense_linear_worst_nll": maybe_float(dense.get("linear_worst_nll")),
+        "dense_unified_worst_nll": maybe_float(dense.get("unified_worst_nll")),
+        "dense_best_endpoint_worst_nll": maybe_float(dense.get("best_endpoint_worst_nll")),
+        "dense_curvature_ratio_general": maybe_float(dense.get("curvature_ratio_general")),
+        "dense_curvature_ratio_code": maybe_float(dense.get("curvature_ratio_code")),
+        "moe_decision": moe.get("decision"),
+        "real_gauge_naive_degradation": maybe_float(moe.get("real_gauge_naive_degradation")),
+        "real_gauge_aligned_degradation": maybe_float(moe.get("real_gauge_aligned_degradation")),
+        "qwen3_identity_fraction": maybe_float(moe.get("qwen3_identity_fraction")),
+        "router_action": moe.get("router_action"),
+        "qwen3_final_selection_status": moe.get("qwen3_final_selection_status"),
+        "qwen3_eligible_candidates": maybe_int(moe.get("qwen3_eligible_candidates")),
+        "qwen3_candidate_count": maybe_int(moe.get("qwen3_candidate_count")),
+        "feature_rows": [clean_row(row) for _, row in features.iterrows()],
+        "decision_rows": [clean_row(row) for _, row in decisions.iterrows()],
+        "report": rel(root / "report.md"),
+        "features": rel(root / "mechanism_features.csv"),
+        "decisions": rel(root / "operation_decisions.csv"),
+        "algorithm": rel(root / "algorithm.json"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_qwen3_moe_eval_bundle_audit() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_eval_bundle_audit")
     summary = read_json(root / "summary.json")
@@ -3289,6 +3323,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/qwen3_moe_final_candidate_selection/report.md ranks all seven same-shape Qwen3 MoE candidates against both source endpoints after eval-bundle audit, with source-dominance, task-regression, checkpoint-audit, and provisional-selection gates.",
         },
         {
+            "item": "Unified Dense/MoE average optimizer",
+            "status": "complete",
+            "evidence": "results/unified_average_optimizer/report.md converts Dense barrier probes, MoE gauge probes, Qwen3 expert identity, router movement, and final candidate-selection gates into one same-shape operation policy.",
+        },
+        {
             "item": "Qwen3 MoE vLLM eval bundle audit",
             "status": "complete",
             "evidence": "results/qwen3_moe_eval_bundle_audit/report.md checks every Qwen3 source/candidate eval output for model-id, task, example-count, prediction, and primary-score consistency before selector use; results/qwen3_moe_eval_bundle_audit_smoke/report.md covers valid, stale-model, missing-task, and low-example bundles.",
@@ -3426,6 +3465,7 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_unified_result_selection_smoke": summarize_qwen3_moe_unified_result_selection_smoke(),
         "qwen3_moe_final_candidate_selection": summarize_qwen3_moe_final_candidate_selection(),
         "qwen3_moe_final_candidate_selection_smoke": summarize_qwen3_moe_final_candidate_selection_smoke(),
+        "unified_average_optimizer": summarize_unified_average_optimizer(),
         "qwen3_moe_eval_bundle_audit": summarize_qwen3_moe_eval_bundle_audit(),
         "qwen3_moe_eval_bundle_audit_smoke": summarize_qwen3_moe_eval_bundle_audit_smoke(),
         "qwen3_moe_mechanism_effect_attribution": summarize_qwen3_moe_mechanism_effect_attribution(),
@@ -3590,6 +3630,7 @@ def build_summary() -> dict[str, Any]:
             "python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke",
             "python scripts/select_qwen3_moe_final_candidate.py --output-dir results/qwen3_moe_final_candidate_selection",
             "python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke",
+            "python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer",
             "python scripts/audit_qwen3_moe_eval_bundle.py --output-dir results/qwen3_moe_eval_bundle_audit",
             "python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke",
             "python scripts/attribute_qwen3_moe_mechanism_effects.py --output-dir results/qwen3_moe_mechanism_effect_attribution",
@@ -3675,6 +3716,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_unified_result_selection_smoke = exp["qwen3_moe_unified_result_selection_smoke"]
     qwen3_moe_final_candidate_selection = exp["qwen3_moe_final_candidate_selection"]
     qwen3_moe_final_candidate_selection_smoke = exp["qwen3_moe_final_candidate_selection_smoke"]
+    unified_average_optimizer = exp["unified_average_optimizer"]
     qwen3_moe_eval_bundle_audit = exp["qwen3_moe_eval_bundle_audit"]
     qwen3_moe_eval_bundle_audit_smoke = exp["qwen3_moe_eval_bundle_audit_smoke"]
     qwen3_moe_mechanism_effect_attribution = exp["qwen3_moe_mechanism_effect_attribution"]
@@ -4264,6 +4306,27 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_final_candidate_selection_smoke['status']} / "
                 f"{qwen3_moe_final_candidate_selection_smoke['passed_case_count']}"
                 f"/{qwen3_moe_final_candidate_selection_smoke['case_count']} |"
+            ),
+            (
+                "| unified average optimizer | status / dense / MoE | "
+                f"{unified_average_optimizer['status']} / "
+                f"{unified_average_optimizer['dense_decision']} / "
+                f"{unified_average_optimizer['moe_decision']} |"
+            ),
+            (
+                "| unified average optimizer | dense linear / unified / endpoint worst NLL | "
+                f"{unified_average_optimizer['dense_linear_worst_nll']:.3f} / "
+                f"{unified_average_optimizer['dense_unified_worst_nll']:.3f} / "
+                f"{unified_average_optimizer['dense_best_endpoint_worst_nll']:.3f} |"
+            ),
+            (
+                "| unified average optimizer | real MoE gauge / router / Qwen3 final | "
+                f"{unified_average_optimizer['real_gauge_naive_degradation']:.3f} -> "
+                f"{unified_average_optimizer['real_gauge_aligned_degradation']:.3f} / "
+                f"{unified_average_optimizer['router_action']} / "
+                f"{unified_average_optimizer['qwen3_final_selection_status']} "
+                f"({unified_average_optimizer['qwen3_eligible_candidates']}"
+                f"/{unified_average_optimizer['qwen3_candidate_count']}) |"
             ),
             (
                 "| Qwen3 MoE eval bundle audit | status / usable / invalid complete | "
