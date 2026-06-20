@@ -1,0 +1,21 @@
+{
+  "case_count": 6,
+  "complementarity_observed_count": 0,
+  "dense_source_endpoint_gap": 0.41516671648212533,
+  "dense_source_midpoint_gap": 2.9168428383621516,
+  "endpoint_frontier_win_count": 1,
+  "midpoint_rejected_count": 5,
+  "outputs": {
+    "figure": "results/average_connectivity_diagnostic/connectivity_gaps.png",
+    "path_diagnostics": "results/average_connectivity_diagnostic/path_diagnostics.csv",
+    "report": "results/average_connectivity_diagnostic/report.md",
+    "rules": "results/average_connectivity_diagnostic/acceptance_rules.json",
+    "summary": "results/average_connectivity_diagnostic/summary.json"
+  },
+  "path_rejected_count": 5,
+  "qwen3_instruct_coder_gap": 0.11892671273424771,
+  "qwen3_instruct_coder_midpoint_gap": 0.4682860829471762,
+  "schema_version": 1,
+  "status": "connectivity_rejects_default_midpoints",
+  "tolerance": 0.01
+}

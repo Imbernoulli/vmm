@@ -1,0 +1,26 @@
+[
+  {
+    "accept_if": "best interior score <= best endpoint score - 0.01",
+    "meaning": "A straight-line or coefficient average must beat the source frontier, not only look smooth.",
+    "reject_if": "best interior score is worse than the best endpoint frontier",
+    "rule": "endpoint_frontier_rule"
+  },
+  {
+    "accept_if": "midpoint score <= best endpoint score + 0.01",
+    "meaning": "Uniform averaging is a special case and should be rejected separately from coefficient search.",
+    "reject_if": "fixed 0.5/0.5 midpoint has a positive endpoint-frontier gap",
+    "rule": "midpoint_safety_rule"
+  },
+  {
+    "accept_if": "different endpoints win different tasks and an interior point beats the best source average",
+    "meaning": "Specialist labels are not enough; complementarity must appear in measured task losses.",
+    "reject_if": "one endpoint dominates all measured tasks or the best interior only ties the best source",
+    "rule": "complementarity_rule"
+  },
+  {
+    "accept_if": "curvature prediction matches actual midpoint degradation within a small ratio",
+    "meaning": "Fisher/RegMean-style local arguments cannot justify a nonlocal merge by themselves.",
+    "reject_if": "actual/predicted degradation ratio is large",
+    "rule": "local_quadratic_rule"
+  }
+]

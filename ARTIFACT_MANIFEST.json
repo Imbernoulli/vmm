@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 81314,
+      "bytes": 82086,
       "kind": "document",
       "path": "README.md",
-      "sha256": "36a1a760919e25da032d1aba3f633b789c9dbaedf3220953d02b14e1fa26f548"
+      "sha256": "97588a18060f860d6cf328ce78c6ee06abee240b2661e7d7105d79194c6f875b"
     },
     {
       "bytes": 33211,
@@ -83,6 +83,36 @@
       "kind": "data",
       "path": "results/average_candidate_recipes/summary.json",
       "sha256": "e1a3c1948f7beedefdd2d5f8e7b2932930d2a10d0e91f917ac0aec713a89e0ae"
+    },
+    {
+      "bytes": 1290,
+      "kind": "data",
+      "path": "results/average_connectivity_diagnostic/acceptance_rules.json",
+      "sha256": "0c4c3dae7bc3999787c898842bd79acdab76d94c507628084d27df603334f0f8"
+    },
+    {
+      "bytes": 74152,
+      "kind": "figure",
+      "path": "results/average_connectivity_diagnostic/connectivity_gaps.png",
+      "sha256": "c5c01779dd2ef3a405c70212901b2498fe525f219046f0bd1b6dbe9b5a888f59"
+    },
+    {
+      "bytes": 2826,
+      "kind": "data",
+      "path": "results/average_connectivity_diagnostic/path_diagnostics.csv",
+      "sha256": "c4a82a7673f36bc82d7da7f746581ff419bf03e8d0b06ecf16531b0ea5a630a9"
+    },
+    {
+      "bytes": 3114,
+      "kind": "document",
+      "path": "results/average_connectivity_diagnostic/report.md",
+      "sha256": "3d923e9c3a5eb67d8d42cfd338e860c2ff4baf7aec16e86b410d20d4e57ef318"
+    },
+    {
+      "bytes": 870,
+      "kind": "data",
+      "path": "results/average_connectivity_diagnostic/summary.json",
+      "sha256": "9b36520b5d6d7041fe39a7021f875a0390754904dc9a3065c22e3d4f4ee329c9"
     },
     {
       "bytes": 2847,
@@ -4735,16 +4765,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 1531623,
+      "bytes": 1540121,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "e4939760039d40f3563e9d4334c4aa965703b77a7ad871144f051b8414fb727d"
+      "sha256": "7e96802ea003b7d9fe5ca24082c3a7e6eeb2490d20eb42c8889d9a381bde9e34"
     },
     {
-      "bytes": 52005,
+      "bytes": 52425,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "dd2c12493271b6d4cd0cbefec955cdd755f1bc30f993c82e94e6a43530b2ba62"
+      "sha256": "7969ff8c911408ccdc9b025738cd3e518b5f53d343f5fc926420318ccea6ad86"
     },
     {
       "bytes": 288,
@@ -5797,6 +5827,12 @@
       "sha256": "f75e4799a8a3409c45e008d26026a035b2315da585980fbebe62422b78ef9881"
     },
     {
+      "bytes": 19631,
+      "kind": "code",
+      "path": "scripts/build_connectivity_diagnostic.py",
+      "sha256": "f3a3cf0bfc18d4b175c868d7ab2eb2d54951d98a7f518e1dbf534087a3594ccd"
+    },
+    {
       "bytes": 64880,
       "kind": "code",
       "path": "scripts/build_dashboard.py",
@@ -5977,10 +6013,10 @@
       "sha256": "cd588bc1804013f4043bd95c245b066dbae86bfd3e3f9c18317ef33eb506f123"
     },
     {
-      "bytes": 357122,
+      "bytes": 361203,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "05995a3a7cd51008ef4d592bd3f8ed6fb994381e374bb940303647ef5c5ac7d4"
+      "sha256": "980e7e488e270ff20ace942cd86c83469c317b3609a857e4a6c08103c494a2cb"
     },
     {
       "bytes": 16101,
@@ -6271,7 +6307,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-20T03:56:56.007221+00:00",
+  "generated_at": "2026-06-20T04:07:17.729629+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

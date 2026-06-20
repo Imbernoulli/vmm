@@ -108,6 +108,8 @@ def collect_artifacts() -> list[dict[str, Any]]:
     ]
     suffixes = {".py", ".md", ".csv", ".json", ".jsonl", ".txt", ".png", ".html"}
     excluded_files = {
+        "scripts/fp_downstream_eval.py",  # scratch HF-generation eval, not the vLLM hosted eval path
+        "scripts/fp_materialize_merge.py",  # scratch materialization helper outside the maintained writer path
         "scripts/fp_make_figures.py",  # stale draft figures with old first-principles numbers
         "results/fp_dense_lambda/run.log",
         "results/fp_moe_barrier/run.log",
@@ -3320,6 +3322,46 @@ def summarize_average_method_gate_matrix() -> dict[str, Any]:
     }
 
 
+def summarize_average_connectivity_diagnostic() -> dict[str, Any]:
+    root = repo_path("results/average_connectivity_diagnostic")
+    summary = read_json(root / "summary.json")
+    diagnostics = read_csv(root / "path_diagnostics.csv")
+    by_case = {str(row["case"]): clean_row(row) for _, row in diagnostics.iterrows()}
+    dense_source = by_case.get("dense_instruct_coder_source_path", {})
+    dense_lambda = by_case.get("dense_base_anchored_lambda_family", {})
+    qwen3_source = by_case.get("qwen3_moe_instruct_coder_source_path", {})
+    qwen3_base = by_case.get("qwen3_moe_base_coder_source_path", {})
+    qwen3_complementary = by_case.get("qwen3_moe_thinking_coder_complementary_path", {})
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "case_count": int(summary.get("case_count", len(diagnostics))),
+        "path_rejected_count": int(summary.get("path_rejected_count", 0)),
+        "midpoint_rejected_count": int(summary.get("midpoint_rejected_count", 0)),
+        "endpoint_frontier_win_count": int(summary.get("endpoint_frontier_win_count", 0)),
+        "complementarity_observed_count": int(summary.get("complementarity_observed_count", 0)),
+        "dense_source_midpoint_gap": maybe_float(summary.get("dense_source_midpoint_gap")),
+        "dense_source_endpoint_gap": maybe_float(summary.get("dense_source_endpoint_gap")),
+        "dense_lambda_endpoint_gap": maybe_float(dense_lambda.get("endpoint_frontier_gap")),
+        "dense_lambda_midpoint_gap": maybe_float(dense_lambda.get("midpoint_gap")),
+        "qwen3_instruct_coder_gap": maybe_float(summary.get("qwen3_instruct_coder_gap")),
+        "qwen3_instruct_coder_midpoint_gap": maybe_float(
+            summary.get("qwen3_instruct_coder_midpoint_gap")
+        ),
+        "qwen3_base_coder_gap": maybe_float(qwen3_base.get("endpoint_frontier_gap")),
+        "qwen3_complementary_gap": maybe_float(qwen3_complementary.get("endpoint_frontier_gap")),
+        "dense_source_decision": dense_source.get("decision"),
+        "dense_lambda_decision": dense_lambda.get("decision"),
+        "qwen3_source_decision": qwen3_source.get("decision"),
+        "rows": [clean_row(row) for _, row in diagnostics.iterrows()],
+        "report": rel(root / "report.md"),
+        "path_diagnostics": rel(root / "path_diagnostics.csv"),
+        "acceptance_rules": rel(root / "acceptance_rules.json"),
+        "figure": rel(root / "connectivity_gaps.png"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_qwen_target_model_registry() -> dict[str, Any]:
     summary = read_json("results/qwen_target_model_registry/summary.json")
     models = read_csv("results/qwen_target_model_registry/model_registry.csv")
@@ -3520,6 +3562,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "item": "Average method gate matrix",
             "status": "complete",
             "evidence": "results/average_method_gate_matrix/report.md turns common Dense/MoE averaging method families into current-evidence accept/reject/conditional gates.",
+        },
+        {
+            "item": "Average connectivity diagnostic",
+            "status": "complete",
+            "evidence": "results/average_connectivity_diagnostic/report.md unifies Dense/MoE endpoint-frontier, midpoint, barrier, complementarity, and local-quadratic gates.",
         },
         {
             "item": "Qwen target model registry",
@@ -3805,6 +3852,7 @@ def build_summary() -> dict[str, Any]:
         "average_decision_report": summarize_average_decision_report(),
         "model_averaging_literature_review": summarize_model_averaging_literature_review(),
         "average_method_gate_matrix": summarize_average_method_gate_matrix(),
+        "average_connectivity_diagnostic": summarize_average_connectivity_diagnostic(),
         "qwen_target_model_registry": summarize_qwen_target_model_registry(),
         "moe_routing_probe_smoke": summarize_moe_routing_probe_smoke(),
         "moe_average_plan": summarize_moe_average_plan(),
@@ -3966,6 +4014,7 @@ def build_summary() -> dict[str, Any]:
             ),
             "python scripts/build_model_averaging_literature_review.py",
             "python scripts/build_average_method_gate_matrix.py --output-dir results/average_method_gate_matrix",
+            "python scripts/build_connectivity_diagnostic.py --output-dir results/average_connectivity_diagnostic",
             "python scripts/smoke_moe_routing_probe_contract.py",
             "python scripts/smoke_vllm_downstream_eval_contract.py --output-dir results/vllm_downstream_eval_smoke",
             "PYTHONPATH=src python scripts/build_vllm_checkpoint_eval_plan.py --output-dir results/vllm_checkpoint_eval_plan",
@@ -4076,6 +4125,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     average_decision = exp["average_decision_report"]
     literature_review = exp["model_averaging_literature_review"]
     average_method_gate_matrix = exp["average_method_gate_matrix"]
+    average_connectivity = exp["average_connectivity_diagnostic"]
     qwen_registry = exp["qwen_target_model_registry"]
     routing_probe_smoke = exp["moe_routing_probe_smoke"]
     moe_average_plan = exp["moe_average_plan"]
@@ -5743,6 +5793,18 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(average_method_gate_matrix['dense_lambda_linear_worst_nll'])} / "
                 f"{fmt(average_method_gate_matrix['dense_lambda_best_worst_nll'])} / "
                 f"{fmt(average_method_gate_matrix['qwen3_interpolation_interior_gap_nll'])} |"
+            ),
+            (
+                "| average connectivity diagnostic | path rejected / midpoint rejected / frontier wins | "
+                f"{average_connectivity['path_rejected_count']}/{average_connectivity['case_count']} / "
+                f"{average_connectivity['midpoint_rejected_count']}/{average_connectivity['case_count']} / "
+                f"{average_connectivity['endpoint_frontier_win_count']} |"
+            ),
+            (
+                "| average connectivity diagnostic | Dense midpoint gap / Dense anchor gap / Qwen3 MoE gap | "
+                f"{fmt(average_connectivity['dense_source_midpoint_gap'])} / "
+                f"{fmt(average_connectivity['dense_lambda_endpoint_gap'])} / "
+                f"{fmt(average_connectivity['qwen3_instruct_coder_gap'])} |"
             ),
             (
                 "| Qwen target model registry | candidate dense / MoE models | "
