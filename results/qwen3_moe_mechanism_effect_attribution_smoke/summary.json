@@ -1,0 +1,41 @@
+{
+  "case_count": 3,
+  "cases": [
+    {
+      "case": "complete",
+      "expected_scored_transition_count": 7,
+      "expected_status": "complete",
+      "passed": true,
+      "regression_count": 0,
+      "scored_transition_count": 7,
+      "status": "complete"
+    },
+    {
+      "case": "partial",
+      "expected_scored_transition_count": 4,
+      "expected_status": "partial",
+      "passed": true,
+      "regression_count": 0,
+      "scored_transition_count": 4,
+      "status": "partial"
+    },
+    {
+      "case": "regression",
+      "expected_scored_transition_count": 7,
+      "expected_status": "complete",
+      "passed": true,
+      "regression_count": 1,
+      "scored_transition_count": 7,
+      "status": "complete"
+    }
+  ],
+  "failed_case_count": 0,
+  "outputs": {
+    "matrix": "results/qwen3_moe_mechanism_effect_attribution_smoke/attribution_matrix.csv",
+    "report": "results/qwen3_moe_mechanism_effect_attribution_smoke/report.md",
+    "summary": "results/qwen3_moe_mechanism_effect_attribution_smoke/summary.json"
+  },
+  "passed_case_count": 3,
+  "schema_version": 1,
+  "status": "passed"
+}

@@ -1,0 +1,4 @@
+case,status,expected_status,scored_transition_count,expected_scored_transition_count,regression_count,passed
+complete,complete,complete,7,7,0,True
+partial,partial,partial,4,4,0,True
+regression,complete,complete,7,7,1,True

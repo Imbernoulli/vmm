@@ -1268,6 +1268,45 @@ def summarize_qwen3_moe_eval_bundle_audit_smoke() -> dict[str, Any]:
     }
 
 
+def summarize_qwen3_moe_mechanism_effect_attribution() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_mechanism_effect_attribution")
+    summary = read_json(root / "summary.json")
+    transitions = read_csv(root / "transition_effects.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "transition_count": int(summary.get("transition_count", len(transitions))),
+        "scored_transition_count": int(summary.get("scored_transition_count", 0)),
+        "improving_transition_count": int(summary.get("improving_transition_count", 0)),
+        "regressing_transition_count": int(summary.get("regressing_transition_count", 0)),
+        "best_avg_transition": summary.get("best_avg_transition"),
+        "best_avg_delta": maybe_float(summary.get("best_avg_delta")),
+        "best_worst_transition": summary.get("best_worst_transition"),
+        "best_worst_delta": maybe_float(summary.get("best_worst_delta")),
+        "transition_rows": [clean_row(row) for _, row in transitions.iterrows()],
+        "report": rel(root / "report.md"),
+        "transition_effects": rel(root / "transition_effects.csv"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
+def summarize_qwen3_moe_mechanism_effect_attribution_smoke() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_mechanism_effect_attribution_smoke")
+    summary = read_json(root / "summary.json")
+    matrix = read_csv(root / "attribution_matrix.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "case_count": int(summary.get("case_count", len(matrix))),
+        "passed_case_count": int(summary.get("passed_case_count", 0)),
+        "failed_case_count": int(summary.get("failed_case_count", 0)),
+        "case_rows": [clean_row(row) for _, row in matrix.iterrows()],
+        "report": rel(root / "report.md"),
+        "matrix": rel(root / "attribution_matrix.csv"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_qwen3_moe_router_move_gate() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_router_move_gate")
     summary = read_json(root / "summary.json")
@@ -3157,6 +3196,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/qwen3_moe_eval_bundle_audit/report.md checks every Qwen3 source/candidate eval output for model-id, task, example-count, prediction, and primary-score consistency before selector use; results/qwen3_moe_eval_bundle_audit_smoke/report.md covers valid, stale-model, missing-task, and low-example bundles.",
         },
         {
+            "item": "Qwen3 MoE mechanism effect attribution",
+            "status": "complete",
+            "evidence": "results/qwen3_moe_mechanism_effect_attribution/report.md decomposes the Qwen3 MoE source-frontier -> route-guarded -> audit-gated -> trust-region -> expert-only -> tail-trimmed -> searched-cap -> unified-alias chain into structural and downstream score deltas, gated by the eval-bundle audit.",
+        },
+        {
             "item": "Qwen3 MoE searched cap-law materialized candidate",
             "status": "complete",
             "evidence": "results/qwen3_moe_searched_no_gt065_delta_audit/report.md verifies the materialized searched 0.65 cap-law checkpoint and adds it to the Qwen3 MoE eval gate.",
@@ -3279,6 +3323,10 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_unified_result_selection_smoke": summarize_qwen3_moe_unified_result_selection_smoke(),
         "qwen3_moe_eval_bundle_audit": summarize_qwen3_moe_eval_bundle_audit(),
         "qwen3_moe_eval_bundle_audit_smoke": summarize_qwen3_moe_eval_bundle_audit_smoke(),
+        "qwen3_moe_mechanism_effect_attribution": summarize_qwen3_moe_mechanism_effect_attribution(),
+        "qwen3_moe_mechanism_effect_attribution_smoke": (
+            summarize_qwen3_moe_mechanism_effect_attribution_smoke()
+        ),
         "qwen3_moe_router_move_gate": summarize_qwen3_moe_router_move_gate(),
         "qwen3_moe_router_calibration_job": summarize_qwen3_moe_router_calibration_job(),
         "qwen3_moe_router_calibration_selection": summarize_qwen3_moe_router_calibration_selection(),
@@ -3435,6 +3483,8 @@ def build_summary() -> dict[str, Any]:
             "python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke",
             "python scripts/audit_qwen3_moe_eval_bundle.py --output-dir results/qwen3_moe_eval_bundle_audit",
             "python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke",
+            "python scripts/attribute_qwen3_moe_mechanism_effects.py --output-dir results/qwen3_moe_mechanism_effect_attribution",
+            "python scripts/attribute_qwen3_moe_mechanism_effects.py --smoke-matrix --output-dir results/qwen3_moe_mechanism_effect_attribution_smoke",
             "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
             "PYTHONPATH=src python scripts/collect_results.py",
         ],
@@ -3514,6 +3564,10 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_unified_result_selection_smoke = exp["qwen3_moe_unified_result_selection_smoke"]
     qwen3_moe_eval_bundle_audit = exp["qwen3_moe_eval_bundle_audit"]
     qwen3_moe_eval_bundle_audit_smoke = exp["qwen3_moe_eval_bundle_audit_smoke"]
+    qwen3_moe_mechanism_effect_attribution = exp["qwen3_moe_mechanism_effect_attribution"]
+    qwen3_moe_mechanism_effect_attribution_smoke = exp[
+        "qwen3_moe_mechanism_effect_attribution_smoke"
+    ]
     qwen3_moe_router_move_gate = exp["qwen3_moe_router_move_gate"]
     qwen3_moe_router_calibration_job = exp["qwen3_moe_router_calibration_job"]
     qwen3_moe_router_calibration_selection = exp["qwen3_moe_router_calibration_selection"]
@@ -4096,6 +4150,24 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_eval_bundle_audit_smoke['status']} / "
                 f"{qwen3_moe_eval_bundle_audit_smoke['passed_case_count']}"
                 f"/{qwen3_moe_eval_bundle_audit_smoke['case_count']} |"
+            ),
+            (
+                "| Qwen3 MoE mechanism attribution | status / scored / regressions | "
+                f"{qwen3_moe_mechanism_effect_attribution['status']} / "
+                f"{qwen3_moe_mechanism_effect_attribution['scored_transition_count']}"
+                f"/{qwen3_moe_mechanism_effect_attribution['transition_count']} / "
+                f"{qwen3_moe_mechanism_effect_attribution['regressing_transition_count']} |"
+            ),
+            (
+                "| Qwen3 MoE mechanism attribution | best avg / best worst transition | "
+                f"{qwen3_moe_mechanism_effect_attribution['best_avg_transition']} / "
+                f"{qwen3_moe_mechanism_effect_attribution['best_worst_transition']} |"
+            ),
+            (
+                "| Qwen3 MoE mechanism attribution smoke | status / passed cases | "
+                f"{qwen3_moe_mechanism_effect_attribution_smoke['status']} / "
+                f"{qwen3_moe_mechanism_effect_attribution_smoke['passed_case_count']}"
+                f"/{qwen3_moe_mechanism_effect_attribution_smoke['case_count']} |"
             ),
             (
                 "| Qwen3 MoE router move gate | status / action / allowed layers | "

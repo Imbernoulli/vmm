@@ -1,0 +1,18 @@
+{
+  "best_avg_delta": null,
+  "best_avg_transition": null,
+  "best_worst_delta": null,
+  "best_worst_transition": null,
+  "improving_transition_count": 0,
+  "outputs": {
+    "report": "results/qwen3_moe_mechanism_effect_attribution/report.md",
+    "summary": "results/qwen3_moe_mechanism_effect_attribution/summary.json",
+    "transition_effects": "results/qwen3_moe_mechanism_effect_attribution/transition_effects.csv"
+  },
+  "regressing_transition_count": 0,
+  "schema_version": 1,
+  "scored_transition_count": 0,
+  "smoke_case": null,
+  "status": "awaiting_eval",
+  "transition_count": 7
+}
