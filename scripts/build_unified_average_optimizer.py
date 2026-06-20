@@ -874,72 +874,207 @@ def build_mechanism_hypotheses(summary: dict[str, Any]) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def build_next_experiment_queue(summary: dict[str, Any]) -> pd.DataFrame:
+def build_next_experiment_queue(
+    summary: dict[str, Any],
+    evidence_ledger: pd.DataFrame | None = None,
+) -> pd.DataFrame:
     moe = summary["moe"]
-    source_eval_waiting = moe.get("qwen3_final_selection_status") == "awaiting_source_eval"
-    router_waiting = moe.get("qwen3_router_calibration_status") in {
+    if evidence_ledger is None:
+        hypotheses = build_mechanism_hypotheses(summary)
+        evidence_ledger = build_evidence_ledger(summary, hypotheses)
+
+    verdicts = {
+        str(row["hypothesis_id"]): str(row["verdict"]) for _, row in evidence_ledger.iterrows()
+    }
+
+    def verdict(hypothesis_id: str, default: str = "unknown") -> str:
+        return verdicts.get(hypothesis_id, default)
+
+    final_status = str(moe.get("qwen3_final_selection_status") or "")
+    router_status = str(moe.get("qwen3_router_calibration_status") or "")
+    unified_verdict = verdict("moe_risk_weighted_expert_caps_preserve_useful_route_mass")
+    downstream_verdict = verdict("downstream_source_dominance_is_final_gate")
+    router_verdict = verdict("router_calibration_repairs_dispatch_but_is_not_acceptance")
+    dense_verdict = verdict("dense_same_basin_required")
+
+    source_eval_waiting = (
+        unified_verdict == "awaiting_downstream_eval"
+        or downstream_verdict == "awaiting_downstream_eval"
+        or final_status in {"awaiting_source_eval", "awaiting_eval", "awaiting_baseline_eval"}
+    )
+    source_eval_terminal = unified_verdict in {
+        "supports_current_action",
+        "falsified_by_downstream_eval",
+    } or downstream_verdict in {"supports_current_action", "supports_source_fallback"}
+    router_waiting = router_verdict in {
+        "promising_but_unaccepted",
+        "awaiting_router_calibration_evidence",
+    } or router_status in {
         "awaiting_baseline_eval",
         "awaiting_eval",
         "awaiting_source_eval",
     }
+    router_terminal = router_verdict in {
+        "supports_current_action",
+        "supports_freeze_router_baseline",
+    }
+
+    if source_eval_waiting:
+        source_eval_priority = 1.00
+        source_eval_status = "blocked_on_gpu_vllm"
+        source_eval_why = "The unified candidate and source frontier still lack the required locked-manifest vLLM gate."
+        source_eval_expected = "select_qwen3_moe_unified_result can move from awaiting_source_eval to accept/reject/source fallback"
+    elif downstream_verdict == "supports_current_action" and unified_verdict == "supports_current_action":
+        source_eval_priority = 0.42
+        source_eval_status = "completed_by_selector"
+        source_eval_why = "The downstream selector already accepted the same-shape unified candidate for the current bundle."
+        source_eval_expected = "rerun only when adding new tasks, sources, or candidate checkpoints"
+    elif downstream_verdict == "supports_source_fallback" or unified_verdict == "falsified_by_downstream_eval":
+        source_eval_priority = 0.44
+        source_eval_status = "completed_source_fallback"
+        source_eval_why = "The locked downstream gate rejected the current average; attribution should explain the failed mechanism next."
+        source_eval_expected = "rerun only after a new candidate is materialized"
+    else:
+        source_eval_priority = 0.70
+        source_eval_status = "refresh_after_new_candidates"
+        source_eval_why = "No active downstream blocker is registered, but future candidates still require the same gate."
+        source_eval_expected = "wait for a new same-shape candidate before spending vLLM budget"
+
+    if router_verdict == "supports_current_action":
+        router_priority = 0.46
+        router_queue_status = "completed_by_selector"
+        router_why = "Router calibration has already been selected; downstream attribution should verify what it changed."
+        router_expected = "monitor route audit and task-regression drift before another router-calibration run"
+    elif router_verdict == "supports_freeze_router_baseline":
+        router_priority = 0.43
+        router_queue_status = "rejected_by_selector"
+        router_why = "The router selector chose the frozen-router baseline, so retraining the same router delta is not the next bottleneck."
+        router_expected = "design a new router repair objective before retrying router calibration"
+    elif router_waiting:
+        router_priority = 0.95
+        router_queue_status = "blocked_on_gpu_vllm"
+        router_why = "Router NLL/generation probes are positive directionally, but paired vLLM acceptance evidence is still missing."
+        router_expected = "router calibration selector can decide cap001/margin_profile vs freeze-router baseline"
+    else:
+        router_priority = 0.60
+        router_queue_status = "refresh_after_baseline_eval"
+        router_why = "Router calibration is not the current global blocker, but should be refreshed after new router evidence."
+        router_expected = "refresh router-calibrated candidates after new cache or eval artifacts land"
+
+    if source_eval_terminal:
+        attribution_priority = 0.98
+        attribution_status = "ready_after_downstream_selector"
+        attribution_why = "The selector has produced an accept/reject verdict; attribution can now identify which mechanism caused it."
+    elif router_terminal:
+        attribution_priority = 0.90
+        attribution_status = "ready_after_router_selector"
+        attribution_why = "Router calibration has a selector verdict; attribution should compare frozen-router and calibrated paths."
+    else:
+        attribution_priority = 0.88
+        attribution_status = "awaiting_eval_bundle"
+        attribution_why = "After vLLM eval, this converts score deltas into pass/fail evidence for tail caps, layer chunks, unified caps, and subspace scaling."
+
+    optimizer_refresh_priority = 0.90 if (source_eval_terminal or router_terminal) else 0.82
+    optimizer_refresh_status = "ready_after_verdict" if (source_eval_terminal or router_terminal) else "ready"
+    dense_recheck_priority = 0.86 if dense_verdict not in {
+        "supports_current_action",
+        "supports_conditional_action",
+    } else 0.55
+    dense_recheck_status = (
+        "needs_path_evidence"
+        if dense_recheck_priority > 0.55
+        else "lower_priority_until_qwen_moe_eval_unblocked"
+    )
     queue = [
         {
-            "rank": 1,
+            "base_rank": 1,
             "experiment": "budgeted_qwen3_moe_downstream_eval",
             "mechanism_target": "source dominance and task-regression gate for all same-shape candidates",
-            "why_now": "This is the global blocker for accepting or rejecting the unified same-shape average.",
+            "driving_hypothesis_id": "downstream_source_dominance_is_final_gate",
+            "driving_verdict": downstream_verdict,
+            "gate_type": "required_downstream_acceptance",
+            "why_now": source_eval_why,
             "command": "results/qwen3_moe_eval_budget_plan/run_eval_budget.sh all",
             "preflight_command": "results/qwen3_moe_eval_budget_plan/run_eval_budget.sh preflight",
-            "priority_score": 1.00 if source_eval_waiting else 0.70,
-            "status": "blocked_on_gpu_vllm" if source_eval_waiting else "refresh_after_new_candidates",
-            "expected_decision_update": "select_qwen3_moe_unified_result can move from awaiting_source_eval to accept/reject/source fallback",
+            "priority_score": source_eval_priority,
+            "status": source_eval_status,
+            "expected_decision_update": source_eval_expected,
         },
         {
-            "rank": 2,
+            "base_rank": 2,
             "experiment": "router_calibration_active_candidates",
             "mechanism_target": "whether capped route-KD router deltas repair dispatch after frozen-router expert merge",
-            "why_now": "Router NLL/generation probes are positive directionally, but they are not acceptance evidence without paired vLLM eval.",
+            "driving_hypothesis_id": "router_calibration_repairs_dispatch_but_is_not_acceptance",
+            "driving_verdict": router_verdict,
+            "gate_type": "router_repair_acceptance",
+            "why_now": router_why,
             "command": "results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh all",
             "preflight_command": "results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh preflight",
-            "priority_score": 0.95 if router_waiting else 0.60,
-            "status": "blocked_on_gpu_vllm" if router_waiting else "refresh_after_baseline_eval",
-            "expected_decision_update": "router calibration selector can decide cap001/margin_profile vs freeze-router baseline",
+            "priority_score": router_priority,
+            "status": router_queue_status,
+            "expected_decision_update": router_expected,
         },
         {
-            "rank": 3,
+            "base_rank": 3,
             "experiment": "mechanism_effect_attribution_refresh",
             "mechanism_target": "which structural intervention actually changes downstream scores",
-            "why_now": "After vLLM eval, this converts score deltas into pass/fail evidence for tail caps, layer chunks, unified caps, and subspace scaling.",
+            "driving_hypothesis_id": "moe_risk_weighted_expert_caps_preserve_useful_route_mass",
+            "driving_verdict": unified_verdict,
+            "gate_type": "post_selector_mechanism_attribution",
+            "why_now": attribution_why,
             "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py",
             "preflight_command": "python scripts/audit_qwen3_moe_eval_bundle.py --output-dir results/qwen3_moe_eval_bundle_audit",
-            "priority_score": 0.88,
-            "status": "awaiting_eval_bundle",
+            "priority_score": attribution_priority,
+            "status": attribution_status,
             "expected_decision_update": "operation_decisions can stop relying on structural-only risk reductions",
         },
         {
-            "rank": 4,
+            "base_rank": 4,
             "experiment": "unified_optimizer_refresh",
             "mechanism_target": "update the Dense/MoE unified average policy after new eval or router-calibration evidence",
+            "driving_hypothesis_id": "downstream_source_dominance_is_final_gate",
+            "driving_verdict": downstream_verdict,
+            "gate_type": "policy_refresh",
             "why_now": "The optimizer is the place where mechanism evidence becomes a same-shape algorithm contract.",
             "command": "python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer",
             "preflight_command": "python -m py_compile scripts/build_unified_average_optimizer.py",
-            "priority_score": 0.82,
-            "status": "ready",
+            "priority_score": optimizer_refresh_priority,
+            "status": optimizer_refresh_status,
             "expected_decision_update": "mechanism_hypotheses and next_experiment_queue refresh from current artifacts",
         },
         {
-            "rank": 5,
+            "base_rank": 5,
             "experiment": "dense_low_loss_path_recheck",
             "mechanism_target": "whether Dense same-base averages become valid under a different coefficient/path family",
+            "driving_hypothesis_id": "dense_same_basin_required",
+            "driving_verdict": dense_verdict,
+            "gate_type": "dense_connectivity_recheck",
             "why_now": "Dense midpoint failure is already measured; only a new source pair or coefficient family can overturn it.",
             "command": "python scripts/fp_dense_lambda.py --out results/fp_dense_lambda",
             "preflight_command": "python scripts/fp_dense_lambda.py --help",
-            "priority_score": 0.55,
-            "status": "lower_priority_until_qwen_moe_eval_unblocked",
+            "priority_score": dense_recheck_priority,
+            "status": dense_recheck_status,
             "expected_decision_update": "dense_same_basin_required hypothesis can move from rejected to supported for a specific pair",
         },
     ]
-    return pd.DataFrame(queue).sort_values(["priority_score", "rank"], ascending=[False, True])
+    out = pd.DataFrame(queue).sort_values(["priority_score", "base_rank"], ascending=[False, True])
+    out = out.reset_index(drop=True)
+    out["rank"] = range(1, len(out) + 1)
+    columns = [
+        "rank",
+        "experiment",
+        "mechanism_target",
+        "driving_hypothesis_id",
+        "driving_verdict",
+        "gate_type",
+        "why_now",
+        "command",
+        "preflight_command",
+        "priority_score",
+        "status",
+        "expected_decision_update",
+    ]
+    return out[columns]
 
 
 def build_evidence_ledger(summary: dict[str, Any], hypotheses: pd.DataFrame) -> pd.DataFrame:
@@ -1257,14 +1392,16 @@ def build_report(
             "",
             "## Next Experiments",
             "",
-            "| rank | experiment | status | priority | command | expected update |",
-            "| ---: | --- | --- | ---: | --- | --- |",
+            "| rank | experiment | status | priority | driving verdict | command | expected update |",
+            "| ---: | --- | --- | ---: | --- | --- | --- |",
         ]
     )
     for _, row in experiment_queue.iterrows():
+        driving = f"{row['driving_hypothesis_id']}={row['driving_verdict']}"
         lines.append(
             f"| {int(row['rank'])} | `{row['experiment']}` | `{row['status']}` | "
-            f"{fmt(row['priority_score'], 2)} | `{row['command']}` | {row['expected_decision_update']} |"
+            f"{fmt(row['priority_score'], 2)} | `{driving}` | `{row['command']}` | "
+            f"{row['expected_decision_update']} |"
         )
     lines.extend(
         [
@@ -1571,7 +1708,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
     }
     hypotheses = build_mechanism_hypotheses(summary)
     evidence_ledger = build_evidence_ledger(summary, hypotheses)
-    experiment_queue = build_next_experiment_queue(summary)
+    experiment_queue = build_next_experiment_queue(summary, evidence_ledger)
     algorithm = build_algorithm(decisions, hypotheses, evidence_ledger)
     status_counts = hypotheses["current_status"].value_counts().to_dict()
     verdict_counts = evidence_ledger["verdict"].value_counts().to_dict()

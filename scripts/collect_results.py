@@ -1968,6 +1968,8 @@ def summarize_unified_average_optimizer_ledger_smoke() -> dict[str, Any]:
     root = repo_path("results/unified_average_optimizer_ledger_smoke")
     summary = read_json(root / "summary.json")
     matrix = read_csv(root / "ledger_matrix.csv")
+    queue_matrix_path = root / "queue_matrix.csv"
+    queue_matrix = read_csv(queue_matrix_path) if queue_matrix_path.exists() else pd.DataFrame()
     return {
         "summary": summary,
         "status": summary.get("status"),
@@ -1978,8 +1980,10 @@ def summarize_unified_average_optimizer_ledger_smoke() -> dict[str, Any]:
         "passed_assertion_count": int(summary.get("passed_assertion_count", 0)),
         "failed_assertion_count": int(summary.get("failed_assertion_count", 0)),
         "case_rows": [clean_row(row) for _, row in matrix.iterrows()],
+        "queue_case_rows": [clean_row(row) for _, row in queue_matrix.iterrows()],
         "report": rel(root / "report.md"),
         "matrix": rel(root / "ledger_matrix.csv"),
+        "queue_matrix": rel(queue_matrix_path) if queue_matrix_path.exists() else None,
         "summary_path": rel(root / "summary.json"),
     }
 

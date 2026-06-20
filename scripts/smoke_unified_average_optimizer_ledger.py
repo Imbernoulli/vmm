@@ -50,6 +50,13 @@ def ledger_for(summary: dict[str, Any]) -> pd.DataFrame:
     return optimizer.build_evidence_ledger(summary, hypotheses)
 
 
+def ledger_and_queue_for(summary: dict[str, Any]) -> tuple[pd.DataFrame, pd.DataFrame]:
+    hypotheses = optimizer.build_mechanism_hypotheses(summary)
+    ledger = optimizer.build_evidence_ledger(summary, hypotheses)
+    queue = optimizer.build_next_experiment_queue(summary, ledger)
+    return ledger, queue
+
+
 def set_moe(summary: dict[str, Any], **updates: Any) -> dict[str, Any]:
     out = copy.deepcopy(summary)
     out.setdefault("moe", {}).update(updates)
@@ -77,6 +84,13 @@ def case_specs(base: dict[str, Any]) -> list[dict[str, Any]]:
                 "downstream_source_dominance_is_final_gate": "awaiting_downstream_eval",
                 "router_calibration_repairs_dispatch_but_is_not_acceptance": "promising_but_unaccepted",
             },
+            "expect_queue": {
+                "top_experiment": "budgeted_qwen3_moe_downstream_eval",
+                "statuses": {
+                    "budgeted_qwen3_moe_downstream_eval": "blocked_on_gpu_vllm",
+                    "router_calibration_active_candidates": "blocked_on_gpu_vllm",
+                },
+            },
         },
         {
             "case": "unified_candidate_downstream_win",
@@ -89,6 +103,12 @@ def case_specs(base: dict[str, Any]) -> list[dict[str, Any]]:
             "expect": {
                 "moe_risk_weighted_expert_caps_preserve_useful_route_mass": "supports_current_action",
                 "downstream_source_dominance_is_final_gate": "supports_current_action",
+            },
+            "expect_queue": {
+                "top_experiment": "mechanism_effect_attribution_refresh",
+                "statuses": {
+                    "budgeted_qwen3_moe_downstream_eval": "completed_by_selector",
+                },
             },
         },
         {
@@ -103,6 +123,12 @@ def case_specs(base: dict[str, Any]) -> list[dict[str, Any]]:
                 "moe_risk_weighted_expert_caps_preserve_useful_route_mass": "falsified_by_downstream_eval",
                 "downstream_source_dominance_is_final_gate": "supports_source_fallback",
             },
+            "expect_queue": {
+                "top_experiment": "mechanism_effect_attribution_refresh",
+                "statuses": {
+                    "budgeted_qwen3_moe_downstream_eval": "completed_source_fallback",
+                },
+            },
         },
         {
             "case": "router_calibration_selected",
@@ -114,6 +140,12 @@ def case_specs(base: dict[str, Any]) -> list[dict[str, Any]]:
             ),
             "expect": {
                 "router_calibration_repairs_dispatch_but_is_not_acceptance": "supports_current_action",
+            },
+            "expect_queue": {
+                "top_experiment": "budgeted_qwen3_moe_downstream_eval",
+                "statuses": {
+                    "router_calibration_active_candidates": "completed_by_selector",
+                },
             },
         },
         {
@@ -127,23 +159,31 @@ def case_specs(base: dict[str, Any]) -> list[dict[str, Any]]:
             "expect": {
                 "router_calibration_repairs_dispatch_but_is_not_acceptance": "supports_freeze_router_baseline",
             },
+            "expect_queue": {
+                "top_experiment": "budgeted_qwen3_moe_downstream_eval",
+                "statuses": {
+                    "router_calibration_active_candidates": "rejected_by_selector",
+                },
+            },
         },
     ]
 
 
-def build_report(summary: dict[str, Any], matrix: pd.DataFrame) -> str:
+def build_report(summary: dict[str, Any], ledger_matrix: pd.DataFrame, queue_matrix: pd.DataFrame) -> str:
     lines = [
         "# Unified Average Optimizer Ledger Smoke",
         "",
-        "This smoke matrix verifies that the mechanism evidence ledger changes verdicts when downstream or router-selection evidence changes. It guards against treating structural/NLL probes as final acceptance.",
+        "This smoke matrix verifies that the mechanism evidence ledger and next-experiment queue change when downstream or router-selection evidence changes. It guards against treating structural/NLL probes as final acceptance.",
         "",
         f"- Status: `{summary['status']}`",
         f"- Passed cases: `{summary['passed_case_count']}/{summary['case_count']}`",
         "",
+        "## Ledger Verdicts",
+        "",
         "| case | hypothesis | expected | actual | passed |",
         "| --- | --- | --- | --- | --- |",
     ]
-    for _, row in matrix.iterrows():
+    for _, row in ledger_matrix.iterrows():
         lines.append(
             f"| `{row['case']}` | `{row['hypothesis_id']}` | `{row['expected_verdict']}` | "
             f"`{row['actual_verdict']}` | `{bool(row['passed'])}` |"
@@ -151,9 +191,24 @@ def build_report(summary: dict[str, Any], matrix: pd.DataFrame) -> str:
     lines.extend(
         [
             "",
+            "## Queue Assertions",
+            "",
+            "| case | assertion | expected | actual | passed |",
+            "| --- | --- | --- | --- | --- |",
+        ]
+    )
+    for _, row in queue_matrix.iterrows():
+        lines.append(
+            f"| `{row['case']}` | `{row['assertion']}` | `{row['expected']}` | "
+            f"`{row['actual']}` | `{bool(row['passed'])}` |"
+        )
+    lines.extend(
+        [
+            "",
             "## Outputs",
             "",
-            f"- `{summary['outputs']['matrix']}`",
+            f"- `{summary['outputs']['ledger_matrix']}`",
+            f"- `{summary['outputs']['queue_matrix']}`",
             f"- `{summary['outputs']['summary']}`",
             f"- `{summary['outputs']['report']}`",
         ]
@@ -173,13 +228,14 @@ def main() -> None:
     base = read_json(args.summary)
     if not base:
         raise SystemExit(f"Missing optimizer summary: {args.summary}")
-    rows: list[dict[str, Any]] = []
+    ledger_rows: list[dict[str, Any]] = []
+    queue_rows: list[dict[str, Any]] = []
     for spec in case_specs(base):
-        ledger = ledger_for(spec["summary"])
+        ledger, queue = ledger_and_queue_for(spec["summary"])
         by_id = {str(row["hypothesis_id"]): row for _, row in ledger.iterrows()}
         for hypothesis_id, expected in spec["expect"].items():
             actual = str(by_id[hypothesis_id]["verdict"])
-            rows.append(
+            ledger_rows.append(
                 {
                     "case": spec["case"],
                     "hypothesis_id": hypothesis_id,
@@ -188,32 +244,73 @@ def main() -> None:
                     "passed": actual == expected,
                 }
             )
-    matrix = pd.DataFrame(rows)
+        queue_by_experiment = {str(row["experiment"]): row for _, row in queue.iterrows()}
+        top_experiment = str(queue.iloc[0]["experiment"]) if not queue.empty else ""
+        expected_top = str(spec["expect_queue"]["top_experiment"])
+        queue_rows.append(
+            {
+                "case": spec["case"],
+                "assertion": "top_experiment",
+                "experiment": top_experiment,
+                "expected": expected_top,
+                "actual": top_experiment,
+                "passed": top_experiment == expected_top,
+            }
+        )
+        for experiment, expected_status in spec["expect_queue"]["statuses"].items():
+            actual_status = str(queue_by_experiment[experiment]["status"])
+            queue_rows.append(
+                {
+                    "case": spec["case"],
+                    "assertion": f"{experiment}.status",
+                    "experiment": experiment,
+                    "expected": expected_status,
+                    "actual": actual_status,
+                    "passed": actual_status == expected_status,
+                }
+            )
+    ledger_matrix = pd.DataFrame(ledger_rows)
+    queue_matrix = pd.DataFrame(queue_rows)
+    assertion_matrix = pd.concat(
+        [
+            ledger_matrix[["case", "passed"]],
+            queue_matrix[["case", "passed"]],
+        ],
+        ignore_index=True,
+    )
     output_dir = repo_path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    matrix_path = output_dir / "ledger_matrix.csv"
+    ledger_matrix_path = output_dir / "ledger_matrix.csv"
+    queue_matrix_path = output_dir / "queue_matrix.csv"
     summary_path = output_dir / "summary.json"
     report_path = output_dir / "report.md"
-    case_count = int(matrix["case"].nunique()) if not matrix.empty else 0
-    passed_case_count = int(matrix.groupby("case")["passed"].all().sum()) if not matrix.empty else 0
+    case_count = int(assertion_matrix["case"].nunique()) if not assertion_matrix.empty else 0
+    passed_case_count = (
+        int(assertion_matrix.groupby("case")["passed"].all().sum())
+        if not assertion_matrix.empty
+        else 0
+    )
     summary = {
         "schema_version": 1,
-        "status": "passed" if bool(matrix["passed"].all()) else "failed",
+        "status": "passed" if bool(assertion_matrix["passed"].all()) else "failed",
         "case_count": case_count,
-        "assertion_count": int(len(matrix)),
+        "assertion_count": int(len(assertion_matrix)),
         "passed_case_count": passed_case_count,
         "failed_case_count": case_count - passed_case_count,
-        "passed_assertion_count": int(matrix["passed"].sum()),
-        "failed_assertion_count": int((~matrix["passed"]).sum()),
+        "passed_assertion_count": int(assertion_matrix["passed"].sum()),
+        "failed_assertion_count": int((~assertion_matrix["passed"]).sum()),
         "outputs": {
-            "matrix": rel(matrix_path),
+            "matrix": rel(ledger_matrix_path),
+            "ledger_matrix": rel(ledger_matrix_path),
+            "queue_matrix": rel(queue_matrix_path),
             "summary": rel(summary_path),
             "report": rel(report_path),
         },
     }
-    matrix.to_csv(matrix_path, index=False)
+    ledger_matrix.to_csv(ledger_matrix_path, index=False)
+    queue_matrix.to_csv(queue_matrix_path, index=False)
     summary_path.write_text(json.dumps(json_safe(summary), indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    report_path.write_text(build_report(summary, matrix), encoding="utf-8")
+    report_path.write_text(build_report(summary, ledger_matrix, queue_matrix), encoding="utf-8")
     print(f"Wrote unified average optimizer ledger smoke to {output_dir.resolve()}")
     print(f"Status: {summary['status']}; cases {passed_case_count}/{case_count}")
 

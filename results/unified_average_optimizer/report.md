@@ -89,13 +89,13 @@
 
 ## Next Experiments
 
-| rank | experiment | status | priority | command | expected update |
-| ---: | --- | --- | ---: | --- | --- |
-| 1 | `budgeted_qwen3_moe_downstream_eval` | `blocked_on_gpu_vllm` | 1.00 | `results/qwen3_moe_eval_budget_plan/run_eval_budget.sh all` | select_qwen3_moe_unified_result can move from awaiting_source_eval to accept/reject/source fallback |
-| 2 | `router_calibration_active_candidates` | `blocked_on_gpu_vllm` | 0.95 | `results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh all` | router calibration selector can decide cap001/margin_profile vs freeze-router baseline |
-| 3 | `mechanism_effect_attribution_refresh` | `awaiting_eval_bundle` | 0.88 | `python scripts/attribute_qwen3_moe_mechanism_effects.py` | operation_decisions can stop relying on structural-only risk reductions |
-| 4 | `unified_optimizer_refresh` | `ready` | 0.82 | `python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer` | mechanism_hypotheses and next_experiment_queue refresh from current artifacts |
-| 5 | `dense_low_loss_path_recheck` | `lower_priority_until_qwen_moe_eval_unblocked` | 0.55 | `python scripts/fp_dense_lambda.py --out results/fp_dense_lambda` | dense_same_basin_required hypothesis can move from rejected to supported for a specific pair |
+| rank | experiment | status | priority | driving verdict | command | expected update |
+| ---: | --- | --- | ---: | --- | --- | --- |
+| 1 | `budgeted_qwen3_moe_downstream_eval` | `blocked_on_gpu_vllm` | 1.00 | `downstream_source_dominance_is_final_gate=awaiting_downstream_eval` | `results/qwen3_moe_eval_budget_plan/run_eval_budget.sh all` | select_qwen3_moe_unified_result can move from awaiting_source_eval to accept/reject/source fallback |
+| 2 | `router_calibration_active_candidates` | `blocked_on_gpu_vllm` | 0.95 | `router_calibration_repairs_dispatch_but_is_not_acceptance=promising_but_unaccepted` | `results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh all` | router calibration selector can decide cap001/margin_profile vs freeze-router baseline |
+| 3 | `mechanism_effect_attribution_refresh` | `awaiting_eval_bundle` | 0.88 | `moe_risk_weighted_expert_caps_preserve_useful_route_mass=awaiting_downstream_eval` | `python scripts/attribute_qwen3_moe_mechanism_effects.py` | operation_decisions can stop relying on structural-only risk reductions |
+| 4 | `unified_optimizer_refresh` | `ready` | 0.82 | `downstream_source_dominance_is_final_gate=awaiting_downstream_eval` | `python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer` | mechanism_hypotheses and next_experiment_queue refresh from current artifacts |
+| 5 | `dense_low_loss_path_recheck` | `lower_priority_until_qwen_moe_eval_unblocked` | 0.55 | `dense_same_basin_required=supports_current_action` | `python scripts/fp_dense_lambda.py --out results/fp_dense_lambda` | dense_same_basin_required hypothesis can move from rejected to supported for a specific pair |
 
 ## Literature Priors
 
