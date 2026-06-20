@@ -74,6 +74,54 @@ def parse_tasks(raw: Any) -> list[str]:
     return [item.strip() for item in str(raw).split(",") if item.strip()]
 
 
+def parse_task_requirements(raw: Any) -> dict[str, int]:
+    raw = clean_value(raw)
+    if raw is None:
+        return {}
+    if isinstance(raw, dict):
+        return {str(task): int(value) for task, value in raw.items()}
+    text = str(raw).strip()
+    if not text:
+        return {}
+    if "=" not in text:
+        value = int(float(text))
+        return {"*": value}
+    requirements = {}
+    for part in text.split(","):
+        if not part.strip():
+            continue
+        task, value = part.split("=", 1)
+        requirements[task.strip()] = int(float(value))
+    return requirements
+
+
+def format_task_requirements(tasks: list[str], requirements: dict[str, int]) -> str:
+    values = [int(requirements.get(task, requirements.get("*", 0))) for task in tasks]
+    if values and len(set(values)) == 1:
+        return str(values[0])
+    return ",".join(f"{task}={int(requirements.get(task, requirements.get('*', 0)))}" for task in tasks)
+
+
+def required_examples_for_task(row: pd.Series | dict[str, Any], task: str) -> int:
+    requirements = parse_task_requirements(row.get("required_examples_per_task"))
+    return int(requirements.get(task, requirements.get("*", row.get("max_required_examples") or 0)))
+
+
+def budget_task_requirements(budget_dir: str | Path | None) -> dict[str, int]:
+    if budget_dir is None:
+        return {}
+    task_budget = read_csv(repo_path(budget_dir) / "task_budget.csv")
+    if task_budget.empty:
+        return {}
+    requirements = {}
+    for _, row in task_budget.iterrows():
+        task = str(row.get("task", "")).strip()
+        achievable = clean_value(row.get("achievable_examples"))
+        if task and achievable is not None:
+            requirements[task] = int(achievable)
+    return requirements
+
+
 def unique_non_null(values: pd.Series) -> set[str]:
     return {str(value) for value in values.tolist() if clean_value(value) is not None}
 
@@ -115,13 +163,25 @@ def expected_model_id(row: pd.Series) -> str:
     return str(row.get("served_model_id") or f"candidate_{row['method']}")
 
 
-def audit_eval_row(row: pd.Series, *, min_examples: int | None = None) -> dict[str, Any]:
+def audit_eval_row(
+    row: pd.Series,
+    *,
+    min_examples: int | None = None,
+    min_examples_by_task: dict[str, int] | None = None,
+) -> dict[str, Any]:
     method = str(row["method"])
     expected_model = expected_model_id(row)
     expected_tasks = parse_tasks(row.get("tasks"))
-    expected_examples = int(row.get("max_examples") or min_examples or 0)
-    if min_examples is not None:
-        expected_examples = max(expected_examples, min_examples)
+    row_examples = int(row.get("max_examples") or 0)
+    requirements = {}
+    for task in expected_tasks:
+        required = row_examples
+        if min_examples is not None:
+            required = max(required, int(min_examples))
+        if min_examples_by_task and task in min_examples_by_task:
+            required = max(required, int(min_examples_by_task[task]))
+        requirements[task] = required
+    max_required = max(requirements.values()) if requirements else 0
     output_dir = repo_path(row.get("eval_output_dir", ""))
     files_present = {name: (output_dir / name).exists() for name in REQUIRED_FILES}
     missing_files = [name for name, present in files_present.items() if not present]
@@ -160,11 +220,12 @@ def audit_eval_row(row: pd.Series, *, min_examples: int | None = None) -> dict[s
 
     examples_ok = True
     low_example_tasks = []
-    if expected_examples > 0 and not metrics.empty and "examples" in metrics:
-        for _, metric_row in metrics.iterrows():
-            task = str(metric_row.get("task"))
-            examples = clean_value(metric_row.get("examples"))
-            if examples is None or int(examples) < expected_examples:
+    if requirements and not metrics.empty and "examples" in metrics:
+        metrics_by_task = {str(metric_row.get("task")): metric_row for _, metric_row in metrics.iterrows()}
+        for task, required in requirements.items():
+            metric_row = metrics_by_task.get(task)
+            examples = clean_value(metric_row.get("examples")) if metric_row is not None else None
+            if examples is None or int(examples) < required:
                 examples_ok = False
                 low_example_tasks.append(task)
     elif expected_tasks:
@@ -174,10 +235,10 @@ def audit_eval_row(row: pd.Series, *, min_examples: int | None = None) -> dict[s
 
     prediction_counts_ok = True
     low_prediction_tasks = []
-    if not predictions.empty and "task" in predictions and expected_examples > 0:
+    if not predictions.empty and "task" in predictions and requirements:
         counts = predictions.groupby("task").size().to_dict()
-        for task in expected_tasks:
-            if int(counts.get(task, 0)) < expected_examples:
+        for task, required in requirements.items():
+            if int(counts.get(task, 0)) < required:
                 prediction_counts_ok = False
                 low_prediction_tasks.append(task)
     elif expected_tasks:
@@ -222,7 +283,8 @@ def audit_eval_row(row: pd.Series, *, min_examples: int | None = None) -> dict[s
         "expected_tasks": ",".join(expected_tasks),
         "required_task_count": len(expected_tasks),
         "observed_task_count": len(metric_tasks),
-        "required_examples_per_task": expected_examples,
+        "required_examples_per_task": format_task_requirements(expected_tasks, requirements),
+        "max_required_examples": max_required,
         "model_match": model_match,
         "task_coverage": task_coverage,
         "example_coverage": examples_ok,
@@ -239,11 +301,19 @@ def audit_eval_row(row: pd.Series, *, min_examples: int | None = None) -> dict[s
     }
 
 
-def audit_gate(gate_dir: Path, *, min_examples: int | None = None) -> pd.DataFrame:
+def audit_gate(
+    gate_dir: Path,
+    *,
+    min_examples: int | None = None,
+    min_examples_by_task: dict[str, int] | None = None,
+) -> pd.DataFrame:
     plan = read_csv(repo_path(gate_dir) / "eval_gate_plan.csv")
     if plan.empty:
         raise ValueError(f"Missing or empty eval gate plan: {repo_path(gate_dir) / 'eval_gate_plan.csv'}")
-    rows = [audit_eval_row(row, min_examples=min_examples) for _, row in plan.iterrows()]
+    rows = [
+        audit_eval_row(row, min_examples=min_examples, min_examples_by_task=min_examples_by_task)
+        for _, row in plan.iterrows()
+    ]
     audited = pd.DataFrame(rows)
     pairability = build_pairability_rows(audited)
     return apply_pairability_gate(audited, pairability)
@@ -280,8 +350,8 @@ def build_pairability_rows(rows: pd.DataFrame) -> pd.DataFrame:
         if not expected_tasks:
             # audit rows store only counts; recover tasks from prediction keys if needed.
             expected_tasks = sorted(key_sets.get(method, {}).keys())
-        required = int(row.get("required_examples_per_task") or 0)
         for task in expected_tasks:
+            required = required_examples_for_task(row, task)
             keys = key_sets.get(method, {}).get(task, set())
             shared_counts = []
             for source_method in complete_source_methods:
@@ -360,6 +430,13 @@ def summarize_audit(rows: pd.DataFrame, output_dir: Path, *, smoke_case: str | N
     sources = rows[rows["role"] == "source"] if "role" in rows else pd.DataFrame()
     candidates = rows[rows["role"] == "candidate"] if "role" in rows else pd.DataFrame()
     unified = rows[rows["method"] == "qwen3_moe_unified_mechanism_candidate"] if "method" in rows else pd.DataFrame()
+    required_examples_by_task: dict[str, int] = {}
+    for _, row in rows.iterrows():
+        for task in parse_tasks(row.get("expected_tasks")):
+            required_examples_by_task[task] = max(
+                required_examples_by_task.get(task, 0),
+                required_examples_for_task(row, task),
+            )
     if not invalid_complete.empty:
         status = "invalid_bundle"
     elif len(usable) == len(rows) and len(rows) > 0:
@@ -383,6 +460,8 @@ def summarize_audit(rows: pd.DataFrame, output_dir: Path, *, smoke_case: str | N
         ),
         "candidate_count": int(len(candidates)),
         "unified_usable": bool(not unified.empty and bool(unified.iloc[0]["usable_for_selection"])),
+        "required_examples_by_task": required_examples_by_task,
+        "max_required_examples": max(required_examples_by_task.values()) if required_examples_by_task else 0,
         "pairability_complete_source_count": (
             int(pairability["complete_source_count"].max()) if not pairability.empty else 0
         ),
@@ -419,6 +498,7 @@ def build_report(summary: dict[str, Any], rows: pd.DataFrame) -> str:
         f"- Source usable: `{summary['source_usable_count']}/{summary['source_count']}`",
         f"- Candidate usable: `{summary['candidate_usable_count']}/{summary['candidate_count']}`",
         f"- Unified usable: `{summary['unified_usable']}`",
+        f"- Required examples by task: `{summary.get('required_examples_by_task', {})}`",
         f"- Complete source count for paired keys: `{summary['pairability_complete_source_count']}`",
         f"- Pairability failed methods: `{summary['pairability_failed_method_count']}`",
         "",
@@ -685,6 +765,7 @@ def run_smoke_matrix(args: argparse.Namespace) -> dict[str, Any]:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Audit Qwen3 MoE vLLM eval artifacts before downstream selection.")
     parser.add_argument("--gate-dir", type=Path, default=Path("results/qwen3_moe_mechanism_eval_gate"))
+    parser.add_argument("--eval-budget-dir", type=Path, default=Path("results/qwen3_moe_eval_budget_plan"))
     parser.add_argument("--output-dir", type=Path, default=Path("results/qwen3_moe_eval_bundle_audit"))
     parser.add_argument("--min-examples", type=int, default=None)
     parser.add_argument("--smoke-matrix", action="store_true")
@@ -698,7 +779,11 @@ def main() -> None:
         print(f"Wrote Qwen3 MoE eval bundle audit smoke to {repo_path(args.output_dir).resolve()}")
         print(f"Status: {summary['status']}; cases {summary['passed_case_count']}/{summary['case_count']}")
         return
-    rows = audit_gate(args.gate_dir, min_examples=args.min_examples)
+    rows = audit_gate(
+        args.gate_dir,
+        min_examples=args.min_examples,
+        min_examples_by_task=budget_task_requirements(args.eval_budget_dir),
+    )
     summary = write_outputs(rows, args.output_dir)
     print(f"Wrote Qwen3 MoE eval bundle audit to {repo_path(args.output_dir).resolve()}")
     print(f"Status: {summary['status']}; usable={summary['usable_for_selection_count']}/{summary['method_count']}")

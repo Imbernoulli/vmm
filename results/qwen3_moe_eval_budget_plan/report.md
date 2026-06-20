@@ -100,6 +100,7 @@ Router calibration: budget planning now reads the route-margin-gated calibration
 在 GPU host 上从仓库根目录运行：
 
 ```bash
+results/qwen3_moe_eval_budget_plan/run_eval_budget.sh preflight
 results/qwen3_moe_eval_budget_plan/run_eval_budget.sh all
 python scripts/audit_qwen3_moe_eval_bundle.py --output-dir results/qwen3_moe_eval_bundle_audit
 python scripts/refresh_qwen3_moe_post_eval.py
@@ -111,7 +112,7 @@ python scripts/refresh_qwen3_moe_post_eval.py
 results/qwen3_moe_eval_budget_plan/run_eval_budget.sh qwen3_moe_tail_trimmed_expert_only_candidate
 ```
 
-注意：原始 gate 里的 `max_examples=64` 仍是 audit floor；预算版 runner 会用更高的 `--max-examples` 覆盖 eval 命令。HumanEval 数据集上限低于推荐值时，selector 会使用实际落盘的样本数计算区间。
+注意：原始 gate 里的 `max_examples=64` 仍是 audit floor；预算版 runner 会用更高的 `--max-examples` 覆盖 eval 命令。runner 默认先检查 manifest、GPU/vLLM/curl 和被请求方法的模型路径；确需跳过前置检查时可以设置 `EVAL_BUDGET_SKIP_PREFLIGHT=1`。HumanEval 数据集上限低于推荐值时，selector 会使用实际落盘的样本数计算区间。
 
 ## Outputs
 

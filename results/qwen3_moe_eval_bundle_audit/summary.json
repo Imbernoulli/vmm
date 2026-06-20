@@ -3,6 +3,7 @@
   "candidate_usable_count": 0,
   "complete_eval_count": 0,
   "invalid_complete_count": 0,
+  "max_required_examples": 384,
   "method_count": 11,
   "outputs": {
     "audit_rows": "results/qwen3_moe_eval_bundle_audit/audit_rows.csv",
@@ -12,6 +13,12 @@
   },
   "pairability_complete_source_count": 0,
   "pairability_failed_method_count": 0,
+  "required_examples_by_task": {
+    "gsm8k": 384,
+    "humaneval_compile": 164,
+    "mmlu": 384,
+    "safety": 384
+  },
   "schema_version": 1,
   "smoke_case": null,
   "source_count": 2,

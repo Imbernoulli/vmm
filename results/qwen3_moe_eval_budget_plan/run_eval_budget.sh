@@ -2,11 +2,67 @@
 set -euo pipefail
 
 # Run from the repository root on a GPU host with vLLM installed.
-# Usage: results/qwen3_moe_eval_budget_plan/run_eval_budget.sh [all|method_name]
+# Usage: results/qwen3_moe_eval_budget_plan/run_eval_budget.sh [preflight|all|method_name]
 # This budgeted runner keeps the same endpoints as the mechanism gate but raises --max-examples.
 
 requested="${1:-all}"
 mkdir -p results/qwen3_moe_eval_budget_plan/logs
+
+preflight() {
+  if [[ "${EVAL_BUDGET_SKIP_PREFLIGHT:-0}" == "1" ]]; then
+    return 0
+  fi
+  echo "[preflight] task manifest, runtime, GPU, and model paths"
+  command -v curl >/dev/null || { echo "missing dependency: curl" >&2; return 1; }
+  command -v vllm >/dev/null || { echo "missing dependency: vllm" >&2; return 1; }
+  command -v nvidia-smi >/dev/null || { echo "missing dependency: nvidia-smi" >&2; return 1; }
+  nvidia-smi >/dev/null || { echo "nvidia-smi failed; GPU driver is not ready" >&2; return 1; }
+  python scripts/audit_qwen3_moe_eval_manifest_preflight.py --eval-budget-dir results/qwen3_moe_eval_budget_plan --output-dir results/qwen3_moe_eval_manifest_preflight >/dev/null
+  python - <<'PY'
+import json
+from pathlib import Path
+summary = json.loads(Path('results/qwen3_moe_eval_manifest_preflight/summary.json').read_text())
+if summary.get('status') != 'task_manifest_ready':
+    raise SystemExit(f"task manifest preflight failed: {summary.get('status')}")
+if summary.get('task_sufficient_count') != summary.get('task_count'):
+    raise SystemExit('task manifest does not satisfy every budgeted task')
+print(f"[preflight] manifest {summary.get('manifest_sha256')} ready")
+PY
+  local missing=0
+  while IFS='|' read -r method model_path; do
+    if [[ -z "$method" ]]; then
+      continue
+    fi
+    if [[ "$requested" == "all" || "$requested" == "preflight" || "$requested" == "$method" ]]; then
+      if [[ ! -e "$model_path" ]]; then
+        echo "missing model/checkpoint path for ${method}: ${model_path}" >&2
+        missing=1
+      fi
+    fi
+  done <<'PATHS'
+source_qwen3_30b_instruct|/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe
+source_qwen3_30b_coder|/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-Coder-30B-A3B-Instruct/snapshots/b2cff646eb4bb1d68355c01b18ae02e7cf42d120
+qwen3_moe_unified_route_guarded_candidate|results/checkpoints/qwen3_moe_unified_route_guarded_candidate
+qwen3_moe_audit_gated_candidate|results/checkpoints/qwen3_moe_audit_gated_candidate
+qwen3_moe_trust_region_candidate|results/checkpoints/qwen3_moe_trust_region_candidate
+qwen3_moe_expert_only_trust_region_candidate|results/checkpoints/qwen3_moe_expert_only_trust_region_candidate
+qwen3_moe_tail_trimmed_expert_only_candidate|results/checkpoints/qwen3_moe_tail_trimmed_expert_only_candidate
+qwen3_moe_searched_no_gt065_max_retention_candidate|results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate
+qwen3_moe_layer_chunk_candidate|results/checkpoints/qwen3_moe_layer_chunk_candidate
+qwen3_moe_unified_mechanism_candidate|results/checkpoints/qwen3_moe_unified_mechanism_candidate
+qwen3_moe_subspace_scaled_candidate|results/checkpoints/qwen3_moe_subspace_scaled_candidate
+PATHS
+  if [[ "$missing" != "0" ]]; then
+    return 1
+  fi
+}
+
+if [[ "$requested" == "preflight" ]]; then
+  preflight
+  exit 0
+fi
+
+preflight
 
 run_one() {
   local method="$1"

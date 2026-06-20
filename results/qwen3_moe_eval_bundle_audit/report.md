@@ -7,6 +7,7 @@
 - Source usable: `0/2`
 - Candidate usable: `0/9`
 - Unified usable: `False`
+- Required examples by task: `{'gsm8k': 384, 'mmlu': 384, 'safety': 384, 'humaneval_compile': 164}`
 - Complete source count for paired keys: `0`
 - Pairability failed methods: `0`
 

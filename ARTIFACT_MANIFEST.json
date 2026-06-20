@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 89280,
+      "bytes": 89403,
       "kind": "document",
       "path": "README.md",
-      "sha256": "e61cc7734ee5d3dc4ae1a00282c3b27501198e7ddc22edfad9d168abc1f3badf"
+      "sha256": "4ba45549f4d480f10be96aa489414bcf716d65e9c1a457ccafdd4c68f87d9fdc"
     },
     {
       "bytes": 33211,
@@ -2011,10 +2011,10 @@
       "sha256": "15fb5cd3d20ab8f7cdea9a69f41f25ff7ca0f2e3cfbc200a79ab949c9abc63ab"
     },
     {
-      "bytes": 10616,
+      "bytes": 10837,
       "kind": "document",
       "path": "results/qwen3_moe_eval_budget_plan/report.md",
-      "sha256": "cea87901b3c8c0cd9c211dc19156b1de3b9770e636ad455a1d39c3816f0b7492"
+      "sha256": "b5117be82ad04f932ae2593dcf67b16fb8ba9e5b13da0debd4a329b98b476dc1"
     },
     {
       "bytes": 1330,
@@ -2041,10 +2041,10 @@
       "sha256": "8259945dda96443754712a8286bb11b73ab7ccb0d7b4b99545a84d4320388f9e"
     },
     {
-      "bytes": 7166,
+      "bytes": 7793,
       "kind": "data",
       "path": "results/qwen3_moe_eval_bundle_audit/audit_rows.csv",
-      "sha256": "983ec89f36637192d4268b24d3d8e81a7e7586954c66db45af78898e6eea4952"
+      "sha256": "f018f3a6fd94fb0be16c977bb26d6cb9011c7b8506e831fb58851b978347c28b"
     },
     {
       "bytes": 128,
@@ -2053,16 +2053,16 @@
       "sha256": "5872cd83d2baf5eebc35c7790dfa6c894f56d099cf01f1ffb8ba95520d301b6d"
     },
     {
-      "bytes": 3460,
+      "bytes": 3560,
       "kind": "document",
       "path": "results/qwen3_moe_eval_bundle_audit/report.md",
-      "sha256": "c0a108b2b14bca2ffd2dfe4a0018a75f9bd7a3a8bdc2ca591c8d9abef1c5a5d0"
+      "sha256": "cc7779fadc39eb9c2c56e7bb533ac039867f261a3362a77eb307cb122dad924b"
     },
     {
-      "bytes": 701,
+      "bytes": 854,
       "kind": "data",
       "path": "results/qwen3_moe_eval_bundle_audit/summary.json",
-      "sha256": "fb2745181a52f06485114d581fa828fdca3fc22d6d2d4010ef92fb8317d0c0a5"
+      "sha256": "208cb4c95a164030a75b0232bd6081314237f2c0da460384023fc3020043a9f5"
     },
     {
       "bytes": 398,
@@ -5107,16 +5107,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 1818705,
+      "bytes": 1819901,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "b4bee297fe3a1d2f09f5e1a609bc7126d8c0ade2d591cefbe6c3b893aa2a2a56"
+      "sha256": "15ffa74f9665bf7f957594054e2537d86a7d6fdcdbb92d4b5027b7bbbcc84153"
     },
     {
       "bytes": 57912,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "364e4e6e8c00b0a8171d222d4469e7074444772d25681e9d1bc146ef057bce94"
+      "sha256": "d717ebc6f50c417f6d9feee65b36fa2ba041c34a6377a8733e5c42de2130357b"
     },
     {
       "bytes": 288,
@@ -6151,10 +6151,10 @@
       "sha256": "b3ebd77cc5f9e6f02b4a4e6928ff4414875d91aeaa5f53d99a4dabf318481d68"
     },
     {
-      "bytes": 29821,
+      "bytes": 33083,
       "kind": "code",
       "path": "scripts/audit_qwen3_moe_eval_bundle.py",
-      "sha256": "77f30a4f22237a08986f239448ec454669336e86960a6e219692a822d706aeaf"
+      "sha256": "2f50ba7e65a748cd521aa9dcb7668d0a2903eb56778fc4f25cd3f9cd65919b2a"
     },
     {
       "bytes": 10844,
@@ -6469,10 +6469,10 @@
       "sha256": "0c439772685d64f1707671b0d906058d7e350c172e2c9d30942253e558c34ebc"
     },
     {
-      "bytes": 45577,
+      "bytes": 48916,
       "kind": "code",
       "path": "scripts/plan_qwen3_moe_eval_budget.py",
-      "sha256": "4bc184d86095fdd6c1bd322f8c02e5d316a5df7f5564d42ee8aafe3d813bca52"
+      "sha256": "d15d7c532372838afae09b76adb38d738b7176f5826a7d813d3a586e01f1c6cf"
     },
     {
       "bytes": 24018,
@@ -6697,7 +6697,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-20T07:22:39.128533+00:00",
+  "generated_at": "2026-06-20T07:29:30.061351+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

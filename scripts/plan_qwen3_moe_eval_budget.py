@@ -202,6 +202,16 @@ def shell_quote(value: str) -> str:
     return shlex.quote(value)
 
 
+def serve_model_path(command: str) -> str:
+    if not command:
+        return ""
+    tokens = shlex.split(command)
+    for idx, token in enumerate(tokens[:-1]):
+        if token == "serve":
+            return tokens[idx + 1]
+    return ""
+
+
 def first_gate_tasks(gate: pd.DataFrame) -> list[str]:
     for _, row in gate.iterrows():
         tasks = parse_tasks(row.get("tasks"))
@@ -641,17 +651,81 @@ def build_task_manifest_alignment(method_budget: pd.DataFrame) -> pd.DataFrame:
 
 
 def build_shell_script(method_budget: pd.DataFrame, output_dir: Path) -> str:
+    path_entries: list[tuple[str, str]] = []
+    for _, row in method_budget.iterrows():
+        if str(row.get("serve_status")) != "ready_to_host":
+            continue
+        method = str(row.get("method"))
+        model_path = serve_model_path(str(row.get("serve_command") or ""))
+        if model_path:
+            path_entries.append((method, model_path))
+
     lines = [
         "#!/usr/bin/env bash",
         "set -euo pipefail",
         "",
         "# Run from the repository root on a GPU host with vLLM installed.",
-        f"# Usage: {rel(output_dir / 'run_eval_budget.sh')} [all|method_name]",
+        f"# Usage: {rel(output_dir / 'run_eval_budget.sh')} [preflight|all|method_name]",
         "# This budgeted runner keeps the same endpoints as the mechanism gate but raises --max-examples.",
         "",
         "requested=\"${1:-all}\"",
         f"mkdir -p {shell_quote(rel(output_dir / 'logs'))}",
         "",
+        "preflight() {",
+        "  if [[ \"${EVAL_BUDGET_SKIP_PREFLIGHT:-0}\" == \"1\" ]]; then",
+        "    return 0",
+        "  fi",
+        "  echo \"[preflight] task manifest, runtime, GPU, and model paths\"",
+        "  command -v curl >/dev/null || { echo \"missing dependency: curl\" >&2; return 1; }",
+        "  command -v vllm >/dev/null || { echo \"missing dependency: vllm\" >&2; return 1; }",
+        "  command -v nvidia-smi >/dev/null || { echo \"missing dependency: nvidia-smi\" >&2; return 1; }",
+        "  nvidia-smi >/dev/null || { echo \"nvidia-smi failed; GPU driver is not ready\" >&2; return 1; }",
+        "  python scripts/audit_qwen3_moe_eval_manifest_preflight.py "
+        "--eval-budget-dir results/qwen3_moe_eval_budget_plan "
+        "--output-dir results/qwen3_moe_eval_manifest_preflight >/dev/null",
+        "  python - <<'PY'",
+        "import json",
+        "from pathlib import Path",
+        "summary = json.loads(Path('results/qwen3_moe_eval_manifest_preflight/summary.json').read_text())",
+        "if summary.get('status') != 'task_manifest_ready':",
+        "    raise SystemExit(f\"task manifest preflight failed: {summary.get('status')}\")",
+        "if summary.get('task_sufficient_count') != summary.get('task_count'):",
+        "    raise SystemExit('task manifest does not satisfy every budgeted task')",
+        "print(f\"[preflight] manifest {summary.get('manifest_sha256')} ready\")",
+        "PY",
+        "  local missing=0",
+        "  while IFS='|' read -r method model_path; do",
+        "    if [[ -z \"$method\" ]]; then",
+        "      continue",
+        "    fi",
+        "    if [[ \"$requested\" == \"all\" || \"$requested\" == \"preflight\" || \"$requested\" == \"$method\" ]]; then",
+        "      if [[ ! -e \"$model_path\" ]]; then",
+        "        echo \"missing model/checkpoint path for ${method}: ${model_path}\" >&2",
+        "        missing=1",
+        "      fi",
+        "    fi",
+        "  done <<'PATHS'",
+    ]
+    lines.extend(f"{method}|{model_path}" for method, model_path in path_entries)
+    lines.extend(
+        [
+            "PATHS",
+            "  if [[ \"$missing\" != \"0\" ]]; then",
+            "    return 1",
+            "  fi",
+            "}",
+            "",
+            "if [[ \"$requested\" == \"preflight\" ]]; then",
+            "  preflight",
+            "  exit 0",
+            "fi",
+            "",
+            "preflight",
+            "",
+        ]
+    )
+    lines.extend(
+        [
         "run_one() {",
         "  local method=\"$1\"",
         "  local base_url=\"$2\"",
@@ -687,7 +761,8 @@ def build_shell_script(method_budget: pd.DataFrame, output_dir: Path) -> str:
         "  bash -lc \"$eval_cmd\"",
         "}",
         "",
-    ]
+        ]
+    )
     for _, row in method_budget.iterrows():
         if str(row.get("serve_status")) != "ready_to_host":
             lines.append(f"# Skipping {row['method']}: serve_status={row.get('serve_status')}")
@@ -856,6 +931,7 @@ def build_report(
             "在 GPU host 上从仓库根目录运行：",
             "",
             "```bash",
+            f"{summary['outputs']['run_script']} preflight",
             f"{summary['outputs']['run_script']} all",
             "python scripts/audit_qwen3_moe_eval_bundle.py --output-dir results/qwen3_moe_eval_bundle_audit",
             "python scripts/refresh_qwen3_moe_post_eval.py",
@@ -867,7 +943,7 @@ def build_report(
             f"{summary['outputs']['run_script']} qwen3_moe_tail_trimmed_expert_only_candidate",
             "```",
             "",
-            "注意：原始 gate 里的 `max_examples=64` 仍是 audit floor；预算版 runner 会用更高的 `--max-examples` 覆盖 eval 命令。HumanEval 数据集上限低于推荐值时，selector 会使用实际落盘的样本数计算区间。",
+            "注意：原始 gate 里的 `max_examples=64` 仍是 audit floor；预算版 runner 会用更高的 `--max-examples` 覆盖 eval 命令。runner 默认先检查 manifest、GPU/vLLM/curl 和被请求方法的模型路径；确需跳过前置检查时可以设置 `EVAL_BUDGET_SKIP_PREFLIGHT=1`。HumanEval 数据集上限低于推荐值时，selector 会使用实际落盘的样本数计算区间。",
             "",
             "## Outputs",
             "",
