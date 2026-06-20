@@ -73,6 +73,17 @@ def read_csv_if_exists(path: str | Path) -> pd.DataFrame:
     return pd.read_csv(path)
 
 
+def read_candidate_trust_gate(path: str | Path) -> dict[str, dict[str, Any]]:
+    table = read_csv_if_exists(path)
+    if table.empty or "method" not in table:
+        return {}
+    return {
+        str(row.get("method")): clean_row(row)
+        for _, row in table.iterrows()
+        if str(row.get("method", "")).strip()
+    }
+
+
 def parse_tasks(value: Any) -> list[str]:
     text = str(clean_value(value) or "")
     return [part.strip() for part in text.split(",") if part.strip()]
@@ -333,11 +344,49 @@ def build_task_budget(
     return pd.DataFrame(rows), metadata
 
 
-def build_method_budget(gate: pd.DataFrame, task_budget_meta: dict[str, Any]) -> pd.DataFrame:
+def eval_queue_for_row(row: pd.Series, candidate_trust_gate: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    method = str(row.get("method", "")).strip()
+    role = str(row.get("role", "")).strip()
+    trust = candidate_trust_gate.get(method, {})
+    if role == "source":
+        return {
+            "eval_queue": "final_selection_core",
+            "queue_alias": "final",
+            "final_selectable_by_trust_region": True,
+            "trust_region_category": "source_control",
+            "trust_region_rejection_reasons": "",
+        }
+    final_selectable = bool_value(trust.get("final_selectable_by_trust_region"))
+    category = str(clean_value(trust.get("trust_region_category")) or "not_in_candidate_trust_gate")
+    reasons = str(clean_value(trust.get("trust_region_rejection_reasons")) or "")
+    if final_selectable:
+        queue = "final_selection_core"
+        alias = "final"
+    elif category == "ablation_only" or trust:
+        queue = "mechanism_ablation"
+        alias = "mechanism"
+    else:
+        queue = "ungated_candidate_ablation"
+        alias = "mechanism"
+    return {
+        "eval_queue": queue,
+        "queue_alias": alias,
+        "final_selectable_by_trust_region": final_selectable,
+        "trust_region_category": category,
+        "trust_region_rejection_reasons": reasons,
+    }
+
+
+def build_method_budget(
+    gate: pd.DataFrame,
+    task_budget_meta: dict[str, Any],
+    candidate_trust_gate: dict[str, dict[str, Any]],
+) -> pd.DataFrame:
     recommended = int(task_budget_meta["recommended_command_max_examples"])
     rows = []
     for _, row in gate.iterrows():
         tasks = parse_tasks(row.get("tasks"))
+        queue = eval_queue_for_row(row, candidate_trust_gate)
         current = int(row.get("max_examples") or 0)
         eval_command = str(row.get("eval_command") or "")
         recommended_command = replace_cli_arg(eval_command, "--max-examples", recommended)
@@ -349,6 +398,7 @@ def build_method_budget(gate: pd.DataFrame, task_budget_meta: dict[str, Any]) ->
                 "gate_order": int(row.get("gate_order") or 0),
                 "method": row.get("method"),
                 "role": row.get("role"),
+                **queue,
                 "serve_status": row.get("serve_status"),
                 "eval_status": row.get("eval_status"),
                 "served_model_id": row.get("served_model_id"),
@@ -368,9 +418,10 @@ def build_method_budget(gate: pd.DataFrame, task_budget_meta: dict[str, Any]) ->
                 "eval_command_recommended": recommended_command,
                 "audit_min_examples_required_by_gate": current,
                 "budget_reason": (
-                    "raise examples until Wilson score intervals and paired prediction sign-test "
-                    "can detect small source-vs-candidate regressions; original gate remains the "
-                    "minimum audit floor"
+                    "final selection core budget"
+                    if queue["eval_queue"] == "final_selection_core"
+                    else "mechanism ablation budget: keep this candidate available for attribution, but do "
+                    "not require it for the first final average decision"
                 ),
             }
         )
@@ -522,6 +573,11 @@ def build_router_calibration_budget(
                 "gate_order": next_order + len(additions),
                 "method": method,
                 "role": "candidate",
+                "eval_queue": "router_calibration_pending",
+                "queue_alias": "router",
+                "final_selectable_by_trust_region": False,
+                "trust_region_category": "router_calibration_candidate",
+                "trust_region_rejection_reasons": "pending_router_calibration_materialization_and_eval",
                 "serve_status": serve_status,
                 "eval_status": eval_status,
                 "served_model_id": served_model,
@@ -635,6 +691,8 @@ def build_task_manifest_alignment(method_budget: pd.DataFrame) -> pd.DataFrame:
             {
                 "method": row.get("method"),
                 "role": row.get("role"),
+                "eval_queue": row.get("eval_queue"),
+                "queue_alias": row.get("queue_alias"),
                 "serve_status": row.get("serve_status"),
                 "tasks": row.get("tasks"),
                 "recommended_max_examples": row.get("recommended_max_examples"),
@@ -651,24 +709,27 @@ def build_task_manifest_alignment(method_budget: pd.DataFrame) -> pd.DataFrame:
 
 
 def build_shell_script(method_budget: pd.DataFrame, output_dir: Path) -> str:
-    path_entries: list[tuple[str, str]] = []
+    path_entries: list[tuple[str, str, str]] = []
     for _, row in method_budget.iterrows():
         if str(row.get("serve_status")) != "ready_to_host":
             continue
         method = str(row.get("method"))
+        queue_alias = str(row.get("queue_alias") or "")
         model_path = serve_model_path(str(row.get("serve_command") or ""))
         if model_path:
-            path_entries.append((method, model_path))
+            path_entries.append((method, queue_alias, model_path))
 
     lines = [
         "#!/usr/bin/env bash",
         "set -euo pipefail",
         "",
         "# Run from the repository root on a GPU host with vLLM installed.",
-        f"# Usage: {rel(output_dir / 'run_eval_budget.sh')} [preflight|all|method_name]",
+        f"# Usage: {rel(output_dir / 'run_eval_budget.sh')} [preflight [final|mechanism|router|all|method_name]|final|mechanism|router|all|method_name]",
         "# This budgeted runner keeps the same endpoints as the mechanism gate but raises --max-examples.",
+        "# The default request is 'final': two source endpoints plus final-selectable trust-region candidates.",
         "",
-        "requested=\"${1:-all}\"",
+        "requested=\"${1:-final}\"",
+        "preflight_scope=\"${2:-final}\"",
         f"mkdir -p {shell_quote(rel(output_dir / 'logs'))}",
         "",
         "preflight() {",
@@ -694,11 +755,19 @@ def build_shell_script(method_budget: pd.DataFrame, output_dir: Path) -> str:
         "print(f\"[preflight] manifest {summary.get('manifest_sha256')} ready\")",
         "PY",
         "  local missing=0",
-        "  while IFS='|' read -r method model_path; do",
+        "  while IFS='|' read -r method queue_alias model_path; do",
         "    if [[ -z \"$method\" ]]; then",
         "      continue",
         "    fi",
-        "    if [[ \"$requested\" == \"all\" || \"$requested\" == \"preflight\" || \"$requested\" == \"$method\" ]]; then",
+        "    local should_check=0",
+        "    if [[ \"$requested\" == \"preflight\" ]]; then",
+        "      if [[ \"$preflight_scope\" == \"all\" || \"$preflight_scope\" == \"$method\" || \"$preflight_scope\" == \"$queue_alias\" ]]; then",
+        "        should_check=1",
+        "      fi",
+        "    elif [[ \"$requested\" == \"all\" || \"$requested\" == \"$method\" || \"$requested\" == \"$queue_alias\" ]]; then",
+        "      should_check=1",
+        "    fi",
+        "    if [[ \"$should_check\" == \"1\" ]]; then",
         "      if [[ ! -e \"$model_path\" ]]; then",
         "        echo \"missing model/checkpoint path for ${method}: ${model_path}\" >&2",
         "        missing=1",
@@ -706,7 +775,7 @@ def build_shell_script(method_budget: pd.DataFrame, output_dir: Path) -> str:
         "    fi",
         "  done <<'PATHS'",
     ]
-    lines.extend(f"{method}|{model_path}" for method, model_path in path_entries)
+    lines.extend(f"{method}|{queue_alias}|{model_path}" for method, queue_alias, model_path in path_entries)
     lines.extend(
         [
             "PATHS",
@@ -728,10 +797,11 @@ def build_shell_script(method_budget: pd.DataFrame, output_dir: Path) -> str:
         [
         "run_one() {",
         "  local method=\"$1\"",
-        "  local base_url=\"$2\"",
-        "  local serve_cmd=\"$3\"",
-        "  local eval_cmd=\"$4\"",
-        "  if [[ \"$requested\" != \"all\" && \"$requested\" != \"$method\" ]]; then",
+        "  local queue_alias=\"$2\"",
+        "  local base_url=\"$3\"",
+        "  local serve_cmd=\"$4\"",
+        "  local eval_cmd=\"$5\"",
+        "  if [[ \"$requested\" != \"all\" && \"$requested\" != \"$method\" && \"$requested\" != \"$queue_alias\" ]]; then",
         "    return 0",
         "  fi",
         f"  local log_path=\"{rel(output_dir / 'logs')}/${{method}}.serve.log\"",
@@ -770,6 +840,7 @@ def build_shell_script(method_budget: pd.DataFrame, output_dir: Path) -> str:
         lines.append(
             "run_one "
             f"{shell_quote(str(row['method']))} "
+            f"{shell_quote(str(row.get('queue_alias') or ''))} "
             f"{shell_quote(str(row['base_url']))} "
             f"{shell_quote(str(row['serve_command']))} "
             f"{shell_quote(str(row['eval_command_recommended']))}"
@@ -795,6 +866,7 @@ def build_report(
     task_manifest_alignment: pd.DataFrame,
 ) -> str:
     router_meta = summary.get("router_calibration", {})
+    queue_summary = summary.get("eval_queue_summary", [])
     lines = [
         "# Qwen3 MoE vLLM Eval Budget Plan",
         "",
@@ -808,6 +880,8 @@ def build_report(
         f"- Total current prompt budget: `{summary['total_current_prompt_budget']}`",
         f"- Total recommended prompt budget: `{summary['total_recommended_prompt_budget']}`",
         f"- Additional prompt budget: `{summary['total_additional_prompt_budget']}`",
+        f"- Final core methods / prompts: `{summary['final_core_method_count']}` / `{summary['final_core_recommended_prompt_budget']}`",
+        f"- Mechanism ablation methods / prompts: `{summary['mechanism_ablation_method_count']}` / `{summary['mechanism_ablation_recommended_prompt_budget']}`",
         f"- Canonical task manifest: `{summary['canonical_task_manifest']}`",
         f"- Task manifest aligned methods: `{summary['task_manifest_aligned_method_count']}/{summary['method_count']}`",
         (
@@ -845,6 +919,12 @@ def build_report(
             "plan-pruned caps remain explicit ablations."
         ),
         "",
+        (
+            "Queue split: the default runner request is `final`, which evaluates the two source endpoints plus the "
+            "trust-region-final-selectable candidates. `mechanism` keeps the older candidates available for attribution "
+            "after the core final decision is scored."
+        ),
+        "",
         "## Task Budget",
         "",
         "| task | current | Wilson n | paired n | recommended max | achievable | half-width | status |",
@@ -860,15 +940,30 @@ def build_report(
     lines.extend(
         [
             "",
+            "## Queue Budget",
+            "",
+            "| queue | alias | methods | ready | recommended prompts | additional prompts |",
+            "| --- | --- | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for row in queue_summary:
+        lines.append(
+            f"| `{row['eval_queue']}` | `{row['queue_alias']}` | {int(row['method_count'])} | "
+            f"{int(row['ready_to_host_method_count'])} | {int(row['recommended_prompt_budget'])} | "
+            f"{int(row['additional_prompt_budget'])} |"
+        )
+    lines.extend(
+        [
+            "",
             "## Method Budget",
             "",
-            "| order | method | role | serve | current | recommended | extra prompts | eval status |",
-            "| ---: | --- | --- | --- | ---: | ---: | ---: | --- |",
+            "| order | method | queue | role | serve | current | recommended | extra prompts | eval status |",
+            "| ---: | --- | --- | --- | --- | ---: | ---: | ---: | --- |",
         ]
     )
     for _, row in method_budget.iterrows():
         lines.append(
-            f"| {int(row['gate_order'])} | `{row['method']}` | `{row['role']}` | "
+            f"| {int(row['gate_order'])} | `{row['method']}` | `{row['eval_queue']}` | `{row['role']}` | "
             f"`{row['serve_status']}` | "
             f"{int(row['current_max_examples'])} | {int(row['recommended_max_examples'])} | "
             f"{int(row['additional_prompt_budget'])} | `{row['eval_status']}` |"
@@ -932,9 +1027,15 @@ def build_report(
             "",
             "```bash",
             f"{summary['outputs']['run_script']} preflight",
-            f"{summary['outputs']['run_script']} all",
+            f"{summary['outputs']['run_script']} final",
             "python scripts/audit_qwen3_moe_eval_bundle.py --output-dir results/qwen3_moe_eval_bundle_audit",
             "python scripts/refresh_qwen3_moe_post_eval.py",
+            "```",
+            "",
+            "机制归因需要时再跑 ablation 队列：",
+            "",
+            "```bash",
+            f"{summary['outputs']['run_script']} mechanism",
             "```",
             "",
             "也可以只跑一个方法：",
@@ -943,7 +1044,7 @@ def build_report(
             f"{summary['outputs']['run_script']} qwen3_moe_tail_trimmed_expert_only_candidate",
             "```",
             "",
-            "注意：原始 gate 里的 `max_examples=64` 仍是 audit floor；预算版 runner 会用更高的 `--max-examples` 覆盖 eval 命令。runner 默认先检查 manifest、GPU/vLLM/curl 和被请求方法的模型路径；确需跳过前置检查时可以设置 `EVAL_BUDGET_SKIP_PREFLIGHT=1`。HumanEval 数据集上限低于推荐值时，selector 会使用实际落盘的样本数计算区间。",
+            "注意：原始 gate 里的 `max_examples=64` 仍是 audit floor；预算版 runner 会用更高的 `--max-examples` 覆盖 eval 命令。runner 默认请求是 `final`，不是全量 ablation；需要全量时显式运行 `all`。runner 默认先检查 manifest、GPU/vLLM/curl 和被请求方法的模型路径；确需跳过前置检查时可以设置 `EVAL_BUDGET_SKIP_PREFLIGHT=1`。HumanEval 数据集上限低于推荐值时，selector 会使用实际落盘的样本数计算区间。",
             "",
             "## Outputs",
             "",
@@ -998,6 +1099,22 @@ def write_outputs(
     total_recommended = int(method_budget["recommended_prompt_budget"].sum())
     total_additional = int(method_budget["additional_prompt_budget"].sum())
     ready = method_budget[method_budget["serve_status"] == "ready_to_host"]
+    queue_rows = []
+    for (eval_queue, queue_alias), group in method_budget.groupby(["eval_queue", "queue_alias"], dropna=False):
+        ready_group = group[group["serve_status"] == "ready_to_host"]
+        queue_rows.append(
+            {
+                "eval_queue": str(eval_queue),
+                "queue_alias": str(queue_alias),
+                "method_count": int(len(group)),
+                "ready_to_host_method_count": int(len(ready_group)),
+                "current_prompt_budget": int(group["current_prompt_budget"].sum()),
+                "recommended_prompt_budget": int(group["recommended_prompt_budget"].sum()),
+                "additional_prompt_budget": int(group["additional_prompt_budget"].sum()),
+            }
+        )
+    final_core = method_budget[method_budget["eval_queue"] == "final_selection_core"]
+    mechanism_ablation = method_budget[method_budget["eval_queue"] == "mechanism_ablation"]
     aligned_count = (
         int(task_manifest_alignment["task_manifest_aligned"].astype(bool).sum())
         if not task_manifest_alignment.empty
@@ -1038,6 +1155,22 @@ def write_outputs(
         "ready_to_host_current_prompt_budget": int(ready["current_prompt_budget"].sum()),
         "ready_to_host_recommended_prompt_budget": int(ready["recommended_prompt_budget"].sum()),
         "ready_to_host_additional_prompt_budget": int(ready["additional_prompt_budget"].sum()),
+        "eval_queue_summary": json_safe(queue_rows),
+        "default_runner_request": "final",
+        "final_core_method_count": int(len(final_core)),
+        "final_core_ready_to_host_method_count": int((final_core["serve_status"] == "ready_to_host").sum()),
+        "final_core_current_prompt_budget": int(final_core["current_prompt_budget"].sum()),
+        "final_core_recommended_prompt_budget": int(final_core["recommended_prompt_budget"].sum()),
+        "final_core_additional_prompt_budget": int(final_core["additional_prompt_budget"].sum()),
+        "mechanism_ablation_method_count": int(len(mechanism_ablation)),
+        "mechanism_ablation_ready_to_host_method_count": int(
+            (mechanism_ablation["serve_status"] == "ready_to_host").sum()
+        ),
+        "mechanism_ablation_current_prompt_budget": int(mechanism_ablation["current_prompt_budget"].sum()),
+        "mechanism_ablation_recommended_prompt_budget": int(
+            mechanism_ablation["recommended_prompt_budget"].sum()
+        ),
+        "mechanism_ablation_additional_prompt_budget": int(mechanism_ablation["additional_prompt_budget"].sum()),
         "canonical_task_manifest": task_manifest_values[0] if len(task_manifest_values) == 1 else None,
         "task_manifest_path_count": int(len(task_manifest_values)),
         "task_manifest_aligned_method_count": aligned_count,
@@ -1094,6 +1227,11 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=Path("results/qwen3_moe_router_calibration_selection/selection_table.csv"),
     )
+    parser.add_argument(
+        "--candidate-trust-gate",
+        type=Path,
+        default=Path("results/qwen3_moe_candidate_trust_region_gate/candidate_trust_region_gate.csv"),
+    )
     return parser.parse_args()
 
 
@@ -1104,6 +1242,7 @@ def main() -> None:
     if gate.empty:
         raise SystemExit(f"Missing eval gate plan: {gate_dir / 'eval_gate_plan.csv'}")
     tests = read_csv_if_exists(gate_dir / "mechanism_tests.csv")
+    candidate_trust_gate = read_candidate_trust_gate(args.candidate_trust_gate)
     task_caps = parse_task_caps(args.task_cap)
     task_budget, task_budget_meta = build_task_budget(
         gate,
@@ -1115,7 +1254,7 @@ def main() -> None:
         rounding_unit=args.rounding_unit,
         task_caps=task_caps,
     )
-    method_budget = build_method_budget(gate, task_budget_meta)
+    method_budget = build_method_budget(gate, task_budget_meta, candidate_trust_gate)
     method_budget, router_calibration_budget, router_calibration_meta = build_router_calibration_budget(
         gate,
         method_budget,

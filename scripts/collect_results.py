@@ -1488,6 +1488,18 @@ def summarize_qwen3_moe_eval_budget_plan() -> dict[str, Any]:
         "ready_to_host_current_prompt_budget": maybe_int(summary.get("ready_to_host_current_prompt_budget")),
         "ready_to_host_recommended_prompt_budget": maybe_int(summary.get("ready_to_host_recommended_prompt_budget")),
         "ready_to_host_additional_prompt_budget": maybe_int(summary.get("ready_to_host_additional_prompt_budget")),
+        "default_runner_request": summary.get("default_runner_request"),
+        "final_core_method_count": maybe_int(summary.get("final_core_method_count")),
+        "final_core_ready_to_host_method_count": maybe_int(summary.get("final_core_ready_to_host_method_count")),
+        "final_core_recommended_prompt_budget": maybe_int(summary.get("final_core_recommended_prompt_budget")),
+        "mechanism_ablation_method_count": maybe_int(summary.get("mechanism_ablation_method_count")),
+        "mechanism_ablation_ready_to_host_method_count": maybe_int(
+            summary.get("mechanism_ablation_ready_to_host_method_count")
+        ),
+        "mechanism_ablation_recommended_prompt_budget": maybe_int(
+            summary.get("mechanism_ablation_recommended_prompt_budget")
+        ),
+        "eval_queue_summary": summary.get("eval_queue_summary", []),
         "canonical_task_manifest": summary.get("canonical_task_manifest"),
         "task_manifest_path_count": maybe_int(summary.get("task_manifest_path_count")),
         "task_manifest_aligned_method_count": maybe_int(summary.get("task_manifest_aligned_method_count")),
@@ -5904,6 +5916,17 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_eval_budget_plan['ready_to_host_current_prompt_budget']} / "
                 f"{qwen3_moe_eval_budget_plan['ready_to_host_recommended_prompt_budget']} / "
                 f"{qwen3_moe_eval_budget_plan['ready_to_host_additional_prompt_budget']} |"
+            ),
+            (
+                "| Qwen3 MoE eval budget plan | default queue / final methods / final prompts | "
+                f"{qwen3_moe_eval_budget_plan['default_runner_request']} / "
+                f"{qwen3_moe_eval_budget_plan['final_core_method_count']} / "
+                f"{qwen3_moe_eval_budget_plan['final_core_recommended_prompt_budget']} |"
+            ),
+            (
+                "| Qwen3 MoE eval budget plan | mechanism ablation methods / prompts | "
+                f"{qwen3_moe_eval_budget_plan['mechanism_ablation_method_count']} / "
+                f"{qwen3_moe_eval_budget_plan['mechanism_ablation_recommended_prompt_budget']} |"
             ),
             (
                 "| Qwen3 MoE eval budget plan | Wilson n / paired n / capped tasks | "

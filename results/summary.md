@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-20T11:42:15.938453+00:00`
+Generated at: `2026-06-20T11:49:46.742079+00:00`
 
 ## Coverage
 
@@ -216,6 +216,8 @@ Complete: `94`; partial: `1`; missing: `0`.
 | Qwen3 MoE eval budget plan | planned / ready / pending methods | 14 / 12 / 2 |
 | Qwen3 MoE eval budget plan | current / recommended / extra prompt budget | 3584 / 21504 / 17920 |
 | Qwen3 MoE eval budget plan | ready current / recommended / extra prompt budget | 3072 / 18432 / 15360 |
+| Qwen3 MoE eval budget plan | default queue / final methods / final prompts | final / 4 / 6144 |
+| Qwen3 MoE eval budget plan | mechanism ablation methods / prompts | 8 / 12288 |
 | Qwen3 MoE eval budget plan | Wilson n / paired n / capped tasks | 381 / 248 / humaneval_compile |
 | Qwen3 MoE eval budget plan | task manifest aligned / canonical manifest | 14/14 / results/qwen3_moe_mechanism_eval_gate/task_manifest.json |
 | Qwen3 MoE adaptive eval schedule | status / top action / top method | adaptive_schedule_ready / run_or_extend_source_control_probe / source_qwen3_30b_instruct |

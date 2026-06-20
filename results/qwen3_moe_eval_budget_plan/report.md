@@ -10,6 +10,8 @@
 - Total current prompt budget: `3584`
 - Total recommended prompt budget: `21504`
 - Additional prompt budget: `17920`
+- Final core methods / prompts: `4` / `6144`
+- Mechanism ablation methods / prompts: `8` / `12288`
 - Canonical task manifest: `results/qwen3_moe_mechanism_eval_gate/task_manifest.json`
 - Task manifest aligned methods: `14/14`
 - Router calibration active / ready / plan-pruned caps: `2` / `0` / `2`
@@ -26,6 +28,8 @@ Pairing contract: every final-selection source and candidate command now uses th
 
 Router calibration: budget planning now reads the route-margin-gated calibration plan. Only caps that pass the planned margin gate and are enabled by the job default-run list enter the default budget; plan-pruned caps remain explicit ablations.
 
+Queue split: the default runner request is `final`, which evaluates the two source endpoints plus the trust-region-final-selectable candidates. `mechanism` keeps the older candidates available for attribution after the core final decision is scored.
+
 ## Task Budget
 
 | task | current | Wilson n | paired n | recommended max | achievable | half-width | status |
@@ -35,24 +39,32 @@ Router calibration: budget planning now reads the route-margin-gated calibration
 | `mmlu` | 64 | 381 | 248 | 384 | 384 | 0.0497621 | `target_met` |
 | `safety` | 64 | 381 | 248 | 384 | 384 | 0.0497621 | `target_met` |
 
+## Queue Budget
+
+| queue | alias | methods | ready | recommended prompts | additional prompts |
+| --- | --- | ---: | ---: | ---: | ---: |
+| `final_selection_core` | `final` | 4 | 4 | 6144 | 5120 |
+| `mechanism_ablation` | `mechanism` | 8 | 8 | 12288 | 10240 |
+| `router_calibration_pending` | `router` | 2 | 0 | 3072 | 2560 |
+
 ## Method Budget
 
-| order | method | role | serve | current | recommended | extra prompts | eval status |
-| ---: | --- | --- | --- | ---: | ---: | ---: | --- |
-| 0 | `source_qwen3_30b_instruct` | `source` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
-| 1 | `source_qwen3_30b_coder` | `source` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
-| 2 | `qwen3_moe_unified_route_guarded_candidate` | `candidate` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
-| 3 | `qwen3_moe_audit_gated_candidate` | `candidate` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
-| 4 | `qwen3_moe_trust_region_candidate` | `candidate` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
-| 5 | `qwen3_moe_expert_only_trust_region_candidate` | `candidate` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
-| 6 | `qwen3_moe_tail_trimmed_expert_only_candidate` | `candidate` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
-| 7 | `qwen3_moe_searched_no_gt065_max_retention_candidate` | `candidate` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
-| 8 | `qwen3_moe_layer_chunk_candidate` | `candidate` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
-| 9 | `qwen3_moe_unified_mechanism_candidate` | `candidate` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
-| 10 | `qwen3_moe_mechanistic_unified_candidate` | `candidate` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
-| 11 | `qwen3_moe_subspace_scaled_candidate` | `candidate` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
-| 12 | `qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate` | `candidate` | `pending_materialization` | 64 | 384 | 1280 | `not_run` |
-| 13 | `qwen3_moe_router_calibrated_searched_no_gt065_margin_profile_candidate` | `candidate` | `pending_materialization` | 64 | 384 | 1280 | `not_run` |
+| order | method | queue | role | serve | current | recommended | extra prompts | eval status |
+| ---: | --- | --- | --- | --- | ---: | ---: | ---: | --- |
+| 0 | `source_qwen3_30b_instruct` | `final_selection_core` | `source` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
+| 1 | `source_qwen3_30b_coder` | `final_selection_core` | `source` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
+| 2 | `qwen3_moe_unified_route_guarded_candidate` | `mechanism_ablation` | `candidate` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
+| 3 | `qwen3_moe_audit_gated_candidate` | `mechanism_ablation` | `candidate` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
+| 4 | `qwen3_moe_trust_region_candidate` | `mechanism_ablation` | `candidate` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
+| 5 | `qwen3_moe_expert_only_trust_region_candidate` | `mechanism_ablation` | `candidate` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
+| 6 | `qwen3_moe_tail_trimmed_expert_only_candidate` | `mechanism_ablation` | `candidate` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
+| 7 | `qwen3_moe_searched_no_gt065_max_retention_candidate` | `mechanism_ablation` | `candidate` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
+| 8 | `qwen3_moe_layer_chunk_candidate` | `mechanism_ablation` | `candidate` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
+| 9 | `qwen3_moe_unified_mechanism_candidate` | `mechanism_ablation` | `candidate` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
+| 10 | `qwen3_moe_mechanistic_unified_candidate` | `final_selection_core` | `candidate` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
+| 11 | `qwen3_moe_subspace_scaled_candidate` | `final_selection_core` | `candidate` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
+| 12 | `qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate` | `router_calibration_pending` | `candidate` | `pending_materialization` | 64 | 384 | 1280 | `not_run` |
+| 13 | `qwen3_moe_router_calibrated_searched_no_gt065_margin_profile_candidate` | `router_calibration_pending` | `candidate` | `pending_materialization` | 64 | 384 | 1280 | `not_run` |
 
 ## Task Manifest Alignment
 
@@ -104,9 +116,15 @@ Router calibration: budget planning now reads the route-margin-gated calibration
 
 ```bash
 results/qwen3_moe_eval_budget_plan/run_eval_budget.sh preflight
-results/qwen3_moe_eval_budget_plan/run_eval_budget.sh all
+results/qwen3_moe_eval_budget_plan/run_eval_budget.sh final
 python scripts/audit_qwen3_moe_eval_bundle.py --output-dir results/qwen3_moe_eval_bundle_audit
 python scripts/refresh_qwen3_moe_post_eval.py
+```
+
+机制归因需要时再跑 ablation 队列：
+
+```bash
+results/qwen3_moe_eval_budget_plan/run_eval_budget.sh mechanism
 ```
 
 也可以只跑一个方法：
@@ -115,7 +133,7 @@ python scripts/refresh_qwen3_moe_post_eval.py
 results/qwen3_moe_eval_budget_plan/run_eval_budget.sh qwen3_moe_tail_trimmed_expert_only_candidate
 ```
 
-注意：原始 gate 里的 `max_examples=64` 仍是 audit floor；预算版 runner 会用更高的 `--max-examples` 覆盖 eval 命令。runner 默认先检查 manifest、GPU/vLLM/curl 和被请求方法的模型路径；确需跳过前置检查时可以设置 `EVAL_BUDGET_SKIP_PREFLIGHT=1`。HumanEval 数据集上限低于推荐值时，selector 会使用实际落盘的样本数计算区间。
+注意：原始 gate 里的 `max_examples=64` 仍是 audit floor；预算版 runner 会用更高的 `--max-examples` 覆盖 eval 命令。runner 默认请求是 `final`，不是全量 ablation；需要全量时显式运行 `all`。runner 默认先检查 manifest、GPU/vLLM/curl 和被请求方法的模型路径；确需跳过前置检查时可以设置 `EVAL_BUDGET_SKIP_PREFLIGHT=1`。HumanEval 数据集上限低于推荐值时，selector 会使用实际落盘的样本数计算区间。
 
 ## Outputs
 
