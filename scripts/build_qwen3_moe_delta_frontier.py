@@ -74,6 +74,28 @@ DEFAULT_CANDIDATES = [
     },
 ]
 THRESHOLDS = [1.0, 0.75, 0.6505, 0.65, 0.5]
+STRUCTURAL_RISK_COLUMNS = [
+    "total_relative_delta_norm",
+    "routed_relative_delta_norm",
+    "routed_max_tensor_relative_delta",
+    "routed_p99_tensor_relative_delta",
+    "routed_tensors_gt_0_75",
+    "routed_tensors_gt_0_65",
+    "attention_relative_delta_norm",
+    "attention_changed_tensors",
+    "router_changed_tensors",
+]
+STRUCTURAL_DISTANCE_WEIGHTS = {
+    "total_relative_delta_norm": 0.20,
+    "routed_relative_delta_norm": 0.18,
+    "routed_max_tensor_relative_delta": 0.16,
+    "routed_p99_tensor_relative_delta": 0.12,
+    "routed_tensors_gt_0_75": 0.12,
+    "routed_tensors_gt_0_65": 0.12,
+    "attention_relative_delta_norm": 0.04,
+    "attention_changed_tensors": 0.04,
+    "router_changed_tensors": 0.02,
+}
 
 
 def repo_path(path: str | Path) -> Path:
@@ -244,6 +266,129 @@ def build_pairwise(candidate_rows: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def normalized_structural_values(candidate_rows: pd.DataFrame) -> pd.DataFrame:
+    frame = candidate_rows.copy()
+    for column in STRUCTURAL_RISK_COLUMNS:
+        if column not in frame:
+            frame[column] = 0.0
+        frame[column] = pd.to_numeric(frame[column], errors="coerce").fillna(0.0)
+        lo = float(frame[column].min())
+        hi = float(frame[column].max())
+        if hi <= lo + 1e-12:
+            frame[f"{column}_norm"] = 0.0
+        else:
+            frame[f"{column}_norm"] = (frame[column] - lo) / (hi - lo)
+    frame["structural_risk_score"] = 0.0
+    for column, weight in STRUCTURAL_DISTANCE_WEIGHTS.items():
+        frame["structural_risk_score"] += weight * frame[f"{column}_norm"]
+    frame["structural_safety_score"] = (1.0 - frame["structural_risk_score"]).clip(0.0, 1.0)
+    return frame
+
+
+def build_structural_pairwise(candidate_rows: pd.DataFrame) -> pd.DataFrame:
+    frame = normalized_structural_values(
+        candidate_rows[candidate_rows.get("delta_audit_available", True).astype(bool)]
+    )
+    rows = []
+    for _, left in frame.iterrows():
+        for _, right in frame.iterrows():
+            if left["candidate"] == right["candidate"]:
+                continue
+            weighted_distance = 0.0
+            max_component = 0.0
+            for column, weight in STRUCTURAL_DISTANCE_WEIGHTS.items():
+                component = abs(float(left[f"{column}_norm"]) - float(right[f"{column}_norm"]))
+                weighted_distance += weight * component
+                max_component = max(max_component, component)
+            rows.append(
+                {
+                    "from_candidate": left["candidate"],
+                    "to_candidate": right["candidate"],
+                    "from_method": left["method"],
+                    "to_method": right["method"],
+                    "structural_distance": weighted_distance,
+                    "max_normalized_component_distance": max_component,
+                    "from_structural_safety_score": float(left["structural_safety_score"]),
+                    "to_structural_safety_score": float(right["structural_safety_score"]),
+                    "to_minus_from_structural_safety": float(
+                        right["structural_safety_score"] - left["structural_safety_score"]
+                    ),
+                    "total_relative_delta_norm_delta": float(
+                        right["total_relative_delta_norm"] - left["total_relative_delta_norm"]
+                    ),
+                    "routed_relative_delta_norm_delta": float(
+                        right["routed_relative_delta_norm"] - left["routed_relative_delta_norm"]
+                    ),
+                    "routed_max_tensor_relative_delta_delta": float(
+                        right["routed_max_tensor_relative_delta"] - left["routed_max_tensor_relative_delta"]
+                    ),
+                    "routed_gt_0_65_delta": int(right["routed_tensors_gt_0_65"])
+                    - int(left["routed_tensors_gt_0_65"]),
+                    "attention_changed_delta": int(right["attention_changed_tensors"])
+                    - int(left["attention_changed_tensors"]),
+                    "router_changed_delta": int(right["router_changed_tensors"])
+                    - int(left["router_changed_tensors"]),
+                }
+            )
+    return pd.DataFrame(rows).sort_values(
+        ["structural_distance", "from_candidate", "to_candidate"],
+        ascending=[True, True, True],
+    )
+
+
+def dominates_structurally(left: pd.Series, right: pd.Series) -> bool:
+    pairs = [(float(left[column]), float(right[column])) for column in STRUCTURAL_RISK_COLUMNS]
+    return all(left_value <= right_value + 1e-12 for left_value, right_value in pairs) and any(
+        left_value < right_value - 1e-12 for left_value, right_value in pairs
+    )
+
+
+def build_structural_dominance(candidate_rows: pd.DataFrame, structural_pairwise: pd.DataFrame) -> pd.DataFrame:
+    frame = normalized_structural_values(
+        candidate_rows[candidate_rows.get("delta_audit_available", True).astype(bool)]
+    )
+    nearest = (
+        structural_pairwise.sort_values(["from_candidate", "structural_distance"])
+        .groupby("from_candidate", as_index=False)
+        .first()
+        if not structural_pairwise.empty
+        else pd.DataFrame()
+    )
+    rows = []
+    for _, target in frame.iterrows():
+        dominators = []
+        for _, candidate in frame.iterrows():
+            if candidate["candidate"] == target["candidate"]:
+                continue
+            if dominates_structurally(candidate, target):
+                dominators.append(str(candidate["candidate"]))
+        nearest_row = nearest[nearest["from_candidate"] == target["candidate"]]
+        nearest_candidate = None if nearest_row.empty else str(nearest_row.iloc[0]["to_candidate"])
+        nearest_distance = None if nearest_row.empty else float(nearest_row.iloc[0]["structural_distance"])
+        rows.append(
+            {
+                "candidate": target["candidate"],
+                "method": target["method"],
+                "structural_safety_score": float(target["structural_safety_score"]),
+                "structural_risk_score": float(target["structural_risk_score"]),
+                "structurally_dominated": bool(dominators),
+                "dominating_candidates": ",".join(dominators),
+                "nearest_structural_candidate": nearest_candidate,
+                "nearest_structural_distance": nearest_distance,
+                "total_relative_delta_norm": float(target["total_relative_delta_norm"]),
+                "routed_relative_delta_norm": float(target["routed_relative_delta_norm"]),
+                "routed_max_tensor_relative_delta": float(target["routed_max_tensor_relative_delta"]),
+                "routed_tensors_gt_0_65": int(target["routed_tensors_gt_0_65"]),
+                "attention_changed_tensors": int(target["attention_changed_tensors"]),
+                "router_changed_tensors": int(target["router_changed_tensors"]),
+            }
+        )
+    return pd.DataFrame(rows).sort_values(
+        ["structurally_dominated", "structural_safety_score"],
+        ascending=[True, False],
+    )
+
+
 def build_thresholds(candidate_rows: pd.DataFrame) -> pd.DataFrame:
     rows = []
     for _, row in candidate_rows.iterrows():
@@ -285,6 +430,8 @@ def build_layer_frontier(layer_rows: pd.DataFrame) -> pd.DataFrame:
 def build_summary(
     candidate_rows: pd.DataFrame,
     pairwise_rows: pd.DataFrame,
+    structural_pairwise: pd.DataFrame,
+    structural_dominance: pd.DataFrame,
     layer_frontier: pd.DataFrame,
     output_dir: Path,
 ) -> dict[str, Any]:
@@ -333,12 +480,39 @@ def build_summary(
         (pairwise_rows["from_candidate"] == "mechanistic_unified")
         & (pairwise_rows["to_candidate"] == "subspace_scaled")
     ]
+    closest_structural = structural_pairwise.iloc[0] if not structural_pairwise.empty else {}
+    mechanistic_neighbors = structural_pairwise[
+        structural_pairwise["from_candidate"].eq("mechanistic_unified")
+    ]
+    closest_mechanistic_neighbor = mechanistic_neighbors.iloc[0] if not mechanistic_neighbors.empty else {}
+    dominated_rows = structural_dominance[structural_dominance["structurally_dominated"].astype(bool)]
     return {
         "schema_version": 1,
         "status": "delta_frontier_ready",
         "candidate_count": int(len(candidate_rows)),
         "pending_delta_audit_candidate_count": int((~candidate_rows.get("delta_audit_available", True).astype(bool)).sum()),
         "best_delta_safety_candidate": str(best_safety["candidate"]),
+        "structural_dominated_candidate_count": int(len(dominated_rows)),
+        "structural_dominated_candidates": [str(item) for item in dominated_rows["candidate"].tolist()],
+        "closest_structural_pair": None
+        if not isinstance(closest_structural, pd.Series)
+        else {
+            "from_candidate": str(closest_structural["from_candidate"]),
+            "to_candidate": str(closest_structural["to_candidate"]),
+            "structural_distance": float(closest_structural["structural_distance"]),
+            "to_minus_from_structural_safety": float(
+                closest_structural["to_minus_from_structural_safety"]
+            ),
+        },
+        "mechanistic_nearest_structural_candidate": None
+        if not isinstance(closest_mechanistic_neighbor, pd.Series)
+        else str(closest_mechanistic_neighbor["to_candidate"]),
+        "mechanistic_nearest_structural_distance": None
+        if not isinstance(closest_mechanistic_neighbor, pd.Series)
+        else float(closest_mechanistic_neighbor["structural_distance"]),
+        "mechanistic_nearest_structural_safety_delta": None
+        if not isinstance(closest_mechanistic_neighbor, pd.Series)
+        else float(closest_mechanistic_neighbor["to_minus_from_structural_safety"]),
         "router_changed_all_candidates": int(candidate_rows["router_changed_tensors"].sum()),
         "trust_region_total_relative_delta_norm": float(trust["total_relative_delta_norm"]),
         "expert_only_total_relative_delta_norm": float(expert["total_relative_delta_norm"]),
@@ -451,6 +625,8 @@ def build_summary(
             "candidate_frontier": rel(output_dir / "candidate_delta_frontier.csv"),
             "group_frontier": rel(output_dir / "group_delta_frontier.csv"),
             "pairwise_reductions": rel(output_dir / "pairwise_delta_reductions.csv"),
+            "structural_pairwise": rel(output_dir / "structural_pairwise_distances.csv"),
+            "structural_dominance": rel(output_dir / "structural_dominance.csv"),
             "tail_thresholds": rel(output_dir / "tail_thresholds.csv"),
             "layer_frontier": rel(output_dir / "layer_delta_frontier.csv"),
             "summary": rel(output_dir / "summary.json"),
@@ -463,8 +639,11 @@ def build_report(
     summary: dict[str, Any],
     candidate_rows: pd.DataFrame,
     pairwise_rows: pd.DataFrame,
+    structural_pairwise: pd.DataFrame,
+    structural_dominance: pd.DataFrame,
     layer_frontier: pd.DataFrame,
 ) -> str:
+    closest_pair = summary.get("closest_structural_pair") or {}
     lines = [
         "# Qwen3 MoE Delta Frontier Probe",
         "",
@@ -475,6 +654,9 @@ def build_report(
         f"- Candidates: `{summary['candidate_count']}`",
         f"- Pending delta-audit candidates: `{summary['pending_delta_audit_candidate_count']}`",
         f"- Best delta-safety candidate: `{summary['best_delta_safety_candidate']}`",
+        f"- Structurally dominated candidates: `{summary['structural_dominated_candidate_count']}`",
+        f"- Closest structural pair: `{closest_pair.get('from_candidate')}` -> `{closest_pair.get('to_candidate')}` (`{fmt(closest_pair.get('structural_distance'))}`)",
+        f"- Mechanistic nearest structural candidate: `{summary['mechanistic_nearest_structural_candidate']}` (`{fmt(summary['mechanistic_nearest_structural_distance'])}`)",
         f"- Trust-region total relative delta norm: `{fmt(summary['trust_region_total_relative_delta_norm'])}`",
         f"- Expert-only total relative delta norm: `{fmt(summary['expert_only_total_relative_delta_norm'])}`",
         f"- Tail-trimmed total relative delta norm: `{fmt(summary['tail_trimmed_total_relative_delta_norm'])}`",
@@ -542,6 +724,46 @@ def build_report(
     lines.extend(
         [
             "",
+            "## Structural Pairwise Distance",
+            "",
+            "| from | to | distance | safety delta | total delta | routed delta | max routed delta | routed >0.65 delta |",
+            "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for _, row in structural_pairwise.head(16).iterrows():
+        lines.append(
+            "| "
+            f"`{row['from_candidate']}` | `{row['to_candidate']}` | "
+            f"{fmt(float(row['structural_distance']))} | "
+            f"{fmt(float(row['to_minus_from_structural_safety']))} | "
+            f"{fmt(float(row['total_relative_delta_norm_delta']))} | "
+            f"{fmt(float(row['routed_relative_delta_norm_delta']))} | "
+            f"{fmt(float(row['routed_max_tensor_relative_delta_delta']))} | "
+            f"{int(row['routed_gt_0_65_delta'])} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Structural Dominance",
+            "",
+            "| candidate | safety | dominated | dominators | nearest | distance | total rel | routed rel | max routed | routed >0.65 |",
+            "| --- | ---: | --- | --- | --- | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for _, row in structural_dominance.iterrows():
+        lines.append(
+            "| "
+            f"`{row['candidate']}` | {fmt(float(row['structural_safety_score']))} | "
+            f"`{bool(row['structurally_dominated'])}` | `{row['dominating_candidates']}` | "
+            f"`{row['nearest_structural_candidate']}` | {fmt(row['nearest_structural_distance'])} | "
+            f"{fmt(float(row['total_relative_delta_norm']))} | "
+            f"{fmt(float(row['routed_relative_delta_norm']))} | "
+            f"{fmt(float(row['routed_max_tensor_relative_delta']))} | "
+            f"{int(row['routed_tensors_gt_0_65'])} |"
+        )
+    lines.extend(
+        [
+            "",
             "## Highest Trust-Region Layers",
             "",
             "| layer | route rel | trust rel | expert-only rel | route->trust reduction | trust->expert-only reduction |",
@@ -599,13 +821,24 @@ def build_frontier(args: argparse.Namespace) -> dict[str, Any]:
     group_rows = pd.concat(group_frames, ignore_index=True)
     layer_rows = pd.concat(layer_frames, ignore_index=True)
     pairwise_rows = build_pairwise(candidate_rows)
+    structural_pairwise = build_structural_pairwise(candidate_rows)
+    structural_dominance = build_structural_dominance(candidate_rows, structural_pairwise)
     threshold_rows = build_thresholds(candidate_rows)
     layer_frontier = build_layer_frontier(layer_rows)
-    summary = build_summary(candidate_rows, pairwise_rows, layer_frontier, output_dir)
+    summary = build_summary(
+        candidate_rows,
+        pairwise_rows,
+        structural_pairwise,
+        structural_dominance,
+        layer_frontier,
+        output_dir,
+    )
 
     candidate_rows.to_csv(output_dir / "candidate_delta_frontier.csv", index=False)
     group_rows.to_csv(output_dir / "group_delta_frontier.csv", index=False)
     pairwise_rows.to_csv(output_dir / "pairwise_delta_reductions.csv", index=False)
+    structural_pairwise.to_csv(output_dir / "structural_pairwise_distances.csv", index=False)
+    structural_dominance.to_csv(output_dir / "structural_dominance.csv", index=False)
     threshold_rows.to_csv(output_dir / "tail_thresholds.csv", index=False)
     layer_frontier.to_csv(output_dir / "layer_delta_frontier.csv", index=False)
     (output_dir / "summary.json").write_text(
@@ -613,7 +846,7 @@ def build_frontier(args: argparse.Namespace) -> dict[str, Any]:
         encoding="utf-8",
     )
     (output_dir / "report.md").write_text(
-        build_report(summary, candidate_rows, pairwise_rows, layer_frontier),
+        build_report(summary, candidate_rows, pairwise_rows, structural_pairwise, structural_dominance, layer_frontier),
         encoding="utf-8",
     )
     return summary

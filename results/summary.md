@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-20T10:06:04.938461+00:00`
+Generated at: `2026-06-20T10:18:41.999318+00:00`
 
 ## Coverage
 
@@ -196,6 +196,7 @@ Complete: `92`; partial: `1`; missing: `0`.
 | Qwen3 MoE layer/chunk delta audit | status / total relative norm / router changed | passed / 0.243 / 0/48 |
 | Qwen3 MoE layer/chunk delta audit | max routed rel-delta / >0.75 / >0.65 / >0.6505 | 0.650 / 0 / 89 / 0 |
 | Qwen3 MoE delta frontier | best safety candidate / next required gate | mechanistic_unified / vllm_downstream_eval_trust_region_vs_expert_only_tail_trimmed_vs_searched_cap_law_vs_layer_chunk_vs_unified_vs_mechanistic_vs_subspace_scaled |
+| Qwen3 MoE delta frontier | structural dominated / mechanistic nearest / distance | 8 / unified_mechanism / 0.021 |
 | Qwen3 MoE delta frontier | audit->trust routed >0.75 reduction / trust->expert-only routed >0.75 reduction | 150 / 0 |
 | Qwen3 MoE delta frontier | trust vs expert-only total rel-norm / attention norm reduction | 0.249->0.246 / 0.189 |
 | Qwen3 MoE delta frontier | expert-only->tail-trimmed rel-norm reduction / routed >0.65 reduction | 0.003 / 286 |
@@ -216,12 +217,13 @@ Complete: `92`; partial: `1`; missing: `0`.
 | Qwen3 MoE eval budget plan | Wilson n / paired n / capped tasks | 381 / 248 / humaneval_compile |
 | Qwen3 MoE eval budget plan | task manifest aligned / canonical manifest | 14/14 / results/qwen3_moe_mechanism_eval_gate/task_manifest.json |
 | Qwen3 MoE adaptive eval schedule | status / top action / top method | adaptive_schedule_ready / run_or_extend_source_control_probe / source_qwen3_30b_instruct |
-| Qwen3 MoE adaptive eval schedule | source controls / round1 probes / probe->full examples | False / 5 / 64 -> 384 |
-| Qwen3 MoE adaptive eval schedule | runnable methods / prompt budget / round1 probe prompts | 7 / 1536 / 1024 |
-| Qwen3 MoE adaptive eval schedule | round1 policy / covered mechanism tests | greedy_mechanism_coverage_then_priority / 5 |
+| Qwen3 MoE adaptive eval schedule | source controls / round1 probes / probe->full examples | False / 6 / 64 -> 384 |
+| Qwen3 MoE adaptive eval schedule | runnable methods / prompt budget / round1 probe prompts | 8 / 1664 / 1152 |
+| Qwen3 MoE adaptive eval schedule | round1 policy / covered mechanism tests | greedy_mechanism_coverage_then_priority / 6 |
 | Qwen3 MoE adaptive eval schedule | structural frontier / best structural method / score | True / qwen3_moe_mechanistic_unified_candidate / 0.993 |
+| Qwen3 MoE adaptive eval schedule | structural dominance / frontier members / dominated methods | True / 2 / 8 |
 | Qwen3 MoE adaptive eval schedule | paired gate status counts / alpha | {'awaiting_source_controls': 10, 'source_control': 2, 'checkpoint_missing': 2} / 0.050 |
-| Qwen3 MoE adaptive eval schedule smoke | status / assertions | passed / 15/15 |
+| Qwen3 MoE adaptive eval schedule smoke | status / assertions | passed / 17/17 |
 | Qwen3 MoE eval manifest preflight | status / tasks sufficient / methods aligned | task_manifest_ready / 4/4 / 14/14 |
 | Qwen3 MoE eval budget plan | router active / ready / pending / plan-pruned caps | 2 / 0 / 2 / 2 |
 | Qwen3 MoE mechanism levers | top lever / priority / next test | source_and_candidate_downstream_eval / 0.98 / results/qwen3_moe_eval_budget_plan/run_eval_budget.sh all |

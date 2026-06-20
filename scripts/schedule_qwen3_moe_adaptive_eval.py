@@ -208,6 +208,37 @@ def structural_frontier_features(delta_frontier: pd.DataFrame) -> dict[str, dict
     return out
 
 
+def structural_dominance_features(structural_dominance: pd.DataFrame) -> dict[str, dict[str, Any]]:
+    if structural_dominance.empty or "method" not in structural_dominance:
+        return {}
+    out: dict[str, dict[str, Any]] = {}
+    for _, row in structural_dominance.iterrows():
+        method = str(row["method"])
+        dominated = bool_value(row.get("structurally_dominated"))
+        dominators = str(clean_value(row.get("dominating_candidates")) or "")
+        nearest = str(clean_value(row.get("nearest_structural_candidate")) or "")
+        nearest_distance = maybe_float(row.get("nearest_structural_distance"))
+        reason_parts = []
+        if dominated:
+            reason_parts.append(f"dominated_by={dominators or 'unknown'}")
+        else:
+            reason_parts.append("structural_frontier_member")
+        if nearest:
+            nearest_text = nearest
+            if nearest_distance is not None:
+                nearest_text += f"@{nearest_distance:.4f}"
+            reason_parts.append(f"nearest={nearest_text}")
+        out[method] = {
+            "structural_frontier_member": not dominated,
+            "structurally_dominated": dominated,
+            "structural_dominating_candidates": dominators,
+            "nearest_structural_candidate": nearest,
+            "nearest_structural_distance": nearest_distance,
+            "structural_dominance_reason": "; ".join(reason_parts),
+        }
+    return out
+
+
 def cli_arg_value(command: str, option: str) -> str | None:
     if not command:
         return None
@@ -557,9 +588,26 @@ def mechanism_priority(row: pd.Series, mechanism_budget: pd.DataFrame) -> float:
     reference_bonus = min(0.12, 0.03 * mechanism_reference_count(mechanism_budget, method))
     structural_score = maybe_float(row.get("structural_safety_score"))
     structural_bonus = 0.0 if structural_score is None else 0.16 * (structural_score - 0.50)
+    frontier_bonus = 0.06 if bool_value(row.get("structural_frontier_member", False)) else 0.0
+    dominated_penalty = 0.0
+    if bool_value(row.get("structurally_dominated", False)):
+        referenced_tests = mechanism_tests_for_method(mechanism_budget, method)
+        dominated_penalty = 0.08 if len(referenced_tests) <= 1 else 0.04
     missing_penalty = 0.20 if not checkpoint_ready(row) else 0.0
     pruned_penalty = 0.25 if bool_value(row.get("plan_level_pruned", False)) else 0.0
-    return round(max(0.0, manual + reference_bonus + structural_bonus - missing_penalty - pruned_penalty), 4)
+    return round(
+        max(
+            0.0,
+            manual
+            + reference_bonus
+            + structural_bonus
+            + frontier_bonus
+            - dominated_penalty
+            - missing_penalty
+            - pruned_penalty,
+        ),
+        4,
+    )
 
 
 def max_task_regression(candidate: pd.Series, frontier: dict[str, float | None]) -> float | None:
@@ -809,14 +857,22 @@ def candidate_decision(
     }
 
 
-def enrich_budget(method_budget: pd.DataFrame, delta_frontier: pd.DataFrame | None = None) -> pd.DataFrame:
+def enrich_budget(
+    method_budget: pd.DataFrame,
+    delta_frontier: pd.DataFrame | None = None,
+    structural_dominance: pd.DataFrame | None = None,
+) -> pd.DataFrame:
     structural_features = structural_frontier_features(delta_frontier if delta_frontier is not None else pd.DataFrame())
+    dominance_features = structural_dominance_features(
+        structural_dominance if structural_dominance is not None else pd.DataFrame()
+    )
     rows = []
     for _, row in method_budget.iterrows():
         item = row.to_dict()
         scores = row_scores(row)
         item.update(scores)
         item.update(structural_features.get(str(item.get("method")), {}))
+        item.update(dominance_features.get(str(item.get("method")), {}))
         rows.append(item)
     return pd.DataFrame(rows)
 
@@ -826,6 +882,7 @@ def build_schedule(
     mechanism_budget: pd.DataFrame,
     *,
     delta_frontier: pd.DataFrame | None = None,
+    structural_dominance: pd.DataFrame | None = None,
     probe_examples: int,
     full_examples: int,
     max_round1_candidates: int,
@@ -834,7 +891,7 @@ def build_schedule(
     paired_loss_tolerance_rate: float,
     paired_alpha: float,
 ) -> tuple[pd.DataFrame, pd.DataFrame, dict[str, Any]]:
-    budget = enrich_budget(method_budget, delta_frontier)
+    budget = enrich_budget(method_budget, delta_frontier, structural_dominance)
     if budget.empty:
         raise ValueError("method budget is empty")
     budget["mechanism_priority"] = budget.apply(lambda row: mechanism_priority(row, mechanism_budget), axis=1)
@@ -899,6 +956,12 @@ def build_schedule(
                 "structural_attention_changed_tensors": row.get("structural_attention_changed_tensors"),
                 "structural_router_changed_tensors": row.get("structural_router_changed_tensors"),
                 "structural_reason": row.get("structural_reason") or "",
+                "structural_frontier_member": row.get("structural_frontier_member"),
+                "structurally_dominated": row.get("structurally_dominated"),
+                "structural_dominating_candidates": row.get("structural_dominating_candidates") or "",
+                "nearest_structural_candidate": row.get("nearest_structural_candidate") or "",
+                "nearest_structural_distance": row.get("nearest_structural_distance"),
+                "structural_dominance_reason": row.get("structural_dominance_reason") or "",
                 "selected_for_round1_probe": method in selected_probe_methods,
                 "round1_selection_policy": coverage_summary["round1_selection_policy"]
                 if method in selected_probe_methods
@@ -1019,6 +1082,20 @@ def build_schedule(
         "structural_frontier_available": bool(not structural_rows.empty),
         "best_structural_method": best_structural_method,
         "best_structural_safety_score": best_structural_score,
+        "structural_dominance_available": bool(
+            "structurally_dominated" in schedule
+            and schedule["structurally_dominated"].map(lambda value: clean_value(value) is not None).any()
+        ),
+        "structural_frontier_member_count": int(
+            schedule["structural_frontier_member"].map(bool_value).sum()
+        )
+        if "structural_frontier_member" in schedule
+        else 0,
+        "structurally_dominated_method_count": int(
+            schedule["structurally_dominated"].map(bool_value).sum()
+        )
+        if "structurally_dominated" in schedule
+        else 0,
         "round1_probe_task_budget": int(round1_rows["recommended_prompt_budget"].sum()),
         "runnable_prompt_budget": int(runnable_rows["recommended_prompt_budget"].sum()),
         "runnable_method_count": int(len(runnable_rows)),
@@ -1122,14 +1199,17 @@ def build_report(summary: dict[str, Any], schedule: pd.DataFrame, mechanism_sche
         f"- Structural frontier available: `{summary['structural_frontier_available']}`",
         f"- Best structural method: `{summary['best_structural_method']}`",
         f"- Best structural safety score: `{fmt(summary['best_structural_safety_score'])}`",
+        f"- Structural dominance available: `{summary['structural_dominance_available']}`",
+        f"- Structural frontier members: `{summary['structural_frontier_member_count']}`",
+        f"- Structurally dominated methods: `{summary['structurally_dominated_method_count']}`",
         f"- Round-1 probe prompt budget: `{summary['round1_probe_task_budget']}`",
         f"- Runnable prompt budget now: `{summary['runnable_prompt_budget']}`",
         f"- Top action: `{summary['top_eval_action']}` for `{summary['top_method']}`",
         "",
         "## Method Schedule",
         "",
-        "| rank | method | action | status | tasks | examples | prompts | priority | structure | covered tests | paired gate | paired net | paired p | reason |",
-        "| ---: | --- | --- | --- | --- | ---: | ---: | ---: | ---: | --- | --- | ---: | ---: | --- |",
+        "| rank | method | action | status | tasks | examples | prompts | priority | structure | frontier | dominated | covered tests | paired gate | paired net | paired p | reason |",
+        "| ---: | --- | --- | --- | --- | ---: | ---: | ---: | ---: | --- | --- | --- | --- | ---: | ---: | --- |",
     ]
     for _, row in schedule.iterrows():
         paired_net = row["paired_net_delta"]
@@ -1138,11 +1218,13 @@ def build_report(summary: dict[str, Any], schedule: pd.DataFrame, mechanism_sche
         paired_p_text = "" if clean_value(paired_p) is None else f"{float(paired_p):.4f}"
         structural = clean_value(row.get("structural_safety_score"))
         structural_text = "" if structural is None else f"{float(structural):.3f}"
+        frontier_text = "" if clean_value(row.get("structural_frontier_member")) is None else str(bool_value(row.get("structural_frontier_member")))
+        dominated_text = "" if clean_value(row.get("structurally_dominated")) is None else str(bool_value(row.get("structurally_dominated")))
         lines.append(
             f"| {int(row['schedule_rank'])} | `{row['method']}` | `{row['eval_action']}` | "
             f"`{row['decision_status']}` | `{row['recommended_tasks']}` | "
             f"{int(row['recommended_max_examples'])} | {int(row['recommended_prompt_budget'])} | "
-            f"{float(row['mechanism_priority']):.3f} | {structural_text} | `{row['covered_mechanism_tests']}` | "
+            f"{float(row['mechanism_priority']):.3f} | {structural_text} | `{frontier_text}` | `{dominated_text}` | `{row['covered_mechanism_tests']}` | "
             f"`{row['paired_gate_status']}` | "
             f"{paired_net_text} | {paired_p_text} | {row['decision_reason']} |"
         )
@@ -1156,13 +1238,16 @@ def build_report(summary: dict[str, Any], schedule: pd.DataFrame, mechanism_sche
                 "",
                 "## Structural Frontier",
                 "",
-                "| method | score | structural reason |",
-                "| --- | ---: | --- |",
+                "| method | score | frontier | dominated | dominance reason | structural reason |",
+                "| --- | ---: | --- | --- | --- | --- |",
             ]
         )
         for _, row in structural_rows.sort_values("_score", ascending=False).head(10).iterrows():
             lines.append(
-                f"| `{row['method']}` | {float(row['_score']):.3f} | {row['structural_reason']} |"
+                f"| `{row['method']}` | {float(row['_score']):.3f} | "
+                f"`{bool_value(row.get('structural_frontier_member'))}` | "
+                f"`{bool_value(row.get('structurally_dominated'))}` | "
+                f"{row.get('structural_dominance_reason') or ''} | {row['structural_reason']} |"
             )
     lines.extend(
         [
@@ -1369,6 +1454,7 @@ def run_smoke(args: argparse.Namespace) -> None:
             method_budget,
             mechanism_budget,
             delta_frontier=pd.DataFrame(),
+            structural_dominance=pd.DataFrame(),
             probe_examples=args.probe_examples,
             full_examples=args.full_examples,
             max_round1_candidates=args.max_round1_candidates,
@@ -1460,6 +1546,7 @@ def run_smoke(args: argparse.Namespace) -> None:
         coverage_method_budget,
         coverage_mechanism_budget,
         delta_frontier=pd.DataFrame(),
+        structural_dominance=pd.DataFrame(),
         probe_examples=args.probe_examples,
         full_examples=args.full_examples,
         max_round1_candidates=2,
@@ -1499,6 +1586,140 @@ def run_smoke(args: argparse.Namespace) -> None:
             "expected": "gsm8k,humaneval_compile",
             "actual": str(subspace_row["recommended_tasks"]),
             "passed": str(subspace_row["recommended_tasks"]) == "gsm8k,humaneval_compile",
+        }
+    )
+    dominance_method_budget = pd.DataFrame(
+        [
+            {
+                "gate_order": 0,
+                "method": "source_qwen3_30b_instruct",
+                "role": "source",
+                "checkpoint_exists": True,
+                "serve_status": "ready_to_host",
+                "avg_primary_score": 0.70,
+                "worst_primary_score": 0.50,
+                "task_gsm8k_score": 0.70,
+                "task_mmlu_score": 0.70,
+                "task_safety_score": 0.70,
+                "task_humaneval_compile_score": 0.50,
+                "observed_examples_min": 64,
+            },
+            {
+                "gate_order": 1,
+                "method": "source_qwen3_30b_coder",
+                "role": "source",
+                "checkpoint_exists": True,
+                "serve_status": "ready_to_host",
+                "avg_primary_score": 0.70,
+                "worst_primary_score": 0.50,
+                "task_gsm8k_score": 0.70,
+                "task_mmlu_score": 0.70,
+                "task_safety_score": 0.70,
+                "task_humaneval_compile_score": 0.50,
+                "observed_examples_min": 64,
+            },
+            {
+                "gate_order": 2,
+                "method": "qwen3_moe_unified_mechanism_candidate",
+                "role": "candidate",
+                "checkpoint_exists": True,
+                "serve_status": "ready_to_host",
+            },
+            {
+                "gate_order": 3,
+                "method": "qwen3_moe_subspace_scaled_candidate",
+                "role": "candidate",
+                "checkpoint_exists": True,
+                "serve_status": "ready_to_host",
+            },
+        ]
+    )
+    dominance_delta = pd.DataFrame(
+        [
+            {
+                "method": "qwen3_moe_unified_mechanism_candidate",
+                "total_relative_delta_norm": 0.240,
+                "routed_relative_delta_norm": 0.249,
+                "routed_max_tensor_relative_delta": 0.644,
+                "routed_tensors_gt_0_65": 0,
+                "routed_tensors_gt_0_75": 0,
+                "attention_changed_tensors": 0,
+                "router_changed_tensors": 0,
+            },
+            {
+                "method": "qwen3_moe_subspace_scaled_candidate",
+                "total_relative_delta_norm": 0.239,
+                "routed_relative_delta_norm": 0.248,
+                "routed_max_tensor_relative_delta": 0.623,
+                "routed_tensors_gt_0_65": 0,
+                "routed_tensors_gt_0_75": 0,
+                "attention_changed_tensors": 0,
+                "router_changed_tensors": 0,
+            },
+        ]
+    )
+    dominance_table = pd.DataFrame(
+        [
+            {
+                "method": "qwen3_moe_unified_mechanism_candidate",
+                "structurally_dominated": True,
+                "dominating_candidates": "subspace_scaled",
+                "nearest_structural_candidate": "subspace_scaled",
+                "nearest_structural_distance": 0.015,
+            },
+            {
+                "method": "qwen3_moe_subspace_scaled_candidate",
+                "structurally_dominated": False,
+                "dominating_candidates": "",
+                "nearest_structural_candidate": "unified_mechanism",
+                "nearest_structural_distance": 0.015,
+            },
+        ]
+    )
+    dominance_schedule, _, _ = build_schedule(
+        dominance_method_budget,
+        pd.DataFrame(),
+        delta_frontier=dominance_delta,
+        structural_dominance=dominance_table,
+        probe_examples=args.probe_examples,
+        full_examples=args.full_examples,
+        max_round1_candidates=1,
+        close_margin=args.close_margin,
+        task_regression_margin=args.task_regression_margin,
+        paired_loss_tolerance_rate=args.paired_loss_tolerance_rate,
+        paired_alpha=args.paired_alpha,
+    )
+    dominance_selected = set(
+        dominance_schedule.loc[dominance_schedule["selected_for_round1_probe"].astype(bool), "method"].astype(str)
+    )
+    unified_priority = float(
+        dominance_schedule.loc[
+            dominance_schedule["method"] == "qwen3_moe_unified_mechanism_candidate",
+            "mechanism_priority",
+        ].iloc[0]
+    )
+    subspace_priority = float(
+        dominance_schedule.loc[
+            dominance_schedule["method"] == "qwen3_moe_subspace_scaled_candidate",
+            "mechanism_priority",
+        ].iloc[0]
+    )
+    rows.append(
+        {
+            "case": "dominance_frontier_priority",
+            "assertion": "non_dominated_selected",
+            "expected": "True",
+            "actual": str("qwen3_moe_subspace_scaled_candidate" in dominance_selected),
+            "passed": "qwen3_moe_subspace_scaled_candidate" in dominance_selected,
+        }
+    )
+    rows.append(
+        {
+            "case": "dominance_frontier_priority",
+            "assertion": "non_dominated_priority_gt_dominated",
+            "expected": "True",
+            "actual": str(subspace_priority > unified_priority),
+            "passed": subspace_priority > unified_priority,
         }
     )
     matrix = pd.DataFrame(rows)
@@ -1554,10 +1775,15 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=Path("results/qwen3_moe_delta_frontier/candidate_delta_frontier.csv"),
     )
+    parser.add_argument(
+        "--structural-dominance",
+        type=Path,
+        default=Path("results/qwen3_moe_delta_frontier/structural_dominance.csv"),
+    )
     parser.add_argument("--output-dir", type=Path, default=Path("results/qwen3_moe_adaptive_eval_schedule"))
     parser.add_argument("--probe-examples", type=int, default=64)
     parser.add_argument("--full-examples", type=int, default=384)
-    parser.add_argument("--max-round1-candidates", type=int, default=5)
+    parser.add_argument("--max-round1-candidates", type=int, default=6)
     parser.add_argument("--close-margin", type=float, default=0.02)
     parser.add_argument("--task-regression-margin", type=float, default=0.05)
     parser.add_argument("--paired-loss-tolerance-rate", type=float, default=0.0)
@@ -1574,10 +1800,12 @@ def main() -> None:
     method_budget = read_csv(args.method_budget)
     mechanism_budget = read_csv(args.mechanism_budget)
     delta_frontier = read_csv(args.delta_frontier)
+    structural_dominance = read_csv(args.structural_dominance)
     schedule, mechanism_schedule, summary = build_schedule(
         method_budget,
         mechanism_budget,
         delta_frontier=delta_frontier,
+        structural_dominance=structural_dominance,
         probe_examples=args.probe_examples,
         full_examples=args.full_examples,
         max_round1_candidates=args.max_round1_candidates,

@@ -7,6 +7,9 @@
 - Candidates: `10`
 - Pending delta-audit candidates: `0`
 - Best delta-safety candidate: `mechanistic_unified`
+- Structurally dominated candidates: `8`
+- Closest structural pair: `layer_chunk` -> `tail_trimmed` (`0.004`)
+- Mechanistic nearest structural candidate: `unified_mechanism` (`0.021`)
 - Trust-region total relative delta norm: `0.249`
 - Expert-only total relative delta norm: `0.246`
 - Tail-trimmed total relative delta norm: `0.243`
@@ -61,6 +64,42 @@
 | `unified_mechanism` | `mechanistic_unified` | 0.002 | 0.002 | 0.000 | 0 | 0 | 0 |
 | `mechanistic_unified` | `subspace_scaled` | -0.001 | -0.001 | 0.000 | 0 | 0 | 0 |
 
+## Structural Pairwise Distance
+
+| from | to | distance | safety delta | total delta | routed delta | max routed delta | routed >0.65 delta |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `layer_chunk` | `tail_trimmed` | 0.004 | 0.003 | -0.000 | -0.000 | 0.000 | -9 |
+| `tail_trimmed` | `layer_chunk` | 0.004 | -0.003 | 0.000 | 0.000 | -0.000 | 9 |
+| `subspace_scaled` | `unified_mechanism` | 0.015 | -0.015 | 0.001 | 0.001 | 0.020 | 0 |
+| `unified_mechanism` | `subspace_scaled` | 0.015 | 0.015 | -0.001 | -0.001 | -0.020 | 0 |
+| `mechanistic_unified` | `unified_mechanism` | 0.021 | -0.014 | 0.002 | 0.002 | -0.005 | 0 |
+| `unified_mechanism` | `mechanistic_unified` | 0.021 | 0.014 | -0.002 | -0.002 | 0.005 | 0 |
+| `mechanistic_unified` | `subspace_scaled` | 0.022 | 0.001 | 0.001 | 0.001 | -0.026 | 0 |
+| `subspace_scaled` | `mechanistic_unified` | 0.022 | -0.001 | -0.001 | -0.001 | 0.026 | 0 |
+| `tail_trimmed` | `unified_mechanism` | 0.043 | 0.043 | -0.003 | -0.003 | -0.006 | -80 |
+| `unified_mechanism` | `tail_trimmed` | 0.043 | -0.043 | 0.003 | 0.003 | 0.006 | 80 |
+| `layer_chunk` | `unified_mechanism` | 0.045 | 0.045 | -0.003 | -0.003 | -0.006 | -89 |
+| `unified_mechanism` | `layer_chunk` | 0.045 | -0.045 | 0.003 | 0.003 | 0.006 | 89 |
+| `layer_chunk` | `searched_no_gt065` | 0.052 | -0.052 | 0.004 | 0.004 | 0.000 | 156 |
+| `searched_no_gt065` | `layer_chunk` | 0.052 | 0.052 | -0.004 | -0.004 | -0.000 | -156 |
+| `searched_no_gt065` | `tail_trimmed` | 0.055 | 0.055 | -0.004 | -0.005 | 0.000 | -165 |
+| `tail_trimmed` | `searched_no_gt065` | 0.055 | -0.055 | 0.004 | 0.005 | -0.000 | 165 |
+
+## Structural Dominance
+
+| candidate | safety | dominated | dominators | nearest | distance | total rel | routed rel | max routed | routed >0.65 |
+| --- | ---: | --- | --- | --- | ---: | ---: | ---: | ---: | ---: |
+| `subspace_scaled` | 0.989 | `False` | `` | `unified_mechanism` | 0.015 | 0.240 | 0.248 | 0.623 | 0 |
+| `mechanistic_unified` | 0.989 | `False` | `` | `unified_mechanism` | 0.021 | 0.238 | 0.246 | 0.649 | 0 |
+| `unified_mechanism` | 0.974 | `True` | `subspace_scaled` | `subspace_scaled` | 0.015 | 0.240 | 0.249 | 0.644 | 0 |
+| `tail_trimmed` | 0.931 | `True` | `unified_mechanism,mechanistic_unified,subspace_scaled` | `layer_chunk` | 0.004 | 0.243 | 0.252 | 0.650 | 80 |
+| `layer_chunk` | 0.929 | `True` | `unified_mechanism,mechanistic_unified,subspace_scaled` | `tail_trimmed` | 0.004 | 0.243 | 0.252 | 0.650 | 89 |
+| `searched_no_gt065` | 0.877 | `True` | `layer_chunk,unified_mechanism,mechanistic_unified,subspace_scaled` | `layer_chunk` | 0.052 | 0.248 | 0.256 | 0.650 | 245 |
+| `expert_only` | 0.839 | `True` | `tail_trimmed,layer_chunk,unified_mechanism,mechanistic_unified,subspace_scaled` | `searched_no_gt065` | 0.063 | 0.246 | 0.255 | 0.750 | 366 |
+| `trust_region` | 0.748 | `True` | `expert_only,tail_trimmed,layer_chunk,unified_mechanism,mechanistic_unified,subspace_scaled` | `expert_only` | 0.091 | 0.249 | 0.255 | 0.750 | 366 |
+| `audit_gated` | 0.503 | `True` | `trust_region,expert_only,tail_trimmed,searched_no_gt065,layer_chunk,unified_mechanism,mechanistic_unified,subspace_scaled` | `trust_region` | 0.245 | 0.264 | 0.270 | 0.750 | 1146 |
+| `route_guarded` | 0.020 | `True` | `audit_gated,trust_region,expert_only,tail_trimmed,searched_no_gt065,layer_chunk,unified_mechanism,mechanistic_unified,subspace_scaled` | `audit_gated` | 0.483 | 0.286 | 0.293 | 1.327 | 1156 |
+
 ## Highest Trust-Region Layers
 
 | layer | route rel | trust rel | expert-only rel | route->trust reduction | trust->expert-only reduction |
@@ -89,6 +128,8 @@ Trust-region rules control the routed-expert delta tail; expert-only freezes att
 - `candidate_frontier`: `results/qwen3_moe_delta_frontier/candidate_delta_frontier.csv`
 - `group_frontier`: `results/qwen3_moe_delta_frontier/group_delta_frontier.csv`
 - `pairwise_reductions`: `results/qwen3_moe_delta_frontier/pairwise_delta_reductions.csv`
+- `structural_pairwise`: `results/qwen3_moe_delta_frontier/structural_pairwise_distances.csv`
+- `structural_dominance`: `results/qwen3_moe_delta_frontier/structural_dominance.csv`
 - `tail_thresholds`: `results/qwen3_moe_delta_frontier/tail_thresholds.csv`
 - `layer_frontier`: `results/qwen3_moe_delta_frontier/layer_delta_frontier.csv`
 - `summary`: `results/qwen3_moe_delta_frontier/summary.json`

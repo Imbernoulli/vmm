@@ -1222,12 +1222,28 @@ def summarize_qwen3_moe_delta_frontier() -> dict[str, Any]:
     summary = read_json(root / "summary.json")
     candidates = read_csv(root / "candidate_delta_frontier.csv")
     pairwise = read_csv(root / "pairwise_delta_reductions.csv")
+    structural_pairwise = read_csv(root / "structural_pairwise_distances.csv")
+    structural_dominance = read_csv(root / "structural_dominance.csv")
     thresholds = read_csv(root / "tail_thresholds.csv")
     return {
         "summary": summary,
         "status": summary.get("status"),
         "candidate_count": int(summary.get("candidate_count", len(candidates))),
         "best_delta_safety_candidate": summary.get("best_delta_safety_candidate"),
+        "structural_dominated_candidate_count": int(
+            summary.get("structural_dominated_candidate_count", 0)
+        ),
+        "structural_dominated_candidates": summary.get("structural_dominated_candidates", []),
+        "closest_structural_pair": summary.get("closest_structural_pair"),
+        "mechanistic_nearest_structural_candidate": summary.get(
+            "mechanistic_nearest_structural_candidate"
+        ),
+        "mechanistic_nearest_structural_distance": maybe_float(
+            summary.get("mechanistic_nearest_structural_distance")
+        ),
+        "mechanistic_nearest_structural_safety_delta": maybe_float(
+            summary.get("mechanistic_nearest_structural_safety_delta")
+        ),
         "trust_region_total_relative_delta_norm": maybe_float(
             summary.get("trust_region_total_relative_delta_norm")
         ),
@@ -1358,11 +1374,15 @@ def summarize_qwen3_moe_delta_frontier() -> dict[str, Any]:
         "next_required_gate": summary.get("next_required_gate"),
         "candidate_rows": [clean_row(row) for _, row in candidates.iterrows()],
         "pairwise_rows": [clean_row(row) for _, row in pairwise.iterrows()],
+        "structural_pairwise_rows": [clean_row(row) for _, row in structural_pairwise.iterrows()],
+        "structural_dominance_rows": [clean_row(row) for _, row in structural_dominance.iterrows()],
         "threshold_rows": [clean_row(row) for _, row in thresholds.iterrows()],
         "report": rel(root / "report.md"),
         "candidate_frontier": rel(root / "candidate_delta_frontier.csv"),
         "group_frontier": rel(root / "group_delta_frontier.csv"),
         "pairwise_reductions": rel(root / "pairwise_delta_reductions.csv"),
+        "structural_pairwise": rel(root / "structural_pairwise_distances.csv"),
+        "structural_dominance": rel(root / "structural_dominance.csv"),
         "tail_thresholds": rel(root / "tail_thresholds.csv"),
         "layer_frontier": rel(root / "layer_delta_frontier.csv"),
         "summary_path": rel(root / "summary.json"),
@@ -1503,6 +1523,9 @@ def summarize_qwen3_moe_adaptive_eval_schedule() -> dict[str, Any]:
         "structural_frontier_available": bool(summary.get("structural_frontier_available", False)),
         "best_structural_method": summary.get("best_structural_method"),
         "best_structural_safety_score": maybe_float(summary.get("best_structural_safety_score")),
+        "structural_dominance_available": bool(summary.get("structural_dominance_available", False)),
+        "structural_frontier_member_count": maybe_int(summary.get("structural_frontier_member_count")),
+        "structurally_dominated_method_count": maybe_int(summary.get("structurally_dominated_method_count")),
         "round1_probe_task_budget": maybe_int(summary.get("round1_probe_task_budget")),
         "runnable_prompt_budget": maybe_int(summary.get("runnable_prompt_budget")),
         "runnable_method_count": maybe_int(summary.get("runnable_method_count")),
@@ -5615,6 +5638,12 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_delta_frontier['next_required_gate']} |"
             ),
             (
+                "| Qwen3 MoE delta frontier | structural dominated / mechanistic nearest / distance | "
+                f"{qwen3_moe_delta_frontier['structural_dominated_candidate_count']} / "
+                f"{qwen3_moe_delta_frontier['mechanistic_nearest_structural_candidate']} / "
+                f"{fmt(qwen3_moe_delta_frontier['mechanistic_nearest_structural_distance'])} |"
+            ),
+            (
                 "| Qwen3 MoE delta frontier | audit->trust routed >0.75 reduction / trust->expert-only routed >0.75 reduction | "
                 f"{qwen3_moe_delta_frontier['audit_to_trust_routed_gt_075_reduction']} / "
                 f"{qwen3_moe_delta_frontier['trust_to_expert_only_routed_gt_075_reduction']} |"
@@ -5754,6 +5783,12 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_adaptive_eval_schedule['structural_frontier_available']} / "
                 f"{qwen3_moe_adaptive_eval_schedule['best_structural_method']} / "
                 f"{fmt(qwen3_moe_adaptive_eval_schedule['best_structural_safety_score'])} |"
+            ),
+            (
+                "| Qwen3 MoE adaptive eval schedule | structural dominance / frontier members / dominated methods | "
+                f"{qwen3_moe_adaptive_eval_schedule['structural_dominance_available']} / "
+                f"{qwen3_moe_adaptive_eval_schedule['structural_frontier_member_count']} / "
+                f"{qwen3_moe_adaptive_eval_schedule['structurally_dominated_method_count']} |"
             ),
             (
                 "| Qwen3 MoE adaptive eval schedule | paired gate status counts / alpha | "

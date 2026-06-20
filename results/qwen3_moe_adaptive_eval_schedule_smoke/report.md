@@ -1,7 +1,7 @@
 # Qwen3 MoE Adaptive Eval Schedule Smoke
 
 - Status: `passed`
-- Assertions: `15/15`
+- Assertions: `17/17`
 
 | case | assertion | expected | actual | passed |
 | --- | --- | --- | --- | --- |
@@ -20,3 +20,5 @@
 | `coverage_selects_complement` | `subspace_selected_for_coverage` | `True` | `True` | `True` |
 | `coverage_selects_complement` | `covered_mechanism_test_count` | `2` | `2` | `True` |
 | `coverage_selects_complement` | `subspace_probe_tasks` | `gsm8k,humaneval_compile` | `gsm8k,humaneval_compile` | `True` |
+| `dominance_frontier_priority` | `non_dominated_selected` | `True` | `True` | `True` |
+| `dominance_frontier_priority` | `non_dominated_priority_gt_dominated` | `True` | `True` | `True` |
