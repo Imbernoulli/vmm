@@ -4,13 +4,14 @@
 
 - Status: `planned`
 - Plan only: `True`
-- Steps passed: `0/13`
+- Steps passed: `0/14`
 - Audit: `n/a` (`n/a/n/a` usable)
 - Selection: `n/a` -> `n/a`
 - Final selection: `n/a` -> `n/a` (`n/a/n/a` eligible)
 - Attribution: `n/a` (`n/a/n/a` scored)
 - Feedback optimizer: `n/a` (`n/a/n/a` scored, `n/a` changed groups)
 - Mechanistic unified: `n/a` -> `n/a` (`retention=n/a`, `violations=n/a`)
+- Mechanistic evidence: `n/a` (`gradient_agreement=n/a`, `objective_improved=n/a`)
 
 | step | kind | status | returncode | seconds |
 | --- | --- | --- | ---: | ---: |
@@ -20,6 +21,7 @@
 | `attribute_mechanism_effects` | `attribution` | `planned` | None | 0.00 |
 | `build_feedback_optimizer` | `optimizer` | `planned` | None | 0.00 |
 | `build_mechanistic_unified_candidate` | `optimizer` | `planned` | None | 0.00 |
+| `audit_mechanistic_evidence` | `attribution` | `planned` | None | 0.00 |
 | `audit_eval_bundles_smoke` | `smoke` | `planned` | None | 0.00 |
 | `select_unified_result_smoke` | `smoke` | `planned` | None | 0.00 |
 | `select_final_candidate_smoke` | `smoke` | `planned` | None | 0.00 |
@@ -36,6 +38,7 @@
 - `python scripts/attribute_qwen3_moe_mechanism_effects.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_mechanism_effect_attribution`
 - `python scripts/build_qwen3_moe_feedback_optimizer.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_feedback_optimizer`
 - `python scripts/build_qwen3_moe_mechanistic_unified_candidate.py --output-dir results/qwen3_moe_mechanistic_unified_candidate`
+- `python scripts/audit_qwen3_moe_mechanistic_evidence.py --output-dir results/qwen3_moe_mechanistic_evidence_audit`
 - `python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke`
 - `python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke`
 - `python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke`

@@ -173,6 +173,16 @@ def build_steps(args: argparse.Namespace) -> list[dict[str, Any]]:
                 str(args.mechanistic_dir),
             ],
         },
+        {
+            "step": "audit_mechanistic_evidence",
+            "kind": "attribution",
+            "command": [
+                py,
+                "scripts/audit_qwen3_moe_mechanistic_evidence.py",
+                "--output-dir",
+                str(args.mechanistic_evidence_dir),
+            ],
+        },
     ]
     if args.include_smoke:
         steps.extend(
@@ -263,6 +273,7 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
     attribution = read_json(repo_path(args.attribution_dir) / "summary.json")
     feedback = read_json(repo_path(args.feedback_dir) / "summary.json")
     mechanistic = read_json(repo_path(args.mechanistic_dir) / "summary.json")
+    mechanistic_evidence = read_json(repo_path(args.mechanistic_evidence_dir) / "summary.json")
     final_current = final_selection.get("current_selection") or {}
     return {
         "audit_status": audit.get("status"),
@@ -288,6 +299,14 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
         "mechanistic_selected_candidate": mechanistic.get("selected_candidate_id"),
         "mechanistic_retention": mechanistic.get("selected_nonbase_mass_retention"),
         "mechanistic_hard_cap_violations": mechanistic.get("selected_hard_cap_violation_count"),
+        "mechanistic_evidence_status": mechanistic_evidence.get("status"),
+        "mechanistic_evidence_gradient_agreement": mechanistic_evidence.get("gradient_sign_agreement_rate"),
+        "mechanistic_evidence_objective_improved_fraction": mechanistic_evidence.get(
+            "objective_proxy_improved_group_fraction"
+        ),
+        "mechanistic_evidence_hard_cap_bound_group_count": mechanistic_evidence.get(
+            "hard_cap_bound_group_count"
+        ),
     }
 
 
@@ -307,6 +326,7 @@ def build_report(summary: dict[str, Any]) -> str:
         f"- Attribution: `{downstream.get('attribution_status', 'n/a')}` (`{downstream.get('attribution_scored_transition_count', 'n/a')}/{downstream.get('attribution_transition_count', 'n/a')}` scored)",
         f"- Feedback optimizer: `{downstream.get('feedback_status', 'n/a')}` (`{downstream.get('feedback_scored_task_count', 'n/a')}/{downstream.get('feedback_task_count', 'n/a')}` scored, `{downstream.get('feedback_changed_group_count', 'n/a')}` changed groups)",
         f"- Mechanistic unified: `{downstream.get('mechanistic_status', 'n/a')}` -> `{downstream.get('mechanistic_selected_candidate', 'n/a')}` (`retention={downstream.get('mechanistic_retention', 'n/a')}`, `violations={downstream.get('mechanistic_hard_cap_violations', 'n/a')}`)",
+        f"- Mechanistic evidence: `{downstream.get('mechanistic_evidence_status', 'n/a')}` (`gradient_agreement={downstream.get('mechanistic_evidence_gradient_agreement', 'n/a')}`, `objective_improved={downstream.get('mechanistic_evidence_objective_improved_fraction', 'n/a')}`)",
         "",
         "| step | kind | status | returncode | seconds |",
         "| --- | --- | --- | ---: | ---: |",
@@ -369,6 +389,11 @@ def parse_args() -> argparse.Namespace:
         "--mechanistic-dir",
         type=Path,
         default=Path("results/qwen3_moe_mechanistic_unified_candidate"),
+    )
+    parser.add_argument(
+        "--mechanistic-evidence-dir",
+        type=Path,
+        default=Path("results/qwen3_moe_mechanistic_evidence_audit"),
     )
     parser.add_argument("--audit-smoke-dir", type=Path, default=Path("results/qwen3_moe_eval_bundle_audit_smoke"))
     parser.add_argument("--selection-smoke-dir", type=Path, default=Path("results/qwen3_moe_unified_result_selection_smoke"))

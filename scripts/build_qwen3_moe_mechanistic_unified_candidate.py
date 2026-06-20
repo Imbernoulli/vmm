@@ -368,8 +368,9 @@ def solve_scale(
     benefit = benefit_gain * df["marginal_benefit_proxy"].clip(lower=EPS)
     curvature_cost = curvature_gain * df["local_curvature_proxy"] * (delta**2)
     interference_cost = interference_gain * df["marginal_interference_proxy"]
-    gradient = benefit - (curvature_cost + interference_cost) * prior
-    denominator = (0.50 + curvature_cost + interference_cost).clip(lower=EPS)
+    gradient_cost = curvature_cost + 2.0 * interference_cost
+    gradient = benefit - gradient_cost * prior
+    denominator = (0.50 + gradient_cost).clip(lower=EPS)
     update = step_size * (gradient / denominator).clip(-1.0, 1.0)
     restore_gate = (0.35 + 0.65 * df["benefit_score"]).clip(0.0, 1.0)
     shrink_gate = (0.45 + 0.55 * df["interference_score"]).clip(0.0, 1.0)
@@ -653,6 +654,35 @@ def write_literature(path: Path) -> None:
     path.write_text(json.dumps(LITERATURE_PRIORS, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
+def summarize_dry_run_manifest(path: Path) -> dict[str, Any]:
+    if not path.exists() or path.stat().st_size == 0:
+        return {
+            "dry_run_validated": False,
+            "dry_run_manifest": rel(path),
+            "dry_run_floating_tensors": 0,
+            "dry_run_frozen_tensors": 0,
+            "dry_run_tensor_rule_count": 0,
+            "dry_run_tensor_rule_hit_count": 0,
+            "dry_run_default_tensor_count": 0,
+            "dry_run_freeze_router_hits": 0,
+        }
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    rule_counts = manifest.get("rule_counts") or {}
+    tensor_rule_hits = int(
+        sum(int(value) for key, value in rule_counts.items() if str(key).startswith("tensor_rule:"))
+    )
+    return {
+        "dry_run_validated": bool(manifest.get("dry_run")) and tensor_rule_hits > 0,
+        "dry_run_manifest": rel(path),
+        "dry_run_floating_tensors": int(manifest.get("floating_tensors", 0)),
+        "dry_run_frozen_tensors": int(manifest.get("frozen_tensors", 0)),
+        "dry_run_tensor_rule_count": int(len(manifest.get("tensor_rules") or [])),
+        "dry_run_tensor_rule_hit_count": tensor_rule_hits,
+        "dry_run_default_tensor_count": int(rule_counts.get("default", 0)),
+        "dry_run_freeze_router_hits": int(rule_counts.get("freeze_router", 0)),
+    }
+
+
 def build_report(summary: dict[str, Any], search: pd.DataFrame, group_rules: pd.DataFrame) -> str:
     lines = [
         "# Qwen3 MoE Mechanistic Unified Candidate",
@@ -679,6 +709,9 @@ def build_report(summary: dict[str, Any], search: pd.DataFrame, group_rules: pd.
         f"- High-benefit low-risk mean scale: `{fmt(summary['selected_high_benefit_low_risk_mean_scale'])}`",
         f"- High-interference low-benefit mean scale: `{fmt(summary['selected_high_interference_low_benefit_mean_scale'])}`",
         f"- High-subspace-conflict mean scale: `{fmt(summary['selected_high_subspace_mean_scale'])}`",
+        f"- Dry-run validated: `{summary['dry_run_validated']}`",
+        f"- Dry-run tensor rules / hits: `{summary['dry_run_tensor_rule_count']}` / `{summary['dry_run_tensor_rule_hit_count']}`",
+        f"- Dry-run freeze-router hits: `{summary['dry_run_freeze_router_hits']}`",
         "",
         "## Mechanism Interpretation",
         "",
@@ -930,6 +963,7 @@ def run_real(args: argparse.Namespace) -> None:
     literature_path = output_dir / "literature_sources.json"
     artifacts = write_rules_and_commands(group_rules, output_dir, args.writer_context_command)
     write_literature(literature_path)
+    dry_run_check = summarize_dry_run_manifest(repo_path(artifacts["checkpoint_output_dir"]) / "merge_manifest.json")
     search.to_csv(search_path, index=False)
     group_rules.to_csv(group_rules_path, index=False)
     selected_path.write_text(
@@ -960,6 +994,7 @@ def run_real(args: argparse.Namespace) -> None:
         "min_retention": args.min_retention,
         "feedback_status": feedback_status,
         "feedback_materialization_gate": feedback_summary.get("materialization_gate", "not_available"),
+        **dry_run_check,
         "outputs": {
             "report": rel(report_path),
             "summary": rel(summary_path),

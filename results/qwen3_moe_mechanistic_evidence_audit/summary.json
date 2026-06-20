@@ -1,0 +1,39 @@
+{
+  "dominant_binding": "cost_gradient_shrink",
+  "dominant_binding_group_count": 4736,
+  "dominant_binding_route_mass": 501.4174336489185,
+  "gradient_sign_agreement_rate": 1.0,
+  "group_count": 5243,
+  "hard_cap": 0.65,
+  "hard_cap_bound_group_count": 319,
+  "hard_cap_bound_route_mass": 65.5486756457645,
+  "most_scale_preserving_features": [
+    "route_mass_pressure",
+    "load_pressure",
+    "benefit_score"
+  ],
+  "most_scale_suppressing_features": [
+    "curvature_score",
+    "feature_router_instability",
+    "feature_expert_internal_geometry"
+  ],
+  "objective_proxy_improved_group_fraction": 0.945260347129506,
+  "outputs": {
+    "binding_summary": "results/qwen3_moe_mechanistic_evidence_audit/binding_summary.csv",
+    "feature_correlations": "results/qwen3_moe_mechanistic_evidence_audit/feature_correlations.csv",
+    "feature_deciles": "results/qwen3_moe_mechanistic_evidence_audit/feature_decile_response.csv",
+    "group_evidence": "results/qwen3_moe_mechanistic_evidence_audit/group_mechanistic_evidence.csv",
+    "hard_cases": "results/qwen3_moe_mechanistic_evidence_audit/hard_cases.csv",
+    "report": "results/qwen3_moe_mechanistic_evidence_audit/report.md",
+    "summary": "results/qwen3_moe_mechanistic_evidence_audit/summary.json"
+  },
+  "route_mass_sum": 575.9999999999989,
+  "route_mass_weighted_benefit_term": 0.6758321626618904,
+  "route_mass_weighted_curvature_delta_term": 0.06949438431323858,
+  "route_mass_weighted_interference_term": 0.48794460582309734,
+  "route_mass_weighted_objective_gain_vs_prior": 0.0075041234509687135,
+  "route_mass_weighted_scale_delta": -0.013272629833492523,
+  "route_mass_weighted_selected_scale": 0.980161644333292,
+  "selected_candidate_id": "s0.08_b1.65_h0.75_i0.75",
+  "status": "mechanistic_evidence_audit_ready"
+}
