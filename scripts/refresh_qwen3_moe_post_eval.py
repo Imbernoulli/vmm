@@ -350,6 +350,20 @@ def build_steps(args: argparse.Namespace) -> list[dict[str, Any]]:
             ],
         },
         {
+            "step": "build_qwen3_moe_harc_router_candidate",
+            "kind": "optimizer",
+            "command": [
+                py,
+                "scripts/build_qwen3_moe_harc_router_candidate.py",
+                "--output-dir",
+                str(args.harc_router_candidate_dir),
+                "--solver-dir",
+                str(args.harc_router_solver_dir),
+                "--solver-summary",
+                str(args.harc_router_solver_dir / "summary.json"),
+            ],
+        },
+        {
             "step": "build_qwen3_moe_harc_readiness_gate",
             "kind": "gate",
             "command": [
@@ -502,6 +516,17 @@ def build_steps(args: argparse.Namespace) -> list[dict[str, Any]]:
                     ],
                 },
                 {
+                    "step": "build_qwen3_moe_harc_router_candidate_smoke",
+                    "kind": "smoke",
+                    "command": [
+                        py,
+                        "scripts/build_qwen3_moe_harc_router_candidate.py",
+                        "--smoke-matrix",
+                        "--output-dir",
+                        str(args.harc_router_candidate_smoke_dir),
+                    ],
+                },
+                {
                     "step": "build_qwen3_moe_harc_readiness_gate_smoke",
                     "kind": "smoke",
                     "command": [
@@ -640,6 +665,10 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
     harc_router_stats_smoke = read_json(repo_path(args.harc_router_stats_smoke_dir) / "summary.json")
     harc_router_solver = read_json(repo_path(args.harc_router_solver_dir) / "summary.json")
     harc_router_solver_smoke = read_json(repo_path(args.harc_router_solver_smoke_dir) / "summary.json")
+    harc_router_candidate = read_json(repo_path(args.harc_router_candidate_dir) / "summary.json")
+    harc_router_candidate_smoke = read_json(
+        repo_path(args.harc_router_candidate_smoke_dir) / "summary.json"
+    )
     harc_readiness_gate = read_json(repo_path(args.harc_readiness_gate_dir) / "summary.json")
     harc_readiness_gate_smoke = read_json(
         repo_path(args.harc_readiness_gate_smoke_dir) / "summary.json"
@@ -938,6 +967,18 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
         ).get("total"),
         "harc_router_solver_smoke_initial_kl": harc_router_solver_smoke.get("mean_initial_route_kl"),
         "harc_router_solver_smoke_final_kl": harc_router_solver_smoke.get("mean_final_route_kl"),
+        "harc_router_candidate_status": harc_router_candidate.get("status"),
+        "harc_router_candidate_checkpoint_exists": harc_router_candidate.get("candidate_checkpoint_exists"),
+        "harc_router_candidate_delta_tensor_count": harc_router_candidate.get("delta_tensor_count"),
+        "harc_router_candidate_checks_passed": harc_router_candidate.get("passed_check_count"),
+        "harc_router_candidate_checks_total": harc_router_candidate.get("check_count"),
+        "harc_router_candidate_action": harc_router_candidate.get("recommended_action"),
+        "harc_router_candidate_smoke_status": harc_router_candidate_smoke.get("status"),
+        "harc_router_candidate_smoke_checks_passed": harc_router_candidate_smoke.get("passed_check_count"),
+        "harc_router_candidate_smoke_checks_total": harc_router_candidate_smoke.get("check_count"),
+        "harc_router_candidate_smoke_checkpoint_exists": harc_router_candidate_smoke.get(
+            "candidate_checkpoint_exists"
+        ),
         "harc_readiness_gate_status": harc_readiness_gate.get("status"),
         "harc_readiness_gate_preconditions": harc_readiness_gate.get("precondition_count"),
         "harc_readiness_gate_passed_preconditions": harc_readiness_gate.get(
@@ -1034,6 +1075,8 @@ def build_report(summary: dict[str, Any]) -> str:
         f"- HARC router stats smoke: `{downstream.get('harc_router_stats_smoke_status', 'n/a')}` (`{downstream.get('harc_router_stats_smoke_checks_passed', 'n/a')}/{downstream.get('harc_router_stats_smoke_checks_total', 'n/a')}` checks)",
         f"- HARC router solver: `{downstream.get('harc_router_solver_status', 'n/a')}` (`{downstream.get('harc_router_solver_delta_tensor_count', 'n/a')}` delta tensors, KL `{downstream.get('harc_router_solver_initial_kl', 'n/a')}` -> `{downstream.get('harc_router_solver_final_kl', 'n/a')}`, residual `{downstream.get('harc_router_solver_max_residual', 'n/a')}`)",
         f"- HARC router solver smoke: `{downstream.get('harc_router_solver_smoke_status', 'n/a')}` (`{downstream.get('harc_router_solver_smoke_checks_passed', 'n/a')}/{downstream.get('harc_router_solver_smoke_checks_total', 'n/a')}` checks, KL `{downstream.get('harc_router_solver_smoke_initial_kl', 'n/a')}` -> `{downstream.get('harc_router_solver_smoke_final_kl', 'n/a')}`)",
+        f"- HARC router candidate: `{downstream.get('harc_router_candidate_status', 'n/a')}` (checkpoint `{downstream.get('harc_router_candidate_checkpoint_exists', 'n/a')}`, delta tensors `{downstream.get('harc_router_candidate_delta_tensor_count', 'n/a')}`, checks `{downstream.get('harc_router_candidate_checks_passed', 'n/a')}/{downstream.get('harc_router_candidate_checks_total', 'n/a')}`, action `{downstream.get('harc_router_candidate_action', 'n/a')}`)",
+        f"- HARC router candidate smoke: `{downstream.get('harc_router_candidate_smoke_status', 'n/a')}` (checkpoint `{downstream.get('harc_router_candidate_smoke_checkpoint_exists', 'n/a')}`, checks `{downstream.get('harc_router_candidate_smoke_checks_passed', 'n/a')}/{downstream.get('harc_router_candidate_smoke_checks_total', 'n/a')}`)",
         f"- HARC readiness gate: `{downstream.get('harc_readiness_gate_status', 'n/a')}` (`{downstream.get('harc_readiness_gate_passed_preconditions', 'n/a')}/{downstream.get('harc_readiness_gate_preconditions', 'n/a')}` preconditions, cache `{downstream.get('harc_readiness_gate_cache', 'n/a')}`, top layer `L{downstream.get('harc_readiness_gate_top_layer', 'n/a')}` score `{downstream.get('harc_readiness_gate_top_score', 'n/a')}`, first-stage layers `{downstream.get('harc_readiness_gate_first_stage_layers', 'n/a')}`, action `{downstream.get('harc_readiness_gate_action', 'n/a')}`)",
         f"- HARC readiness smoke: `{downstream.get('harc_readiness_gate_smoke_status', 'n/a')}` (`{downstream.get('harc_readiness_gate_smoke_passed', 'n/a')}/{downstream.get('harc_readiness_gate_smoke_cases', 'n/a')}` cases)",
         f"- Unified average optimizer: `{downstream.get('unified_optimizer_status', 'n/a')}` (top next experiment `{downstream.get('unified_optimizer_top_experiment', 'n/a')}` / `{downstream.get('unified_optimizer_top_experiment_status', 'n/a')}`)",
@@ -1190,6 +1233,11 @@ def parse_args() -> argparse.Namespace:
         default=Path("results/qwen3_moe_harc_router_solver"),
     )
     parser.add_argument(
+        "--harc-router-candidate-dir",
+        type=Path,
+        default=Path("results/qwen3_moe_harc_router_candidate"),
+    )
+    parser.add_argument(
         "--harc-readiness-gate-dir",
         type=Path,
         default=Path("results/qwen3_moe_harc_readiness_gate"),
@@ -1266,6 +1314,11 @@ def parse_args() -> argparse.Namespace:
         "--harc-router-solver-smoke-dir",
         type=Path,
         default=Path("results/qwen3_moe_harc_router_solver_smoke"),
+    )
+    parser.add_argument(
+        "--harc-router-candidate-smoke-dir",
+        type=Path,
+        default=Path("results/qwen3_moe_harc_router_candidate_smoke"),
     )
     parser.add_argument("--output-dir", type=Path, default=Path("results/qwen3_moe_post_eval_refresh"))
     parser.add_argument("--include-smoke", action="store_true")

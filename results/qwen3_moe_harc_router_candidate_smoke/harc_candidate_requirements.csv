@@ -1,0 +1,7 @@
+requirement,passed,evidence
+solver_ready,True,smoke_ready
+router_delta_exists,True,results/qwen3_moe_harc_router_candidate_smoke/mock_inputs/router_delta.safetensors
+base_checkpoint_exists,True,results/qwen3_moe_harc_router_candidate_smoke/mock_inputs/base
+checkpoint_materialized,True,results/qwen3_moe_harc_router_candidate_smoke/checkpoint_with_harc_router
+router_delta_applied,True,2/2
+non_router_unchanged,True,1/1

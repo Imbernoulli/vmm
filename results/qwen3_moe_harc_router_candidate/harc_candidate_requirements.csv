@@ -1,0 +1,7 @@
+requirement,passed,evidence
+solver_ready,False,harc_solver_missing_cache
+router_delta_exists,False,results/qwen3_moe_harc_router_solver/router_delta.safetensors
+base_checkpoint_exists,True,results/checkpoints/qwen3_moe_unified_mechanism_candidate
+checkpoint_materialized,False,results/checkpoints/qwen3_moe_harc_router_candidate
+router_delta_applied,False,0/0
+non_router_unchanged,False,0/0

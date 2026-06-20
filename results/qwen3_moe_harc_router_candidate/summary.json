@@ -1,0 +1,31 @@
+{
+  "base_exists": true,
+  "base_path": "results/checkpoints/qwen3_moe_unified_mechanism_candidate",
+  "candidate_checkpoint_dir": "results/checkpoints/qwen3_moe_harc_router_candidate",
+  "candidate_checkpoint_exists": false,
+  "check_count": 0,
+  "delta_tensor_count": 0,
+  "max_abs_error": null,
+  "non_router_check_count": 0,
+  "non_router_passed_count": 0,
+  "outputs": {
+    "checkpoint": "results/checkpoints/qwen3_moe_harc_router_candidate",
+    "materialization_checks": "results/qwen3_moe_harc_router_candidate/materialization_checks.csv",
+    "report": "results/qwen3_moe_harc_router_candidate/report.md",
+    "requirements": "results/qwen3_moe_harc_router_candidate/harc_candidate_requirements.csv",
+    "summary": "results/qwen3_moe_harc_router_candidate/summary.json",
+    "writer_command": "results/qwen3_moe_harc_router_candidate/writer_command.txt"
+  },
+  "passed_check_count": 0,
+  "recommended_action": "collect_real_router_cache_then_rerun_harc_solver",
+  "router_delta_check_count": 0,
+  "router_delta_exists": false,
+  "router_delta_passed_count": 0,
+  "router_delta_safetensors": "results/qwen3_moe_harc_router_solver/router_delta.safetensors",
+  "schema_version": 1,
+  "smoke_status": null,
+  "solver_status": "harc_solver_missing_cache",
+  "solver_summary": "results/qwen3_moe_harc_router_solver/summary.json",
+  "status": "harc_router_candidate_waiting_for_solver_delta",
+  "writer_command": "python scripts/write_same_shape_average_checkpoint.py --base results/checkpoints/qwen3_moe_unified_mechanism_candidate --source same=results/checkpoints/qwen3_moe_unified_mechanism_candidate --source-weight same=0.0 --freeze-router --tensor-delta-safetensors results/qwen3_moe_harc_router_solver/router_delta.safetensors --output-dir results/checkpoints/qwen3_moe_harc_router_candidate"
+}

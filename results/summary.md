@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-20T16:07:01.831891+00:00`
+Generated at: `2026-06-20T16:22:02.526574+00:00`
 
 ## Coverage
 
-Complete: `105`; partial: `1`; missing: `0`.
+Complete: `106`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -108,6 +108,7 @@ Complete: `105`; partial: `1`; missing: `0`.
 | Qwen3 MoE HARC readiness gate | complete | results/qwen3_moe_harc_readiness_gate/report.md checks direct-router rejection, top-k boundary fragility, router-only repair, router-expert coupling, calibration frontier, calibration job preflight, and Hessian/covariance cache readiness before HARC-style router calibration. |
 | Qwen3 MoE HARC router stats collector | complete | results/qwen3_moe_harc_router_stats/report.md converts router calibration cache rows into softmax-Hessian, hidden-covariance, boundary-margin, and solver-input summaries; results/qwen3_moe_harc_router_stats_smoke/report.md verifies the ready branch on synthetic router tensors. |
 | Qwen3 MoE HARC matrix-free router solver | complete | results/qwen3_moe_harc_router_solver/report.md exposes the real missing-cache state for Qwen3 and results/qwen3_moe_harc_router_solver_smoke/report.md verifies a matrix-free CG HARC solve that writes same-shape router_delta.safetensors and lowers route KL/quadratic proxy on synthetic router tensors. |
+| Qwen3 MoE HARC router candidate materialization | complete | results/qwen3_moe_harc_router_candidate/report.md gates the real HARC solver output into a same-shape checkpoint candidate, while results/qwen3_moe_harc_router_candidate_smoke/report.md writes a tiny checkpoint and verifies router delta tensors changed exactly and non-router tensors stayed unchanged. |
 | Qwen3 MoE trust-region cap-law search | complete | results/qwen3_moe_trust_region_cap_search/report.md searches interpretable expert cap laws over real Qwen3 route-mass, risk-flag, and safetensors-delta probes and emits writer-ready next-candidate rules. |
 | Qwen3 MoE unified mechanism candidate | complete | results/qwen3_moe_unified_mechanism_candidate/report.md turns route mass, router fragility, load, source-conflict, delta, expert geometry, and subspace-conflict probes into one same-shape constrained optimizer and writer-ready candidate. |
 | Toy MoE multi-method routing readiness | complete | results/toy_moe_routing_readiness/report.md applies the generic readiness gate to toy MoE methods and flags all-weight routing drift separately from expert-matched/route-aware variants. |
@@ -329,8 +330,8 @@ Complete: `105`; partial: `1`; missing: `0`.
 | Qwen3 MoE router-coupled retention frontier | gate / constrained / stress | direct_router_boundary_term_not_default / router_q0.85_s0.00020_cap0.00010 / router_q0.75_s0.01000_cap0.01000 |
 | Qwen3 MoE router-coupled retention frontier | pass default / effect fraction / action | 146/770 / 0.0103 / keep_router_fragility_inside_BHI_and_keep_direct_extra_shrink_as_ablation |
 | Qwen3 MoE mechanistic unified smoke | status / passed cases | passed / 4/4 |
-| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | passed / 42/42 / 0/13 |
-| Qwen3 MoE post-eval refresh | selection / final selection / attribution scored / plan steps | awaiting_source_eval / awaiting_source_eval / 0/10 / 42/42 |
+| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | passed / 44/44 / 0/13 |
+| Qwen3 MoE post-eval refresh | selection / final selection / attribution scored / plan steps | awaiting_source_eval / awaiting_source_eval / 0/10 / 44/44 |
 | Qwen3 MoE post-eval refresh | feedback status / scored tasks / changed groups | awaiting_eval / 0/4 / 0 |
 | Qwen3 MoE post-eval refresh | mechanistic status / retention / hard-cap violations | mechanistic_unified_candidate_ready / 0.965 / 0 |
 | Qwen3 MoE post-eval refresh | sensitivity objective / scale | no_category_prior 0.003 / no_subspace_conflict 0.0086 |
@@ -358,6 +359,8 @@ Complete: `105`; partial: `1`; missing: `0`.
 | Qwen3 MoE HARC router stats smoke | status / checks / routers | harc_router_stats_ready / 6/6 / 2/2 |
 | Qwen3 MoE HARC router solver | status / delta tensors / KL initial-final | harc_solver_missing_cache / 0 / n/a-n/a |
 | Qwen3 MoE HARC router solver smoke | status / checks / KL initial-final / CG residual | harc_solver_ready / 6/6 / 0.032-0.000 / 0.000 |
+| Qwen3 MoE HARC router candidate | status / checkpoint / delta tensors / checks | harc_router_candidate_waiting_for_solver_delta / False / 0 / 0/0 |
+| Qwen3 MoE HARC router candidate smoke | status / checkpoint / router-delta / non-router / max error | harc_router_candidate_materialized / True / 2/2 / 1/1 / 0.000 |
 | Qwen3 MoE HARC readiness gate | status / preconditions / cache | harc_ready_for_curvature_collection_waiting_cache / 6/6 / missing |
 | Qwen3 MoE HARC readiness gate | top layer / score / role / first-stage layers | L17 / 0.738 / collect_hessian_covariance_first / 15 |
 | Qwen3 MoE HARC readiness smoke | status / cases | smoke_passed / 4/4 |

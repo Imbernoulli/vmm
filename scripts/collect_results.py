@@ -3100,6 +3100,29 @@ def summarize_qwen3_moe_post_eval_refresh() -> dict[str, Any]:
         "harc_router_solver_initial_kl": maybe_float(downstream.get("harc_router_solver_initial_kl")),
         "harc_router_solver_final_kl": maybe_float(downstream.get("harc_router_solver_final_kl")),
         "harc_router_solver_max_residual": maybe_float(downstream.get("harc_router_solver_max_residual")),
+        "harc_router_candidate_status": downstream.get("harc_router_candidate_status"),
+        "harc_router_candidate_checkpoint_exists": maybe_bool(
+            downstream.get("harc_router_candidate_checkpoint_exists")
+        ),
+        "harc_router_candidate_delta_tensor_count": maybe_int(
+            downstream.get("harc_router_candidate_delta_tensor_count")
+        ),
+        "harc_router_candidate_checks_passed": maybe_int(
+            downstream.get("harc_router_candidate_checks_passed")
+        ),
+        "harc_router_candidate_checks_total": maybe_int(
+            downstream.get("harc_router_candidate_checks_total")
+        ),
+        "harc_router_candidate_smoke_status": downstream.get("harc_router_candidate_smoke_status"),
+        "harc_router_candidate_smoke_checkpoint_exists": maybe_bool(
+            downstream.get("harc_router_candidate_smoke_checkpoint_exists")
+        ),
+        "harc_router_candidate_smoke_checks_passed": maybe_int(
+            downstream.get("harc_router_candidate_smoke_checks_passed")
+        ),
+        "harc_router_candidate_smoke_checks_total": maybe_int(
+            downstream.get("harc_router_candidate_smoke_checks_total")
+        ),
         "step_rows": [clean_row(row) for _, row in steps.iterrows()],
         "report": rel(root / "report.md"),
         "steps": rel(root / "steps.csv"),
@@ -3438,6 +3461,64 @@ def summarize_qwen3_moe_harc_router_solver_smoke() -> dict[str, Any]:
         "router_delta_safetensors": rel(root / "router_delta.safetensors"),
         "router_delta_summary": rel(root / "router_delta_summary.csv"),
         "checks": rel(root / "smoke_checks.csv"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
+def summarize_qwen3_moe_harc_router_candidate() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_harc_router_candidate")
+    summary = read_json(root / "summary.json")
+    requirements = read_csv(root / "harc_candidate_requirements.csv")
+    checks = read_csv(root / "materialization_checks.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "solver_status": summary.get("solver_status"),
+        "base_exists": maybe_bool(summary.get("base_exists")),
+        "router_delta_exists": maybe_bool(summary.get("router_delta_exists")),
+        "candidate_checkpoint_exists": maybe_bool(summary.get("candidate_checkpoint_exists")),
+        "delta_tensor_count": maybe_int(summary.get("delta_tensor_count")),
+        "passed_check_count": maybe_int(summary.get("passed_check_count")),
+        "check_count": maybe_int(summary.get("check_count")),
+        "router_delta_passed_count": maybe_int(summary.get("router_delta_passed_count")),
+        "router_delta_check_count": maybe_int(summary.get("router_delta_check_count")),
+        "non_router_passed_count": maybe_int(summary.get("non_router_passed_count")),
+        "non_router_check_count": maybe_int(summary.get("non_router_check_count")),
+        "max_abs_error": maybe_float(summary.get("max_abs_error")),
+        "recommended_action": summary.get("recommended_action"),
+        "candidate_checkpoint_dir": summary.get("candidate_checkpoint_dir"),
+        "writer_command": summary.get("writer_command"),
+        "requirement_rows": [clean_row(row) for _, row in requirements.iterrows()],
+        "check_rows": [clean_row(row) for _, row in checks.iterrows()],
+        "report": rel(root / "report.md"),
+        "requirements": rel(root / "harc_candidate_requirements.csv"),
+        "checks": rel(root / "materialization_checks.csv"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
+def summarize_qwen3_moe_harc_router_candidate_smoke() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_harc_router_candidate_smoke")
+    summary = read_json(root / "summary.json")
+    checks = read_csv(root / "materialization_checks.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "smoke_status": summary.get("smoke_status"),
+        "candidate_checkpoint_exists": maybe_bool(summary.get("candidate_checkpoint_exists")),
+        "delta_tensor_count": maybe_int(summary.get("delta_tensor_count")),
+        "passed_check_count": maybe_int(summary.get("passed_check_count")),
+        "check_count": maybe_int(summary.get("check_count")),
+        "router_delta_passed_count": maybe_int(summary.get("router_delta_passed_count")),
+        "router_delta_check_count": maybe_int(summary.get("router_delta_check_count")),
+        "non_router_passed_count": maybe_int(summary.get("non_router_passed_count")),
+        "non_router_check_count": maybe_int(summary.get("non_router_check_count")),
+        "max_abs_error": maybe_float(summary.get("max_abs_error")),
+        "candidate_checkpoint_dir": summary.get("candidate_checkpoint_dir"),
+        "writer_command": summary.get("writer_command"),
+        "check_rows": [clean_row(row) for _, row in checks.iterrows()],
+        "report": rel(root / "report.md"),
+        "checks": rel(root / "materialization_checks.csv"),
         "summary_path": rel(root / "summary.json"),
     }
 
@@ -5693,6 +5774,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/qwen3_moe_harc_router_solver/report.md exposes the real missing-cache state for Qwen3 and results/qwen3_moe_harc_router_solver_smoke/report.md verifies a matrix-free CG HARC solve that writes same-shape router_delta.safetensors and lowers route KL/quadratic proxy on synthetic router tensors.",
         },
         {
+            "item": "Qwen3 MoE HARC router candidate materialization",
+            "status": "complete",
+            "evidence": "results/qwen3_moe_harc_router_candidate/report.md gates the real HARC solver output into a same-shape checkpoint candidate, while results/qwen3_moe_harc_router_candidate_smoke/report.md writes a tiny checkpoint and verifies router delta tensors changed exactly and non-router tensors stayed unchanged.",
+        },
+        {
             "item": "Qwen3 MoE trust-region cap-law search",
             "status": "complete",
             "evidence": "results/qwen3_moe_trust_region_cap_search/report.md searches interpretable expert cap laws over real Qwen3 route-mass, risk-flag, and safetensors-delta probes and emits writer-ready next-candidate rules.",
@@ -5857,6 +5943,8 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_harc_router_stats_smoke": summarize_qwen3_moe_harc_router_stats_smoke(),
         "qwen3_moe_harc_router_solver": summarize_qwen3_moe_harc_router_solver(),
         "qwen3_moe_harc_router_solver_smoke": summarize_qwen3_moe_harc_router_solver_smoke(),
+        "qwen3_moe_harc_router_candidate": summarize_qwen3_moe_harc_router_candidate(),
+        "qwen3_moe_harc_router_candidate_smoke": summarize_qwen3_moe_harc_router_candidate_smoke(),
         "qwen3_moe_harc_readiness_gate": summarize_qwen3_moe_harc_readiness_gate(),
         "qwen3_moe_harc_readiness_gate_smoke": summarize_qwen3_moe_harc_readiness_gate_smoke(),
         "qwen3_moe_router_calibration_selection": summarize_qwen3_moe_router_calibration_selection(),
@@ -6027,6 +6115,8 @@ def build_summary() -> dict[str, Any]:
             "python scripts/collect_qwen3_moe_harc_router_stats.py --smoke-matrix --output-dir results/qwen3_moe_harc_router_stats_smoke",
             "python scripts/solve_qwen3_moe_harc_router_delta.py --output-dir results/qwen3_moe_harc_router_solver",
             "python scripts/solve_qwen3_moe_harc_router_delta.py --smoke-matrix --output-dir results/qwen3_moe_harc_router_solver_smoke",
+            "python scripts/build_qwen3_moe_harc_router_candidate.py --output-dir results/qwen3_moe_harc_router_candidate",
+            "python scripts/build_qwen3_moe_harc_router_candidate.py --smoke-matrix --output-dir results/qwen3_moe_harc_router_candidate_smoke",
             "python scripts/select_qwen3_moe_router_calibration_result.py --output-dir results/qwen3_moe_router_calibration_selection",
             "python scripts/select_qwen3_moe_router_calibration_result.py --smoke --output-dir results/qwen3_moe_router_calibration_selection_smoke",
             "python scripts/select_qwen3_moe_router_calibration_result.py --row-validation-negative-smoke --output-dir results/qwen3_moe_router_calibration_selection_row_validation_negative_smoke",
@@ -6197,6 +6287,8 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_harc_router_stats_smoke = exp["qwen3_moe_harc_router_stats_smoke"]
     qwen3_moe_harc_router_solver = exp["qwen3_moe_harc_router_solver"]
     qwen3_moe_harc_router_solver_smoke = exp["qwen3_moe_harc_router_solver_smoke"]
+    qwen3_moe_harc_router_candidate = exp["qwen3_moe_harc_router_candidate"]
+    qwen3_moe_harc_router_candidate_smoke = exp["qwen3_moe_harc_router_candidate_smoke"]
     qwen3_moe_harc_readiness_gate = exp["qwen3_moe_harc_readiness_gate"]
     qwen3_moe_harc_readiness_gate_smoke = exp["qwen3_moe_harc_readiness_gate_smoke"]
     qwen3_moe_router_calibration_selection = exp["qwen3_moe_router_calibration_selection"]
@@ -7676,6 +7768,24 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(qwen3_moe_harc_router_solver_smoke['mean_initial_route_kl'])}-"
                 f"{fmt(qwen3_moe_harc_router_solver_smoke['mean_final_route_kl'])} / "
                 f"{fmt(qwen3_moe_harc_router_solver_smoke['max_cg_relative_residual'])} |"
+            ),
+            (
+                "| Qwen3 MoE HARC router candidate | status / checkpoint / delta tensors / checks | "
+                f"{qwen3_moe_harc_router_candidate['status']} / "
+                f"{qwen3_moe_harc_router_candidate['candidate_checkpoint_exists']} / "
+                f"{qwen3_moe_harc_router_candidate['delta_tensor_count']} / "
+                f"{qwen3_moe_harc_router_candidate['passed_check_count']}"
+                f"/{qwen3_moe_harc_router_candidate['check_count']} |"
+            ),
+            (
+                "| Qwen3 MoE HARC router candidate smoke | status / checkpoint / router-delta / non-router / max error | "
+                f"{qwen3_moe_harc_router_candidate_smoke['status']} / "
+                f"{qwen3_moe_harc_router_candidate_smoke['candidate_checkpoint_exists']} / "
+                f"{qwen3_moe_harc_router_candidate_smoke['router_delta_passed_count']}"
+                f"/{qwen3_moe_harc_router_candidate_smoke['router_delta_check_count']} / "
+                f"{qwen3_moe_harc_router_candidate_smoke['non_router_passed_count']}"
+                f"/{qwen3_moe_harc_router_candidate_smoke['non_router_check_count']} / "
+                f"{fmt(qwen3_moe_harc_router_candidate_smoke['max_abs_error'])} |"
             ),
             (
                 "| Qwen3 MoE HARC readiness gate | status / preconditions / cache | "

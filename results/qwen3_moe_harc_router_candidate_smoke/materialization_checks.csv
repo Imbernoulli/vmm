@@ -1,0 +1,4 @@
+tensor,role,base_shape,candidate_shape,delta_shape,max_abs_error,shape_preserved,passed
+model.layers.0.mlp.gate.weight,router_delta_applied,"[4, 6]","[4, 6]","[4, 6]",0.0,True,True
+model.layers.1.mlp.gate.weight,router_delta_applied,"[4, 6]","[4, 6]","[4, 6]",0.0,True,True
+model.layers.0.self_attn.q_proj.weight,non_router_unchanged,"[6, 6]","[6, 6]",,0.0,True,True

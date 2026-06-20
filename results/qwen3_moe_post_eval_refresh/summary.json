@@ -64,6 +64,16 @@
     "harc_readiness_gate_status": "harc_ready_for_curvature_collection_waiting_cache",
     "harc_readiness_gate_top_layer": 17,
     "harc_readiness_gate_top_score": 0.7379048037035392,
+    "harc_router_candidate_action": "collect_real_router_cache_then_rerun_harc_solver",
+    "harc_router_candidate_checkpoint_exists": false,
+    "harc_router_candidate_checks_passed": 0,
+    "harc_router_candidate_checks_total": 0,
+    "harc_router_candidate_delta_tensor_count": 0,
+    "harc_router_candidate_smoke_checkpoint_exists": true,
+    "harc_router_candidate_smoke_checks_passed": 3,
+    "harc_router_candidate_smoke_checks_total": 3,
+    "harc_router_candidate_smoke_status": "harc_router_candidate_materialized",
+    "harc_router_candidate_status": "harc_router_candidate_waiting_for_solver_delta",
     "harc_router_solver_action": "collect_cache_or_fix_base_before_harc_solver",
     "harc_router_solver_delta_tensor_count": 0,
     "harc_router_solver_final_kl": null,
@@ -193,16 +203,16 @@
     "steps": "results/qwen3_moe_post_eval_refresh/steps.csv",
     "summary": "results/qwen3_moe_post_eval_refresh/summary.json"
   },
-  "passed_step_count": 42,
+  "passed_step_count": 44,
   "plan_only": false,
   "planned_step_count": 0,
   "schema_version": 1,
   "status": "passed",
-  "step_count": 42,
+  "step_count": 44,
   "steps": [
     {
       "command": "python scripts/build_qwen3_moe_candidate_trust_region_gate.py --gate-plan results/qwen3_moe_mechanism_eval_gate/eval_gate_plan.csv --output-dir results/qwen3_moe_candidate_trust_region_gate",
-      "duration_sec": 0.4023456573486328,
+      "duration_sec": 0.37158799171447754,
       "kind": "gate",
       "returncode": 0,
       "status": "passed",
@@ -212,7 +222,7 @@
     },
     {
       "command": "python scripts/plan_qwen3_moe_eval_budget.py --gate-dir results/qwen3_moe_mechanism_eval_gate --candidate-trust-gate results/qwen3_moe_candidate_trust_region_gate/candidate_trust_region_gate.csv --output-dir results/qwen3_moe_eval_budget_plan",
-      "duration_sec": 0.4348456859588623,
+      "duration_sec": 0.43619227409362793,
       "kind": "planner",
       "returncode": 0,
       "status": "passed",
@@ -222,7 +232,7 @@
     },
     {
       "command": "python scripts/audit_qwen3_moe_eval_bundle.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_eval_bundle_audit",
-      "duration_sec": 0.4200003147125244,
+      "duration_sec": 0.43114352226257324,
       "kind": "gate",
       "returncode": 0,
       "status": "passed",
@@ -232,7 +242,7 @@
     },
     {
       "command": "python scripts/select_qwen3_moe_unified_result.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_unified_result_selection",
-      "duration_sec": 0.4036285877227783,
+      "duration_sec": 0.42547035217285156,
       "kind": "selector",
       "returncode": 0,
       "status": "passed",
@@ -242,7 +252,7 @@
     },
     {
       "command": "python scripts/select_qwen3_moe_final_candidate.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_final_candidate_selection --candidate-trust-gate results/qwen3_moe_candidate_trust_region_gate/candidate_trust_region_gate.csv",
-      "duration_sec": 0.41004204750061035,
+      "duration_sec": 0.42157888412475586,
       "kind": "selector",
       "returncode": 0,
       "status": "passed",
@@ -252,7 +262,7 @@
     },
     {
       "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_mechanism_effect_attribution",
-      "duration_sec": 0.4375185966491699,
+      "duration_sec": 0.3969559669494629,
       "kind": "attribution",
       "returncode": 0,
       "status": "passed",
@@ -262,7 +272,7 @@
     },
     {
       "command": "python scripts/build_qwen3_moe_feedback_optimizer.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_feedback_optimizer",
-      "duration_sec": 1.0413200855255127,
+      "duration_sec": 1.1058671474456787,
       "kind": "optimizer",
       "returncode": 0,
       "status": "passed",
@@ -272,7 +282,7 @@
     },
     {
       "command": "python scripts/build_qwen3_moe_mechanistic_unified_candidate.py --output-dir results/qwen3_moe_mechanistic_unified_candidate",
-      "duration_sec": 2.6583547592163086,
+      "duration_sec": 2.6107590198516846,
       "kind": "optimizer",
       "returncode": 0,
       "status": "passed",
@@ -282,7 +292,7 @@
     },
     {
       "command": "python scripts/audit_qwen3_moe_mechanistic_evidence.py --output-dir results/qwen3_moe_mechanistic_evidence_audit",
-      "duration_sec": 1.4296832084655762,
+      "duration_sec": 1.5031273365020752,
       "kind": "attribution",
       "returncode": 0,
       "status": "passed",
@@ -292,7 +302,7 @@
     },
     {
       "command": "python scripts/analyze_qwen3_moe_mechanistic_sensitivity.py --output-dir results/qwen3_moe_mechanistic_sensitivity",
-      "duration_sec": 17.142743825912476,
+      "duration_sec": 18.215761184692383,
       "kind": "attribution",
       "returncode": 0,
       "status": "passed",
@@ -302,7 +312,7 @@
     },
     {
       "command": "python scripts/analyze_qwen3_moe_router_expert_coupling.py --output-dir results/qwen3_moe_router_expert_coupling",
-      "duration_sec": 0.799933910369873,
+      "duration_sec": 0.832256555557251,
       "kind": "attribution",
       "returncode": 0,
       "status": "passed",
@@ -312,7 +322,7 @@
     },
     {
       "command": "python scripts/build_qwen3_moe_router_coupled_candidate.py --output-dir results/qwen3_moe_router_coupled_candidate",
-      "duration_sec": 1.2709414958953857,
+      "duration_sec": 1.3611891269683838,
       "kind": "optimizer",
       "returncode": 0,
       "status": "passed",
@@ -322,7 +332,7 @@
     },
     {
       "command": "python scripts/analyze_qwen3_moe_router_coupled_retention_frontier.py --output-dir results/qwen3_moe_router_coupled_retention_frontier",
-      "duration_sec": 3.4921491146087646,
+      "duration_sec": 3.615358829498291,
       "kind": "attribution",
       "returncode": 0,
       "status": "passed",
@@ -332,7 +342,7 @@
     },
     {
       "command": "python scripts/build_qwen3_source_set_complementarity_gate.py --output-dir results/qwen3_source_set_complementarity_gate",
-      "duration_sec": 0.3963606357574463,
+      "duration_sec": 0.41668248176574707,
       "kind": "gate",
       "returncode": 0,
       "status": "passed",
@@ -342,7 +352,7 @@
     },
     {
       "command": "python scripts/build_qwen3_average_source_set_optimizer.py --output-dir results/qwen3_average_source_set_optimizer",
-      "duration_sec": 0.435779333114624,
+      "duration_sec": 0.4088134765625,
       "kind": "optimizer",
       "returncode": 0,
       "status": "passed",
@@ -352,7 +362,7 @@
     },
     {
       "command": "python scripts/build_qwen_source_discovery_plan.py --output-dir results/qwen_source_discovery_plan",
-      "duration_sec": 0.41812586784362793,
+      "duration_sec": 0.44086122512817383,
       "kind": "planner",
       "returncode": 0,
       "status": "passed",
@@ -362,7 +372,7 @@
     },
     {
       "command": "python scripts/build_qwen_source_discovery_eval_plan.py --source-discovery-dir results/qwen_source_discovery_plan --output-dir results/qwen_source_discovery_eval_plan",
-      "duration_sec": 0.4063265323638916,
+      "duration_sec": 0.39165759086608887,
       "kind": "planner",
       "returncode": 0,
       "status": "passed",
@@ -372,7 +382,7 @@
     },
     {
       "command": "python scripts/audit_vllm_served_model_preflight.py --eval-jobs results/qwen_source_discovery_eval_plan/vllm_eval_jobs.csv --output-dir results/qwen_source_discovery_served_model_preflight",
-      "duration_sec": 0.41162848472595215,
+      "duration_sec": 0.43825340270996094,
       "kind": "gate",
       "returncode": 0,
       "status": "passed",
@@ -382,7 +392,7 @@
     },
     {
       "command": "python scripts/build_qwen_source_frontier_eval_feedback.py --eval-jobs results/qwen_source_discovery_eval_plan/vllm_eval_jobs.csv --average-source-set-optimizer results/qwen3_average_source_set_optimizer/summary.json --output-dir results/qwen_source_frontier_eval_feedback",
-      "duration_sec": 0.3928072452545166,
+      "duration_sec": 0.40221142768859863,
       "kind": "gate",
       "returncode": 0,
       "status": "passed",
@@ -392,7 +402,7 @@
     },
     {
       "command": "python scripts/build_qwen3_moe_router_calibration_frontier.py --output-dir results/qwen3_moe_router_calibration_frontier",
-      "duration_sec": 0.4545321464538574,
+      "duration_sec": 0.385453462600708,
       "kind": "gate",
       "returncode": 0,
       "status": "passed",
@@ -402,7 +412,7 @@
     },
     {
       "command": "python scripts/collect_qwen3_moe_harc_router_stats.py --output-dir results/qwen3_moe_harc_router_stats",
-      "duration_sec": 2.165329694747925,
+      "duration_sec": 2.0927717685699463,
       "kind": "probe",
       "returncode": 0,
       "status": "passed",
@@ -412,7 +422,7 @@
     },
     {
       "command": "python scripts/solve_qwen3_moe_harc_router_delta.py --output-dir results/qwen3_moe_harc_router_solver",
-      "duration_sec": 3.5623037815093994,
+      "duration_sec": 3.5941548347473145,
       "kind": "optimizer",
       "returncode": 0,
       "status": "passed",
@@ -421,8 +431,18 @@
       "step": "solve_qwen3_moe_harc_router_delta"
     },
     {
+      "command": "python scripts/build_qwen3_moe_harc_router_candidate.py --output-dir results/qwen3_moe_harc_router_candidate --solver-dir results/qwen3_moe_harc_router_solver --solver-summary results/qwen3_moe_harc_router_solver/summary.json",
+      "duration_sec": 3.605546236038208,
+      "kind": "optimizer",
+      "returncode": 0,
+      "status": "passed",
+      "stderr_tail": "",
+      "stdout_tail": "Wrote Qwen3 MoE HARC router candidate gate to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_harc_router_candidate\nStatus: harc_router_candidate_waiting_for_solver_delta; checks=0/0; checkpoint=False\n",
+      "step": "build_qwen3_moe_harc_router_candidate"
+    },
+    {
       "command": "python scripts/build_qwen3_moe_harc_readiness_gate.py --output-dir results/qwen3_moe_harc_readiness_gate --harc-stats-dir results/qwen3_moe_harc_router_stats --harc-stats-summary results/qwen3_moe_harc_router_stats/summary.json",
-      "duration_sec": 0.4255056381225586,
+      "duration_sec": 0.4397437572479248,
       "kind": "gate",
       "returncode": 0,
       "status": "passed",
@@ -432,7 +452,7 @@
     },
     {
       "command": "python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer --qwen-source-discovery-plan results/qwen_source_discovery_plan/summary.json --qwen-source-discovery-eval-plan results/qwen_source_discovery_eval_plan/summary.json --qwen-source-frontier-eval-feedback results/qwen_source_frontier_eval_feedback/summary.json --qwen3-router-calibration-frontier results/qwen3_moe_router_calibration_frontier/summary.json",
-      "duration_sec": 0.49686765670776367,
+      "duration_sec": 0.45798754692077637,
       "kind": "optimizer",
       "returncode": 0,
       "status": "passed",
@@ -442,7 +462,7 @@
     },
     {
       "command": "python scripts/build_average_method_gate_matrix.py --output-dir results/average_method_gate_matrix --optimizer-summary results/unified_average_optimizer/summary.json --optimizer-features results/unified_average_optimizer/mechanism_features.csv",
-      "duration_sec": 0.4007718563079834,
+      "duration_sec": 0.3991997241973877,
       "kind": "optimizer",
       "returncode": 0,
       "status": "passed",
@@ -452,7 +472,7 @@
     },
     {
       "command": "python scripts/build_average_trust_region_bounds.py --output-dir results/average_trust_region_bounds",
-      "duration_sec": 0.3973522186279297,
+      "duration_sec": 0.43706417083740234,
       "kind": "optimizer",
       "returncode": 0,
       "status": "passed",
@@ -462,7 +482,7 @@
     },
     {
       "command": "python scripts/analyze_qwen3_moe_mechanism_levers.py --eval-budget-dir results/qwen3_moe_eval_budget_plan --output-dir results/qwen3_moe_mechanism_levers",
-      "duration_sec": 0.4437742233276367,
+      "duration_sec": 0.49002981185913086,
       "kind": "attribution",
       "returncode": 0,
       "status": "passed",
@@ -472,7 +492,7 @@
     },
     {
       "command": "python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke",
-      "duration_sec": 0.7420940399169922,
+      "duration_sec": 0.7466084957122803,
       "kind": "smoke",
       "returncode": 0,
       "status": "passed",
@@ -482,7 +502,7 @@
     },
     {
       "command": "python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke",
-      "duration_sec": 0.41852378845214844,
+      "duration_sec": 0.42586255073547363,
       "kind": "smoke",
       "returncode": 0,
       "status": "passed",
@@ -492,7 +512,7 @@
     },
     {
       "command": "python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke",
-      "duration_sec": 0.5070888996124268,
+      "duration_sec": 0.4967656135559082,
       "kind": "smoke",
       "returncode": 0,
       "status": "passed",
@@ -502,7 +522,7 @@
     },
     {
       "command": "python scripts/smoke_qwen3_moe_eval_budget_queue.py --eval-budget-dir results/qwen3_moe_eval_budget_plan --candidate-trust-gate results/qwen3_moe_candidate_trust_region_gate/candidate_trust_region_gate.csv --output-dir results/qwen3_moe_eval_budget_queue_smoke",
-      "duration_sec": 0.4253578186035156,
+      "duration_sec": 0.43436336517333984,
       "kind": "smoke",
       "returncode": 0,
       "status": "passed",
@@ -512,7 +532,7 @@
     },
     {
       "command": "python scripts/build_qwen_source_frontier_eval_feedback.py --smoke-matrix --output-dir results/qwen_source_frontier_eval_feedback_smoke",
-      "duration_sec": 0.39668798446655273,
+      "duration_sec": 0.4330008029937744,
       "kind": "smoke",
       "returncode": 0,
       "status": "passed",
@@ -522,7 +542,7 @@
     },
     {
       "command": "python scripts/collect_qwen3_moe_harc_router_stats.py --smoke-matrix --output-dir results/qwen3_moe_harc_router_stats_smoke",
-      "duration_sec": 2.1259326934814453,
+      "duration_sec": 2.1843249797821045,
       "kind": "smoke",
       "returncode": 0,
       "status": "passed",
@@ -532,7 +552,7 @@
     },
     {
       "command": "python scripts/solve_qwen3_moe_harc_router_delta.py --smoke-matrix --output-dir results/qwen3_moe_harc_router_solver_smoke",
-      "duration_sec": 3.6861143112182617,
+      "duration_sec": 3.733023166656494,
       "kind": "smoke",
       "returncode": 0,
       "status": "passed",
@@ -541,8 +561,18 @@
       "step": "solve_qwen3_moe_harc_router_delta_smoke"
     },
     {
+      "command": "python scripts/build_qwen3_moe_harc_router_candidate.py --smoke-matrix --output-dir results/qwen3_moe_harc_router_candidate_smoke",
+      "duration_sec": 3.737863540649414,
+      "kind": "smoke",
+      "returncode": 0,
+      "status": "passed",
+      "stderr_tail": "\nwrite shards:   0%|          | 0/1 [00:00<?, ?it/s]\nwrite shards: 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 1/1 [00:00<00:00, 1032.32it/s]\n",
+      "stdout_tail": "Wrote Qwen3 MoE HARC router candidate gate to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_harc_router_candidate_smoke\nStatus: harc_router_candidate_materialized; checks=3/3; checkpoint=True\n",
+      "step": "build_qwen3_moe_harc_router_candidate_smoke"
+    },
+    {
       "command": "python scripts/build_qwen3_moe_harc_readiness_gate.py --smoke-matrix --output-dir results/qwen3_moe_harc_readiness_gate_smoke",
-      "duration_sec": 0.5169246196746826,
+      "duration_sec": 0.4966552257537842,
       "kind": "smoke",
       "returncode": 0,
       "status": "passed",
@@ -552,7 +582,7 @@
     },
     {
       "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --smoke-matrix --output-dir results/qwen3_moe_mechanism_effect_attribution_smoke",
-      "duration_sec": 0.43329882621765137,
+      "duration_sec": 0.42467546463012695,
       "kind": "smoke",
       "returncode": 0,
       "status": "passed",
@@ -562,7 +592,7 @@
     },
     {
       "command": "python scripts/build_qwen3_moe_feedback_optimizer.py --smoke-matrix --output-dir results/qwen3_moe_feedback_optimizer_smoke",
-      "duration_sec": 0.47987818717956543,
+      "duration_sec": 0.5229690074920654,
       "kind": "smoke",
       "returncode": 0,
       "status": "passed",
@@ -572,7 +602,7 @@
     },
     {
       "command": "python scripts/build_qwen3_moe_mechanistic_unified_candidate.py --smoke-matrix --output-dir results/qwen3_moe_mechanistic_unified_candidate_smoke",
-      "duration_sec": 1.5794239044189453,
+      "duration_sec": 1.6492564678192139,
       "kind": "smoke",
       "returncode": 0,
       "status": "passed",
@@ -582,7 +612,7 @@
     },
     {
       "command": "python scripts/smoke_unified_average_optimizer_ledger.py --summary results/unified_average_optimizer/summary.json --output-dir results/unified_average_optimizer_ledger_smoke",
-      "duration_sec": 0.4345409870147705,
+      "duration_sec": 0.4150574207305908,
       "kind": "smoke",
       "returncode": 0,
       "status": "passed",
@@ -592,7 +622,7 @@
     },
     {
       "command": "python scripts/smoke_average_method_gate_matrix.py --optimizer-summary results/unified_average_optimizer/summary.json --method-gate-dir results/average_method_gate_matrix --output-dir results/average_method_gate_matrix_consistency_smoke",
-      "duration_sec": 0.42511463165283203,
+      "duration_sec": 0.4585452079772949,
       "kind": "smoke",
       "returncode": 0,
       "status": "passed",
@@ -602,7 +632,7 @@
     },
     {
       "command": "python scripts/smoke_average_trust_region_bounds.py --bounds-dir results/average_trust_region_bounds --output-dir results/average_trust_region_bounds_smoke",
-      "duration_sec": 0.4448084831237793,
+      "duration_sec": 0.4038665294647217,
       "kind": "smoke",
       "returncode": 0,
       "status": "passed",
@@ -612,12 +642,12 @@
     },
     {
       "command": "python scripts/collect_results.py",
-      "duration_sec": 1.8643198013305664,
+      "duration_sec": 1.8119854927062988,
       "kind": "summary",
       "returncode": 0,
       "status": "passed",
       "stderr_tail": "",
-      "stdout_tail": "Wrote results/summary.json\nWrote results/summary.md\nWrote ARTIFACT_MANIFEST.json\nArtifacts indexed: 1399\n",
+      "stdout_tail": "Wrote results/summary.json\nWrote results/summary.md\nWrote ARTIFACT_MANIFEST.json\nArtifacts indexed: 1411\n",
       "step": "collect_results"
     }
   ]

@@ -1,0 +1,39 @@
+{
+  "base_exists": true,
+  "base_path": "results/qwen3_moe_harc_router_candidate_smoke/mock_inputs/base",
+  "candidate_checkpoint_dir": "results/qwen3_moe_harc_router_candidate_smoke/checkpoint_with_harc_router",
+  "candidate_checkpoint_exists": true,
+  "check_count": 3,
+  "delta_tensor_count": 2,
+  "max_abs_error": 0.0,
+  "non_router_check_count": 1,
+  "non_router_passed_count": 1,
+  "outputs": {
+    "checkpoint": "results/qwen3_moe_harc_router_candidate_smoke/checkpoint_with_harc_router",
+    "materialization_checks": "results/qwen3_moe_harc_router_candidate_smoke/materialization_checks.csv",
+    "report": "results/qwen3_moe_harc_router_candidate_smoke/report.md",
+    "requirements": "results/qwen3_moe_harc_router_candidate_smoke/harc_candidate_requirements.csv",
+    "summary": "results/qwen3_moe_harc_router_candidate_smoke/summary.json",
+    "writer_command": "results/qwen3_moe_harc_router_candidate_smoke/writer_command.txt"
+  },
+  "passed_check_count": 3,
+  "recommended_action": "smoke_passed_materialization_contract_ready",
+  "router_delta_check_count": 2,
+  "router_delta_exists": true,
+  "router_delta_passed_count": 2,
+  "router_delta_safetensors": "results/qwen3_moe_harc_router_candidate_smoke/mock_inputs/router_delta.safetensors",
+  "schema_version": 1,
+  "smoke_status": "smoke_passed",
+  "solver_status": "smoke_ready",
+  "solver_summary": null,
+  "status": "harc_router_candidate_materialized",
+  "writer_command": "python scripts/write_same_shape_average_checkpoint.py --base results/qwen3_moe_harc_router_candidate_smoke/mock_inputs/base --source same=results/qwen3_moe_harc_router_candidate_smoke/mock_inputs/base --source-weight same=0.0 --freeze-router --tensor-delta-safetensors results/qwen3_moe_harc_router_candidate_smoke/mock_inputs/router_delta.safetensors --output-dir results/qwen3_moe_harc_router_candidate_smoke/checkpoint_with_harc_router",
+  "writer_manifest": {
+    "floating_tensors": 3,
+    "frozen_tensors": 1,
+    "merge_manifest": "results/qwen3_moe_harc_router_candidate_smoke/checkpoint_with_harc_router/merge_manifest.json",
+    "tensor_delta_safetensors_entries": 2,
+    "tensor_delta_safetensors_tensors": 2,
+    "tensor_delta_safetensors_values": 48
+  }
+}
