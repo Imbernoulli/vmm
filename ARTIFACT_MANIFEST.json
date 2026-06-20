@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 69452,
+      "bytes": 70609,
       "kind": "document",
       "path": "README.md",
-      "sha256": "e630979e6e3c106742479d8518e7ceff805993c9bcf1475ead8b3b1c4aedd4c0"
+      "sha256": "cad78a0aaa3b650b13e2162615d2b95756552e7f0b4fd5c86f70c3c0bfb33052"
     },
     {
       "bytes": 33211,
@@ -3679,6 +3679,48 @@
       "sha256": "7f9688125744694c3b7ba86525acb8edddca470d2a207a29027ed3c6178a6d64"
     },
     {
+      "bytes": 678,
+      "kind": "data",
+      "path": "results/qwen3_moe_unified_result_selection/decision_rules.json",
+      "sha256": "2061f08c9c11a9fbd106d577173ebb07d15b1fbd199af072cc5bc7f884441d37"
+    },
+    {
+      "bytes": 1305,
+      "kind": "document",
+      "path": "results/qwen3_moe_unified_result_selection/report.md",
+      "sha256": "75d4f0b945eb9a969c2cd547e1650c462942349528cd0a689de9b8af4e878ce2"
+    },
+    {
+      "bytes": 407,
+      "kind": "data",
+      "path": "results/qwen3_moe_unified_result_selection/selection_table.csv",
+      "sha256": "0777a7f212025b9c67244fb5955b335f7814a1b2812d9e1b1a7666c949a7fa7d"
+    },
+    {
+      "bytes": 1156,
+      "kind": "data",
+      "path": "results/qwen3_moe_unified_result_selection/summary.json",
+      "sha256": "af842e299601730786c10da491a8d30abcfc425a4becbe2a1010ad07928b34bb"
+    },
+    {
+      "bytes": 626,
+      "kind": "document",
+      "path": "results/qwen3_moe_unified_result_selection_smoke/report.md",
+      "sha256": "afba1dd500e4936c8ca7f8856c97f195a2425db1c5a9acc50b70dba39c705594"
+    },
+    {
+      "bytes": 645,
+      "kind": "data",
+      "path": "results/qwen3_moe_unified_result_selection_smoke/selector_matrix.csv",
+      "sha256": "f4993a5c65ead3b5f1b90eb426790821a89d73b3a6d1c8f41cb810266e96c767"
+    },
+    {
+      "bytes": 1640,
+      "kind": "data",
+      "path": "results/qwen3_moe_unified_result_selection_smoke/summary.json",
+      "sha256": "6eb537c50024334a2c7f545ada5aa2336b50971f67fb72a93194d6dd1c4e2640"
+    },
+    {
       "bytes": 268,
       "kind": "data",
       "path": "results/qwen3_moe_unified_route_guarded_candidate/category_source_plan.csv",
@@ -4225,16 +4267,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 1112320,
+      "bytes": 1120797,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "43095c12a2c298f6385befdca84cb804d25ef16fcd2728c3e45ca63ba233e60d"
+      "sha256": "6a5c64585817bd8b0e5c50244372b8e6023ad8804c454ffa32832ecc44ebc780"
     },
     {
-      "bytes": 42862,
+      "bytes": 43605,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "5eb14645308350a2cba46b476f7a1ec801fdb121588402249f03a2126b3f5b61"
+      "sha256": "75636b246cac16b3b63f3b744ffe04c2b619354ce8bfe082e00c7f6c5dd8d3f4"
     },
     {
       "bytes": 288,
@@ -5389,10 +5431,10 @@
       "sha256": "cd588bc1804013f4043bd95c245b066dbae86bfd3e3f9c18317ef33eb506f123"
     },
     {
-      "bytes": 291845,
+      "bytes": 296839,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "10f4ed05799621dd61bea01ee4247ce961f3aac93cb819b6369e0d3e7bdc4c8c"
+      "sha256": "59a94581b893aecab26d4f801829b6ce3bac3c8e00e1a1eaa59f250d8fd09bb1"
     },
     {
       "bytes": 16101,
@@ -5551,6 +5593,12 @@
       "sha256": "f8033ef22d3236b5fbb82d9dc7f86d9260aee0981da92f3ad6652b006118c915"
     },
     {
+      "bytes": 23378,
+      "kind": "code",
+      "path": "scripts/select_qwen3_moe_unified_result.py",
+      "sha256": "648d0b1eb4a97a56414b31ee37b43fb76ea1e928ca7a2c3ccb454ac5d5542dcd"
+    },
+    {
       "bytes": 7980,
       "kind": "code",
       "path": "scripts/smoke_dense_sparse_method_writer.py",
@@ -5635,7 +5683,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-19T23:53:42.836869+00:00",
+  "generated_at": "2026-06-20T00:05:05.235207+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

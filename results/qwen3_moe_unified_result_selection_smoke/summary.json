@@ -1,0 +1,50 @@
+{
+  "case_count": 4,
+  "cases": [
+    {
+      "case": "candidate_win",
+      "expected_reason": "unified_improves_source_frontier",
+      "expected_status": "select_unified_candidate",
+      "passed": true,
+      "reason": "unified_improves_source_frontier",
+      "selected_method": "qwen3_moe_unified_mechanism_candidate",
+      "status": "select_unified_candidate"
+    },
+    {
+      "case": "source_dominance",
+      "expected_reason": "source_endpoint_dominates",
+      "expected_status": "keep_source_endpoint",
+      "passed": true,
+      "reason": "source_endpoint_dominates",
+      "selected_method": "source_qwen3_30b_instruct",
+      "status": "keep_source_endpoint"
+    },
+    {
+      "case": "task_regression",
+      "expected_reason": "task_score_regression",
+      "expected_status": "keep_source_endpoint",
+      "passed": true,
+      "reason": "task_score_regression",
+      "selected_method": "source_qwen3_30b_instruct",
+      "status": "keep_source_endpoint"
+    },
+    {
+      "case": "no_gain",
+      "expected_reason": "no_avg_or_worst_gain",
+      "expected_status": "keep_source_endpoint",
+      "passed": true,
+      "reason": "no_avg_or_worst_gain",
+      "selected_method": "source_qwen3_30b_instruct",
+      "status": "keep_source_endpoint"
+    }
+  ],
+  "failed_case_count": 0,
+  "outputs": {
+    "matrix": "results/qwen3_moe_unified_result_selection_smoke/selector_matrix.csv",
+    "report": "results/qwen3_moe_unified_result_selection_smoke/report.md",
+    "summary": "results/qwen3_moe_unified_result_selection_smoke/summary.json"
+  },
+  "passed_case_count": 4,
+  "schema_version": 1,
+  "status": "passed"
+}

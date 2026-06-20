@@ -296,8 +296,13 @@
       "status": "complete"
     },
     {
-      "evidence": "results/qwen3_moe_mechanism_eval_gate/report.md turns two source endpoints and six same-shape Qwen3 MoE candidates into mechanism tests, a one-model-at-a-time vLLM run script, and endpoint-fallback selection rules.",
+      "evidence": "results/qwen3_moe_mechanism_eval_gate/report.md turns two source endpoints and seven same-shape Qwen3 MoE candidates into mechanism tests, a one-model-at-a-time vLLM run script, and endpoint-fallback selection rules.",
       "item": "Qwen3 MoE mechanism-gated vLLM eval gate",
+      "status": "complete"
+    },
+    {
+      "evidence": "results/qwen3_moe_unified_result_selection/report.md gates the unified same-shape average against both Qwen3 source endpoints after matched vLLM eval; results/qwen3_moe_unified_result_selection_smoke/report.md covers candidate-win, source-dominance, task-regression, and no-gain branches.",
+      "item": "Qwen3 MoE unified downstream result selector",
       "status": "complete"
     },
     {
@@ -352,7 +357,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 69,
+    "complete": 70,
     "missing": 0,
     "partial": 1
   },
@@ -17856,6 +17861,204 @@
       "unified_group_rules": "results/qwen3_moe_unified_mechanism_candidate/unified_group_rules.csv",
       "writer_command": "results/qwen3_moe_unified_mechanism_candidate/writer_command.txt"
     },
+    "qwen3_moe_unified_result_selection": {
+      "alias_status": "mechanism_supported",
+      "avg_gain_vs_best_source": null,
+      "best_source_by_avg": "source_qwen3_30b_instruct",
+      "candidate_count": 3,
+      "candidate_rows": [
+        {
+          "audit_passed": true,
+          "avg_primary_score": null,
+          "dominated_by_source": null,
+          "eval_completed": false,
+          "method": "source_qwen3_30b_instruct",
+          "role": "source",
+          "selection_eligible": false,
+          "task_gsm8k_score": null,
+          "task_humaneval_compile_score": null,
+          "task_mmlu_score": null,
+          "task_regression_columns": null,
+          "task_safety_score": null,
+          "worst_primary_score": null
+        },
+        {
+          "audit_passed": true,
+          "avg_primary_score": null,
+          "dominated_by_source": null,
+          "eval_completed": false,
+          "method": "source_qwen3_30b_coder",
+          "role": "source",
+          "selection_eligible": false,
+          "task_gsm8k_score": null,
+          "task_humaneval_compile_score": null,
+          "task_mmlu_score": null,
+          "task_regression_columns": null,
+          "task_safety_score": null,
+          "worst_primary_score": null
+        },
+        {
+          "audit_passed": true,
+          "avg_primary_score": null,
+          "dominated_by_source": null,
+          "eval_completed": false,
+          "method": "qwen3_moe_unified_mechanism_candidate",
+          "role": "candidate",
+          "selection_eligible": false,
+          "task_gsm8k_score": null,
+          "task_humaneval_compile_score": null,
+          "task_mmlu_score": null,
+          "task_regression_columns": null,
+          "task_safety_score": null,
+          "worst_primary_score": null
+        }
+      ],
+      "decision_rules": "results/qwen3_moe_unified_result_selection/decision_rules.json",
+      "eligible_candidate_count": 0,
+      "report": "results/qwen3_moe_unified_result_selection/report.md",
+      "selected_method": null,
+      "selection_reason": "Both Qwen3 source endpoints must complete matched vLLM downstream eval before accepting an average.",
+      "selection_table": "results/qwen3_moe_unified_result_selection/selection_table.csv",
+      "sources_complete": false,
+      "status": "awaiting_source_eval",
+      "summary": {
+        "candidate_count": 3,
+        "current_selection": {
+          "alias_status": "mechanism_supported",
+          "avg_gain_vs_best_source": null,
+          "best_source_by_avg": "source_qwen3_30b_instruct",
+          "reason": "Both Qwen3 source endpoints must complete matched vLLM downstream eval before accepting an average.",
+          "score_columns": [
+            "avg_primary_score",
+            "worst_primary_score",
+            "task_gsm8k_score",
+            "task_mmlu_score",
+            "task_safety_score",
+            "task_humaneval_compile_score"
+          ],
+          "selected_method": null,
+          "source_count": 2,
+          "sources_complete": false,
+          "status": "awaiting_source_eval",
+          "unified_audit_passed": true,
+          "unified_completed": false,
+          "worst_gain_vs_best_source": null
+        },
+        "outputs": {
+          "decision_rules": "results/qwen3_moe_unified_result_selection/decision_rules.json",
+          "report": "results/qwen3_moe_unified_result_selection/report.md",
+          "selection_table": "results/qwen3_moe_unified_result_selection/selection_table.csv",
+          "summary": "results/qwen3_moe_unified_result_selection/summary.json"
+        },
+        "schema_version": 1,
+        "smoke_case": null,
+        "status": "awaiting_source_eval"
+      },
+      "summary_path": "results/qwen3_moe_unified_result_selection/summary.json",
+      "unified_audit_passed": true,
+      "unified_completed": false,
+      "unified_dominated_by_source": null,
+      "unified_selection_eligible": false,
+      "unified_task_regression_columns": null,
+      "worst_gain_vs_best_source": null
+    },
+    "qwen3_moe_unified_result_selection_smoke": {
+      "case_count": 4,
+      "case_rows": [
+        {
+          "case": "candidate_win",
+          "expected_reason": "unified_improves_source_frontier",
+          "expected_status": "select_unified_candidate",
+          "passed": true,
+          "reason": "unified_improves_source_frontier",
+          "selected_method": "qwen3_moe_unified_mechanism_candidate",
+          "status": "select_unified_candidate"
+        },
+        {
+          "case": "source_dominance",
+          "expected_reason": "source_endpoint_dominates",
+          "expected_status": "keep_source_endpoint",
+          "passed": true,
+          "reason": "source_endpoint_dominates",
+          "selected_method": "source_qwen3_30b_instruct",
+          "status": "keep_source_endpoint"
+        },
+        {
+          "case": "task_regression",
+          "expected_reason": "task_score_regression",
+          "expected_status": "keep_source_endpoint",
+          "passed": true,
+          "reason": "task_score_regression",
+          "selected_method": "source_qwen3_30b_instruct",
+          "status": "keep_source_endpoint"
+        },
+        {
+          "case": "no_gain",
+          "expected_reason": "no_avg_or_worst_gain",
+          "expected_status": "keep_source_endpoint",
+          "passed": true,
+          "reason": "no_avg_or_worst_gain",
+          "selected_method": "source_qwen3_30b_instruct",
+          "status": "keep_source_endpoint"
+        }
+      ],
+      "failed_case_count": 0,
+      "matrix": "results/qwen3_moe_unified_result_selection_smoke/selector_matrix.csv",
+      "passed_case_count": 4,
+      "report": "results/qwen3_moe_unified_result_selection_smoke/report.md",
+      "status": "passed",
+      "summary": {
+        "case_count": 4,
+        "cases": [
+          {
+            "case": "candidate_win",
+            "expected_reason": "unified_improves_source_frontier",
+            "expected_status": "select_unified_candidate",
+            "passed": true,
+            "reason": "unified_improves_source_frontier",
+            "selected_method": "qwen3_moe_unified_mechanism_candidate",
+            "status": "select_unified_candidate"
+          },
+          {
+            "case": "source_dominance",
+            "expected_reason": "source_endpoint_dominates",
+            "expected_status": "keep_source_endpoint",
+            "passed": true,
+            "reason": "source_endpoint_dominates",
+            "selected_method": "source_qwen3_30b_instruct",
+            "status": "keep_source_endpoint"
+          },
+          {
+            "case": "task_regression",
+            "expected_reason": "task_score_regression",
+            "expected_status": "keep_source_endpoint",
+            "passed": true,
+            "reason": "task_score_regression",
+            "selected_method": "source_qwen3_30b_instruct",
+            "status": "keep_source_endpoint"
+          },
+          {
+            "case": "no_gain",
+            "expected_reason": "no_avg_or_worst_gain",
+            "expected_status": "keep_source_endpoint",
+            "passed": true,
+            "reason": "no_avg_or_worst_gain",
+            "selected_method": "source_qwen3_30b_instruct",
+            "status": "keep_source_endpoint"
+          }
+        ],
+        "failed_case_count": 0,
+        "outputs": {
+          "matrix": "results/qwen3_moe_unified_result_selection_smoke/selector_matrix.csv",
+          "report": "results/qwen3_moe_unified_result_selection_smoke/report.md",
+          "summary": "results/qwen3_moe_unified_result_selection_smoke/summary.json"
+        },
+        "passed_case_count": 4,
+        "schema_version": 1,
+        "status": "passed"
+      },
+      "summary_path": "results/qwen3_moe_unified_result_selection_smoke/summary.json"
+    },
     "qwen_dense_attention_sparse_method_candidate": {
       "base_bridge_candidate": "qwen_0_5b_probe_guided_bridge_a025_b100",
       "candidate_id": "qwen_0_5b_attention_sparse_method_bridge",
@@ -24512,7 +24715,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-19T23:53:42.793164+00:00",
+  "generated_at": "2026-06-20T00:05:05.184774+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -24598,6 +24801,8 @@
     "python scripts/select_qwen3_moe_router_calibration_result.py --task-regression-negative-smoke --output-dir results/qwen3_moe_router_calibration_selection_task_regression_negative_smoke",
     "python scripts/smoke_qwen3_moe_router_calibration_selector_matrix.py --output-dir results/qwen3_moe_router_calibration_selector_matrix_smoke",
     "python scripts/build_qwen3_moe_unified_mechanism_candidate.py --output-dir results/qwen3_moe_unified_mechanism_candidate",
+    "python scripts/select_qwen3_moe_unified_result.py --output-dir results/qwen3_moe_unified_result_selection",
+    "python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke",
     "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
     "PYTHONPATH=src python scripts/collect_results.py"
   ],

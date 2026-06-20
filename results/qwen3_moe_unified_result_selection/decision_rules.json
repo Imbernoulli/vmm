@@ -1,0 +1,18 @@
+{
+  "acceptance": [
+    "both source endpoints complete matched vLLM eval",
+    "unified candidate completes matched vLLM eval",
+    "unified candidate audit passes",
+    "unified alias validation is supported when present",
+    "no source endpoint dominates the unified candidate",
+    "no task score regresses below both source endpoints",
+    "unified improves avg or worst source frontier"
+  ],
+  "candidate": "qwen3_moe_unified_mechanism_candidate",
+  "required_controls": [
+    "source_qwen3_30b_instruct",
+    "source_qwen3_30b_coder"
+  ],
+  "schema_version": 1,
+  "target_contract": "same-shape Qwen3 MoE output; no ensemble, no added experts, no architecture change"
+}

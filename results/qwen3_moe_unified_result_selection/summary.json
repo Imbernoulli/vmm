@@ -1,0 +1,33 @@
+{
+  "candidate_count": 3,
+  "current_selection": {
+    "alias_status": "mechanism_supported",
+    "avg_gain_vs_best_source": null,
+    "best_source_by_avg": "source_qwen3_30b_instruct",
+    "reason": "Both Qwen3 source endpoints must complete matched vLLM downstream eval before accepting an average.",
+    "score_columns": [
+      "avg_primary_score",
+      "worst_primary_score",
+      "task_gsm8k_score",
+      "task_mmlu_score",
+      "task_safety_score",
+      "task_humaneval_compile_score"
+    ],
+    "selected_method": null,
+    "source_count": 2,
+    "sources_complete": false,
+    "status": "awaiting_source_eval",
+    "unified_audit_passed": true,
+    "unified_completed": false,
+    "worst_gain_vs_best_source": null
+  },
+  "outputs": {
+    "decision_rules": "results/qwen3_moe_unified_result_selection/decision_rules.json",
+    "report": "results/qwen3_moe_unified_result_selection/report.md",
+    "selection_table": "results/qwen3_moe_unified_result_selection/selection_table.csv",
+    "summary": "results/qwen3_moe_unified_result_selection/summary.json"
+  },
+  "schema_version": 1,
+  "smoke_case": null,
+  "status": "awaiting_source_eval"
+}

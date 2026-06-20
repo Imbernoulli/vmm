@@ -1178,6 +1178,56 @@ def summarize_qwen3_moe_mechanism_eval_gate() -> dict[str, Any]:
     }
 
 
+def summarize_qwen3_moe_unified_result_selection() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_unified_result_selection")
+    summary = read_json(root / "summary.json")
+    table = read_csv(root / "selection_table.csv")
+    selection = summary.get("current_selection", {})
+    eligible = table[table["selection_eligible"].astype(bool)] if "selection_eligible" in table else pd.DataFrame()
+    unified_rows = table[table["method"] == "qwen3_moe_unified_mechanism_candidate"]
+    unified_row = {} if unified_rows.empty else clean_row(unified_rows.iloc[0])
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "selected_method": selection.get("selected_method"),
+        "selection_reason": selection.get("reason"),
+        "sources_complete": bool(selection.get("sources_complete", False)),
+        "unified_completed": bool(selection.get("unified_completed", False)),
+        "unified_audit_passed": bool(selection.get("unified_audit_passed", False)),
+        "alias_status": selection.get("alias_status"),
+        "best_source_by_avg": selection.get("best_source_by_avg"),
+        "avg_gain_vs_best_source": maybe_float(selection.get("avg_gain_vs_best_source")),
+        "worst_gain_vs_best_source": maybe_float(selection.get("worst_gain_vs_best_source")),
+        "eligible_candidate_count": int(len(eligible)),
+        "candidate_count": int(summary.get("candidate_count", len(table))),
+        "unified_selection_eligible": bool(unified_row.get("selection_eligible", False)),
+        "unified_dominated_by_source": unified_row.get("dominated_by_source"),
+        "unified_task_regression_columns": unified_row.get("task_regression_columns"),
+        "candidate_rows": [clean_row(row) for _, row in table.iterrows()],
+        "report": rel(root / "report.md"),
+        "selection_table": rel(root / "selection_table.csv"),
+        "decision_rules": rel(root / "decision_rules.json"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
+def summarize_qwen3_moe_unified_result_selection_smoke() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_unified_result_selection_smoke")
+    summary = read_json(root / "summary.json")
+    matrix = read_csv(root / "selector_matrix.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "case_count": int(summary.get("case_count", len(matrix))),
+        "passed_case_count": int(summary.get("passed_case_count", 0)),
+        "failed_case_count": int(summary.get("failed_case_count", 0)),
+        "case_rows": [clean_row(row) for _, row in matrix.iterrows()],
+        "report": rel(root / "report.md"),
+        "matrix": rel(root / "selector_matrix.csv"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_qwen3_moe_router_move_gate() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_router_move_gate")
     summary = read_json(root / "summary.json")
@@ -3054,7 +3104,12 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "Qwen3 MoE mechanism-gated vLLM eval gate",
             "status": "complete",
-            "evidence": "results/qwen3_moe_mechanism_eval_gate/report.md turns two source endpoints and six same-shape Qwen3 MoE candidates into mechanism tests, a one-model-at-a-time vLLM run script, and endpoint-fallback selection rules.",
+            "evidence": "results/qwen3_moe_mechanism_eval_gate/report.md turns two source endpoints and seven same-shape Qwen3 MoE candidates into mechanism tests, a one-model-at-a-time vLLM run script, and endpoint-fallback selection rules.",
+        },
+        {
+            "item": "Qwen3 MoE unified downstream result selector",
+            "status": "complete",
+            "evidence": "results/qwen3_moe_unified_result_selection/report.md gates the unified same-shape average against both Qwen3 source endpoints after matched vLLM eval; results/qwen3_moe_unified_result_selection_smoke/report.md covers candidate-win, source-dominance, task-regression, and no-gain branches.",
         },
         {
             "item": "Qwen3 MoE searched cap-law materialized candidate",
@@ -3175,6 +3230,8 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_searched_no_gt065_delta_audit": summarize_qwen3_moe_searched_no_gt065_delta_audit(),
         "qwen3_moe_delta_frontier": summarize_qwen3_moe_delta_frontier(),
         "qwen3_moe_mechanism_eval_gate": summarize_qwen3_moe_mechanism_eval_gate(),
+        "qwen3_moe_unified_result_selection": summarize_qwen3_moe_unified_result_selection(),
+        "qwen3_moe_unified_result_selection_smoke": summarize_qwen3_moe_unified_result_selection_smoke(),
         "qwen3_moe_router_move_gate": summarize_qwen3_moe_router_move_gate(),
         "qwen3_moe_router_calibration_job": summarize_qwen3_moe_router_calibration_job(),
         "qwen3_moe_router_calibration_selection": summarize_qwen3_moe_router_calibration_selection(),
@@ -3327,6 +3384,8 @@ def build_summary() -> dict[str, Any]:
             "python scripts/select_qwen3_moe_router_calibration_result.py --task-regression-negative-smoke --output-dir results/qwen3_moe_router_calibration_selection_task_regression_negative_smoke",
             "python scripts/smoke_qwen3_moe_router_calibration_selector_matrix.py --output-dir results/qwen3_moe_router_calibration_selector_matrix_smoke",
             "python scripts/build_qwen3_moe_unified_mechanism_candidate.py --output-dir results/qwen3_moe_unified_mechanism_candidate",
+            "python scripts/select_qwen3_moe_unified_result.py --output-dir results/qwen3_moe_unified_result_selection",
+            "python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke",
             "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
             "PYTHONPATH=src python scripts/collect_results.py",
         ],
@@ -3402,6 +3461,8 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_searched_no_gt065_delta_audit = exp["qwen3_moe_searched_no_gt065_delta_audit"]
     qwen3_moe_delta_frontier = exp["qwen3_moe_delta_frontier"]
     qwen3_moe_mechanism_eval_gate = exp["qwen3_moe_mechanism_eval_gate"]
+    qwen3_moe_unified_result_selection = exp["qwen3_moe_unified_result_selection"]
+    qwen3_moe_unified_result_selection_smoke = exp["qwen3_moe_unified_result_selection_smoke"]
     qwen3_moe_router_move_gate = exp["qwen3_moe_router_move_gate"]
     qwen3_moe_router_calibration_job = exp["qwen3_moe_router_calibration_job"]
     qwen3_moe_router_calibration_selection = exp["qwen3_moe_router_calibration_selection"]
@@ -3944,6 +4005,25 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_mechanism_eval_gate['unified_candidate_serve_status']} / "
                 f"{qwen3_moe_mechanism_eval_gate['unified_candidate_audit_passed']} / "
                 f"{qwen3_moe_mechanism_eval_gate['unified_rule_alias_validation_status']} |"
+            ),
+            (
+                "| Qwen3 MoE unified result selector | status / selected / reason | "
+                f"{qwen3_moe_unified_result_selection['status']} / "
+                f"{qwen3_moe_unified_result_selection['selected_method']} / "
+                f"{qwen3_moe_unified_result_selection['selection_reason']} |"
+            ),
+            (
+                "| Qwen3 MoE unified result selector | source complete / unified complete / eligible | "
+                f"{qwen3_moe_unified_result_selection['sources_complete']} / "
+                f"{qwen3_moe_unified_result_selection['unified_completed']} / "
+                f"{qwen3_moe_unified_result_selection['eligible_candidate_count']}"
+                f"/{qwen3_moe_unified_result_selection['candidate_count']} |"
+            ),
+            (
+                "| Qwen3 MoE unified result selector smoke | status / passed cases | "
+                f"{qwen3_moe_unified_result_selection_smoke['status']} / "
+                f"{qwen3_moe_unified_result_selection_smoke['passed_case_count']}"
+                f"/{qwen3_moe_unified_result_selection_smoke['case_count']} |"
             ),
             (
                 "| Qwen3 MoE router move gate | status / action / allowed layers | "

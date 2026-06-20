@@ -1,0 +1,4 @@
+method,role,eval_completed,audit_passed,avg_primary_score,worst_primary_score,task_gsm8k_score,task_mmlu_score,task_safety_score,task_humaneval_compile_score,dominated_by_source,task_regression_columns,selection_eligible
+source_qwen3_30b_instruct,source,False,True,,,,,,,,,False
+source_qwen3_30b_coder,source,False,True,,,,,,,,,False
+qwen3_moe_unified_mechanism_candidate,candidate,False,True,,,,,,,,,False
