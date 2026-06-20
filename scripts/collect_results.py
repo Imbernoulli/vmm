@@ -2600,6 +2600,56 @@ def summarize_qwen3_moe_router_expert_coupling() -> dict[str, Any]:
     }
 
 
+def summarize_qwen3_moe_router_coupled_candidate() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_router_coupled_candidate")
+    summary = read_json(root / "summary.json")
+    search = read_csv(root / "candidate_search.csv")
+    group_rules = read_csv(root / "router_coupled_group_rules.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "selection_gate": summary.get("selection_gate"),
+        "writer_candidate_kind": summary.get("writer_candidate_kind"),
+        "base_mechanistic_candidate_id": summary.get("base_mechanistic_candidate_id"),
+        "selected_candidate_id": summary.get("selected_candidate_id"),
+        "candidate_count": int(summary.get("candidate_count", len(search))),
+        "expert_group_count": int(summary.get("expert_group_count", len(group_rules))),
+        "effective_hard_cap": maybe_float(summary.get("effective_hard_cap")),
+        "min_retention": maybe_float(summary.get("min_retention")),
+        "base_nonbase_mass_retention": maybe_float(summary.get("base_nonbase_mass_retention")),
+        "selected_nonbase_mass_retention": maybe_float(summary.get("selected_nonbase_mass_retention")),
+        "selected_retention_delta_vs_mechanistic": maybe_float(
+            summary.get("selected_retention_delta_vs_mechanistic")
+        ),
+        "selected_changed_group_count": maybe_int(summary.get("selected_changed_group_count")),
+        "selected_changed_group_mean_extra_shrink": maybe_float(
+            summary.get("selected_changed_group_mean_extra_shrink")
+        ),
+        "selected_max_extra_shrink": maybe_float(summary.get("selected_max_extra_shrink")),
+        "selected_max_predicted_relative_delta": maybe_float(
+            summary.get("selected_max_predicted_relative_delta")
+        ),
+        "selected_hard_cap_violation_count": maybe_int(
+            summary.get("selected_hard_cap_violation_count")
+        ),
+        "selected_router_coupled_delta_reduction_vs_mechanistic": maybe_float(
+            summary.get("selected_router_coupled_delta_reduction_vs_mechanistic")
+        ),
+        "selected_risk_delta_reduction_vs_mechanistic": maybe_float(
+            summary.get("selected_risk_delta_reduction_vs_mechanistic")
+        ),
+        "candidate_rows": [clean_row(row) for _, row in search.iterrows()],
+        "report": rel(root / "report.md"),
+        "candidate_search": rel(root / "candidate_search.csv"),
+        "router_coupled_group_rules": rel(root / "router_coupled_group_rules.csv"),
+        "selected_candidate": rel(root / "selected_candidate.json"),
+        "tensor_rules": rel(root / "tensor_rules.txt"),
+        "writer_command": rel(root / "writer_command.txt"),
+        "dry_run_command": rel(root / "dry_run_command.txt"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_qwen3_moe_post_eval_refresh() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_post_eval_refresh")
     summary = read_json(root / "summary.json")
@@ -2664,6 +2714,20 @@ def summarize_qwen3_moe_post_eval_refresh() -> dict[str, Any]:
         ),
         "router_expert_coupling_top_layer": maybe_int(
             downstream.get("router_expert_coupling_top_layer")
+        ),
+        "router_coupled_candidate_status": downstream.get("router_coupled_candidate_status"),
+        "router_coupled_candidate_selection_gate": downstream.get(
+            "router_coupled_candidate_selection_gate"
+        ),
+        "router_coupled_candidate_selected": downstream.get("router_coupled_candidate_selected"),
+        "router_coupled_candidate_retention": maybe_float(
+            downstream.get("router_coupled_candidate_retention")
+        ),
+        "router_coupled_candidate_retention_delta": maybe_float(
+            downstream.get("router_coupled_candidate_retention_delta")
+        ),
+        "router_coupled_candidate_delta_reduction": maybe_float(
+            downstream.get("router_coupled_candidate_delta_reduction")
         ),
         "step_rows": [clean_row(row) for _, row in steps.iterrows()],
         "report": rel(root / "report.md"),
@@ -4943,12 +5007,12 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "Qwen3 MoE mechanistic unified candidate",
             "status": "complete",
-            "evidence": "results/qwen3_moe_mechanistic_unified_candidate/report.md solves per-expert nonbase scale from benefit, curvature, and interference proxies, using real route mass, expert geometry, subspace conflict, delta pressure, and feedback priors; results/qwen3_moe_mechanistic_evidence_audit/report.md checks the B/H/I gradient, hard-cap binding, and internal-feature scale response; results/qwen3_moe_mechanistic_sensitivity/report.md reruns feature-family counterfactual full-score ablations to identify which internal signals protect the complete B/H/I objective; results/qwen3_moe_router_expert_coupling/report.md joins router top-k boundary fragility with expert scales to verify router-boundary risk becomes expert trust-region shrink; results/qwen3_moe_mechanistic_unified_candidate_smoke/report.md verifies monotonic mechanism behavior, hard-cap enforcement, and feedback shrink gating.",
+            "evidence": "results/qwen3_moe_mechanistic_unified_candidate/report.md solves per-expert nonbase scale from benefit, curvature, and interference proxies, using real route mass, expert geometry, subspace conflict, delta pressure, and feedback priors; results/qwen3_moe_mechanistic_evidence_audit/report.md checks the B/H/I gradient, hard-cap binding, and internal-feature scale response; results/qwen3_moe_mechanistic_sensitivity/report.md reruns feature-family counterfactual full-score ablations to identify which internal signals protect the complete B/H/I objective; results/qwen3_moe_router_expert_coupling/report.md joins router top-k boundary fragility with expert scales to verify router-boundary risk becomes expert trust-region shrink; results/qwen3_moe_router_coupled_candidate/report.md materializes that coupling into a writer-ready ablation-only same-shape candidate; results/qwen3_moe_mechanistic_unified_candidate_smoke/report.md verifies monotonic mechanism behavior, hard-cap enforcement, and feedback shrink gating.",
         },
         {
             "item": "Qwen3 MoE post-vLLM eval refresh pipeline",
             "status": "complete",
-            "evidence": "results/qwen3_moe_post_eval_refresh/report.md runs eval-bundle audit, unified/final selection, mechanism attribution, downstream feedback optimization, mechanistic unified candidate generation, mechanistic evidence audit, mechanistic sensitivity attribution, router-expert coupling attribution, unified average optimizer refresh, smoke checks, and collect_results in a fixed post-eval order after remote vLLM outputs land.",
+            "evidence": "results/qwen3_moe_post_eval_refresh/report.md runs eval-bundle audit, unified/final selection, mechanism attribution, downstream feedback optimization, mechanistic unified candidate generation, mechanistic evidence audit, mechanistic sensitivity attribution, router-expert coupling attribution, router-coupled ablation candidate generation, unified average optimizer refresh, smoke checks, and collect_results in a fixed post-eval order after remote vLLM outputs land.",
         },
         {
             "item": "Qwen3 MoE searched cap-law materialized candidate",
@@ -5119,6 +5183,7 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_mechanistic_evidence_audit": summarize_qwen3_moe_mechanistic_evidence_audit(),
         "qwen3_moe_mechanistic_sensitivity": summarize_qwen3_moe_mechanistic_sensitivity(),
         "qwen3_moe_router_expert_coupling": summarize_qwen3_moe_router_expert_coupling(),
+        "qwen3_moe_router_coupled_candidate": summarize_qwen3_moe_router_coupled_candidate(),
         "qwen3_moe_post_eval_refresh": summarize_qwen3_moe_post_eval_refresh(),
         "qwen3_moe_post_eval_refresh_plan": summarize_qwen3_moe_post_eval_refresh_plan(),
         "qwen3_moe_router_move_gate": summarize_qwen3_moe_router_move_gate(),
@@ -5311,6 +5376,7 @@ def build_summary() -> dict[str, Any]:
             "python scripts/audit_qwen3_moe_mechanistic_evidence.py --output-dir results/qwen3_moe_mechanistic_evidence_audit",
             "python scripts/analyze_qwen3_moe_mechanistic_sensitivity.py --output-dir results/qwen3_moe_mechanistic_sensitivity",
             "python scripts/analyze_qwen3_moe_router_expert_coupling.py --output-dir results/qwen3_moe_router_expert_coupling",
+            "python scripts/build_qwen3_moe_router_coupled_candidate.py --output-dir results/qwen3_moe_router_coupled_candidate",
             "python scripts/refresh_qwen3_moe_post_eval.py --plan-only --include-smoke --output-dir results/qwen3_moe_post_eval_refresh_plan",
             "python scripts/refresh_qwen3_moe_post_eval.py --include-smoke --output-dir results/qwen3_moe_post_eval_refresh",
             "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
@@ -5428,6 +5494,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_mechanistic_evidence_audit = exp["qwen3_moe_mechanistic_evidence_audit"]
     qwen3_moe_mechanistic_sensitivity = exp["qwen3_moe_mechanistic_sensitivity"]
     qwen3_moe_router_expert_coupling = exp["qwen3_moe_router_expert_coupling"]
+    qwen3_moe_router_coupled_candidate = exp["qwen3_moe_router_coupled_candidate"]
     qwen3_moe_post_eval_refresh = exp["qwen3_moe_post_eval_refresh"]
     qwen3_moe_post_eval_refresh_plan = exp["qwen3_moe_post_eval_refresh_plan"]
     qwen3_moe_router_move_gate = exp["qwen3_moe_router_move_gate"]
@@ -6594,6 +6661,18 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(qwen3_moe_router_expert_coupling['low_fragility_weighted_scale'])} |"
             ),
             (
+                "| Qwen3 MoE router-coupled candidate | gate / selected / changed groups | "
+                f"{qwen3_moe_router_coupled_candidate['selection_gate']} / "
+                f"{qwen3_moe_router_coupled_candidate['selected_candidate_id']} / "
+                f"{qwen3_moe_router_coupled_candidate['selected_changed_group_count']} |"
+            ),
+            (
+                "| Qwen3 MoE router-coupled candidate | retention delta / coupled delta reduction / risk reduction | "
+                f"{fmt(qwen3_moe_router_coupled_candidate['selected_retention_delta_vs_mechanistic'], 4)} / "
+                f"{fmt(qwen3_moe_router_coupled_candidate['selected_router_coupled_delta_reduction_vs_mechanistic'], 4)} / "
+                f"{fmt(qwen3_moe_router_coupled_candidate['selected_risk_delta_reduction_vs_mechanistic'], 4)} |"
+            ),
+            (
                 "| Qwen3 MoE mechanistic unified smoke | status / passed cases | "
                 f"{qwen3_moe_mechanistic_unified_candidate_smoke['status']} / "
                 f"{qwen3_moe_mechanistic_unified_candidate_smoke['passed_case_count']}"
@@ -6642,6 +6721,13 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(qwen3_moe_post_eval_refresh['router_expert_coupling_fragility_router_feature_corr'])} / "
                 f"{fmt(qwen3_moe_post_eval_refresh['router_expert_coupling_fragility_scale_shrink_corr'])} / "
                 f"L{qwen3_moe_post_eval_refresh['router_expert_coupling_top_layer']} |"
+            ),
+            (
+                "| Qwen3 MoE post-eval refresh | router-coupled candidate | "
+                f"{qwen3_moe_post_eval_refresh['router_coupled_candidate_selection_gate']} / "
+                f"{qwen3_moe_post_eval_refresh['router_coupled_candidate_selected']} / "
+                f"{fmt(qwen3_moe_post_eval_refresh['router_coupled_candidate_retention_delta'], 4)} / "
+                f"{fmt(qwen3_moe_post_eval_refresh['router_coupled_candidate_delta_reduction'], 4)} |"
             ),
             (
                 "| Qwen3 MoE router move gate | status / action / allowed layers | "

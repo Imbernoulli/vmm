@@ -1,10 +1,10 @@
 # Qwen3 MoE Post-Eval Refresh
 
-这个脚本在远端 vLLM eval 落盘后按固定顺序刷新 eval bundle audit、unified/final selector、mechanism attribution、feedback/mechanistic optimizer、mechanistic sensitivity、router-expert coupling、unified average optimizer、average method gate matrix、average trust-region bounds 和总汇总，避免手工漏跑或用到旧结果。
+这个脚本在远端 vLLM eval 落盘后按固定顺序刷新 eval bundle audit、unified/final selector、mechanism attribution、feedback/mechanistic optimizer、mechanistic sensitivity、router-expert coupling、router-coupled candidate、unified average optimizer、average method gate matrix、average trust-region bounds 和总汇总，避免手工漏跑或用到旧结果。
 
 - Status: `planned`
 - Plan only: `True`
-- Steps passed: `0/26`
+- Steps passed: `0/27`
 - Audit: `n/a` (`n/a/n/a` usable)
 - Selection: `n/a` -> `n/a`
 - Final selection: `n/a` -> `n/a` (`n/a/n/a` eligible)
@@ -17,6 +17,7 @@
 - Mechanistic evidence: `n/a` (`gradient_agreement=n/a`, `objective_improved=n/a`)
 - Mechanistic sensitivity: `n/a` (objective `n/a` delta `n/a`, scale `n/a` shift `n/a`)
 - Router-expert coupling: `n/a` (fragility->feature `n/a`, fragility->shrink `n/a`, shrink lift `n/a`, top layer `Ln/a`)
+- Router-coupled candidate: `n/a` -> `n/a` (`retention=n/a`, `retention_delta=n/a`, `coupled_delta_reduction=n/a`)
 - Unified average optimizer: `n/a` (top next experiment `n/a` / `n/a`)
 - Unified algorithm contract: `n/a` (`n/a/n/a` passed, blocking `[]`)
 - Unified selector rank gate in optimizer: confidence band `n/a`, rank mode `n/a`, band size `n/a`
@@ -40,6 +41,7 @@
 | `audit_mechanistic_evidence` | `attribution` | `planned` | None | 0.00 |
 | `analyze_mechanistic_sensitivity` | `attribution` | `planned` | None | 0.00 |
 | `analyze_router_expert_coupling` | `attribution` | `planned` | None | 0.00 |
+| `build_router_coupled_candidate` | `optimizer` | `planned` | None | 0.00 |
 | `build_unified_average_optimizer` | `optimizer` | `planned` | None | 0.00 |
 | `build_average_method_gate_matrix` | `optimizer` | `planned` | None | 0.00 |
 | `build_average_trust_region_bounds` | `optimizer` | `planned` | None | 0.00 |
@@ -69,6 +71,7 @@
 - `python scripts/audit_qwen3_moe_mechanistic_evidence.py --output-dir results/qwen3_moe_mechanistic_evidence_audit`
 - `python scripts/analyze_qwen3_moe_mechanistic_sensitivity.py --output-dir results/qwen3_moe_mechanistic_sensitivity`
 - `python scripts/analyze_qwen3_moe_router_expert_coupling.py --output-dir results/qwen3_moe_router_expert_coupling`
+- `python scripts/build_qwen3_moe_router_coupled_candidate.py --output-dir results/qwen3_moe_router_coupled_candidate`
 - `python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer`
 - `python scripts/build_average_method_gate_matrix.py --output-dir results/average_method_gate_matrix --optimizer-summary results/unified_average_optimizer/summary.json --optimizer-features results/unified_average_optimizer/mechanism_features.csv`
 - `python scripts/build_average_trust_region_bounds.py --output-dir results/average_trust_region_bounds`
