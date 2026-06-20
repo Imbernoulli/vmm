@@ -423,8 +423,8 @@ def moe_feature_rows(
             "evidence": (
                 f"subspace total relative norm = "
                 f"{fmt(delta_frontier.get('subspace_scaled_total_relative_delta_norm'))}; "
-                f"unified->subspace norm reduction = "
-                f"{fmt(delta_frontier.get('unified_to_subspace_relative_norm_reduction'), 6)}; "
+                f"mechanistic->subspace norm delta = "
+                f"{fmt(delta_frontier.get('mechanistic_to_subspace_relative_norm_delta'), 6)}; "
                 f"subspace routed >0.65 = {delta_frontier.get('subspace_scaled_routed_gt_0_65')}; "
                 f"router changed = {delta_frontier.get('subspace_scaled_router_changed_tensors')}"
             ),
@@ -522,6 +522,21 @@ def moe_feature_rows(
                 f"reason = {selection.get('reason')}"
             ),
         },
+        {
+            "domain": "moe",
+            "probe": "qwen3_final_selector_confidence_band",
+            "value": selection.get("selection_rank_band_size"),
+            "threshold": selection.get("eligible_candidate_count"),
+            "decision_signal": "use_structural_tiebreak_only_when_downstream_scores_are_statistically_tied",
+            "evidence": (
+                f"confidence tie band = {selection.get('confidence_tie_band')}; "
+                f"rank mode = {selection.get('selection_rank_mode')}; "
+                f"point leader = {selection.get('selection_point_leader_method')}; "
+                f"band size = {selection.get('selection_rank_band_size')}; "
+                f"structural-frontier eligible = {selection.get('structural_frontier_eligible_count')}; "
+                f"rank band methods = {selection.get('selection_rank_band_methods')}"
+            ),
+        },
     ]
 
 
@@ -529,6 +544,7 @@ def build_decisions(
     features: pd.DataFrame,
     dense_selector: dict[str, Any],
     router_gate: dict[str, Any],
+    final_selection: dict[str, Any],
     unified_candidate: dict[str, Any],
     delta_frontier: dict[str, Any],
     router_calibration_nll_probe: dict[str, Any],
@@ -542,6 +558,7 @@ def build_decisions(
     qwen3_downstream_confidence: dict[str, Any],
 ) -> pd.DataFrame:
     dense_config = ((dense_selector.get("results") or {}).get("unified") or {}).get("config") or {}
+    final_current = final_selection.get("current_selection") or {}
     router_selection = router_calibration.get("current_selection") or {}
     interpolation_gap = None
     if qwen3_moe_interpolation.get("best_interior_worst") is not None and qwen3_moe_interpolation.get(
@@ -642,8 +659,8 @@ def build_decisions(
                 f"materialized rule status = {unified_candidate.get('materialized_checkpoint_rule_status')}; "
                 f"layer/chunk->unified routed >0.65 reduction = "
                 f"{delta_frontier.get('layer_chunk_to_unified_routed_gt_065_reduction')}; "
-                f"unified->subspace extra norm reduction = "
-                f"{fmt(delta_frontier.get('unified_to_subspace_relative_norm_reduction'), 6)}"
+                f"mechanistic->subspace norm delta = "
+                f"{fmt(delta_frontier.get('mechanistic_to_subspace_relative_norm_delta'), 6)}"
             ),
             "why_it_should_improve": "It keeps useful Coder-route mass while shrinking high-risk routed expert deltas and local subspace conflicts instead of using one global coefficient.",
             "same_shape_invariant": "only routed expert tensor values change; router, attention, embeddings, norms, names, and shapes stay fixed",
@@ -666,6 +683,23 @@ def build_decisions(
             ),
             "why_it_should_improve": "It keeps router calibration as an active MoE-specific lever while still requiring source-dominance and task-regression gates before acceptance.",
             "same_shape_invariant": "any accepted router delta must keep the same router tensors and pass router-only audit caps",
+        },
+        {
+            "stage": "moe_statistical_selector_gate",
+            "operation": "rank structural mechanisms only inside a downstream confidence tie band",
+            "condition": (
+                "finite-budget vLLM eval can make point estimates differ by noise; after hard source/task/paired gates, "
+                "structural frontier and safety are used only when the point leader's confidence interval overlaps the candidate band"
+            ),
+            "selected_action": (
+                f"confidence_tie_band={final_current.get('confidence_tie_band')}; "
+                f"rank_mode={final_current.get('selection_rank_mode')}; "
+                f"point_leader={final_current.get('selection_point_leader_method')}; "
+                f"band_size={final_current.get('selection_rank_band_size')}; "
+                f"structural_frontier_eligible={final_current.get('structural_frontier_eligible_count')}"
+            ),
+            "why_it_should_improve": "It avoids overfitting tiny finite-sample score gaps while still refusing to let structural cleanliness override a statistically separated downstream winner.",
+            "same_shape_invariant": "the gate changes only selection policy; all accepted candidates remain same-shape Qwen3 MoE checkpoints",
         },
         {
             "stage": "moe_candidate_gate",
@@ -721,6 +755,7 @@ def build_mechanism_hypotheses(summary: dict[str, Any]) -> pd.DataFrame:
         fnum(moe.get("qwen3_generation_pair_routercal_avg_gain")) is not None
         and float(moe["qwen3_generation_pair_routercal_avg_gain"]) > 0.0
     )
+    confidence_tie_band_enabled = bool(moe.get("qwen3_final_confidence_tie_band"))
 
     rows = [
         {
@@ -869,6 +904,26 @@ def build_mechanism_hypotheses(summary: dict[str, Any]) -> pd.DataFrame:
             "action_if_falsified": "return the source endpoint and use failed mechanism attribution to design the next candidate",
             "next_command": "python scripts/select_qwen3_moe_unified_result.py",
             "literature_keys": "model_soups,expert_merging,harc",
+        },
+        {
+            "hypothesis_id": "moe_structural_tiebreak_requires_statistical_equivalence",
+            "domain": "moe",
+            "current_status": "policy_ready_waiting_eval"
+            if confidence_tie_band_enabled
+            else "point_estimate_ranking_only",
+            "mechanism": "MoE structural probes should explain and break ties among statistically indistinguishable candidates, not override a downstream winner with separated confidence intervals.",
+            "current_evidence": (
+                f"confidence tie band = {moe.get('qwen3_final_confidence_tie_band')}; "
+                f"rank mode = {moe.get('qwen3_final_selection_rank_mode')}; "
+                f"point leader = {moe.get('qwen3_final_selection_point_leader_method')}; "
+                f"rank band size = {moe.get('qwen3_final_selection_rank_band_size')}; "
+                f"structural-frontier eligible = {moe.get('qwen3_final_structural_frontier_eligible_count')}"
+            ),
+            "falsification_test": "Selector smoke and locked-manifest eval must show that structural frontier/safety affects rank only inside a confidence-overlap band; if intervals separate, the point leader wins.",
+            "action_if_supported": "use structural frontier and safety as tie-breakers inside the eligible confidence band",
+            "action_if_falsified": "fall back to pure downstream point estimate or require larger eval budget before ranking structural variants",
+            "next_command": "python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke",
+            "literature_keys": "model_soups,mode_connectivity,sub_moe",
         },
     ]
     return pd.DataFrame(rows)
@@ -1259,6 +1314,22 @@ def build_evidence_ledger(summary: dict[str, Any], hypotheses: pd.DataFrame) -> 
             "numeric_signal": maybe_int(moe.get("qwen3_eligible_candidates")),
             "confidence_score": 1.0,
         },
+        {
+            "hypothesis_id": "moe_structural_tiebreak_requires_statistical_equivalence",
+            "evidence_tier": "selector_policy_and_smoke_matrix",
+            "verdict": "supports_current_action"
+            if bool(moe.get("qwen3_final_confidence_tie_band"))
+            else "needs_selector_policy_update",
+            "current_status": hypothesis_status("moe_structural_tiebreak_requires_statistical_equivalence"),
+            "current_algorithm_action": "apply_structural_frontier_safety_only_inside_confidence_tie_band",
+            "why_verdict": (
+                "The final selector exposes a confidence-overlap rank mode and smoke coverage for structural tie-breaks, "
+                "so structural probes explain statistically tied candidates instead of overriding separated downstream evidence."
+            ),
+            "acceptance_gate_still_needed": "complete locked-manifest vLLM eval so the confidence band contains real candidate scores",
+            "numeric_signal": maybe_int(moe.get("qwen3_final_selection_rank_band_size")),
+            "confidence_score": 0.86 if bool(moe.get("qwen3_final_confidence_tie_band")) else 0.30,
+        },
     ]
     return pd.DataFrame(rows)
 
@@ -1306,6 +1377,7 @@ def build_algorithm(
             "dense_second_order_gate": "accept a straight-line average only when the measured path loss does not exceed the endpoint frontier; local Fisher/RegMean curvature is treated as a proxy, not a proof",
             "moe_router_margin_gate": "for router logits z_lambda = z_A + lambda * (z_B - z_A), a top-k assignment can flip when lambda * ||Delta z|| reaches the observed top-k margin; therefore small empirical margins imply a near-zero safe router lambda",
             "moe_expert_subspace_cap": "for each routed expert group g, choose scale s_g to preserve route-mass-weighted nonbase contribution while reducing predicted delta under route, geometry, and subspace-conflict weights",
+            "moe_confidence_tie_band_gate": "after source, task-regression, confidence-dominance, and paired-prediction gates, find the point-estimate leader; candidates whose aggregate confidence upper bounds overlap the leader lower bounds form the rank band, and structural frontier/safety can break ties only inside that band",
             "same_shape_constraint": "all accepted operations must preserve model config, tokenizer, class, tensor names, tensor shapes, and MoE expert/router cardinalities",
         },
     }
@@ -1335,7 +1407,7 @@ def build_report(
         f"- Qwen3 complementary path: best merge avg NLL `{fmt(moe['qwen3_complementary_best_merge_avg_nll'])}` vs best source avg `{fmt(moe['qwen3_complementary_best_source_avg_nll'])}`；merge beats sources `{moe['qwen3_complementary_merge_beats_sources']}`。",
         f"- Qwen3 Base->Coder path: best interior worst NLL `{fmt(moe['qwen3_base_coder_best_interior_worst_nll'])}` vs best endpoint `{fmt(moe['qwen3_base_coder_endpoint_best_worst_nll'])}`；interior gap `{fmt(moe['qwen3_base_coder_interior_gap_nll'])}`，general barrier `{fmt(moe['qwen3_base_coder_general_barrier_nll'])}`。",
         f"- Qwen3 unified mechanism: `{moe['qwen3_unified_candidate_id']}`；retention `{fmt(moe['qwen3_unified_nonbase_mass_retention'])}`，subspace-weighted rel-delta `{fmt(moe['qwen3_unified_subspace_weighted_predicted_relative_delta'])}`，high-subspace mean scale `{fmt(moe['qwen3_unified_high_subspace_mean_scale'])}`，materialized rules `{moe['qwen3_unified_materialized_rule_status']}`，audit relative norm `{fmt(moe['qwen3_unified_relative_delta_norm'])}`，routed >0.65 `{moe['qwen3_unified_routed_gt_065']}`。",
-        f"- Qwen3 subspace-scaled ablation: audit relative norm `{fmt(moe['qwen3_subspace_total_relative_delta_norm'])}`，unified->subspace norm reduction `{fmt(moe['qwen3_unified_to_subspace_relative_norm_reduction'], 6)}`，routed >0.65 `{moe['qwen3_subspace_routed_gt_065']}`。",
+        f"- Qwen3 subspace-scaled ablation: audit relative norm `{fmt(moe['qwen3_subspace_total_relative_delta_norm'])}`，mechanistic->subspace norm delta `{fmt(moe['qwen3_mechanistic_to_subspace_relative_norm_delta'], 6)}`，routed >0.65 `{moe['qwen3_subspace_routed_gt_065']}`。",
         f"- Qwen3 router margin fragility: high layers `{moe['qwen3_router_margin_high_fragility_layers']}/{moe['qwen3_router_margin_layer_count']}`，top `L{moe['qwen3_router_margin_top_layer']}` score `{fmt(moe['qwen3_router_margin_top_score'])}`，min safe-lambda proxy `{fmt(moe['qwen3_router_margin_min_safe_lambda_proxy'])}`。",
         f"- Qwen3 router NLL probe: worst-NLL reduction `{fmt(moe['qwen3_router_calibration_nll_worst_reduction'])}`，code gap to best source `{fmt(moe['qwen3_router_calibration_nll_code_gap_to_best_source'])}`。",
         f"- Qwen3 generation matrix: Instruct+Coder avg `{fmt(moe['qwen3_generation_pair_merge_avg'])}` -> router-cal avg `{fmt(moe['qwen3_generation_pair_routercal_avg'])}`；avg gain `{fmt(moe['qwen3_generation_pair_routercal_avg_gain'])}`，gap to best parent `{fmt(moe['qwen3_generation_pair_routercal_gap_to_best_parent_avg'])}`。",
@@ -1343,6 +1415,7 @@ def build_report(
         f"- Qwen3 generation confidence: positive tasks vs naive `{moe['qwen3_generation_routercal_positive_tasks_vs_naive']}/{moe['qwen3_generation_confidence_task_count']}`，confident positives `{moe['qwen3_generation_routercal_confident_positive_tasks']}/{moe['qwen3_generation_confidence_task_count']}`，confident source-frontier wins `{moe['qwen3_generation_routercal_confident_source_frontier_wins']}/{moe['qwen3_generation_confidence_task_count']}`；avg gain interval `[{fmt(moe['qwen3_generation_routercal_avg_gain_lower'])}, {fmt(moe['qwen3_generation_routercal_avg_gain_upper'])}]`。",
         f"- Qwen3 router calibration: `{moe['qwen3_router_calibration_status']}`。",
         f"- Qwen3 final selection: `{moe['qwen3_final_selection_status']}`，eligible `{moe['qwen3_eligible_candidates']}/{moe['qwen3_candidate_count']}`。",
+        f"- Qwen3 final selector rank gate: confidence band `{moe['qwen3_final_confidence_tie_band']}`，rank mode `{moe['qwen3_final_selection_rank_mode']}`，band size `{moe['qwen3_final_selection_rank_band_size']}`，point leader `{moe['qwen3_final_selection_point_leader_method']}`。",
         "",
         "## Mechanism Features",
         "",
@@ -1482,6 +1555,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         features,
         dense_selector,
         router_gate,
+        final_selection,
         unified_candidate,
         delta_frontier,
         router_calibration_nll_probe,
@@ -1656,11 +1730,11 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
             ),
             "qwen3_subspace_routed_gt_065": delta_frontier.get("subspace_scaled_routed_gt_0_65"),
             "qwen3_subspace_routed_gt_06505": delta_frontier.get("subspace_scaled_routed_gt_0_6505"),
-            "qwen3_unified_to_subspace_relative_norm_reduction": fnum(
-                delta_frontier.get("unified_to_subspace_relative_norm_reduction")
+            "qwen3_mechanistic_to_subspace_relative_norm_delta": fnum(
+                delta_frontier.get("mechanistic_to_subspace_relative_norm_delta")
             ),
-            "qwen3_unified_to_subspace_routed_gt_065_reduction": delta_frontier.get(
-                "unified_to_subspace_routed_gt_065_reduction"
+            "qwen3_mechanistic_to_subspace_routed_gt_065_reduction": delta_frontier.get(
+                "mechanistic_to_subspace_routed_gt_065_reduction"
             ),
             "qwen3_router_calibration_status": router_current.get("status"),
             "qwen3_router_calibration_selected_method": router_current.get("selected_method"),
@@ -1703,6 +1777,14 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
             "qwen3_final_selection_reason": final_current.get("reason"),
             "qwen3_eligible_candidates": final_current.get("eligible_candidate_count"),
             "qwen3_candidate_count": final_current.get("candidate_count"),
+            "qwen3_final_confidence_tie_band": final_current.get("confidence_tie_band"),
+            "qwen3_final_selection_rank_mode": final_current.get("selection_rank_mode"),
+            "qwen3_final_selection_point_leader_method": final_current.get("selection_point_leader_method"),
+            "qwen3_final_selection_rank_band_size": final_current.get("selection_rank_band_size"),
+            "qwen3_final_selection_rank_band_methods": final_current.get("selection_rank_band_methods", []),
+            "qwen3_final_structural_frontier_eligible_count": final_current.get(
+                "structural_frontier_eligible_count"
+            ),
         },
         "outputs": {},
     }

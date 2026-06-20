@@ -2095,6 +2095,13 @@ def summarize_unified_average_optimizer() -> dict[str, Any]:
         "qwen3_final_selection_status": moe.get("qwen3_final_selection_status"),
         "qwen3_eligible_candidates": maybe_int(moe.get("qwen3_eligible_candidates")),
         "qwen3_candidate_count": maybe_int(moe.get("qwen3_candidate_count")),
+        "qwen3_final_confidence_tie_band": bool(moe.get("qwen3_final_confidence_tie_band", False)),
+        "qwen3_final_selection_rank_mode": moe.get("qwen3_final_selection_rank_mode"),
+        "qwen3_final_selection_point_leader_method": moe.get("qwen3_final_selection_point_leader_method"),
+        "qwen3_final_selection_rank_band_size": maybe_int(moe.get("qwen3_final_selection_rank_band_size")),
+        "qwen3_final_structural_frontier_eligible_count": maybe_int(
+            moe.get("qwen3_final_structural_frontier_eligible_count")
+        ),
         "feature_rows": [clean_row(row) for _, row in features.iterrows()],
         "decision_rows": [clean_row(row) for _, row in decisions.iterrows()],
         "hypothesis_rows": [clean_row(row) for _, row in hypotheses.iterrows()],
@@ -6082,6 +6089,12 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{unified_average_optimizer['qwen3_unified_relative_delta_norm']:.3f} / "
                 f"{unified_average_optimizer['qwen3_unified_routed_gt_065']} / "
                 f"{fmt(unified_average_optimizer['qwen3_unified_max_manifest_weight_abs_diff'])} |"
+            ),
+            (
+                "| unified average optimizer | final selector confidence band / rank mode / band size | "
+                f"{unified_average_optimizer['qwen3_final_confidence_tie_band']} / "
+                f"{unified_average_optimizer['qwen3_final_selection_rank_mode']} / "
+                f"{unified_average_optimizer['qwen3_final_selection_rank_band_size']} |"
             ),
             (
                 "| unified average optimizer | router margin high layers / top / min safe-lambda | "

@@ -44160,7 +44160,7 @@
           "condition": "expert identity is aligned, direct router movement is rejected, and real expert geometry/subspace probes expose nonuniform risk",
           "operation": "apply retention-constrained router/evidence/geometry/subspace caps",
           "same_shape_invariant": "only routed expert tensor values change; router, attention, embeddings, norms, names, and shapes stay fixed",
-          "selected_action": "subspace_cap_s1.00 with hard cap 0.6500; subspace-weighted rel-delta = 0.2148; materialized rule status = fresh; layer/chunk->unified routed >0.65 reduction = 89; unified->subspace extra norm reduction = 0.000849",
+          "selected_action": "subspace_cap_s1.00 with hard cap 0.6500; subspace-weighted rel-delta = 0.2148; materialized rule status = fresh; layer/chunk->unified routed >0.65 reduction = 89; mechanistic->subspace norm delta = 0.001304",
           "stage": "moe_expert_delta_optimizer",
           "why_it_should_improve": "It keeps useful Coder-route mass while shrinking high-risk routed expert deltas and local subspace conflicts instead of using one global coefficient."
         },
@@ -44171,6 +44171,14 @@
           "selected_action": "nll_probe_worst_reduction=0.2214; generation_avg_gain=0.0333; generation_recovery_fraction=0.3243; confidence_positive_tasks=0/3; confidence_source_frontier_wins=0/3; awaiting_baseline_eval: Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps.",
           "stage": "moe_router_calibration_gate",
           "why_it_should_improve": "It keeps router calibration as an active MoE-specific lever while still requiring source-dominance and task-regression gates before acceptance."
+        },
+        {
+          "condition": "finite-budget vLLM eval can make point estimates differ by noise; after hard source/task/paired gates, structural frontier and safety are used only when the point leader's confidence interval overlaps the candidate band",
+          "operation": "rank structural mechanisms only inside a downstream confidence tie band",
+          "same_shape_invariant": "the gate changes only selection policy; all accepted candidates remain same-shape Qwen3 MoE checkpoints",
+          "selected_action": "confidence_tie_band=True; rank_mode=None; point_leader=None; band_size=0; structural_frontier_eligible=0",
+          "stage": "moe_statistical_selector_gate",
+          "why_it_should_improve": "It avoids overfitting tiny finite-sample score gaps while still refusing to let structural cleanliness override a statistically separated downstream winner."
         },
         {
           "condition": "structural probes can rank risk, but source dominance and task regression need vLLM scores",
@@ -44191,7 +44199,7 @@
       "dense_linear_worst_nll": 8.947735033537212,
       "dense_unified_worst_nll": 5.182952077765214,
       "evidence_ledger": "results/unified_average_optimizer/hypothesis_evidence_ledger.csv",
-      "evidence_ledger_count": 8,
+      "evidence_ledger_count": 9,
       "evidence_ledger_rows": [
         {
           "acceptance_gate_still_needed": "held-out generation or vLLM eval for any new interior dense point",
@@ -44280,13 +44288,24 @@
           "numeric_signal": 0.0,
           "verdict": "awaiting_downstream_eval",
           "why_verdict": "The final selector is the acceptance authority for source dominance and task-regression gates."
+        },
+        {
+          "acceptance_gate_still_needed": "complete locked-manifest vLLM eval so the confidence band contains real candidate scores",
+          "confidence_score": 0.86,
+          "current_algorithm_action": "apply_structural_frontier_safety_only_inside_confidence_tie_band",
+          "current_status": "policy_ready_waiting_eval",
+          "evidence_tier": "selector_policy_and_smoke_matrix",
+          "hypothesis_id": "moe_structural_tiebreak_requires_statistical_equivalence",
+          "numeric_signal": 0.0,
+          "verdict": "supports_current_action",
+          "why_verdict": "The final selector exposes a confidence-overlap rank mode and smoke coverage for structural tie-breaks, so structural probes explain statistically tied candidates instead of overriding separated downstream evidence."
         }
       ],
       "evidence_verdict_counts": {
         "awaiting_downstream_eval": 2,
         "promising_but_unaccepted": 1,
         "supports_conditional_action": 1,
-        "supports_current_action": 4
+        "supports_current_action": 5
       },
       "feature_rows": [
         {
@@ -44412,7 +44431,7 @@
         {
           "decision_signal": "test_uncovered_subspace_conflict_shrink",
           "domain": "moe",
-          "evidence": "subspace total relative norm = 0.2395; unified->subspace norm reduction = 0.000849; subspace routed >0.65 = 0; router changed = 0",
+          "evidence": "subspace total relative norm = 0.2395; mechanistic->subspace norm delta = 0.001304; subspace routed >0.65 = 0; router changed = 0",
           "probe": "qwen3_subspace_scaled_materialized_audit",
           "threshold": 0.2403784248994999,
           "value": 0.2395294198409091
@@ -44460,15 +44479,23 @@
         {
           "decision_signal": "await_matched_vllm_before_accepting_average",
           "domain": "moe",
-          "evidence": "status = awaiting_source_eval; eligible candidates = 0/9; reason = Both Qwen3 source endpoints must complete audited vLLM eval before final candidate selection.",
+          "evidence": "status = awaiting_source_eval; eligible candidates = 0/10; reason = Both Qwen3 source endpoints must complete audited vLLM eval before final candidate selection.",
           "probe": "qwen3_final_candidate_selection",
-          "threshold": 9.0,
+          "threshold": 10.0,
+          "value": 0.0
+        },
+        {
+          "decision_signal": "use_structural_tiebreak_only_when_downstream_scores_are_statistically_tied",
+          "domain": "moe",
+          "evidence": "confidence tie band = True; rank mode = None; point leader = None; band size = 0; structural-frontier eligible = 0; rank band methods = []",
+          "probe": "qwen3_final_selector_confidence_band",
+          "threshold": 0.0,
           "value": 0.0
         }
       ],
       "features": "results/unified_average_optimizer/mechanism_features.csv",
       "hypotheses": "results/unified_average_optimizer/mechanism_hypotheses.csv",
-      "hypothesis_count": 8,
+      "hypothesis_count": 9,
       "hypothesis_rows": [
         {
           "action_if_falsified": "fall back to endpoint/anchor or keep the current probe-selected low-lambda bridge",
@@ -44557,7 +44584,7 @@
         {
           "action_if_falsified": "return the source endpoint and use failed mechanism attribution to design the next candidate",
           "action_if_supported": "select the best non-dominated same-shape candidate",
-          "current_evidence": "final selection status = awaiting_source_eval; eligible candidates = 0/9; router calibration status = awaiting_baseline_eval",
+          "current_evidence": "final selection status = awaiting_source_eval; eligible candidates = 0/10; router calibration status = awaiting_baseline_eval",
           "current_status": "awaiting_source_eval",
           "domain": "dense_and_moe",
           "falsification_test": "All candidates and sources must be scored on the locked manifest; dominated averages are rejected even if their structural audit looks clean.",
@@ -44565,6 +44592,18 @@
           "literature_keys": "model_soups,expert_merging,harc",
           "mechanism": "Structural probes can explain risk, but a same-shape average is only useful if it survives source dominance and task-regression tests.",
           "next_command": "python scripts/select_qwen3_moe_unified_result.py"
+        },
+        {
+          "action_if_falsified": "fall back to pure downstream point estimate or require larger eval budget before ranking structural variants",
+          "action_if_supported": "use structural frontier and safety as tie-breakers inside the eligible confidence band",
+          "current_evidence": "confidence tie band = True; rank mode = None; point leader = None; rank band size = 0; structural-frontier eligible = 0",
+          "current_status": "policy_ready_waiting_eval",
+          "domain": "moe",
+          "falsification_test": "Selector smoke and locked-manifest eval must show that structural frontier/safety affects rank only inside a confidence-overlap band; if intervals separate, the point leader wins.",
+          "hypothesis_id": "moe_structural_tiebreak_requires_statistical_equivalence",
+          "literature_keys": "model_soups,mode_connectivity,sub_moe",
+          "mechanism": "MoE structural probes should explain and break ties among statistically indistinguishable candidates, not override a downstream winner with separated confidence intervals.",
+          "next_command": "python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke"
         }
       ],
       "hypothesis_status_counts": {
@@ -44572,6 +44611,7 @@
         "awaiting_source_eval": 1,
         "conditional_only": 1,
         "direct_router_average_rejected": 1,
+        "policy_ready_waiting_eval": 1,
         "promising_but_unaccepted": 1,
         "rejected_for_current_midpoint": 1,
         "straight_line_rejected": 1,
@@ -44654,10 +44694,15 @@
       ],
       "qwen3_base_coder_general_barrier_nll": 0.07275096419589966,
       "qwen3_base_coder_interior_gap_nll": 0.10575581968220238,
-      "qwen3_candidate_count": 9,
+      "qwen3_candidate_count": 10,
       "qwen3_complementary_merge_beats_sources": false,
       "qwen3_eligible_candidates": 0,
+      "qwen3_final_confidence_tie_band": true,
+      "qwen3_final_selection_point_leader_method": null,
+      "qwen3_final_selection_rank_band_size": 0,
+      "qwen3_final_selection_rank_mode": null,
       "qwen3_final_selection_status": "awaiting_source_eval",
+      "qwen3_final_structural_frontier_eligible_count": 0,
       "qwen3_generation_attribution_status": "generation_mechanism_attribution_ready",
       "qwen3_generation_avg_routercal_recovery_fraction": 0.32432432432432545,
       "qwen3_generation_confidence_status": "generation_confidence_audit_ready",
@@ -44728,19 +44773,20 @@
           "linear_worst_nll": 8.947735033537212,
           "unified_worst_nll": 5.182952077765214
         },
-        "evidence_ledger_count": 8,
+        "evidence_ledger_count": 9,
         "evidence_verdict_counts": {
           "awaiting_downstream_eval": 2,
           "promising_but_unaccepted": 1,
           "supports_conditional_action": 1,
-          "supports_current_action": 4
+          "supports_current_action": 5
         },
-        "hypothesis_count": 8,
+        "hypothesis_count": 9,
         "hypothesis_status_counts": {
           "alignment_required": 1,
           "awaiting_source_eval": 1,
           "conditional_only": 1,
           "direct_router_average_rejected": 1,
+          "policy_ready_waiting_eval": 1,
           "promising_but_unaccepted": 1,
           "rejected_for_current_midpoint": 1,
           "straight_line_rejected": 1,
@@ -44753,14 +44799,20 @@
           "qwen3_base_coder_endpoint_best_worst_nll": 2.3603474087185328,
           "qwen3_base_coder_general_barrier_nll": 0.07275096419589966,
           "qwen3_base_coder_interior_gap_nll": 0.10575581968220238,
-          "qwen3_candidate_count": 9,
+          "qwen3_candidate_count": 10,
           "qwen3_complementary_best_merge_avg_nll": 0.5658833147631409,
           "qwen3_complementary_best_source_avg_nll": 0.5658833147631409,
           "qwen3_complementary_merge_beats_sources": false,
           "qwen3_eligible_candidates": 0,
+          "qwen3_final_confidence_tie_band": true,
           "qwen3_final_selected_method": null,
+          "qwen3_final_selection_point_leader_method": null,
+          "qwen3_final_selection_rank_band_methods": [],
+          "qwen3_final_selection_rank_band_size": 0,
+          "qwen3_final_selection_rank_mode": null,
           "qwen3_final_selection_reason": "Both Qwen3 source endpoints must complete audited vLLM eval before final candidate selection.",
           "qwen3_final_selection_status": "awaiting_source_eval",
+          "qwen3_final_structural_frontier_eligible_count": 0,
           "qwen3_generation_attribution_score_count": 5,
           "qwen3_generation_attribution_status": "generation_mechanism_attribution_ready",
           "qwen3_generation_avg_naive_drop_vs_pair_frontier": 0.10277777777777775,
@@ -44791,6 +44843,8 @@
           "qwen3_interpolation_interior_gap_nll": 0.11892671273424771,
           "qwen3_layer_chunk_to_unified_relative_norm_reduction": 0.0030758754227471763,
           "qwen3_layer_chunk_to_unified_routed_gt_065_reduction": 89,
+          "qwen3_mechanistic_to_subspace_relative_norm_delta": 0.0013038832879664897,
+          "qwen3_mechanistic_to_subspace_routed_gt_065_reduction": 0,
           "qwen3_router_calibration_candidate_count": 4,
           "qwen3_router_calibration_eligible_candidates": 0,
           "qwen3_router_calibration_nll_avg_reduction": 0.16095849526094863,
@@ -44832,8 +44886,6 @@
           "qwen3_unified_subspace_risk_weighted_coder_retention": 0.9737607662389383,
           "qwen3_unified_subspace_weighted_predicted_relative_delta": 0.21478052015965876,
           "qwen3_unified_tensor_rules_sha256": "3127175910edd4b1bd8cc62e2ecd5301bff92a91efc0c66b5f49874952e6c3a9",
-          "qwen3_unified_to_subspace_relative_norm_reduction": 0.0008490050585907849,
-          "qwen3_unified_to_subspace_routed_gt_065_reduction": 0,
           "real_gauge_aligned_degradation": 0.0,
           "real_gauge_naive_degradation": 5.490968298724317,
           "router_action": "freeze_router"
@@ -44869,7 +44921,7 @@
       }
     },
     "unified_average_optimizer_ledger_smoke": {
-      "assertion_count": 20,
+      "assertion_count": 21,
       "case_count": 5,
       "case_rows": [
         {
@@ -44891,6 +44943,13 @@
           "case": "awaiting_eval_keeps_provisional",
           "expected_verdict": "promising_but_unaccepted",
           "hypothesis_id": "router_calibration_repairs_dispatch_but_is_not_acceptance",
+          "passed": true
+        },
+        {
+          "actual_verdict": "supports_current_action",
+          "case": "awaiting_eval_keeps_provisional",
+          "expected_verdict": "supports_current_action",
+          "hypothesis_id": "moe_structural_tiebreak_requires_statistical_equivalence",
           "passed": true
         },
         {
@@ -44939,7 +44998,7 @@
       "failed_assertion_count": 0,
       "failed_case_count": 0,
       "matrix": "results/unified_average_optimizer_ledger_smoke/ledger_matrix.csv",
-      "passed_assertion_count": 20,
+      "passed_assertion_count": 21,
       "passed_case_count": 5,
       "queue_case_rows": [
         {
@@ -45035,7 +45094,7 @@
       "report": "results/unified_average_optimizer_ledger_smoke/report.md",
       "status": "passed",
       "summary": {
-        "assertion_count": 20,
+        "assertion_count": 21,
         "case_count": 5,
         "failed_assertion_count": 0,
         "failed_case_count": 0,
@@ -45046,7 +45105,7 @@
           "report": "results/unified_average_optimizer_ledger_smoke/report.md",
           "summary": "results/unified_average_optimizer_ledger_smoke/summary.json"
         },
-        "passed_assertion_count": 20,
+        "passed_assertion_count": 21,
         "passed_case_count": 5,
         "schema_version": 1,
         "status": "passed"
@@ -47006,7 +47065,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-20T10:44:21.072530+00:00",
+  "generated_at": "2026-06-20T10:50:59.173209+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [

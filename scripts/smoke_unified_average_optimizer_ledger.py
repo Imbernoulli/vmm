@@ -83,6 +83,7 @@ def case_specs(base: dict[str, Any]) -> list[dict[str, Any]]:
                 "moe_risk_weighted_expert_caps_preserve_useful_route_mass": "awaiting_downstream_eval",
                 "downstream_source_dominance_is_final_gate": "awaiting_downstream_eval",
                 "router_calibration_repairs_dispatch_but_is_not_acceptance": "promising_but_unaccepted",
+                "moe_structural_tiebreak_requires_statistical_equivalence": "supports_current_action",
             },
             "expect_queue": {
                 "top_experiment": "budgeted_qwen3_moe_downstream_eval",

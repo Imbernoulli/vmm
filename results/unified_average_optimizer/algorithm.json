@@ -56,6 +56,13 @@
       "evidence_tier": "missing_required_downstream_eval",
       "hypothesis_id": "downstream_source_dominance_is_final_gate",
       "verdict": "awaiting_downstream_eval"
+    },
+    {
+      "acceptance_gate_still_needed": "complete locked-manifest vLLM eval so the confidence band contains real candidate scores",
+      "current_algorithm_action": "apply_structural_frontier_safety_only_inside_confidence_tie_band",
+      "evidence_tier": "selector_policy_and_smoke_matrix",
+      "hypothesis_id": "moe_structural_tiebreak_requires_statistical_equivalence",
+      "verdict": "supports_current_action"
     }
   ],
   "falsification_tests": [
@@ -106,6 +113,12 @@
       "falsification_test": "All candidates and sources must be scored on the locked manifest; dominated averages are rejected even if their structural audit looks clean.",
       "hypothesis_id": "downstream_source_dominance_is_final_gate",
       "next_command": "python scripts/select_qwen3_moe_unified_result.py"
+    },
+    {
+      "current_status": "policy_ready_waiting_eval",
+      "falsification_test": "Selector smoke and locked-manifest eval must show that structural frontier/safety affects rank only inside a confidence-overlap band; if intervals separate, the point leader wins.",
+      "hypothesis_id": "moe_structural_tiebreak_requires_statistical_equivalence",
+      "next_command": "python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke"
     }
   ],
   "literature_priors": [
@@ -187,6 +200,7 @@
   ],
   "mechanism_equations": {
     "dense_second_order_gate": "accept a straight-line average only when the measured path loss does not exceed the endpoint frontier; local Fisher/RegMean curvature is treated as a proxy, not a proof",
+    "moe_confidence_tie_band_gate": "after source, task-regression, confidence-dominance, and paired-prediction gates, find the point-estimate leader; candidates whose aggregate confidence upper bounds overlap the leader lower bounds form the rank band, and structural frontier/safety can break ties only inside that band",
     "moe_expert_subspace_cap": "for each routed expert group g, choose scale s_g to preserve route-mass-weighted nonbase contribution while reducing predicted delta under route, geometry, and subspace-conflict weights",
     "moe_router_margin_gate": "for router logits z_lambda = z_A + lambda * (z_B - z_A), a top-k assignment can flip when lambda * ||Delta z|| reaches the observed top-k margin; therefore small empirical margins imply a near-zero safe router lambda",
     "same_shape_constraint": "all accepted operations must preserve model config, tokenizer, class, tensor names, tensor shapes, and MoE expert/router cardinalities"
@@ -239,7 +253,7 @@
     {
       "condition": "expert identity is aligned, direct router movement is rejected, and real expert geometry/subspace probes expose nonuniform risk",
       "operation": "apply retention-constrained router/evidence/geometry/subspace caps",
-      "selected_action": "subspace_cap_s1.00 with hard cap 0.6500; subspace-weighted rel-delta = 0.2148; materialized rule status = fresh; layer/chunk->unified routed >0.65 reduction = 89; unified->subspace extra norm reduction = 0.000849",
+      "selected_action": "subspace_cap_s1.00 with hard cap 0.6500; subspace-weighted rel-delta = 0.2148; materialized rule status = fresh; layer/chunk->unified routed >0.65 reduction = 89; mechanistic->subspace norm delta = 0.001304",
       "stage": "moe_expert_delta_optimizer",
       "step": 7
     },
@@ -251,11 +265,18 @@
       "step": 8
     },
     {
+      "condition": "finite-budget vLLM eval can make point estimates differ by noise; after hard source/task/paired gates, structural frontier and safety are used only when the point leader's confidence interval overlaps the candidate band",
+      "operation": "rank structural mechanisms only inside a downstream confidence tie band",
+      "selected_action": "confidence_tie_band=True; rank_mode=None; point_leader=None; band_size=0; structural_frontier_eligible=0",
+      "stage": "moe_statistical_selector_gate",
+      "step": 9
+    },
+    {
       "condition": "structural probes can rank risk, but source dominance and task regression need vLLM scores",
       "operation": "select only after audited downstream eval",
       "selected_action": "keep all registered Qwen3 candidates provisional until eval-bundle audit passes",
       "stage": "moe_candidate_gate",
-      "step": 9
+      "step": 10
     }
   ]
 }
