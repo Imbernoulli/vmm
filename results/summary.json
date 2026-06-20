@@ -17516,6 +17516,7 @@
           "role": "source",
           "routed_tensors_gt_0_75": null,
           "selection_eligible": false,
+          "selection_rank_band_member": false,
           "structural_dominating_candidates": null,
           "structural_frontier_member": null,
           "structural_risk_score": null,
@@ -17552,6 +17553,7 @@
           "role": "source",
           "routed_tensors_gt_0_75": null,
           "selection_eligible": false,
+          "selection_rank_band_member": false,
           "structural_dominating_candidates": null,
           "structural_frontier_member": null,
           "structural_risk_score": null,
@@ -17588,6 +17590,7 @@
           "role": "candidate",
           "routed_tensors_gt_0_75": 839.0,
           "selection_eligible": false,
+          "selection_rank_band_member": false,
           "structural_dominating_candidates": "audit_gated,trust_region,expert_only,tail_trimmed,searched_no_gt065,layer_chunk,unified_mechanism,mechanistic_unified,subspace_scaled",
           "structural_frontier_member": false,
           "structural_risk_score": 0.98,
@@ -17624,6 +17627,7 @@
           "role": "candidate",
           "routed_tensors_gt_0_75": 164.0,
           "selection_eligible": false,
+          "selection_rank_band_member": false,
           "structural_dominating_candidates": "trust_region,expert_only,tail_trimmed,searched_no_gt065,layer_chunk,unified_mechanism,mechanistic_unified,subspace_scaled",
           "structural_frontier_member": false,
           "structural_risk_score": 0.4965019670900876,
@@ -17660,6 +17664,7 @@
           "role": "candidate",
           "routed_tensors_gt_0_75": 14.0,
           "selection_eligible": false,
+          "selection_rank_band_member": false,
           "structural_dominating_candidates": "expert_only,tail_trimmed,layer_chunk,unified_mechanism,mechanistic_unified,subspace_scaled",
           "structural_frontier_member": false,
           "structural_risk_score": 0.2516465011079371,
@@ -17696,6 +17701,7 @@
           "role": "candidate",
           "routed_tensors_gt_0_75": 14.0,
           "selection_eligible": false,
+          "selection_rank_band_member": false,
           "structural_dominating_candidates": "tail_trimmed,layer_chunk,unified_mechanism,mechanistic_unified,subspace_scaled",
           "structural_frontier_member": false,
           "structural_risk_score": 0.1605626847209469,
@@ -17732,6 +17738,7 @@
           "role": "candidate",
           "routed_tensors_gt_0_75": 0.0,
           "selection_eligible": false,
+          "selection_rank_band_member": false,
           "structural_dominating_candidates": "unified_mechanism,mechanistic_unified,subspace_scaled",
           "structural_frontier_member": false,
           "structural_risk_score": 0.0685351215933968,
@@ -17768,6 +17775,7 @@
           "role": "candidate",
           "routed_tensors_gt_0_75": 0.0,
           "selection_eligible": false,
+          "selection_rank_band_member": false,
           "structural_dominating_candidates": "layer_chunk,unified_mechanism,mechanistic_unified,subspace_scaled",
           "structural_frontier_member": false,
           "structural_risk_score": 0.12305700687073,
@@ -17804,6 +17812,7 @@
           "role": "candidate",
           "routed_tensors_gt_0_75": 0.0,
           "selection_eligible": false,
+          "selection_rank_band_member": false,
           "structural_dominating_candidates": "unified_mechanism,mechanistic_unified,subspace_scaled",
           "structural_frontier_member": false,
           "structural_risk_score": 0.0710553614678762,
@@ -17840,6 +17849,7 @@
           "role": "candidate",
           "routed_tensors_gt_0_75": 0.0,
           "selection_eligible": false,
+          "selection_rank_band_member": false,
           "structural_dominating_candidates": "subspace_scaled",
           "structural_frontier_member": false,
           "structural_risk_score": 0.0258324790973559,
@@ -17876,6 +17886,7 @@
           "role": "candidate",
           "routed_tensors_gt_0_75": 0.0,
           "selection_eligible": false,
+          "selection_rank_band_member": false,
           "structural_dominating_candidates": null,
           "structural_frontier_member": true,
           "structural_risk_score": 0.011356407260127,
@@ -17912,6 +17923,7 @@
           "role": "candidate",
           "routed_tensors_gt_0_75": 0.0,
           "selection_eligible": false,
+          "selection_rank_band_member": false,
           "structural_dominating_candidates": null,
           "structural_frontier_member": true,
           "structural_risk_score": 0.0107010247685673,
@@ -17931,6 +17943,7 @@
         }
       ],
       "candidates_complete": false,
+      "confidence_tie_band": true,
       "decision_rules": "results/qwen3_moe_final_candidate_selection/decision_rules.json",
       "eligible_candidate_count": 0,
       "paired_alpha": 0.05,
@@ -17940,11 +17953,18 @@
       "selected_structural_frontier_member": null,
       "selected_structural_safety_score": null,
       "selected_structurally_dominated": null,
+      "selection_point_leader_method": null,
+      "selection_rank_band_methods": [],
+      "selection_rank_band_size": 0,
+      "selection_rank_mode": null,
       "selection_rank_policy": [
-        "avg_primary_score",
-        "worst_primary_score",
-        "structural_frontier_member",
-        "structural_safety_score",
+        "source/task/paired gates first",
+        "confidence-overlap tie band when available",
+        "fixed score tie band when requested",
+        "structural_frontier_member inside tie band",
+        "structural_safety_score inside tie band",
+        "avg_primary_score inside tie band",
+        "worst_primary_score inside tie band",
         "lower_total_relative_delta_norm"
       ],
       "selection_reason": "Both Qwen3 source endpoints must complete audited vLLM eval before final candidate selection.",
@@ -17960,6 +17980,7 @@
           "best_source_by_worst": null,
           "candidate_count": 10,
           "candidates_complete": false,
+          "confidence_tie_band": true,
           "eligible_candidate_count": 0,
           "paired_alpha": 0.05,
           "paired_loss_tolerance_rate": 0.0,
@@ -17977,11 +17998,18 @@
           "selected_structural_frontier_member": null,
           "selected_structural_safety_score": null,
           "selected_structurally_dominated": null,
+          "selection_point_leader_method": null,
+          "selection_rank_band_methods": [],
+          "selection_rank_band_size": 0,
+          "selection_rank_mode": null,
           "selection_rank_policy": [
-            "avg_primary_score",
-            "worst_primary_score",
-            "structural_frontier_member",
-            "structural_safety_score",
+            "source/task/paired gates first",
+            "confidence-overlap tie band when available",
+            "fixed score tie band when requested",
+            "structural_frontier_member inside tie band",
+            "structural_safety_score inside tie band",
+            "avg_primary_score inside tie band",
+            "worst_primary_score inside tie band",
             "lower_total_relative_delta_norm"
           ],
           "selection_score_tie_tolerance": 0.0,
@@ -18008,7 +18036,7 @@
       "usable_candidate_count": 0
     },
     "qwen3_moe_final_candidate_selection_smoke": {
-      "case_count": 8,
+      "case_count": 9,
       "case_rows": [
         {
           "case": "candidate_win",
@@ -18016,6 +18044,8 @@
           "expected_selected_method": "qwen3_moe_tail_trimmed_expert_only_candidate",
           "expected_status": "select_candidate",
           "passed": true,
+          "rank_band_size": 2,
+          "rank_mode": "confidence_tie_band_structural",
           "selected_method": "qwen3_moe_tail_trimmed_expert_only_candidate",
           "status": "select_candidate"
         },
@@ -18025,6 +18055,8 @@
           "expected_selected_method": "source_qwen3_30b_instruct",
           "expected_status": "keep_source_endpoint",
           "passed": true,
+          "rank_band_size": 0,
+          "rank_mode": null,
           "selected_method": "source_qwen3_30b_instruct",
           "status": "keep_source_endpoint"
         },
@@ -18034,6 +18066,8 @@
           "expected_selected_method": "source_qwen3_30b_instruct",
           "expected_status": "keep_source_endpoint",
           "passed": true,
+          "rank_band_size": 0,
+          "rank_mode": null,
           "selected_method": "source_qwen3_30b_instruct",
           "status": "keep_source_endpoint"
         },
@@ -18043,6 +18077,8 @@
           "expected_selected_method": "source_qwen3_30b_instruct",
           "expected_status": "awaiting_candidate_eval",
           "passed": true,
+          "rank_band_size": 0,
+          "rank_mode": null,
           "selected_method": "source_qwen3_30b_instruct",
           "status": "awaiting_candidate_eval"
         },
@@ -18052,6 +18088,8 @@
           "expected_selected_method": "source_qwen3_30b_instruct",
           "expected_status": "awaiting_candidate_eval",
           "passed": true,
+          "rank_band_size": 0,
+          "rank_mode": null,
           "selected_method": "source_qwen3_30b_instruct",
           "status": "awaiting_candidate_eval"
         },
@@ -18061,6 +18099,8 @@
           "expected_selected_method": "qwen3_moe_tail_trimmed_expert_only_candidate",
           "expected_status": "provisional_candidate",
           "passed": true,
+          "rank_band_size": 1,
+          "rank_mode": "confidence_tie_band_structural",
           "selected_method": "qwen3_moe_tail_trimmed_expert_only_candidate",
           "status": "provisional_candidate"
         },
@@ -18070,6 +18110,19 @@
           "expected_selected_method": "qwen3_moe_mechanistic_unified_candidate",
           "expected_status": "select_candidate",
           "passed": true,
+          "rank_band_size": 2,
+          "rank_mode": "confidence_tie_band_structural",
+          "selected_method": "qwen3_moe_mechanistic_unified_candidate",
+          "status": "select_candidate"
+        },
+        {
+          "case": "confidence_structural_band",
+          "eligible_candidate_count": 2,
+          "expected_selected_method": "qwen3_moe_mechanistic_unified_candidate",
+          "expected_status": "select_candidate",
+          "passed": true,
+          "rank_band_size": 2,
+          "rank_mode": "confidence_tie_band_structural",
           "selected_method": "qwen3_moe_mechanistic_unified_candidate",
           "status": "select_candidate"
         },
@@ -18079,17 +18132,19 @@
           "expected_selected_method": "qwen3_moe_tail_trimmed_expert_only_candidate",
           "expected_status": "provisional_candidate",
           "passed": true,
+          "rank_band_size": 1,
+          "rank_mode": "confidence_tie_band_structural",
           "selected_method": "qwen3_moe_tail_trimmed_expert_only_candidate",
           "status": "provisional_candidate"
         }
       ],
       "failed_case_count": 0,
       "matrix": "results/qwen3_moe_final_candidate_selection_smoke/selector_matrix.csv",
-      "passed_case_count": 8,
+      "passed_case_count": 9,
       "report": "results/qwen3_moe_final_candidate_selection_smoke/report.md",
       "status": "passed",
       "summary": {
-        "case_count": 8,
+        "case_count": 9,
         "cases": [
           {
             "case": "candidate_win",
@@ -18097,6 +18152,8 @@
             "expected_selected_method": "qwen3_moe_tail_trimmed_expert_only_candidate",
             "expected_status": "select_candidate",
             "passed": true,
+            "rank_band_size": 2,
+            "rank_mode": "confidence_tie_band_structural",
             "selected_method": "qwen3_moe_tail_trimmed_expert_only_candidate",
             "status": "select_candidate"
           },
@@ -18106,6 +18163,8 @@
             "expected_selected_method": "source_qwen3_30b_instruct",
             "expected_status": "keep_source_endpoint",
             "passed": true,
+            "rank_band_size": 0,
+            "rank_mode": null,
             "selected_method": "source_qwen3_30b_instruct",
             "status": "keep_source_endpoint"
           },
@@ -18115,6 +18174,8 @@
             "expected_selected_method": "source_qwen3_30b_instruct",
             "expected_status": "keep_source_endpoint",
             "passed": true,
+            "rank_band_size": 0,
+            "rank_mode": null,
             "selected_method": "source_qwen3_30b_instruct",
             "status": "keep_source_endpoint"
           },
@@ -18124,6 +18185,8 @@
             "expected_selected_method": "source_qwen3_30b_instruct",
             "expected_status": "awaiting_candidate_eval",
             "passed": true,
+            "rank_band_size": 0,
+            "rank_mode": null,
             "selected_method": "source_qwen3_30b_instruct",
             "status": "awaiting_candidate_eval"
           },
@@ -18133,6 +18196,8 @@
             "expected_selected_method": "source_qwen3_30b_instruct",
             "expected_status": "awaiting_candidate_eval",
             "passed": true,
+            "rank_band_size": 0,
+            "rank_mode": null,
             "selected_method": "source_qwen3_30b_instruct",
             "status": "awaiting_candidate_eval"
           },
@@ -18142,6 +18207,8 @@
             "expected_selected_method": "qwen3_moe_tail_trimmed_expert_only_candidate",
             "expected_status": "provisional_candidate",
             "passed": true,
+            "rank_band_size": 1,
+            "rank_mode": "confidence_tie_band_structural",
             "selected_method": "qwen3_moe_tail_trimmed_expert_only_candidate",
             "status": "provisional_candidate"
           },
@@ -18151,6 +18218,19 @@
             "expected_selected_method": "qwen3_moe_mechanistic_unified_candidate",
             "expected_status": "select_candidate",
             "passed": true,
+            "rank_band_size": 2,
+            "rank_mode": "confidence_tie_band_structural",
+            "selected_method": "qwen3_moe_mechanistic_unified_candidate",
+            "status": "select_candidate"
+          },
+          {
+            "case": "confidence_structural_band",
+            "eligible_candidate_count": 2,
+            "expected_selected_method": "qwen3_moe_mechanistic_unified_candidate",
+            "expected_status": "select_candidate",
+            "passed": true,
+            "rank_band_size": 2,
+            "rank_mode": "confidence_tie_band_structural",
             "selected_method": "qwen3_moe_mechanistic_unified_candidate",
             "status": "select_candidate"
           },
@@ -18160,6 +18240,8 @@
             "expected_selected_method": "qwen3_moe_tail_trimmed_expert_only_candidate",
             "expected_status": "provisional_candidate",
             "passed": true,
+            "rank_band_size": 1,
+            "rank_mode": "confidence_tie_band_structural",
             "selected_method": "qwen3_moe_tail_trimmed_expert_only_candidate",
             "status": "provisional_candidate"
           }
@@ -18170,7 +18252,7 @@
           "report": "results/qwen3_moe_final_candidate_selection_smoke/report.md",
           "summary": "results/qwen3_moe_final_candidate_selection_smoke/summary.json"
         },
-        "passed_case_count": 8,
+        "passed_case_count": 9,
         "schema_version": 1,
         "status": "passed"
       },
@@ -46924,7 +47006,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-20T10:38:11.929081+00:00",
+  "generated_at": "2026-06-20T10:44:21.072530+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [

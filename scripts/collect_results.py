@@ -1899,6 +1899,11 @@ def summarize_qwen3_moe_final_candidate_selection() -> dict[str, Any]:
         "paired_prediction_gate": bool(selection.get("paired_prediction_gate", False)),
         "paired_alpha": maybe_float(selection.get("paired_alpha")),
         "selection_score_tie_tolerance": maybe_float(selection.get("selection_score_tie_tolerance")),
+        "confidence_tie_band": bool(selection.get("confidence_tie_band", False)),
+        "selection_rank_mode": selection.get("selection_rank_mode"),
+        "selection_point_leader_method": selection.get("selection_point_leader_method"),
+        "selection_rank_band_size": maybe_int(selection.get("selection_rank_band_size")),
+        "selection_rank_band_methods": selection.get("selection_rank_band_methods", []),
         "selection_rank_policy": selection.get("selection_rank_policy", []),
         "structural_dominance_available": bool(selection.get("structural_dominance_available", False)),
         "structural_frontier_eligible_count": int(
@@ -6007,6 +6012,13 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_final_candidate_selection['selected_structurally_dominated']} / "
                 f"{fmt(qwen3_moe_final_candidate_selection['selected_structural_safety_score'])} / "
                 f"{fmt(qwen3_moe_final_candidate_selection['selection_score_tie_tolerance'])} |"
+            ),
+            (
+                "| Qwen3 MoE final candidate selector | rank mode / confidence band / band size / point leader | "
+                f"{qwen3_moe_final_candidate_selection['selection_rank_mode']} / "
+                f"{qwen3_moe_final_candidate_selection['confidence_tie_band']} / "
+                f"{qwen3_moe_final_candidate_selection['selection_rank_band_size']} / "
+                f"{qwen3_moe_final_candidate_selection['selection_point_leader_method']} |"
             ),
             (
                 "| Qwen3 MoE final candidate selector smoke | status / passed cases | "

@@ -12,23 +12,27 @@
 - Paired prediction gate: `True`
 - Paired alpha: `0.05`
 - Selection score tie tolerance: `0.0`
+- Confidence tie band: `True`
+- Selection rank mode: `None`
+- Selection point leader: `None`
+- Selection rank band size: `0`
 - Structural dominance available: `True`
 - Structural-frontier eligible candidates: `0`
 
-| method | role | usable | audit | avg | avg CI | worst | worst CI | rel norm | struct frontier | struct dom | struct safety | nearest struct | dominated | conf dom | regressions | conf regressions | paired net | paired p | paired regressions | eligible |
-| --- | --- | --- | --- | ---: | --- | ---: | --- | ---: | --- | --- | ---: | --- | --- | --- | --- | --- | ---: | ---: | --- | --- |
-| `source_qwen3_30b_instruct` | `source` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | n/a | `n/a` | `n/a` | n/a | `n/a` | `` | `` | `` | `` | n/a | n/a | `` | `False` |
-| `source_qwen3_30b_coder` | `source` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | n/a | `n/a` | `n/a` | n/a | `n/a` | `` | `` | `` | `` | n/a | n/a | `` | `False` |
-| `qwen3_moe_unified_route_guarded_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.285637 | `False` | `True` | 0.02 | `audit_gated` | `` | `` | `` | `` | n/a | n/a | `` | `False` |
-| `qwen3_moe_audit_gated_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.263844 | `False` | `True` | 0.503498 | `trust_region` | `` | `` | `` | `` | n/a | n/a | `` | `False` |
-| `qwen3_moe_trust_region_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.248661 | `False` | `True` | 0.748353 | `expert_only` | `` | `` | `` | `` | n/a | n/a | `` | `False` |
-| `qwen3_moe_expert_only_trust_region_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.246033 | `False` | `True` | 0.839437 | `searched_no_gt065` | `` | `` | `` | `` | n/a | n/a | `` | `False` |
-| `qwen3_moe_tail_trimmed_expert_only_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.243145 | `False` | `True` | 0.931465 | `layer_chunk` | `` | `` | `` | `` | n/a | n/a | `` | `False` |
-| `qwen3_moe_searched_no_gt065_max_retention_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.247595 | `False` | `True` | 0.876943 | `layer_chunk` | `` | `` | `` | `` | n/a | n/a | `` | `False` |
-| `qwen3_moe_layer_chunk_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.243454 | `False` | `True` | 0.928945 | `tail_trimmed` | `` | `` | `` | `` | n/a | n/a | `` | `False` |
-| `qwen3_moe_unified_mechanism_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.240378 | `False` | `True` | 0.974168 | `subspace_scaled` | `` | `` | `` | `` | n/a | n/a | `` | `False` |
-| `qwen3_moe_mechanistic_unified_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.238226 | `True` | `False` | 0.988644 | `unified_mechanism` | `` | `` | `` | `` | n/a | n/a | `` | `False` |
-| `qwen3_moe_subspace_scaled_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.239529 | `True` | `False` | 0.989299 | `unified_mechanism` | `` | `` | `` | `` | n/a | n/a | `` | `False` |
+| method | role | usable | audit | avg | avg CI | worst | worst CI | rel norm | struct frontier | struct dom | struct safety | nearest struct | rank band | dominated | conf dom | regressions | conf regressions | paired net | paired p | paired regressions | eligible |
+| --- | --- | --- | --- | ---: | --- | ---: | --- | ---: | --- | --- | ---: | --- | --- | --- | --- | --- | --- | ---: | ---: | --- | --- |
+| `source_qwen3_30b_instruct` | `source` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | n/a | `n/a` | `n/a` | n/a | `n/a` | `False` | `` | `` | `` | `` | n/a | n/a | `` | `False` |
+| `source_qwen3_30b_coder` | `source` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | n/a | `n/a` | `n/a` | n/a | `n/a` | `False` | `` | `` | `` | `` | n/a | n/a | `` | `False` |
+| `qwen3_moe_unified_route_guarded_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.285637 | `False` | `True` | 0.02 | `audit_gated` | `False` | `` | `` | `` | `` | n/a | n/a | `` | `False` |
+| `qwen3_moe_audit_gated_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.263844 | `False` | `True` | 0.503498 | `trust_region` | `False` | `` | `` | `` | `` | n/a | n/a | `` | `False` |
+| `qwen3_moe_trust_region_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.248661 | `False` | `True` | 0.748353 | `expert_only` | `False` | `` | `` | `` | `` | n/a | n/a | `` | `False` |
+| `qwen3_moe_expert_only_trust_region_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.246033 | `False` | `True` | 0.839437 | `searched_no_gt065` | `False` | `` | `` | `` | `` | n/a | n/a | `` | `False` |
+| `qwen3_moe_tail_trimmed_expert_only_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.243145 | `False` | `True` | 0.931465 | `layer_chunk` | `False` | `` | `` | `` | `` | n/a | n/a | `` | `False` |
+| `qwen3_moe_searched_no_gt065_max_retention_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.247595 | `False` | `True` | 0.876943 | `layer_chunk` | `False` | `` | `` | `` | `` | n/a | n/a | `` | `False` |
+| `qwen3_moe_layer_chunk_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.243454 | `False` | `True` | 0.928945 | `tail_trimmed` | `False` | `` | `` | `` | `` | n/a | n/a | `` | `False` |
+| `qwen3_moe_unified_mechanism_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.240378 | `False` | `True` | 0.974168 | `subspace_scaled` | `False` | `` | `` | `` | `` | n/a | n/a | `` | `False` |
+| `qwen3_moe_mechanistic_unified_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.238226 | `True` | `False` | 0.988644 | `unified_mechanism` | `False` | `` | `` | `` | `` | n/a | n/a | `` | `False` |
+| `qwen3_moe_subspace_scaled_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.239529 | `True` | `False` | 0.989299 | `unified_mechanism` | `False` | `` | `` | `` | `` | n/a | n/a | `` | `False` |
 
 ## Outputs
 

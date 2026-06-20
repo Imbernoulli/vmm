@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-20T10:38:11.929081+00:00`
+Generated at: `2026-06-20T10:44:21.072530+00:00`
 
 ## Coverage
 
@@ -247,7 +247,8 @@ Complete: `92`; partial: `1`; missing: `0`.
 | Qwen3 MoE final candidate selector | usable / complete / best source | 0/10 / False / None |
 | Qwen3 MoE final candidate selector | uncertainty / paired gates / paired alpha | True / True / 0.050 |
 | Qwen3 MoE final candidate selector | structural frontier / dominated / safety / tie tolerance | None / None / n/a / 0.000 |
-| Qwen3 MoE final candidate selector smoke | status / passed cases | passed / 8/8 |
+| Qwen3 MoE final candidate selector | rank mode / confidence band / band size / point leader | None / True / 0 / None |
+| Qwen3 MoE final candidate selector smoke | status / passed cases | passed / 9/9 |
 | unified average optimizer | status / dense / MoE | built_waiting_for_qwen3_vllm_eval / avoid_linear_midpoint_use_probe_selected_anchor_or_low_lambda / align_experts_freeze_router_then_gate_candidate_by_vllm |
 | unified average optimizer | hypotheses / queue / top experiment | 8 / 5 / budgeted_qwen3_moe_downstream_eval |
 | unified average optimizer | evidence ledger / verdicts | 8 / {'awaiting_downstream_eval': 2, 'promising_but_unaccepted': 1, 'supports_conditional_action': 1, 'supports_current_action': 4} |

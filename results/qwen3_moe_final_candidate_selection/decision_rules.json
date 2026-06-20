@@ -8,7 +8,8 @@
     "candidate must not regress a task below both source endpoints",
     "candidate task confidence lower bound must not fall below both source lower bounds",
     "candidate must not have statistically significant paired prediction regression on shared eval examples",
-    "rank eligible candidates by avg primary score, then worst primary score, then structural frontier membership, structural safety score, and lower total relative delta norm",
+    "rank eligible candidates by point-estimate avg/worst score when confidence intervals separate them",
+    "if eligible candidates overlap the point leader confidence band, prefer structural frontier membership, structural safety score, then point-estimate avg/worst score and lower total relative delta norm",
     "if --selection-score-tie-tolerance is positive, apply structural tie-break inside the top avg/worst score band"
   ],
   "required_controls": [

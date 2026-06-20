@@ -425,20 +425,79 @@ def structural_safety_rank(value: Any) -> float:
     return value if value is not None else 0.0
 
 
-def rank_eligible_candidates(eligible: pd.DataFrame, *, score_tie_tolerance: float) -> pd.DataFrame:
+def with_rank_columns(eligible: pd.DataFrame) -> pd.DataFrame:
     ranked = eligible.copy()
     ranked["_avg_primary_rank"] = pd.to_numeric(ranked["avg_primary_score"], errors="coerce").fillna(float("-inf"))
     ranked["_worst_primary_rank"] = pd.to_numeric(ranked["worst_primary_score"], errors="coerce").fillna(float("-inf"))
+    ranked["_avg_primary_lower_rank"] = pd.to_numeric(ranked["avg_primary_lower"], errors="coerce").fillna(float("-inf"))
+    ranked["_avg_primary_upper_rank"] = pd.to_numeric(ranked["avg_primary_upper"], errors="coerce").fillna(float("-inf"))
+    ranked["_worst_primary_lower_rank"] = pd.to_numeric(ranked["worst_primary_lower"], errors="coerce").fillna(
+        float("-inf")
+    )
+    ranked["_worst_primary_upper_rank"] = pd.to_numeric(ranked["worst_primary_upper"], errors="coerce").fillna(
+        float("-inf")
+    )
     ranked["_structural_frontier_rank"] = ranked["structural_frontier_member"].map(structural_frontier_rank)
     ranked["_structural_safety_rank"] = ranked["structural_safety_score"].map(structural_safety_rank)
     ranked["_total_delta_rank"] = pd.to_numeric(
         ranked["total_relative_delta_norm"], errors="coerce"
     ).fillna(float("inf"))
+    return ranked
+
+
+def rank_eligible_candidates(
+    eligible: pd.DataFrame,
+    *,
+    score_tie_tolerance: float,
+    use_confidence_tie_band: bool,
+) -> tuple[pd.DataFrame, dict[str, Any]]:
+    ranked = with_rank_columns(eligible)
+    point_sorted = ranked.sort_values(
+        ["_avg_primary_rank", "_worst_primary_rank", "_total_delta_rank"],
+        ascending=[False, False, True],
+    )
+    point_leader = point_sorted.iloc[0]
+    rank_info: dict[str, Any] = {
+        "selection_rank_mode": "point_estimate",
+        "selection_point_leader_method": point_leader.get("method"),
+        "selection_rank_band_size": 0,
+        "selection_rank_band_methods": [],
+    }
+    if use_confidence_tie_band:
+        leader_avg_lower = maybe_float(point_leader.get("_avg_primary_lower_rank"))
+        leader_worst_lower = maybe_float(point_leader.get("_worst_primary_lower_rank"))
+        if (
+            leader_avg_lower is not None
+            and leader_worst_lower is not None
+            and math.isfinite(leader_avg_lower)
+            and math.isfinite(leader_worst_lower)
+        ):
+            band = ranked[
+                (ranked["_avg_primary_upper_rank"] >= leader_avg_lower)
+                & (ranked["_worst_primary_upper_rank"] >= leader_worst_lower)
+            ].copy()
+            if not band.empty:
+                ranked = band
+                rank_info["selection_rank_mode"] = "confidence_tie_band_structural"
+                rank_info["selection_rank_band_size"] = int(len(ranked))
+                rank_info["selection_rank_band_methods"] = [str(method) for method in ranked["method"].tolist()]
+                sort_columns = [
+                    "_structural_frontier_rank",
+                    "_structural_safety_rank",
+                    "_avg_primary_rank",
+                    "_worst_primary_rank",
+                    "_total_delta_rank",
+                ]
+                ascending = [False, False, False, False, True]
+                return ranked.sort_values(sort_columns, ascending=ascending), rank_info
     if score_tie_tolerance > 0.0:
         best_avg = float(ranked["_avg_primary_rank"].max())
         ranked = ranked[ranked["_avg_primary_rank"] >= best_avg - score_tie_tolerance].copy()
         best_worst = float(ranked["_worst_primary_rank"].max())
         ranked = ranked[ranked["_worst_primary_rank"] >= best_worst - score_tie_tolerance].copy()
+        rank_info["selection_rank_mode"] = "fixed_score_tie_band_structural"
+        rank_info["selection_rank_band_size"] = int(len(ranked))
+        rank_info["selection_rank_band_methods"] = [str(method) for method in ranked["method"].tolist()]
         sort_columns = [
             "_structural_frontier_rank",
             "_structural_safety_rank",
@@ -456,7 +515,7 @@ def rank_eligible_candidates(eligible: pd.DataFrame, *, score_tie_tolerance: flo
             "_total_delta_rank",
         ]
         ascending = [False, False, False, False, True]
-    return ranked.sort_values(sort_columns, ascending=ascending)
+    return ranked.sort_values(sort_columns, ascending=ascending), rank_info
 
 
 def load_real_rows(gate_dir: Path, audit_dir: Path, *, confidence_z: float) -> pd.DataFrame:
@@ -493,6 +552,7 @@ def build_selection_table(
     paired_loss_tolerance_rate: float,
     paired_alpha: float,
     selection_score_tie_tolerance: float = 0.0,
+    use_confidence_tie_band: bool = True,
 ) -> tuple[pd.DataFrame, dict[str, Any]]:
     rows = attach_structural_dominance(rows, structural_dominance)
     sources = rows[rows["method"].isin(SOURCE_METHODS)].copy()
@@ -607,18 +667,26 @@ def build_selection_table(
                 "paired_min_pvalue": paired_min_pvalue,
                 "rejection_reasons": ",".join(rejection_reasons),
                 "selection_eligible": eligible,
+                "selection_rank_band_member": False,
             }
         )
     table = pd.DataFrame(table_rows)
     eligible = table[table["selection_eligible"].astype(bool)].copy() if not table.empty else pd.DataFrame()
     if not eligible.empty:
-        ranked = rank_eligible_candidates(eligible, score_tie_tolerance=selection_score_tie_tolerance)
+        ranked, rank_info = rank_eligible_candidates(
+            eligible,
+            score_tie_tolerance=selection_score_tie_tolerance,
+            use_confidence_tie_band=use_confidence_tie_band,
+        )
+        rank_band_methods = set(str(method) for method in ranked["method"].tolist())
+        table["selection_rank_band_member"] = table["method"].map(lambda method: str(method) in rank_band_methods)
         selected = ranked.iloc[0].drop(labels=[column for column in ranked.columns if column.startswith("_")]).to_dict()
         status = "select_candidate" if candidates_complete else "provisional_candidate"
         selection = {
             "status": status,
             "selected_method": selected.get("method"),
             "reason": "candidate_survives_source_dominance_and_task_regression_gates",
+            **rank_info,
         }
     elif not sources_complete:
         selection = {
@@ -654,11 +722,19 @@ def build_selection_table(
             "paired_loss_tolerance_rate": paired_loss_tolerance_rate,
             "paired_alpha": paired_alpha,
             "selection_score_tie_tolerance": selection_score_tie_tolerance,
+            "confidence_tie_band": use_confidence_tie_band,
+            "selection_rank_mode": selection.get("selection_rank_mode"),
+            "selection_point_leader_method": selection.get("selection_point_leader_method"),
+            "selection_rank_band_size": int(selection.get("selection_rank_band_size") or 0),
+            "selection_rank_band_methods": selection.get("selection_rank_band_methods", []),
             "selection_rank_policy": [
-                "avg_primary_score",
-                "worst_primary_score",
-                "structural_frontier_member",
-                "structural_safety_score",
+                "source/task/paired gates first",
+                "confidence-overlap tie band when available",
+                "fixed score tie band when requested",
+                "structural_frontier_member inside tie band",
+                "structural_safety_score inside tie band",
+                "avg_primary_score inside tie band",
+                "worst_primary_score inside tie band",
                 "lower_total_relative_delta_norm",
             ],
             "structural_dominance_available": bool(
@@ -713,11 +789,15 @@ def build_report(summary: dict[str, Any], table: pd.DataFrame) -> str:
         f"- Paired prediction gate: `{selection.get('paired_prediction_gate')}`",
         f"- Paired alpha: `{selection.get('paired_alpha')}`",
         f"- Selection score tie tolerance: `{selection.get('selection_score_tie_tolerance')}`",
+        f"- Confidence tie band: `{selection.get('confidence_tie_band')}`",
+        f"- Selection rank mode: `{selection.get('selection_rank_mode')}`",
+        f"- Selection point leader: `{selection.get('selection_point_leader_method')}`",
+        f"- Selection rank band size: `{selection.get('selection_rank_band_size')}`",
         f"- Structural dominance available: `{selection.get('structural_dominance_available')}`",
         f"- Structural-frontier eligible candidates: `{selection.get('structural_frontier_eligible_count')}`",
         "",
-        "| method | role | usable | audit | avg | avg CI | worst | worst CI | rel norm | struct frontier | struct dom | struct safety | nearest struct | dominated | conf dom | regressions | conf regressions | paired net | paired p | paired regressions | eligible |",
-        "| --- | --- | --- | --- | ---: | --- | ---: | --- | ---: | --- | --- | ---: | --- | --- | --- | --- | --- | ---: | ---: | --- | --- |",
+        "| method | role | usable | audit | avg | avg CI | worst | worst CI | rel norm | struct frontier | struct dom | struct safety | nearest struct | rank band | dominated | conf dom | regressions | conf regressions | paired net | paired p | paired regressions | eligible |",
+        "| --- | --- | --- | --- | ---: | --- | ---: | --- | ---: | --- | --- | ---: | --- | --- | --- | --- | --- | --- | ---: | ---: | --- | --- |",
     ]
     for _, row in table.iterrows():
         paired_net = None
@@ -738,6 +818,7 @@ def build_report(summary: dict[str, Any], table: pd.DataFrame) -> str:
             f"`{fmt(row.get('structurally_dominated'))}` | "
             f"{fmt(row.get('structural_safety_score'))} | "
             f"`{fmt(row.get('nearest_structural_candidate'))}` | "
+            f"`{bool(row.get('selection_rank_band_member'))}` | "
             f"`{row.get('dominated_by_source', '')}` | "
             f"`{row.get('confidence_dominated_by_source', '')}` | "
             f"`{row.get('task_regression_columns', '')}` | "
@@ -787,7 +868,8 @@ def write_outputs(
             "candidate must not regress a task below both source endpoints",
             "candidate task confidence lower bound must not fall below both source lower bounds",
             "candidate must not have statistically significant paired prediction regression on shared eval examples",
-            "rank eligible candidates by avg primary score, then worst primary score, then structural frontier membership, structural safety score, and lower total relative delta norm",
+            "rank eligible candidates by point-estimate avg/worst score when confidence intervals separate them",
+            "if eligible candidates overlap the point leader confidence band, prefer structural frontier membership, structural safety score, then point-estimate avg/worst score and lower total relative delta norm",
             "if --selection-score-tie-tolerance is positive, apply structural tie-break inside the top avg/worst score band",
         ],
     }
@@ -961,6 +1043,35 @@ def smoke_rows(case: str) -> pd.DataFrame:
             nearest_structural_candidate="subspace_scaled",
         )
         rows = add_smoke_intervals(rows)
+    elif case == "confidence_structural_band":
+        rows[2].update(
+            avg_primary_score=0.66,
+            worst_primary_score=0.48,
+            task_gsm8k_score=0.59,
+            task_mmlu_score=0.62,
+            task_safety_score=0.68,
+            task_humaneval_compile_score=0.55,
+            total_relative_delta_norm=0.230,
+            structural_frontier_member=False,
+            structurally_dominated=True,
+            structural_safety_score=0.93,
+            nearest_structural_candidate="mechanistic_unified",
+        )
+        rows[3].update(
+            method="qwen3_moe_mechanistic_unified_candidate",
+            avg_primary_score=0.655,
+            worst_primary_score=0.475,
+            task_gsm8k_score=0.585,
+            task_mmlu_score=0.615,
+            task_safety_score=0.675,
+            task_humaneval_compile_score=0.545,
+            total_relative_delta_norm=0.240,
+            structural_frontier_member=True,
+            structurally_dominated=False,
+            structural_safety_score=0.99,
+            nearest_structural_candidate="subspace_scaled",
+        )
+        rows = add_smoke_intervals(rows)
     elif case == "partial":
         rows[3]["eval_usable"] = False
     elif case != "candidate_win":
@@ -977,6 +1088,7 @@ def run_smoke_matrix(args: argparse.Namespace) -> dict[str, Any]:
         "paired_regression": ("awaiting_candidate_eval", "source_qwen3_30b_instruct"),
         "paired_noisy_delta": ("provisional_candidate", "qwen3_moe_tail_trimmed_expert_only_candidate"),
         "structural_tie_break": ("select_candidate", "qwen3_moe_mechanistic_unified_candidate"),
+        "confidence_structural_band": ("select_candidate", "qwen3_moe_mechanistic_unified_candidate"),
         "partial": ("provisional_candidate", "qwen3_moe_tail_trimmed_expert_only_candidate"),
     }
     rows = []
@@ -989,6 +1101,7 @@ def run_smoke_matrix(args: argparse.Namespace) -> dict[str, Any]:
             paired_loss_tolerance_rate=args.paired_loss_tolerance_rate,
             paired_alpha=args.paired_alpha,
             selection_score_tie_tolerance=args.selection_score_tie_tolerance,
+            use_confidence_tie_band=not args.disable_confidence_tie_band and not args.disable_uncertainty_gate,
         )
         rows.append(
             {
@@ -1000,6 +1113,8 @@ def run_smoke_matrix(args: argparse.Namespace) -> dict[str, Any]:
                 "passed": selection["status"] == expected_status
                 and selection.get("selected_method") == expected_selected,
                 "eligible_candidate_count": selection.get("eligible_candidate_count"),
+                "rank_mode": selection.get("selection_rank_mode"),
+                "rank_band_size": selection.get("selection_rank_band_size"),
             }
         )
     output_dir = repo_path(args.output_dir)
@@ -1029,13 +1144,14 @@ def run_smoke_matrix(args: argparse.Namespace) -> dict[str, Any]:
         f"- Status: `{summary['status']}`",
         f"- Cases: `{passed}/{len(matrix)}`",
         "",
-        "| case | status | selected | eligible | passed |",
-        "| --- | --- | --- | ---: | --- |",
+        "| case | status | selected | eligible | rank mode | band | passed |",
+        "| --- | --- | --- | ---: | --- | ---: | --- |",
     ]
     for _, row in matrix.iterrows():
         lines.append(
             f"| `{row['case']}` | `{row['status']}` | `{row['selected_method']}` | "
-            f"{int(row['eligible_candidate_count'])} | `{bool(row['passed'])}` |"
+            f"{int(row['eligible_candidate_count'])} | `{row.get('rank_mode')}` | "
+            f"{int(row.get('rank_band_size') or 0)} | `{bool(row['passed'])}` |"
         )
     summary_path.write_text(json.dumps(json_safe(summary), indent=2, sort_keys=True) + "\n", encoding="utf-8")
     report_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -1059,6 +1175,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--selection-score-tie-tolerance", type=float, default=0.0)
     parser.add_argument("--confidence-z", type=float, default=1.96)
     parser.add_argument("--disable-uncertainty-gate", action="store_true")
+    parser.add_argument("--disable-confidence-tie-band", action="store_true")
     parser.add_argument("--disable-paired-gate", action="store_true")
     parser.add_argument("--paired-loss-tolerance-rate", type=float, default=0.0)
     parser.add_argument("--paired-alpha", type=float, default=0.05)
@@ -1083,6 +1200,7 @@ def main() -> None:
         paired_loss_tolerance_rate=args.paired_loss_tolerance_rate,
         paired_alpha=args.paired_alpha,
         selection_score_tie_tolerance=args.selection_score_tie_tolerance,
+        use_confidence_tie_band=not args.disable_confidence_tie_band and not args.disable_uncertainty_gate,
     )
     summary = write_outputs(args.output_dir, table, selection)
     print(f"Wrote Qwen3 MoE final candidate selection to {repo_path(args.output_dir).resolve()}")

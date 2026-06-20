@@ -2413,46 +2413,46 @@
       "sha256": "f3bae27f2624627840021804c417254acc31ccbab0ed2d83ce9af7580796fe52"
     },
     {
-      "bytes": 1127,
+      "bytes": 1263,
       "kind": "data",
       "path": "results/qwen3_moe_final_candidate_selection/decision_rules.json",
-      "sha256": "f7acbe424786c2f8c53cdabdbc106b478d4f146fe867d453cacd198f135b16e2"
+      "sha256": "a4a797fbea760cb539c8d5d422d88bdfbfa770a4c4a501a390bd117f30111c40"
     },
     {
-      "bytes": 4194,
+      "bytes": 4457,
       "kind": "document",
       "path": "results/qwen3_moe_final_candidate_selection/report.md",
-      "sha256": "abd5f383c3987c8770bbe3d539f537a1e02af318c9136cc94192b94bb51b739f"
+      "sha256": "96aaf92ec3e4ab8962f704878ddf7558aa1b545fe0251c4b6ba99276cf6d89ac"
     },
     {
-      "bytes": 3661,
+      "bytes": 3760,
       "kind": "data",
       "path": "results/qwen3_moe_final_candidate_selection/selection_table.csv",
-      "sha256": "ebd261ede9f3eac879bf9625d69ed259bbac9b3de30e6f38e988e2e684fa5224"
+      "sha256": "2cc014e3c6bb6374040ccc1f40c11034df1b3acb0f9bf11ceff0bec904c4ab23"
     },
     {
-      "bytes": 1690,
+      "bytes": 2074,
       "kind": "data",
       "path": "results/qwen3_moe_final_candidate_selection/summary.json",
-      "sha256": "00eb079a0cce3d126bcec39c0e721eaea1f41f1929b7250cc647f3bc777014d8"
+      "sha256": "e1ad150effe35b21b8b0140d96213aef1740c6bc68a06313dc2a5dbee6de62d5"
     },
     {
-      "bytes": 960,
+      "bytes": 1350,
       "kind": "document",
       "path": "results/qwen3_moe_final_candidate_selection_smoke/report.md",
-      "sha256": "8ecd42fb61e94c4ddb6be1c38ee2fa91df18539293ce10ac2c5195944f12e6c4"
+      "sha256": "9b703f5bceb14dad19cc062bab89c2ab7ad36828c2067f0c8d697283a0519107"
     },
     {
-      "bytes": 1187,
+      "bytes": 1537,
       "kind": "data",
       "path": "results/qwen3_moe_final_candidate_selection_smoke/selector_matrix.csv",
-      "sha256": "83a648be1aa6a186057183e0d3b62a039261791dc4769e62c2d299512dfcee07"
+      "sha256": "8866b09f8adde02be304f7e2dd3a5097bc6b5abb1e31b660f2fbfa176f2066a5"
     },
     {
-      "bytes": 3030,
+      "bytes": 3979,
       "kind": "data",
       "path": "results/qwen3_moe_final_candidate_selection_smoke/summary.json",
-      "sha256": "2f62482894c9cb4b68bb60e54c5d8c8cda03e620576a5fd87e30b5432c9fb8f0"
+      "sha256": "8647bdf6a084d2c578838b57f857032e49866bb0bf0519e95b142643e2c52773"
     },
     {
       "bytes": 722,
@@ -5371,16 +5371,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 2260122,
+      "bytes": 2263686,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "d0f487dee0585ba2fd164ae64eb826be54fdbe3c120b62f234f88f11fb75e590"
+      "sha256": "2b064c6618f3f6fa7f5903aa7c8785dfe2a2580fa8d0828452fa52a138db63d1"
     },
     {
-      "bytes": 63167,
+      "bytes": 63288,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "c88beee48695d1585005eb9dc1b5adc350bfe1e8d98b38fd7eb18430a6af0b2c"
+      "sha256": "8b4b8638bd6143b9640410b315723916373aaac2508a590550511ce121f7dad7"
     },
     {
       "bytes": 288,
@@ -6721,10 +6721,10 @@
       "sha256": "cd588bc1804013f4043bd95c245b066dbae86bfd3e3f9c18317ef33eb506f123"
     },
     {
-      "bytes": 445711,
+      "bytes": 446620,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "463af41252c4f505801df538baf52c4f08ef01c07d090a0641ba046ee432049d"
+      "sha256": "bb45b4095451ee6b5543d05be7afd90db7edb3e9858e0f783bf26a2ba260b0a9"
     },
     {
       "bytes": 16101,
@@ -6925,10 +6925,10 @@
       "sha256": "db053e7a0691ec45cb8f4dd82cce68e2a3c445f1ad470e2327e6483ffc17427f"
     },
     {
-      "bytes": 48084,
+      "bytes": 54302,
       "kind": "code",
       "path": "scripts/select_qwen3_moe_final_candidate.py",
-      "sha256": "e1218d9183b7eb3d41bc20497b8a9352d9ac3df5c47085bea7f4de9b1d0b8be0"
+      "sha256": "542ee6835af50158afd9da5a1baf46c682eb691de630cc05fe1fd37bcea71c8c"
     },
     {
       "bytes": 83572,
@@ -7033,7 +7033,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-20T10:38:11.983995+00:00",
+  "generated_at": "2026-06-20T10:44:21.124859+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"
