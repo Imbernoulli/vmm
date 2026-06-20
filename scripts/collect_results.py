@@ -1500,6 +1500,9 @@ def summarize_qwen3_moe_adaptive_eval_schedule() -> dict[str, Any]:
         "round1_selection_policy": summary.get("round1_selection_policy"),
         "round1_covered_mechanism_test_count": int(summary.get("round1_covered_mechanism_test_count", 0)),
         "round1_covered_mechanism_tests": summary.get("round1_covered_mechanism_tests", []),
+        "structural_frontier_available": bool(summary.get("structural_frontier_available", False)),
+        "best_structural_method": summary.get("best_structural_method"),
+        "best_structural_safety_score": maybe_float(summary.get("best_structural_safety_score")),
         "round1_probe_task_budget": maybe_int(summary.get("round1_probe_task_budget")),
         "runnable_prompt_budget": maybe_int(summary.get("runnable_prompt_budget")),
         "runnable_method_count": maybe_int(summary.get("runnable_method_count")),
@@ -5745,6 +5748,12 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 "| Qwen3 MoE adaptive eval schedule | round1 policy / covered mechanism tests | "
                 f"{qwen3_moe_adaptive_eval_schedule['round1_selection_policy']} / "
                 f"{qwen3_moe_adaptive_eval_schedule['round1_covered_mechanism_test_count']} |"
+            ),
+            (
+                "| Qwen3 MoE adaptive eval schedule | structural frontier / best structural method / score | "
+                f"{qwen3_moe_adaptive_eval_schedule['structural_frontier_available']} / "
+                f"{qwen3_moe_adaptive_eval_schedule['best_structural_method']} / "
+                f"{fmt(qwen3_moe_adaptive_eval_schedule['best_structural_safety_score'])} |"
             ),
             (
                 "| Qwen3 MoE adaptive eval schedule | paired gate status counts / alpha | "

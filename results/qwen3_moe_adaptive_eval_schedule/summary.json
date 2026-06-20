@@ -1,4 +1,6 @@
 {
+  "best_structural_method": "qwen3_moe_mechanistic_unified_candidate",
+  "best_structural_safety_score": 0.9927152380188017,
   "close_margin": 0.02,
   "decision_status_counts": {
     "awaiting_source_controls": 10,
@@ -39,6 +41,7 @@
   "schema_version": 1,
   "source_controls_complete": false,
   "status": "adaptive_schedule_ready",
+  "structural_frontier_available": true,
   "task_regression_margin": 0.05,
   "top_eval_action": "run_or_extend_source_control_probe",
   "top_method": "source_qwen3_30b_instruct"

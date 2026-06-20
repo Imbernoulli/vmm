@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-20T09:57:47.408883+00:00`
+Generated at: `2026-06-20T10:06:04.938461+00:00`
 
 ## Coverage
 
@@ -219,6 +219,7 @@ Complete: `92`; partial: `1`; missing: `0`.
 | Qwen3 MoE adaptive eval schedule | source controls / round1 probes / probe->full examples | False / 5 / 64 -> 384 |
 | Qwen3 MoE adaptive eval schedule | runnable methods / prompt budget / round1 probe prompts | 7 / 1536 / 1024 |
 | Qwen3 MoE adaptive eval schedule | round1 policy / covered mechanism tests | greedy_mechanism_coverage_then_priority / 5 |
+| Qwen3 MoE adaptive eval schedule | structural frontier / best structural method / score | True / qwen3_moe_mechanistic_unified_candidate / 0.993 |
 | Qwen3 MoE adaptive eval schedule | paired gate status counts / alpha | {'awaiting_source_controls': 10, 'source_control': 2, 'checkpoint_missing': 2} / 0.050 |
 | Qwen3 MoE adaptive eval schedule smoke | status / assertions | passed / 15/15 |
 | Qwen3 MoE eval manifest preflight | status / tasks sufficient / methods aligned | task_manifest_ready / 4/4 / 14/14 |

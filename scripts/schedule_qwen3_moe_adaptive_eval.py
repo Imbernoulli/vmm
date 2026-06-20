@@ -87,6 +87,11 @@ def maybe_int(value: Any) -> int | None:
     return None if value is None else int(value)
 
 
+def fmt(value: Any, digits: int = 3) -> str:
+    value = maybe_float(value)
+    return "n/a" if value is None else f"{value:.{digits}f}"
+
+
 def bool_value(value: Any) -> bool:
     value = clean_value(value)
     if isinstance(value, bool):
@@ -126,6 +131,81 @@ def read_json(path: str | Path) -> dict[str, Any]:
     if not path.exists() or path.stat().st_size == 0:
         return {}
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def normalize_lower_better(series: pd.Series) -> pd.Series:
+    values = pd.to_numeric(series, errors="coerce")
+    valid = values.dropna()
+    if valid.empty:
+        return pd.Series(0.0, index=series.index, dtype="float64")
+    lo = float(valid.min())
+    hi = float(valid.max())
+    if hi <= lo + 1e-12:
+        return pd.Series(1.0, index=series.index, dtype="float64")
+    return (1.0 - ((values.fillna(hi) - lo) / (hi - lo))).clip(0.0, 1.0)
+
+
+def structural_frontier_features(delta_frontier: pd.DataFrame) -> dict[str, dict[str, Any]]:
+    if delta_frontier.empty or "method" not in delta_frontier:
+        return {}
+    frame = delta_frontier.copy()
+    numeric_columns = [
+        "total_relative_delta_norm",
+        "routed_relative_delta_norm",
+        "routed_max_tensor_relative_delta",
+        "routed_tensors_gt_0_65",
+        "routed_tensors_gt_0_75",
+        "attention_changed_tensors",
+        "router_changed_tensors",
+    ]
+    for column in numeric_columns:
+        if column not in frame:
+            frame[column] = 0.0
+        frame[column] = pd.to_numeric(frame[column], errors="coerce").fillna(0.0)
+    frame["_total_score"] = normalize_lower_better(frame["total_relative_delta_norm"])
+    frame["_routed_score"] = normalize_lower_better(frame["routed_relative_delta_norm"])
+    frame["_max_routed_score"] = normalize_lower_better(frame["routed_max_tensor_relative_delta"])
+    frame["_tail65_score"] = normalize_lower_better(frame["routed_tensors_gt_0_65"])
+    frame["_freeze_score"] = (
+        (frame["attention_changed_tensors"] <= 0).astype(float) * 0.5
+        + (frame["router_changed_tensors"] <= 0).astype(float) * 0.5
+    )
+    frame["structural_safety_score"] = (
+        0.30 * frame["_total_score"]
+        + 0.22 * frame["_routed_score"]
+        + 0.20 * frame["_max_routed_score"]
+        + 0.20 * frame["_tail65_score"]
+        + 0.08 * frame["_freeze_score"]
+    ).clip(0.0, 1.0)
+    out: dict[str, dict[str, Any]] = {}
+    for _, row in frame.iterrows():
+        method = str(row["method"])
+        tail65 = int(row["routed_tensors_gt_0_65"])
+        tail75 = int(row["routed_tensors_gt_0_75"])
+        attention_changed = int(row["attention_changed_tensors"])
+        router_changed = int(row["router_changed_tensors"])
+        reason_parts = [
+            f"total={float(row['total_relative_delta_norm']):.6f}",
+            f"routed={float(row['routed_relative_delta_norm']):.6f}",
+            f"max_routed={float(row['routed_max_tensor_relative_delta']):.6f}",
+            f"gt0.65={tail65}",
+        ]
+        if attention_changed or router_changed:
+            reason_parts.append(f"attention/router_changed={attention_changed}/{router_changed}")
+        else:
+            reason_parts.append("attention/router_frozen")
+        out[method] = {
+            "structural_safety_score": float(row["structural_safety_score"]),
+            "structural_total_relative_delta_norm": float(row["total_relative_delta_norm"]),
+            "structural_routed_relative_delta_norm": float(row["routed_relative_delta_norm"]),
+            "structural_routed_max_tensor_relative_delta": float(row["routed_max_tensor_relative_delta"]),
+            "structural_routed_tensors_gt_0_65": tail65,
+            "structural_routed_tensors_gt_0_75": tail75,
+            "structural_attention_changed_tensors": attention_changed,
+            "structural_router_changed_tensors": router_changed,
+            "structural_reason": "; ".join(reason_parts),
+        }
+    return out
 
 
 def cli_arg_value(command: str, option: str) -> str | None:
@@ -475,9 +555,11 @@ def mechanism_priority(row: pd.Series, mechanism_budget: pd.DataFrame) -> float:
         "qwen3_moe_unified_route_guarded_candidate": 0.66,
     }.get(method, 0.55)
     reference_bonus = min(0.12, 0.03 * mechanism_reference_count(mechanism_budget, method))
+    structural_score = maybe_float(row.get("structural_safety_score"))
+    structural_bonus = 0.0 if structural_score is None else 0.16 * (structural_score - 0.50)
     missing_penalty = 0.20 if not checkpoint_ready(row) else 0.0
     pruned_penalty = 0.25 if bool_value(row.get("plan_level_pruned", False)) else 0.0
-    return round(max(0.0, manual + reference_bonus - missing_penalty - pruned_penalty), 4)
+    return round(max(0.0, manual + reference_bonus + structural_bonus - missing_penalty - pruned_penalty), 4)
 
 
 def max_task_regression(candidate: pd.Series, frontier: dict[str, float | None]) -> float | None:
@@ -727,12 +809,14 @@ def candidate_decision(
     }
 
 
-def enrich_budget(method_budget: pd.DataFrame) -> pd.DataFrame:
+def enrich_budget(method_budget: pd.DataFrame, delta_frontier: pd.DataFrame | None = None) -> pd.DataFrame:
+    structural_features = structural_frontier_features(delta_frontier if delta_frontier is not None else pd.DataFrame())
     rows = []
     for _, row in method_budget.iterrows():
         item = row.to_dict()
         scores = row_scores(row)
         item.update(scores)
+        item.update(structural_features.get(str(item.get("method")), {}))
         rows.append(item)
     return pd.DataFrame(rows)
 
@@ -741,6 +825,7 @@ def build_schedule(
     method_budget: pd.DataFrame,
     mechanism_budget: pd.DataFrame,
     *,
+    delta_frontier: pd.DataFrame | None = None,
     probe_examples: int,
     full_examples: int,
     max_round1_candidates: int,
@@ -749,7 +834,7 @@ def build_schedule(
     paired_loss_tolerance_rate: float,
     paired_alpha: float,
 ) -> tuple[pd.DataFrame, pd.DataFrame, dict[str, Any]]:
-    budget = enrich_budget(method_budget)
+    budget = enrich_budget(method_budget, delta_frontier)
     if budget.empty:
         raise ValueError("method budget is empty")
     budget["mechanism_priority"] = budget.apply(lambda row: mechanism_priority(row, mechanism_budget), axis=1)
@@ -803,6 +888,17 @@ def build_schedule(
                 "eval_action": decision["eval_action"],
                 "decision_status": decision["decision_status"],
                 "mechanism_priority": row["mechanism_priority"],
+                "structural_safety_score": row.get("structural_safety_score"),
+                "structural_total_relative_delta_norm": row.get("structural_total_relative_delta_norm"),
+                "structural_routed_relative_delta_norm": row.get("structural_routed_relative_delta_norm"),
+                "structural_routed_max_tensor_relative_delta": row.get(
+                    "structural_routed_max_tensor_relative_delta"
+                ),
+                "structural_routed_tensors_gt_0_65": row.get("structural_routed_tensors_gt_0_65"),
+                "structural_routed_tensors_gt_0_75": row.get("structural_routed_tensors_gt_0_75"),
+                "structural_attention_changed_tensors": row.get("structural_attention_changed_tensors"),
+                "structural_router_changed_tensors": row.get("structural_router_changed_tensors"),
+                "structural_reason": row.get("structural_reason") or "",
                 "selected_for_round1_probe": method in selected_probe_methods,
                 "round1_selection_policy": coverage_summary["round1_selection_policy"]
                 if method in selected_probe_methods
@@ -896,6 +992,21 @@ def build_schedule(
     mechanism_schedule = pd.DataFrame(mechanism_rows)
     round1_rows = schedule[schedule["selected_for_round1_probe"].astype(bool)]
     runnable_rows = schedule[schedule["recommended_max_examples"].astype(int) > 0]
+    structural_rows = schedule[
+        pd.to_numeric(schedule["structural_safety_score"], errors="coerce").notna()
+    ].copy()
+    if not structural_rows.empty:
+        structural_rows["_structural_sort"] = pd.to_numeric(
+            structural_rows["structural_safety_score"], errors="coerce"
+        )
+        best_structural = structural_rows.sort_values(
+            ["_structural_sort", "mechanism_priority"], ascending=[False, False]
+        ).iloc[0]
+        best_structural_method = str(best_structural["method"])
+        best_structural_score = float(best_structural["_structural_sort"])
+    else:
+        best_structural_method = None
+        best_structural_score = None
     summary = {
         "schema_version": 1,
         "status": "adaptive_schedule_ready",
@@ -905,6 +1016,9 @@ def build_schedule(
         "round1_selection_policy": coverage_summary["round1_selection_policy"],
         "round1_covered_mechanism_tests": coverage_summary["round1_covered_mechanism_tests"],
         "round1_covered_mechanism_test_count": coverage_summary["round1_covered_mechanism_test_count"],
+        "structural_frontier_available": bool(not structural_rows.empty),
+        "best_structural_method": best_structural_method,
+        "best_structural_safety_score": best_structural_score,
         "round1_probe_task_budget": int(round1_rows["recommended_prompt_budget"].sum()),
         "runnable_prompt_budget": int(runnable_rows["recommended_prompt_budget"].sum()),
         "runnable_method_count": int(len(runnable_rows)),
@@ -998,35 +1112,58 @@ def build_report(summary: dict[str, Any], schedule: pd.DataFrame, mechanism_sche
     lines = [
         "# Qwen3 MoE Adaptive Eval Schedule",
         "",
-        "This scheduler turns mechanism evidence into a sequential vLLM budget: source controls first, high-value mechanism probes second, full-budget expansion only for candidates that are not source-dominated.",
+        "This scheduler turns mechanism evidence into a sequential vLLM budget: source controls first, high-value mechanism probes second, full-budget expansion only for candidates that are not source-dominated. Candidate priority now combines mechanism coverage with the real safetensors delta frontier, so structurally redundant or riskier candidates can wait unless they answer a distinct mechanism question.",
         "",
         f"- Status: `{summary['status']}`",
         f"- Source controls complete: `{summary['source_controls_complete']}`",
         f"- Round-1 probe candidates: `{summary['round1_probe_candidate_count']}`",
         f"- Round-1 coverage policy: `{summary['round1_selection_policy']}`",
         f"- Round-1 covered mechanism tests: `{summary['round1_covered_mechanism_test_count']}`",
+        f"- Structural frontier available: `{summary['structural_frontier_available']}`",
+        f"- Best structural method: `{summary['best_structural_method']}`",
+        f"- Best structural safety score: `{fmt(summary['best_structural_safety_score'])}`",
         f"- Round-1 probe prompt budget: `{summary['round1_probe_task_budget']}`",
         f"- Runnable prompt budget now: `{summary['runnable_prompt_budget']}`",
         f"- Top action: `{summary['top_eval_action']}` for `{summary['top_method']}`",
         "",
         "## Method Schedule",
         "",
-        "| rank | method | action | status | tasks | examples | prompts | priority | covered tests | paired gate | paired net | paired p | reason |",
-        "| ---: | --- | --- | --- | --- | ---: | ---: | ---: | --- | --- | ---: | ---: | --- |",
+        "| rank | method | action | status | tasks | examples | prompts | priority | structure | covered tests | paired gate | paired net | paired p | reason |",
+        "| ---: | --- | --- | --- | --- | ---: | ---: | ---: | ---: | --- | --- | ---: | ---: | --- |",
     ]
     for _, row in schedule.iterrows():
         paired_net = row["paired_net_delta"]
         paired_p = row["paired_min_pvalue"]
         paired_net_text = "" if clean_value(paired_net) is None else f"{float(paired_net):.4f}"
         paired_p_text = "" if clean_value(paired_p) is None else f"{float(paired_p):.4f}"
+        structural = clean_value(row.get("structural_safety_score"))
+        structural_text = "" if structural is None else f"{float(structural):.3f}"
         lines.append(
             f"| {int(row['schedule_rank'])} | `{row['method']}` | `{row['eval_action']}` | "
             f"`{row['decision_status']}` | `{row['recommended_tasks']}` | "
             f"{int(row['recommended_max_examples'])} | {int(row['recommended_prompt_budget'])} | "
-            f"{float(row['mechanism_priority']):.3f} | `{row['covered_mechanism_tests']}` | "
+            f"{float(row['mechanism_priority']):.3f} | {structural_text} | `{row['covered_mechanism_tests']}` | "
             f"`{row['paired_gate_status']}` | "
             f"{paired_net_text} | {paired_p_text} | {row['decision_reason']} |"
         )
+    structural_rows = schedule[
+        pd.to_numeric(schedule.get("structural_safety_score"), errors="coerce").notna()
+    ].copy()
+    if not structural_rows.empty:
+        structural_rows["_score"] = pd.to_numeric(structural_rows["structural_safety_score"], errors="coerce")
+        lines.extend(
+            [
+                "",
+                "## Structural Frontier",
+                "",
+                "| method | score | structural reason |",
+                "| --- | ---: | --- |",
+            ]
+        )
+        for _, row in structural_rows.sort_values("_score", ascending=False).head(10).iterrows():
+            lines.append(
+                f"| `{row['method']}` | {float(row['_score']):.3f} | {row['structural_reason']} |"
+            )
     lines.extend(
         [
             "",
@@ -1231,6 +1368,7 @@ def run_smoke(args: argparse.Namespace) -> None:
         schedule, _, _ = build_schedule(
             method_budget,
             mechanism_budget,
+            delta_frontier=pd.DataFrame(),
             probe_examples=args.probe_examples,
             full_examples=args.full_examples,
             max_round1_candidates=args.max_round1_candidates,
@@ -1321,6 +1459,7 @@ def run_smoke(args: argparse.Namespace) -> None:
     coverage_schedule, _, coverage_summary = build_schedule(
         coverage_method_budget,
         coverage_mechanism_budget,
+        delta_frontier=pd.DataFrame(),
         probe_examples=args.probe_examples,
         full_examples=args.full_examples,
         max_round1_candidates=2,
@@ -1410,6 +1549,11 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=Path("results/qwen3_moe_eval_budget_plan/mechanism_budget.csv"),
     )
+    parser.add_argument(
+        "--delta-frontier",
+        type=Path,
+        default=Path("results/qwen3_moe_delta_frontier/candidate_delta_frontier.csv"),
+    )
     parser.add_argument("--output-dir", type=Path, default=Path("results/qwen3_moe_adaptive_eval_schedule"))
     parser.add_argument("--probe-examples", type=int, default=64)
     parser.add_argument("--full-examples", type=int, default=384)
@@ -1429,9 +1573,11 @@ def main() -> None:
         return
     method_budget = read_csv(args.method_budget)
     mechanism_budget = read_csv(args.mechanism_budget)
+    delta_frontier = read_csv(args.delta_frontier)
     schedule, mechanism_schedule, summary = build_schedule(
         method_budget,
         mechanism_budget,
+        delta_frontier=delta_frontier,
         probe_examples=args.probe_examples,
         full_examples=args.full_examples,
         max_round1_candidates=args.max_round1_candidates,
