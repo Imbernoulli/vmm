@@ -111,6 +111,13 @@ def load_inputs(group_rules_path: Path, chunking_path: Path) -> pd.DataFrame:
         "router_relative_delta_norm",
         "min_topk_jaccard",
     ]
+    optional_keep = [
+        "route_mass_weighted_route_geometry_risk_score",
+        "high_route_geometry_risk_experts",
+        "p95_combined_relative_delta",
+        "min_combined_cosine",
+    ]
+    keep.extend(column for column in optional_keep if column in chunks.columns)
     merged = groups.merge(chunks[keep], on="layer_id", how="left")
     merged["layer_importance_score"] = pd.to_numeric(
         merged["layer_importance_score"], errors="coerce"
@@ -256,7 +263,7 @@ def select_schedule(search: pd.DataFrame, *, min_retention: float, hard_cap: flo
 
 
 def build_layer_coefficients(df: pd.DataFrame, coeff: pd.Series, selected_id: str) -> pd.DataFrame:
-    out = df[[
+    columns = [
         "layer_id",
         "layer_importance_score",
         "layer_importance_norm",
@@ -265,12 +272,23 @@ def build_layer_coefficients(df: pd.DataFrame, coeff: pd.Series, selected_id: st
         "calibrate_fraction",
         "router_relative_delta_norm",
         "min_topk_jaccard",
-    ]].drop_duplicates("layer_id").copy()
+    ]
+    optional_columns = [
+        "route_mass_weighted_route_geometry_risk_score",
+        "high_route_geometry_risk_experts",
+        "p95_combined_relative_delta",
+        "min_combined_cosine",
+    ]
+    columns.extend(column for column in optional_columns if column in df.columns)
+    out = df[columns].drop_duplicates("layer_id").copy()
     layer_coeff = pd.DataFrame({"layer_id": df["layer_id"], "group_coeff": coeff}).groupby("layer_id", as_index=False).mean()
     out = out.merge(layer_coeff, on="layer_id", how="left")
     out["schedule_id"] = selected_id
     out = out.rename(columns={"group_coeff": "selected_layer_coder_coefficient"})
-    return out.sort_values(["chunk_policy", "layer_importance_score"], ascending=[False, False])
+    return out.sort_values(
+        ["selected_layer_coder_coefficient", "layer_importance_score"],
+        ascending=[True, False],
+    )
 
 
 def build_selected_group_rules(df: pd.DataFrame, coeff: pd.Series, selected_id: str) -> pd.DataFrame:
@@ -339,9 +357,11 @@ def read_dry_run_summary(checkpoint_output_dir: str) -> dict[str, Any]:
     frozen_tensors = int(manifest.get("frozen_tensors", 0) or 0)
     freeze_router = bool(manifest.get("freeze_router", False))
     dry_run = bool(manifest.get("dry_run", False))
+    writer_manifest_validated = freeze_router and floating_tensors > 0 and tensor_rule_hit_count > 0
     summary.update(
         {
-            "dry_run_validated": dry_run and freeze_router and floating_tensors > 0 and tensor_rule_hit_count > 0,
+            "dry_run_validated": writer_manifest_validated,
+            "writer_manifest_validated": writer_manifest_validated,
             "dry_run": dry_run,
             "dry_run_floating_tensors": floating_tensors,
             "dry_run_frozen_tensors": frozen_tensors,
@@ -398,8 +418,9 @@ def build_report(summary: dict[str, Any], search: pd.DataFrame, layers: pd.DataF
             f"max relative delta <= `{fmt(summary['selection_hard_cap'])}`"
         ),
         (
-            f"- Writer dry-run: `{summary['dry_run_validated']}` "
-            f"({summary.get('dry_run_floating_tensors', 0)} floating tensors, "
+            f"- Writer manifest validated: `{summary['writer_manifest_validated']}` "
+            f"(dry_run=`{summary.get('dry_run')}`, "
+            f"{summary.get('dry_run_floating_tensors', 0)} floating tensors, "
             f"{summary.get('dry_run_frozen_tensors', 0)} frozen tensors, "
             f"{summary.get('dry_run_tensor_rule_hit_count', 0)} tensor-rule hits)"
         ),
@@ -422,15 +443,17 @@ def build_report(summary: dict[str, Any], search: pd.DataFrame, layers: pd.DataF
             "",
             "## Layer Coefficients",
             "",
-            "| layer | policy | coeff | importance | router rel | min Jaccard |",
-            "| ---: | --- | ---: | ---: | ---: | ---: |",
+            "| layer | policy | coeff | importance | router rel | min Jaccard | geometry risk | high-geom experts |",
+            "| ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |",
         ]
     )
     for _, row in layers.head(20).iterrows():
         lines.append(
             f"| {int(row['layer_id'])} | `{row['chunk_policy']}` | "
             f"{fmt(row['selected_layer_coder_coefficient'])} | {fmt(row['layer_importance_score'])} | "
-            f"{fmt(row['router_relative_delta_norm'])} | {fmt(row['min_topk_jaccard'])} |"
+            f"{fmt(row['router_relative_delta_norm'])} | {fmt(row['min_topk_jaccard'])} | "
+            f"{fmt(row.get('route_mass_weighted_route_geometry_risk_score'))} | "
+            f"{fmt(row.get('high_route_geometry_risk_experts'))} |"
         )
     lines.extend(
         [

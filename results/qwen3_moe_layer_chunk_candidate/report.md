@@ -4,57 +4,57 @@
 
 - Status: `layer_chunk_candidate_ready`
 - Selected schedule: `policy_095_098_100`
-- Route-mass Coder retention: `0.985142`
-- Risk-weighted delta reduction: `0.0207014`
+- Route-mass Coder retention: `0.985126`
+- Risk-weighted delta reduction: `0.0206744`
 - Fine-layer Coder retention: `0.95`
 - Max predicted relative delta: `0.65`
 - Selection constraints: retention >= `0.975`, max relative delta <= `0.65`
-- Writer dry-run: `True` (18867 floating tensors, 3891 frozen tensors, 15729 tensor-rule hits)
+- Writer manifest validated: `True` (dry_run=`False`, 18867 floating tensors, 3891 frozen tensors, 15729 tensor-rule hits)
 
 ## Candidate Search
 
 | schedule | feasible | retention | fine retention | risk reduction | delta norm ratio | max rel-delta | changed groups | objective |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| `continuous_importance_s0.20` | `False` | 0.885981 | 0.809548 | 0.136982 | 0.87884 | 0.65 | 5138 | 0.097075 |
-| `continuous_risk_layer_s0.20` | `False` | 0.889943 | 0.838696 | 0.127042 | 0.877955 | 0.626564 | 5243 | 0.0885223 |
-| `continuous_importance_s0.15` | `False` | 0.914486 | 0.857161 | 0.102736 | 0.908753 | 0.65 | 5138 | 0.0728063 |
-| `policy_080_090_098` | `False` | 0.923854 | 0.8 | 0.0978801 | 0.917198 | 0.637 | 5243 | 0.0712289 |
-| `continuous_risk_layer_s0.15` | `False` | 0.917457 | 0.879022 | 0.0952818 | 0.908278 | 0.632423 | 5243 | 0.0663918 |
-| `policy_085_092_100` | `False` | 0.948785 | 0.85 | 0.0704917 | 0.942568 | 0.65 | 2631 | 0.0525664 |
-| `continuous_importance_s0.10` | `False` | 0.942991 | 0.904774 | 0.0684908 | 0.938933 | 0.65 | 5138 | 0.0485375 |
-| `continuous_risk_layer_s0.10` | `False` | 0.944971 | 0.919348 | 0.0635212 | 0.938734 | 0.638282 | 5243 | 0.0442612 |
-| `policy_090_095_100` | `False` | 0.966963 | 0.9 | 0.0455966 | 0.962478 | 0.65 | 2631 | 0.0340337 |
-| `policy_092_096_100` | `False` | 0.973571 | 0.92 | 0.0364772 | 0.969856 | 0.65 | 2631 | 0.027227 |
-| `continuous_importance_s0.05` | `False` | 0.971495 | 0.952387 | 0.0342454 | 0.969356 | 0.65 | 5138 | 0.0242688 |
-| `continuous_risk_layer_s0.05` | `False` | 0.972486 | 0.959674 | 0.0317606 | 0.969312 | 0.644141 | 5243 | 0.0221306 |
-| `policy_095_098_100` | `True` | 0.985142 | 0.95 | 0.0207014 | 0.98283 | 0.65 | 2631 | 0.015501 |
-| `policy_098_099_100` | `True` | 0.993393 | 0.98 | 0.00911931 | 0.992373 | 0.65 | 2631 | 0.00680674 |
+| `continuous_importance_s0.20` | `False` | 0.888544 | 0.814834 | 0.1342 | 0.881653 | 0.65 | 5138 | 0.0951902 |
+| `continuous_risk_layer_s0.20` | `False` | 0.891352 | 0.843162 | 0.125564 | 0.879517 | 0.62736 | 5243 | 0.0875374 |
+| `continuous_importance_s0.15` | `False` | 0.916408 | 0.861126 | 0.10065 | 0.910876 | 0.65 | 5138 | 0.0713927 |
+| `policy_080_090_098` | `False` | 0.923802 | 0.8 | 0.0978186 | 0.917288 | 0.637 | 5243 | 0.0711494 |
+| `continuous_risk_layer_s0.15` | `False` | 0.918514 | 0.882371 | 0.0941731 | 0.909454 | 0.63302 | 5243 | 0.065653 |
+| `policy_085_092_100` | `False` | 0.94875 | 0.85 | 0.0705004 | 0.942677 | 0.65 | 2623 | 0.0525628 |
+| `continuous_importance_s0.10` | `False` | 0.944272 | 0.907417 | 0.0670999 | 0.940357 | 0.65 | 5138 | 0.0475951 |
+| `continuous_risk_layer_s0.10` | `False` | 0.945676 | 0.921581 | 0.0627821 | 0.939521 | 0.63868 | 5243 | 0.0437687 |
+| `policy_090_095_100` | `False` | 0.966938 | 0.9 | 0.0455874 | 0.96254 | 0.65 | 2623 | 0.0340156 |
+| `policy_092_096_100` | `False` | 0.97355 | 0.92 | 0.0364699 | 0.969906 | 0.65 | 2623 | 0.0272125 |
+| `continuous_importance_s0.05` | `False` | 0.972136 | 0.953709 | 0.03355 | 0.970072 | 0.65 | 5138 | 0.0237976 |
+| `continuous_risk_layer_s0.05` | `False` | 0.972838 | 0.96079 | 0.031391 | 0.969706 | 0.64434 | 5243 | 0.0218843 |
+| `policy_095_098_100` | `True` | 0.985126 | 0.95 | 0.0206744 | 0.982847 | 0.65 | 2623 | 0.0154685 |
+| `policy_098_099_100` | `True` | 0.993388 | 0.98 | 0.00911747 | 0.992385 | 0.65 | 2623 | 0.00680313 |
 | `baseline_unified` | `True` | 1 | 1 | 0 | 1 | 0.65 | 0 | 0 |
 
 ## Layer Coefficients
 
-| layer | policy | coeff | importance | router rel | min Jaccard |
-| ---: | --- | ---: | ---: | ---: | ---: |
-| 13 | `two_layer_chunk_coefficients` | 0.98 | 0.807586 | 0.85527 | 0.382133 |
-| 24 | `two_layer_chunk_coefficients` | 0.98 | 0.800075 | 0.747783 | 0.290635 |
-| 19 | `two_layer_chunk_coefficients` | 0.98 | 0.777255 | 0.825168 | 0.322665 |
-| 11 | `two_layer_chunk_coefficients` | 0.98 | 0.753925 | 0.819092 | 0.376152 |
-| 15 | `two_layer_chunk_coefficients` | 0.98 | 0.734771 | 0.824639 | 0.341475 |
-| 9 | `two_layer_chunk_coefficients` | 0.98 | 0.723616 | 0.787176 | 0.412437 |
-| 16 | `two_layer_chunk_coefficients` | 0.98 | 0.723073 | 0.817559 | 0.337753 |
-| 25 | `two_layer_chunk_coefficients` | 0.98 | 0.719829 | 0.701719 | 0.37458 |
-| 4 | `two_layer_chunk_coefficients` | 0.98 | 0.711884 | 0.792725 | 0.431243 |
-| 29 | `two_layer_chunk_coefficients` | 0.98 | 0.685197 | 0.562119 | 0.361532 |
-| 10 | `two_layer_chunk_coefficients` | 0.98 | 0.679386 | 0.821698 | 0.39701 |
-| 30 | `two_layer_chunk_coefficients` | 0.98 | 0.66073 | 0.516373 | 0.339156 |
-| 6 | `two_layer_chunk_coefficients` | 0.98 | 0.644598 | 0.806417 | 0.419912 |
-| 14 | `two_layer_chunk_coefficients` | 0.98 | 0.642632 | 0.841261 | 0.343251 |
-| 8 | `two_layer_chunk_coefficients` | 0.98 | 0.638412 | 0.783341 | 0.464884 |
-| 34 | `two_layer_chunk_coefficients` | 0.98 | 0.634043 | 0.365883 | 0.388898 |
-| 17 | `per_layer_coefficients` | 0.95 | 0.886422 | 0.844352 | 0.311278 |
-| 20 | `per_layer_coefficients` | 0.95 | 0.871401 | 0.808873 | 0.318842 |
-| 22 | `per_layer_coefficients` | 0.95 | 0.869283 | 0.793704 | 0.242238 |
-| 23 | `per_layer_coefficients` | 0.95 | 0.848024 | 0.770017 | 0.253841 |
+| layer | policy | coeff | importance | router rel | min Jaccard | geometry risk | high-geom experts |
+| ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 22 | `per_layer_coefficients` | 0.95 | 0.863789 | 0.793704 | 0.242238 | 0.671821 | 9 |
+| 17 | `per_layer_coefficients` | 0.95 | 0.904783 | 0.844352 | 0.311278 | 0.714306 | 15 |
+| 20 | `per_layer_coefficients` | 0.95 | 0.863149 | 0.808873 | 0.318842 | 0.671361 | 10 |
+| 23 | `per_layer_coefficients` | 0.95 | 0.85163 | 0.770017 | 0.253841 | 0.674895 | 10 |
+| 12 | `per_layer_coefficients` | 0.95 | 0.84651 | 0.823488 | 0.344755 | 0.67519 | 11 |
+| 26 | `per_layer_coefficients` | 0.95 | 0.824761 | 0.637357 | 0.345504 | 0.641394 | 9 |
+| 21 | `per_layer_coefficients` | 0.95 | 0.821837 | 0.786077 | 0.324809 | 0.662217 | 8 |
+| 13 | `per_layer_coefficients` | 0.95 | 0.809125 | 0.85527 | 0.382133 | 0.675991 | 9 |
+| 18 | `two_layer_chunk_coefficients` | 0.98 | 0.808771 | 0.869161 | 0.307368 | 0.65006 | 5 |
+| 25 | `two_layer_chunk_coefficients` | 0.98 | 0.724006 | 0.701719 | 0.37458 | 0.651717 | 6 |
+| 4 | `two_layer_chunk_coefficients` | 0.98 | 0.675699 | 0.792725 | 0.431243 | 0.586748 | 3 |
+| 27 | `two_layer_chunk_coefficients` | 0.98 | 0.624765 | 0.601166 | 0.341909 | 0.63135 | 5 |
+| 6 | `two_layer_chunk_coefficients` | 0.98 | 0.622717 | 0.806417 | 0.419912 | 0.602032 | 1 |
+| 24 | `two_layer_chunk_coefficients` | 0.98 | 0.802862 | 0.747783 | 0.290635 | 0.661782 | 10 |
+| 15 | `two_layer_chunk_coefficients` | 0.98 | 0.772271 | 0.824639 | 0.341475 | 0.702701 | 13 |
+| 19 | `two_layer_chunk_coefficients` | 0.98 | 0.760526 | 0.825168 | 0.322665 | 0.651748 | 5 |
+| 16 | `two_layer_chunk_coefficients` | 0.98 | 0.752207 | 0.817559 | 0.337753 | 0.688071 | 10 |
+| 11 | `two_layer_chunk_coefficients` | 0.98 | 0.745159 | 0.819092 | 0.376152 | 0.65972 | 3 |
+| 9 | `two_layer_chunk_coefficients` | 0.98 | 0.712906 | 0.787176 | 0.412437 | 0.636632 | 5 |
+| 29 | `two_layer_chunk_coefficients` | 0.98 | 0.710178 | 0.562119 | 0.361532 | 0.665524 | 10 |
 
 ## Why This Is A Candidate, Not A Conclusion
 

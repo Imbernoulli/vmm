@@ -11,11 +11,11 @@
       "changed_numel": 16283860992,
       "changed_numel_fraction": 0.5616861979166666,
       "changed_tensors": 10353,
-      "delta_norm": 1006.5160908092075,
+      "delta_norm": 1006.5294085897966,
       "group": "routed_expert_ffn",
       "max_abs_delta": 0.615234375,
       "numel": 28991029248,
-      "relative_delta_norm": 0.2518470426857398,
+      "relative_delta_norm": 0.2518503750156321,
       "tensor_count": 18432
     },
     {
@@ -77,7 +77,7 @@
     "summary": "results/qwen3_moe_layer_chunk_delta_audit/summary.json",
     "tensor_delta_audit": "results/qwen3_moe_layer_chunk_delta_audit/tensor_delta_audit.csv"
   },
-  "relative_delta_norm": 0.24345107908407213,
+  "relative_delta_norm": 0.24345430032224707,
   "router_changed_tensors": 0,
   "router_tensors": 48,
   "schema_version": 1,
@@ -267,6 +267,6 @@
     }
   ],
   "total_base_norm": 4134.366931524763,
-  "total_delta_norm": 1006.5160908092075,
+  "total_delta_norm": 1006.5294085897966,
   "total_numel": 30532122624
 }

@@ -131,33 +131,79 @@ def find_candidate(frontier: pd.DataFrame, candidate: str) -> dict[str, Any]:
     return {} if rows.empty else rows.iloc[0].to_dict()
 
 
-def build_layer_chunking_plan(layer_frontier: pd.DataFrame, router_layers: pd.DataFrame) -> pd.DataFrame:
+def build_layer_chunking_plan(
+    layer_frontier: pd.DataFrame,
+    router_layers: pd.DataFrame,
+    expert_geometry_layers: pd.DataFrame,
+) -> pd.DataFrame:
     if layer_frontier.empty:
         return pd.DataFrame()
     layers = layer_frontier.copy()
     if not router_layers.empty:
         layers = layers.merge(router_layers, left_on="layer", right_on="layer", how="left")
+    if not expert_geometry_layers.empty:
+        geometry = expert_geometry_layers.rename(columns={"layer_id": "layer"}).copy()
+        keep = [
+            "layer",
+            "route_mass_weighted_route_geometry_risk_score",
+            "route_mass_weighted_internal_geometry_risk_score",
+            "high_route_geometry_risk_experts",
+            "p95_combined_relative_delta",
+            "min_combined_cosine",
+        ]
+        layers = layers.merge(geometry[[column for column in keep if column in geometry]], on="layer", how="left")
     for column in ["calibrate_rows", "probe_rows", "router_relative_delta_norm", "min_topk_jaccard"]:
         if column not in layers:
             layers[column] = 0.0
+    geometry_columns = [
+        "route_mass_weighted_route_geometry_risk_score",
+        "route_mass_weighted_internal_geometry_risk_score",
+        "high_route_geometry_risk_experts",
+        "p95_combined_relative_delta",
+        "min_combined_cosine",
+    ]
+    for column in geometry_columns:
+        if column not in layers:
+            layers[column] = 0.0
+        layers[column] = pd.to_numeric(layers[column], errors="coerce").fillna(0.0)
+    geometry_available = bool(
+        "route_mass_weighted_route_geometry_risk_score" in layers
+        and float(layers["route_mass_weighted_route_geometry_risk_score"].max()) > 0.0
+    )
     layers["calibrate_fraction"] = (
         pd.to_numeric(layers["calibrate_rows"], errors="coerce").fillna(0.0)
         / pd.to_numeric(layers["probe_rows"], errors="coerce").replace(0, 1).fillna(1.0)
     )
-    layers["layer_importance_score"] = (
-        0.30 * norm01(layers["route_to_trust_reduction"])
-        + 0.25 * norm01(layers["trust_region_relative_delta_norm"])
-        + 0.20 * norm01(layers["calibrate_fraction"])
-        + 0.15 * norm01(layers["router_relative_delta_norm"])
-        + 0.10 * norm01(1.0 - pd.to_numeric(layers["min_topk_jaccard"], errors="coerce").fillna(1.0))
-    )
+    if geometry_available:
+        geometry_pressure = (
+            0.50 * norm01(layers["route_mass_weighted_route_geometry_risk_score"])
+            + 0.25 * norm01(layers["high_route_geometry_risk_experts"])
+            + 0.15 * norm01(layers["p95_combined_relative_delta"])
+            + 0.10 * norm01(1.0 - layers["min_combined_cosine"])
+        )
+        layers["layer_importance_score"] = (
+            0.24 * norm01(layers["route_to_trust_reduction"])
+            + 0.20 * norm01(layers["trust_region_relative_delta_norm"])
+            + 0.18 * norm01(layers["calibrate_fraction"])
+            + 0.12 * norm01(layers["router_relative_delta_norm"])
+            + 0.10 * norm01(1.0 - pd.to_numeric(layers["min_topk_jaccard"], errors="coerce").fillna(1.0))
+            + 0.16 * geometry_pressure
+        )
+    else:
+        layers["layer_importance_score"] = (
+            0.30 * norm01(layers["route_to_trust_reduction"])
+            + 0.25 * norm01(layers["trust_region_relative_delta_norm"])
+            + 0.20 * norm01(layers["calibrate_fraction"])
+            + 0.15 * norm01(layers["router_relative_delta_norm"])
+            + 0.10 * norm01(1.0 - pd.to_numeric(layers["min_topk_jaccard"], errors="coerce").fillna(1.0))
+        )
     ranked = layers.sort_values("layer_importance_score", ascending=False).reset_index(drop=True)
     policies = []
     for idx, row in ranked.iterrows():
         if idx < 8:
             policy = "per_layer_coefficients"
             coefficient_slots = 4
-            reason = "highest expert-delta/router sensitivity; allocate fine calibration coefficients"
+            reason = "highest expert-delta/router/internal-geometry sensitivity; allocate fine calibration coefficients"
         elif idx < 24:
             policy = "two_layer_chunk_coefficients"
             coefficient_slots = 2
@@ -183,6 +229,10 @@ def build_layer_chunking_plan(layer_frontier: pd.DataFrame, router_layers: pd.Da
         "router_relative_delta_norm",
         "min_topk_jaccard",
         "min_top1_agreement",
+        "route_mass_weighted_route_geometry_risk_score",
+        "high_route_geometry_risk_experts",
+        "p95_combined_relative_delta",
+        "min_combined_cosine",
         "chunk_reason",
     ]
     return ranked[columns]
@@ -220,6 +270,16 @@ def build_levers(
     top_chunks = ",".join(
         str(int(row["layer"])) for _, row in chunking_plan.head(8).sort_values("layer").iterrows()
     ) if not chunking_plan.empty else ""
+    top_geometry_layers = ",".join(
+        str(int(row["layer"]))
+        for _, row in chunking_plan.sort_values(
+            "route_mass_weighted_route_geometry_risk_score",
+            ascending=False,
+        )
+        .head(8)
+        .sort_values("layer")
+        .iterrows()
+    ) if not chunking_plan.empty and "route_mass_weighted_route_geometry_risk_score" in chunking_plan else ""
     levers = [
         {
             "mechanism": "source_and_candidate_downstream_eval",
@@ -324,14 +384,19 @@ def build_levers(
         },
         {
             "mechanism": "importance_guided_layer_chunking",
-            "evidence_type": "layer_delta_router_join",
-            "quantitative_evidence": f"top fine-calibration layers: {top_chunks}",
-            "inferred_failure_mode": "a single global coefficient ignores layer heterogeneity in expert delta and router sensitivity.",
+            "evidence_type": "layer_delta_router_geometry_join",
+            "quantitative_evidence": (
+                f"top fine-calibration layers: {top_chunks}; top expert-geometry layers: {top_geometry_layers}"
+            ),
+            "inferred_failure_mode": "a single global coefficient ignores layer heterogeneity in expert delta, router sensitivity, and internal expert geometry.",
             "current_action": "use high-sensitivity layers for future unlabeled coefficient calibration; keep low-sensitivity layers coarse",
             "next_test": "learn per-layer or chunk coefficients on hidden/logit calibration cache under same-shape writer rules",
             "priority_score": 0.72,
             "confidence": "medium",
-            "source_artifacts": "results/qwen3_moe_mechanism_levers/layer_chunking_plan.csv",
+            "source_artifacts": (
+                "results/qwen3_moe_mechanism_levers/layer_chunking_plan.csv; "
+                "results/qwen3_moe_expert_geometry_probe/report.md"
+            ),
         },
         {
             "mechanism": "expert_identity_and_subspace_probe",
@@ -419,8 +484,8 @@ def build_report(summary: dict[str, Any], levers: pd.DataFrame, queue: pd.DataFr
                 "",
                 "这个表把 Expert Merging/importance-guided chunking 的思想落到当前 Qwen3 数据上：高敏感层给更多校准系数，低敏感层共享粗粒度系数。",
                 "",
-                "| layer | score | policy | slots | route->trust | calibrate frac | router rel |",
-                "| ---: | ---: | --- | ---: | ---: | ---: | ---: |",
+                "| layer | score | policy | slots | route->trust | calibrate frac | router rel | geometry risk | high-geom experts |",
+                "| ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |",
             ]
         )
         for _, row in chunking.head(16).iterrows():
@@ -428,7 +493,9 @@ def build_report(summary: dict[str, Any], levers: pd.DataFrame, queue: pd.DataFr
                 f"| {int(row['layer'])} | {fmt(row['layer_importance_score'])} | "
                 f"`{row['chunk_policy']}` | {int(row['recommended_coefficient_slots'])} | "
                 f"{fmt(row['route_to_trust_reduction'])} | {fmt(row['calibrate_fraction'])} | "
-                f"{fmt(row['router_relative_delta_norm'])} |"
+                f"{fmt(row['router_relative_delta_norm'])} | "
+                f"{fmt(row.get('route_mass_weighted_route_geometry_risk_score'))} | "
+                f"{fmt(row.get('high_route_geometry_risk_experts'))} |"
             )
     lines.extend(
         [
@@ -473,6 +540,16 @@ def write_outputs(output_dir: Path, levers: pd.DataFrame, queue: pd.DataFrame, c
         else ""
     )
     top = levers.iloc[0].to_dict() if not levers.empty else {}
+    geometry_available = (
+        not chunking.empty
+        and "route_mass_weighted_route_geometry_risk_score" in chunking
+        and float(chunking["route_mass_weighted_route_geometry_risk_score"].max()) > 0.0
+    )
+    top_geometry = (
+        chunking.sort_values("route_mass_weighted_route_geometry_risk_score", ascending=False).iloc[0].to_dict()
+        if geometry_available
+        else {}
+    )
     summary = {
         "schema_version": 1,
         "status": "mechanism_leverage_map_ready",
@@ -480,6 +557,13 @@ def write_outputs(output_dir: Path, levers: pd.DataFrame, queue: pd.DataFrame, c
         "top_lever": top.get("mechanism"),
         "top_lever_priority": maybe_float(top.get("priority_score")),
         "fine_calibration_layers": fine_layers,
+        "expert_geometry_probe_used": geometry_available,
+        "top_expert_geometry_layer": maybe_int(top_geometry.get("layer")) if top_geometry else None,
+        "top_expert_geometry_layer_risk": maybe_float(
+            top_geometry.get("route_mass_weighted_route_geometry_risk_score")
+        )
+        if top_geometry
+        else None,
         "queue_count": int(len(queue)),
         "literature_count": int(len(LITERATURE_SOURCES)),
         "outputs": {
@@ -504,6 +588,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--router-gate-dir", type=Path, default=Path("results/qwen3_moe_router_move_gate"))
     parser.add_argument("--eval-budget-dir", type=Path, default=Path("results/qwen3_moe_eval_budget_plan"))
     parser.add_argument("--final-selection-dir", type=Path, default=Path("results/qwen3_moe_final_candidate_selection"))
+    parser.add_argument(
+        "--expert-geometry-layer",
+        type=Path,
+        default=Path("results/qwen3_moe_expert_geometry_probe/layer_geometry.csv"),
+    )
     return parser.parse_args()
 
 
@@ -522,9 +611,10 @@ def main() -> None:
     risk_ablation = read_csv(cap_dir / "risk_flag_ablation.csv")
     router_summary = read_json(router_dir / "summary.json")
     router_layers = read_csv(router_dir / "router_layer_move_gate.csv")
+    expert_geometry_layers = read_csv(args.expert_geometry_layer)
     eval_budget_summary = read_json(eval_budget_dir / "summary.json")
     final_selection_summary = read_json(final_dir / "summary.json")
-    chunking = build_layer_chunking_plan(layer_frontier, router_layers)
+    chunking = build_layer_chunking_plan(layer_frontier, router_layers, expert_geometry_layers)
     levers = build_levers(
         delta_summary=delta_summary,
         pairwise=pairwise,

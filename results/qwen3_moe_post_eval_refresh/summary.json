@@ -30,7 +30,7 @@
   "steps": [
     {
       "command": "python scripts/audit_qwen3_moe_eval_bundle.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_eval_bundle_audit",
-      "duration_sec": 0.4141275882720947,
+      "duration_sec": 0.3953871726989746,
       "kind": "gate",
       "returncode": 0,
       "status": "passed",
@@ -40,7 +40,7 @@
     },
     {
       "command": "python scripts/select_qwen3_moe_unified_result.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_unified_result_selection",
-      "duration_sec": 0.3937849998474121,
+      "duration_sec": 0.4009416103363037,
       "kind": "selector",
       "returncode": 0,
       "status": "passed",
@@ -50,7 +50,7 @@
     },
     {
       "command": "python scripts/select_qwen3_moe_final_candidate.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_final_candidate_selection",
-      "duration_sec": 0.40788960456848145,
+      "duration_sec": 0.5000839233398438,
       "kind": "selector",
       "returncode": 0,
       "status": "passed",
@@ -60,7 +60,7 @@
     },
     {
       "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_mechanism_effect_attribution",
-      "duration_sec": 0.41185951232910156,
+      "duration_sec": 0.4931375980377197,
       "kind": "attribution",
       "returncode": 0,
       "status": "passed",
@@ -70,7 +70,7 @@
     },
     {
       "command": "python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke",
-      "duration_sec": 0.5470190048217773,
+      "duration_sec": 0.5775372982025146,
       "kind": "smoke",
       "returncode": 0,
       "status": "passed",
@@ -80,7 +80,7 @@
     },
     {
       "command": "python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke",
-      "duration_sec": 0.3931577205657959,
+      "duration_sec": 0.4264709949493408,
       "kind": "smoke",
       "returncode": 0,
       "status": "passed",
@@ -90,7 +90,7 @@
     },
     {
       "command": "python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke",
-      "duration_sec": 0.4325442314147949,
+      "duration_sec": 0.42318177223205566,
       "kind": "smoke",
       "returncode": 0,
       "status": "passed",
@@ -100,7 +100,7 @@
     },
     {
       "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --smoke-matrix --output-dir results/qwen3_moe_mechanism_effect_attribution_smoke",
-      "duration_sec": 0.3862483501434326,
+      "duration_sec": 0.4369983673095703,
       "kind": "smoke",
       "returncode": 0,
       "status": "passed",
@@ -110,12 +110,12 @@
     },
     {
       "command": "python scripts/collect_results.py",
-      "duration_sec": 1.4897809028625488,
+      "duration_sec": 1.5071046352386475,
       "kind": "summary",
       "returncode": 0,
       "status": "passed",
       "stderr_tail": "",
-      "stdout_tail": "Wrote results/summary.json\nWrote results/summary.md\nWrote ARTIFACT_MANIFEST.json\nArtifacts indexed: 1011\n",
+      "stdout_tail": "Wrote results/summary.json\nWrote results/summary.md\nWrote ARTIFACT_MANIFEST.json\nArtifacts indexed: 1020\n",
       "step": "collect_results"
     }
   ]

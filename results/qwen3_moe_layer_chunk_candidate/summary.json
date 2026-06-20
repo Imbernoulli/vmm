@@ -1,5 +1,5 @@
 {
-  "dry_run": true,
+  "dry_run": false,
   "dry_run_default_tensor_count": 3090,
   "dry_run_default_weights": {
     "coder": 0.0,
@@ -33,15 +33,16 @@
   "same_shape_policy": "same tensor names/shapes; freeze router and shared attention; shrink Coder coefficient in routed expert tensor rules",
   "schedule_count": 15,
   "schema_version": 1,
-  "selected_changed_group_count": 2631,
-  "selected_delta_norm_proxy_ratio": 0.9828301152469819,
+  "selected_changed_group_count": 2623,
+  "selected_delta_norm_proxy_ratio": 0.9828472197739695,
   "selected_fine_layer_coder_retention": 0.9499999999999998,
   "selected_max_predicted_relative_delta": 0.65,
-  "selected_risk_weighted_delta_reduction": 0.02070143734871077,
-  "selected_route_mass_weighted_coder_retention": 0.985141596854054,
+  "selected_risk_weighted_delta_reduction": 0.020674357306520674,
+  "selected_route_mass_weighted_coder_retention": 0.9851260088916769,
   "selected_schedule_id": "policy_095_098_100",
   "selection_hard_cap": 0.65,
   "selection_min_retention": 0.975,
   "selection_rule": "maximize risk-weighted delta reduction under route-mass Coder retention and hard-cap constraints",
-  "status": "layer_chunk_candidate_ready"
+  "status": "layer_chunk_candidate_ready",
+  "writer_manifest_validated": true
 }

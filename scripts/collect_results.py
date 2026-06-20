@@ -1252,6 +1252,9 @@ def summarize_qwen3_moe_mechanism_levers() -> dict[str, Any]:
         "top_lever": summary.get("top_lever"),
         "top_lever_priority": maybe_float(summary.get("top_lever_priority")),
         "fine_calibration_layers": summary.get("fine_calibration_layers"),
+        "expert_geometry_probe_used": bool(summary.get("expert_geometry_probe_used", False)),
+        "top_expert_geometry_layer": maybe_int(summary.get("top_expert_geometry_layer")),
+        "top_expert_geometry_layer_risk": maybe_float(summary.get("top_expert_geometry_layer_risk")),
         "queue_count": int(summary.get("queue_count", len(queue))),
         "literature_count": int(summary.get("literature_count", 0)),
         "top_lever_action": top_lever.get("current_action"),
@@ -1266,6 +1269,65 @@ def summarize_qwen3_moe_mechanism_levers() -> dict[str, Any]:
         "next_experiment_queue": rel(root / "next_experiment_queue.csv"),
         "layer_chunking_plan": rel(root / "layer_chunking_plan.csv"),
         "literature_sources": rel(root / "literature_sources.json"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
+def summarize_qwen3_moe_expert_geometry_probe() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_expert_geometry_probe")
+    summary = read_json(root / "summary.json")
+    projection_summary = read_csv(root / "projection_summary.csv")
+    layers = read_csv(root / "layer_geometry.csv")
+    experts = read_csv(root / "expert_geometry.csv")
+    top_layer = clean_row(layers.iloc[0]) if not layers.empty else {}
+    top_expert = clean_row(experts.iloc[0]) if not experts.empty else {}
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "projection_tensor_count": int(summary.get("projection_tensor_count", 0)),
+        "expert_count": int(summary.get("expert_count", 0)),
+        "layer_count": int(summary.get("layer_count", 0)),
+        "mean_projection_cosine": maybe_float(summary.get("mean_projection_cosine")),
+        "p05_projection_cosine": maybe_float(summary.get("p05_projection_cosine")),
+        "mean_projection_relative_delta": maybe_float(summary.get("mean_projection_relative_delta")),
+        "p95_projection_relative_delta": maybe_float(summary.get("p95_projection_relative_delta")),
+        "max_projection_relative_delta": maybe_float(summary.get("max_projection_relative_delta")),
+        "mean_expert_combined_relative_delta": maybe_float(summary.get("mean_expert_combined_relative_delta")),
+        "p95_expert_combined_relative_delta": maybe_float(summary.get("p95_expert_combined_relative_delta")),
+        "max_expert_combined_relative_delta": maybe_float(summary.get("max_expert_combined_relative_delta")),
+        "mean_expert_combined_cosine": maybe_float(summary.get("mean_expert_combined_cosine")),
+        "min_expert_combined_cosine": maybe_float(summary.get("min_expert_combined_cosine")),
+        "high_internal_geometry_risk_expert_count": int(
+            summary.get("high_internal_geometry_risk_expert_count", 0)
+        ),
+        "high_route_geometry_risk_expert_count": int(
+            summary.get("high_route_geometry_risk_expert_count", 0)
+        ),
+        "route_observed_expert_count": int(summary.get("route_observed_expert_count", 0)),
+        "top_layer_by_route_geometry_risk": maybe_int(summary.get("top_layer_by_route_geometry_risk")),
+        "top_layer_route_mass_weighted_route_geometry_risk": maybe_float(
+            summary.get("top_layer_route_mass_weighted_route_geometry_risk")
+        ),
+        "top_expert_layer": maybe_int(summary.get("top_expert_layer")),
+        "top_expert_id": maybe_int(summary.get("top_expert_id")),
+        "top_expert_route_geometry_risk_score": maybe_float(
+            summary.get("top_expert_route_geometry_risk_score")
+        ),
+        "top_expert_combined_relative_delta": maybe_float(
+            summary.get("top_expert_combined_relative_delta")
+        ),
+        "recommended_unified_action": summary.get("recommended_unified_action"),
+        "top_layer": top_layer,
+        "top_expert": top_expert,
+        "projection_rows": [clean_row(row) for _, row in projection_summary.iterrows()],
+        "top_layer_rows": [clean_row(row) for _, row in layers.head(12).iterrows()],
+        "top_expert_rows": [clean_row(row) for _, row in experts.head(16).iterrows()],
+        "report": rel(root / "report.md"),
+        "projection_summary": rel(root / "projection_summary.csv"),
+        "projection_geometry": rel(root / "projection_geometry.csv"),
+        "expert_geometry": rel(root / "expert_geometry.csv"),
+        "layer_geometry": rel(root / "layer_geometry.csv"),
+        "top_chunk_geometry": rel(root / "top_chunk_geometry.csv"),
         "summary_path": rel(root / "summary.json"),
     }
 
@@ -3461,7 +3523,7 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "Qwen3 MoE mechanism-gated vLLM eval gate",
             "status": "complete",
-            "evidence": "results/qwen3_moe_mechanism_eval_gate/report.md turns two source endpoints and seven same-shape Qwen3 MoE candidates into mechanism tests, a one-model-at-a-time vLLM run script, and endpoint-fallback selection rules.",
+            "evidence": "results/qwen3_moe_mechanism_eval_gate/report.md turns two source endpoints and eight same-shape Qwen3 MoE candidates into mechanism tests, a one-model-at-a-time vLLM run script, and endpoint-fallback selection rules.",
         },
         {
             "item": "Qwen3 MoE statistically powered vLLM eval budget",
@@ -3471,7 +3533,12 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "Qwen3 MoE mechanism leverage map",
             "status": "complete",
-            "evidence": "results/qwen3_moe_mechanism_levers/report.md ranks MoE-specific failure mechanisms, next experiments, and importance-guided layer/chunk calibration slots from real Qwen3 probes.",
+            "evidence": "results/qwen3_moe_mechanism_levers/report.md ranks MoE-specific failure mechanisms, next experiments, and importance-guided layer/chunk calibration slots from real Qwen3 probes, including the expert geometry probe.",
+        },
+        {
+            "item": "Qwen3 MoE expert geometry probe",
+            "status": "complete",
+            "evidence": "results/qwen3_moe_expert_geometry_probe/report.md reads 18,432 routed expert tensors from real Qwen3 Instruct/Coder safetensors and joins internal geometry risk with route/load context.",
         },
         {
             "item": "Qwen3 MoE layer/chunk coefficient candidate",
@@ -3486,7 +3553,7 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "Qwen3 MoE final candidate selector",
             "status": "complete",
-            "evidence": "results/qwen3_moe_final_candidate_selection/report.md ranks all seven same-shape Qwen3 MoE candidates against both source endpoints after eval-bundle audit, with source-dominance, task-regression, score-confidence, paired-prediction, checkpoint-audit, and provisional-selection gates.",
+            "evidence": "results/qwen3_moe_final_candidate_selection/report.md ranks all eight same-shape Qwen3 MoE candidates against both source endpoints after eval-bundle audit, with source-dominance, task-regression, score-confidence, paired-prediction, checkpoint-audit, and provisional-selection gates.",
         },
         {
             "item": "Unified Dense/MoE average optimizer",
@@ -3630,6 +3697,7 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_mechanism_eval_gate": summarize_qwen3_moe_mechanism_eval_gate(),
         "qwen3_moe_eval_budget_plan": summarize_qwen3_moe_eval_budget_plan(),
         "qwen3_moe_mechanism_levers": summarize_qwen3_moe_mechanism_levers(),
+        "qwen3_moe_expert_geometry_probe": summarize_qwen3_moe_expert_geometry_probe(),
         "qwen3_moe_layer_chunk_candidate": summarize_qwen3_moe_layer_chunk_candidate(),
         "qwen3_moe_unified_result_selection": summarize_qwen3_moe_unified_result_selection(),
         "qwen3_moe_unified_result_selection_smoke": summarize_qwen3_moe_unified_result_selection_smoke(),
@@ -3787,6 +3855,7 @@ def build_summary() -> dict[str, Any]:
             "python scripts/audit_materialized_checkpoint_delta.py --base BASE --candidate results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate --output-dir results/qwen3_moe_searched_no_gt065_delta_audit",
             "python scripts/build_qwen3_moe_delta_frontier.py --output-dir results/qwen3_moe_delta_frontier",
             "python scripts/plan_qwen3_moe_eval_budget.py --output-dir results/qwen3_moe_eval_budget_plan",
+            "python scripts/probe_qwen3_moe_expert_geometry.py --output-dir results/qwen3_moe_expert_geometry_probe",
             "python scripts/analyze_qwen3_moe_mechanism_levers.py --output-dir results/qwen3_moe_mechanism_levers",
             "python scripts/build_qwen3_moe_layer_chunk_candidate.py --output-dir results/qwen3_moe_layer_chunk_candidate",
             "bash results/qwen3_moe_layer_chunk_candidate/writer_command.txt",
@@ -3890,6 +3959,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_mechanism_eval_gate = exp["qwen3_moe_mechanism_eval_gate"]
     qwen3_moe_eval_budget_plan = exp["qwen3_moe_eval_budget_plan"]
     qwen3_moe_mechanism_levers = exp["qwen3_moe_mechanism_levers"]
+    qwen3_moe_expert_geometry_probe = exp["qwen3_moe_expert_geometry_probe"]
     qwen3_moe_layer_chunk_candidate = exp["qwen3_moe_layer_chunk_candidate"]
     qwen3_moe_unified_result_selection = exp["qwen3_moe_unified_result_selection"]
     qwen3_moe_unified_result_selection_smoke = exp["qwen3_moe_unified_result_selection_smoke"]
@@ -4496,6 +4566,37 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_mechanism_levers['fine_calibration_layers']} / "
                 f"{qwen3_moe_mechanism_levers['top_chunk_layer']}:"
                 f"{qwen3_moe_mechanism_levers['top_chunk_score']:.3f} |"
+            ),
+            (
+                "| Qwen3 MoE mechanism levers | expert geometry used / top geometry layer | "
+                f"{qwen3_moe_mechanism_levers['expert_geometry_probe_used']} / "
+                f"{qwen3_moe_mechanism_levers['top_expert_geometry_layer']}:"
+                f"{fmt(qwen3_moe_mechanism_levers['top_expert_geometry_layer_risk'])} |"
+            ),
+            (
+                "| Qwen3 MoE expert geometry probe | projection tensors / experts / layers | "
+                f"{qwen3_moe_expert_geometry_probe['projection_tensor_count']} / "
+                f"{qwen3_moe_expert_geometry_probe['expert_count']} / "
+                f"{qwen3_moe_expert_geometry_probe['layer_count']} |"
+            ),
+            (
+                "| Qwen3 MoE expert geometry probe | mean-p05 cosine / mean-p95 rel-delta | "
+                f"{fmt(qwen3_moe_expert_geometry_probe['mean_projection_cosine'])}-"
+                f"{fmt(qwen3_moe_expert_geometry_probe['p05_projection_cosine'])} / "
+                f"{fmt(qwen3_moe_expert_geometry_probe['mean_projection_relative_delta'])}-"
+                f"{fmt(qwen3_moe_expert_geometry_probe['p95_projection_relative_delta'])} |"
+            ),
+            (
+                "| Qwen3 MoE expert geometry probe | high internal / route+geometry risk experts | "
+                f"{qwen3_moe_expert_geometry_probe['high_internal_geometry_risk_expert_count']} / "
+                f"{qwen3_moe_expert_geometry_probe['high_route_geometry_risk_expert_count']} |"
+            ),
+            (
+                "| Qwen3 MoE expert geometry probe | top layer / top expert risk | "
+                f"{qwen3_moe_expert_geometry_probe['top_layer_by_route_geometry_risk']} / "
+                f"{qwen3_moe_expert_geometry_probe['top_expert_layer']}:"
+                f"{qwen3_moe_expert_geometry_probe['top_expert_id']} "
+                f"({fmt(qwen3_moe_expert_geometry_probe['top_expert_route_geometry_risk_score'])}) |"
             ),
             (
                 "| Qwen3 MoE layer/chunk candidate | schedule / feasible schedules / changed groups | "

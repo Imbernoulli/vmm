@@ -1,0 +1,68 @@
+{
+  "chunks_per_projection": 8,
+  "coder": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-Coder-30B-A3B-Instruct/snapshots/b2cff646eb4bb1d68355c01b18ae02e7cf42d120",
+  "expert_count": 6144,
+  "high_internal_geometry_risk_expert_count": 931,
+  "high_route_geometry_risk_expert_count": 204,
+  "instruct": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe",
+  "layer_count": 48,
+  "literature_priors": [
+    {
+      "key": "git_re_basin",
+      "mechanism": "Permutation symmetry makes same-name averaging unsafe unless hidden units or experts are aligned.",
+      "url": "https://arxiv.org/abs/2209.04836"
+    },
+    {
+      "key": "model_soups",
+      "mechanism": "Weight averaging is most plausible inside a shared basin; geometry probes gate the averaging radius.",
+      "url": "https://arxiv.org/abs/2203.05482"
+    },
+    {
+      "key": "mergeme",
+      "mechanism": "MoE merging needs interference mitigation and routing heuristics beyond unweighted expert averaging.",
+      "url": "https://arxiv.org/abs/2502.00997"
+    },
+    {
+      "key": "harc_routing_breakdown",
+      "mechanism": "Router/top-k perturbations can break MoE dispatch; expert edits need a separate router gate.",
+      "url": "https://arxiv.org/abs/2606.03391"
+    },
+    {
+      "key": "router_kd_calibration",
+      "mechanism": "Post-merge degradation often comes from router-expert mismatch, motivating router-only calibration.",
+      "url": "https://arxiv.org/abs/2603.02217"
+    }
+  ],
+  "max_expert_combined_relative_delta": 1.528765220845054,
+  "max_projection_relative_delta": 1.5614579191583644,
+  "mean_expert_combined_cosine": 0.38621245124525,
+  "mean_expert_combined_relative_delta": 1.0617028344378385,
+  "mean_projection_cosine": 0.38551873173194096,
+  "mean_projection_relative_delta": 1.06204101069953,
+  "min_expert_combined_cosine": -0.00026645724611457447,
+  "outputs": {
+    "expert_geometry": "results/qwen3_moe_expert_geometry_probe/expert_geometry.csv",
+    "layer_geometry": "results/qwen3_moe_expert_geometry_probe/layer_geometry.csv",
+    "projection_geometry": "results/qwen3_moe_expert_geometry_probe/projection_geometry.csv",
+    "projection_summary": "results/qwen3_moe_expert_geometry_probe/projection_summary.csv",
+    "report": "results/qwen3_moe_expert_geometry_probe/report.md",
+    "summary": "results/qwen3_moe_expert_geometry_probe/summary.json",
+    "top_chunk_geometry": "results/qwen3_moe_expert_geometry_probe/top_chunk_geometry.csv"
+  },
+  "p05_projection_cosine": 0.11831000139383792,
+  "p95_expert_combined_relative_delta": 1.2731808738766128,
+  "p95_projection_relative_delta": 1.2754070307254517,
+  "projection_tensor_count": 18432,
+  "recommended_unified_action": "keep_router_frozen_and_use_geometry_route_risk_as_layer_chunk_or_cap_weight",
+  "route_context": "results/qwen3_moe_trust_region_candidate/trust_region_source_weights_by_expert.csv",
+  "route_observed_expert_count": 5243,
+  "schema_version": 1,
+  "status": "passed",
+  "top_chunk_rows": 5000,
+  "top_expert_combined_relative_delta": 1.2908394420150586,
+  "top_expert_id": 104,
+  "top_expert_layer": 13,
+  "top_expert_route_geometry_risk_score": 0.9296728441617095,
+  "top_layer_by_route_geometry_risk": 17,
+  "top_layer_route_mass_weighted_route_geometry_risk": 0.7143063688618061
+}

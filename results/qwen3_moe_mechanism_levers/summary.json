@@ -1,5 +1,6 @@
 {
-  "fine_calibration_layers": "12,17,18,20,21,22,23,26",
+  "expert_geometry_probe_used": true,
+  "fine_calibration_layers": "12,13,17,20,21,22,23,26",
   "lever_count": 9,
   "literature_count": 5,
   "outputs": {
@@ -13,6 +14,8 @@
   "queue_count": 6,
   "schema_version": 1,
   "status": "mechanism_leverage_map_ready",
+  "top_expert_geometry_layer": 17,
+  "top_expert_geometry_layer_risk": 0.7143063688618061,
   "top_lever": "source_and_candidate_downstream_eval",
   "top_lever_priority": 0.98
 }
