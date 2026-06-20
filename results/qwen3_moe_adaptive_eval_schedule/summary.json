@@ -23,7 +23,16 @@
   "paired_alpha": 0.05,
   "paired_loss_tolerance_rate": 0.0,
   "probe_examples": 64,
+  "round1_covered_mechanism_test_count": 5,
+  "round1_covered_mechanism_tests": [
+    "candidate_vs_sources",
+    "expert_subspace_conflict_ablation",
+    "layer_chunk_sensitivity",
+    "risk_penalty_simplification",
+    "unified_mechanism_optimizer"
+  ],
   "round1_probe_candidate_count": 5,
+  "round1_selection_policy": "greedy_mechanism_coverage_then_priority",
   "schema_version": 1,
   "source_controls_complete": false,
   "status": "adaptive_schedule_ready",

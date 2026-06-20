@@ -300,6 +300,96 @@ def mechanism_reference_count(mechanism_budget: pd.DataFrame, method: str) -> in
     return count
 
 
+def parse_required_methods(value: Any) -> list[str]:
+    return [part.strip() for part in str(clean_value(value) or "").split(",") if part.strip()]
+
+
+def mechanism_test_weight(test: str) -> float:
+    weights = {
+        "candidate_vs_sources": 2.00,
+        "unified_mechanism_optimizer": 1.70,
+        "expert_subspace_conflict_ablation": 1.45,
+        "layer_chunk_sensitivity": 1.30,
+        "risk_penalty_simplification": 1.20,
+        "second_stage_tail_trim": 1.05,
+        "shared_attention_ablation": 0.95,
+        "route_load_trust_region": 0.90,
+        "tail_delta_cap": 0.85,
+        "source_control_floor": 0.00,
+    }
+    return weights.get(test, 1.0)
+
+
+def mechanism_tests_for_method(mechanism_budget: pd.DataFrame, method: str) -> list[str]:
+    if mechanism_budget.empty:
+        return []
+    tests = []
+    for _, row in mechanism_budget.iterrows():
+        test = str(row.get("test") or "")
+        required = set(parse_required_methods(row.get("required_methods")))
+        if method in required and method not in SOURCE_METHODS and test:
+            tests.append(test)
+    return tests
+
+
+def covered_tests_for_selection(mechanism_budget: pd.DataFrame, selected_methods: set[str]) -> set[str]:
+    covered = set()
+    controls = set(SOURCE_METHODS) | set(selected_methods)
+    for _, row in mechanism_budget.iterrows():
+        test = str(row.get("test") or "")
+        required = set(parse_required_methods(row.get("required_methods")))
+        candidate_required = {method for method in required if method not in SOURCE_METHODS}
+        if test and candidate_required and required.issubset(controls):
+            covered.add(test)
+    return covered
+
+
+def choose_round1_probe_methods(
+    candidate_rows: pd.DataFrame,
+    mechanism_budget: pd.DataFrame,
+    max_round1_candidates: int,
+) -> tuple[set[str], dict[str, Any], dict[str, list[str]]]:
+    selected: set[str] = set()
+    ranked = candidate_rows.sort_values(["mechanism_priority", "gate_order"], ascending=[False, True])
+    available = [str(row["method"]) for _, row in ranked.iterrows() if checkpoint_ready(row)]
+    method_rows = {str(row["method"]): row for _, row in ranked.iterrows()}
+    while len(selected) < max_round1_candidates and len(selected) < len(available):
+        covered_now = covered_tests_for_selection(mechanism_budget, selected)
+        best_method = None
+        best_score = None
+        for method in available:
+            if method in selected:
+                continue
+            prospective = set(selected)
+            prospective.add(method)
+            newly_covered = covered_tests_for_selection(mechanism_budget, prospective) - covered_now
+            method_tests = set(mechanism_tests_for_method(mechanism_budget, method))
+            partial_weight = 0.15 * sum(
+                mechanism_test_weight(test) for test in method_tests if test not in covered_now
+            )
+            coverage_weight = sum(mechanism_test_weight(test) for test in newly_covered)
+            priority = float(method_rows[method].get("mechanism_priority") or 0.0)
+            score = coverage_weight + partial_weight + 0.10 * priority
+            key = (score, priority, -int(method_rows[method].get("gate_order") or 9999))
+            if best_score is None or key > best_score:
+                best_score = key
+                best_method = method
+        if best_method is None:
+            break
+        selected.add(best_method)
+    final_covered = sorted(covered_tests_for_selection(mechanism_budget, selected))
+    coverage_by_method = {
+        method: sorted(mechanism_tests_for_method(mechanism_budget, method)) for method in available
+    }
+    coverage_summary = {
+        "round1_selection_policy": "greedy_mechanism_coverage_then_priority",
+        "round1_covered_mechanism_tests": final_covered,
+        "round1_covered_mechanism_test_count": len(final_covered),
+        "round1_candidate_method_count": len(selected),
+    }
+    return selected, coverage_summary, coverage_by_method
+
+
 def mechanism_priority(row: pd.Series, mechanism_budget: pd.DataFrame) -> float:
     method = str(row["method"])
     if method in SOURCE_METHODS:
@@ -596,7 +686,11 @@ def build_schedule(
     budget["mechanism_priority"] = budget.apply(lambda row: mechanism_priority(row, mechanism_budget), axis=1)
     candidate_rows = budget[~budget["method"].isin(SOURCE_METHODS)].copy()
     candidate_rows = candidate_rows.sort_values(["mechanism_priority", "gate_order"], ascending=[False, True])
-    selected_probe_methods = set(candidate_rows.head(max_round1_candidates)["method"].astype(str).tolist())
+    selected_probe_methods, coverage_summary, coverage_by_method = choose_round1_probe_methods(
+        candidate_rows,
+        mechanism_budget,
+        max_round1_candidates,
+    )
     sources_complete, frontier = source_frontier(budget)
     sources = budget[budget["method"].isin(SOURCE_METHODS)].copy()
 
@@ -631,6 +725,10 @@ def build_schedule(
                 "decision_status": decision["decision_status"],
                 "mechanism_priority": row["mechanism_priority"],
                 "selected_for_round1_probe": str(row["method"]) in selected_probe_methods,
+                "round1_selection_policy": coverage_summary["round1_selection_policy"]
+                if str(row["method"]) in selected_probe_methods
+                else "",
+                "covered_mechanism_tests": ",".join(coverage_by_method.get(str(row["method"]), [])),
                 "serve_status": row.get("serve_status"),
                 "checkpoint_exists": checkpoint_ready(row),
                 "eval_status_observed": row.get("eval_status_observed"),
@@ -719,6 +817,9 @@ def build_schedule(
         "method_count": int(len(schedule)),
         "source_controls_complete": bool(sources_complete),
         "round1_probe_candidate_count": int(schedule["selected_for_round1_probe"].sum()),
+        "round1_selection_policy": coverage_summary["round1_selection_policy"],
+        "round1_covered_mechanism_tests": coverage_summary["round1_covered_mechanism_tests"],
+        "round1_covered_mechanism_test_count": coverage_summary["round1_covered_mechanism_test_count"],
         "eval_action_counts": {
             str(key): int(value) for key, value in schedule["eval_action"].value_counts().to_dict().items()
         },
@@ -814,12 +915,14 @@ def build_report(summary: dict[str, Any], schedule: pd.DataFrame, mechanism_sche
         f"- Status: `{summary['status']}`",
         f"- Source controls complete: `{summary['source_controls_complete']}`",
         f"- Round-1 probe candidates: `{summary['round1_probe_candidate_count']}`",
+        f"- Round-1 coverage policy: `{summary['round1_selection_policy']}`",
+        f"- Round-1 covered mechanism tests: `{summary['round1_covered_mechanism_test_count']}`",
         f"- Top action: `{summary['top_eval_action']}` for `{summary['top_method']}`",
         "",
         "## Method Schedule",
         "",
-        "| rank | method | action | status | examples | priority | paired gate | paired net | paired p | reason |",
-        "| ---: | --- | --- | --- | ---: | ---: | --- | ---: | ---: | --- |",
+        "| rank | method | action | status | examples | priority | covered tests | paired gate | paired net | paired p | reason |",
+        "| ---: | --- | --- | --- | ---: | ---: | --- | --- | ---: | ---: | --- |",
     ]
     for _, row in schedule.iterrows():
         paired_net = row["paired_net_delta"]
@@ -829,7 +932,8 @@ def build_report(summary: dict[str, Any], schedule: pd.DataFrame, mechanism_sche
         lines.append(
             f"| {int(row['schedule_rank'])} | `{row['method']}` | `{row['eval_action']}` | "
             f"`{row['decision_status']}` | {int(row['recommended_max_examples'])} | "
-            f"{float(row['mechanism_priority']):.3f} | `{row['paired_gate_status']}` | "
+            f"{float(row['mechanism_priority']):.3f} | `{row['covered_mechanism_tests']}` | "
+            f"`{row['paired_gate_status']}` | "
             f"{paired_net_text} | {paired_p_text} | {row['decision_reason']} |"
         )
     lines.extend(
@@ -1064,6 +1168,97 @@ def run_smoke(args: argparse.Namespace) -> None:
                 "passed": str(candidate["decision_status"]) == expected["candidate_status"],
             }
         )
+    coverage_method_budget = pd.DataFrame(
+        [
+            {
+                "gate_order": 0,
+                "method": "source_qwen3_30b_instruct",
+                "role": "source",
+                "checkpoint_exists": True,
+                "serve_status": "ready_to_host",
+                "avg_primary_score": 0.70,
+                "worst_primary_score": 0.50,
+                "observed_examples_min": 64,
+            },
+            {
+                "gate_order": 1,
+                "method": "source_qwen3_30b_coder",
+                "role": "source",
+                "checkpoint_exists": True,
+                "serve_status": "ready_to_host",
+                "avg_primary_score": 0.70,
+                "worst_primary_score": 0.50,
+                "observed_examples_min": 64,
+            },
+            {
+                "gate_order": 2,
+                "method": "qwen3_moe_unified_mechanism_candidate",
+                "role": "candidate",
+                "checkpoint_exists": True,
+                "serve_status": "ready_to_host",
+            },
+            {
+                "gate_order": 3,
+                "method": "qwen3_moe_layer_chunk_candidate",
+                "role": "candidate",
+                "checkpoint_exists": True,
+                "serve_status": "ready_to_host",
+            },
+            {
+                "gate_order": 4,
+                "method": "qwen3_moe_subspace_scaled_candidate",
+                "role": "candidate",
+                "checkpoint_exists": True,
+                "serve_status": "ready_to_host",
+            },
+        ]
+    )
+    coverage_mechanism_budget = pd.DataFrame(
+        [
+            {
+                "test": "candidate_vs_sources",
+                "required_methods": "source_qwen3_30b_instruct,qwen3_moe_unified_mechanism_candidate",
+                "mechanism_question": "smoke",
+            },
+            {
+                "test": "expert_subspace_conflict_ablation",
+                "required_methods": "qwen3_moe_unified_mechanism_candidate,qwen3_moe_subspace_scaled_candidate",
+                "mechanism_question": "smoke",
+            },
+        ]
+    )
+    coverage_schedule, _, coverage_summary = build_schedule(
+        coverage_method_budget,
+        coverage_mechanism_budget,
+        probe_examples=args.probe_examples,
+        full_examples=args.full_examples,
+        max_round1_candidates=2,
+        close_margin=args.close_margin,
+        task_regression_margin=args.task_regression_margin,
+        paired_loss_tolerance_rate=args.paired_loss_tolerance_rate,
+        paired_alpha=args.paired_alpha,
+    )
+    selected = set(
+        coverage_schedule.loc[coverage_schedule["selected_for_round1_probe"].astype(bool), "method"].astype(str)
+    )
+    rows.append(
+        {
+            "case": "coverage_selects_complement",
+            "assertion": "subspace_selected_for_coverage",
+            "expected": "True",
+            "actual": str("qwen3_moe_subspace_scaled_candidate" in selected),
+            "passed": "qwen3_moe_subspace_scaled_candidate" in selected,
+        }
+    )
+    rows.append(
+        {
+            "case": "coverage_selects_complement",
+            "assertion": "covered_mechanism_test_count",
+            "expected": "2",
+            "actual": str(coverage_summary["round1_covered_mechanism_test_count"]),
+            "passed": coverage_summary["round1_covered_mechanism_test_count"] == 2,
+        }
+    )
     matrix = pd.DataFrame(rows)
     output_dir = repo_path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)

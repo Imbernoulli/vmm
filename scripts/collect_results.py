@@ -1479,6 +1479,9 @@ def summarize_qwen3_moe_adaptive_eval_schedule() -> dict[str, Any]:
         "method_count": int(summary.get("method_count", len(schedule))),
         "source_controls_complete": bool(summary.get("source_controls_complete", False)),
         "round1_probe_candidate_count": int(summary.get("round1_probe_candidate_count", len(round1))),
+        "round1_selection_policy": summary.get("round1_selection_policy"),
+        "round1_covered_mechanism_test_count": int(summary.get("round1_covered_mechanism_test_count", 0)),
+        "round1_covered_mechanism_tests": summary.get("round1_covered_mechanism_tests", []),
         "top_eval_action": summary.get("top_eval_action"),
         "top_method": summary.get("top_method"),
         "probe_examples": maybe_int(summary.get("probe_examples")),
@@ -5497,6 +5500,11 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_adaptive_eval_schedule['round1_probe_candidate_count']} / "
                 f"{qwen3_moe_adaptive_eval_schedule['probe_examples']} -> "
                 f"{qwen3_moe_adaptive_eval_schedule['full_examples']} |"
+            ),
+            (
+                "| Qwen3 MoE adaptive eval schedule | round1 policy / covered mechanism tests | "
+                f"{qwen3_moe_adaptive_eval_schedule['round1_selection_policy']} / "
+                f"{qwen3_moe_adaptive_eval_schedule['round1_covered_mechanism_test_count']} |"
             ),
             (
                 "| Qwen3 MoE adaptive eval schedule | paired gate status counts / alpha | "
