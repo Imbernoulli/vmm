@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 82086,
+      "bytes": 82943,
       "kind": "document",
       "path": "README.md",
-      "sha256": "97588a18060f860d6cf328ce78c6ee06abee240b2661e7d7105d79194c6f875b"
+      "sha256": "41758a96a002f4733581dc310564bc761b21cb4d252b28f171ac9d0c47fb165c"
     },
     {
       "bytes": 33211,
@@ -137,6 +137,48 @@
       "kind": "data",
       "path": "results/average_decision_report/summary.json",
       "sha256": "0d96089876a6d351544e0d393c80824155d324738f462d9e96fb888e41042d5e"
+    },
+    {
+      "bytes": 2061,
+      "kind": "data",
+      "path": "results/average_invariant_audit/algorithm_spec.json",
+      "sha256": "157ffe6c90c5700a33d20b61128ee1c2215f3b9a1b3b3e42b9107fdc67e9a4b2"
+    },
+    {
+      "bytes": 50022,
+      "kind": "figure",
+      "path": "results/average_invariant_audit/invariant_status.png",
+      "sha256": "239867695c40f041556273f94fd9727bfa7364dd1c1b1a147b7eecf9bc2988ee"
+    },
+    {
+      "bytes": 4944,
+      "kind": "data",
+      "path": "results/average_invariant_audit/invariant_table.csv",
+      "sha256": "a5ce7bcb06074582c044c3508542b0ba947af4f0b53e8d8e1f0bac9da7852ddd"
+    },
+    {
+      "bytes": 3085,
+      "kind": "data",
+      "path": "results/average_invariant_audit/literature_sources.json",
+      "sha256": "52b66da7dde7d1140d2ad36db5c8e38c6ba6407446523502e99e8ea40ede9eea"
+    },
+    {
+      "bytes": 3313,
+      "kind": "data",
+      "path": "results/average_invariant_audit/method_invariant_matrix.csv",
+      "sha256": "62839d73bb35ec58c3d62d9f96c06efbe16a12e96eebd111155500b598e9440f"
+    },
+    {
+      "bytes": 6674,
+      "kind": "document",
+      "path": "results/average_invariant_audit/report.md",
+      "sha256": "e03b3efe1f5ebc939a5d809f0861915ccaf690433f68f350e7f14002efc2f033"
+    },
+    {
+      "bytes": 1431,
+      "kind": "data",
+      "path": "results/average_invariant_audit/summary.json",
+      "sha256": "17023510cca64fd2cd6a49d58665c5af19447097b0c543d573d155086677b1e2"
     },
     {
       "bytes": 7416,
@@ -4765,16 +4807,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 1540121,
+      "bytes": 1557752,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "7e96802ea003b7d9fe5ca24082c3a7e6eeb2490d20eb42c8889d9a381bde9e34"
+      "sha256": "6e7edcb1397e3dc1bd7f11f6c27c64b13c7a00fa5fe7310266be0c4b7a3745e1"
     },
     {
-      "bytes": 52425,
+      "bytes": 52973,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "7969ff8c911408ccdc9b025738cd3e518b5f53d343f5fc926420318ccea6ad86"
+      "sha256": "1b38bf4e51f97b45b069389244a0cda7f6af528ab6084a34ab6ffcb2ea633959"
     },
     {
       "bytes": 288,
@@ -5815,6 +5857,12 @@
       "sha256": "373617da0d049ac13d0700fbbd9aa9b680c7ad8d01304170227e1b8c7abfafa7"
     },
     {
+      "bytes": 36445,
+      "kind": "code",
+      "path": "scripts/build_average_invariant_audit.py",
+      "sha256": "ee31f37df8df560adf10b8d12e34fca0df1360791acd440327b495490edba3e5"
+    },
+    {
       "bytes": 20016,
       "kind": "code",
       "path": "scripts/build_average_method_gate_matrix.py",
@@ -6013,10 +6061,10 @@
       "sha256": "cd588bc1804013f4043bd95c245b066dbae86bfd3e3f9c18317ef33eb506f123"
     },
     {
-      "bytes": 361203,
+      "bytes": 365199,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "980e7e488e270ff20ace942cd86c83469c317b3609a857e4a6c08103c494a2cb"
+      "sha256": "27ab85cd6324920a28782494ff32e422ce6a98f64dbc631ab739346eaebb322b"
     },
     {
       "bytes": 16101,
@@ -6307,7 +6355,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-20T04:07:17.729629+00:00",
+  "generated_at": "2026-06-20T04:16:41.443657+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

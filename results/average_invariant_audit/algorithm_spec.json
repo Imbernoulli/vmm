@@ -1,0 +1,45 @@
+{
+  "bounded_regret_statement": "The optimizer is not a proof that averaging always wins. Its defensible guarantee is selector-level: because endpoints are always in the candidate set and final acceptance requires audited matched eval with source-dominance, task-regression, uncertainty, and paired-prediction gates, the deployed choice falls back to the best source whenever the same-shape average lacks measured evidence.",
+  "current_blockers": [
+    "endpoint_frontier",
+    "fixed_midpoint_safety",
+    "router_stability",
+    "matched_downstream_dominance"
+  ],
+  "final_selection_status": "awaiting_source_eval",
+  "gate_order": [
+    "same_shape_contract",
+    "endpoint_frontier",
+    "expert_identity_alignment",
+    "router_stability",
+    "expert_internal_geometry",
+    "routed_delta_trust_region",
+    "router_calibration_not_acceptance",
+    "matched_downstream_dominance"
+  ],
+  "moe_parameter_objective": {
+    "current_max_predicted_relative_delta": 0.6234276715724305,
+    "current_retention": 0.9757834655609336,
+    "current_selected_candidate": "router_evidence_risk_s0.75",
+    "current_selected_family": "router_and_evidence_weighted_risk",
+    "decision_variable": "per routed expert group nonbase coefficient c_g in [0, 1]",
+    "hard_constraints": [
+      "router tensors are frozen unless router-stability or calibration gate passes",
+      "predicted routed expert relative delta <= hard cap",
+      "same-shape tensor names/config are unchanged",
+      "source endpoints remain selectable"
+    ],
+    "proxy_maximize": "sum_g route_mass_g * source_retention_g * c_g",
+    "risk_terms": [
+      "router fragility",
+      "low route evidence",
+      "load/capacity pressure",
+      "expert internal geometry risk",
+      "layer/chunk sensitivity",
+      "source conflict"
+    ]
+  },
+  "name": "same_shape_guarded_average",
+  "objective": "Maximize retained nonbase/source capability under same-shape, endpoint-frontier, expert-identity, router-stability, routed-delta, and downstream-dominance constraints.",
+  "schema_version": 1
+}

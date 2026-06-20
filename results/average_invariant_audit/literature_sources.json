@@ -1,0 +1,68 @@
+[
+  {
+    "key": "fisher_merging",
+    "mechanism": "Local posterior curvature can weight averages, but it is only a local argument.",
+    "title": "Merging Models with Fisher-Weighted Averaging",
+    "url": "https://arxiv.org/abs/2111.09832"
+  },
+  {
+    "key": "model_soups",
+    "mechanism": "Weight averaging is plausible inside one low-error basin; it is not a guarantee for divergent experts.",
+    "title": "Model soups: averaging weights of multiple fine-tuned models improves accuracy without increasing inference time",
+    "url": "https://arxiv.org/abs/2203.05482"
+  },
+  {
+    "key": "git_rebasin",
+    "mechanism": "Permutation or expert identity must be resolved before same-name parameters are averaged.",
+    "title": "Git Re-Basin: Merging Models modulo Permutation Symmetries",
+    "url": "https://arxiv.org/abs/2209.04836"
+  },
+  {
+    "key": "ties",
+    "mechanism": "Small redundant deltas and sign disagreement are coordinate-level interference signals.",
+    "title": "TIES-Merging: Resolving Interference When Merging Models",
+    "url": "https://arxiv.org/abs/2306.01708"
+  },
+  {
+    "key": "dare",
+    "mechanism": "Drop-and-rescale is justified only when delta probes show strong redundancy.",
+    "title": "Language Models are Super Mario: Absorbing Abilities from Homologous Models as a Free Lunch",
+    "url": "https://arxiv.org/abs/2311.03099"
+  },
+  {
+    "key": "della",
+    "mechanism": "Magnitude-aware delta retention is safer than blind random dropping.",
+    "title": "DELLA-Merging: Reducing Interference in Model Merging through Magnitude-Based Sampling",
+    "url": "https://arxiv.org/abs/2406.11617"
+  },
+  {
+    "key": "wemoe",
+    "mechanism": "Dynamic expert selection can reduce interference, but it changes the execution structure.",
+    "title": "Efficient and Effective Weight-Ensembling Mixture of Experts for Multi-Task Model Merging",
+    "url": "https://arxiv.org/abs/2410.21804"
+  },
+  {
+    "key": "mergeme",
+    "mechanism": "MoE merging must handle parameter interference and routing heuristics explicitly.",
+    "title": "MergeME: Model Merging Techniques for Homogeneous and Heterogeneous MoEs",
+    "url": "https://arxiv.org/abs/2502.00997"
+  },
+  {
+    "key": "sub_moe",
+    "mechanism": "Expert output similarity and subspace structure are better evidence than raw weight names.",
+    "title": "Sub-MoE: Efficient Mixture-of-Expert LLMs Compression via Subspace Expert Merging",
+    "url": "https://arxiv.org/abs/2506.23266"
+  },
+  {
+    "key": "expert_merging",
+    "mechanism": "Layer heterogeneity and unlabeled hidden/logit alignment motivate layer/chunk coefficients.",
+    "title": "Expert Merging: Model Merging with Unsupervised Expert Alignment and Importance-Guided Layer Chunking",
+    "url": "https://arxiv.org/abs/2509.25712"
+  },
+  {
+    "key": "harc",
+    "mechanism": "Top-k router perturbations can break dispatch, so router movement needs its own calibration gate.",
+    "title": "When Model Merging Breaks Routing: Training-Free Calibration for MoE",
+    "url": "https://arxiv.org/abs/2606.03391"
+  }
+]

@@ -156,6 +156,11 @@
       "status": "complete"
     },
     {
+      "evidence": "results/average_invariant_audit/report.md converts model-averaging literature and current Dense/MoE probes into executable acceptance invariants and method gates.",
+      "item": "Average invariant audit",
+      "status": "complete"
+    },
+    {
       "evidence": "results/qwen_target_model_registry/report.md maps representative official, third-party, downstream, and adapter-pool Qwen candidates to scenarios, eval slices, probes, and same-shape topology gates.",
       "item": "Qwen target model registry",
       "status": "complete"
@@ -417,7 +422,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 82,
+    "complete": 83,
     "missing": 0,
     "partial": 1
   },
@@ -1049,6 +1054,309 @@
         "avoid_uniform_average": 3,
         "coefficient_search": 2
       }
+    },
+    "average_invariant_audit": {
+      "algorithm_spec": "results/average_invariant_audit/algorithm_spec.json",
+      "default_accepted_method_count": 0,
+      "default_rejected_method_count": 1,
+      "expert_identity_fraction": 1.0,
+      "figure": "results/average_invariant_audit/invariant_status.png",
+      "final_selection_status": "awaiting_source_eval",
+      "hard_gate_blocker_count": 4,
+      "high_route_geometry_risk_expert_count": 204,
+      "invariant_count": 10,
+      "invariant_rows": [
+        {
+          "algorithm_action": "Reject topology-expanding methods as final outputs; use them only as upper-bound probes.",
+          "current_value": "same_shape=True",
+          "domain": "dense+moe",
+          "failure_mode": "A method can score well by changing topology, but it is not the requested average target.",
+          "hard_gate": true,
+          "invariant_id": "same_shape_contract",
+          "literature_keys": "wemoe,sub_moe",
+          "primary_evidence": "results/moe_unified_preflight_qwen3_30b/summary.json",
+          "proof_role": "Defines the feasible set.",
+          "requirement": "The output checkpoint must keep the input model architecture, tensor names, and config contract.",
+          "status": "pass"
+        },
+        {
+          "algorithm_action": "Always include source endpoints and allow endpoint/anchor fallback.",
+          "current_value": "path_rejected=5/6; frontier_wins=1",
+          "domain": "dense+moe",
+          "failure_mode": "A smooth-looking line or named method can still be dominated by one source model.",
+          "hard_gate": true,
+          "invariant_id": "endpoint_frontier",
+          "literature_keys": "model_soups,git_rebasin",
+          "primary_evidence": "results/average_connectivity_diagnostic/summary.json",
+          "proof_role": "Prevents accepting a dominated merge.",
+          "requirement": "A candidate average must beat the best source endpoint frontier on the measured objective.",
+          "status": "reject_default_average"
+        },
+        {
+          "algorithm_action": "Keep uniform average as a negative baseline unless midpoint gap is within tolerance.",
+          "current_value": "midpoint_rejected=5/6; dense_midpoint_gap=2.9168; qwen3_midpoint_gap=0.4683",
+          "domain": "dense+moe",
+          "failure_mode": "Coefficient search may find an anchor fallback while the midpoint remains bad.",
+          "hard_gate": true,
+          "invariant_id": "fixed_midpoint_safety",
+          "literature_keys": "model_soups,task_arithmetic",
+          "primary_evidence": "results/average_connectivity_diagnostic/path_diagnostics.csv",
+          "proof_role": "Separates averaging from coefficient/anchor selection.",
+          "requirement": "The 0.5/0.5 point is a separate candidate and must pass its own frontier check.",
+          "status": "reject_default_average"
+        },
+        {
+          "algorithm_action": "Use local curvature as a feature, not as a proof of merge safety.",
+          "current_value": "Fisher actual/predicted degradation ratios are far above a small local-error regime.",
+          "domain": "dense",
+          "failure_mode": "A local second-order model underestimates nonlocal midpoint degradation.",
+          "hard_gate": false,
+          "invariant_id": "local_quadratic_validity",
+          "literature_keys": "fisher_merging",
+          "primary_evidence": "results/fp_curvature_law/report.md",
+          "proof_role": "Blocks curvature-only acceptance.",
+          "requirement": "Fisher or RegMean-style local approximations must be calibrated against actual path loss.",
+          "status": "reject_as_sufficient_gate"
+        },
+        {
+          "algorithm_action": "Use identity slices for Qwen3; require remap/alignment for other MoEs.",
+          "current_value": "identity_layers=48/48; identity_fraction=1.0000",
+          "domain": "moe",
+          "failure_mode": "Function-preserving expert permutations can make same-name averaging arbitrarily wrong.",
+          "hard_gate": true,
+          "invariant_id": "expert_identity_alignment",
+          "literature_keys": "git_rebasin,mergeme",
+          "primary_evidence": "results/moe_unified_preflight_qwen3_30b/summary.json",
+          "proof_role": "Makes expert tensor names meaningful.",
+          "requirement": "Routed experts can only be same-name averaged after identity/alignment is established.",
+          "status": "pass"
+        },
+        {
+          "algorithm_action": "Freeze router by default; test router-KD/HARC-style calibration as a separate intervention.",
+          "current_value": "allowed_router_layers=0/48; min_top1=0.0690; min_topk_jaccard=0.2422",
+          "domain": "moe",
+          "failure_mode": "Small router perturbations change discrete expert assignment and amplify expert mismatch.",
+          "hard_gate": true,
+          "invariant_id": "router_stability",
+          "literature_keys": "harc",
+          "primary_evidence": "results/qwen3_moe_router_move_gate/summary.json",
+          "proof_role": "Prevents routing breakdown.",
+          "requirement": "Direct router weight movement must preserve top-k dispatch over observed route categories.",
+          "status": "reject_router_movement"
+        },
+        {
+          "algorithm_action": "Use route/geometry-weighted caps and layer/chunk coefficients.",
+          "current_value": "high_internal=931; high_route_geometry=204; mean_cos=0.3862",
+          "domain": "moe",
+          "failure_mode": "High route+geometry-risk experts dominate regressions under uniform source weights.",
+          "hard_gate": false,
+          "invariant_id": "expert_internal_geometry",
+          "literature_keys": "expert_merging,sub_moe",
+          "primary_evidence": "results/qwen3_moe_expert_geometry_probe/summary.json",
+          "proof_role": "Motivates nonuniform expert coefficients.",
+          "requirement": "A single global expert coefficient is unsafe when expert geometry varies by layer and route mass.",
+          "status": "conditional_geometry_shrink"
+        },
+        {
+          "algorithm_action": "Only materialize candidates that pass cap and same-shape delta audit.",
+          "current_value": "selected_max_predicted_delta=0.6234; groups_gt_hard_cap=0; delta_audit_status=passed",
+          "domain": "moe",
+          "failure_mode": "Large routed expert movement can look useful structurally while causing task regressions.",
+          "hard_gate": true,
+          "invariant_id": "routed_delta_trust_region",
+          "literature_keys": "ties,della,expert_merging",
+          "primary_evidence": "results/qwen3_moe_unified_mechanism_candidate/summary.json",
+          "proof_role": "Bounds structural intervention size.",
+          "requirement": "Routed expert deltas must satisfy a hard trust-region cap before vLLM selection.",
+          "status": "pass"
+        },
+        {
+          "algorithm_action": "Queue router-calibrated candidates for matched vLLM evaluation and source-dominance selection.",
+          "current_value": "worst_nll_reduction=0.2214; worst_gap_to_best_source=0.1265",
+          "domain": "moe",
+          "failure_mode": "A calibrated average can improve over linear average while still losing to a source.",
+          "hard_gate": false,
+          "invariant_id": "router_calibration_not_acceptance",
+          "literature_keys": "harc",
+          "primary_evidence": "results/qwen3_moe_router_calibration_nll_probe/summary.json",
+          "proof_role": "Distinguishes mechanism evidence from final acceptance.",
+          "requirement": "Router-only improvement supports the mechanism but cannot accept the merge without endpoint dominance.",
+          "status": "mechanism_supported_not_sufficient"
+        },
+        {
+          "algorithm_action": "Do not claim a unified average wins until source and candidate eval bundles pass audit.",
+          "current_value": "usable_candidates=0/8; usable_eval_bundles=0/10",
+          "domain": "dense+moe",
+          "failure_mode": "Structural probes are not downstream task performance.",
+          "hard_gate": true,
+          "invariant_id": "matched_downstream_dominance",
+          "literature_keys": "model_soups,expert_merging,harc",
+          "primary_evidence": "results/qwen3_moe_final_candidate_selection/summary.json",
+          "proof_role": "Provides the final measured-regret gate.",
+          "requirement": "Final acceptance requires matched vLLM eval, no source dominance, no task regression, and paired prediction gates.",
+          "status": "awaiting_eval"
+        }
+      ],
+      "invariants": "results/average_invariant_audit/invariant_table.csv",
+      "literature_sources": "results/average_invariant_audit/literature_sources.json",
+      "method_family_count": 10,
+      "method_matrix": "results/average_invariant_audit/method_invariant_matrix.csv",
+      "method_rows": [
+        {
+          "current_gate": "reject_as_default",
+          "global_default_accept_count": 0,
+          "method_family": "Uniform / linear average",
+          "router_status": "reject_router_movement",
+          "same_shape_output": true,
+          "use_if": "Only if the midpoint itself passes endpoint-frontier and downstream gates.",
+          "violated_or_required_invariants": "endpoint_frontier;fixed_midpoint_safety",
+          "why": "Current Dense and Qwen3 MoE midpoint/path evidence is dominated by source endpoints."
+        },
+        {
+          "current_gate": "conditional",
+          "global_default_accept_count": 0,
+          "method_family": "Model soups / greedy soup",
+          "router_status": "reject_router_movement",
+          "same_shape_output": true,
+          "use_if": "Greedy validation includes endpoints and rejects any candidate that hurts the frontier.",
+          "violated_or_required_invariants": "endpoint_frontier;matched_downstream_dominance",
+          "why": "Soup logic is valid inside one low-error basin, but current source paths are not proven to be in that basin."
+        },
+        {
+          "current_gate": "conditional_endpoint_fallback",
+          "global_default_accept_count": 0,
+          "method_family": "Task arithmetic / coefficient search",
+          "router_status": "reject_router_movement",
+          "same_shape_output": true,
+          "use_if": "Search over layer/module/expert coefficients and permit endpoint or anchor selection.",
+          "violated_or_required_invariants": "endpoint_frontier;fixed_midpoint_safety",
+          "why": "Coefficient search may find an anchor/base fallback while the raw average remains unsafe."
+        },
+        {
+          "current_gate": "conditional_no_router_blindness",
+          "global_default_accept_count": 0,
+          "method_family": "TIES / DARE / DELLA / STAR",
+          "router_status": "reject_router_movement",
+          "same_shape_output": true,
+          "use_if": "Apply after expert identity/remap, with router frozen/calibrated and routed delta caps.",
+          "violated_or_required_invariants": "router_stability;expert_internal_geometry;routed_delta_trust_region",
+          "why": "Coordinate conflict methods do not solve MoE dispatch, expert identity, or route-load risk by themselves."
+        },
+        {
+          "current_gate": "conditional_not_sufficient",
+          "global_default_accept_count": 0,
+          "method_family": "Fisher / RegMean / RegMean++",
+          "router_status": "reject_router_movement",
+          "same_shape_output": true,
+          "use_if": "Use as a feature or tensor rule, then validate on held-out NLL and downstream eval.",
+          "violated_or_required_invariants": "local_quadratic_validity;matched_downstream_dominance",
+          "why": "Local or layerwise regression arguments can underestimate nonlocal merge barriers."
+        },
+        {
+          "current_gate": "disallowed_as_final_output",
+          "global_default_accept_count": 0,
+          "method_family": "WEMoE / dynamic MoE upscaling",
+          "router_status": "reject_router_movement",
+          "same_shape_output": false,
+          "use_if": "Use as an upper bound or teacher, then distill/compress back into same-shape rules.",
+          "violated_or_required_invariants": "same_shape_contract",
+          "why": "Dynamic expert modules can reduce interference but change the model structure requested here."
+        },
+        {
+          "current_gate": "active_structural_candidate",
+          "global_default_accept_count": 0,
+          "method_family": "Expert Merging++ / layer chunking",
+          "router_status": "reject_router_movement",
+          "same_shape_output": true,
+          "use_if": "Keep same-shape tensor rules and require final vLLM source-frontier dominance.",
+          "violated_or_required_invariants": "expert_internal_geometry;routed_delta_trust_region;matched_downstream_dominance",
+          "why": "Current Qwen3 geometry shows layer/expert heterogeneity; layer/chunk coefficients directly target it."
+        },
+        {
+          "current_gate": "probe_only_under_same_shape_contract",
+          "global_default_accept_count": 0,
+          "method_family": "Sub-MoE / expert-output clustering",
+          "router_status": "reject_router_movement",
+          "same_shape_output": false,
+          "use_if": "Use output/subspace similarity to decide remaps or caps without changing tensor topology.",
+          "violated_or_required_invariants": "same_shape_contract;expert_identity_alignment",
+          "why": "Expert compression can change expert count, but output similarity is useful as a probe."
+        },
+        {
+          "current_gate": "active_separate_intervention",
+          "global_default_accept_count": 0,
+          "method_family": "HARC / router-only calibration",
+          "router_status": "reject_router_movement",
+          "same_shape_output": true,
+          "use_if": "Train/calibrate router deltas under caps, audit them, then evaluate with source endpoints.",
+          "violated_or_required_invariants": "router_stability;matched_downstream_dominance",
+          "why": "Router-only NLL probe improves linear MoE but still does not dominate the best source."
+        },
+        {
+          "current_gate": "structurally_ready_awaiting_eval",
+          "global_default_accept_count": 0,
+          "method_family": "Unified same-shape mechanism optimizer",
+          "router_status": "reject_router_movement",
+          "same_shape_output": true,
+          "use_if": "Accept only after eval-bundle audit and final selector beat source frontier.",
+          "violated_or_required_invariants": "matched_downstream_dominance",
+          "why": "It satisfies same-shape, identity, frozen-router, geometry, and delta-cap gates, but final acceptance is still downstream."
+        }
+      ],
+      "report": "results/average_invariant_audit/report.md",
+      "router_allowed_layers": 0,
+      "router_layer_count": 48,
+      "same_shape_contract_pass": true,
+      "selected_candidate_id": "router_evidence_risk_s0.75",
+      "selected_max_predicted_relative_delta": 0.6234276715724305,
+      "selected_nonbase_mass_retention": 0.9757834655609336,
+      "status": "average_requires_guarded_selector_and_eval",
+      "status_counts": {
+        "awaiting_eval": 1,
+        "conditional_geometry_shrink": 1,
+        "mechanism_supported_not_sufficient": 1,
+        "pass": 3,
+        "reject_as_sufficient_gate": 1,
+        "reject_default_average": 2,
+        "reject_router_movement": 1
+      },
+      "summary": {
+        "default_accepted_method_count": 0,
+        "default_rejected_method_count": 1,
+        "expert_identity_fraction": 1.0,
+        "final_selection_status": "awaiting_source_eval",
+        "hard_gate_blocker_count": 4,
+        "high_route_geometry_risk_expert_count": 204,
+        "invariant_count": 10,
+        "method_family_count": 10,
+        "outputs": {
+          "algorithm_spec": "results/average_invariant_audit/algorithm_spec.json",
+          "figure": "results/average_invariant_audit/invariant_status.png",
+          "invariants": "results/average_invariant_audit/invariant_table.csv",
+          "literature_sources": "results/average_invariant_audit/literature_sources.json",
+          "method_matrix": "results/average_invariant_audit/method_invariant_matrix.csv",
+          "report": "results/average_invariant_audit/report.md",
+          "summary": "results/average_invariant_audit/summary.json"
+        },
+        "router_allowed_layers": 0,
+        "router_layer_count": 48,
+        "same_shape_contract_pass": true,
+        "schema_version": 1,
+        "selected_candidate_id": "router_evidence_risk_s0.75",
+        "selected_max_predicted_relative_delta": 0.6234276715724305,
+        "selected_nonbase_mass_retention": 0.9757834655609336,
+        "status": "average_requires_guarded_selector_and_eval",
+        "status_counts": {
+          "awaiting_eval": 1,
+          "conditional_geometry_shrink": 1,
+          "mechanism_supported_not_sufficient": 1,
+          "pass": 3,
+          "reject_as_sufficient_gate": 1,
+          "reject_default_average": 2,
+          "reject_router_movement": 1
+        }
+      },
+      "summary_path": "results/average_invariant_audit/summary.json"
     },
     "average_method_gate_matrix": {
       "accepted_by_default_count": 0,
@@ -32875,7 +33183,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-20T04:07:17.677076+00:00",
+  "generated_at": "2026-06-20T04:16:41.407965+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -32906,6 +33214,7 @@
     "python scripts/build_model_averaging_literature_review.py",
     "python scripts/build_average_method_gate_matrix.py --output-dir results/average_method_gate_matrix",
     "python scripts/build_connectivity_diagnostic.py --output-dir results/average_connectivity_diagnostic",
+    "python scripts/build_average_invariant_audit.py --output-dir results/average_invariant_audit",
     "python scripts/smoke_moe_routing_probe_contract.py",
     "python scripts/smoke_vllm_downstream_eval_contract.py --output-dir results/vllm_downstream_eval_smoke",
     "PYTHONPATH=src python scripts/build_vllm_checkpoint_eval_plan.py --output-dir results/vllm_checkpoint_eval_plan",

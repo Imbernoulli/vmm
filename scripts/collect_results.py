@@ -3362,6 +3362,45 @@ def summarize_average_connectivity_diagnostic() -> dict[str, Any]:
     }
 
 
+def summarize_average_invariant_audit() -> dict[str, Any]:
+    root = repo_path("results/average_invariant_audit")
+    summary = read_json(root / "summary.json")
+    invariants = read_csv(root / "invariant_table.csv")
+    method_matrix = read_csv(root / "method_invariant_matrix.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "invariant_count": int(summary.get("invariant_count", len(invariants))),
+        "method_family_count": int(summary.get("method_family_count", len(method_matrix))),
+        "hard_gate_blocker_count": int(summary.get("hard_gate_blocker_count", 0)),
+        "default_accepted_method_count": int(summary.get("default_accepted_method_count", 0)),
+        "default_rejected_method_count": int(summary.get("default_rejected_method_count", 0)),
+        "same_shape_contract_pass": bool(summary.get("same_shape_contract_pass", False)),
+        "router_allowed_layers": maybe_int(summary.get("router_allowed_layers")),
+        "router_layer_count": maybe_int(summary.get("router_layer_count")),
+        "expert_identity_fraction": maybe_float(summary.get("expert_identity_fraction")),
+        "high_route_geometry_risk_expert_count": maybe_int(
+            summary.get("high_route_geometry_risk_expert_count")
+        ),
+        "selected_candidate_id": summary.get("selected_candidate_id"),
+        "selected_nonbase_mass_retention": maybe_float(summary.get("selected_nonbase_mass_retention")),
+        "selected_max_predicted_relative_delta": maybe_float(
+            summary.get("selected_max_predicted_relative_delta")
+        ),
+        "final_selection_status": summary.get("final_selection_status"),
+        "status_counts": summary.get("status_counts", {}),
+        "invariant_rows": [clean_row(row) for _, row in invariants.iterrows()],
+        "method_rows": [clean_row(row) for _, row in method_matrix.iterrows()],
+        "report": rel(root / "report.md"),
+        "invariants": rel(root / "invariant_table.csv"),
+        "method_matrix": rel(root / "method_invariant_matrix.csv"),
+        "algorithm_spec": rel(root / "algorithm_spec.json"),
+        "literature_sources": rel(root / "literature_sources.json"),
+        "figure": rel(root / "invariant_status.png"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_qwen_target_model_registry() -> dict[str, Any]:
     summary = read_json("results/qwen_target_model_registry/summary.json")
     models = read_csv("results/qwen_target_model_registry/model_registry.csv")
@@ -3567,6 +3606,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "item": "Average connectivity diagnostic",
             "status": "complete",
             "evidence": "results/average_connectivity_diagnostic/report.md unifies Dense/MoE endpoint-frontier, midpoint, barrier, complementarity, and local-quadratic gates.",
+        },
+        {
+            "item": "Average invariant audit",
+            "status": "complete",
+            "evidence": "results/average_invariant_audit/report.md converts model-averaging literature and current Dense/MoE probes into executable acceptance invariants and method gates.",
         },
         {
             "item": "Qwen target model registry",
@@ -3853,6 +3897,7 @@ def build_summary() -> dict[str, Any]:
         "model_averaging_literature_review": summarize_model_averaging_literature_review(),
         "average_method_gate_matrix": summarize_average_method_gate_matrix(),
         "average_connectivity_diagnostic": summarize_average_connectivity_diagnostic(),
+        "average_invariant_audit": summarize_average_invariant_audit(),
         "qwen_target_model_registry": summarize_qwen_target_model_registry(),
         "moe_routing_probe_smoke": summarize_moe_routing_probe_smoke(),
         "moe_average_plan": summarize_moe_average_plan(),
@@ -4015,6 +4060,7 @@ def build_summary() -> dict[str, Any]:
             "python scripts/build_model_averaging_literature_review.py",
             "python scripts/build_average_method_gate_matrix.py --output-dir results/average_method_gate_matrix",
             "python scripts/build_connectivity_diagnostic.py --output-dir results/average_connectivity_diagnostic",
+            "python scripts/build_average_invariant_audit.py --output-dir results/average_invariant_audit",
             "python scripts/smoke_moe_routing_probe_contract.py",
             "python scripts/smoke_vllm_downstream_eval_contract.py --output-dir results/vllm_downstream_eval_smoke",
             "PYTHONPATH=src python scripts/build_vllm_checkpoint_eval_plan.py --output-dir results/vllm_checkpoint_eval_plan",
@@ -4126,6 +4172,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     literature_review = exp["model_averaging_literature_review"]
     average_method_gate_matrix = exp["average_method_gate_matrix"]
     average_connectivity = exp["average_connectivity_diagnostic"]
+    average_invariant_audit = exp["average_invariant_audit"]
     qwen_registry = exp["qwen_target_model_registry"]
     routing_probe_smoke = exp["moe_routing_probe_smoke"]
     moe_average_plan = exp["moe_average_plan"]
@@ -5805,6 +5852,25 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(average_connectivity['dense_source_midpoint_gap'])} / "
                 f"{fmt(average_connectivity['dense_lambda_endpoint_gap'])} / "
                 f"{fmt(average_connectivity['qwen3_instruct_coder_gap'])} |"
+            ),
+            (
+                "| average invariant audit | invariants / hard blockers / default accepted methods | "
+                f"{average_invariant_audit['invariant_count']} / "
+                f"{average_invariant_audit['hard_gate_blocker_count']} / "
+                f"{average_invariant_audit['default_accepted_method_count']} |"
+            ),
+            (
+                "| average invariant audit | same-shape / router allowed layers / final selector | "
+                f"{average_invariant_audit['same_shape_contract_pass']} / "
+                f"{average_invariant_audit['router_allowed_layers']}"
+                f"/{average_invariant_audit['router_layer_count']} / "
+                f"{average_invariant_audit['final_selection_status']} |"
+            ),
+            (
+                "| average invariant audit | selected candidate / retention / predicted max delta | "
+                f"{average_invariant_audit['selected_candidate_id']} / "
+                f"{fmt(average_invariant_audit['selected_nonbase_mass_retention'])} / "
+                f"{fmt(average_invariant_audit['selected_max_predicted_relative_delta'])} |"
             ),
             (
                 "| Qwen target model registry | candidate dense / MoE models | "

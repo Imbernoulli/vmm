@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-20T04:07:17.677076+00:00`
+Generated at: `2026-06-20T04:16:41.407965+00:00`
 
 ## Coverage
 
-Complete: `82`; partial: `1`; missing: `0`.
+Complete: `83`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -39,6 +39,7 @@ Complete: `82`; partial: `1`; missing: `0`.
 | Dense/MoE averaging literature matrix | complete | results/model_averaging_literature_review/report.md maps recent model averaging and MoE merging papers to probes, failure signals, and same-shape writer actions. |
 | Average method gate matrix | complete | results/average_method_gate_matrix/report.md turns common Dense/MoE averaging method families into current-evidence accept/reject/conditional gates. |
 | Average connectivity diagnostic | complete | results/average_connectivity_diagnostic/report.md unifies Dense/MoE endpoint-frontier, midpoint, barrier, complementarity, and local-quadratic gates. |
+| Average invariant audit | complete | results/average_invariant_audit/report.md converts model-averaging literature and current Dense/MoE probes into executable acceptance invariants and method gates. |
 | Qwen target model registry | complete | results/qwen_target_model_registry/report.md maps representative official, third-party, downstream, and adapter-pool Qwen candidates to scenarios, eval slices, probes, and same-shape topology gates. |
 | MoE same-shape averaging plan | complete | results/moe_average_plan/report.md maps router/expert probes into same-shape router, shared-module, expert, and adapter averaging actions. |
 | Same-shape checkpoint writer | complete | scripts/write_same_shape_average_checkpoint.py writes same-shape safetensors checkpoints; results/same_shape_writer_smoke/report.md validates Qwen2.5-0.5B base/instruct/coder dry-run compatibility. |
@@ -405,6 +406,9 @@ Complete: `82`; partial: `1`; missing: `0`.
 | average method gate matrix | dense midpoint / best-family / Qwen3 interior gap | 6.040 / 3.073 / 0.119 |
 | average connectivity diagnostic | path rejected / midpoint rejected / frontier wins | 5/6 / 5/6 / 1 |
 | average connectivity diagnostic | Dense midpoint gap / Dense anchor gap / Qwen3 MoE gap | 2.917 / -0.101 / 0.119 |
+| average invariant audit | invariants / hard blockers / default accepted methods | 10 / 4 / 0 |
+| average invariant audit | same-shape / router allowed layers / final selector | True / 0/48 / awaiting_source_eval |
+| average invariant audit | selected candidate / retention / predicted max delta | router_evidence_risk_s0.75 / 0.976 / 0.623 |
 | Qwen target model registry | candidate dense / MoE models | 12 / 5 |
 | Qwen target model registry | downstream or third-party candidates | 9 |
 | Qwen target model registry | recommended first scenario | dense_7b_general_code_math_reasoning |

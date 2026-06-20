@@ -1,0 +1,36 @@
+{
+  "default_accepted_method_count": 0,
+  "default_rejected_method_count": 1,
+  "expert_identity_fraction": 1.0,
+  "final_selection_status": "awaiting_source_eval",
+  "hard_gate_blocker_count": 4,
+  "high_route_geometry_risk_expert_count": 204,
+  "invariant_count": 10,
+  "method_family_count": 10,
+  "outputs": {
+    "algorithm_spec": "results/average_invariant_audit/algorithm_spec.json",
+    "figure": "results/average_invariant_audit/invariant_status.png",
+    "invariants": "results/average_invariant_audit/invariant_table.csv",
+    "literature_sources": "results/average_invariant_audit/literature_sources.json",
+    "method_matrix": "results/average_invariant_audit/method_invariant_matrix.csv",
+    "report": "results/average_invariant_audit/report.md",
+    "summary": "results/average_invariant_audit/summary.json"
+  },
+  "router_allowed_layers": 0,
+  "router_layer_count": 48,
+  "same_shape_contract_pass": true,
+  "schema_version": 1,
+  "selected_candidate_id": "router_evidence_risk_s0.75",
+  "selected_max_predicted_relative_delta": 0.6234276715724305,
+  "selected_nonbase_mass_retention": 0.9757834655609336,
+  "status": "average_requires_guarded_selector_and_eval",
+  "status_counts": {
+    "awaiting_eval": 1,
+    "conditional_geometry_shrink": 1,
+    "mechanism_supported_not_sufficient": 1,
+    "pass": 3,
+    "reject_as_sufficient_gate": 1,
+    "reject_default_average": 2,
+    "reject_router_movement": 1
+  }
+}
