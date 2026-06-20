@@ -731,6 +731,44 @@ def summarize_fp_downstream_confidence_audit() -> dict[str, Any]:
     }
 
 
+def summarize_qwen3_source_set_complementarity_gate() -> dict[str, Any]:
+    root = repo_path("results/qwen3_source_set_complementarity_gate")
+    summary = read_json(root / "summary.json")
+    source_sets = read_csv(root / "source_set_gate.csv")
+    observed = read_csv(root / "observed_merge_gaps.csv")
+    scenarios = read_csv(root / "recommended_scenarios.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "source_set_count": maybe_int(summary.get("source_set_count")),
+        "observed_merge_count": maybe_int(summary.get("observed_merge_count")),
+        "source_dominated_set_count": maybe_int(summary.get("source_dominated_set_count")),
+        "complementary_source_set_count": maybe_int(summary.get("complementary_source_set_count")),
+        "weak_complementary_source_set_count": maybe_int(
+            summary.get("weak_complementary_source_set_count")
+        ),
+        "current_source_set": summary.get("current_source_set"),
+        "current_gate": summary.get("current_gate"),
+        "current_dominant_source": summary.get("current_dominant_source"),
+        "current_frontier_avg_gain_vs_best_single": maybe_float(
+            summary.get("current_frontier_avg_gain_vs_best_single")
+        ),
+        "current_best_observed_merge": summary.get("current_best_observed_merge"),
+        "current_best_observed_avg_gap_to_frontier": maybe_float(
+            summary.get("current_best_observed_avg_gap_to_frontier")
+        ),
+        "recommended_action": summary.get("recommended_action"),
+        "source_set_rows": [clean_row(row) for _, row in source_sets.iterrows()],
+        "observed_merge_rows": [clean_row(row) for _, row in observed.iterrows()],
+        "scenario_rows": [clean_row(row) for _, row in scenarios.iterrows()],
+        "report": rel(root / "report.md"),
+        "source_set_gate": rel(root / "source_set_gate.csv"),
+        "observed_merge_gaps": rel(root / "observed_merge_gaps.csv"),
+        "recommended_scenarios": rel(root / "recommended_scenarios.csv"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_average_decision_report() -> dict[str, Any]:
     summary = read_json("results/average_decision_report/summary.json")
     decisions = summary.get("decisions", [])
@@ -4778,6 +4816,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/fp_downstream_confidence_audit/report.md adds Wilson aggregate uncertainty bounds to the generation matrix and shows router calibration is directional but not yet a confident source-frontier win.",
         },
         {
+            "item": "Qwen3 source-set complementarity gate",
+            "status": "complete",
+            "evidence": "results/qwen3_source_set_complementarity_gate/report.md separates endpoint-frontier complementarity from merge quality and marks the current Instruct+Coder pair as source-dominated rather than final-averageable.",
+        },
+        {
             "item": "Formal LLM benchmark slices",
             "status": "complete",
             "evidence": "Representative Qwen2.5-1.5B benchmark slices cover MMLU, GSM8K, HumanEval canonical-solution NLL, and BeaverTails safety/refusal NLL.",
@@ -5185,6 +5228,7 @@ def build_summary() -> dict[str, Any]:
         "fp_downstream_matrix": summarize_fp_downstream_matrix(),
         "fp_downstream_attribution": summarize_fp_downstream_attribution(),
         "fp_downstream_confidence_audit": summarize_fp_downstream_confidence_audit(),
+        "qwen3_source_set_complementarity_gate": summarize_qwen3_source_set_complementarity_gate(),
         "qwen_probe_smoke": summarize_qwen_probe_smoke(),
         "average_decision_report": summarize_average_decision_report(),
         "model_averaging_literature_review": summarize_model_averaging_literature_review(),
@@ -5503,6 +5547,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     fp_downstream_matrix = exp["fp_downstream_matrix"]
     fp_downstream_attribution = exp["fp_downstream_attribution"]
     fp_downstream_confidence = exp["fp_downstream_confidence_audit"]
+    qwen3_source_set_complementarity = exp["qwen3_source_set_complementarity_gate"]
     average_decision = exp["average_decision_report"]
     literature_review = exp["model_averaging_literature_review"]
     average_method_gate_matrix = exp["average_method_gate_matrix"]
@@ -5870,6 +5915,18 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"/{fp_downstream_confidence['task_count']} / "
                 f"[{fmt(fp_downstream_confidence['routercal_avg_diff_lower_vs_naive'])}, "
                 f"{fmt(fp_downstream_confidence['routercal_avg_diff_upper_vs_naive'])}] |"
+            ),
+            (
+                "| Qwen3 source-set complementarity gate | current / gate / dominant source | "
+                f"{qwen3_source_set_complementarity['current_source_set']} / "
+                f"{qwen3_source_set_complementarity['current_gate']} / "
+                f"{qwen3_source_set_complementarity['current_dominant_source']} |"
+            ),
+            (
+                "| Qwen3 source-set complementarity gate | frontier gain / best observed gap / complementary sets | "
+                f"{fmt(qwen3_source_set_complementarity['current_frontier_avg_gain_vs_best_single'])} / "
+                f"{fmt(qwen3_source_set_complementarity['current_best_observed_avg_gap_to_frontier'])} / "
+                f"{qwen3_source_set_complementarity['complementary_source_set_count']} |"
             ),
             (
                 "| first-principles MoE mechanism | gauge-equivalent B MSE | "

@@ -56,6 +56,15 @@
     },
     {
       "blocking_status": "passed",
+      "mechanism": "endpoint_frontier_before_average",
+      "next_command": "python scripts/build_qwen3_source_set_complementarity_gate.py --output-dir results/qwen3_source_set_complementarity_gate",
+      "observed_state": "source_set=instruct+coder; gate=source_dominated_not_averageable_as_final; dominant=instruct; frontier_avg_gain=0.0000; best_observed_gap=-0.0694; verdict=supports_current_action",
+      "passed": true,
+      "required_state": "average is only treated as a final-candidate prior when the source set has measured task complementarity; source-dominated sets are repair/ablation only",
+      "requirement": "source_set_complementarity_gate"
+    },
+    {
+      "blocking_status": "passed",
       "mechanism": "route_geometry_subspace_cap_audit",
       "next_command": "python scripts/audit_materialized_checkpoint_delta.py --base BASE --candidate results/checkpoints/qwen3_moe_unified_mechanism_candidate --output-dir results/qwen3_moe_unified_mechanism_delta_audit",
       "observed_state": "rule_status=fresh; audit_status=passed; routed_gt_0.65=0; router_changed=0/48; manifest_match=True",
@@ -145,6 +154,13 @@
       "verdict": "supports_current_action"
     },
     {
+      "acceptance_gate_still_needed": "new source sets must show material endpoint complementarity and then pass locked downstream eval",
+      "current_algorithm_action": "treat_current_instruct_coder_average_as_repair_or_ablation_until_new_complementary_sources_pass_endpoint_eval",
+      "evidence_tier": "generation_source_frontier_gate",
+      "hypothesis_id": "source_set_complementarity_precedes_average",
+      "verdict": "supports_current_action"
+    },
+    {
       "acceptance_gate_still_needed": "budgeted vLLM eval versus both sources and registered candidates",
       "current_algorithm_action": "keep_unified_mechanism_candidate_provisional",
       "evidence_tier": "structural_audit_without_downstream_acceptance",
@@ -209,6 +225,12 @@
       "falsification_test": "A straight-line or 2D plane sweep must find an interior point that beats both source endpoints on the paired downstream frontier.",
       "hypothesis_id": "moe_source_to_source_line_not_averageable",
       "next_command": "python scripts/fp_moe_barrier.py --out results/fp_moe_barrier"
+    },
+    {
+      "current_status": "current_qwen3_pair_source_dominated",
+      "falsification_test": "Endpoint eval for a source set must show a material task-frontier gain over its best single source, then the same-shape average must approach or beat that frontier under locked downstream eval.",
+      "hypothesis_id": "source_set_complementarity_precedes_average",
+      "next_command": "python scripts/build_qwen3_source_set_complementarity_gate.py --output-dir results/qwen3_source_set_complementarity_gate"
     },
     {
       "current_status": "structurally_passed_waiting_downstream_eval",
@@ -318,7 +340,8 @@
     "moe_expert_subspace_cap": "for each routed expert group g, choose scale s_g to preserve route-mass-weighted nonbase contribution while reducing predicted delta under route, geometry, and subspace-conflict weights",
     "moe_router_coupled_shrink_gate": "let router fragility enter the expert-scale interference score, but add a separate direct shrink term only if the retention-safe frontier achieves a material fraction of the aggressive ablation effect and then passes matched downstream eval",
     "moe_router_margin_gate": "for router logits z_lambda = z_A + lambda * (z_B - z_A), a top-k assignment can flip when lambda * ||Delta z|| reaches the observed top-k margin; therefore small empirical margins imply a near-zero safe router lambda",
-    "same_shape_constraint": "all accepted operations must preserve model config, tokenizer, class, tensor names, tensor shapes, and MoE expert/router cardinalities"
+    "same_shape_constraint": "all accepted operations must preserve model config, tokenizer, class, tensor names, tensor shapes, and MoE expert/router cardinalities",
+    "source_set_complementarity_gate": "before accepting any average, compare the source-set task frontier to the best single source; if the frontier has no material gain because one source dominates, average candidates are repair or ablation tests rather than source-beating priors"
   },
   "name": "mechanism_gated_unified_average",
   "schema_version": 1,
@@ -373,32 +396,39 @@
       "step": 7
     },
     {
+      "condition": "current source set instruct+coder has gate source_dominated_not_averageable_as_final; dominant source instruct; frontier avg gain 0.0000; best observed merge gap -0.0694",
+      "operation": "require source-set complementarity before expecting average to beat sources",
+      "selected_action": "do_not_expect_average_to_beat_current_source_frontier; use average only as repair_ablation_until_new_complementary_sources_pass_endpoint_eval",
+      "stage": "moe_source_set_complementarity_gate",
+      "step": 8
+    },
+    {
       "condition": "expert identity is aligned, direct router movement is rejected, and real expert geometry/subspace probes expose nonuniform risk",
       "operation": "apply retention-constrained router/evidence/geometry/subspace caps",
       "selected_action": "subspace_cap_s1.00 with hard cap 0.6500; subspace-weighted rel-delta = 0.2148; materialized rule status = fresh; layer/chunk->unified routed >0.65 reduction = 89; mechanistic->subspace norm delta = 0.001304",
       "stage": "moe_expert_delta_optimizer",
-      "step": 8
+      "step": 9
     },
     {
       "condition": "router-only NLL probe improves the linear MoE merge, but Qwen3 baseline/source vLLM eval is not complete",
       "operation": "treat router calibration as a separately audited ablation",
       "selected_action": "nll_probe_worst_reduction=0.2214; generation_avg_gain=0.0333; generation_recovery_fraction=0.3243; confidence_positive_tasks=0/3; confidence_source_frontier_wins=0/3; awaiting_baseline_eval: Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps.",
       "stage": "moe_router_calibration_gate",
-      "step": 9
+      "step": 10
     },
     {
       "condition": "finite-budget vLLM eval can make point estimates differ by noise; after hard source/task/paired gates, structural frontier and safety are used only when the point leader's confidence interval overlaps the candidate band",
       "operation": "rank structural mechanisms only inside a downstream confidence tie band",
       "selected_action": "confidence_tie_band=True; rank_mode=None; point_leader=None; band_size=0; structural_frontier_eligible=0",
       "stage": "moe_statistical_selector_gate",
-      "step": 10
+      "step": 11
     },
     {
       "condition": "structural probes can rank risk, but source dominance and task regression need vLLM scores",
       "operation": "select only after audited downstream eval",
       "selected_action": "keep all registered Qwen3 candidates provisional until eval-bundle audit passes",
       "stage": "moe_candidate_gate",
-      "step": 11
+      "step": 12
     }
   ]
 }

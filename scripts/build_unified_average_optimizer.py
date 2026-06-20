@@ -241,6 +241,7 @@ def moe_feature_rows(
     qwen3_downstream_attribution: dict[str, Any],
     qwen3_downstream_confidence: dict[str, Any],
     qwen3_router_coupled_retention_frontier: dict[str, Any],
+    qwen3_source_set_complementarity: dict[str, Any],
 ) -> list[dict[str, Any]]:
     selection = final_selection.get("current_selection") or {}
     router_selection = router_calibration.get("current_selection") or {}
@@ -524,6 +525,27 @@ def moe_feature_rows(
         },
         {
             "domain": "moe",
+            "probe": "qwen3_source_set_complementarity_gate",
+            "value": qwen3_source_set_complementarity.get(
+                "current_frontier_avg_gain_vs_best_single"
+            ),
+            "threshold": qwen3_source_set_complementarity.get("min_avg_frontier_gain"),
+            "decision_signal": "current_source_set_is_source_dominated_not_complementary",
+            "evidence": (
+                f"current source set = {qwen3_source_set_complementarity.get('current_source_set')}; "
+                f"gate = {qwen3_source_set_complementarity.get('current_gate')}; "
+                f"dominant source = {qwen3_source_set_complementarity.get('current_dominant_source')}; "
+                f"frontier avg gain = "
+                f"{fmt(qwen3_source_set_complementarity.get('current_frontier_avg_gain_vs_best_single'))}; "
+                f"best observed merge = "
+                f"{qwen3_source_set_complementarity.get('current_best_observed_merge')} "
+                f"gap {fmt(qwen3_source_set_complementarity.get('current_best_observed_avg_gap_to_frontier'))}; "
+                f"complementary measured sets = "
+                f"{qwen3_source_set_complementarity.get('complementary_source_set_count')}"
+            ),
+        },
+        {
+            "domain": "moe",
             "probe": "qwen3_router_calibration_gate",
             "value": router_selection.get("eligible_candidate_count"),
             "threshold": router_selection.get("candidate_count"),
@@ -582,6 +604,7 @@ def build_decisions(
     qwen3_downstream_attribution: dict[str, Any],
     qwen3_downstream_confidence: dict[str, Any],
     qwen3_router_coupled_retention_frontier: dict[str, Any],
+    qwen3_source_set_complementarity: dict[str, Any],
 ) -> pd.DataFrame:
     dense_config = ((dense_selector.get("results") or {}).get("unified") or {}).get("config") or {}
     final_current = final_selection.get("current_selection") or {}
@@ -697,6 +720,21 @@ def build_decisions(
             "same_shape_invariant": "candidate generation still writes the same tensor names and shapes; the gate only decides whether straight-line interpolation is allowed",
         },
         {
+            "stage": "moe_source_set_complementarity_gate",
+            "operation": "require source-set complementarity before expecting average to beat sources",
+            "condition": (
+                f"current source set {qwen3_source_set_complementarity.get('current_source_set')} has gate "
+                f"{qwen3_source_set_complementarity.get('current_gate')}; dominant source "
+                f"{qwen3_source_set_complementarity.get('current_dominant_source')}; frontier avg gain "
+                f"{fmt(qwen3_source_set_complementarity.get('current_frontier_avg_gain_vs_best_single'))}; "
+                f"best observed merge gap "
+                f"{fmt(qwen3_source_set_complementarity.get('current_best_observed_avg_gap_to_frontier'))}"
+            ),
+            "selected_action": qwen3_source_set_complementarity.get("recommended_action"),
+            "why_it_should_improve": "It avoids spending algorithmic effort trying to make an average beat a source set whose measured frontier is already a single dominant endpoint.",
+            "same_shape_invariant": "this gate changes source-set selection and evaluation priority only; any accepted output remains one same-shape checkpoint",
+        },
+        {
             "stage": "moe_expert_delta_optimizer",
             "operation": "apply retention-constrained router/evidence/geometry/subspace caps",
             "condition": "expert identity is aligned, direct router movement is rejected, and real expert geometry/subspace probes expose nonuniform risk",
@@ -809,6 +847,9 @@ def build_mechanism_hypotheses(summary: dict[str, Any]) -> pd.DataFrame:
     router_cal_promising = (
         fnum(moe.get("qwen3_router_calibration_nll_worst_reduction")) is not None
         and float(moe["qwen3_router_calibration_nll_worst_reduction"]) > 0.0
+    )
+    source_set_dominated = str(moe.get("qwen3_source_set_current_gate")) == (
+        "source_dominated_not_averageable_as_final"
     )
     generation_router_cal_directional = (
         fnum(moe.get("qwen3_generation_pair_routercal_avg_gain")) is not None
@@ -927,6 +968,27 @@ def build_mechanism_hypotheses(summary: dict[str, Any]) -> pd.DataFrame:
             "action_if_falsified": "use router/evidence/geometry-constrained same-shape expert rules",
             "next_command": "python scripts/fp_moe_barrier.py --out results/fp_moe_barrier",
             "literature_keys": "mode_connectivity,loss_landscape,model_soups",
+        },
+        {
+            "hypothesis_id": "source_set_complementarity_precedes_average",
+            "domain": "dense_and_moe",
+            "current_status": "current_qwen3_pair_source_dominated"
+            if source_set_dominated
+            else "source_set_has_measured_complementarity",
+            "mechanism": "Averaging can only beat the endpoint frontier when different sources own different measured tasks or slices; if one source dominates, merging is repair/regularization rather than a final-candidate prior.",
+            "current_evidence": (
+                f"source set = {moe.get('qwen3_source_set_current')}; "
+                f"gate = {moe.get('qwen3_source_set_current_gate')}; "
+                f"dominant source = {moe.get('qwen3_source_set_current_dominant_source')}; "
+                f"frontier avg gain = {fmt(moe.get('qwen3_source_set_current_frontier_avg_gain'))}; "
+                f"best observed merge gap = {fmt(moe.get('qwen3_source_set_current_best_observed_avg_gap'))}; "
+                f"complementary measured sets = {moe.get('qwen3_source_set_complementary_count')}"
+            ),
+            "falsification_test": "Endpoint eval for a source set must show a material task-frontier gain over its best single source, then the same-shape average must approach or beat that frontier under locked downstream eval.",
+            "action_if_supported": "prioritize averaging only for complementary source sets",
+            "action_if_falsified": "return the dominant endpoint and use average candidates only as repair/ablation probes",
+            "next_command": "python scripts/build_qwen3_source_set_complementarity_gate.py --output-dir results/qwen3_source_set_complementarity_gate",
+            "literature_keys": "model_soups,expert_merging,mode_connectivity",
         },
         {
             "hypothesis_id": "moe_risk_weighted_expert_caps_preserve_useful_route_mass",
@@ -1373,6 +1435,20 @@ def build_evidence_ledger(summary: dict[str, Any], hypotheses: pd.DataFrame) -> 
             "confidence_score": 0.90,
         },
         {
+            "hypothesis_id": "source_set_complementarity_precedes_average",
+            "evidence_tier": "generation_source_frontier_gate",
+            "verdict": "supports_current_action",
+            "current_status": hypothesis_status("source_set_complementarity_precedes_average"),
+            "current_algorithm_action": "treat_current_instruct_coder_average_as_repair_or_ablation_until_new_complementary_sources_pass_endpoint_eval",
+            "why_verdict": (
+                "The current measured source frontier is a single dominant Instruct endpoint; the best observed "
+                "merge remains below that frontier, so averaging is not yet a source-beating prior."
+            ),
+            "acceptance_gate_still_needed": "new source sets must show material endpoint complementarity and then pass locked downstream eval",
+            "numeric_signal": fnum(moe.get("qwen3_source_set_current_best_observed_avg_gap")),
+            "confidence_score": 0.87,
+        },
+        {
             "hypothesis_id": "moe_risk_weighted_expert_caps_preserve_useful_route_mass",
             "evidence_tier": "structural_audit_without_downstream_acceptance",
             "verdict": unified_verdict,
@@ -1461,6 +1537,7 @@ def build_algorithm_contract(
         verdict("moe_direct_router_boundary_shrink_is_not_default") == "supports_current_action"
     )
     connectivity_gate = verdict("moe_source_to_source_line_not_averageable") == "supports_current_action"
+    source_set_gate = verdict("source_set_complementarity_precedes_average") == "supports_current_action"
     structural_gate = (
         moe.get("qwen3_unified_materialized_rule_status") == "fresh"
         and moe.get("qwen3_unified_audit_status") == "passed"
@@ -1567,6 +1644,22 @@ def build_algorithm_contract(
             "passed": connectivity_gate,
             "blocking_status": "passed" if connectivity_gate else "failed_connectivity_gate",
             "next_command": "python scripts/fp_moe_barrier.py --out results/fp_moe_barrier",
+        },
+        {
+            "requirement": "source_set_complementarity_gate",
+            "mechanism": "endpoint_frontier_before_average",
+            "required_state": "average is only treated as a final-candidate prior when the source set has measured task complementarity; source-dominated sets are repair/ablation only",
+            "observed_state": (
+                f"source_set={moe.get('qwen3_source_set_current')}; "
+                f"gate={moe.get('qwen3_source_set_current_gate')}; "
+                f"dominant={moe.get('qwen3_source_set_current_dominant_source')}; "
+                f"frontier_avg_gain={fmt(moe.get('qwen3_source_set_current_frontier_avg_gain'))}; "
+                f"best_observed_gap={fmt(moe.get('qwen3_source_set_current_best_observed_avg_gap'))}; "
+                f"verdict={verdict('source_set_complementarity_precedes_average')}"
+            ),
+            "passed": source_set_gate,
+            "blocking_status": "passed" if source_set_gate else "failed_source_set_complementarity_gate",
+            "next_command": "python scripts/build_qwen3_source_set_complementarity_gate.py --output-dir results/qwen3_source_set_complementarity_gate",
         },
         {
             "requirement": "mechanistic_candidate_structural_gate",
@@ -1717,6 +1810,7 @@ def build_algorithm(
             "dense_second_order_gate": "accept a straight-line average only when the measured path loss does not exceed the endpoint frontier; local Fisher/RegMean curvature is treated as a proxy, not a proof",
             "moe_router_margin_gate": "for router logits z_lambda = z_A + lambda * (z_B - z_A), a top-k assignment can flip when lambda * ||Delta z|| reaches the observed top-k margin; therefore small empirical margins imply a near-zero safe router lambda",
             "moe_router_coupled_shrink_gate": "let router fragility enter the expert-scale interference score, but add a separate direct shrink term only if the retention-safe frontier achieves a material fraction of the aggressive ablation effect and then passes matched downstream eval",
+            "source_set_complementarity_gate": "before accepting any average, compare the source-set task frontier to the best single source; if the frontier has no material gain because one source dominates, average candidates are repair or ablation tests rather than source-beating priors",
             "moe_expert_subspace_cap": "for each routed expert group g, choose scale s_g to preserve route-mass-weighted nonbase contribution while reducing predicted delta under route, geometry, and subspace-conflict weights",
             "moe_confidence_tie_band_gate": "after source, task-regression, confidence-dominance, and paired-prediction gates, find the point-estimate leader; candidates whose aggregate confidence upper bounds overlap the leader lower bounds form the rank band, and structural frontier/safety can break ties only inside that band",
             "same_shape_constraint": "all accepted operations must preserve model config, tokenizer, class, tensor names, tensor shapes, and MoE expert/router cardinalities",
@@ -1756,6 +1850,7 @@ def build_report(
         f"- Qwen3 generation matrix: Instruct+Coder avg `{fmt(moe['qwen3_generation_pair_merge_avg'])}` -> router-cal avg `{fmt(moe['qwen3_generation_pair_routercal_avg'])}`；avg gain `{fmt(moe['qwen3_generation_pair_routercal_avg_gain'])}`，gap to best parent `{fmt(moe['qwen3_generation_pair_routercal_gap_to_best_parent_avg'])}`。",
         f"- Qwen3 generation attribution: router-cal recovers `{fmt(moe['qwen3_generation_avg_routercal_recovery_fraction'])}` of avg naive drop and beats pair frontier on `{moe['qwen3_generation_routercal_beats_pair_frontier_count']}/{moe['qwen3_generation_attribution_score_count']}` scores。",
         f"- Qwen3 generation confidence: positive tasks vs naive `{moe['qwen3_generation_routercal_positive_tasks_vs_naive']}/{moe['qwen3_generation_confidence_task_count']}`，confident positives `{moe['qwen3_generation_routercal_confident_positive_tasks']}/{moe['qwen3_generation_confidence_task_count']}`，confident source-frontier wins `{moe['qwen3_generation_routercal_confident_source_frontier_wins']}/{moe['qwen3_generation_confidence_task_count']}`；avg gain interval `[{fmt(moe['qwen3_generation_routercal_avg_gain_lower'])}, {fmt(moe['qwen3_generation_routercal_avg_gain_upper'])}]`。",
+        f"- Qwen3 source-set complementarity: `{moe['qwen3_source_set_current']}` gate `{moe['qwen3_source_set_current_gate']}`，dominant `{moe['qwen3_source_set_current_dominant_source']}`，frontier avg gain `{fmt(moe['qwen3_source_set_current_frontier_avg_gain'])}`，best observed merge gap `{fmt(moe['qwen3_source_set_current_best_observed_avg_gap'])}`。",
         f"- Qwen3 router calibration: `{moe['qwen3_router_calibration_status']}`。",
         f"- Qwen3 final selection: `{moe['qwen3_final_selection_status']}`，eligible `{moe['qwen3_eligible_candidates']}/{moe['qwen3_candidate_count']}`。",
         f"- Qwen3 final selector rank gate: confidence band `{moe['qwen3_final_confidence_tie_band']}`，rank mode `{moe['qwen3_final_selection_rank_mode']}`，band size `{moe['qwen3_final_selection_rank_band_size']}`，point leader `{moe['qwen3_final_selection_point_leader_method']}`。",
@@ -1892,6 +1987,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
     qwen3_router_coupled_retention_frontier = read_json(
         args.qwen3_router_coupled_retention_frontier
     )
+    qwen3_source_set_complementarity = read_json(args.qwen3_source_set_complementarity)
 
     feature_rows = dense_feature_rows(curvature, dense_selector, dense_lambda, gen_eval)
     feature_rows.extend(
@@ -1914,6 +2010,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
             qwen3_downstream_attribution,
             qwen3_downstream_confidence,
             qwen3_router_coupled_retention_frontier,
+            qwen3_source_set_complementarity,
         )
     )
     features = pd.DataFrame(feature_rows)
@@ -1934,6 +2031,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         qwen3_downstream_attribution,
         qwen3_downstream_confidence,
         qwen3_router_coupled_retention_frontier,
+        qwen3_source_set_complementarity,
     )
 
     dense_results = dense_selector.get("results") or {}
@@ -2128,6 +2226,33 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
             ),
             "qwen3_generation_routercal_avg_source_frontier_gap_upper": fnum(
                 qwen3_downstream_confidence.get("routercal_avg_gap_upper_vs_pair_frontier")
+            ),
+            "qwen3_source_set_gate_status": qwen3_source_set_complementarity.get("status"),
+            "qwen3_source_set_current": qwen3_source_set_complementarity.get("current_source_set"),
+            "qwen3_source_set_current_gate": qwen3_source_set_complementarity.get("current_gate"),
+            "qwen3_source_set_current_dominant_source": qwen3_source_set_complementarity.get(
+                "current_dominant_source"
+            ),
+            "qwen3_source_set_current_frontier_avg": fnum(
+                qwen3_source_set_complementarity.get("current_frontier_avg")
+            ),
+            "qwen3_source_set_current_frontier_avg_gain": fnum(
+                qwen3_source_set_complementarity.get("current_frontier_avg_gain_vs_best_single")
+            ),
+            "qwen3_source_set_current_best_observed_merge": qwen3_source_set_complementarity.get(
+                "current_best_observed_merge"
+            ),
+            "qwen3_source_set_current_best_observed_avg_gap": fnum(
+                qwen3_source_set_complementarity.get("current_best_observed_avg_gap_to_frontier")
+            ),
+            "qwen3_source_set_complementary_count": qwen3_source_set_complementarity.get(
+                "complementary_source_set_count"
+            ),
+            "qwen3_source_set_source_dominated_count": qwen3_source_set_complementarity.get(
+                "source_dominated_set_count"
+            ),
+            "qwen3_source_set_recommended_action": qwen3_source_set_complementarity.get(
+                "recommended_action"
             ),
             "qwen3_layer_chunk_to_unified_relative_norm_reduction": fnum(
                 delta_frontier.get("layer_chunk_to_unified_relative_norm_reduction")
@@ -2345,6 +2470,11 @@ def parse_args() -> argparse.Namespace:
         "--qwen3-downstream-confidence",
         type=Path,
         default=Path("results/fp_downstream_confidence_audit/summary.json"),
+    )
+    parser.add_argument(
+        "--qwen3-source-set-complementarity",
+        type=Path,
+        default=Path("results/qwen3_source_set_complementarity_gate/summary.json"),
     )
     parser.add_argument(
         "--qwen3-router-margin-fragility",

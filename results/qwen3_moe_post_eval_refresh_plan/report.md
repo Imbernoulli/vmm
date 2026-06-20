@@ -4,7 +4,7 @@
 
 - Status: `planned`
 - Plan only: `True`
-- Steps passed: `0/28`
+- Steps passed: `0/29`
 - Audit: `n/a` (`n/a/n/a` usable)
 - Selection: `n/a` -> `n/a`
 - Final selection: `n/a` -> `n/a` (`n/a/n/a` eligible)
@@ -19,6 +19,7 @@
 - Router-expert coupling: `n/a` (fragility->feature `n/a`, fragility->shrink `n/a`, shrink lift `n/a`, top layer `Ln/a`)
 - Router-coupled candidate: `n/a` -> `n/a` (`retention=n/a`, `retention_delta=n/a`, `coupled_delta_reduction=n/a`)
 - Router-coupled retention frontier: `n/a` (`effect_fraction=n/a`, candidates `n/a/n/a` pass default gate)
+- Source-set complementarity: `n/a` (dominant `n/a`, frontier avg gain `n/a`, best observed gap `n/a`, complementary sets `n/a`)
 - Unified average optimizer: `n/a` (top next experiment `n/a` / `n/a`)
 - Unified algorithm contract: `n/a` (`n/a/n/a` passed, blocking `[]`)
 - Unified selector rank gate in optimizer: confidence band `n/a`, rank mode `n/a`, band size `n/a`
@@ -44,6 +45,7 @@
 | `analyze_router_expert_coupling` | `attribution` | `planned` | None | 0.00 |
 | `build_router_coupled_candidate` | `optimizer` | `planned` | None | 0.00 |
 | `analyze_router_coupled_retention_frontier` | `attribution` | `planned` | None | 0.00 |
+| `build_source_set_complementarity_gate` | `gate` | `planned` | None | 0.00 |
 | `build_unified_average_optimizer` | `optimizer` | `planned` | None | 0.00 |
 | `build_average_method_gate_matrix` | `optimizer` | `planned` | None | 0.00 |
 | `build_average_trust_region_bounds` | `optimizer` | `planned` | None | 0.00 |
@@ -75,6 +77,7 @@
 - `python scripts/analyze_qwen3_moe_router_expert_coupling.py --output-dir results/qwen3_moe_router_expert_coupling`
 - `python scripts/build_qwen3_moe_router_coupled_candidate.py --output-dir results/qwen3_moe_router_coupled_candidate`
 - `python scripts/analyze_qwen3_moe_router_coupled_retention_frontier.py --output-dir results/qwen3_moe_router_coupled_retention_frontier`
+- `python scripts/build_qwen3_source_set_complementarity_gate.py --output-dir results/qwen3_source_set_complementarity_gate`
 - `python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer`
 - `python scripts/build_average_method_gate_matrix.py --output-dir results/average_method_gate_matrix --optimizer-summary results/unified_average_optimizer/summary.json --optimizer-features results/unified_average_optimizer/mechanism_features.csv`
 - `python scripts/build_average_trust_region_bounds.py --output-dir results/average_trust_region_bounds`

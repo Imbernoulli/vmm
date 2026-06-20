@@ -252,6 +252,16 @@ def build_steps(args: argparse.Namespace) -> list[dict[str, Any]]:
             ],
         },
         {
+            "step": "build_source_set_complementarity_gate",
+            "kind": "gate",
+            "command": [
+                py,
+                "scripts/build_qwen3_source_set_complementarity_gate.py",
+                "--output-dir",
+                str(args.source_set_complementarity_dir),
+            ],
+        },
+        {
             "step": "build_unified_average_optimizer",
             "kind": "optimizer",
             "command": [
@@ -448,6 +458,9 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
     router_coupled_frontier = read_json(
         repo_path(args.router_coupled_retention_frontier_dir) / "summary.json"
     )
+    source_set_complementarity = read_json(
+        repo_path(args.source_set_complementarity_dir) / "summary.json"
+    )
     unified_optimizer = read_json(repo_path(args.unified_optimizer_dir) / "summary.json")
     unified_optimizer_smoke = read_json(repo_path(args.unified_optimizer_smoke_dir) / "summary.json")
     average_method_gate = read_json(repo_path(args.average_method_gate_dir) / "summary.json")
@@ -561,6 +574,20 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
         "router_coupled_frontier_candidate_count": router_coupled_frontier.get(
             "candidate_count"
         ),
+        "source_set_complementarity_status": source_set_complementarity.get("status"),
+        "source_set_complementarity_current_gate": source_set_complementarity.get("current_gate"),
+        "source_set_complementarity_current_dominant_source": source_set_complementarity.get(
+            "current_dominant_source"
+        ),
+        "source_set_complementarity_frontier_avg_gain": source_set_complementarity.get(
+            "current_frontier_avg_gain_vs_best_single"
+        ),
+        "source_set_complementarity_best_observed_gap": source_set_complementarity.get(
+            "current_best_observed_avg_gap_to_frontier"
+        ),
+        "source_set_complementarity_complementary_count": source_set_complementarity.get(
+            "complementary_source_set_count"
+        ),
         "unified_optimizer_status": unified_optimizer.get("status"),
         "unified_optimizer_contract_status": unified_optimizer.get("contract_status"),
         "unified_optimizer_contract_passed": unified_optimizer.get("contract_passed_requirement_count"),
@@ -630,6 +657,7 @@ def build_report(summary: dict[str, Any]) -> str:
         f"- Router-expert coupling: `{downstream.get('router_expert_coupling_gate', 'n/a')}` (fragility->feature `{downstream.get('router_expert_coupling_fragility_router_feature_corr', 'n/a')}`, fragility->shrink `{downstream.get('router_expert_coupling_fragility_scale_shrink_corr', 'n/a')}`, shrink lift `{downstream.get('router_expert_coupling_shrink_lift', 'n/a')}`, top layer `L{downstream.get('router_expert_coupling_top_layer', 'n/a')}`)",
         f"- Router-coupled candidate: `{downstream.get('router_coupled_candidate_selection_gate', 'n/a')}` -> `{downstream.get('router_coupled_candidate_selected', 'n/a')}` (`retention={downstream.get('router_coupled_candidate_retention', 'n/a')}`, `retention_delta={downstream.get('router_coupled_candidate_retention_delta', 'n/a')}`, `coupled_delta_reduction={downstream.get('router_coupled_candidate_delta_reduction', 'n/a')}`)",
         f"- Router-coupled retention frontier: `{downstream.get('router_coupled_frontier_gate', 'n/a')}` (`effect_fraction={downstream.get('router_coupled_frontier_effect_fraction', 'n/a')}`, candidates `{downstream.get('router_coupled_frontier_default_gate_candidates', 'n/a')}/{downstream.get('router_coupled_frontier_candidate_count', 'n/a')}` pass default gate)",
+        f"- Source-set complementarity: `{downstream.get('source_set_complementarity_current_gate', 'n/a')}` (dominant `{downstream.get('source_set_complementarity_current_dominant_source', 'n/a')}`, frontier avg gain `{downstream.get('source_set_complementarity_frontier_avg_gain', 'n/a')}`, best observed gap `{downstream.get('source_set_complementarity_best_observed_gap', 'n/a')}`, complementary sets `{downstream.get('source_set_complementarity_complementary_count', 'n/a')}`)",
         f"- Unified average optimizer: `{downstream.get('unified_optimizer_status', 'n/a')}` (top next experiment `{downstream.get('unified_optimizer_top_experiment', 'n/a')}` / `{downstream.get('unified_optimizer_top_experiment_status', 'n/a')}`)",
         f"- Unified algorithm contract: `{downstream.get('unified_optimizer_contract_status', 'n/a')}` (`{downstream.get('unified_optimizer_contract_passed', 'n/a')}/{downstream.get('unified_optimizer_contract_requirements', 'n/a')}` passed, blocking `{downstream.get('unified_optimizer_contract_blocking', [])}`)",
         f"- Unified selector rank gate in optimizer: confidence band `{downstream.get('unified_optimizer_final_confidence_tie_band', 'n/a')}`, rank mode `{downstream.get('unified_optimizer_final_rank_mode', 'n/a')}`, band size `{downstream.get('unified_optimizer_final_rank_band_size', 'n/a')}`",
@@ -732,6 +760,11 @@ def parse_args() -> argparse.Namespace:
         "--router-coupled-retention-frontier-dir",
         type=Path,
         default=Path("results/qwen3_moe_router_coupled_retention_frontier"),
+    )
+    parser.add_argument(
+        "--source-set-complementarity-dir",
+        type=Path,
+        default=Path("results/qwen3_source_set_complementarity_gate"),
     )
     parser.add_argument(
         "--unified-optimizer-dir",
