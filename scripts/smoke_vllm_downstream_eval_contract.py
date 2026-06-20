@@ -72,6 +72,8 @@ def display_command(command: list[str], *, base_url: str, output_dir: Path) -> s
             parts.append("MOCK_BASE_URL")
         elif part == str(output_dir):
             parts.append(rel(output_dir))
+        elif part == str(output_dir / "task_manifest.json"):
+            parts.append(rel(output_dir / "task_manifest.json"))
         else:
             parts.append(part)
     return " ".join(parts)
@@ -164,6 +166,9 @@ def run_smoke(output_dir: Path) -> dict[str, Any]:
         "2",
         "--output-dir",
         str(output_dir),
+        "--task-manifest",
+        str(output_dir / "task_manifest.json"),
+        "--create-task-manifest-if-missing",
         "--timeout",
         "10",
     ]
@@ -191,12 +196,16 @@ def run_smoke(output_dir: Path) -> dict[str, Any]:
         "mock_good_avg_primary_score": float(good["avg_primary_score"]),
         "mock_bad_avg_primary_score": float(bad["avg_primary_score"]),
         "task_rows": int(len(metrics)),
+        "task_manifest_written": (output_dir / "task_manifest.json").exists(),
+        "task_manifest_sha_present": bool(summary.get("task_manifest_sha256")),
     }
     checks["passed"] = (
         checks["status_complete"]
         and checks["mock_good_rank_1"]
         and checks["mock_good_avg_primary_score"] > checks["mock_bad_avg_primary_score"]
         and checks["task_rows"] == 8
+        and checks["task_manifest_written"]
+        and checks["task_manifest_sha_present"]
     )
     smoke_summary = {
         "schema_version": 1,
@@ -208,6 +217,7 @@ def run_smoke(output_dir: Path) -> dict[str, Any]:
             "metrics": rel(output_dir / "metrics.csv"),
             "predictions": rel(output_dir / "predictions.csv"),
             "model_summary": rel(output_dir / "model_summary.csv"),
+            "task_manifest": rel(output_dir / "task_manifest.json"),
             "eval_summary": rel(output_dir / "summary.json"),
             "report": rel(output_dir / "report.md"),
             "smoke_summary": rel(output_dir / "smoke_summary.json"),
@@ -223,6 +233,7 @@ def run_smoke(output_dir: Path) -> dict[str, Any]:
         f"- Good model avg primary: `{checks['mock_good_avg_primary_score']:.3f}`",
         f"- Bad model avg primary: `{checks['mock_bad_avg_primary_score']:.3f}`",
         f"- Metric rows: `{checks['task_rows']}`",
+        f"- Task manifest sha: `{summary.get('task_manifest_sha256')}`",
         "",
         "## Files",
         "",

@@ -6,6 +6,7 @@
 - Good model avg primary: `1.000`
 - Bad model avg primary: `0.000`
 - Metric rows: `8`
+- Task manifest sha: `f542a5bb714f734c144ba063594c83149bcedee8b004eb7170ecb8b7c0f45bd6`
 
 ## Files
 

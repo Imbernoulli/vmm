@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import hashlib
 import json
 import os
 import re
@@ -536,7 +537,7 @@ def resolve_eval_plan(args: argparse.Namespace) -> pd.DataFrame:
     return build_manual_eval_plan(models)
 
 
-def load_task_examples(args: argparse.Namespace, tasks: list[str]) -> dict[str, list[dict[str, Any]]]:
+def build_task_examples(args: argparse.Namespace, tasks: list[str]) -> dict[str, list[dict[str, Any]]]:
     examples: dict[str, list[dict[str, Any]]] = {}
     if "gsm8k" in tasks:
         examples["gsm8k"] = load_gsm8k_examples(args.example_source, args.max_examples, args.seed)
@@ -547,6 +548,86 @@ def load_task_examples(args: argparse.Namespace, tasks: list[str]) -> dict[str, 
     if "humaneval_compile" in tasks:
         examples["humaneval_compile"] = load_humaneval_examples(args.example_source, args.max_examples, args.seed)
     return examples
+
+
+def manifest_payload(args: argparse.Namespace, tasks: list[str], task_examples: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
+    return {
+        "schema_version": 1,
+        "tasks": tasks,
+        "example_source": args.example_source,
+        "max_examples": args.max_examples,
+        "seed": args.seed,
+        "subjects": args.subjects,
+        "examples": task_examples,
+    }
+
+
+def canonical_json(data: Any) -> str:
+    return json.dumps(json_safe(data), indent=2, sort_keys=True) + "\n"
+
+
+def write_task_manifest(path: Path, payload: dict[str, Any]) -> dict[str, Any]:
+    path = repo_path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    text = canonical_json(payload)
+    path.write_text(text, encoding="utf-8")
+    return {
+        "path": rel(path),
+        "sha256": hashlib.sha256(text.encode("utf-8")).hexdigest(),
+        "task_counts": {task: len(rows) for task, rows in payload.get("examples", {}).items()},
+    }
+
+
+def read_task_manifest(path: Path, tasks: list[str]) -> tuple[dict[str, list[dict[str, Any]]], dict[str, Any]]:
+    path = repo_path(path)
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    examples = payload.get("examples") or {}
+    missing = [task for task in tasks if task not in examples]
+    if missing:
+        raise ValueError(f"Task manifest {path} is missing tasks: {','.join(missing)}")
+    selected = {task: list(examples[task]) for task in tasks}
+    text = canonical_json(payload)
+    return selected, {
+        "path": rel(path),
+        "sha256": hashlib.sha256(text.encode("utf-8")).hexdigest(),
+        "task_counts": {task: len(rows) for task, rows in selected.items()},
+        "example_source": payload.get("example_source"),
+        "max_examples": payload.get("max_examples"),
+        "seed": payload.get("seed"),
+        "subjects": payload.get("subjects"),
+    }
+
+
+def load_task_examples(args: argparse.Namespace, tasks: list[str]) -> tuple[dict[str, list[dict[str, Any]]], dict[str, Any]]:
+    manifest_path = args.task_manifest
+    if manifest_path and repo_path(manifest_path).exists():
+        return read_task_manifest(manifest_path, tasks)
+    if manifest_path and not args.create_task_manifest_if_missing:
+        raise FileNotFoundError(f"Task manifest does not exist: {repo_path(manifest_path)}")
+
+    task_examples = build_task_examples(args, tasks)
+    info: dict[str, Any] = {
+        "path": None,
+        "sha256": None,
+        "task_counts": {task: len(rows) for task, rows in task_examples.items()},
+        "example_source": args.example_source,
+        "max_examples": args.max_examples,
+        "seed": args.seed,
+        "subjects": args.subjects,
+    }
+    output_manifest = args.write_task_manifest or manifest_path
+    if output_manifest:
+        payload = manifest_payload(args, tasks, task_examples)
+        info = write_task_manifest(output_manifest, payload)
+        info.update(
+            {
+                "example_source": args.example_source,
+                "max_examples": args.max_examples,
+                "seed": args.seed,
+                "subjects": args.subjects,
+            }
+        )
+    return task_examples, info
 
 
 def evaluate_model(
@@ -679,6 +760,7 @@ def write_unavailable(
         "eval_plan_path": str(output_dir / "eval_plan.csv"),
         "candidate_table": args.candidate_table,
         "candidate_query": args.candidate_query,
+        "task_manifest_path": rel(args.task_manifest) if args.task_manifest else None,
         "endpoint_probe": probe,
         "message": "No OpenAI-compatible vLLM endpoint was reachable from this environment.",
     }
@@ -711,6 +793,7 @@ def write_success(
     eval_plan: pd.DataFrame,
     metrics: pd.DataFrame,
     predictions: pd.DataFrame,
+    task_manifest_info: dict[str, Any],
 ) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     model_summary = summarize_models(metrics)
@@ -735,6 +818,9 @@ def write_success(
         "eval_plan_path": str(output_dir / "eval_plan.csv"),
         "candidate_table": args.candidate_table,
         "candidate_query": args.candidate_query,
+        "task_manifest_path": task_manifest_info.get("path"),
+        "task_manifest_sha256": task_manifest_info.get("sha256"),
+        "task_manifest_counts": task_manifest_info.get("task_counts"),
         "endpoint_probe": probe,
         "metrics": metrics.to_dict(orient="records"),
         "model_summary": model_summary.to_dict(orient="records"),
@@ -747,6 +833,9 @@ def write_success(
         "# vLLM Downstream Eval",
         "",
         f"Status: `complete`; models: `{', '.join(models)}`; endpoint: `{args.base_url}`.",
+        "",
+        f"- Task manifest: `{task_manifest_info.get('path')}`",
+        f"- Task manifest sha256: `{task_manifest_info.get('sha256')}`",
         "",
         *write_eval_plan_report_lines(eval_plan),
         "",
@@ -799,6 +888,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-examples", type=int, default=8)
     parser.add_argument("--seed", type=int, default=41)
     parser.add_argument("--subjects", default="all")
+    parser.add_argument("--task-manifest", type=Path, default=None)
+    parser.add_argument("--write-task-manifest", type=Path, default=None)
+    parser.add_argument("--create-task-manifest-if-missing", action="store_true")
+    parser.add_argument("--prepare-task-manifest-only", action="store_true")
     parser.add_argument("--max-tokens-gsm8k", type=int, default=192)
     parser.add_argument("--max-tokens-mmlu", type=int, default=8)
     parser.add_argument("--max-tokens-safety", type=int, default=192)
@@ -812,6 +905,13 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+    tasks = [task.strip() for task in args.tasks.split(",") if task.strip()]
+    if args.prepare_task_manifest_only:
+        _, manifest_info = load_task_examples(args, tasks)
+        if not manifest_info.get("path"):
+            raise SystemExit("Use --task-manifest --create-task-manifest-if-missing or --write-task-manifest.")
+        print(f"Wrote task manifest to {manifest_info['path']} ({manifest_info['sha256']})")
+        return
     try:
         eval_plan = resolve_eval_plan(args)
     except ValueError as exc:
@@ -833,8 +933,7 @@ def main() -> None:
             return
         raise SystemExit(2)
 
-    tasks = [task.strip() for task in args.tasks.split(",") if task.strip()]
-    task_examples = load_task_examples(args, tasks)
+    task_examples, task_manifest_info = load_task_examples(args, tasks)
     metric_rows: list[dict[str, Any]] = []
     prediction_rows: list[dict[str, Any]] = []
     for model_name in models:
@@ -850,7 +949,16 @@ def main() -> None:
         metric_rows.extend(metrics)
         prediction_rows.extend(rows)
 
-    write_success(args.output_dir, args, probe, models, eval_plan, pd.DataFrame(metric_rows), pd.DataFrame(prediction_rows))
+    write_success(
+        args.output_dir,
+        args,
+        probe,
+        models,
+        eval_plan,
+        pd.DataFrame(metric_rows),
+        pd.DataFrame(prediction_rows),
+        task_manifest_info,
+    )
     print(f"Wrote vLLM downstream eval artifacts to {args.output_dir.resolve()}")
 
 

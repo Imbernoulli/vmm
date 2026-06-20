@@ -1,5 +1,5 @@
 {
-  "case_count": 5,
+  "case_count": 6,
   "cases": [
     {
       "case": "valid_bundle",
@@ -40,6 +40,14 @@
       "passed": true,
       "status": "invalid_bundle",
       "usable_for_selection_count": 2
+    },
+    {
+      "case": "manifest_mismatch",
+      "expected_status": "invalid_bundle",
+      "expected_usable_for_selection_count": 2,
+      "passed": true,
+      "status": "invalid_bundle",
+      "usable_for_selection_count": 2
     }
   ],
   "failed_case_count": 0,
@@ -48,7 +56,7 @@
     "report": "results/qwen3_moe_eval_bundle_audit_smoke/report.md",
     "summary": "results/qwen3_moe_eval_bundle_audit_smoke/summary.json"
   },
-  "passed_case_count": 5,
+  "passed_case_count": 6,
   "schema_version": 1,
   "status": "passed"
 }

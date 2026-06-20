@@ -14,7 +14,7 @@ set -euo pipefail
 # curl -sf http://127.0.0.1:8100/v1/models >/dev/null
 
 # Eval:
-# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8100/v1 --models candidate_source_qwen3_30b_instruct --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/source_qwen3_30b_instruct
+# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8100/v1 --models candidate_source_qwen3_30b_instruct --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/source_qwen3_30b_instruct --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing
 
 # [1] source_qwen3_30b_coder - ready_to_host
 # Checkpoint: /srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-Coder-30B-A3B-Instruct/snapshots/b2cff646eb4bb1d68355c01b18ae02e7cf42d120
@@ -25,7 +25,7 @@ set -euo pipefail
 # curl -sf http://127.0.0.1:8101/v1/models >/dev/null
 
 # Eval:
-# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8101/v1 --models candidate_source_qwen3_30b_coder --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/source_qwen3_30b_coder
+# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8101/v1 --models candidate_source_qwen3_30b_coder --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/source_qwen3_30b_coder --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing
 
 # [2] qwen3_moe_unified_route_guarded_candidate - ready_to_host
 # Checkpoint: results/checkpoints/qwen3_moe_unified_route_guarded_candidate
@@ -36,7 +36,7 @@ set -euo pipefail
 # curl -sf http://127.0.0.1:8102/v1/models >/dev/null
 
 # Eval:
-# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8102/v1 --models candidate_qwen3_moe_unified_route_guarded_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_unified_route_guarded_candidate
+# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8102/v1 --models candidate_qwen3_moe_unified_route_guarded_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_unified_route_guarded_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing
 
 # [3] qwen3_moe_audit_gated_candidate - ready_to_host
 # Checkpoint: results/checkpoints/qwen3_moe_audit_gated_candidate
@@ -47,7 +47,7 @@ set -euo pipefail
 # curl -sf http://127.0.0.1:8103/v1/models >/dev/null
 
 # Eval:
-# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8103/v1 --models candidate_qwen3_moe_audit_gated_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_audit_gated_candidate
+# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8103/v1 --models candidate_qwen3_moe_audit_gated_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_audit_gated_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing
 
 # [4] qwen3_moe_trust_region_candidate - ready_to_host
 # Checkpoint: results/checkpoints/qwen3_moe_trust_region_candidate
@@ -58,7 +58,7 @@ set -euo pipefail
 # curl -sf http://127.0.0.1:8104/v1/models >/dev/null
 
 # Eval:
-# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8104/v1 --models candidate_qwen3_moe_trust_region_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_trust_region_candidate
+# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8104/v1 --models candidate_qwen3_moe_trust_region_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_trust_region_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing
 
 # [5] qwen3_moe_expert_only_trust_region_candidate - ready_to_host
 # Checkpoint: results/checkpoints/qwen3_moe_expert_only_trust_region_candidate
@@ -69,7 +69,7 @@ set -euo pipefail
 # curl -sf http://127.0.0.1:8105/v1/models >/dev/null
 
 # Eval:
-# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8105/v1 --models candidate_qwen3_moe_expert_only_trust_region_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_expert_only_trust_region_candidate
+# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8105/v1 --models candidate_qwen3_moe_expert_only_trust_region_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_expert_only_trust_region_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing
 
 # [6] qwen3_moe_tail_trimmed_expert_only_candidate - ready_to_host
 # Checkpoint: results/checkpoints/qwen3_moe_tail_trimmed_expert_only_candidate
@@ -80,7 +80,7 @@ set -euo pipefail
 # curl -sf http://127.0.0.1:8106/v1/models >/dev/null
 
 # Eval:
-# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8106/v1 --models candidate_qwen3_moe_tail_trimmed_expert_only_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_tail_trimmed_expert_only_candidate
+# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8106/v1 --models candidate_qwen3_moe_tail_trimmed_expert_only_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_tail_trimmed_expert_only_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing
 
 # [7] qwen3_moe_searched_no_gt065_max_retention_candidate - ready_to_host
 # Checkpoint: results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate
@@ -91,7 +91,7 @@ set -euo pipefail
 # curl -sf http://127.0.0.1:8107/v1/models >/dev/null
 
 # Eval:
-# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8107/v1 --models candidate_qwen3_moe_searched_no_gt065_max_retention_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate
+# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8107/v1 --models candidate_qwen3_moe_searched_no_gt065_max_retention_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing
 
 # [8] qwen3_moe_layer_chunk_candidate - ready_to_host
 # Checkpoint: results/checkpoints/qwen3_moe_layer_chunk_candidate
@@ -102,7 +102,7 @@ set -euo pipefail
 # curl -sf http://127.0.0.1:8108/v1/models >/dev/null
 
 # Eval:
-# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8108/v1 --models candidate_qwen3_moe_layer_chunk_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_layer_chunk_candidate
+# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8108/v1 --models candidate_qwen3_moe_layer_chunk_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_layer_chunk_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing
 
 # [9] qwen3_moe_unified_mechanism_candidate - ready_to_host
 # Checkpoint: results/checkpoints/qwen3_moe_unified_mechanism_candidate
@@ -113,7 +113,7 @@ set -euo pipefail
 # curl -sf http://127.0.0.1:8109/v1/models >/dev/null
 
 # Eval:
-# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8109/v1 --models candidate_qwen3_moe_unified_mechanism_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_unified_mechanism_candidate
+# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8109/v1 --models candidate_qwen3_moe_unified_mechanism_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_unified_mechanism_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing
 
 # [10] qwen_0_5b_instruct_coder_uniform_average - ready_to_host
 # Checkpoint: results/checkpoints/qwen_0_5b_instruct_coder_uniform_average
@@ -124,7 +124,7 @@ set -euo pipefail
 # curl -sf http://127.0.0.1:8110/v1/models >/dev/null
 
 # Eval:
-# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8110/v1 --models candidate_qwen_0_5b_instruct_coder_uniform_average --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen_0_5b_instruct_coder_uniform_average
+# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8110/v1 --models candidate_qwen_0_5b_instruct_coder_uniform_average --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen_0_5b_instruct_coder_uniform_average --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing
 
 # [11] moe_route_aware_candidate - checkpoint_missing_until_materialized
 # Checkpoint: results/checkpoints/moe_route_aware_candidate
@@ -135,7 +135,7 @@ set -euo pipefail
 # curl -sf http://127.0.0.1:8111/v1/models >/dev/null
 
 # Eval:
-# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8111/v1 --models candidate_moe_route_aware_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/moe_route_aware_candidate
+# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8111/v1 --models candidate_moe_route_aware_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/moe_route_aware_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing
 
 # [12] moe_bias_calibrated_candidate - checkpoint_missing_until_materialized
 # Checkpoint: results/checkpoints/moe_bias_calibrated_candidate
@@ -146,7 +146,7 @@ set -euo pipefail
 # curl -sf http://127.0.0.1:8112/v1/models >/dev/null
 
 # Eval:
-# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8112/v1 --models candidate_moe_bias_calibrated_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/moe_bias_calibrated_candidate
+# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8112/v1 --models candidate_moe_bias_calibrated_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/moe_bias_calibrated_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing
 
 # [13] toy_moe_expert_weight_candidate - not_vllm_loadable_toy_candidate
 # Checkpoint: results/checkpoints/toy_moe_expert_weight_candidate
@@ -157,5 +157,5 @@ set -euo pipefail
 # curl -sf http://127.0.0.1:8113/v1/models >/dev/null
 
 # Eval:
-# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8113/v1 --models candidate_toy_moe_expert_weight_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/toy_moe_expert_weight_candidate
+# python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8113/v1 --models candidate_toy_moe_expert_weight_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/toy_moe_expert_weight_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing
 

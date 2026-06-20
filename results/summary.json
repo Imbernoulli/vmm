@@ -336,7 +336,7 @@
       "status": "complete"
     },
     {
-      "evidence": "results/qwen3_moe_eval_bundle_audit/report.md checks every Qwen3 source/candidate eval output for model-id, task, example-count, prediction, primary-score, and paired prediction-key consistency before selector use; results/qwen3_moe_eval_bundle_audit_smoke/report.md covers valid, stale-model, missing-task, low-example, and key-mismatch bundles.",
+      "evidence": "results/qwen3_moe_eval_bundle_audit/report.md checks every Qwen3 source/candidate eval output for model-id, task-manifest sha, task, example-count, prediction, primary-score, and paired prediction-key consistency before selector use; results/qwen3_moe_eval_bundle_audit_smoke/report.md covers valid, stale-model, missing-task, low-example, key-mismatch, and manifest-mismatch bundles.",
       "item": "Qwen3 MoE vLLM eval bundle audit",
       "status": "complete"
     },
@@ -8510,6 +8510,9 @@
           "role": "source",
           "summary_status": "missing",
           "task_coverage": false,
+          "task_manifest_path": null,
+          "task_manifest_sha256": null,
+          "task_manifest_sha_present": false,
           "usable_for_selection": false
         },
         {
@@ -8531,6 +8534,9 @@
           "role": "source",
           "summary_status": "missing",
           "task_coverage": false,
+          "task_manifest_path": null,
+          "task_manifest_sha256": null,
+          "task_manifest_sha_present": false,
           "usable_for_selection": false
         },
         {
@@ -8552,6 +8558,9 @@
           "role": "candidate",
           "summary_status": "missing",
           "task_coverage": false,
+          "task_manifest_path": null,
+          "task_manifest_sha256": null,
+          "task_manifest_sha_present": false,
           "usable_for_selection": false
         },
         {
@@ -8573,6 +8582,9 @@
           "role": "candidate",
           "summary_status": "missing",
           "task_coverage": false,
+          "task_manifest_path": null,
+          "task_manifest_sha256": null,
+          "task_manifest_sha_present": false,
           "usable_for_selection": false
         },
         {
@@ -8594,6 +8606,9 @@
           "role": "candidate",
           "summary_status": "missing",
           "task_coverage": false,
+          "task_manifest_path": null,
+          "task_manifest_sha256": null,
+          "task_manifest_sha_present": false,
           "usable_for_selection": false
         },
         {
@@ -8615,6 +8630,9 @@
           "role": "candidate",
           "summary_status": "missing",
           "task_coverage": false,
+          "task_manifest_path": null,
+          "task_manifest_sha256": null,
+          "task_manifest_sha_present": false,
           "usable_for_selection": false
         },
         {
@@ -8636,6 +8654,9 @@
           "role": "candidate",
           "summary_status": "missing",
           "task_coverage": false,
+          "task_manifest_path": null,
+          "task_manifest_sha256": null,
+          "task_manifest_sha_present": false,
           "usable_for_selection": false
         },
         {
@@ -8657,6 +8678,9 @@
           "role": "candidate",
           "summary_status": "missing",
           "task_coverage": false,
+          "task_manifest_path": null,
+          "task_manifest_sha256": null,
+          "task_manifest_sha_present": false,
           "usable_for_selection": false
         },
         {
@@ -8678,6 +8702,9 @@
           "role": "candidate",
           "summary_status": "missing",
           "task_coverage": false,
+          "task_manifest_path": null,
+          "task_manifest_sha256": null,
+          "task_manifest_sha_present": false,
           "usable_for_selection": false
         },
         {
@@ -8699,6 +8726,9 @@
           "role": "candidate",
           "summary_status": "missing",
           "task_coverage": false,
+          "task_manifest_path": null,
+          "task_manifest_sha256": null,
+          "task_manifest_sha_present": false,
           "usable_for_selection": false
         }
       ],
@@ -8742,7 +8772,7 @@
       "usable_for_selection_count": 0
     },
     "qwen3_moe_eval_bundle_audit_smoke": {
-      "case_count": 5,
+      "case_count": 6,
       "case_rows": [
         {
           "case": "valid_bundle",
@@ -8783,15 +8813,23 @@
           "passed": true,
           "status": "invalid_bundle",
           "usable_for_selection_count": 2
+        },
+        {
+          "case": "manifest_mismatch",
+          "expected_status": "invalid_bundle",
+          "expected_usable_for_selection_count": 2,
+          "passed": true,
+          "status": "invalid_bundle",
+          "usable_for_selection_count": 2
         }
       ],
       "failed_case_count": 0,
       "matrix": "results/qwen3_moe_eval_bundle_audit_smoke/audit_matrix.csv",
-      "passed_case_count": 5,
+      "passed_case_count": 6,
       "report": "results/qwen3_moe_eval_bundle_audit_smoke/report.md",
       "status": "passed",
       "summary": {
-        "case_count": 5,
+        "case_count": 6,
         "cases": [
           {
             "case": "valid_bundle",
@@ -8832,6 +8870,14 @@
             "passed": true,
             "status": "invalid_bundle",
             "usable_for_selection_count": 2
+          },
+          {
+            "case": "manifest_mismatch",
+            "expected_status": "invalid_bundle",
+            "expected_usable_for_selection_count": 2,
+            "passed": true,
+            "status": "invalid_bundle",
+            "usable_for_selection_count": 2
           }
         ],
         "failed_case_count": 0,
@@ -8840,7 +8886,7 @@
           "report": "results/qwen3_moe_eval_bundle_audit_smoke/report.md",
           "summary": "results/qwen3_moe_eval_bundle_audit_smoke/summary.json"
         },
-        "passed_case_count": 5,
+        "passed_case_count": 6,
         "schema_version": 1,
         "status": "passed"
       },
@@ -14388,7 +14434,7 @@
           "checkpoint_exists": true,
           "checkpoint_path": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe",
           "end_to_end_status": null,
-          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8100/v1 --models candidate_source_qwen3_30b_instruct --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/source_qwen3_30b_instruct",
+          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8100/v1 --models candidate_source_qwen3_30b_instruct --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/source_qwen3_30b_instruct --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "eval_completed": false,
           "eval_output_dir": "results/vllm_checkpoint_eval/source_qwen3_30b_instruct",
           "eval_status": "not_run",
@@ -14430,7 +14476,7 @@
           "checkpoint_exists": true,
           "checkpoint_path": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-Coder-30B-A3B-Instruct/snapshots/b2cff646eb4bb1d68355c01b18ae02e7cf42d120",
           "end_to_end_status": null,
-          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8101/v1 --models candidate_source_qwen3_30b_coder --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/source_qwen3_30b_coder",
+          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8101/v1 --models candidate_source_qwen3_30b_coder --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/source_qwen3_30b_coder --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "eval_completed": false,
           "eval_output_dir": "results/vllm_checkpoint_eval/source_qwen3_30b_coder",
           "eval_status": "not_run",
@@ -14472,7 +14518,7 @@
           "checkpoint_exists": true,
           "checkpoint_path": "results/checkpoints/qwen3_moe_unified_route_guarded_candidate",
           "end_to_end_status": "ready_for_vllm_eval",
-          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8102/v1 --models candidate_qwen3_moe_unified_route_guarded_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_unified_route_guarded_candidate",
+          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8102/v1 --models candidate_qwen3_moe_unified_route_guarded_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_unified_route_guarded_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "eval_completed": false,
           "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_unified_route_guarded_candidate",
           "eval_status": "not_run",
@@ -14514,7 +14560,7 @@
           "checkpoint_exists": true,
           "checkpoint_path": "results/checkpoints/qwen3_moe_audit_gated_candidate",
           "end_to_end_status": "ready_for_vllm_eval",
-          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8103/v1 --models candidate_qwen3_moe_audit_gated_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_audit_gated_candidate",
+          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8103/v1 --models candidate_qwen3_moe_audit_gated_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_audit_gated_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "eval_completed": false,
           "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_audit_gated_candidate",
           "eval_status": "not_run",
@@ -14556,7 +14602,7 @@
           "checkpoint_exists": true,
           "checkpoint_path": "results/checkpoints/qwen3_moe_trust_region_candidate",
           "end_to_end_status": "ready_for_vllm_eval",
-          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8104/v1 --models candidate_qwen3_moe_trust_region_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_trust_region_candidate",
+          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8104/v1 --models candidate_qwen3_moe_trust_region_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_trust_region_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "eval_completed": false,
           "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_trust_region_candidate",
           "eval_status": "not_run",
@@ -14598,7 +14644,7 @@
           "checkpoint_exists": true,
           "checkpoint_path": "results/checkpoints/qwen3_moe_expert_only_trust_region_candidate",
           "end_to_end_status": "ready_for_vllm_eval",
-          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8105/v1 --models candidate_qwen3_moe_expert_only_trust_region_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_expert_only_trust_region_candidate",
+          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8105/v1 --models candidate_qwen3_moe_expert_only_trust_region_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_expert_only_trust_region_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "eval_completed": false,
           "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_expert_only_trust_region_candidate",
           "eval_status": "not_run",
@@ -14640,7 +14686,7 @@
           "checkpoint_exists": true,
           "checkpoint_path": "results/checkpoints/qwen3_moe_tail_trimmed_expert_only_candidate",
           "end_to_end_status": "ready_for_vllm_eval",
-          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8106/v1 --models candidate_qwen3_moe_tail_trimmed_expert_only_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_tail_trimmed_expert_only_candidate",
+          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8106/v1 --models candidate_qwen3_moe_tail_trimmed_expert_only_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_tail_trimmed_expert_only_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "eval_completed": false,
           "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_tail_trimmed_expert_only_candidate",
           "eval_status": "not_run",
@@ -14682,7 +14728,7 @@
           "checkpoint_exists": true,
           "checkpoint_path": "results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate",
           "end_to_end_status": "ready_for_vllm_eval",
-          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8107/v1 --models candidate_qwen3_moe_searched_no_gt065_max_retention_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate",
+          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8107/v1 --models candidate_qwen3_moe_searched_no_gt065_max_retention_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "eval_completed": false,
           "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate",
           "eval_status": "not_run",
@@ -14724,7 +14770,7 @@
           "checkpoint_exists": true,
           "checkpoint_path": "results/checkpoints/qwen3_moe_layer_chunk_candidate",
           "end_to_end_status": "ready_for_vllm_eval",
-          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8108/v1 --models candidate_qwen3_moe_layer_chunk_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_layer_chunk_candidate",
+          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8108/v1 --models candidate_qwen3_moe_layer_chunk_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_layer_chunk_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "eval_completed": false,
           "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_layer_chunk_candidate",
           "eval_status": "not_run",
@@ -14766,7 +14812,7 @@
           "checkpoint_exists": true,
           "checkpoint_path": "results/checkpoints/qwen3_moe_unified_mechanism_candidate",
           "end_to_end_status": "ready_for_vllm_eval",
-          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8109/v1 --models candidate_qwen3_moe_unified_mechanism_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_unified_mechanism_candidate",
+          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8109/v1 --models candidate_qwen3_moe_unified_mechanism_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_unified_mechanism_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "eval_completed": false,
           "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_unified_mechanism_candidate",
           "eval_status": "not_run",
@@ -16285,7 +16331,7 @@
       "step_rows": [
         {
           "command": "python scripts/audit_qwen3_moe_eval_bundle.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_eval_bundle_audit",
-          "duration_sec": 0.4519901275634765,
+          "duration_sec": 0.4380257129669189,
           "kind": "gate",
           "returncode": 0,
           "status": "passed",
@@ -16295,7 +16341,7 @@
         },
         {
           "command": "python scripts/select_qwen3_moe_unified_result.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_unified_result_selection",
-          "duration_sec": 0.4972081184387207,
+          "duration_sec": 0.3990228176116943,
           "kind": "selector",
           "returncode": 0,
           "status": "passed",
@@ -16305,7 +16351,7 @@
         },
         {
           "command": "python scripts/select_qwen3_moe_final_candidate.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_final_candidate_selection",
-          "duration_sec": 0.4729623794555664,
+          "duration_sec": 0.3970460891723633,
           "kind": "selector",
           "returncode": 0,
           "status": "passed",
@@ -16315,7 +16361,7 @@
         },
         {
           "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_mechanism_effect_attribution",
-          "duration_sec": 0.4307999610900879,
+          "duration_sec": 0.3952116966247558,
           "kind": "attribution",
           "returncode": 0,
           "status": "passed",
@@ -16325,17 +16371,17 @@
         },
         {
           "command": "python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke",
-          "duration_sec": 0.7261981964111328,
+          "duration_sec": 0.6279654502868652,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
           "stderr_tail": null,
-          "stdout_tail": "Wrote Qwen3 MoE eval bundle audit smoke to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_eval_bundle_audit_smoke\nStatus: passed; cases 5/5\n",
+          "stdout_tail": "Wrote Qwen3 MoE eval bundle audit smoke to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_eval_bundle_audit_smoke\nStatus: passed; cases 6/6\n",
           "step": "audit_eval_bundles_smoke"
         },
         {
           "command": "python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke",
-          "duration_sec": 0.4800045490264892,
+          "duration_sec": 0.4329953193664551,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -16345,7 +16391,7 @@
         },
         {
           "command": "python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke",
-          "duration_sec": 0.5158336162567139,
+          "duration_sec": 0.4244241714477539,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -16355,7 +16401,7 @@
         },
         {
           "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --smoke-matrix --output-dir results/qwen3_moe_mechanism_effect_attribution_smoke",
-          "duration_sec": 0.5020701885223389,
+          "duration_sec": 0.3985037803649902,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -16365,12 +16411,12 @@
         },
         {
           "command": "python scripts/collect_results.py",
-          "duration_sec": 1.5768563747406006,
+          "duration_sec": 1.4384233951568604,
           "kind": "summary",
           "returncode": 0,
           "status": "passed",
           "stderr_tail": null,
-          "stdout_tail": "Wrote results/summary.json\nWrote results/summary.md\nWrote ARTIFACT_MANIFEST.json\nArtifacts indexed: 1031\n",
+          "stdout_tail": "Wrote results/summary.json\nWrote results/summary.md\nWrote ARTIFACT_MANIFEST.json\nArtifacts indexed: 1032\n",
           "step": "collect_results"
         }
       ],
@@ -16407,7 +16453,7 @@
         "steps": [
           {
             "command": "python scripts/audit_qwen3_moe_eval_bundle.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_eval_bundle_audit",
-            "duration_sec": 0.45199012756347656,
+            "duration_sec": 0.43802571296691895,
             "kind": "gate",
             "returncode": 0,
             "status": "passed",
@@ -16417,7 +16463,7 @@
           },
           {
             "command": "python scripts/select_qwen3_moe_unified_result.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_unified_result_selection",
-            "duration_sec": 0.4972081184387207,
+            "duration_sec": 0.39902281761169434,
             "kind": "selector",
             "returncode": 0,
             "status": "passed",
@@ -16427,7 +16473,7 @@
           },
           {
             "command": "python scripts/select_qwen3_moe_final_candidate.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_final_candidate_selection",
-            "duration_sec": 0.4729623794555664,
+            "duration_sec": 0.3970460891723633,
             "kind": "selector",
             "returncode": 0,
             "status": "passed",
@@ -16437,7 +16483,7 @@
           },
           {
             "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_mechanism_effect_attribution",
-            "duration_sec": 0.4307999610900879,
+            "duration_sec": 0.39521169662475586,
             "kind": "attribution",
             "returncode": 0,
             "status": "passed",
@@ -16447,17 +16493,17 @@
           },
           {
             "command": "python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke",
-            "duration_sec": 0.7261981964111328,
+            "duration_sec": 0.6279654502868652,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
             "stderr_tail": "",
-            "stdout_tail": "Wrote Qwen3 MoE eval bundle audit smoke to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_eval_bundle_audit_smoke\nStatus: passed; cases 5/5\n",
+            "stdout_tail": "Wrote Qwen3 MoE eval bundle audit smoke to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_eval_bundle_audit_smoke\nStatus: passed; cases 6/6\n",
             "step": "audit_eval_bundles_smoke"
           },
           {
             "command": "python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke",
-            "duration_sec": 0.48000454902648926,
+            "duration_sec": 0.4329953193664551,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -16467,7 +16513,7 @@
           },
           {
             "command": "python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke",
-            "duration_sec": 0.5158336162567139,
+            "duration_sec": 0.4244241714477539,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -16477,7 +16523,7 @@
           },
           {
             "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --smoke-matrix --output-dir results/qwen3_moe_mechanism_effect_attribution_smoke",
-            "duration_sec": 0.5020701885223389,
+            "duration_sec": 0.39850378036499023,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -16487,12 +16533,12 @@
           },
           {
             "command": "python scripts/collect_results.py",
-            "duration_sec": 1.5768563747406006,
+            "duration_sec": 1.4384233951568604,
             "kind": "summary",
             "returncode": 0,
             "status": "passed",
             "stderr_tail": "",
-            "stdout_tail": "Wrote results/summary.json\nWrote results/summary.md\nWrote ARTIFACT_MANIFEST.json\nArtifacts indexed: 1031\n",
+            "stdout_tail": "Wrote results/summary.json\nWrote results/summary.md\nWrote ARTIFACT_MANIFEST.json\nArtifacts indexed: 1032\n",
             "step": "collect_results"
           }
         ]
@@ -30218,7 +30264,7 @@
           "checkpoint_path": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe",
           "dtype": "bfloat16",
           "eval_avg_primary_score": null,
-          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8100/v1 --models candidate_source_qwen3_30b_instruct --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/source_qwen3_30b_instruct",
+          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8100/v1 --models candidate_source_qwen3_30b_instruct --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/source_qwen3_30b_instruct --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "eval_completed": false,
           "eval_order": 0,
           "eval_output_dir": "results/vllm_checkpoint_eval/source_qwen3_30b_instruct",
@@ -30244,7 +30290,7 @@
           "checkpoint_path": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-Coder-30B-A3B-Instruct/snapshots/b2cff646eb4bb1d68355c01b18ae02e7cf42d120",
           "dtype": "bfloat16",
           "eval_avg_primary_score": null,
-          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8101/v1 --models candidate_source_qwen3_30b_coder --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/source_qwen3_30b_coder",
+          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8101/v1 --models candidate_source_qwen3_30b_coder --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/source_qwen3_30b_coder --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "eval_completed": false,
           "eval_order": 1,
           "eval_output_dir": "results/vllm_checkpoint_eval/source_qwen3_30b_coder",
@@ -30270,7 +30316,7 @@
           "checkpoint_path": "results/checkpoints/qwen3_moe_unified_route_guarded_candidate",
           "dtype": "bfloat16",
           "eval_avg_primary_score": null,
-          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8102/v1 --models candidate_qwen3_moe_unified_route_guarded_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_unified_route_guarded_candidate",
+          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8102/v1 --models candidate_qwen3_moe_unified_route_guarded_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_unified_route_guarded_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "eval_completed": false,
           "eval_order": 2,
           "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_unified_route_guarded_candidate",
@@ -30296,7 +30342,7 @@
           "checkpoint_path": "results/checkpoints/qwen3_moe_audit_gated_candidate",
           "dtype": "bfloat16",
           "eval_avg_primary_score": null,
-          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8103/v1 --models candidate_qwen3_moe_audit_gated_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_audit_gated_candidate",
+          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8103/v1 --models candidate_qwen3_moe_audit_gated_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_audit_gated_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "eval_completed": false,
           "eval_order": 3,
           "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_audit_gated_candidate",
@@ -30322,7 +30368,7 @@
           "checkpoint_path": "results/checkpoints/qwen3_moe_trust_region_candidate",
           "dtype": "bfloat16",
           "eval_avg_primary_score": null,
-          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8104/v1 --models candidate_qwen3_moe_trust_region_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_trust_region_candidate",
+          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8104/v1 --models candidate_qwen3_moe_trust_region_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_trust_region_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "eval_completed": false,
           "eval_order": 4,
           "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_trust_region_candidate",
@@ -30348,7 +30394,7 @@
           "checkpoint_path": "results/checkpoints/qwen3_moe_expert_only_trust_region_candidate",
           "dtype": "bfloat16",
           "eval_avg_primary_score": null,
-          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8105/v1 --models candidate_qwen3_moe_expert_only_trust_region_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_expert_only_trust_region_candidate",
+          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8105/v1 --models candidate_qwen3_moe_expert_only_trust_region_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_expert_only_trust_region_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "eval_completed": false,
           "eval_order": 5,
           "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_expert_only_trust_region_candidate",
@@ -30374,7 +30420,7 @@
           "checkpoint_path": "results/checkpoints/qwen3_moe_tail_trimmed_expert_only_candidate",
           "dtype": "bfloat16",
           "eval_avg_primary_score": null,
-          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8106/v1 --models candidate_qwen3_moe_tail_trimmed_expert_only_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_tail_trimmed_expert_only_candidate",
+          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8106/v1 --models candidate_qwen3_moe_tail_trimmed_expert_only_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_tail_trimmed_expert_only_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "eval_completed": false,
           "eval_order": 6,
           "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_tail_trimmed_expert_only_candidate",
@@ -30400,7 +30446,7 @@
           "checkpoint_path": "results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate",
           "dtype": "bfloat16",
           "eval_avg_primary_score": null,
-          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8107/v1 --models candidate_qwen3_moe_searched_no_gt065_max_retention_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate",
+          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8107/v1 --models candidate_qwen3_moe_searched_no_gt065_max_retention_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "eval_completed": false,
           "eval_order": 7,
           "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate",
@@ -30426,7 +30472,7 @@
           "checkpoint_path": "results/checkpoints/qwen3_moe_layer_chunk_candidate",
           "dtype": "bfloat16",
           "eval_avg_primary_score": null,
-          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8108/v1 --models candidate_qwen3_moe_layer_chunk_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_layer_chunk_candidate",
+          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8108/v1 --models candidate_qwen3_moe_layer_chunk_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_layer_chunk_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "eval_completed": false,
           "eval_order": 8,
           "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_layer_chunk_candidate",
@@ -30452,7 +30498,7 @@
           "checkpoint_path": "results/checkpoints/qwen3_moe_unified_mechanism_candidate",
           "dtype": "bfloat16",
           "eval_avg_primary_score": null,
-          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8109/v1 --models candidate_qwen3_moe_unified_mechanism_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_unified_mechanism_candidate",
+          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8109/v1 --models candidate_qwen3_moe_unified_mechanism_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_unified_mechanism_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "eval_completed": false,
           "eval_order": 9,
           "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_unified_mechanism_candidate",
@@ -30478,7 +30524,7 @@
           "checkpoint_path": "results/checkpoints/qwen_0_5b_instruct_coder_uniform_average",
           "dtype": "bfloat16",
           "eval_avg_primary_score": 0.1796875,
-          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8110/v1 --models candidate_qwen_0_5b_instruct_coder_uniform_average --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen_0_5b_instruct_coder_uniform_average",
+          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8110/v1 --models candidate_qwen_0_5b_instruct_coder_uniform_average --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen_0_5b_instruct_coder_uniform_average --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "eval_completed": true,
           "eval_order": 10,
           "eval_output_dir": "results/vllm_checkpoint_eval/qwen_0_5b_instruct_coder_uniform_average",
@@ -30504,7 +30550,7 @@
           "checkpoint_path": "results/checkpoints/moe_route_aware_candidate",
           "dtype": "bfloat16",
           "eval_avg_primary_score": null,
-          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8111/v1 --models candidate_moe_route_aware_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/moe_route_aware_candidate",
+          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8111/v1 --models candidate_moe_route_aware_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/moe_route_aware_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "eval_completed": false,
           "eval_order": 11,
           "eval_output_dir": "results/vllm_checkpoint_eval/moe_route_aware_candidate",
@@ -30530,7 +30576,7 @@
           "checkpoint_path": "results/checkpoints/moe_bias_calibrated_candidate",
           "dtype": "bfloat16",
           "eval_avg_primary_score": null,
-          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8112/v1 --models candidate_moe_bias_calibrated_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/moe_bias_calibrated_candidate",
+          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8112/v1 --models candidate_moe_bias_calibrated_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/moe_bias_calibrated_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "eval_completed": false,
           "eval_order": 12,
           "eval_output_dir": "results/vllm_checkpoint_eval/moe_bias_calibrated_candidate",
@@ -30556,7 +30602,7 @@
           "checkpoint_path": "results/checkpoints/toy_moe_expert_weight_candidate",
           "dtype": "bfloat16",
           "eval_avg_primary_score": null,
-          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8113/v1 --models candidate_toy_moe_expert_weight_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/toy_moe_expert_weight_candidate",
+          "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8113/v1 --models candidate_toy_moe_expert_weight_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/toy_moe_expert_weight_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "eval_completed": false,
           "eval_order": 13,
           "eval_output_dir": "results/vllm_checkpoint_eval/toy_moe_expert_weight_candidate",
@@ -31812,16 +31858,19 @@
           "mock_good_rank_1": true,
           "passed": true,
           "status_complete": true,
+          "task_manifest_sha_present": true,
+          "task_manifest_written": true,
           "task_rows": 8
         },
-        "command": "python scripts/run_vllm_downstream_eval.py --base-url MOCK_BASE_URL --models mock-good,mock-bad --tasks gsm8k,mmlu,safety,humaneval_compile --example-source builtin --max-examples 2 --output-dir results/vllm_downstream_eval_smoke --timeout 10",
+        "command": "python scripts/run_vllm_downstream_eval.py --base-url MOCK_BASE_URL --models mock-good,mock-bad --tasks gsm8k,mmlu,safety,humaneval_compile --example-source builtin --max-examples 2 --output-dir results/vllm_downstream_eval_smoke --task-manifest results/vllm_downstream_eval_smoke/task_manifest.json --create-task-manifest-if-missing --timeout 10",
         "outputs": {
           "eval_summary": "results/vllm_downstream_eval_smoke/summary.json",
           "metrics": "results/vllm_downstream_eval_smoke/metrics.csv",
           "model_summary": "results/vllm_downstream_eval_smoke/model_summary.csv",
           "predictions": "results/vllm_downstream_eval_smoke/predictions.csv",
           "report": "results/vllm_downstream_eval_smoke/report.md",
-          "smoke_summary": "results/vllm_downstream_eval_smoke/smoke_summary.json"
+          "smoke_summary": "results/vllm_downstream_eval_smoke/smoke_summary.json",
+          "task_manifest": "results/vllm_downstream_eval_smoke/task_manifest.json"
         },
         "schema_version": 1,
         "status": "passed"
@@ -32102,7 +32151,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-20T03:09:57.617841+00:00",
+  "generated_at": "2026-06-20T03:19:31.509428+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [

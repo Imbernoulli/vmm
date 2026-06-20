@@ -4,3 +4,4 @@ stale_model,invalid_bundle,invalid_bundle,2,2,True
 missing_task,invalid_bundle,invalid_bundle,2,2,True
 low_examples,invalid_bundle,invalid_bundle,2,2,True
 key_mismatch,invalid_bundle,invalid_bundle,2,2,True
+manifest_mismatch,invalid_bundle,invalid_bundle,2,2,True

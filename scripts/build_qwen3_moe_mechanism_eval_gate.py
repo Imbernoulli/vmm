@@ -715,6 +715,11 @@ def build_selection_rules(selection: dict[str, Any]) -> dict[str, Any]:
 
 
 def build_shell_script(gate: pd.DataFrame) -> str:
+    first_ready = gate[gate["serve_status"] == "ready_to_host"].iloc[0] if not gate[gate["serve_status"] == "ready_to_host"].empty else None
+    task_manifest = "results/qwen3_moe_mechanism_eval_gate/task_manifest.json"
+    tasks = "gsm8k,mmlu,safety,humaneval_compile" if first_ready is None else str(first_ready.get("tasks"))
+    example_source = "datasets" if first_ready is None else str(first_ready.get("example_source"))
+    max_examples = "64" if first_ready is None else str(int(first_ready.get("max_examples") or 64))
     lines = [
         "#!/usr/bin/env bash",
         "set -euo pipefail",
@@ -725,6 +730,17 @@ def build_shell_script(gate: pd.DataFrame) -> str:
         "",
         "requested=\"${1:-all}\"",
         "mkdir -p results/qwen3_moe_mechanism_eval_gate/logs",
+        f"TASK_MANIFEST={shell_quote(task_manifest)}",
+        "if [[ \"$requested\" == \"all\" && ! -f \"$TASK_MANIFEST\" ]]; then",
+        "  echo \"[prepare] shared task manifest\"",
+        "  python scripts/run_vllm_downstream_eval.py "
+        f"--tasks {shell_quote(tasks)} "
+        f"--example-source {shell_quote(example_source)} "
+        f"--max-examples {shell_quote(max_examples)} "
+        "--task-manifest \"$TASK_MANIFEST\" "
+        "--create-task-manifest-if-missing "
+        "--prepare-task-manifest-only",
+        "fi",
         "",
         "run_one() {",
         "  local method=\"$1\"",

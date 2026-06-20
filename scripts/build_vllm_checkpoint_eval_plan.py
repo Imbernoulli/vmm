@@ -303,6 +303,10 @@ def build_plan_rows(args: argparse.Namespace, candidates: list[dict[str, Any]]) 
             "--output-dir",
             rel(output_dir),
         ]
+        if args.task_manifest:
+            eval_parts.extend(["--task-manifest", rel(args.task_manifest)])
+            if not args.no_create_task_manifest:
+                eval_parts.append("--create-task-manifest-if-missing")
         if args.eval_extra_args:
             eval_parts.extend(shlex.split(args.eval_extra_args))
 
@@ -434,6 +438,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--tasks", default="gsm8k,mmlu,safety,humaneval_compile")
     parser.add_argument("--example-source", choices=["datasets", "builtin"], default="datasets")
     parser.add_argument("--max-examples", type=int, default=64)
+    parser.add_argument(
+        "--task-manifest",
+        type=Path,
+        default=Path("results/qwen3_moe_mechanism_eval_gate/task_manifest.json"),
+        help="Shared task/example lockfile used by every eval command. Pass an empty custom plan only by editing eval-extra-args.",
+    )
+    parser.add_argument("--no-create-task-manifest", action="store_true")
     parser.add_argument("--eval-output-root", default="results/vllm_checkpoint_eval")
     parser.add_argument("--eval-extra-args", default="")
     parser.add_argument(

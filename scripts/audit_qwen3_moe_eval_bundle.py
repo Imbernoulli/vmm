@@ -198,6 +198,11 @@ def audit_eval_row(row: pd.Series, *, min_examples: int | None = None) -> dict[s
     if not primary_scores_present:
         issues.append("missing_primary_scores:" + ",".join(missing_score_tasks or expected_tasks))
 
+    task_manifest_sha = clean_value(summary.get("task_manifest_sha256"))
+    manifest_sha_present = bool(task_manifest_sha)
+    if summary_status == "complete" and not manifest_sha_present:
+        issues.append("missing_task_manifest_sha")
+
     usable = (
         summary_status == "complete"
         and not missing_files
@@ -206,6 +211,7 @@ def audit_eval_row(row: pd.Series, *, min_examples: int | None = None) -> dict[s
         and examples_ok
         and prediction_counts_ok
         and primary_scores_present
+        and manifest_sha_present
     )
     return {
         "method": method,
@@ -222,6 +228,9 @@ def audit_eval_row(row: pd.Series, *, min_examples: int | None = None) -> dict[s
         "example_coverage": examples_ok,
         "prediction_coverage": prediction_counts_ok,
         "primary_scores_present": primary_scores_present,
+        "task_manifest_path": summary.get("task_manifest_path"),
+        "task_manifest_sha256": task_manifest_sha,
+        "task_manifest_sha_present": manifest_sha_present,
         "pairable_with_sources": False,
         "pairability_shared_min": 0,
         "pairability_issue": "",
@@ -303,6 +312,14 @@ def apply_pairability_gate(rows: pd.DataFrame, pairability: pd.DataFrame) -> pd.
     complete_source_count = int(pairability["complete_source_count"].max()) if "complete_source_count" in pairability else 0
     source_count = int((rows["role"] == "source").sum()) if "role" in rows else 0
     enforce = source_count > 0 and complete_source_count >= source_count
+    source_shas = {
+        str(value)
+        for value in rows[(rows["role"] == "source") & (rows["summary_status"] == "complete")][
+            "task_manifest_sha256"
+        ].tolist()
+        if clean_value(value) is not None
+    }
+    source_sha_consistent = len(source_shas) <= 1
     grouped = pairability.groupby("method", dropna=False)
     for index, row in rows.iterrows():
         method = str(row["method"])
@@ -319,6 +336,13 @@ def apply_pairability_gate(rows: pd.DataFrame, pairability: pd.DataFrame) -> pd.
         rows.at[index, "pairable_with_sources"] = pairable
         rows.at[index, "pairability_shared_min"] = shared_min
         rows.at[index, "pairability_issue"] = ",".join(issue_tasks)
+        if enforce and row.get("summary_status") == "complete":
+            row_sha = clean_value(row.get("task_manifest_sha256"))
+            if (not source_sha_consistent) or row_sha is None or (source_shas and str(row_sha) not in source_shas):
+                issues = [part for part in str(rows.at[index, "issues"] or "").split(";") if part]
+                issues.append("source_task_manifest_sha_mismatch" if not source_sha_consistent else "task_manifest_sha_mismatch")
+                rows.at[index, "issues"] = ";".join(issues)
+                rows.at[index, "usable_for_selection"] = False
         if enforce and row.get("role") == "candidate" and row.get("summary_status") == "complete" and not pairable:
             issues = [part for part in str(row.get("issues") or "").split(";") if part]
             issues.append("prediction_key_pairability_mismatch:" + ",".join(issue_tasks))
@@ -446,6 +470,7 @@ def write_eval_fixture(
     examples: int,
     status: str = "complete",
     key_offset: int = 0,
+    manifest_sha: str = "smoke-shared-manifest-sha",
 ) -> None:
     root.mkdir(parents=True, exist_ok=True)
     pd.DataFrame(
@@ -496,6 +521,8 @@ def write_eval_fixture(
         "status": status,
         "model": model,
         "models": [model],
+        "task_manifest_path": "smoke_task_manifest.json",
+        "task_manifest_sha256": manifest_sha,
         "model_count": 1,
         "tasks": ",".join(tasks),
         "example_source": "smoke",
@@ -550,6 +577,7 @@ def build_smoke_fixture(output_dir: Path, case: str) -> Path:
     if case == "stale_model":
         candidate_model = "candidate_old_model"
     candidate_key_offset = 100 if case == "key_mismatch" else 0
+    candidate_manifest_sha = "smoke-candidate-other-manifest-sha" if case == "manifest_mismatch" else "smoke-shared-manifest-sha"
     for plan_row in plan_rows:
         method = plan_row["method"]
         model = plan_row["served_model_id"]
@@ -560,8 +588,10 @@ def build_smoke_fixture(output_dir: Path, case: str) -> Path:
             fixture_tasks = candidate_tasks
             examples = candidate_examples
             key_offset = candidate_key_offset
+            manifest_sha = candidate_manifest_sha
         else:
             key_offset = 0
+            manifest_sha = "smoke-shared-manifest-sha"
         write_eval_fixture(
             repo_path(plan_row["eval_output_dir"]),
             method=method,
@@ -569,6 +599,7 @@ def build_smoke_fixture(output_dir: Path, case: str) -> Path:
             tasks=fixture_tasks,
             examples=examples,
             key_offset=key_offset,
+            manifest_sha=manifest_sha,
         )
     gate_dir = fixture_root / "gate"
     gate_dir.mkdir(parents=True, exist_ok=True)
@@ -583,6 +614,7 @@ def run_smoke_matrix(args: argparse.Namespace) -> dict[str, Any]:
         "missing_task": ("invalid_bundle", 2),
         "low_examples": ("invalid_bundle", 2),
         "key_mismatch": ("invalid_bundle", 2),
+        "manifest_mismatch": ("invalid_bundle", 2),
     }
     fixture_root = repo_path(args.output_dir) / "fixtures"
     if fixture_root.exists():

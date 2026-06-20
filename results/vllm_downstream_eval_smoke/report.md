@@ -2,6 +2,9 @@
 
 Status: `complete`; models: `mock-good, mock-bad`; endpoint: `MOCK_BASE_URL`.
 
+- Task manifest: `results/vllm_downstream_eval_smoke/task_manifest.json`
+- Task manifest sha256: `f542a5bb714f734c144ba063594c83149bcedee8b004eb7170ecb8b7c0f45bd6`
+
 ## Eval Plan
 
 | order | method | served model id | source |
