@@ -245,6 +245,7 @@ def moe_feature_rows(
     qwen3_average_source_set_optimizer: dict[str, Any],
     qwen_source_discovery_plan: dict[str, Any],
     qwen_source_discovery_eval_plan: dict[str, Any],
+    qwen_source_frontier_eval_feedback: dict[str, Any],
     qwen3_router_calibration_frontier: dict[str, Any],
 ) -> list[dict[str, Any]]:
     selection = final_selection.get("current_selection") or {}
@@ -610,6 +611,26 @@ def moe_feature_rows(
         },
         {
             "domain": "moe",
+            "probe": "qwen_source_frontier_eval_feedback",
+            "value": qwen_source_frontier_eval_feedback.get("scored_job_count"),
+            "threshold": 1,
+            "decision_signal": "vllm_source_frontier_feedback_controls_average_budget",
+            "evidence": (
+                f"status = {qwen_source_frontier_eval_feedback.get('status')}; "
+                f"scored = {qwen_source_frontier_eval_feedback.get('scored_job_count')}/"
+                f"{qwen_source_frontier_eval_feedback.get('job_count')}; "
+                f"final candidates = "
+                f"{qwen_source_frontier_eval_feedback.get('final_average_budget_candidate_count')}; "
+                f"probe only = {qwen_source_frontier_eval_feedback.get('probe_only_candidate_count')}; "
+                f"top = {(qwen_source_frontier_eval_feedback.get('top_scored_job') or {}).get('job_id')}; "
+                f"gate = {(qwen_source_frontier_eval_feedback.get('top_scored_job') or {}).get('decision_gate')}; "
+                f"surplus = "
+                f"{fmt((qwen_source_frontier_eval_feedback.get('top_scored_job') or {}).get('surplus_vs_interference'))}; "
+                f"blocker = {qwen_source_frontier_eval_feedback.get('blocking_reason')}"
+            ),
+        },
+        {
+            "domain": "moe",
             "probe": "qwen3_router_calibration_frontier",
             "value": qwen3_router_calibration_frontier.get("default_candidate_count"),
             "threshold": 1,
@@ -687,6 +708,7 @@ def build_decisions(
     qwen3_router_coupled_retention_frontier: dict[str, Any],
     qwen3_source_set_complementarity: dict[str, Any],
     qwen3_average_source_set_optimizer: dict[str, Any],
+    qwen_source_frontier_eval_feedback: dict[str, Any],
     qwen3_router_calibration_frontier: dict[str, Any],
 ) -> pd.DataFrame:
     dense_config = ((dense_selector.get("results") or {}).get("unified") or {}).get("config") or {}
@@ -695,6 +717,7 @@ def build_decisions(
     constrained_router = qwen3_router_coupled_retention_frontier.get("constrained") or {}
     stress_router = qwen3_router_coupled_retention_frontier.get("stress") or {}
     top_source_set = qwen3_average_source_set_optimizer.get("top_source_set") or {}
+    top_source_frontier_feedback = qwen_source_frontier_eval_feedback.get("top_scored_job") or {}
     router_frontier_recommended = ",".join(
         str(item) for item in (qwen3_router_calibration_frontier.get("recommended_default_candidates") or [])
     )
@@ -836,6 +859,26 @@ def build_decisions(
             ),
             "why_it_should_improve": "It prevents a weakly complementary source set from being promoted to final-average budget when measured average interference is larger than the available task-frontier gain.",
             "same_shape_invariant": "the gate only changes source discovery and eval priority; any probe candidate still keeps one same-shape checkpoint",
+        },
+        {
+            "stage": "moe_source_frontier_vllm_feedback_gate",
+            "operation": "feed completed vLLM source-frontier results back into average-budget decisions",
+            "condition": (
+                f"feedback status {qwen_source_frontier_eval_feedback.get('status')}; scored "
+                f"{qwen_source_frontier_eval_feedback.get('scored_job_count')}/"
+                f"{qwen_source_frontier_eval_feedback.get('job_count')}; final candidates "
+                f"{qwen_source_frontier_eval_feedback.get('final_average_budget_candidate_count')}; "
+                f"top job {top_source_frontier_feedback.get('job_id')} gate "
+                f"{top_source_frontier_feedback.get('decision_gate')} surplus "
+                f"{fmt(top_source_frontier_feedback.get('surplus_vs_interference'))}"
+            ),
+            "selected_action": (
+                top_source_frontier_feedback.get("recommended_action")
+                or qwen_source_frontier_eval_feedback.get("blocking_reason")
+                or "wait for vLLM source-frontier metrics before accepting any source-set average"
+            ),
+            "why_it_should_improve": "It closes the loop from hosted endpoint evaluation to the same average acceptance equation instead of relying on static proxy matrices.",
+            "same_shape_invariant": "this gate changes only which source set receives average materialization budget; accepted candidates still preserve the input architecture",
         },
         {
             "stage": "moe_expert_delta_optimizer",
@@ -2026,6 +2069,7 @@ def build_algorithm(
             "moe_router_coupled_shrink_gate": "let router fragility enter the expert-scale interference score, but add a separate direct shrink term only if the retention-safe frontier achieves a material fraction of the aggressive ablation effect and then passes matched downstream eval",
             "source_set_complementarity_gate": "before accepting any average, compare the source-set task frontier to the best single source; if the frontier has no material gain because one source dominates, average candidates are repair or ablation tests rather than source-beating priors",
             "source_set_surplus_gate": "promote a source set beyond probe-only only if source_frontier_avg_gain - observed_merge_interference_budget >= 0; otherwise search for stronger endpoint complementarity or run small probes",
+            "vllm_source_frontier_feedback_gate": "after hosted vLLM eval, recompute task-wise endpoint frontier and promote an average only if hosted source_frontier_avg_gain - observed_merge_interference_budget >= 0",
             "moe_expert_subspace_cap": "for each routed expert group g, choose scale s_g to preserve route-mass-weighted nonbase contribution while reducing predicted delta under route, geometry, and subspace-conflict weights",
             "moe_confidence_tie_band_gate": "after source, task-regression, confidence-dominance, and paired-prediction gates, find the point-estimate leader; candidates whose aggregate confidence upper bounds overlap the leader lower bounds form the rank band, and structural frontier/safety can break ties only inside that band",
             "same_shape_constraint": "all accepted operations must preserve model config, tokenizer, class, tensor names, tensor shapes, and MoE expert/router cardinalities",
@@ -2069,6 +2113,7 @@ def build_report(
         f"- Qwen3 source-set surplus: top `{moe['qwen3_source_set_top_source_set']}` gate `{moe['qwen3_source_set_top_optimizer_gate']}`，frontier avg gain `{fmt(moe['qwen3_source_set_top_frontier_avg_gain'])}` vs interference budget `{fmt(moe['qwen3_source_set_interference_budget'])}`，surplus `{fmt(moe['qwen3_source_set_top_surplus_vs_interference'])}`，weights `{moe['qwen3_source_set_top_source_weights']}`。",
         f"- Qwen source discovery: `{moe['qwen_source_discovery_status']}`，top scenario `{moe['qwen_source_discovery_top_scenario']}`，top queue `{moe['qwen_source_discovery_top_queue_item']}`，additional frontier avg gain needed `{fmt(moe['qwen_source_discovery_measured_additional_frontier_avg_gain_needed'])}`。",
         f"- Qwen source discovery eval: `{moe['qwen_source_discovery_eval_status']}`，jobs `{moe['qwen_source_discovery_eval_job_count']}`，top job `{moe['qwen_source_discovery_eval_top_job']}`，task names `{moe['qwen_source_discovery_eval_task_names']}`，compatibility `{moe['qwen_source_discovery_eval_task_name_status']}`。",
+        f"- Qwen source frontier eval feedback: `{moe['qwen_source_frontier_eval_feedback_status']}`，scored `{moe['qwen_source_frontier_eval_feedback_scored']}/{moe['qwen_source_frontier_eval_feedback_jobs']}`，final `{moe['qwen_source_frontier_eval_feedback_final_candidates']}`，probe-only `{moe['qwen_source_frontier_eval_feedback_probe_only']}`，top `{moe['qwen_source_frontier_eval_feedback_top_job']}` gate `{moe['qwen_source_frontier_eval_feedback_top_gate']}`，surplus `{fmt(moe['qwen_source_frontier_eval_feedback_top_surplus'])}`，blocker `{moe['qwen_source_frontier_eval_feedback_blocker']}`。",
         f"- Qwen3 router calibration frontier: `{moe['qwen3_router_calibration_frontier_status']}`，default `{moe['qwen3_router_calibration_frontier_default_candidates']}/{moe['qwen3_router_calibration_frontier_candidate_count']}`，recommended `{moe['qwen3_router_calibration_frontier_recommended']}`，blocker `{moe['qwen3_router_calibration_frontier_blocker']}`，nll `{fmt(moe['qwen3_router_calibration_frontier_nll_signal'])}`，generation `{fmt(moe['qwen3_router_calibration_frontier_generation_signal'])}`。",
         f"- Qwen3 router calibration: `{moe['qwen3_router_calibration_status']}`。",
         f"- Qwen3 final selection: `{moe['qwen3_final_selection_status']}`，eligible `{moe['qwen3_eligible_candidates']}/{moe['qwen3_candidate_count']}`。",
@@ -2210,6 +2255,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
     qwen3_average_source_set_optimizer = read_json(args.qwen3_average_source_set_optimizer)
     qwen_source_discovery_plan = read_json(args.qwen_source_discovery_plan)
     qwen_source_discovery_eval_plan = read_json(args.qwen_source_discovery_eval_plan)
+    qwen_source_frontier_eval_feedback = read_json(args.qwen_source_frontier_eval_feedback)
     qwen3_router_calibration_frontier = read_json(args.qwen3_router_calibration_frontier)
 
     feature_rows = dense_feature_rows(curvature, dense_selector, dense_lambda, gen_eval)
@@ -2237,6 +2283,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
             qwen3_average_source_set_optimizer,
             qwen_source_discovery_plan,
             qwen_source_discovery_eval_plan,
+            qwen_source_frontier_eval_feedback,
             qwen3_router_calibration_frontier,
         )
     )
@@ -2260,6 +2307,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         qwen3_router_coupled_retention_frontier,
         qwen3_source_set_complementarity,
         qwen3_average_source_set_optimizer,
+        qwen_source_frontier_eval_feedback,
         qwen3_router_calibration_frontier,
     )
 
@@ -2539,6 +2587,35 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
             "qwen_source_discovery_eval_task_names": qwen_source_discovery_eval_plan.get(
                 "task_names"
             ),
+            "qwen_source_frontier_eval_feedback_status": qwen_source_frontier_eval_feedback.get(
+                "status"
+            ),
+            "qwen_source_frontier_eval_feedback_scored": qwen_source_frontier_eval_feedback.get(
+                "scored_job_count"
+            ),
+            "qwen_source_frontier_eval_feedback_jobs": qwen_source_frontier_eval_feedback.get(
+                "job_count"
+            ),
+            "qwen_source_frontier_eval_feedback_final_candidates": qwen_source_frontier_eval_feedback.get(
+                "final_average_budget_candidate_count"
+            ),
+            "qwen_source_frontier_eval_feedback_probe_only": qwen_source_frontier_eval_feedback.get(
+                "probe_only_candidate_count"
+            ),
+            "qwen_source_frontier_eval_feedback_top_job": (
+                qwen_source_frontier_eval_feedback.get("top_scored_job") or {}
+            ).get("job_id"),
+            "qwen_source_frontier_eval_feedback_top_gate": (
+                qwen_source_frontier_eval_feedback.get("top_scored_job") or {}
+            ).get("decision_gate"),
+            "qwen_source_frontier_eval_feedback_top_surplus": fnum(
+                (qwen_source_frontier_eval_feedback.get("top_scored_job") or {}).get(
+                    "surplus_vs_interference"
+                )
+            ),
+            "qwen_source_frontier_eval_feedback_blocker": qwen_source_frontier_eval_feedback.get(
+                "blocking_reason"
+            ),
             "qwen3_router_calibration_frontier_status": qwen3_router_calibration_frontier.get(
                 "status"
             ),
@@ -2796,6 +2873,11 @@ def parse_args() -> argparse.Namespace:
         "--qwen-source-discovery-eval-plan",
         type=Path,
         default=Path("results/qwen_source_discovery_eval_plan/summary.json"),
+    )
+    parser.add_argument(
+        "--qwen-source-frontier-eval-feedback",
+        type=Path,
+        default=Path("results/qwen_source_frontier_eval_feedback/summary.json"),
     )
     parser.add_argument(
         "--qwen3-router-calibration-frontier",

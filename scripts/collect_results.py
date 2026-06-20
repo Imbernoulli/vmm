@@ -928,6 +928,35 @@ def summarize_qwen_source_discovery_served_model_preflight() -> dict[str, Any]:
     }
 
 
+def summarize_qwen_source_frontier_eval_feedback() -> dict[str, Any]:
+    root = repo_path("results/qwen_source_frontier_eval_feedback")
+    summary = read_json(root / "summary.json")
+    jobs = read_csv(root / "job_feedback.csv")
+    tasks = read_csv(root / "task_frontier.csv")
+    top = summary.get("top_scored_job") or {}
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "job_count": maybe_int(summary.get("job_count")),
+        "scored_job_count": maybe_int(summary.get("scored_job_count")),
+        "final_average_budget_candidate_count": maybe_int(
+            summary.get("final_average_budget_candidate_count")
+        ),
+        "probe_only_candidate_count": maybe_int(summary.get("probe_only_candidate_count")),
+        "interference_budget": maybe_float(summary.get("interference_budget")),
+        "top_job": top.get("job_id"),
+        "top_gate": top.get("decision_gate"),
+        "top_surplus_vs_interference": maybe_float(top.get("surplus_vs_interference")),
+        "blocking_reason": summary.get("blocking_reason"),
+        "job_rows": [clean_row(row) for _, row in jobs.iterrows()],
+        "task_rows": [clean_row(row) for _, row in tasks.iterrows()],
+        "report": rel(root / "report.md"),
+        "job_feedback": rel(root / "job_feedback.csv"),
+        "task_frontier": rel(root / "task_frontier.csv"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_average_decision_report() -> dict[str, Any]:
     summary = read_json("results/average_decision_report/summary.json")
     decisions = summary.get("decisions", [])
@@ -5044,6 +5073,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/qwen_source_discovery_served_model_preflight/report.md checks the planned vLLM served model ids against an endpoint model list when available and reports task-manifest readiness before downstream eval launch.",
         },
         {
+            "item": "Qwen source frontier eval feedback",
+            "status": "complete",
+            "evidence": "results/qwen_source_frontier_eval_feedback/report.md converts completed vLLM source-frontier metrics into endpoint frontier gain, surplus against merge-interference budget, and a final/probe/reject average gate.",
+        },
+        {
             "item": "Formal LLM benchmark slices",
             "status": "complete",
             "evidence": "Representative Qwen2.5-1.5B benchmark slices cover MMLU, GSM8K, HumanEval canonical-solution NLL, and BeaverTails safety/refusal NLL.",
@@ -5463,6 +5497,7 @@ def build_summary() -> dict[str, Any]:
         "qwen_source_discovery_served_model_preflight": (
             summarize_qwen_source_discovery_served_model_preflight()
         ),
+        "qwen_source_frontier_eval_feedback": summarize_qwen_source_frontier_eval_feedback(),
         "qwen_probe_smoke": summarize_qwen_probe_smoke(),
         "average_decision_report": summarize_average_decision_report(),
         "model_averaging_literature_review": summarize_model_averaging_literature_review(),
@@ -5660,6 +5695,7 @@ def build_summary() -> dict[str, Any]:
             "python scripts/smoke_moe_routing_probe_contract.py",
             "python scripts/smoke_vllm_downstream_eval_contract.py --output-dir results/vllm_downstream_eval_smoke",
             "python scripts/audit_vllm_served_model_preflight.py --eval-jobs results/qwen_source_discovery_eval_plan/vllm_eval_jobs.csv --output-dir results/qwen_source_discovery_served_model_preflight",
+            "python scripts/build_qwen_source_frontier_eval_feedback.py --output-dir results/qwen_source_frontier_eval_feedback",
             "PYTHONPATH=src python scripts/build_vllm_checkpoint_eval_plan.py --output-dir results/vllm_checkpoint_eval_plan",
             "PYTHONPATH=src python scripts/build_vllm_source_merge_comparison.py --output-dir results/vllm_source_merge_comparison",
             "PYTHONPATH=src python scripts/build_probe_guided_dense_average_candidate.py --output-dir results/probe_guided_dense_average_candidate",
@@ -5791,6 +5827,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen_source_discovery_served_model_preflight = exp[
         "qwen_source_discovery_served_model_preflight"
     ]
+    qwen_source_frontier_eval_feedback = exp["qwen_source_frontier_eval_feedback"]
     average_decision = exp["average_decision_report"]
     literature_review = exp["model_averaging_literature_review"]
     average_method_gate_matrix = exp["average_method_gate_matrix"]
@@ -6218,6 +6255,19 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen_source_discovery_served_model_preflight['unique_required_model_count']} / "
                 f"{qwen_source_discovery_served_model_preflight['ready_manifest_count']}"
                 f"/{qwen_source_discovery_served_model_preflight['manifest_check_count']} |"
+            ),
+            (
+                "| Qwen source frontier eval feedback | status / scored / final | "
+                f"{qwen_source_frontier_eval_feedback['status']} / "
+                f"{qwen_source_frontier_eval_feedback['scored_job_count']}"
+                f"/{qwen_source_frontier_eval_feedback['job_count']} / "
+                f"{qwen_source_frontier_eval_feedback['final_average_budget_candidate_count']} |"
+            ),
+            (
+                "| Qwen source frontier eval feedback | top job / gate / surplus | "
+                f"{qwen_source_frontier_eval_feedback['top_job']} / "
+                f"{qwen_source_frontier_eval_feedback['top_gate']} / "
+                f"{fmt(qwen_source_frontier_eval_feedback['top_surplus_vs_interference'])} |"
             ),
             (
                 "| first-principles MoE mechanism | gauge-equivalent B MSE | "

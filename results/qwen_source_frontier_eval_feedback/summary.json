@@ -1,0 +1,26 @@
+{
+  "blocking_reason": "Run the planned vLLM source-frontier eval jobs, then rerun this feedback builder.",
+  "eval_jobs": "results/qwen_source_discovery_eval_plan/vllm_eval_jobs.csv",
+  "final_average_budget_candidate_count": 0,
+  "interference_budget": 0.0694444444444443,
+  "job_count": 4,
+  "outputs": {
+    "job_feedback": "results/qwen_source_frontier_eval_feedback/job_feedback.csv",
+    "report": "results/qwen_source_frontier_eval_feedback/report.md",
+    "summary": "results/qwen_source_frontier_eval_feedback/summary.json",
+    "task_frontier": "results/qwen_source_frontier_eval_feedback/task_frontier.csv"
+  },
+  "probe_only_candidate_count": 0,
+  "schema_version": 1,
+  "scored_job_count": 0,
+  "status": "awaiting_vllm_source_frontier_results",
+  "top_scored_job": {
+    "decision_gate": null,
+    "frontier_avg_gain_vs_best_single": null,
+    "frontier_worst_gain_vs_best_single": null,
+    "job_id": null,
+    "recommended_action": null,
+    "scenario_id": null,
+    "surplus_vs_interference": null
+  }
+}

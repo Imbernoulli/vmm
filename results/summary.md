@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-20T15:01:25.088156+00:00`
+Generated at: `2026-06-20T15:14:19.365115+00:00`
 
 ## Coverage
 
-Complete: `100`; partial: `1`; missing: `0`.
+Complete: `101`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -31,6 +31,7 @@ Complete: `100`; partial: `1`; missing: `0`.
 | Qwen source discovery and endpoint-expansion plan | complete | results/qwen_source_discovery_plan/report.md turns the negative source-set surplus into concrete Qwen endpoint/source-set discovery queues, including Dense 7B and Qwen3 MoE route-aware scenarios. |
 | Qwen source discovery vLLM eval plan | complete | results/qwen_source_discovery_eval_plan/report.md converts the discovered source sets into concrete vLLM jobs, task manifests, and runner commands using the runner-compatible humaneval_compile task name. |
 | Qwen source discovery served-model preflight | complete | results/qwen_source_discovery_served_model_preflight/report.md checks the planned vLLM served model ids against an endpoint model list when available and reports task-manifest readiness before downstream eval launch. |
+| Qwen source frontier eval feedback | complete | results/qwen_source_frontier_eval_feedback/report.md converts completed vLLM source-frontier metrics into endpoint frontier gain, surplus against merge-interference budget, and a final/probe/reject average gate. |
 | Formal LLM benchmark slices | complete | Representative Qwen2.5-1.5B benchmark slices cover MMLU, GSM8K, HumanEval canonical-solution NLL, and BeaverTails safety/refusal NLL. |
 | vLLM hosted downstream evaluation | partial | scripts/run_vllm_downstream_eval.py can build a served-model eval plan from the Qwen target registry; the generic registry run remains endpoint_unavailable, while checkpoint-specific hosted eval is tracked separately. |
 | Materialized checkpoint vLLM hosted eval | complete | results/vllm_checkpoint_eval/qwen_0_5b_instruct_coder_uniform_average/report.md contains a real vLLM-hosted GSM8K/MMLU/safety/HumanEval compile eval for the materialized Qwen2.5-0.5B uniform-average checkpoint. |
@@ -167,6 +168,8 @@ Complete: `100`; partial: `1`; missing: `0`.
 | Qwen source discovery eval plan | task-name compatibility / task names | passed_humaneval_compile_task_name / ['gsm8k', 'humaneval_compile', 'mmlu', 'safety'] |
 | Qwen source discovery served-model preflight | status / endpoint / missing | static_preflight_ready_waiting_for_endpoint_model_list / not_requested / 0 |
 | Qwen source discovery served-model preflight | required models / manifest ready | 12 / 4/8 |
+| Qwen source frontier eval feedback | status / scored / final | awaiting_vllm_source_frontier_results / 0/4 / 0 |
+| Qwen source frontier eval feedback | top job / gate / surplus | None / None / n/a |
 | first-principles MoE mechanism | gauge-equivalent B MSE | 7.66e-16 |
 | first-principles MoE mechanism | router agreement raw to aligned | 0.035 to 0.795 |
 | first-principles MoE mechanism | same-name to aligned worst loss | 0.511 to 0.125 |
@@ -320,8 +323,8 @@ Complete: `100`; partial: `1`; missing: `0`.
 | Qwen3 MoE router-coupled retention frontier | gate / constrained / stress | direct_router_boundary_term_not_default / router_q0.85_s0.00020_cap0.00010 / router_q0.75_s0.01000_cap0.01000 |
 | Qwen3 MoE router-coupled retention frontier | pass default / effect fraction / action | 146/770 / 0.0103 / keep_router_fragility_inside_BHI_and_keep_direct_extra_shrink_as_ablation |
 | Qwen3 MoE mechanistic unified smoke | status / passed cases | passed / 4/4 |
-| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | passed / 34/34 / 0/13 |
-| Qwen3 MoE post-eval refresh | selection / final selection / attribution scored / plan steps | awaiting_source_eval / awaiting_source_eval / 0/10 / 34/34 |
+| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | passed / 35/35 / 0/13 |
+| Qwen3 MoE post-eval refresh | selection / final selection / attribution scored / plan steps | awaiting_source_eval / awaiting_source_eval / 0/10 / 35/35 |
 | Qwen3 MoE post-eval refresh | feedback status / scored tasks / changed groups | awaiting_eval / 0/4 / 0 |
 | Qwen3 MoE post-eval refresh | mechanistic status / retention / hard-cap violations | mechanistic_unified_candidate_ready / 0.965 / 0 |
 | Qwen3 MoE post-eval refresh | sensitivity objective / scale | no_category_prior 0.003 / no_subspace_conflict 0.0086 |
