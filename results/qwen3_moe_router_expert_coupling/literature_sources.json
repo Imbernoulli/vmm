@@ -1,0 +1,20 @@
+[
+  {
+    "key": "harc",
+    "mechanism": "Top-k routing can break under MoE weight merging; router movement needs a separate calibration or freeze gate.",
+    "title": "When Model Merging Breaks Routing: Training-Free Calibration for MoE",
+    "url": "https://arxiv.org/abs/2606.03391"
+  },
+  {
+    "key": "mergeme",
+    "mechanism": "MoE merging needs routing heuristics and interference mitigation beyond uniform expert averaging.",
+    "title": "MergeME: Model Merging Techniques for Homogeneous and Heterogeneous MoEs",
+    "url": "https://arxiv.org/abs/2502.00997"
+  },
+  {
+    "key": "expert_merging",
+    "mechanism": "Layer heterogeneity matters; high-risk layers need finer coefficients than low-risk layers.",
+    "title": "Expert Merging: Model Merging with Unsupervised Expert Alignment and Importance-Guided Layer Chunking",
+    "url": "https://arxiv.org/abs/2509.25712"
+  }
+]

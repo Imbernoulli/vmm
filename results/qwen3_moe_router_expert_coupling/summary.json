@@ -1,0 +1,53 @@
+{
+  "fragility_expected_delta_corr": 0.07111562491726356,
+  "fragility_router_feature_corr": 0.6946899464712292,
+  "fragility_scale_shrink_corr": 0.5831173179896568,
+  "gate": "router_expert_coupling_active",
+  "gate_reason": "Current B/H/I already turns fragile router layers into stronger routed-expert shrink, so removing router-boundary terms would be a mechanistic regression.",
+  "group_count": 5243,
+  "high_fragility_layer_count": 12,
+  "high_fragility_slice": {
+    "group_count": 1322,
+    "route_mass": 143.99999999999972,
+    "weighted_benefit": 0.3514005599802459,
+    "weighted_boundary_fragility": 0.7080026108377344,
+    "weighted_curvature": 0.5707560014938049,
+    "weighted_expected_delta": 0.22576026488175913,
+    "weighted_interference": 0.547424159467249,
+    "weighted_router_instability_feature": 0.8260502872155059,
+    "weighted_safe_lambda_proxy": 0.03827783669042097,
+    "weighted_scale": 0.9701084610891778,
+    "weighted_scale_shrink": 0.019892561797160813
+  },
+  "high_vs_low_weighted_shrink_lift": 0.013794858470413248,
+  "layer_count": 48,
+  "low_fragility_slice": {
+    "group_count": 1406,
+    "route_mass": 155.99999999999966,
+    "weighted_benefit": 0.34958268718955293,
+    "weighted_boundary_fragility": 0.45164371073241233,
+    "weighted_curvature": 0.3663053569816174,
+    "weighted_expected_delta": 0.19746694898695027,
+    "weighted_interference": 0.3290672553708648,
+    "weighted_router_instability_feature": 0.36003557842830153,
+    "weighted_safe_lambda_proxy": 0.05,
+    "weighted_scale": 0.9908904033127903,
+    "weighted_scale_shrink": 0.006097703326747564
+  },
+  "outputs": {
+    "coupling_correlations": "results/qwen3_moe_router_expert_coupling/coupling_correlations.csv",
+    "layer_router_expert_coupling": "results/qwen3_moe_router_expert_coupling/layer_router_expert_coupling.csv",
+    "literature_sources": "results/qwen3_moe_router_expert_coupling/literature_sources.json",
+    "report": "results/qwen3_moe_router_expert_coupling/report.md",
+    "summary": "results/qwen3_moe_router_expert_coupling/summary.json",
+    "top_router_coupled_experts": "results/qwen3_moe_router_expert_coupling/top_router_coupled_experts.csv"
+  },
+  "safe_lambda_scale_shrink_corr": -0.14724165862049698,
+  "schema_version": 1,
+  "selected_mechanistic_candidate_id": "s0.08_b1.65_h0.75_i0.75",
+  "status": "router_expert_coupling_ready",
+  "top_coupled_layer_fragility": 0.7157207652220607,
+  "top_coupled_layer_id": 20,
+  "top_coupled_layer_risk": 6.577561492367927,
+  "top_coupled_layer_weighted_shrink": 0.020508645894448747
+}

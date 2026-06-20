@@ -2552,6 +2552,54 @@ def summarize_qwen3_moe_mechanistic_sensitivity() -> dict[str, Any]:
     }
 
 
+def summarize_qwen3_moe_router_expert_coupling() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_router_expert_coupling")
+    summary = read_json(root / "summary.json")
+    layer_rows = read_csv(root / "layer_router_expert_coupling.csv")
+    expert_rows = read_csv(root / "top_router_coupled_experts.csv")
+    correlations = read_csv(root / "coupling_correlations.csv")
+    high = summary.get("high_fragility_slice") or {}
+    low = summary.get("low_fragility_slice") or {}
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "gate": summary.get("gate"),
+        "gate_reason": summary.get("gate_reason"),
+        "selected_mechanistic_candidate_id": summary.get("selected_mechanistic_candidate_id"),
+        "group_count": int(summary.get("group_count", len(expert_rows))),
+        "layer_count": int(summary.get("layer_count", len(layer_rows))),
+        "high_fragility_layer_count": int(summary.get("high_fragility_layer_count", 0)),
+        "top_coupled_layer_id": maybe_int(summary.get("top_coupled_layer_id")),
+        "top_coupled_layer_risk": maybe_float(summary.get("top_coupled_layer_risk")),
+        "top_coupled_layer_fragility": maybe_float(summary.get("top_coupled_layer_fragility")),
+        "top_coupled_layer_weighted_shrink": maybe_float(
+            summary.get("top_coupled_layer_weighted_shrink")
+        ),
+        "fragility_router_feature_corr": maybe_float(
+            summary.get("fragility_router_feature_corr")
+        ),
+        "fragility_scale_shrink_corr": maybe_float(summary.get("fragility_scale_shrink_corr")),
+        "safe_lambda_scale_shrink_corr": maybe_float(summary.get("safe_lambda_scale_shrink_corr")),
+        "fragility_expected_delta_corr": maybe_float(summary.get("fragility_expected_delta_corr")),
+        "high_vs_low_weighted_shrink_lift": maybe_float(
+            summary.get("high_vs_low_weighted_shrink_lift")
+        ),
+        "high_fragility_weighted_scale": maybe_float(high.get("weighted_scale")),
+        "high_fragility_weighted_shrink": maybe_float(high.get("weighted_scale_shrink")),
+        "low_fragility_weighted_scale": maybe_float(low.get("weighted_scale")),
+        "low_fragility_weighted_shrink": maybe_float(low.get("weighted_scale_shrink")),
+        "layer_rows": [clean_row(row) for _, row in layer_rows.iterrows()],
+        "expert_rows": [clean_row(row) for _, row in expert_rows.iterrows()],
+        "correlation_rows": [clean_row(row) for _, row in correlations.iterrows()],
+        "report": rel(root / "report.md"),
+        "layer_router_expert_coupling": rel(root / "layer_router_expert_coupling.csv"),
+        "top_router_coupled_experts": rel(root / "top_router_coupled_experts.csv"),
+        "coupling_correlations": rel(root / "coupling_correlations.csv"),
+        "literature_sources": rel(root / "literature_sources.json"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_qwen3_moe_post_eval_refresh() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_post_eval_refresh")
     summary = read_json(root / "summary.json")
@@ -2602,6 +2650,20 @@ def summarize_qwen3_moe_post_eval_refresh() -> dict[str, Any]:
         ),
         "mechanistic_sensitivity_scale_shift": maybe_float(
             downstream.get("mechanistic_sensitivity_scale_shift")
+        ),
+        "router_expert_coupling_status": downstream.get("router_expert_coupling_status"),
+        "router_expert_coupling_gate": downstream.get("router_expert_coupling_gate"),
+        "router_expert_coupling_fragility_router_feature_corr": maybe_float(
+            downstream.get("router_expert_coupling_fragility_router_feature_corr")
+        ),
+        "router_expert_coupling_fragility_scale_shrink_corr": maybe_float(
+            downstream.get("router_expert_coupling_fragility_scale_shrink_corr")
+        ),
+        "router_expert_coupling_shrink_lift": maybe_float(
+            downstream.get("router_expert_coupling_shrink_lift")
+        ),
+        "router_expert_coupling_top_layer": maybe_int(
+            downstream.get("router_expert_coupling_top_layer")
         ),
         "step_rows": [clean_row(row) for _, row in steps.iterrows()],
         "report": rel(root / "report.md"),
@@ -4881,12 +4943,12 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "Qwen3 MoE mechanistic unified candidate",
             "status": "complete",
-            "evidence": "results/qwen3_moe_mechanistic_unified_candidate/report.md solves per-expert nonbase scale from benefit, curvature, and interference proxies, using real route mass, expert geometry, subspace conflict, delta pressure, and feedback priors; results/qwen3_moe_mechanistic_evidence_audit/report.md checks the B/H/I gradient, hard-cap binding, and internal-feature scale response; results/qwen3_moe_mechanistic_sensitivity/report.md reruns feature-family counterfactual full-score ablations to identify which internal signals protect the complete B/H/I objective; results/qwen3_moe_mechanistic_unified_candidate_smoke/report.md verifies monotonic mechanism behavior, hard-cap enforcement, and feedback shrink gating.",
+            "evidence": "results/qwen3_moe_mechanistic_unified_candidate/report.md solves per-expert nonbase scale from benefit, curvature, and interference proxies, using real route mass, expert geometry, subspace conflict, delta pressure, and feedback priors; results/qwen3_moe_mechanistic_evidence_audit/report.md checks the B/H/I gradient, hard-cap binding, and internal-feature scale response; results/qwen3_moe_mechanistic_sensitivity/report.md reruns feature-family counterfactual full-score ablations to identify which internal signals protect the complete B/H/I objective; results/qwen3_moe_router_expert_coupling/report.md joins router top-k boundary fragility with expert scales to verify router-boundary risk becomes expert trust-region shrink; results/qwen3_moe_mechanistic_unified_candidate_smoke/report.md verifies monotonic mechanism behavior, hard-cap enforcement, and feedback shrink gating.",
         },
         {
             "item": "Qwen3 MoE post-vLLM eval refresh pipeline",
             "status": "complete",
-            "evidence": "results/qwen3_moe_post_eval_refresh/report.md runs eval-bundle audit, unified/final selection, mechanism attribution, downstream feedback optimization, mechanistic unified candidate generation, mechanistic evidence audit, mechanistic sensitivity attribution, unified average optimizer refresh, smoke checks, and collect_results in a fixed post-eval order after remote vLLM outputs land.",
+            "evidence": "results/qwen3_moe_post_eval_refresh/report.md runs eval-bundle audit, unified/final selection, mechanism attribution, downstream feedback optimization, mechanistic unified candidate generation, mechanistic evidence audit, mechanistic sensitivity attribution, router-expert coupling attribution, unified average optimizer refresh, smoke checks, and collect_results in a fixed post-eval order after remote vLLM outputs land.",
         },
         {
             "item": "Qwen3 MoE searched cap-law materialized candidate",
@@ -5056,6 +5118,7 @@ def build_summary() -> dict[str, Any]:
         ),
         "qwen3_moe_mechanistic_evidence_audit": summarize_qwen3_moe_mechanistic_evidence_audit(),
         "qwen3_moe_mechanistic_sensitivity": summarize_qwen3_moe_mechanistic_sensitivity(),
+        "qwen3_moe_router_expert_coupling": summarize_qwen3_moe_router_expert_coupling(),
         "qwen3_moe_post_eval_refresh": summarize_qwen3_moe_post_eval_refresh(),
         "qwen3_moe_post_eval_refresh_plan": summarize_qwen3_moe_post_eval_refresh_plan(),
         "qwen3_moe_router_move_gate": summarize_qwen3_moe_router_move_gate(),
@@ -5247,6 +5310,7 @@ def build_summary() -> dict[str, Any]:
             "python scripts/build_qwen3_moe_mechanistic_unified_candidate.py --smoke-matrix --output-dir results/qwen3_moe_mechanistic_unified_candidate_smoke",
             "python scripts/audit_qwen3_moe_mechanistic_evidence.py --output-dir results/qwen3_moe_mechanistic_evidence_audit",
             "python scripts/analyze_qwen3_moe_mechanistic_sensitivity.py --output-dir results/qwen3_moe_mechanistic_sensitivity",
+            "python scripts/analyze_qwen3_moe_router_expert_coupling.py --output-dir results/qwen3_moe_router_expert_coupling",
             "python scripts/refresh_qwen3_moe_post_eval.py --plan-only --include-smoke --output-dir results/qwen3_moe_post_eval_refresh_plan",
             "python scripts/refresh_qwen3_moe_post_eval.py --include-smoke --output-dir results/qwen3_moe_post_eval_refresh",
             "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
@@ -5363,6 +5427,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     ]
     qwen3_moe_mechanistic_evidence_audit = exp["qwen3_moe_mechanistic_evidence_audit"]
     qwen3_moe_mechanistic_sensitivity = exp["qwen3_moe_mechanistic_sensitivity"]
+    qwen3_moe_router_expert_coupling = exp["qwen3_moe_router_expert_coupling"]
     qwen3_moe_post_eval_refresh = exp["qwen3_moe_post_eval_refresh"]
     qwen3_moe_post_eval_refresh_plan = exp["qwen3_moe_post_eval_refresh_plan"]
     qwen3_moe_router_move_gate = exp["qwen3_moe_router_move_gate"]
@@ -6516,6 +6581,19 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"({fmt(qwen3_moe_mechanistic_sensitivity['top_shrink_feature_corr'], 3)}) |"
             ),
             (
+                "| Qwen3 MoE router-expert coupling | gate / fragility->feature / fragility->shrink | "
+                f"{qwen3_moe_router_expert_coupling['gate']} / "
+                f"{fmt(qwen3_moe_router_expert_coupling['fragility_router_feature_corr'])} / "
+                f"{fmt(qwen3_moe_router_expert_coupling['fragility_scale_shrink_corr'])} |"
+            ),
+            (
+                "| Qwen3 MoE router-expert coupling | high-low shrink lift / top layer / high-low scale | "
+                f"{fmt(qwen3_moe_router_expert_coupling['high_vs_low_weighted_shrink_lift'], 4)} / "
+                f"L{qwen3_moe_router_expert_coupling['top_coupled_layer_id']} / "
+                f"{fmt(qwen3_moe_router_expert_coupling['high_fragility_weighted_scale'])}-"
+                f"{fmt(qwen3_moe_router_expert_coupling['low_fragility_weighted_scale'])} |"
+            ),
+            (
                 "| Qwen3 MoE mechanistic unified smoke | status / passed cases | "
                 f"{qwen3_moe_mechanistic_unified_candidate_smoke['status']} / "
                 f"{qwen3_moe_mechanistic_unified_candidate_smoke['passed_case_count']}"
@@ -6557,6 +6635,13 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(qwen3_moe_post_eval_refresh['mechanistic_sensitivity_strongest_objective_delta'])} / "
                 f"{qwen3_moe_post_eval_refresh['mechanistic_sensitivity_strongest_scale_ablation']} "
                 f"{fmt(qwen3_moe_post_eval_refresh['mechanistic_sensitivity_scale_shift'], 4)} |"
+            ),
+            (
+                "| Qwen3 MoE post-eval refresh | router-expert coupling | "
+                f"{qwen3_moe_post_eval_refresh['router_expert_coupling_gate']} / "
+                f"{fmt(qwen3_moe_post_eval_refresh['router_expert_coupling_fragility_router_feature_corr'])} / "
+                f"{fmt(qwen3_moe_post_eval_refresh['router_expert_coupling_fragility_scale_shrink_corr'])} / "
+                f"L{qwen3_moe_post_eval_refresh['router_expert_coupling_top_layer']} |"
             ),
             (
                 "| Qwen3 MoE router move gate | status / action / allowed layers | "
