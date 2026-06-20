@@ -26,6 +26,15 @@ TASK_TO_SCORE_COLUMN = {
 }
 PAIRED_TASKS = set(TASK_TO_SCORE_COLUMN)
 SCORE_COLUMNS = ["avg_primary_score", "worst_primary_score", *TASK_SCORE_COLUMNS]
+STRUCTURAL_COLUMNS = [
+    "structural_frontier_member",
+    "structurally_dominated",
+    "structural_safety_score",
+    "structural_risk_score",
+    "structural_dominating_candidates",
+    "nearest_structural_candidate",
+    "nearest_structural_distance",
+]
 
 
 def repo_path(path: str | Path) -> Path:
@@ -96,6 +105,50 @@ def read_csv(path: str | Path) -> pd.DataFrame:
     if not path.exists() or path.stat().st_size == 0:
         return pd.DataFrame()
     return pd.read_csv(path)
+
+
+def read_structural_dominance(path: str | Path | None) -> dict[str, dict[str, Any]]:
+    if path is None:
+        return {}
+    table = read_csv(path)
+    if table.empty or "method" not in table:
+        return {}
+    rows: dict[str, dict[str, Any]] = {}
+    for _, row in table.iterrows():
+        method = str(row.get("method", "")).strip()
+        if not method:
+            continue
+        structurally_dominated = maybe_bool(row.get("structurally_dominated"))
+        rows[method] = {
+            "structural_frontier_member": None if structurally_dominated is None else not structurally_dominated,
+            "structurally_dominated": structurally_dominated,
+            "structural_safety_score": maybe_float(row.get("structural_safety_score")),
+            "structural_risk_score": maybe_float(row.get("structural_risk_score")),
+            "structural_dominating_candidates": clean_value(row.get("dominating_candidates")),
+            "nearest_structural_candidate": clean_value(row.get("nearest_structural_candidate")),
+            "nearest_structural_distance": maybe_float(row.get("nearest_structural_distance")),
+        }
+    return rows
+
+
+def attach_structural_dominance(
+    rows: pd.DataFrame,
+    structural_dominance: dict[str, dict[str, Any]] | None,
+) -> pd.DataFrame:
+    rows = rows.copy()
+    for column in STRUCTURAL_COLUMNS:
+        if column not in rows:
+            rows[column] = None
+    if not structural_dominance:
+        return rows
+    for index, row in rows.iterrows():
+        method = str(row.get("method", "")).strip()
+        structural = structural_dominance.get(method)
+        if not structural:
+            continue
+        for column, value in structural.items():
+            rows.at[index, column] = value
+    return rows
 
 
 def primary_metric(row: pd.Series | dict[str, Any]) -> tuple[str, float] | None:
@@ -363,6 +416,49 @@ def paired_task_regressions(
     return sorted(set(regressions)), rows
 
 
+def structural_frontier_rank(value: Any) -> int:
+    return 1 if maybe_bool(value) is True else 0
+
+
+def structural_safety_rank(value: Any) -> float:
+    value = maybe_float(value)
+    return value if value is not None else 0.0
+
+
+def rank_eligible_candidates(eligible: pd.DataFrame, *, score_tie_tolerance: float) -> pd.DataFrame:
+    ranked = eligible.copy()
+    ranked["_avg_primary_rank"] = pd.to_numeric(ranked["avg_primary_score"], errors="coerce").fillna(float("-inf"))
+    ranked["_worst_primary_rank"] = pd.to_numeric(ranked["worst_primary_score"], errors="coerce").fillna(float("-inf"))
+    ranked["_structural_frontier_rank"] = ranked["structural_frontier_member"].map(structural_frontier_rank)
+    ranked["_structural_safety_rank"] = ranked["structural_safety_score"].map(structural_safety_rank)
+    ranked["_total_delta_rank"] = pd.to_numeric(
+        ranked["total_relative_delta_norm"], errors="coerce"
+    ).fillna(float("inf"))
+    if score_tie_tolerance > 0.0:
+        best_avg = float(ranked["_avg_primary_rank"].max())
+        ranked = ranked[ranked["_avg_primary_rank"] >= best_avg - score_tie_tolerance].copy()
+        best_worst = float(ranked["_worst_primary_rank"].max())
+        ranked = ranked[ranked["_worst_primary_rank"] >= best_worst - score_tie_tolerance].copy()
+        sort_columns = [
+            "_structural_frontier_rank",
+            "_structural_safety_rank",
+            "_avg_primary_rank",
+            "_worst_primary_rank",
+            "_total_delta_rank",
+        ]
+        ascending = [False, False, False, False, True]
+    else:
+        sort_columns = [
+            "_avg_primary_rank",
+            "_worst_primary_rank",
+            "_structural_frontier_rank",
+            "_structural_safety_rank",
+            "_total_delta_rank",
+        ]
+        ascending = [False, False, False, False, True]
+    return ranked.sort_values(sort_columns, ascending=ascending)
+
+
 def load_real_rows(gate_dir: Path, audit_dir: Path, *, confidence_z: float) -> pd.DataFrame:
     gate = read_csv(repo_path(gate_dir) / "eval_gate_plan.csv")
     usable = bundle_usable_map(audit_dir)
@@ -390,13 +486,15 @@ def load_real_rows(gate_dir: Path, audit_dir: Path, *, confidence_z: float) -> p
 def build_selection_table(
     rows: pd.DataFrame,
     *,
+    structural_dominance: dict[str, dict[str, Any]] | None = None,
     task_regression_tolerance: float,
     use_uncertainty_gate: bool,
     use_paired_gate: bool,
     paired_loss_tolerance_rate: float,
     paired_alpha: float,
+    selection_score_tie_tolerance: float = 0.0,
 ) -> tuple[pd.DataFrame, dict[str, Any]]:
-    rows = rows.copy()
+    rows = attach_structural_dominance(rows, structural_dominance)
     sources = rows[rows["method"].isin(SOURCE_METHODS)].copy()
     candidates = rows[rows["role"] == "candidate"].copy()
     sources_complete = bool(len(sources) == len(SOURCE_METHODS) and sources["eval_usable"].astype(bool).all())
@@ -491,6 +589,13 @@ def build_selection_table(
                 "task_humaneval_compile_score": row.get("task_humaneval_compile_score"),
                 "total_relative_delta_norm": row.get("total_relative_delta_norm"),
                 "routed_tensors_gt_0_75": row.get("routed_tensors_gt_0_75"),
+                "structural_frontier_member": row.get("structural_frontier_member"),
+                "structurally_dominated": row.get("structurally_dominated"),
+                "structural_safety_score": row.get("structural_safety_score"),
+                "structural_risk_score": row.get("structural_risk_score"),
+                "structural_dominating_candidates": row.get("structural_dominating_candidates"),
+                "nearest_structural_candidate": row.get("nearest_structural_candidate"),
+                "nearest_structural_distance": row.get("nearest_structural_distance"),
                 "dominated_by_source": ",".join(dominated_by),
                 "confidence_dominated_by_source": ",".join(confidence_dominated_by),
                 "task_regression_columns": ",".join(regressions),
@@ -507,11 +612,8 @@ def build_selection_table(
     table = pd.DataFrame(table_rows)
     eligible = table[table["selection_eligible"].astype(bool)].copy() if not table.empty else pd.DataFrame()
     if not eligible.empty:
-        ranked = eligible.sort_values(
-            ["avg_primary_score", "worst_primary_score", "total_relative_delta_norm"],
-            ascending=[False, False, True],
-        )
-        selected = ranked.iloc[0].to_dict()
+        ranked = rank_eligible_candidates(eligible, score_tie_tolerance=selection_score_tie_tolerance)
+        selected = ranked.iloc[0].drop(labels=[column for column in ranked.columns if column.startswith("_")]).to_dict()
         status = "select_candidate" if candidates_complete else "provisional_candidate"
         selection = {
             "status": status,
@@ -551,6 +653,36 @@ def build_selection_table(
             "paired_prediction_gate": use_paired_gate,
             "paired_loss_tolerance_rate": paired_loss_tolerance_rate,
             "paired_alpha": paired_alpha,
+            "selection_score_tie_tolerance": selection_score_tie_tolerance,
+            "selection_rank_policy": [
+                "avg_primary_score",
+                "worst_primary_score",
+                "structural_frontier_member",
+                "structural_safety_score",
+                "lower_total_relative_delta_norm",
+            ],
+            "structural_dominance_available": bool(
+                not table.empty
+                and "structural_safety_score" in table
+                and table["structural_safety_score"].map(maybe_float).notna().any()
+            ),
+            "structural_frontier_eligible_count": int(
+                table[
+                    table["selection_eligible"].astype(bool)
+                    & table["structural_frontier_member"].map(lambda value: maybe_bool(value) is True)
+                ].shape[0]
+            )
+            if not table.empty and "structural_frontier_member" in table
+            else 0,
+            "selected_structural_frontier_member": selected.get("structural_frontier_member")
+            if "selected" in locals()
+            else None,
+            "selected_structurally_dominated": selected.get("structurally_dominated")
+            if "selected" in locals()
+            else None,
+            "selected_structural_safety_score": selected.get("structural_safety_score")
+            if "selected" in locals()
+            else None,
         }
     )
     return table, selection
@@ -569,7 +701,7 @@ def build_report(summary: dict[str, Any], table: pd.DataFrame) -> str:
     lines = [
         "# Qwen3 MoE Final Candidate Selection",
         "",
-        "这个 selector 在远端 vLLM eval 结果通过 bundle audit 后，对两个 source endpoint 和全部 same-shape Qwen3 MoE candidates 做最终选择。它不会只看内部 delta，也不会只看单个 unified 候选；candidate 必须同时通过 source dominance、task regression 和 checkpoint audit gate。",
+        "这个 selector 在远端 vLLM eval 结果通过 bundle audit 后，对两个 source endpoint 和全部 same-shape Qwen3 MoE candidates 做最终选择。它不会只看内部 delta，也不会只看单个 unified 候选；candidate 必须同时通过 source dominance、task regression 和 checkpoint audit gate。通过 gate 后，结构 frontier / dominance 信号只作为分数打平或 tie-band 内的机制 tie-break，用来表达“为什么这个 average 更稳”，而不是替代下游评测。",
         "",
         f"- Status: `{summary['status']}`",
         f"- Selected: `{selection.get('selected_method')}`",
@@ -580,9 +712,12 @@ def build_report(summary: dict[str, Any], table: pd.DataFrame) -> str:
         f"- Uncertainty gate: `{selection.get('uncertainty_gate')}`",
         f"- Paired prediction gate: `{selection.get('paired_prediction_gate')}`",
         f"- Paired alpha: `{selection.get('paired_alpha')}`",
+        f"- Selection score tie tolerance: `{selection.get('selection_score_tie_tolerance')}`",
+        f"- Structural dominance available: `{selection.get('structural_dominance_available')}`",
+        f"- Structural-frontier eligible candidates: `{selection.get('structural_frontier_eligible_count')}`",
         "",
-        "| method | role | usable | audit | avg | avg CI | worst | worst CI | rel norm | dominated | conf dom | regressions | conf regressions | paired net | paired p | paired regressions | eligible |",
-        "| --- | --- | --- | --- | ---: | --- | ---: | --- | ---: | --- | --- | --- | --- | ---: | ---: | --- | --- |",
+        "| method | role | usable | audit | avg | avg CI | worst | worst CI | rel norm | struct frontier | struct dom | struct safety | nearest struct | dominated | conf dom | regressions | conf regressions | paired net | paired p | paired regressions | eligible |",
+        "| --- | --- | --- | --- | ---: | --- | ---: | --- | ---: | --- | --- | ---: | --- | --- | --- | --- | --- | ---: | ---: | --- | --- |",
     ]
     for _, row in table.iterrows():
         paired_net = None
@@ -599,6 +734,10 @@ def build_report(summary: dict[str, Any], table: pd.DataFrame) -> str:
             f"{fmt(row.get('worst_primary_score'))} | "
             f"[{fmt(row.get('worst_primary_lower'))}, {fmt(row.get('worst_primary_upper'))}] | "
             f"{fmt(row.get('total_relative_delta_norm'))} | "
+            f"`{fmt(row.get('structural_frontier_member'))}` | "
+            f"`{fmt(row.get('structurally_dominated'))}` | "
+            f"{fmt(row.get('structural_safety_score'))} | "
+            f"`{fmt(row.get('nearest_structural_candidate'))}` | "
             f"`{row.get('dominated_by_source', '')}` | "
             f"`{row.get('confidence_dominated_by_source', '')}` | "
             f"`{row.get('task_regression_columns', '')}` | "
@@ -648,7 +787,8 @@ def write_outputs(
             "candidate must not regress a task below both source endpoints",
             "candidate task confidence lower bound must not fall below both source lower bounds",
             "candidate must not have statistically significant paired prediction regression on shared eval examples",
-            "rank eligible candidates by avg primary score, then worst primary score, then lower total relative delta norm",
+            "rank eligible candidates by avg primary score, then worst primary score, then structural frontier membership, structural safety score, and lower total relative delta norm",
+            "if --selection-score-tie-tolerance is positive, apply structural tie-break inside the top avg/worst score band",
         ],
     }
     summary = {
@@ -792,6 +932,35 @@ def smoke_rows(case: str) -> pd.DataFrame:
         rows[0]["_prediction_scores"] = {f"gsm8k::{idx}": idx in {0, 1, 2, 3, 4, 5} for idx in range(12)}
         rows[1]["_prediction_scores"] = {f"gsm8k::{idx}": idx in {0, 1, 2, 3, 4} for idx in range(12)}
         rows[3]["eval_usable"] = False
+    elif case == "structural_tie_break":
+        rows[2].update(
+            avg_primary_score=0.66,
+            worst_primary_score=0.48,
+            task_gsm8k_score=0.58,
+            task_mmlu_score=0.61,
+            task_safety_score=0.68,
+            task_humaneval_compile_score=0.55,
+            total_relative_delta_norm=0.230,
+            structural_frontier_member=False,
+            structurally_dominated=True,
+            structural_safety_score=0.93,
+            nearest_structural_candidate="mechanistic_unified",
+        )
+        rows[3].update(
+            method="qwen3_moe_mechanistic_unified_candidate",
+            avg_primary_score=0.66,
+            worst_primary_score=0.48,
+            task_gsm8k_score=0.58,
+            task_mmlu_score=0.61,
+            task_safety_score=0.68,
+            task_humaneval_compile_score=0.55,
+            total_relative_delta_norm=0.240,
+            structural_frontier_member=True,
+            structurally_dominated=False,
+            structural_safety_score=0.99,
+            nearest_structural_candidate="subspace_scaled",
+        )
+        rows = add_smoke_intervals(rows)
     elif case == "partial":
         rows[3]["eval_usable"] = False
     elif case != "candidate_win":
@@ -807,6 +976,7 @@ def run_smoke_matrix(args: argparse.Namespace) -> dict[str, Any]:
         "uncertain_small_sample": ("awaiting_candidate_eval", "source_qwen3_30b_instruct"),
         "paired_regression": ("awaiting_candidate_eval", "source_qwen3_30b_instruct"),
         "paired_noisy_delta": ("provisional_candidate", "qwen3_moe_tail_trimmed_expert_only_candidate"),
+        "structural_tie_break": ("select_candidate", "qwen3_moe_mechanistic_unified_candidate"),
         "partial": ("provisional_candidate", "qwen3_moe_tail_trimmed_expert_only_candidate"),
     }
     rows = []
@@ -818,6 +988,7 @@ def run_smoke_matrix(args: argparse.Namespace) -> dict[str, Any]:
             use_paired_gate=not args.disable_paired_gate,
             paired_loss_tolerance_rate=args.paired_loss_tolerance_rate,
             paired_alpha=args.paired_alpha,
+            selection_score_tie_tolerance=args.selection_score_tie_tolerance,
         )
         rows.append(
             {
@@ -878,8 +1049,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--gate-dir", type=Path, default=Path("results/qwen3_moe_mechanism_eval_gate"))
     parser.add_argument("--audit-dir", type=Path, default=Path("results/qwen3_moe_eval_bundle_audit"))
     parser.add_argument("--output-dir", type=Path, default=Path("results/qwen3_moe_final_candidate_selection"))
+    parser.add_argument(
+        "--structural-dominance",
+        type=Path,
+        default=Path("results/qwen3_moe_delta_frontier/structural_dominance.csv"),
+    )
     parser.add_argument("--smoke-matrix", action="store_true")
     parser.add_argument("--task-regression-tolerance", type=float, default=1e-9)
+    parser.add_argument("--selection-score-tie-tolerance", type=float, default=0.0)
     parser.add_argument("--confidence-z", type=float, default=1.96)
     parser.add_argument("--disable-uncertainty-gate", action="store_true")
     parser.add_argument("--disable-paired-gate", action="store_true")
@@ -896,13 +1073,16 @@ def main() -> None:
         print(f"Status: {summary['status']}; cases {summary['passed_case_count']}/{summary['case_count']}")
         return
     rows = load_real_rows(args.gate_dir, args.audit_dir, confidence_z=args.confidence_z)
+    structural_dominance = read_structural_dominance(args.structural_dominance)
     table, selection = build_selection_table(
         rows,
+        structural_dominance=structural_dominance,
         task_regression_tolerance=args.task_regression_tolerance,
         use_uncertainty_gate=not args.disable_uncertainty_gate,
         use_paired_gate=not args.disable_paired_gate,
         paired_loss_tolerance_rate=args.paired_loss_tolerance_rate,
         paired_alpha=args.paired_alpha,
+        selection_score_tie_tolerance=args.selection_score_tie_tolerance,
     )
     summary = write_outputs(args.output_dir, table, selection)
     print(f"Wrote Qwen3 MoE final candidate selection to {repo_path(args.output_dir).resolve()}")

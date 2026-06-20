@@ -1,7 +1,7 @@
 # Qwen3 MoE Final Candidate Selector Smoke
 
 - Status: `passed`
-- Cases: `7/7`
+- Cases: `8/8`
 
 | case | status | selected | eligible | passed |
 | --- | --- | --- | ---: | --- |
@@ -11,4 +11,5 @@
 | `uncertain_small_sample` | `awaiting_candidate_eval` | `source_qwen3_30b_instruct` | 0 | `True` |
 | `paired_regression` | `awaiting_candidate_eval` | `source_qwen3_30b_instruct` | 0 | `True` |
 | `paired_noisy_delta` | `provisional_candidate` | `qwen3_moe_tail_trimmed_expert_only_candidate` | 1 | `True` |
+| `structural_tie_break` | `select_candidate` | `qwen3_moe_mechanistic_unified_candidate` | 2 | `True` |
 | `partial` | `provisional_candidate` | `qwen3_moe_tail_trimmed_expert_only_candidate` | 1 | `True` |

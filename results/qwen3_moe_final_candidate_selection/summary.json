@@ -18,9 +18,22 @@
       "task_humaneval_compile_score"
     ],
     "selected_method": null,
+    "selected_structural_frontier_member": null,
+    "selected_structural_safety_score": null,
+    "selected_structurally_dominated": null,
+    "selection_rank_policy": [
+      "avg_primary_score",
+      "worst_primary_score",
+      "structural_frontier_member",
+      "structural_safety_score",
+      "lower_total_relative_delta_norm"
+    ],
+    "selection_score_tie_tolerance": 0.0,
     "source_count": 2,
     "sources_complete": false,
     "status": "awaiting_source_eval",
+    "structural_dominance_available": true,
+    "structural_frontier_eligible_count": 0,
     "uncertainty_gate": true,
     "usable_candidate_count": 0
   },

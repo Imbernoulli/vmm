@@ -71,6 +71,22 @@ def maybe_int(value: Any) -> int | None:
     return int(value)
 
 
+def maybe_bool(value: Any) -> bool | None:
+    value = clean_value(value)
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return bool(value)
+    text = str(value).strip().lower()
+    if text in {"true", "1", "yes", "y"}:
+        return True
+    if text in {"false", "0", "no", "n"}:
+        return False
+    return None
+
+
 def sha256_file(path: Path) -> str | None:
     if path.stat().st_size > HASH_LIMIT_BYTES:
         return None
@@ -1865,6 +1881,13 @@ def summarize_qwen3_moe_final_candidate_selection() -> dict[str, Any]:
     table = read_csv(root / "selection_table.csv")
     selection = summary.get("current_selection", {})
     eligible = table[table["selection_eligible"].astype(bool)] if "selection_eligible" in table else pd.DataFrame()
+    selected = table[table["method"] == selection.get("selected_method")] if "method" in table else pd.DataFrame()
+    selected_row = clean_row(selected.iloc[0]) if not selected.empty else {}
+    structural_frontier_eligible_count = 0
+    if not eligible.empty and "structural_frontier_member" in eligible:
+        structural_frontier_eligible_count = int(
+            eligible["structural_frontier_member"].map(lambda value: maybe_bool(value) is True).sum()
+        )
     return {
         "summary": summary,
         "status": summary.get("status"),
@@ -1875,6 +1898,21 @@ def summarize_qwen3_moe_final_candidate_selection() -> dict[str, Any]:
         "uncertainty_gate": bool(selection.get("uncertainty_gate", False)),
         "paired_prediction_gate": bool(selection.get("paired_prediction_gate", False)),
         "paired_alpha": maybe_float(selection.get("paired_alpha")),
+        "selection_score_tie_tolerance": maybe_float(selection.get("selection_score_tie_tolerance")),
+        "selection_rank_policy": selection.get("selection_rank_policy", []),
+        "structural_dominance_available": bool(selection.get("structural_dominance_available", False)),
+        "structural_frontier_eligible_count": int(
+            selection.get("structural_frontier_eligible_count", structural_frontier_eligible_count) or 0
+        ),
+        "selected_structural_frontier_member": maybe_bool(
+            selection.get("selected_structural_frontier_member", selected_row.get("structural_frontier_member"))
+        ),
+        "selected_structurally_dominated": maybe_bool(
+            selection.get("selected_structurally_dominated", selected_row.get("structurally_dominated"))
+        ),
+        "selected_structural_safety_score": maybe_float(
+            selection.get("selected_structural_safety_score", selected_row.get("structural_safety_score"))
+        ),
         "usable_candidate_count": int(selection.get("usable_candidate_count", 0)),
         "eligible_candidate_count": int(selection.get("eligible_candidate_count", len(eligible))),
         "candidate_count": int(selection.get("candidate_count", len(table[table["role"] == "candidate"]))),
@@ -5962,6 +6000,13 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_final_candidate_selection['uncertainty_gate']} / "
                 f"{qwen3_moe_final_candidate_selection['paired_prediction_gate']} / "
                 f"{qwen3_moe_final_candidate_selection['paired_alpha']:.3f} |"
+            ),
+            (
+                "| Qwen3 MoE final candidate selector | structural frontier / dominated / safety / tie tolerance | "
+                f"{qwen3_moe_final_candidate_selection['selected_structural_frontier_member']} / "
+                f"{qwen3_moe_final_candidate_selection['selected_structurally_dominated']} / "
+                f"{fmt(qwen3_moe_final_candidate_selection['selected_structural_safety_score'])} / "
+                f"{fmt(qwen3_moe_final_candidate_selection['selection_score_tie_tolerance'])} |"
             ),
             (
                 "| Qwen3 MoE final candidate selector smoke | status / passed cases | "
