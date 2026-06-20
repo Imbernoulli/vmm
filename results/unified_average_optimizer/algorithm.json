@@ -50,8 +50,18 @@
       "key": "namex",
       "mechanism": "Expert weights should reflect cooperation/competition rather than a fixed uniform prior.",
       "source": "https://arxiv.org/abs/2510.16138"
+    },
+    {
+      "key": "harc",
+      "mechanism": "MoE router movement must be gated by top-k boundary stability, not treated like an ordinary dense tensor.",
+      "source": "https://arxiv.org/abs/2606.03391"
     }
   ],
+  "mechanism_equations": {
+    "dense_second_order_gate": "accept a straight-line average only when the measured path loss does not exceed the endpoint frontier; local Fisher/RegMean curvature is treated as a proxy, not a proof",
+    "moe_router_margin_gate": "for router logits z_lambda = z_A + lambda * (z_B - z_A), a top-k assignment can flip when lambda * ||Delta z|| reaches the observed top-k margin; therefore small empirical margins imply a near-zero safe router lambda",
+    "same_shape_constraint": "all accepted operations must preserve model config, tokenizer, class, tensor names, tensor shapes, and MoE expert/router cardinalities"
+  },
   "name": "mechanism_gated_unified_average",
   "schema_version": 1,
   "steps": [
@@ -84,32 +94,39 @@
       "step": 4
     },
     {
+      "condition": "router interpolation can change a token's expert assignment when the router-logit movement exceeds that token's top-k margin; current min safe-lambda proxy is 0.0197, with 24/48 high-fragility layers",
+      "operation": "bound router movement by observed top-k margins",
+      "selected_action": "freeze_router; direct router average rejected by router_margin_fragility_rejects_direct_router_average",
+      "stage": "moe_router_margin_cap_gate",
+      "step": 5
+    },
+    {
       "condition": "Qwen3 Instruct/Coder best interior worst-NLL is above the best endpoint by 0.1189, and the complementary Thinking/Coder path does not beat its best source (avg gap 0.0000); the Base/Coder line also keeps the best interior above the best endpoint by 0.1058",
       "operation": "reject_unconditional_source_to_source_linear_interpolation",
       "selected_action": "use route/evidence/geometry-constrained same-shape candidates instead of a source-to-source midpoint",
       "stage": "moe_straight_line_connectivity_gate",
-      "step": 5
+      "step": 6
     },
     {
       "condition": "expert identity is aligned, direct router movement is rejected, and real expert geometry exposes nonuniform risk",
       "operation": "apply retention-constrained router/evidence/geometry caps",
       "selected_action": "router_evidence_risk_s0.75 with hard cap 0.6500; layer/chunk->unified routed >0.65 reduction = 89",
       "stage": "moe_expert_delta_optimizer",
-      "step": 6
+      "step": 7
     },
     {
       "condition": "router-only NLL probe improves the linear MoE merge, but Qwen3 baseline/source vLLM eval is not complete",
       "operation": "treat router calibration as a separately audited ablation",
       "selected_action": "nll_probe_worst_reduction=0.2214; awaiting_baseline_eval: Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps.",
       "stage": "moe_router_calibration_gate",
-      "step": 7
+      "step": 8
     },
     {
       "condition": "structural probes can rank risk, but source dominance and task regression need vLLM scores",
       "operation": "select only after audited downstream eval",
       "selected_action": "keep all eight Qwen3 candidates provisional until eval-bundle audit passes",
       "stage": "moe_candidate_gate",
-      "step": 8
+      "step": 9
     }
   ]
 }

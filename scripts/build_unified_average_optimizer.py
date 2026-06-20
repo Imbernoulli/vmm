@@ -62,6 +62,11 @@ LITERATURE_PRIORS = [
         "source": "https://arxiv.org/abs/2510.16138",
         "mechanism": "Expert weights should reflect cooperation/competition rather than a fixed uniform prior.",
     },
+    {
+        "key": "harc",
+        "source": "https://arxiv.org/abs/2606.03391",
+        "mechanism": "MoE router movement must be gated by top-k boundary stability, not treated like an ordinary dense tensor.",
+    },
 ]
 
 
@@ -203,6 +208,7 @@ def moe_feature_rows(
     delta_frontier: dict[str, Any],
     router_calibration_nll_probe: dict[str, Any],
     router_calibration: dict[str, Any],
+    router_margin_fragility: dict[str, Any],
     qwen3_moe_interpolation: dict[str, Any],
     qwen3_moe_complementary: dict[str, Any],
     qwen3_moe_base_coder: dict[str, Any],
@@ -283,6 +289,22 @@ def moe_feature_rows(
                 f"{fmt(router_gate.get('min_topk_jaccard'))}; "
                 f"top1 agreement mean/min = {fmt(router_gate.get('mean_top1_agreement'))}/"
                 f"{fmt(router_gate.get('min_top1_agreement'))}"
+            ),
+        },
+        {
+            "domain": "moe",
+            "probe": "qwen3_router_margin_fragility",
+            "value": router_margin_fragility.get("top_fragility_score"),
+            "threshold": router_margin_fragility.get("high_fragility_threshold"),
+            "decision_signal": "topk_boundary_lambda_cap_rejects_direct_router_average",
+            "evidence": (
+                f"high-fragility layers = {router_margin_fragility.get('high_fragility_layer_count')}/"
+                f"{router_margin_fragility.get('router_layer_count')}; "
+                f"top layer = L{router_margin_fragility.get('top_fragile_layer')} "
+                f"score {fmt(router_margin_fragility.get('top_fragility_score'))}; "
+                f"top category = {router_margin_fragility.get('top_fragile_category')} "
+                f"score {fmt(router_margin_fragility.get('top_category_fragility_score'))}; "
+                f"min safe-lambda proxy = {fmt(router_margin_fragility.get('min_safe_lambda_proxy'))}"
             ),
         },
         {
@@ -412,6 +434,7 @@ def build_decisions(
     delta_frontier: dict[str, Any],
     router_calibration_nll_probe: dict[str, Any],
     router_calibration: dict[str, Any],
+    router_margin_fragility: dict[str, Any],
     qwen3_moe_interpolation: dict[str, Any],
     qwen3_moe_complementary: dict[str, Any],
     qwen3_moe_base_coder: dict[str, Any],
@@ -474,6 +497,23 @@ def build_decisions(
             "selected_action": router_gate.get("recommended_unified_router_action", "freeze_router"),
             "why_it_should_improve": "It avoids averaging a discrete top-k dispatch boundary that has high measured source disagreement.",
             "same_shape_invariant": "router tensor shape is unchanged; optional route-KD writes a capped same-shape delta",
+        },
+        {
+            "stage": "moe_router_margin_cap_gate",
+            "operation": "bound router movement by observed top-k margins",
+            "condition": (
+                "router interpolation can change a token's expert assignment when the router-logit movement "
+                "exceeds that token's top-k margin; current min safe-lambda proxy is "
+                f"{fmt(router_margin_fragility.get('min_safe_lambda_proxy'))}, with "
+                f"{router_margin_fragility.get('high_fragility_layer_count')}/"
+                f"{router_margin_fragility.get('router_layer_count')} high-fragility layers"
+            ),
+            "selected_action": (
+                f"{router_margin_fragility.get('recommended_unified_router_action', 'freeze_router')}; "
+                f"direct router average rejected by {router_margin_fragility.get('status')}"
+            ),
+            "why_it_should_improve": "It prevents a small weight-space router step from crossing a discrete dispatch boundary and sending tokens to untrained expert combinations.",
+            "same_shape_invariant": "router tensors remain same-shape; any later route-KD delta must pass the same margin, load, and downstream gates",
         },
         {
             "stage": "moe_straight_line_connectivity_gate",
@@ -540,6 +580,11 @@ def build_algorithm(decisions: pd.DataFrame) -> dict[str, Any]:
             for index, row in decisions.iterrows()
         ],
         "literature_priors": LITERATURE_PRIORS,
+        "mechanism_equations": {
+            "dense_second_order_gate": "accept a straight-line average only when the measured path loss does not exceed the endpoint frontier; local Fisher/RegMean curvature is treated as a proxy, not a proof",
+            "moe_router_margin_gate": "for router logits z_lambda = z_A + lambda * (z_B - z_A), a top-k assignment can flip when lambda * ||Delta z|| reaches the observed top-k margin; therefore small empirical margins imply a near-zero safe router lambda",
+            "same_shape_constraint": "all accepted operations must preserve model config, tokenizer, class, tensor names, tensor shapes, and MoE expert/router cardinalities",
+        },
     }
 
 
@@ -560,6 +605,7 @@ def build_report(summary: dict[str, Any], features: pd.DataFrame, decisions: pd.
         f"- Qwen3 complementary path: best merge avg NLL `{fmt(moe['qwen3_complementary_best_merge_avg_nll'])}` vs best source avg `{fmt(moe['qwen3_complementary_best_source_avg_nll'])}`；merge beats sources `{moe['qwen3_complementary_merge_beats_sources']}`。",
         f"- Qwen3 Base->Coder path: best interior worst NLL `{fmt(moe['qwen3_base_coder_best_interior_worst_nll'])}` vs best endpoint `{fmt(moe['qwen3_base_coder_endpoint_best_worst_nll'])}`；interior gap `{fmt(moe['qwen3_base_coder_interior_gap_nll'])}`，general barrier `{fmt(moe['qwen3_base_coder_general_barrier_nll'])}`。",
         f"- Qwen3 unified mechanism: `{moe['qwen3_unified_candidate_id']}`；audit relative norm `{fmt(moe['qwen3_unified_relative_delta_norm'])}`，routed >0.65 `{moe['qwen3_unified_routed_gt_065']}`。",
+        f"- Qwen3 router margin fragility: high layers `{moe['qwen3_router_margin_high_fragility_layers']}/{moe['qwen3_router_margin_layer_count']}`，top `L{moe['qwen3_router_margin_top_layer']}` score `{fmt(moe['qwen3_router_margin_top_score'])}`，min safe-lambda proxy `{fmt(moe['qwen3_router_margin_min_safe_lambda_proxy'])}`。",
         f"- Qwen3 router NLL probe: worst-NLL reduction `{fmt(moe['qwen3_router_calibration_nll_worst_reduction'])}`，code gap to best source `{fmt(moe['qwen3_router_calibration_nll_code_gap_to_best_source'])}`。",
         f"- Qwen3 router calibration: `{moe['qwen3_router_calibration_status']}`。",
         f"- Qwen3 final selection: `{moe['qwen3_final_selection_status']}`，eligible `{moe['qwen3_eligible_candidates']}/{moe['qwen3_candidate_count']}`。",
@@ -620,6 +666,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
     delta_frontier = read_json(args.qwen3_delta_frontier)
     router_calibration_nll_probe = read_json(args.qwen3_router_calibration_nll_probe)
     router_calibration = read_json(args.qwen3_router_calibration)
+    router_margin_fragility = read_json(args.qwen3_router_margin_fragility)
     qwen3_moe_interpolation = read_json(args.qwen3_moe_interpolation)
     qwen3_moe_complementary = read_json(args.qwen3_moe_complementary)
     qwen3_moe_base_coder = read_json(args.qwen3_moe_base_coder)
@@ -637,6 +684,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
             delta_frontier,
             router_calibration_nll_probe,
             router_calibration,
+            router_margin_fragility,
             qwen3_moe_interpolation,
             qwen3_moe_complementary,
             qwen3_moe_base_coder,
@@ -651,6 +699,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         delta_frontier,
         router_calibration_nll_probe,
         router_calibration,
+        router_margin_fragility,
         qwen3_moe_interpolation,
         qwen3_moe_complementary,
         qwen3_moe_base_coder,
@@ -701,6 +750,20 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
             "qwen3_unified_router_changed_tensors": unified_audit.get("router_changed_tensors"),
             "qwen3_unified_router_tensors": unified_audit.get("router_tensors"),
             "qwen3_unified_routed_gt_065": delta_frontier.get("unified_mechanism_routed_gt_0_65"),
+            "qwen3_router_margin_status": router_margin_fragility.get("status"),
+            "qwen3_router_margin_high_fragility_layers": router_margin_fragility.get(
+                "high_fragility_layer_count"
+            ),
+            "qwen3_router_margin_layer_count": router_margin_fragility.get("router_layer_count"),
+            "qwen3_router_margin_top_layer": router_margin_fragility.get("top_fragile_layer"),
+            "qwen3_router_margin_top_score": fnum(router_margin_fragility.get("top_fragility_score")),
+            "qwen3_router_margin_top_category": router_margin_fragility.get("top_fragile_category"),
+            "qwen3_router_margin_top_category_score": fnum(
+                router_margin_fragility.get("top_category_fragility_score")
+            ),
+            "qwen3_router_margin_min_safe_lambda_proxy": fnum(
+                router_margin_fragility.get("min_safe_lambda_proxy")
+            ),
             "qwen3_router_calibration_nll_status": router_calibration_nll_probe.get("status"),
             "qwen3_router_calibration_nll_worst_reduction": fnum(
                 router_calibration_nll_probe.get("worst_nll_reduction_vs_linear")
@@ -824,6 +887,11 @@ def parse_args() -> argparse.Namespace:
         "--qwen3-router-calibration",
         type=Path,
         default=Path("results/qwen3_moe_router_calibration_selection/summary.json"),
+    )
+    parser.add_argument(
+        "--qwen3-router-margin-fragility",
+        type=Path,
+        default=Path("results/qwen3_moe_router_margin_fragility/summary.json"),
     )
     parser.add_argument(
         "--qwen3-moe-interpolation",

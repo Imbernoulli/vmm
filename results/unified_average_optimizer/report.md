@@ -11,6 +11,7 @@
 - Qwen3 complementary path: best merge avg NLL `0.5659` vs best source avg `0.5659`；merge beats sources `False`。
 - Qwen3 Base->Coder path: best interior worst NLL `2.4661` vs best endpoint `2.3603`；interior gap `0.1058`，general barrier `0.0728`。
 - Qwen3 unified mechanism: `router_evidence_risk_s0.75`；audit relative norm `0.2396`，routed >0.65 `0`。
+- Qwen3 router margin fragility: high layers `24/48`，top `L17` score `0.7523`，min safe-lambda proxy `0.0197`。
 - Qwen3 router NLL probe: worst-NLL reduction `0.2214`，code gap to best source `-0.0139`。
 - Qwen3 router calibration: `awaiting_baseline_eval`。
 - Qwen3 final selection: `awaiting_source_eval`，eligible `0/8`。
@@ -28,6 +29,7 @@
 | `moe` | `real_olmoe_gauge_selfmerge` | `reject_same_name_average_without_alignment` | 5.4910 | 1.0000 | baseline NLL = 4.1678; same-name average NLL = 9.6588; aligned average NLL = 4.1678; layers recovered = 16/16 |
 | `moe` | `qwen3_expert_identity` | `identity_alignment_is_allowed_for_this_pair` | 1.0000 | 1.0000 | identity-optimal layer fraction = 1.0000; argmax identity fraction = 1.0000 |
 | `moe` | `qwen3_router_move_gate` | `freeze_router_or_train_route_kd_delta` | 0.0000 | 48.0000 | allowed router layers = 0/48; top-k Jaccard mean/min = 0.4539/0.2422; top1 agreement mean/min = 0.4125/0.0690 |
+| `moe` | `qwen3_router_margin_fragility` | `topk_boundary_lambda_cap_rejects_direct_router_average` | 0.7523 | 0.6200 | high-fragility layers = 24/48; top layer = L17 score 0.7523; top category = long_context score 0.7329; min safe-lambda proxy = 0.0197 |
 | `moe` | `qwen3_straight_line_connectivity` | `reject_source_to_source_linear_interpolation` | 0.1189 | 0.0000 | best interior worst NLL = 2.5947; best endpoint worst NLL = 2.4757; interior gap = 0.1189; general barrier = 0.1097; task-vector cosine vs base = 0.1799 |
 | `moe` | `qwen3_complementary_pair_connectivity` | `do_not_assume_specialist_complementarity_is_averageable` | 0.0000 | 0.0000 | best merge avg NLL = 0.5659; best source avg NLL = 0.5659; merge-source gap = 0.0000; best merge t = 0.0000; merge beats both sources = False |
 | `moe` | `qwen3_base_to_coder_connectivity` | `source_delta_from_base_is_not_safe_without_gate` | 0.1058 | 0.0000 | best interior worst NLL = 2.4661; best endpoint worst NLL = 2.3603; interior gap = 0.1058; general barrier = 0.0728; task-vector norm = 4379.0027 |
@@ -45,6 +47,7 @@
 | `dense_sparse_coordinate_gate` | `make TIES/DARE-style sparsity conditional` | only materialize sparse conflict rules when held-out and vLLM gates pass | It keeps sign-conflict probes as diagnostics without letting them delete useful dense capacity. |
 | `moe_expert_identity_gate` | `canonicalize expert gauge before averaging` | run layer-wise expert alignment; for Qwen3 Instruct/Coder the mapping is currently identity | It removes a discrete symmetry error before any continuous weight interpolation is attempted. |
 | `moe_router_gate` | `freeze direct router movement` | freeze_router | It avoids averaging a discrete top-k dispatch boundary that has high measured source disagreement. |
+| `moe_router_margin_cap_gate` | `bound router movement by observed top-k margins` | freeze_router; direct router average rejected by router_margin_fragility_rejects_direct_router_average | It prevents a small weight-space router step from crossing a discrete dispatch boundary and sending tokens to untrained expert combinations. |
 | `moe_straight_line_connectivity_gate` | `reject_unconditional_source_to_source_linear_interpolation` | use route/evidence/geometry-constrained same-shape candidates instead of a source-to-source midpoint | It treats model connectivity as measured evidence: a smooth-looking line is not accepted unless an interior point beats the source frontier. |
 | `moe_expert_delta_optimizer` | `apply retention-constrained router/evidence/geometry caps` | router_evidence_risk_s0.75 with hard cap 0.6500; layer/chunk->unified routed >0.65 reduction = 89 | It keeps useful Coder-route mass while shrinking high-risk routed expert deltas instead of using one global coefficient. |
 | `moe_router_calibration_gate` | `treat router calibration as a separately audited ablation` | nll_probe_worst_reduction=0.2214; awaiting_baseline_eval: Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps. | It keeps router calibration as an active MoE-specific lever while still requiring source-dominance and task-regression gates before acceptance. |
@@ -64,6 +67,7 @@
 | `sub_moe` | https://arxiv.org/abs/2506.23266 | Expert output similarity/subspace structure is a better merge signal than tensor names alone. |
 | `mergemoe` | https://arxiv.org/abs/2510.14436 | MoE expert merging can be formulated through output-space matching and optimization. |
 | `namex` | https://arxiv.org/abs/2510.16138 | Expert weights should reflect cooperation/competition rather than a fixed uniform prior. |
+| `harc` | https://arxiv.org/abs/2606.03391 | MoE router movement must be gated by top-k boundary stability, not treated like an ordinary dense tensor. |
 
 ## Outputs
 

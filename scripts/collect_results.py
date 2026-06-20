@@ -1538,6 +1538,20 @@ def summarize_unified_average_optimizer() -> dict[str, Any]:
             moe.get("qwen3_unified_relative_delta_norm")
         ),
         "qwen3_unified_routed_gt_065": maybe_int(moe.get("qwen3_unified_routed_gt_065")),
+        "qwen3_router_margin_status": moe.get("qwen3_router_margin_status"),
+        "qwen3_router_margin_high_fragility_layers": maybe_int(
+            moe.get("qwen3_router_margin_high_fragility_layers")
+        ),
+        "qwen3_router_margin_layer_count": maybe_int(moe.get("qwen3_router_margin_layer_count")),
+        "qwen3_router_margin_top_layer": maybe_int(moe.get("qwen3_router_margin_top_layer")),
+        "qwen3_router_margin_top_score": maybe_float(moe.get("qwen3_router_margin_top_score")),
+        "qwen3_router_margin_top_category": moe.get("qwen3_router_margin_top_category"),
+        "qwen3_router_margin_top_category_score": maybe_float(
+            moe.get("qwen3_router_margin_top_category_score")
+        ),
+        "qwen3_router_margin_min_safe_lambda_proxy": maybe_float(
+            moe.get("qwen3_router_margin_min_safe_lambda_proxy")
+        ),
         "qwen3_layer_chunk_to_unified_relative_norm_reduction": maybe_float(
             moe.get("qwen3_layer_chunk_to_unified_relative_norm_reduction")
         ),
@@ -3848,7 +3862,7 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "Unified Dense/MoE average optimizer",
             "status": "complete",
-            "evidence": "results/unified_average_optimizer/report.md converts Dense barrier probes, Dense/Qwen3 MoE straight-line connectivity, MoE gauge probes, Qwen3 expert identity, router movement, router-only NLL calibration evidence, unified mechanism caps, router-calibration gating, and final candidate-selection gates into one same-shape operation policy.",
+            "evidence": "results/unified_average_optimizer/report.md converts Dense barrier probes, Dense/Qwen3 MoE straight-line connectivity, MoE gauge probes, Qwen3 expert identity, router movement, router margin fragility, router-only NLL calibration evidence, unified mechanism caps, router-calibration gating, and final candidate-selection gates into one same-shape operation policy.",
         },
         {
             "item": "Qwen3 MoE vLLM eval bundle audit",
@@ -5017,6 +5031,14 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{unified_average_optimizer['qwen3_unified_candidate_id']} / "
                 f"{unified_average_optimizer['qwen3_unified_relative_delta_norm']:.3f} / "
                 f"{unified_average_optimizer['qwen3_unified_routed_gt_065']} |"
+            ),
+            (
+                "| unified average optimizer | router margin high layers / top / min safe-lambda | "
+                f"{unified_average_optimizer['qwen3_router_margin_high_fragility_layers']}"
+                f"/{unified_average_optimizer['qwen3_router_margin_layer_count']} / "
+                f"L{unified_average_optimizer['qwen3_router_margin_top_layer']} "
+                f"{unified_average_optimizer['qwen3_router_margin_top_score']:.3f} / "
+                f"{unified_average_optimizer['qwen3_router_margin_min_safe_lambda_proxy']:.3f} |"
             ),
             (
                 "| unified average optimizer | Qwen3 MoE straight-line interior gap / general barrier | "

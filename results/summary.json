@@ -346,7 +346,7 @@
       "status": "complete"
     },
     {
-      "evidence": "results/unified_average_optimizer/report.md converts Dense barrier probes, Dense/Qwen3 MoE straight-line connectivity, MoE gauge probes, Qwen3 expert identity, router movement, router-only NLL calibration evidence, unified mechanism caps, router-calibration gating, and final candidate-selection gates into one same-shape operation policy.",
+      "evidence": "results/unified_average_optimizer/report.md converts Dense barrier probes, Dense/Qwen3 MoE straight-line connectivity, MoE gauge probes, Qwen3 expert identity, router movement, router margin fragility, router-only NLL calibration evidence, unified mechanism caps, router-calibration gating, and final candidate-selection gates into one same-shape operation policy.",
       "item": "Unified Dense/MoE average optimizer",
       "status": "complete"
     },
@@ -32038,6 +32038,14 @@
           "why_it_should_improve": "It avoids averaging a discrete top-k dispatch boundary that has high measured source disagreement."
         },
         {
+          "condition": "router interpolation can change a token's expert assignment when the router-logit movement exceeds that token's top-k margin; current min safe-lambda proxy is 0.0197, with 24/48 high-fragility layers",
+          "operation": "bound router movement by observed top-k margins",
+          "same_shape_invariant": "router tensors remain same-shape; any later route-KD delta must pass the same margin, load, and downstream gates",
+          "selected_action": "freeze_router; direct router average rejected by router_margin_fragility_rejects_direct_router_average",
+          "stage": "moe_router_margin_cap_gate",
+          "why_it_should_improve": "It prevents a small weight-space router step from crossing a discrete dispatch boundary and sending tokens to untrained expert combinations."
+        },
+        {
           "condition": "Qwen3 Instruct/Coder best interior worst-NLL is above the best endpoint by 0.1189, and the complementary Thinking/Coder path does not beat its best source (avg gap 0.0000); the Base/Coder line also keeps the best interior above the best endpoint by 0.1058",
           "operation": "reject_unconditional_source_to_source_linear_interpolation",
           "same_shape_invariant": "candidate generation still writes the same tensor names and shapes; the gate only decides whether straight-line interpolation is allowed",
@@ -32153,6 +32161,14 @@
           "value": 0.0
         },
         {
+          "decision_signal": "topk_boundary_lambda_cap_rejects_direct_router_average",
+          "domain": "moe",
+          "evidence": "high-fragility layers = 24/48; top layer = L17 score 0.7523; top category = long_context score 0.7329; min safe-lambda proxy = 0.0197",
+          "probe": "qwen3_router_margin_fragility",
+          "threshold": 0.62,
+          "value": 0.7522782693160674
+        },
+        {
           "decision_signal": "reject_source_to_source_linear_interpolation",
           "domain": "moe",
           "evidence": "best interior worst NLL = 2.5947; best endpoint worst NLL = 2.4757; interior gap = 0.1189; general barrier = 0.1097; task-vector cosine vs base = 0.1799",
@@ -32238,6 +32254,14 @@
       "qwen3_router_calibration_nll_worst_gap_to_best_source": 0.12650239732530366,
       "qwen3_router_calibration_nll_worst_reduction": 0.22142744874642561,
       "qwen3_router_calibration_status": "awaiting_baseline_eval",
+      "qwen3_router_margin_high_fragility_layers": 24,
+      "qwen3_router_margin_layer_count": 48,
+      "qwen3_router_margin_min_safe_lambda_proxy": 0.019725152295719042,
+      "qwen3_router_margin_status": "router_margin_fragility_rejects_direct_router_average",
+      "qwen3_router_margin_top_category": "long_context",
+      "qwen3_router_margin_top_category_score": 0.7328642528963769,
+      "qwen3_router_margin_top_layer": 17,
+      "qwen3_router_margin_top_score": 0.7522782693160674,
       "qwen3_unified_candidate_count": 19,
       "qwen3_unified_candidate_family": "router_and_evidence_weighted_risk",
       "qwen3_unified_candidate_id": "router_evidence_risk_s0.75",
@@ -32296,6 +32320,14 @@
           "qwen3_router_calibration_nll_worst_gap_to_best_source": 0.12650239732530366,
           "qwen3_router_calibration_nll_worst_reduction": 0.22142744874642561,
           "qwen3_router_calibration_status": "awaiting_baseline_eval",
+          "qwen3_router_margin_high_fragility_layers": 24,
+          "qwen3_router_margin_layer_count": 48,
+          "qwen3_router_margin_min_safe_lambda_proxy": 0.019725152295719042,
+          "qwen3_router_margin_status": "router_margin_fragility_rejects_direct_router_average",
+          "qwen3_router_margin_top_category": "long_context",
+          "qwen3_router_margin_top_category_score": 0.7328642528963769,
+          "qwen3_router_margin_top_layer": 17,
+          "qwen3_router_margin_top_score": 0.7522782693160674,
           "qwen3_unified_audit_status": "passed",
           "qwen3_unified_candidate_count": 19,
           "qwen3_unified_candidate_family": "router_and_evidence_weighted_risk",
@@ -34224,7 +34256,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-20T04:30:32.831705+00:00",
+  "generated_at": "2026-06-20T04:35:34.260874+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [

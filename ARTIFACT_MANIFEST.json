@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 83782,
+      "bytes": 83986,
       "kind": "document",
       "path": "README.md",
-      "sha256": "b1da53b4f795d47be9f89af02b4b647d2e41ed4577e4e322ce0dd83eff28e555"
+      "sha256": "f4c9798f29210cfaa2b0bb6a64da282cde16a80b5dc2a60476f0b3473405a57e"
     },
     {
       "bytes": 33211,
@@ -4849,16 +4849,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 1604017,
+      "bytes": 1606308,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "cfbeb4f75305d1042bc288d74adc43f5e7a443ab63c9885aa6a4a4b3d782f33b"
+      "sha256": "d0dc4468d17815157d6c9ae11fd856b6d0f7ae0d2d26d0e1eebc72c62ca5db22"
     },
     {
-      "bytes": 53486,
+      "bytes": 53621,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "1b0c682298347c11df3c52a4d9f98a20ffbfe01c72a7caa5f38e24a9a316ffd1"
+      "sha256": "65e3c34f5129ec07d1729c306690cfda88a13a33d7d27e7667a4cd779edd526a"
     },
     {
       "bytes": 288,
@@ -5323,34 +5323,34 @@
       "sha256": "705ff7f538a7f3a83a558a8ba6479ebe53428592377d01a278f0b8a2a6130e64"
     },
     {
-      "bytes": 5440,
+      "bytes": 6801,
       "kind": "data",
       "path": "results/unified_average_optimizer/algorithm.json",
-      "sha256": "efefe56a0992421231990d469a03d86f874d990e46c3a2c7b08de28ecc98a1e5"
+      "sha256": "783c03460c65dad678239ddc3d74344dc354d9c64696052efe4312e7c94d5bb0"
     },
     {
-      "bytes": 3917,
+      "bytes": 4164,
       "kind": "data",
       "path": "results/unified_average_optimizer/mechanism_features.csv",
-      "sha256": "f57ac3ed291af42f293c7df16ebf9c2fed41949cc1324396476b35f92a8515e4"
+      "sha256": "b2a20889150b676064cb50d23ba0a883ca41463315643d254f44c29f671e382b"
     },
     {
-      "bytes": 3843,
+      "bytes": 4479,
       "kind": "data",
       "path": "results/unified_average_optimizer/operation_decisions.csv",
-      "sha256": "b72b069e1ae66782a121f93c1c65c7a19805df11e8909e71d0daf3c33ef6edfc"
+      "sha256": "9679014e7eddbe7334e09a8e602d4b5d23fc9c0ac1687be4ceb2a374e4844373"
     },
     {
-      "bytes": 9857,
+      "bytes": 10717,
       "kind": "document",
       "path": "results/unified_average_optimizer/report.md",
-      "sha256": "809ceb2f0474d556f9ad07b70d54fdf2f4d65f680741c091a3b0b423f9bbb6c2"
+      "sha256": "3e428c1f40b612b3ba6ac09f89f14fe2ac1c37c7ec6c853fbbace3451f143117"
     },
     {
-      "bytes": 3637,
+      "bytes": 4115,
       "kind": "data",
       "path": "results/unified_average_optimizer/summary.json",
-      "sha256": "7df6701c3502bc15183e39457e0df1e1e7ae277e23201bd99128d49a92e20d1f"
+      "sha256": "11aa6874a25f68d2d6dde38b77461164401c9f07413e44affa9f41efd7160ae9"
     },
     {
       "bytes": 125,
@@ -6085,10 +6085,10 @@
       "sha256": "a1d54b8d275c55bbdc12aa051e4cb6888ce0371ff7698b547c1d7aa17f79c8e4"
     },
     {
-      "bytes": 42830,
+      "bytes": 47651,
       "kind": "code",
       "path": "scripts/build_unified_average_optimizer.py",
-      "sha256": "22e324511d7c9559e04507218eab5ab1e80ed12f70d83a8b228aaeb04a9e298e"
+      "sha256": "12bb9b8c65da6ac670466a871505abd124b47ff8a61f3f42b10dab6e33d8cfc7"
     },
     {
       "bytes": 24494,
@@ -6109,10 +6109,10 @@
       "sha256": "cd588bc1804013f4043bd95c245b066dbae86bfd3e3f9c18317ef33eb506f123"
     },
     {
-      "bytes": 369691,
+      "bytes": 371163,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "f6214b70b93e5b2314bcbc888324ab46054583423a8f2c4add4bc0b2b5f0bd4a"
+      "sha256": "4d78d84a391f20777a07733154c97008506cedc7dc1c36b7e70ef91156ce31b0"
     },
     {
       "bytes": 16101,
@@ -6403,7 +6403,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-20T04:30:32.897985+00:00",
+  "generated_at": "2026-06-20T04:35:34.323984+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"
