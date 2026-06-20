@@ -1515,6 +1515,29 @@ def summarize_unified_average_optimizer() -> dict[str, Any]:
         "real_gauge_aligned_degradation": maybe_float(moe.get("real_gauge_aligned_degradation")),
         "qwen3_identity_fraction": maybe_float(moe.get("qwen3_identity_fraction")),
         "router_action": moe.get("router_action"),
+        "qwen3_unified_candidate_id": moe.get("qwen3_unified_candidate_id"),
+        "qwen3_unified_candidate_family": moe.get("qwen3_unified_candidate_family"),
+        "qwen3_unified_candidate_count": maybe_int(moe.get("qwen3_unified_candidate_count")),
+        "qwen3_unified_nonbase_mass_retention": maybe_float(
+            moe.get("qwen3_unified_nonbase_mass_retention")
+        ),
+        "qwen3_unified_relative_delta_norm": maybe_float(
+            moe.get("qwen3_unified_relative_delta_norm")
+        ),
+        "qwen3_unified_routed_gt_065": maybe_int(moe.get("qwen3_unified_routed_gt_065")),
+        "qwen3_layer_chunk_to_unified_relative_norm_reduction": maybe_float(
+            moe.get("qwen3_layer_chunk_to_unified_relative_norm_reduction")
+        ),
+        "qwen3_layer_chunk_to_unified_routed_gt_065_reduction": maybe_int(
+            moe.get("qwen3_layer_chunk_to_unified_routed_gt_065_reduction")
+        ),
+        "qwen3_router_calibration_status": moe.get("qwen3_router_calibration_status"),
+        "qwen3_router_calibration_eligible_candidates": maybe_int(
+            moe.get("qwen3_router_calibration_eligible_candidates")
+        ),
+        "qwen3_router_calibration_candidate_count": maybe_int(
+            moe.get("qwen3_router_calibration_candidate_count")
+        ),
         "qwen3_final_selection_status": moe.get("qwen3_final_selection_status"),
         "qwen3_eligible_candidates": maybe_int(moe.get("qwen3_eligible_candidates")),
         "qwen3_candidate_count": maybe_int(moe.get("qwen3_candidate_count")),
@@ -3580,7 +3603,7 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "Unified Dense/MoE average optimizer",
             "status": "complete",
-            "evidence": "results/unified_average_optimizer/report.md converts Dense barrier probes, MoE gauge probes, Qwen3 expert identity, router movement, and final candidate-selection gates into one same-shape operation policy.",
+            "evidence": "results/unified_average_optimizer/report.md converts Dense barrier probes, MoE gauge probes, Qwen3 expert identity, router movement, unified mechanism caps, router-calibration gating, and final candidate-selection gates into one same-shape operation policy.",
         },
         {
             "item": "Qwen3 MoE vLLM eval bundle audit",
@@ -4713,6 +4736,23 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{unified_average_optimizer['qwen3_final_selection_status']} "
                 f"({unified_average_optimizer['qwen3_eligible_candidates']}"
                 f"/{unified_average_optimizer['qwen3_candidate_count']}) |"
+            ),
+            (
+                "| unified average optimizer | Qwen3 unified candidate / audit norm / >0.65 | "
+                f"{unified_average_optimizer['qwen3_unified_candidate_id']} / "
+                f"{unified_average_optimizer['qwen3_unified_relative_delta_norm']:.3f} / "
+                f"{unified_average_optimizer['qwen3_unified_routed_gt_065']} |"
+            ),
+            (
+                "| unified average optimizer | layer/chunk->unified norm / >0.65 reduction | "
+                f"{unified_average_optimizer['qwen3_layer_chunk_to_unified_relative_norm_reduction']:.3f} / "
+                f"{unified_average_optimizer['qwen3_layer_chunk_to_unified_routed_gt_065_reduction']} |"
+            ),
+            (
+                "| unified average optimizer | router calibration status / eligible | "
+                f"{unified_average_optimizer['qwen3_router_calibration_status']} / "
+                f"{unified_average_optimizer['qwen3_router_calibration_eligible_candidates']}"
+                f"/{unified_average_optimizer['qwen3_router_calibration_candidate_count']} |"
             ),
             (
                 "| Qwen3 MoE eval bundle audit | status / usable / invalid complete | "

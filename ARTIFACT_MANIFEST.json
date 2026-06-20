@@ -4669,16 +4669,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 1484409,
+      "bytes": 1488944,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "a4cc2eb44adf96f5745d27cb5f798711c694e338307f486b4d81cb34d7f73c48"
+      "sha256": "d7d187b7f1ff159927f5e62538a4148ac09e49b3692fc3bfbee4839f6f29bc88"
     },
     {
-      "bytes": 49907,
+      "bytes": 50265,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "5aa14e191b8eb01f404bff0cd7b9817c874b94fdfe554696e8e6fd53fd2fd8b8"
+      "sha256": "38fd669c6a0b2bb54487657cba1f2b5a660629ac7ae276d346f873f9c5b97a2c"
     },
     {
       "bytes": 288,
@@ -5143,34 +5143,34 @@
       "sha256": "705ff7f538a7f3a83a558a8ba6479ebe53428592377d01a278f0b8a2a6130e64"
     },
     {
-      "bytes": 3742,
+      "bytes": 4571,
       "kind": "data",
       "path": "results/unified_average_optimizer/algorithm.json",
-      "sha256": "e3f58241ad6a67b877a830507e2f6927ae9c07c22adbc2e3a29c62f3d9092b78"
+      "sha256": "bb3902a58e72ce5933611df94e84790c16c065c6c6d8720ac8f27f9e86db1627"
     },
     {
-      "bytes": 1653,
+      "bytes": 2489,
       "kind": "data",
       "path": "results/unified_average_optimizer/mechanism_features.csv",
-      "sha256": "9c7de4a6b00b57011d1a2269f8ac3f6e3c6a89ebf2ca0b6c6073d1429d352e01"
+      "sha256": "da8ba7afeb338eb84ad4d718fcb7f76f2101c66fa3c64f7df297a295fe982b94"
     },
     {
-      "bytes": 1991,
+      "bytes": 3013,
       "kind": "data",
       "path": "results/unified_average_optimizer/operation_decisions.csv",
-      "sha256": "b010427aff3a560abc4e7285c23df816afe7152d33babd429087e11485dc1567"
+      "sha256": "2f5ec8d98d460d425f0d106ad12cf96e759408d8f8a2fb205e36c1f2ae28ba62"
     },
     {
-      "bytes": 5499,
+      "bytes": 7180,
       "kind": "document",
       "path": "results/unified_average_optimizer/report.md",
-      "sha256": "66f8e9b70823bd1da1339542659968a9b1711ac8928d6cf9b80cf480af844d31"
+      "sha256": "7a0e47f4ed1fc027b119171190acba3dab925edddec0ced2b1465f2c8b1cd449"
     },
     {
-      "bytes": 1254,
+      "bytes": 2211,
       "kind": "data",
       "path": "results/unified_average_optimizer/summary.json",
-      "sha256": "dc034826487df437ac02676ca36c7d66a44a4c55fe1daa1a61ce927c4feafa43"
+      "sha256": "8caaedcddd598ae912b951107b4d3ba46d71d74847ea3e8b3016c2966f9dd3d2"
     },
     {
       "bytes": 125,
@@ -5869,10 +5869,10 @@
       "sha256": "a1d54b8d275c55bbdc12aa051e4cb6888ce0371ff7698b547c1d7aa17f79c8e4"
     },
     {
-      "bytes": 21096,
+      "bytes": 29178,
       "kind": "code",
       "path": "scripts/build_unified_average_optimizer.py",
-      "sha256": "0459a269e28890cbd14169aad630b1f20ec07893df2b178968c3ab4174ce5c3d"
+      "sha256": "0f6b4ae153f0cb3f17c8ab53f8cf116900e8233b2b71b67d14b67d83ab8dc55b"
     },
     {
       "bytes": 23902,
@@ -5893,10 +5893,10 @@
       "sha256": "cd588bc1804013f4043bd95c245b066dbae86bfd3e3f9c18317ef33eb506f123"
     },
     {
-      "bytes": 343436,
+      "bytes": 345894,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "c55064be0e244d5dd6801494267cda9b3f47c3719b7601694aca1b2739934fb6"
+      "sha256": "1b5c28b312e975e2ac7a30bef2dcaeaf08d5add3c272e2844cdc053fde245013"
     },
     {
       "bytes": 16101,
@@ -6181,7 +6181,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-20T02:58:57.958006+00:00",
+  "generated_at": "2026-06-20T03:04:38.616846+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

@@ -175,8 +175,13 @@ def moe_feature_rows(
     moe_selector: dict[str, Any],
     router_gate: dict[str, Any],
     final_selection: dict[str, Any],
+    unified_candidate: dict[str, Any],
+    unified_audit: dict[str, Any],
+    delta_frontier: dict[str, Any],
+    router_calibration: dict[str, Any],
 ) -> list[dict[str, Any]]:
     selection = final_selection.get("current_selection") or {}
+    router_selection = router_calibration.get("current_selection") or {}
     return [
         {
             "domain": "moe",
@@ -231,6 +236,51 @@ def moe_feature_rows(
         },
         {
             "domain": "moe",
+            "probe": "qwen3_unified_mechanism_optimizer",
+            "value": unified_candidate.get("selected_risk_weighted_predicted_relative_delta"),
+            "threshold": unified_candidate.get("hard_cap"),
+            "decision_signal": "use_router_evidence_geometry_risk_caps",
+            "evidence": (
+                f"selected = {unified_candidate.get('selected_candidate_id')}; "
+                f"family = {unified_candidate.get('selected_candidate_family')}; "
+                f"retention = {fmt(unified_candidate.get('selected_nonbase_mass_retention'))}; "
+                f"risk-weighted predicted rel delta = "
+                f"{fmt(unified_candidate.get('selected_risk_weighted_predicted_relative_delta'))}; "
+                f"geometry-weighted predicted rel delta = "
+                f"{fmt(unified_candidate.get('selected_geometry_weighted_predicted_relative_delta'))}"
+            ),
+        },
+        {
+            "domain": "moe",
+            "probe": "qwen3_unified_materialized_audit",
+            "value": unified_audit.get("relative_delta_norm"),
+            "threshold": delta_frontier.get("layer_chunk_total_relative_delta_norm"),
+            "decision_signal": "materialized_same_shape_tail_reduction",
+            "evidence": (
+                f"audit status = {unified_audit.get('status')}; "
+                f"total relative norm = {fmt(unified_audit.get('relative_delta_norm'))}; "
+                f"router changed = {unified_audit.get('router_changed_tensors')}/"
+                f"{unified_audit.get('router_tensors')}; "
+                f"layer/chunk->unified norm reduction = "
+                f"{fmt(delta_frontier.get('layer_chunk_to_unified_relative_norm_reduction'))}; "
+                f"routed >0.65 reduction = {delta_frontier.get('layer_chunk_to_unified_routed_gt_065_reduction')}"
+            ),
+        },
+        {
+            "domain": "moe",
+            "probe": "qwen3_router_calibration_gate",
+            "value": router_selection.get("eligible_candidate_count"),
+            "threshold": router_selection.get("candidate_count"),
+            "decision_signal": "do_not_accept_router_delta_without_baseline_eval",
+            "evidence": (
+                f"status = {router_selection.get('status')}; "
+                f"eligible router-cal candidates = {router_selection.get('eligible_candidate_count')}/"
+                f"{router_selection.get('candidate_count')}; "
+                f"reason = {router_selection.get('reason')}"
+            ),
+        },
+        {
+            "domain": "moe",
             "probe": "qwen3_final_candidate_selection",
             "value": selection.get("eligible_candidate_count"),
             "threshold": selection.get("candidate_count"),
@@ -244,8 +294,16 @@ def moe_feature_rows(
     ]
 
 
-def build_decisions(features: pd.DataFrame, dense_selector: dict[str, Any], router_gate: dict[str, Any]) -> pd.DataFrame:
+def build_decisions(
+    features: pd.DataFrame,
+    dense_selector: dict[str, Any],
+    router_gate: dict[str, Any],
+    unified_candidate: dict[str, Any],
+    delta_frontier: dict[str, Any],
+    router_calibration: dict[str, Any],
+) -> pd.DataFrame:
     dense_config = ((dense_selector.get("results") or {}).get("unified") or {}).get("config") or {}
+    router_selection = router_calibration.get("current_selection") or {}
     rows = [
         {
             "stage": "dense_connectivity_gate",
@@ -280,10 +338,33 @@ def build_decisions(features: pd.DataFrame, dense_selector: dict[str, Any], rout
             "same_shape_invariant": "router tensor shape is unchanged; optional route-KD writes a capped same-shape delta",
         },
         {
+            "stage": "moe_expert_delta_optimizer",
+            "operation": "apply retention-constrained router/evidence/geometry caps",
+            "condition": "expert identity is aligned, direct router movement is rejected, and real expert geometry exposes nonuniform risk",
+            "selected_action": (
+                f"{unified_candidate.get('selected_candidate_id')} with hard cap "
+                f"{fmt(unified_candidate.get('hard_cap'))}; "
+                f"layer/chunk->unified routed >0.65 reduction = "
+                f"{delta_frontier.get('layer_chunk_to_unified_routed_gt_065_reduction')}"
+            ),
+            "why_it_should_improve": "It keeps useful Coder-route mass while shrinking high-risk routed expert deltas instead of using one global coefficient.",
+            "same_shape_invariant": "only routed expert tensor values change; router, attention, embeddings, norms, names, and shapes stay fixed",
+        },
+        {
+            "stage": "moe_router_calibration_gate",
+            "operation": "treat router calibration as a separately audited ablation",
+            "condition": "route-KD can help in smoke tests, but Qwen3 baseline/source eval is not complete",
+            "selected_action": (
+                f"{router_selection.get('status')}: {router_selection.get('reason')}"
+            ),
+            "why_it_should_improve": "It prevents a router delta from being accepted just because it reduces route KL on a calibration cache.",
+            "same_shape_invariant": "any accepted router delta must keep the same router tensors and pass router-only audit caps",
+        },
+        {
             "stage": "moe_candidate_gate",
             "operation": "select only after audited downstream eval",
             "condition": "structural probes can rank risk, but source dominance and task regression need vLLM scores",
-            "selected_action": "keep all seven Qwen3 candidates provisional until eval-bundle audit passes",
+            "selected_action": "keep all eight Qwen3 candidates provisional until eval-bundle audit passes",
             "why_it_should_improve": "It prevents structural cleanliness from being mistaken for actual downstream dominance.",
             "same_shape_invariant": "all candidates remain same-shape Qwen3 MoE checkpoints",
         },
@@ -322,6 +403,8 @@ def build_report(summary: dict[str, Any], features: pd.DataFrame, decisions: pd.
         "",
         f"- Dense: `{dense['decision']}`；linear worst NLL `{fmt(dense['linear_worst_nll'])}`，unified worst NLL `{fmt(dense['unified_worst_nll'])}`。",
         f"- MoE: `{moe['decision']}`；真实 OLMoE same-name average degradation `{fmt(moe['real_gauge_naive_degradation'])}`，Qwen3 router action `{moe['router_action']}`。",
+        f"- Qwen3 unified mechanism: `{moe['qwen3_unified_candidate_id']}`；audit relative norm `{fmt(moe['qwen3_unified_relative_delta_norm'])}`，routed >0.65 `{moe['qwen3_unified_routed_gt_065']}`。",
+        f"- Qwen3 router calibration: `{moe['qwen3_router_calibration_status']}`。",
         f"- Qwen3 final selection: `{moe['qwen3_final_selection_status']}`，eligible `{moe['qwen3_eligible_candidates']}/{moe['qwen3_candidate_count']}`。",
         "",
         "## Mechanism Features",
@@ -374,15 +457,39 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
     moe_selector = read_json(args.moe_selector)
     router_gate = read_json(args.qwen3_router_gate)
     final_selection = read_json(args.qwen3_final_selection)
+    unified_candidate = read_json(args.qwen3_unified_candidate)
+    unified_audit = read_json(args.qwen3_unified_audit)
+    delta_frontier = read_json(args.qwen3_delta_frontier)
+    router_calibration = read_json(args.qwen3_router_calibration)
 
     feature_rows = dense_feature_rows(curvature, dense_selector, gen_eval)
-    feature_rows.extend(moe_feature_rows(mechanism, real_gauge, moe_selector, router_gate, final_selection))
+    feature_rows.extend(
+        moe_feature_rows(
+            mechanism,
+            real_gauge,
+            moe_selector,
+            router_gate,
+            final_selection,
+            unified_candidate,
+            unified_audit,
+            delta_frontier,
+            router_calibration,
+        )
+    )
     features = pd.DataFrame(feature_rows)
-    decisions = build_decisions(features, dense_selector, router_gate)
+    decisions = build_decisions(
+        features,
+        dense_selector,
+        router_gate,
+        unified_candidate,
+        delta_frontier,
+        router_calibration,
+    )
     algorithm = build_algorithm(decisions)
 
     dense_results = dense_selector.get("results") or {}
     final_current = final_selection.get("current_selection") or {}
+    router_current = router_calibration.get("current_selection") or {}
     summary = {
         "schema_version": 1,
         "status": "built_waiting_for_qwen3_vllm_eval"
@@ -404,6 +511,34 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
             "real_gauge_aligned_degradation": fnum(real_gauge.get("aligned_degradation_vs_baseline")),
             "qwen3_identity_fraction": fnum(moe_selector.get("qwen3_identity_fraction")),
             "router_action": router_gate.get("recommended_unified_router_action"),
+            "qwen3_unified_candidate_id": unified_candidate.get("selected_candidate_id"),
+            "qwen3_unified_candidate_family": unified_candidate.get("selected_candidate_family"),
+            "qwen3_unified_candidate_count": unified_candidate.get("candidate_count"),
+            "qwen3_unified_nonbase_mass_retention": fnum(
+                unified_candidate.get("selected_nonbase_mass_retention")
+            ),
+            "qwen3_unified_risk_weighted_predicted_relative_delta": fnum(
+                unified_candidate.get("selected_risk_weighted_predicted_relative_delta")
+            ),
+            "qwen3_unified_geometry_weighted_predicted_relative_delta": fnum(
+                unified_candidate.get("selected_geometry_weighted_predicted_relative_delta")
+            ),
+            "qwen3_unified_audit_status": unified_audit.get("status"),
+            "qwen3_unified_relative_delta_norm": fnum(unified_audit.get("relative_delta_norm")),
+            "qwen3_unified_router_changed_tensors": unified_audit.get("router_changed_tensors"),
+            "qwen3_unified_router_tensors": unified_audit.get("router_tensors"),
+            "qwen3_unified_routed_gt_065": delta_frontier.get("unified_mechanism_routed_gt_0_65"),
+            "qwen3_layer_chunk_to_unified_relative_norm_reduction": fnum(
+                delta_frontier.get("layer_chunk_to_unified_relative_norm_reduction")
+            ),
+            "qwen3_layer_chunk_to_unified_routed_gt_065_reduction": delta_frontier.get(
+                "layer_chunk_to_unified_routed_gt_065_reduction"
+            ),
+            "qwen3_router_calibration_status": router_current.get("status"),
+            "qwen3_router_calibration_eligible_candidates": router_current.get(
+                "eligible_candidate_count"
+            ),
+            "qwen3_router_calibration_candidate_count": router_current.get("candidate_count"),
             "qwen3_final_selection_status": final_current.get("status"),
             "qwen3_eligible_candidates": final_current.get("eligible_candidate_count"),
             "qwen3_candidate_count": final_current.get("candidate_count"),
@@ -448,6 +583,26 @@ def parse_args() -> argparse.Namespace:
         "--qwen3-final-selection",
         type=Path,
         default=Path("results/qwen3_moe_final_candidate_selection/summary.json"),
+    )
+    parser.add_argument(
+        "--qwen3-unified-candidate",
+        type=Path,
+        default=Path("results/qwen3_moe_unified_mechanism_candidate/summary.json"),
+    )
+    parser.add_argument(
+        "--qwen3-unified-audit",
+        type=Path,
+        default=Path("results/qwen3_moe_unified_mechanism_delta_audit/summary.json"),
+    )
+    parser.add_argument(
+        "--qwen3-delta-frontier",
+        type=Path,
+        default=Path("results/qwen3_moe_delta_frontier/summary.json"),
+    )
+    parser.add_argument(
+        "--qwen3-router-calibration",
+        type=Path,
+        default=Path("results/qwen3_moe_router_calibration_selection/summary.json"),
     )
     return parser.parse_args()
 

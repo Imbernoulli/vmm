@@ -79,11 +79,25 @@
       "step": 4
     },
     {
+      "condition": "expert identity is aligned, direct router movement is rejected, and real expert geometry exposes nonuniform risk",
+      "operation": "apply retention-constrained router/evidence/geometry caps",
+      "selected_action": "router_evidence_risk_s0.75 with hard cap 0.6500; layer/chunk->unified routed >0.65 reduction = 89",
+      "stage": "moe_expert_delta_optimizer",
+      "step": 5
+    },
+    {
+      "condition": "route-KD can help in smoke tests, but Qwen3 baseline/source eval is not complete",
+      "operation": "treat router calibration as a separately audited ablation",
+      "selected_action": "awaiting_baseline_eval: Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps.",
+      "stage": "moe_router_calibration_gate",
+      "step": 6
+    },
+    {
       "condition": "structural probes can rank risk, but source dominance and task regression need vLLM scores",
       "operation": "select only after audited downstream eval",
-      "selected_action": "keep all seven Qwen3 candidates provisional until eval-bundle audit passes",
+      "selected_action": "keep all eight Qwen3 candidates provisional until eval-bundle audit passes",
       "stage": "moe_candidate_gate",
-      "step": 5
+      "step": 7
     }
   ]
 }
