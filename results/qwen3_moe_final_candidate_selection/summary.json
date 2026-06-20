@@ -5,6 +5,7 @@
     "candidate_count": 7,
     "candidates_complete": false,
     "eligible_candidate_count": 0,
+    "paired_alpha": 0.05,
     "paired_loss_tolerance_rate": 0.0,
     "paired_prediction_gate": true,
     "reason": "Both Qwen3 source endpoints must complete audited vLLM eval before final candidate selection.",

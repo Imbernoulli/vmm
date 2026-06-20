@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-20T01:02:14.066452+00:00`
+Generated at: `2026-06-20T01:06:12.435688+00:00`
 
 ## Coverage
 
@@ -184,8 +184,8 @@ Complete: `75`; partial: `1`; missing: `0`.
 | Qwen3 MoE unified result selector smoke | status / passed cases | passed / 4/4 |
 | Qwen3 MoE final candidate selector | status / selected / eligible | awaiting_source_eval / None / 0/7 |
 | Qwen3 MoE final candidate selector | usable / complete / best source | 0/7 / False / None |
-| Qwen3 MoE final candidate selector | uncertainty / paired gates | True / True |
-| Qwen3 MoE final candidate selector smoke | status / passed cases | passed / 6/6 |
+| Qwen3 MoE final candidate selector | uncertainty / paired gates / paired alpha | True / True / 0.050 |
+| Qwen3 MoE final candidate selector smoke | status / passed cases | passed / 7/7 |
 | unified average optimizer | status / dense / MoE | built_waiting_for_qwen3_vllm_eval / avoid_linear_midpoint_use_probe_selected_anchor_or_low_lambda / align_experts_freeze_router_then_gate_candidate_by_vllm |
 | unified average optimizer | dense linear / unified / endpoint worst NLL | 8.948 / 5.183 / 5.151 |
 | unified average optimizer | real MoE gauge / router / Qwen3 final | 5.491 -> 0.000 / freeze_router / awaiting_source_eval (0/7) |

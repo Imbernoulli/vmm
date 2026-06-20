@@ -1243,6 +1243,7 @@ def summarize_qwen3_moe_final_candidate_selection() -> dict[str, Any]:
         "candidates_complete": bool(selection.get("candidates_complete", False)),
         "uncertainty_gate": bool(selection.get("uncertainty_gate", False)),
         "paired_prediction_gate": bool(selection.get("paired_prediction_gate", False)),
+        "paired_alpha": maybe_float(selection.get("paired_alpha")),
         "usable_candidate_count": int(selection.get("usable_candidate_count", 0)),
         "eligible_candidate_count": int(selection.get("eligible_candidate_count", len(eligible))),
         "candidate_count": int(selection.get("candidate_count", len(table[table["role"] == "candidate"]))),
@@ -4304,9 +4305,10 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_final_candidate_selection['best_source_by_avg']} |"
             ),
             (
-                "| Qwen3 MoE final candidate selector | uncertainty / paired gates | "
+                "| Qwen3 MoE final candidate selector | uncertainty / paired gates / paired alpha | "
                 f"{qwen3_moe_final_candidate_selection['uncertainty_gate']} / "
-                f"{qwen3_moe_final_candidate_selection['paired_prediction_gate']} |"
+                f"{qwen3_moe_final_candidate_selection['paired_prediction_gate']} / "
+                f"{qwen3_moe_final_candidate_selection['paired_alpha']:.3f} |"
             ),
             (
                 "| Qwen3 MoE final candidate selector smoke | status / passed cases | "
