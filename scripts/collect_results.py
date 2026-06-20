@@ -1467,6 +1467,53 @@ def summarize_qwen3_moe_eval_budget_plan() -> dict[str, Any]:
     }
 
 
+def summarize_qwen3_moe_adaptive_eval_schedule() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_adaptive_eval_schedule")
+    summary = read_json(root / "summary.json")
+    schedule = read_csv(root / "adaptive_schedule.csv")
+    mechanisms = read_csv(root / "mechanism_schedule.csv")
+    round1 = schedule[schedule["selected_for_round1_probe"].astype(bool)] if "selected_for_round1_probe" in schedule else pd.DataFrame()
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "method_count": int(summary.get("method_count", len(schedule))),
+        "source_controls_complete": bool(summary.get("source_controls_complete", False)),
+        "round1_probe_candidate_count": int(summary.get("round1_probe_candidate_count", len(round1))),
+        "top_eval_action": summary.get("top_eval_action"),
+        "top_method": summary.get("top_method"),
+        "probe_examples": maybe_int(summary.get("probe_examples")),
+        "full_examples": maybe_int(summary.get("full_examples")),
+        "eval_action_counts": summary.get("eval_action_counts", {}),
+        "decision_status_counts": summary.get("decision_status_counts", {}),
+        "round1_probe_methods": ",".join(str(row["method"]) for _, row in round1.iterrows()),
+        "schedule_rows": [clean_row(row) for _, row in schedule.iterrows()],
+        "mechanism_rows": [clean_row(row) for _, row in mechanisms.iterrows()],
+        "report": rel(root / "report.md"),
+        "schedule": rel(root / "adaptive_schedule.csv"),
+        "mechanism_schedule": rel(root / "mechanism_schedule.csv"),
+        "run_script": rel(root / "run_adaptive_eval.sh"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
+def summarize_qwen3_moe_adaptive_eval_schedule_smoke() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_adaptive_eval_schedule_smoke")
+    summary = read_json(root / "summary.json")
+    matrix = read_csv(root / "adaptive_eval_schedule_smoke_matrix.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "case_count": int(summary.get("case_count", matrix["case"].nunique() if not matrix.empty else 0)),
+        "assertion_count": int(summary.get("assertion_count", len(matrix))),
+        "passed_assertion_count": int(summary.get("passed_assertion_count", 0)),
+        "failed_assertion_count": int(summary.get("failed_assertion_count", 0)),
+        "case_rows": [clean_row(row) for _, row in matrix.iterrows()],
+        "report": rel(root / "report.md"),
+        "matrix": rel(root / "adaptive_eval_schedule_smoke_matrix.csv"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_qwen3_moe_eval_manifest_preflight() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_eval_manifest_preflight")
     summary = read_json(root / "summary.json")
@@ -4275,6 +4322,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/qwen3_moe_eval_budget_plan/report.md raises the Qwen3 source/candidate vLLM run from a 64-example smoke floor to a Wilson/paired-test budgeted eval script.",
         },
         {
+            "item": "Qwen3 MoE adaptive vLLM eval scheduler",
+            "status": "complete",
+            "evidence": "results/qwen3_moe_adaptive_eval_schedule/report.md turns the fixed Qwen3 MoE budget into a sequential source-control, mechanism-probe, and full-budget escalation schedule; results/qwen3_moe_adaptive_eval_schedule_smoke/report.md covers source-missing, probe-selected, promising-escalation, full-ready, and dominated-prune branches.",
+        },
+        {
             "item": "Qwen3 MoE eval task manifest preflight",
             "status": "complete",
             "evidence": "results/qwen3_moe_eval_manifest_preflight/report.md checks that all budgeted source/candidate evals share one canonical task manifest and that the manifest contains the required task/example keys before vLLM runs.",
@@ -4466,6 +4518,8 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_delta_frontier": summarize_qwen3_moe_delta_frontier(),
         "qwen3_moe_mechanism_eval_gate": summarize_qwen3_moe_mechanism_eval_gate(),
         "qwen3_moe_eval_budget_plan": summarize_qwen3_moe_eval_budget_plan(),
+        "qwen3_moe_adaptive_eval_schedule": summarize_qwen3_moe_adaptive_eval_schedule(),
+        "qwen3_moe_adaptive_eval_schedule_smoke": summarize_qwen3_moe_adaptive_eval_schedule_smoke(),
         "qwen3_moe_eval_manifest_preflight": summarize_qwen3_moe_eval_manifest_preflight(),
         "qwen3_moe_mechanism_levers": summarize_qwen3_moe_mechanism_levers(),
         "qwen3_moe_expert_geometry_probe": summarize_qwen3_moe_expert_geometry_probe(),
@@ -4633,6 +4687,8 @@ def build_summary() -> dict[str, Any]:
             "python scripts/audit_materialized_checkpoint_delta.py --base BASE --candidate results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate --output-dir results/qwen3_moe_searched_no_gt065_delta_audit",
             "python scripts/build_qwen3_moe_delta_frontier.py --output-dir results/qwen3_moe_delta_frontier",
             "python scripts/plan_qwen3_moe_eval_budget.py --output-dir results/qwen3_moe_eval_budget_plan",
+            "python scripts/schedule_qwen3_moe_adaptive_eval.py --output-dir results/qwen3_moe_adaptive_eval_schedule",
+            "python scripts/schedule_qwen3_moe_adaptive_eval.py --smoke-matrix --output-dir results/qwen3_moe_adaptive_eval_schedule_smoke",
             "python scripts/probe_qwen3_moe_expert_geometry.py --output-dir results/qwen3_moe_expert_geometry_probe",
             "python scripts/analyze_qwen3_moe_expert_subspace_conflicts.py --output-dir results/qwen3_moe_expert_subspace_conflict_probe --validate-dry-run",
             "python scripts/analyze_qwen3_moe_mechanism_levers.py --output-dir results/qwen3_moe_mechanism_levers",
@@ -4748,6 +4804,8 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_delta_frontier = exp["qwen3_moe_delta_frontier"]
     qwen3_moe_mechanism_eval_gate = exp["qwen3_moe_mechanism_eval_gate"]
     qwen3_moe_eval_budget_plan = exp["qwen3_moe_eval_budget_plan"]
+    qwen3_moe_adaptive_eval_schedule = exp["qwen3_moe_adaptive_eval_schedule"]
+    qwen3_moe_adaptive_eval_schedule_smoke = exp["qwen3_moe_adaptive_eval_schedule_smoke"]
     qwen3_moe_eval_manifest_preflight = exp["qwen3_moe_eval_manifest_preflight"]
     qwen3_moe_mechanism_levers = exp["qwen3_moe_mechanism_levers"]
     qwen3_moe_expert_geometry_probe = exp["qwen3_moe_expert_geometry_probe"]
@@ -5419,6 +5477,25 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_eval_budget_plan['task_manifest_aligned_method_count']}"
                 f"/{qwen3_moe_eval_budget_plan['method_count']} / "
                 f"{qwen3_moe_eval_budget_plan['canonical_task_manifest']} |"
+            ),
+            (
+                "| Qwen3 MoE adaptive eval schedule | status / top action / top method | "
+                f"{qwen3_moe_adaptive_eval_schedule['status']} / "
+                f"{qwen3_moe_adaptive_eval_schedule['top_eval_action']} / "
+                f"{qwen3_moe_adaptive_eval_schedule['top_method']} |"
+            ),
+            (
+                "| Qwen3 MoE adaptive eval schedule | source controls / round1 probes / probe->full examples | "
+                f"{qwen3_moe_adaptive_eval_schedule['source_controls_complete']} / "
+                f"{qwen3_moe_adaptive_eval_schedule['round1_probe_candidate_count']} / "
+                f"{qwen3_moe_adaptive_eval_schedule['probe_examples']} -> "
+                f"{qwen3_moe_adaptive_eval_schedule['full_examples']} |"
+            ),
+            (
+                "| Qwen3 MoE adaptive eval schedule smoke | status / assertions | "
+                f"{qwen3_moe_adaptive_eval_schedule_smoke['status']} / "
+                f"{qwen3_moe_adaptive_eval_schedule_smoke['passed_assertion_count']}"
+                f"/{qwen3_moe_adaptive_eval_schedule_smoke['assertion_count']} |"
             ),
             (
                 "| Qwen3 MoE eval manifest preflight | status / tasks sufficient / methods aligned | "
