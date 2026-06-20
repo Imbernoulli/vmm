@@ -1877,6 +1877,12 @@ def summarize_qwen3_moe_router_calibration_job() -> dict[str, Any]:
         "router_caps": summary.get("router_caps", []),
         "router_margin_safe_lambda_proxy": maybe_float(summary.get("router_margin_safe_lambda_proxy")),
         "router_margin_limit_with_tolerance": maybe_float(summary.get("router_margin_limit_with_tolerance")),
+        "router_margin_profile_enabled": bool(summary.get("router_margin_profile_enabled", False)),
+        "router_margin_profile_cap_rows": maybe_int(summary.get("router_margin_profile_cap_rows")),
+        "router_margin_profile_min_cap": maybe_float(summary.get("router_margin_profile_min_cap")),
+        "router_margin_profile_mean_cap": maybe_float(summary.get("router_margin_profile_mean_cap")),
+        "router_margin_profile_max_cap": maybe_float(summary.get("router_margin_profile_max_cap")),
+        "router_margin_profile_cap_table": summary.get("router_margin_profile_cap_table"),
         "router_margin_planned_pass_count": maybe_int(summary.get("router_margin_planned_pass_count")),
         "default_run_candidate_count": maybe_int(summary.get("default_run_candidate_count")),
         "task_manifest": summary.get("task_manifest"),
@@ -1894,6 +1900,7 @@ def summarize_qwen3_moe_router_calibration_job() -> dict[str, Any]:
         "source_control_plan": rel(root / "source_control_plan.csv"),
         "candidate_plan": rel(root / "candidate_plan.csv"),
         "stage_plan": rel(root / "stage_plan.csv"),
+        "router_margin_profile_cap_table_path": rel(root / "router_margin_profile_caps.csv"),
         "run_script": rel(root / "run_router_calibration_job.sh"),
         "summary_path": rel(root / "summary.json"),
     }
@@ -5257,6 +5264,14 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 "| Qwen3 MoE router calibration job | default-run caps | "
                 f"{qwen3_moe_router_calibration_job['default_run_candidate_count']}"
                 f"/{qwen3_moe_router_calibration_job['candidate_count']} |"
+            ),
+            (
+                "| Qwen3 MoE router calibration job | margin-profile enabled / cap rows / min-mean-max | "
+                f"{qwen3_moe_router_calibration_job['router_margin_profile_enabled']} / "
+                f"{qwen3_moe_router_calibration_job['router_margin_profile_cap_rows']} / "
+                f"{fmt(qwen3_moe_router_calibration_job['router_margin_profile_min_cap'])}-"
+                f"{fmt(qwen3_moe_router_calibration_job['router_margin_profile_mean_cap'])}-"
+                f"{fmt(qwen3_moe_router_calibration_job['router_margin_profile_max_cap'])} |"
             ),
             (
                 "| Qwen3 MoE router calibration job | inputs student / teacher / prompts | "

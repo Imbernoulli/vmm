@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-20T04:59:39.672563+00:00`
+Generated at: `2026-06-20T05:10:51.386133+00:00`
 
 ## Coverage
 
@@ -193,11 +193,11 @@ Complete: `84`; partial: `1`; missing: `0`.
 | Qwen3 MoE mechanism eval gate | local GPU / best delta-safety candidate | nvidia_smi_failed / unified_mechanism |
 | Qwen3 MoE mechanism eval gate | unified serve / audit / optimizer test | ready_to_host / True / awaiting_eval |
 | Qwen3 MoE eval budget plan | status / current -> recommended examples | ready_for_budgeted_remote_vllm_eval / 64 -> 384 |
-| Qwen3 MoE eval budget plan | planned / ready / pending methods | 11 / 10 / 1 |
-| Qwen3 MoE eval budget plan | current / recommended / extra prompt budget | 2816 / 16896 / 14080 |
+| Qwen3 MoE eval budget plan | planned / ready / pending methods | 12 / 10 / 2 |
+| Qwen3 MoE eval budget plan | current / recommended / extra prompt budget | 3072 / 18432 / 15360 |
 | Qwen3 MoE eval budget plan | ready current / recommended / extra prompt budget | 2560 / 15360 / 12800 |
 | Qwen3 MoE eval budget plan | Wilson n / paired n / capped tasks | 381 / 248 / humaneval_compile |
-| Qwen3 MoE eval budget plan | router active / ready / pending / plan-pruned caps | 1 / 0 / 1 / 2 |
+| Qwen3 MoE eval budget plan | router active / ready / pending / plan-pruned caps | 2 / 0 / 2 / 2 |
 | Qwen3 MoE mechanism levers | top lever / priority / next test | source_and_candidate_downstream_eval / 0.98 / results/qwen3_moe_eval_budget_plan/run_eval_budget.sh all |
 | Qwen3 MoE mechanism levers | fine calibration layers / top layer score | 12,13,17,20,21,22,23,26 / 17:0.905 |
 | Qwen3 MoE mechanism levers | expert geometry used / top geometry layer | True / 17:0.714 |
@@ -242,17 +242,18 @@ Complete: `84`; partial: `1`; missing: `0`.
 | Qwen3 MoE router margin fragility | top score / min safe-lambda proxy / top category | 0.752 / 0.020 / long_context |
 | Qwen3 MoE router calibration NLL probe | status / worst / avg reduction | router_calibration_improves_linear_merge_but_needs_downstream_gate / 0.221 / 0.161 |
 | Qwen3 MoE router calibration NLL probe | code gap / worst gap to best source | -0.014 / 0.127 |
-| Qwen3 MoE router calibration job | status / local GPU / candidates / stages | job_ready_awaiting_gpu / unavailable / 3 / 18 |
+| Qwen3 MoE router calibration job | status / local GPU / candidates / stages | job_ready_awaiting_gpu / unavailable / 4 / 22 |
 | Qwen3 MoE router calibration job | source controls / ready | 2 / True |
 | Qwen3 MoE router calibration job | task manifest / create-if-missing | results/qwen3_moe_router_calibration_job/task_manifest.json / True |
-| Qwen3 MoE router calibration job | margin safe-lambda / planned-pass caps | 0.020 / 1/3 |
-| Qwen3 MoE router calibration job | default-run caps | 1/3 |
+| Qwen3 MoE router calibration job | margin safe-lambda / planned-pass caps | 0.020 / 2/4 |
+| Qwen3 MoE router calibration job | default-run caps | 2/4 |
+| Qwen3 MoE router calibration job | margin-profile enabled / cap rows / min-mean-max | True / 48 / 0.020-0.045-0.050 |
 | Qwen3 MoE router calibration job | inputs student / teacher / prompts | True / True / True |
-| Qwen3 MoE router calibration selector | status / selected / eligible | awaiting_baseline_eval / None / 0/3 |
+| Qwen3 MoE router calibration selector | status / selected / eligible | awaiting_baseline_eval / None / 0/4 |
 | Qwen3 MoE router calibration selector | source required-complete / baseline eval / candidate eval / audit | True-False / False / False / False |
 | Qwen3 MoE router calibration selector | training / hard route-load / group validation | False / False / False |
 | Qwen3 MoE router calibration selector | margin gate / safe-lambda / high layers | True / 0.020 / 24/48 |
-| Qwen3 MoE router calibration selector | active / plan-pruned candidates | 1 / 2 |
+| Qwen3 MoE router calibration selector | active / plan-pruned candidates | 2 / 2 |
 | Qwen3 MoE router row-validation negative smoke | status / eligible / group validation | awaiting_router_calibration_eval / 0/3 / False |
 | Qwen3 MoE router row-validation negative smoke | first decision reason | router_validation_not_group_heldout |
 | Qwen3 MoE router source-dominance negative smoke | status / selected / eligible | keep_frozen_router_baseline / qwen3_moe_searched_no_gt065_max_retention_candidate / 0/3 |

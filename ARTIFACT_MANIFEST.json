@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 84803,
+      "bytes": 85221,
       "kind": "document",
       "path": "README.md",
-      "sha256": "c90cbfa43c594cea698cb43a525ffd980205fd23d9ea998268242aaaef9fca13"
+      "sha256": "0b25c6bee83feca2e86b11e38a68225f9a624280b9760ab3d11f5a703d98b32b"
     },
     {
       "bytes": 33211,
@@ -1891,28 +1891,28 @@
       "sha256": "d40f190ab6398443300d7c905de90be631631e3b4580c67fae15c16a5bbc9e2e"
     },
     {
-      "bytes": 17689,
+      "bytes": 19655,
       "kind": "data",
       "path": "results/qwen3_moe_eval_budget_plan/method_budget.csv",
-      "sha256": "b25fdc2ac9ac7b72ca086510237bada3431c53601d5f357eecb9068613bb396b"
+      "sha256": "e47be18b521cd5a35118ea2fb8454681b41766c283664b5ea5ceb78d93903c98"
     },
     {
-      "bytes": 7340,
+      "bytes": 7748,
       "kind": "document",
       "path": "results/qwen3_moe_eval_budget_plan/report.md",
-      "sha256": "c21445bfb4ba38ede7f43f31822dfdcde9bcd9dcbb2146a0143b5ef195f63635"
+      "sha256": "043f1e9d214eefa58c5a70af2c1cab8aa327134ca27b9f7bd9a3a274b4c03994"
     },
     {
-      "bytes": 1055,
+      "bytes": 1330,
       "kind": "data",
       "path": "results/qwen3_moe_eval_budget_plan/router_calibration_budget.csv",
-      "sha256": "6aea41e5b728f02bb000ecc4e802dcaff25c476789af295c519c192aa9ada750"
+      "sha256": "ca7cf60de8717ddc0177bc71d08b2a8c769f803d9615613b355d6a835f3da8d0"
     },
     {
-      "bytes": 1911,
+      "bytes": 1912,
       "kind": "data",
       "path": "results/qwen3_moe_eval_budget_plan/summary.json",
-      "sha256": "8d77d30bab32fb5ebfadecdd8ce6c9a58c618af629ee70ed6388f2980983b9f0"
+      "sha256": "bd096c5f79d5b43f89c524c909e7ae14b293a85c44adad9048d6be660f75f6dc"
     },
     {
       "bytes": 1152,
@@ -2395,16 +2395,22 @@
       "sha256": "e3e00bd50ba2bce0006e0c0da8e681db71ffb50ea26e6795274d4c6a53b99be7"
     },
     {
-      "bytes": 3720,
+      "bytes": 5214,
       "kind": "data",
       "path": "results/qwen3_moe_router_calibration_job/candidate_plan.csv",
-      "sha256": "5abcff7967d363778ad8ae0faffc2882ab11ea6eaed268df80e83e2e39b51efa"
+      "sha256": "489a82fd66d61bf58bc3636c316ae60660ffbc9ad7e31708357169fe1a3bcb0c"
     },
     {
-      "bytes": 5758,
+      "bytes": 6863,
       "kind": "document",
       "path": "results/qwen3_moe_router_calibration_job/report.md",
-      "sha256": "53f70d90e8c41b60144c0776670580227a6d07697a5202f2058b3b37a1135e9d"
+      "sha256": "174f6fe6c46182d979722be1a5158bb5b9558567195d85e210c84e3a44c4987e"
+    },
+    {
+      "bytes": 8553,
+      "kind": "data",
+      "path": "results/qwen3_moe_router_calibration_job/router_margin_profile_caps.csv",
+      "sha256": "1d533f75d96671dbc27c9f1c79ef083af6693638dbb1063807b9bab505348d21"
     },
     {
       "bytes": 773,
@@ -2413,16 +2419,16 @@
       "sha256": "51553f20d6def8587f87f6343f02f7ed8fefe2ea040d2969ca0d0a61b0c701bc"
     },
     {
-      "bytes": 12541,
+      "bytes": 15554,
       "kind": "data",
       "path": "results/qwen3_moe_router_calibration_job/stage_plan.csv",
-      "sha256": "d99468b3568fa4ee97bd6f4955b950283473a68522c65f0c8f84b1d6b27ac43f"
+      "sha256": "208485e6c076a0a4f7fa7145d761cb136743de125ed47e7709e09b74f1fb934a"
     },
     {
-      "bytes": 2279,
+      "bytes": 2740,
       "kind": "data",
       "path": "results/qwen3_moe_router_calibration_job/summary.json",
-      "sha256": "56134e4f119409742952482079d8c45a1dc8b36baf39dc7e821cb5caa81d19d6"
+      "sha256": "255c8ec6e314964c45d4127775c1b0084cc6d3391244e634fd050de6e81490ee"
     },
     {
       "bytes": 851,
@@ -2455,10 +2461,10 @@
       "sha256": "3bb1f51e87b6f7c78a51f344894c95e20dfaae8c629c903527a0b621ffccf3b4"
     },
     {
-      "bytes": 8599,
+      "bytes": 8686,
       "kind": "data",
       "path": "results/qwen3_moe_router_calibration_selection/decision_rules.json",
-      "sha256": "87fa087d5c3566f692940c9a6c95d9dd414d9431a654ca6e5e841f034e053761"
+      "sha256": "f415ed1a8838229a94dafaff874b85570c82bea0b15175cd7da2081266e3e98b"
     },
     {
       "bytes": 2413,
@@ -2467,22 +2473,22 @@
       "sha256": "2142f61dc1c6e13e312612afe47480efda3d77ac03f43485a9a1d0b3b854ab34"
     },
     {
-      "bytes": 7419,
+      "bytes": 7981,
       "kind": "document",
       "path": "results/qwen3_moe_router_calibration_selection/report.md",
-      "sha256": "ec05748831cd5b82c0a3bef05137c00f8930f7633d74f1a10219b3f7096cfb0e"
+      "sha256": "44571828f9274a4444dc4017ca8e2ebc93e59a66c14cf3a38293fe38d7554b5a"
     },
     {
-      "bytes": 6483,
+      "bytes": 7942,
       "kind": "data",
       "path": "results/qwen3_moe_router_calibration_selection/selection_table.csv",
-      "sha256": "fd673896fa6bf922c6b1d18b31211fa73f08b097772c56f985cc691b35f46845"
+      "sha256": "41e63db6ecdfd1c0f1e832302620450a8e5cc2cd2d45c75070caafb00fb7565a"
     },
     {
       "bytes": 3793,
       "kind": "data",
       "path": "results/qwen3_moe_router_calibration_selection/summary.json",
-      "sha256": "bfd1c2cebd95380b7881c9c340af293334842321391cc05a787e939459eb7aeb"
+      "sha256": "97aa4726aeeb0bc7f361cb8379d7c120b38bd8001002f45201b8b2ca3c67c537"
     },
     {
       "bytes": 8738,
@@ -4855,16 +4861,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 1641536,
+      "bytes": 1659966,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "9cef779e8042e473f908a5508e3601ca4a3fd2c29449232d49681f7476740704"
+      "sha256": "a5a135b2416d369c97e494224ef3a872c4ca0560b02b651bb8e768b17baffac8"
     },
     {
-      "bytes": 54235,
+      "bytes": 54355,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "3a7bb38d37a424ebc624fecd76cd9b497258f58258aca73b3fdc4c6e4e26341f"
+      "sha256": "382b8fb0a13575972e49194c3f056689bc76974868ae1142d4ce24d7b63739db"
     },
     {
       "bytes": 288,
@@ -6031,10 +6037,10 @@
       "sha256": "ce1c470f5a39620041138b76867a4dbec2b4da0e20e45ed017840236e3ce94e8"
     },
     {
-      "bytes": 37130,
+      "bytes": 44343,
       "kind": "code",
       "path": "scripts/build_qwen3_moe_router_calibration_job.py",
-      "sha256": "369662282e293744af5c68615089d71866f3762a80384ed10a2243b00c9fc178"
+      "sha256": "6c759a29dcf23faead3293902d70e5a730762a5ee234fa90f52447ee7ce5cd12"
     },
     {
       "bytes": 13531,
@@ -6115,10 +6121,10 @@
       "sha256": "cd588bc1804013f4043bd95c245b066dbae86bfd3e3f9c18317ef33eb506f123"
     },
     {
-      "bytes": 376762,
+      "bytes": 378047,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "c8b91b0bcf75f7dc274de5dd1675d08247bbe52a121652cd7285b974b7709b86"
+      "sha256": "23a173c705c44735b150cc4a3d901569c10df8220ca88e323c3f3c324b7effdf"
     },
     {
       "bytes": 16101,
@@ -6313,10 +6319,10 @@
       "sha256": "5fe8b580e29cc9126d9b10c89a28a54112d845d885fd4ee69dd5cf1f9d4f2748"
     },
     {
-      "bytes": 79590,
+      "bytes": 83572,
       "kind": "code",
       "path": "scripts/select_qwen3_moe_router_calibration_result.py",
-      "sha256": "31e20d51a1c850549a9f26cf2050d4f4ac13ac92a3bdb4c2ed8c9db57ae0d5f6"
+      "sha256": "510da03cb3dbb82f2040f6fd175d88be7d3441062c995007de13f0624634de10"
     },
     {
       "bytes": 23378,
@@ -6373,10 +6379,10 @@
       "sha256": "1eb120f38e70660d637dc001fe5114b0a51c42ee62f8a7790719930866124d20"
     },
     {
-      "bytes": 42355,
+      "bytes": 45971,
       "kind": "code",
       "path": "scripts/train_moe_router_delta_calibration.py",
-      "sha256": "2e4b0075b98c5f5ed09cceb892a4d7fe4259efbf893e0ea23a1e231b71cf8f21"
+      "sha256": "f3c82dfc0ed6dc69ba6f26879b7acc291f2f1853513a5538b6e64cd1438e5c25"
     },
     {
       "bytes": 16731,
@@ -6409,7 +6415,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-20T04:59:39.762483+00:00",
+  "generated_at": "2026-06-20T05:10:51.431636+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

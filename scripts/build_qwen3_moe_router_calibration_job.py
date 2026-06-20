@@ -65,6 +65,16 @@ def maybe_float(value: Any) -> float | None:
         return None
 
 
+def bool_value(value: Any) -> bool:
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return False
+    if isinstance(value, (int, float)):
+        return bool(value)
+    return str(value).strip().lower() in {"1", "true", "yes", "y"}
+
+
 def parse_source_control(raw: str) -> tuple[str, Path]:
     if "=" not in raw:
         raise ValueError(f"Expected METHOD=CHECKPOINT_PATH, got: {raw}")
@@ -104,6 +114,65 @@ def cap_label(value: float) -> str:
     return f"cap{digits}"
 
 
+def tensor_name_from_router(router: str) -> str:
+    router = str(router).strip()
+    return router if router.endswith(".weight") else f"{router}.weight"
+
+
+def write_margin_profile_cap_table(args: argparse.Namespace, output_dir: Path) -> dict[str, Any]:
+    if not bool_value(args.enable_router_margin_profile):
+        return {"enabled": False, "path": None, "rows": 0}
+    margin = read_json_if_exists(args.router_margin_fragility_summary)
+    layer_path = ((margin.get("outputs") or {}).get("layer_fragility")) or ""
+    if not layer_path:
+        return {"enabled": False, "path": None, "rows": 0, "reason": "missing_layer_fragility_output"}
+    layer_file = repo_path(layer_path)
+    if not layer_file.exists():
+        return {"enabled": False, "path": rel(layer_file), "rows": 0, "reason": "missing_layer_fragility_file"}
+    layers = pd.read_csv(layer_file)
+    required = {"layer", "router", "safe_lambda_proxy"}
+    if not required.issubset(layers.columns):
+        return {
+            "enabled": False,
+            "path": rel(layer_file),
+            "rows": 0,
+            "reason": "missing_required_columns",
+        }
+    rows = []
+    for _, row in layers.iterrows():
+        safe_lambda = maybe_float(row.get("safe_lambda_proxy"))
+        if safe_lambda is None or safe_lambda <= 0:
+            continue
+        cap = safe_lambda * (1.0 + float(args.router_margin_tolerance))
+        if args.router_margin_profile_max_cap is not None:
+            cap = min(cap, float(args.router_margin_profile_max_cap))
+        rows.append(
+            {
+                "layer": int(row["layer"]),
+                "router": row["router"],
+                "tensor": tensor_name_from_router(str(row["router"])),
+                "safe_lambda_proxy": safe_lambda,
+                "max_relative_norm_cap": cap,
+                "boundary_fragility_score": maybe_float(row.get("boundary_fragility_score")),
+                "fragility_rank": maybe_float(row.get("fragility_rank")),
+                "source": rel(layer_file),
+            }
+        )
+    if not rows:
+        return {"enabled": False, "path": None, "rows": 0, "reason": "no_positive_caps"}
+    table = pd.DataFrame(rows).sort_values("layer")
+    cap_table = output_dir / "router_margin_profile_caps.csv"
+    table.to_csv(cap_table, index=False)
+    return {
+        "enabled": True,
+        "path": rel(cap_table),
+        "rows": int(len(table)),
+        "min_cap": float(table["max_relative_norm_cap"].min()),
+        "mean_cap": float(table["max_relative_norm_cap"].mean()),
+        "max_cap": float(table["max_relative_norm_cap"].max()),
+    }
+
+
 def build_source_control_rows(args: argparse.Namespace) -> list[dict[str, Any]]:
     raw_controls = args.source_control
     if raw_controls is None:
@@ -131,7 +200,11 @@ def build_source_control_rows(args: argparse.Namespace) -> list[dict[str, Any]]:
     return rows
 
 
-def build_candidate_rows(args: argparse.Namespace, output_dir: Path) -> list[dict[str, Any]]:
+def build_candidate_rows(
+    args: argparse.Namespace,
+    output_dir: Path,
+    margin_profile: dict[str, Any],
+) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     cache_dir = output_dir / "cache"
     margin = read_json_if_exists(args.router_margin_fragility_summary)
@@ -158,6 +231,11 @@ def build_candidate_rows(args: argparse.Namespace, output_dir: Path) -> list[dic
                     margin_limit is not None and float(cap) <= float(margin_limit)
                 ),
                 "default_run_enabled": bool(margin_limit is not None and float(cap) <= float(margin_limit)),
+                "router_cap_mode": "global",
+                "router_cap_table": None,
+                "router_margin_profile_min_cap": None,
+                "router_margin_profile_mean_cap": None,
+                "router_margin_profile_max_cap": None,
                 "method": method,
                 "student_checkpoint": rel(args.student),
                 "teacher_checkpoint": rel(args.teacher),
@@ -174,6 +252,49 @@ def build_candidate_rows(args: argparse.Namespace, output_dir: Path) -> list[dic
                 "selection_question": (
                     "Does route-KD router calibration improve the searched no-gt-0.65 expert-only candidate "
                     "without breaking source-control downstream scores?"
+                ),
+            }
+        )
+    if margin_profile.get("enabled"):
+        label = "margin_profile"
+        method = "qwen3_moe_router_calibrated_searched_no_gt065_margin_profile_candidate"
+        delta_dir = output_dir / f"delta_{label}"
+        checkpoint_dir = repo_path("results/checkpoints") / method
+        audit_dir = output_dir / f"audit_{label}"
+        eval_dir = repo_path("results/vllm_checkpoint_eval") / method
+        served_model = f"candidate_{method}"
+        port = int(args.start_port) + len(rows)
+        rows.append(
+            {
+                "rank": len(rows),
+                "cap_label": label,
+                "router_max_relative_norm": float(margin_profile["max_cap"]),
+                "router_margin_summary": rel(args.router_margin_fragility_summary),
+                "router_margin_safe_lambda_proxy": safe_lambda,
+                "router_margin_limit_with_tolerance": margin_limit,
+                "router_margin_planned_cap_passed": True,
+                "default_run_enabled": True,
+                "router_cap_mode": "per_router_margin_profile",
+                "router_cap_table": margin_profile["path"],
+                "router_margin_profile_min_cap": margin_profile["min_cap"],
+                "router_margin_profile_mean_cap": margin_profile["mean_cap"],
+                "router_margin_profile_max_cap": margin_profile["max_cap"],
+                "method": method,
+                "student_checkpoint": rel(args.student),
+                "teacher_checkpoint": rel(args.teacher),
+                "cache_dir": rel(cache_dir),
+                "cache_path": rel(cache_dir / "router_calibration_cache.pt"),
+                "delta_dir": rel(delta_dir),
+                "delta_safetensors": rel(delta_dir / "router_delta.safetensors"),
+                "checkpoint_dir": rel(checkpoint_dir),
+                "audit_dir": rel(audit_dir),
+                "eval_dir": rel(eval_dir),
+                "served_model": served_model,
+                "port": port,
+                "base_url": f"http://{args.host}:{port}/v1",
+                "selection_question": (
+                    "Does a margin-profiled route-KD router delta improve the searched no-gt-0.65 "
+                    "student while keeping each router layer inside its own safe-lambda proxy?"
                 ),
             }
         )
@@ -215,36 +336,37 @@ def collect_command(args: argparse.Namespace, output_dir: Path) -> str:
 
 
 def train_command(row: dict[str, Any], args: argparse.Namespace) -> str:
-    return shell_join(
-        [
-            "python",
-            "scripts/train_moe_router_delta_calibration.py",
-            "--base",
-            args.student,
-            "--cache",
-            row["cache_path"],
-            "--output-dir",
-            row["delta_dir"],
-            "--epochs",
-            args.epochs,
-            "--lr",
-            args.lr,
-            "--temperature",
-            args.temperature,
-            "--top-k",
-            args.top_k,
-            "--capacity-factor",
-            args.capacity_factor,
-            "--top1-loss-coef",
-            args.top1_loss_coef,
-            "--capacity-loss-coef",
-            args.capacity_loss_coef,
-            "--trust-l2-coef",
-            args.trust_l2_coef,
-            "--max-relative-norm",
-            row["router_max_relative_norm"],
-        ]
-    )
+    parts: list[str | Path | int | float] = [
+        "python",
+        "scripts/train_moe_router_delta_calibration.py",
+        "--base",
+        args.student,
+        "--cache",
+        row["cache_path"],
+        "--output-dir",
+        row["delta_dir"],
+        "--epochs",
+        args.epochs,
+        "--lr",
+        args.lr,
+        "--temperature",
+        args.temperature,
+        "--top-k",
+        args.top_k,
+        "--capacity-factor",
+        args.capacity_factor,
+        "--top1-loss-coef",
+        args.top1_loss_coef,
+        "--capacity-loss-coef",
+        args.capacity_loss_coef,
+        "--trust-l2-coef",
+        args.trust_l2_coef,
+        "--max-relative-norm",
+        row["router_max_relative_norm"],
+    ]
+    if row.get("router_cap_table"):
+        parts.extend(["--router-cap-table", row["router_cap_table"], "--router-cap-column", "max_relative_norm_cap"])
+    return shell_join(parts)
 
 
 def eval_manifest_parts(args: argparse.Namespace) -> list[str | Path]:
@@ -516,12 +638,19 @@ def build_run_script(
     manifest_eval_args = "--task-manifest \"${TASK_MANIFEST}\""
     if not args.no_create_task_manifest:
         manifest_eval_args += " --create-task-manifest-if-missing"
+    candidate_targets = "|".join(str(row["cap_label"]) for row in candidate_rows)
+    eval_targets = "|".join(f"eval_{row['cap_label']}" for row in candidate_rows)
+    usage_targets = "|".join(
+        item
+        for item in ["all", "collect", "sources", "baseline", candidate_targets, eval_targets, "select"]
+        if item
+    )
     lines = [
         "#!/usr/bin/env bash",
         "set -euo pipefail",
         "",
         "# Generated by scripts/build_qwen3_moe_router_calibration_job.py",
-        "# Usage: results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh [all|collect|sources|baseline|cap001|cap0025|cap005|eval_cap001|eval_cap0025|eval_cap005|select]",
+        f"# Usage: results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh [{usage_targets}]",
         "# The all target runs only margin-safe caps by default. Explicit cap targets remain available for ablations.",
         "",
         f"GPUS=\"${{GPUS:-{args.gpus}}}\"",
@@ -734,6 +863,8 @@ def build_report(
         f"- Prompt pack exists: `{summary['prompts_exists']}`",
         f"- Local GPU status: `{summary['local_gpu_status']}`",
         f"- Router caps: `{', '.join(str(item) for item in summary['router_caps'])}`",
+        f"- Router margin-profile candidate: `{summary['router_margin_profile_enabled']}`",
+        f"- Router margin-profile cap range: `{summary['router_margin_profile_min_cap']}` / `{summary['router_margin_profile_max_cap']}`",
         f"- Router margin safe-lambda proxy: `{summary['router_margin_safe_lambda_proxy']}`",
         f"- Router margin planned-pass caps: `{summary['router_margin_planned_pass_count']}/{summary['candidate_count']}`",
         f"- Default-run candidates: `{summary['default_run_candidate_count']}/{summary['candidate_count']}`",
@@ -764,14 +895,21 @@ def build_report(
             "",
             "## Candidates",
             "",
-            "| cap | margin pass | default run | method | checkpoint | port |",
-            "|---:|---|---|---|---|---:|",
+            "| cap | mode | margin pass | default run | cap range | method | checkpoint | port |",
+            "|---|---|---|---|---|---|---|---:|",
         ]
     )
     for row in candidate_rows:
+        cap_range = (
+            f"{row.get('router_margin_profile_min_cap'):.4f}-{row.get('router_margin_profile_max_cap'):.4f}"
+            if row.get("router_margin_profile_min_cap") is not None
+            else f"{row['router_max_relative_norm']:.4f}"
+        )
         lines.append(
-            f"| {row['router_max_relative_norm']:.3f} | `{row['router_margin_planned_cap_passed']}` | "
+            f"| `{row['cap_label']}` | `{row.get('router_cap_mode')}` | "
+            f"`{row['router_margin_planned_cap_passed']}` | "
             f"`{row['default_run_enabled']}` | "
+            f"`{cap_range}` | "
             f"`{row['method']}` | "
             f"`{row['checkpoint_dir']}` | {int(row['port'])} |"
         )
@@ -814,6 +952,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--router-cap", type=float, action="append", default=None)
     parser.add_argument("--router-margin-fragility-summary", type=Path, default=DEFAULT_ROUTER_MARGIN_FRAGILITY)
     parser.add_argument("--router-margin-tolerance", type=float, default=0.02)
+    parser.add_argument("--enable-router-margin-profile", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--router-margin-profile-max-cap", type=float, default=0.05)
     parser.add_argument("--epochs", type=int, default=120)
     parser.add_argument("--lr", type=float, default=0.05)
     parser.add_argument("--temperature", type=float, default=1.0)
@@ -865,7 +1005,8 @@ def main() -> None:
     if args.task_manifest is None:
         args.task_manifest = output_dir / "task_manifest.json"
     source_rows = build_source_control_rows(args)
-    candidate_rows = build_candidate_rows(args, output_dir)
+    margin_profile = write_margin_profile_cap_table(args, output_dir)
+    candidate_rows = build_candidate_rows(args, output_dir, margin_profile)
     stage_rows = build_stage_rows(args, output_dir, source_rows, candidate_rows)
     run_script = output_dir / "run_router_calibration_job.sh"
     run_script.write_text(build_run_script(args, output_dir, source_rows, candidate_rows), encoding="utf-8")
@@ -905,6 +1046,12 @@ def main() -> None:
         "prompts_exists": prompts_exists,
         "local_gpu_status": local_gpu_status,
         "router_caps": [float(item) for item in args.router_cap],
+        "router_margin_profile_enabled": bool(margin_profile.get("enabled")),
+        "router_margin_profile_cap_table": margin_profile.get("path"),
+        "router_margin_profile_cap_rows": int(margin_profile.get("rows", 0)),
+        "router_margin_profile_min_cap": margin_profile.get("min_cap"),
+        "router_margin_profile_mean_cap": margin_profile.get("mean_cap"),
+        "router_margin_profile_max_cap": margin_profile.get("max_cap"),
         "router_margin_summary": rel(args.router_margin_fragility_summary),
         "router_margin_safe_lambda_proxy": candidate_rows[0].get("router_margin_safe_lambda_proxy")
         if candidate_rows
@@ -932,6 +1079,7 @@ def main() -> None:
             "source_control_plan": rel(output_dir / "source_control_plan.csv"),
             "candidate_plan": rel(output_dir / "candidate_plan.csv"),
             "stage_plan": rel(output_dir / "stage_plan.csv"),
+            "router_margin_profile_cap_table": margin_profile.get("path"),
             "run_script": rel(run_script),
             "selection": rel(repo_path("results/qwen3_moe_router_calibration_selection") / "summary.json"),
             "summary": rel(output_dir / "summary.json"),

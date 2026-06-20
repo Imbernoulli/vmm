@@ -7,7 +7,7 @@
     "Router route-KD validation must use group-heldout prompt/batch splits with at least 1 train groups and 1 validation groups, unless --allow-row-validation is explicitly set.",
     "Baseline, source, and candidate downstream eval summaries must carry the same task_manifest_sha256.",
     "The audit must show only router tensors changed, with no shape/dtype mismatch.",
-    "The maximum per-router relative delta norm must stay inside the planned cap.",
+    "The router relative delta norm must stay inside the planned global cap or, for margin-profile candidates, every router tensor must stay inside its cap-table entry.",
     "The planned and audited router delta must stay inside the observed top-k margin safe-lambda proxy unless --disable-router-margin-gate is explicitly set; current tolerance is 0.02.",
     "Hard top-1 route capacity overflow may not exceed 0.1.",
     "Hard top-k route capacity overflow may not exceed 0.05.",
@@ -22,11 +22,11 @@
     "A candidate is rejected when a source endpoint dominates it on all available scores."
   ],
   "current_selection": {
-    "active_candidate_count": 1,
+    "active_candidate_count": 2,
     "audit_completed": false,
     "baseline_eval_completed": false,
     "baseline_task_manifest_sha256": null,
-    "candidate_count": 3,
+    "candidate_count": 4,
     "candidate_eval_completed": false,
     "capacity_metrics_completed": false,
     "eligible_candidate_count": 0,

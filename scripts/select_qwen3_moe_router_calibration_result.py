@@ -274,10 +274,45 @@ def read_training_state(delta_dir: str | Path) -> dict[str, Any]:
     }
 
 
-def read_audit_state(audit_dir: str | Path, planned_cap: float, cap_tolerance: float) -> dict[str, Any]:
+def load_cap_table(path: Any) -> dict[str, float]:
+    if path is None:
+        return {}
+    try:
+        if pd.isna(path):
+            return {}
+    except (TypeError, ValueError):
+        pass
+    table_path = repo_path(str(path))
+    if not table_path.exists():
+        return {}
+    table = read_csv_if_exists(table_path)
+    if table.empty or "max_relative_norm_cap" not in table:
+        return {}
+    name_column = "tensor" if "tensor" in table else "router" if "router" in table else None
+    if name_column is None:
+        return {}
+    caps: dict[str, float] = {}
+    for _, row in table.iterrows():
+        tensor = str(row.get(name_column) or "").strip()
+        cap = maybe_float(row.get("max_relative_norm_cap"))
+        if not tensor or cap is None or cap <= 0:
+            continue
+        caps[tensor] = cap
+        if not tensor.endswith(".weight"):
+            caps[f"{tensor}.weight"] = cap
+    return caps
+
+
+def read_audit_state(
+    audit_dir: str | Path,
+    planned_cap: float,
+    cap_tolerance: float,
+    cap_table_path: Any = None,
+) -> dict[str, Any]:
     root = repo_path(audit_dir)
     summary = read_json_if_exists(root / "summary.json")
     tensors = read_csv_if_exists(root / "tensor_delta_audit.csv")
+    cap_table = load_cap_table(cap_table_path)
 
     changed_tensors = maybe_int(summary.get("changed_tensors"))
     router_changed_tensors = maybe_int(summary.get("router_changed_tensors"))
@@ -285,6 +320,9 @@ def read_audit_state(audit_dir: str | Path, planned_cap: float, cap_tolerance: f
     non_router_changed_tensors = None
     router_max_relative_delta_norm = None
     router_delta_norm = None
+    cap_table_checked_router_tensors = 0
+    cap_table_violation_count = 0
+    cap_table_max_violation_ratio = None
     if not tensors.empty and {"group", "changed"}.issubset(tensors.columns):
         changed_mask = bool_series(tensors["changed"])
         router_mask = tensors["group"].astype(str) == "router"
@@ -293,6 +331,21 @@ def read_audit_state(audit_dir: str | Path, planned_cap: float, cap_tolerance: f
             router_rel = pd.to_numeric(tensors.loc[router_mask, "relative_delta_norm"], errors="coerce").dropna()
             if not router_rel.empty:
                 router_max_relative_delta_norm = float(router_rel.max())
+            if cap_table and "tensor" in tensors:
+                max_ratio = 0.0
+                for _, tensor_row in tensors.loc[router_mask].iterrows():
+                    tensor_name = str(tensor_row.get("tensor") or "")
+                    actual = maybe_float(tensor_row.get("relative_delta_norm"))
+                    cap = cap_table.get(tensor_name)
+                    if actual is None or cap is None:
+                        continue
+                    cap_table_checked_router_tensors += 1
+                    allowed = cap * (1.0 + cap_tolerance)
+                    ratio = actual / max(1e-12, allowed)
+                    max_ratio = max(max_ratio, ratio)
+                    if actual > allowed:
+                        cap_table_violation_count += 1
+                cap_table_max_violation_ratio = max_ratio if cap_table_checked_router_tensors else None
         if "delta_norm2" in tensors:
             router_delta_norm = math.sqrt(
                 float(pd.to_numeric(tensors.loc[router_mask, "delta_norm2"], errors="coerce").fillna(0.0).sum())
@@ -326,6 +379,14 @@ def read_audit_state(audit_dir: str | Path, planned_cap: float, cap_tolerance: f
         router_max_relative_delta_norm is not None
         and router_max_relative_delta_norm <= planned_cap * (1.0 + cap_tolerance)
     )
+    cap_table_passed = bool(
+        not cap_table
+        or (
+            audit_exists
+            and cap_table_checked_router_tensors > 0
+            and cap_table_violation_count == 0
+        )
+    )
     return {
         "audit_dir": rel(root),
         "audit_exists": audit_exists,
@@ -340,8 +401,14 @@ def read_audit_state(audit_dir: str | Path, planned_cap: float, cap_tolerance: f
         "router_max_relative_delta_norm": router_max_relative_delta_norm,
         "router_delta_norm": router_delta_norm,
         "planned_router_cap": float(planned_cap),
-        "cap_passed": cap_passed,
-        "audit_passed_for_router_calibration": bool(router_only_changed and cap_passed),
+        "router_cap_table": rel(cap_table_path) if cap_table_path and cap_table else None,
+        "router_cap_table_tensors": len(cap_table),
+        "router_cap_table_checked_router_tensors": cap_table_checked_router_tensors,
+        "router_cap_table_violation_count": cap_table_violation_count,
+        "router_cap_table_max_violation_ratio": cap_table_max_violation_ratio,
+        "router_cap_table_passed": cap_table_passed,
+        "cap_passed": bool(cap_passed and cap_table_passed),
+        "audit_passed_for_router_calibration": bool(router_only_changed and cap_passed and cap_table_passed),
         "audit_summary_path": rel(root / "summary.json") if (root / "summary.json").exists() else None,
         "tensor_delta_audit": rel(root / "tensor_delta_audit.csv") if (root / "tensor_delta_audit.csv").exists() else None,
     }
@@ -442,19 +509,38 @@ def build_candidate_rows(
         method = str(plan_row["method"])
         cap = float(plan_row["router_max_relative_norm"])
         eval_state = read_eval_state(plan_row["eval_dir"])
-        audit_state = read_audit_state(plan_row["audit_dir"], cap, args.cap_tolerance)
+        cap_mode = str(clean_value(plan_row.get("router_cap_mode")) or "global")
+        cap_table_path = clean_value(plan_row.get("router_cap_table"))
+        has_cap_table = bool(load_cap_table(cap_table_path))
+        audit_state = read_audit_state(plan_row["audit_dir"], cap, args.cap_tolerance, cap_table_path)
         training_state = read_training_state(plan_row["delta_dir"])
         router_actual_norm = maybe_float(audit_state.get("router_max_relative_delta_norm"))
+        planned_cap_flag = plan_row.get("router_margin_planned_cap_passed")
+        if planned_cap_flag is None or (isinstance(planned_cap_flag, float) and pd.isna(planned_cap_flag)):
+            row_declares_margin_pass = None
+        else:
+            row_declares_margin_pass = bool_series(pd.Series([planned_cap_flag])).iloc[0]
         margin_planned_passed = bool(
-            not margin_enabled or (margin_ready and margin_limit is not None and cap <= margin_limit)
+            not margin_enabled
+            or (
+                margin_ready
+                and (
+                    bool(row_declares_margin_pass)
+                    if row_declares_margin_pass is not None and has_cap_table
+                    else margin_limit is not None and cap <= margin_limit
+                )
+            )
         )
         margin_actual_passed = bool(
             not margin_enabled
             or (
                 margin_ready
-                and margin_limit is not None
                 and router_actual_norm is not None
-                and router_actual_norm <= margin_limit
+                and (
+                    bool(audit_state.get("router_cap_table_passed"))
+                    if has_cap_table
+                    else margin_limit is not None and router_actual_norm <= margin_limit
+                )
             )
         )
         margin_gate_passed = bool(not margin_enabled or (margin_planned_passed and margin_actual_passed))
@@ -526,6 +612,8 @@ def build_candidate_rows(
             "cap_label": str(plan_row["cap_label"]),
             "method": method,
             "router_max_relative_norm": cap,
+            "router_cap_mode": cap_mode,
+            "router_cap_table": audit_state.get("router_cap_table") or cap_table_path,
             "checkpoint_dir": plan_row.get("checkpoint_dir"),
             "eval_dir": eval_state["eval_dir"],
             "audit_dir": audit_state["audit_dir"],
@@ -927,7 +1015,7 @@ def build_decision_rules(args: argparse.Namespace, selection: dict[str, Any]) ->
             ),
             "Baseline, source, and candidate downstream eval summaries must carry the same task_manifest_sha256.",
             "The audit must show only router tensors changed, with no shape/dtype mismatch.",
-            "The maximum per-router relative delta norm must stay inside the planned cap.",
+            "The router relative delta norm must stay inside the planned global cap or, for margin-profile candidates, every router tensor must stay inside its cap-table entry.",
             (
                 "The planned and audited router delta must stay inside the observed top-k margin safe-lambda proxy "
                 f"unless --disable-router-margin-gate is explicitly set; current tolerance is {args.router_margin_tolerance}."
@@ -1008,8 +1096,8 @@ def build_report(
         "",
         "## Candidate Gate",
         "",
-        "| cap | method | manifest | split | groups | selected epoch | KL gap | top1 drop | decision | avg delta | worst delta | worst task delta | router max rel | margin pass | plan-pruned | top1/top-k overflow | top1/top-k increase | load pass | gen pass | group pass | router-only | cap pass | score | reason |",
-        "| ---: | --- | --- | --- | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | --- | --- | ---: | ---: | --- | --- | --- | --- | --- | ---: | --- |",
+        "| cap | mode | method | manifest | split | groups | selected epoch | KL gap | top1 drop | decision | avg delta | worst delta | worst task delta | router max rel | table violations | margin pass | plan-pruned | top1/top-k overflow | top1/top-k increase | load pass | gen pass | group pass | router-only | cap pass | score | reason |",
+        "| ---: | --- | --- | --- | --- | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | --- | --- | ---: | ---: | --- | --- | --- | --- | --- | ---: | --- |",
     ]
     for _, row in table.iterrows():
         overflow_text = (
@@ -1021,7 +1109,7 @@ def build_report(
             f"{fmt(row.get('max_router_topk_capacity_overflow_increase'))}"
         )
         lines.append(
-            f"| {fmt(row['router_max_relative_norm'])} | `{row['method']}` | "
+            f"| {fmt(row['router_max_relative_norm'])} | `{row.get('router_cap_mode')}` | `{row['method']}` | "
             f"`{row.get('task_manifest_status')}` | "
             f"`{row.get('selection_split')}` | "
             f"{fmt(row.get('mean_train_group_count'), 1)}/{fmt(row.get('mean_validation_group_count'), 1)} | "
@@ -1032,6 +1120,7 @@ def build_report(
             f"{fmt(row.get('delta_vs_baseline_worst_primary_score'))} | "
             f"{fmt(row.get('worst_task_delta_vs_baseline'))} | "
             f"{fmt(row.get('router_max_relative_delta_norm'))} | "
+            f"{fmt(row.get('router_cap_table_violation_count'))} | "
             f"`{row.get('router_margin_gate_passed')}` | "
             f"`{row.get('plan_level_pruned')}` | {overflow_text} | "
             f"{increase_text} | "

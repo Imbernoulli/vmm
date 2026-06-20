@@ -3,14 +3,14 @@
 这份计划解决的是评测强度问题：现在 Qwen3 MoE gate 的 `64` examples 只适合 smoke，不足以支撑 final selector 的 Wilson confidence gate 和 paired prediction gate。
 
 - Status: `ready_for_budgeted_remote_vllm_eval`
-- Methods to evaluate: `11`
+- Methods to evaluate: `12`
 - Ready-to-host methods now: `10`
 - Current gate max examples: `64`
 - Recommended command max examples: `384`
-- Total current prompt budget: `2816`
-- Total recommended prompt budget: `16896`
-- Additional prompt budget: `14080`
-- Router calibration active / ready / plan-pruned caps: `1` / `0` / `2`
+- Total current prompt budget: `3072`
+- Total recommended prompt budget: `18432`
+- Additional prompt budget: `15360`
+- Router calibration active / ready / plan-pruned caps: `2` / `0` / `2`
 
 ## Why This Budget
 
@@ -46,6 +46,7 @@ Router calibration: budget planning now reads the route-margin-gated calibration
 | 8 | `qwen3_moe_layer_chunk_candidate` | `candidate` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
 | 9 | `qwen3_moe_unified_mechanism_candidate` | `candidate` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
 | 10 | `qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate` | `candidate` | `pending_materialization` | 64 | 384 | 1280 | `not_run` |
+| 11 | `qwen3_moe_router_calibrated_searched_no_gt065_margin_profile_candidate` | `candidate` | `pending_materialization` | 64 | 384 | 1280 | `not_run` |
 
 ## Router Calibration Budget
 
@@ -54,6 +55,7 @@ Router calibration: budget planning now reads the route-margin-gated calibration
 | `cap001` | `qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate` | `True` | `False` | `True` | `True` | `False` | `not_run` | awaiting_baseline_eval,awaiting_source_eval,awaiting_router_training,awaiting_candidate_eval,... |
 | `cap0025` | `qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate` | `False` | `False` | `False` | `False` | `True` | `not_run` | awaiting_baseline_eval,awaiting_source_eval,awaiting_router_training,awaiting_candidate_eval,... |
 | `cap005` | `qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate` | `False` | `False` | `False` | `False` | `True` | `not_run` | awaiting_baseline_eval,awaiting_source_eval,awaiting_router_training,awaiting_candidate_eval,... |
+| `margin_profile` | `qwen3_moe_router_calibrated_searched_no_gt065_margin_profile_candidate` | `True` | `False` | `True` | `True` | `False` | `not_run` | awaiting_baseline_eval,awaiting_source_eval,awaiting_router_training,awaiting_candidate_eval,... |
 
 ## Mechanism Budget
 

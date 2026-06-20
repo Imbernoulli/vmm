@@ -17,8 +17,8 @@
 - Router margin safe-lambda proxy: `0.0197`
 - Router margin high-fragility layers: `24/48`
 - Task manifest gate completed: `False`
-- Eligible candidates: `0/3`
-- Active candidates: `1`
+- Eligible candidates: `0/4`
+- Active candidates: `2`
 - Plan-pruned candidates: `2`
 - Baseline task manifest sha: `None`
 
@@ -30,11 +30,12 @@
 
 ## Candidate Gate
 
-| cap | method | manifest | split | groups | selected epoch | KL gap | top1 drop | decision | avg delta | worst delta | worst task delta | router max rel | margin pass | plan-pruned | top1/top-k overflow | top1/top-k increase | load pass | gen pass | group pass | router-only | cap pass | score | reason |
-| ---: | --- | --- | --- | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | --- | --- | ---: | ---: | --- | --- | --- | --- | --- | ---: | --- |
-| 0.0100 | `qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate` | `awaiting_eval` | `None` | / |  |  |  | `reject_or_wait` |  |  |  |  | `False` | `False` | / | / | `False` | `False` | `False` | `False` | `False` | -0.0001 | `awaiting_baseline_eval,awaiting_source_eval,awaiting_router_training,awaiting_candidate_eval,awaiting_audit` |
-| 0.0250 | `qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate` | `awaiting_eval` | `None` | / |  |  |  | `reject_or_wait` |  |  |  |  | `False` | `True` | / | / | `False` | `False` | `False` | `False` | `False` | -0.0003 | `awaiting_baseline_eval,awaiting_source_eval,awaiting_router_training,awaiting_candidate_eval,awaiting_audit,router_margin_planned_cap_violation` |
-| 0.0500 | `qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate` | `awaiting_eval` | `None` | / |  |  |  | `reject_or_wait` |  |  |  |  | `False` | `True` | / | / | `False` | `False` | `False` | `False` | `False` | -0.0005 | `awaiting_baseline_eval,awaiting_source_eval,awaiting_router_training,awaiting_candidate_eval,awaiting_audit,router_margin_planned_cap_violation` |
+| cap | mode | method | manifest | split | groups | selected epoch | KL gap | top1 drop | decision | avg delta | worst delta | worst task delta | router max rel | table violations | margin pass | plan-pruned | top1/top-k overflow | top1/top-k increase | load pass | gen pass | group pass | router-only | cap pass | score | reason |
+| ---: | --- | --- | --- | --- | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | --- | --- | ---: | ---: | --- | --- | --- | --- | --- | ---: | --- |
+| 0.0100 | `global` | `qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate` | `awaiting_eval` | `None` | / |  |  |  | `reject_or_wait` |  |  |  |  | 0 | `False` | `False` | / | / | `False` | `False` | `False` | `False` | `False` | -0.0001 | `awaiting_baseline_eval,awaiting_source_eval,awaiting_router_training,awaiting_candidate_eval,awaiting_audit` |
+| 0.0250 | `global` | `qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate` | `awaiting_eval` | `None` | / |  |  |  | `reject_or_wait` |  |  |  |  | 0 | `False` | `True` | / | / | `False` | `False` | `False` | `False` | `False` | -0.0003 | `awaiting_baseline_eval,awaiting_source_eval,awaiting_router_training,awaiting_candidate_eval,awaiting_audit,router_margin_planned_cap_violation` |
+| 0.0500 | `global` | `qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate` | `awaiting_eval` | `None` | / |  |  |  | `reject_or_wait` |  |  |  |  | 0 | `False` | `True` | / | / | `False` | `False` | `False` | `False` | `False` | -0.0005 | `awaiting_baseline_eval,awaiting_source_eval,awaiting_router_training,awaiting_candidate_eval,awaiting_audit,router_margin_planned_cap_violation` |
+| 0.0500 | `per_router_margin_profile` | `qwen3_moe_router_calibrated_searched_no_gt065_margin_profile_candidate` | `awaiting_eval` | `None` | / |  |  |  | `reject_or_wait` |  |  |  |  | 0 | `False` | `False` | / | / | `False` | `False` | `False` | `False` | `False` | -0.0005 | `awaiting_baseline_eval,awaiting_source_eval,awaiting_router_training,awaiting_candidate_eval,awaiting_audit` |
 
 ## Source Controls
 
@@ -56,7 +57,7 @@
 - Router route-KD validation must use group-heldout prompt/batch splits with at least 1 train groups and 1 validation groups, unless --allow-row-validation is explicitly set.
 - Baseline, source, and candidate downstream eval summaries must carry the same task_manifest_sha256.
 - The audit must show only router tensors changed, with no shape/dtype mismatch.
-- The maximum per-router relative delta norm must stay inside the planned cap.
+- The router relative delta norm must stay inside the planned global cap or, for margin-profile candidates, every router tensor must stay inside its cap-table entry.
 - The planned and audited router delta must stay inside the observed top-k margin safe-lambda proxy unless --disable-router-margin-gate is explicitly set; current tolerance is 0.02.
 - Hard top-1 route capacity overflow may not exceed 0.1.
 - Hard top-k route capacity overflow may not exceed 0.05.

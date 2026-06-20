@@ -20,11 +20,11 @@
     "worst_primary_score": null
   },
   "current_selection": {
-    "active_candidate_count": 1,
+    "active_candidate_count": 2,
     "audit_completed": false,
     "baseline_eval_completed": false,
     "baseline_task_manifest_sha256": null,
-    "candidate_count": 3,
+    "candidate_count": 4,
     "candidate_eval_completed": false,
     "capacity_metrics_completed": false,
     "eligible_candidate_count": 0,

@@ -46,6 +46,53 @@ def json_safe(value: Any) -> Any:
     return value
 
 
+def maybe_float(value: Any) -> float | None:
+    if value is None:
+        return None
+    try:
+        if pd.isna(value):
+            return None
+    except (TypeError, ValueError):
+        pass
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def load_router_cap_table(path: str | Path | None, cap_column: str) -> dict[str, float]:
+    if path is None:
+        return {}
+    table_path = repo_path(path)
+    if not table_path.exists():
+        raise FileNotFoundError(f"Router cap table not found: {table_path}")
+    table = pd.read_csv(table_path)
+    if cap_column not in table:
+        raise ValueError(f"Router cap table {table_path} is missing cap column {cap_column!r}")
+    name_column = "tensor" if "tensor" in table else "router" if "router" in table else None
+    if name_column is None:
+        raise ValueError(f"Router cap table {table_path} needs a 'tensor' or 'router' column.")
+    caps: dict[str, float] = {}
+    for _, row in table.iterrows():
+        tensor = str(row.get(name_column) or "").strip()
+        cap = maybe_float(row.get(cap_column))
+        if not tensor or cap is None or cap <= 0:
+            continue
+        caps[tensor] = cap
+        if not tensor.endswith(".weight"):
+            caps[f"{tensor}.weight"] = cap
+    if not caps:
+        raise ValueError(f"Router cap table {table_path} did not contain any positive caps.")
+    return caps
+
+
+def max_relative_norm_for_tensor(args: argparse.Namespace, tensor_name: str) -> float | None:
+    cap_table = getattr(args, "router_cap_by_tensor", {}) or {}
+    if tensor_name in cap_table:
+        return float(cap_table[tensor_name])
+    return args.max_relative_norm
+
+
 def parse_cache(cache_path: Path) -> list[dict[str, Any]]:
     payload = torch.load(cache_path, map_location="cpu")
     if not isinstance(payload, dict) or "routers" not in payload:
@@ -215,6 +262,7 @@ def metric_row(
     validation_fraction: float,
     train_group_count: int,
     validation_group_count: int,
+    max_relative_norm_cap: float | None,
 ) -> dict[str, Any]:
     teacher_probs = F.softmax(teacher_logits, dim=-1)
     route_kl = F.kl_div(F.log_softmax(logits, dim=-1), teacher_probs, reduction="batchmean")
@@ -240,6 +288,10 @@ def metric_row(
         "delta_norm": delta_norm,
         "base_norm": base_norm,
         "relative_delta_norm": delta_norm / max(1e-12, base_norm),
+        "max_relative_norm_cap": max_relative_norm_cap,
+        "cap_utilization": None
+        if max_relative_norm_cap is None or max_relative_norm_cap <= 0
+        else (delta_norm / max(1e-12, base_norm)) / max_relative_norm_cap,
         "max_abs_delta": float(delta_weight.abs().max().item()) if delta_weight.numel() else 0.0,
     }
 
@@ -382,6 +434,7 @@ def train_one_router(
     selection_hidden = split["selection_hidden"]
     selection_teacher_logits = split["selection_teacher_logits"]
     base_weight = base_values[tensor_name].to(torch.float32)
+    max_relative_norm_cap = max_relative_norm_for_tensor(args, tensor_name)
     orientation = orientation_for(base_weight, hidden.shape[-1], teacher_logits.shape[-1], tensor_name)
     bias_tensor = record.get("bias_tensor")
     base_bias = None
@@ -431,6 +484,7 @@ def train_one_router(
             validation_fraction=split["validation_fraction"],
             train_group_count=split["train_group_count"],
             validation_group_count=split["validation_group_count"],
+            max_relative_norm_cap=max_relative_norm_cap,
         )
     ]
     for epoch in range(args.epochs):
@@ -460,9 +514,9 @@ def train_one_router(
         )
         loss.backward()
         optimizer.step()
-        project_relative_norm(delta_weight, base_weight, args.max_relative_norm)
+        project_relative_norm(delta_weight, base_weight, max_relative_norm_cap)
         if delta_bias is not None and base_bias is not None:
-            project_relative_norm(delta_bias, base_bias, args.max_relative_norm)
+            project_relative_norm(delta_bias, base_bias, max_relative_norm_cap)
         with torch.no_grad():
             eval_logits = router_logits(
                 selection_hidden,
@@ -549,6 +603,7 @@ def train_one_router(
                 validation_fraction=split["validation_fraction"],
                 train_group_count=split["train_group_count"],
                 validation_group_count=split["validation_group_count"],
+                max_relative_norm_cap=max_relative_norm_cap,
             )
         )
         metric_rows[-1]["selected_epoch"] = best_epoch
@@ -587,6 +642,8 @@ def build_report(summary: dict[str, Any], metric_df: pd.DataFrame) -> str:
         f"- Mean final top-1 agreement: `{summary['mean_final_top1_agreement']:.4f}`",
         f"- Max final hard top-1 capacity overflow: `{summary['max_final_top1_capacity_overflow_fraction']:.6f}`",
         f"- Max final hard top-k capacity overflow: `{summary['max_final_topk_capacity_overflow_fraction']:.6f}`",
+        f"- Router cap mode: `{summary['router_cap_mode']}`",
+        f"- Router cap range: `{summary['min_router_relative_norm_cap']}` / `{summary['max_router_relative_norm_cap']}`",
         f"- Max router hard top-1 overflow increase: `{summary['max_router_top1_capacity_overflow_increase']:.6f}`",
         f"- Max router hard top-k overflow increase: `{summary['max_router_topk_capacity_overflow_increase']:.6f}`",
         f"- Selection policy: `{summary['selection_policy']}`",
@@ -653,6 +710,7 @@ def display_writer_command(args: argparse.Namespace, delta_path: Path) -> str:
 def calibrate_from_cache(args: argparse.Namespace) -> dict[str, Any]:
     output_dir = repo_path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
+    args.router_cap_by_tensor = load_router_cap_table(args.router_cap_table, args.router_cap_column)
     records = parse_cache(repo_path(args.cache))
     tensor_names = [record["tensor"] for record in records]
     tensor_names.extend(str(record["bias_tensor"]) for record in records if record.get("bias_tensor"))
@@ -676,6 +734,7 @@ def calibrate_from_cache(args: argparse.Namespace) -> dict[str, Any]:
     trace_df.to_csv(trace_path, index=False)
     initial = metric_df[metric_df["stage"] == "initial"]
     final = metric_df[metric_df["stage"] == "final"]
+    final_caps = pd.to_numeric(final["max_relative_norm_cap"], errors="coerce").dropna()
     kl_improved = float(final["route_kl"].mean()) < float(initial["route_kl"].mean())
     top1_not_worse = float(final["top1_agreement"].mean()) >= float(initial["top1_agreement"].mean())
     status = "passed" if kl_improved and top1_not_worse else "no_improvement"
@@ -762,6 +821,13 @@ def calibrate_from_cache(args: argparse.Namespace) -> dict[str, Any]:
         "load_balance_coef": float(args.load_balance_coef),
         "trust_l2_coef": float(args.trust_l2_coef),
         "max_relative_norm": args.max_relative_norm,
+        "router_cap_mode": "per_router_table" if args.router_cap_by_tensor else "global",
+        "router_cap_table": rel(args.router_cap_table) if args.router_cap_table else None,
+        "router_cap_column": args.router_cap_column if args.router_cap_table else None,
+        "min_router_relative_norm_cap": float(final_caps.min()) if not final_caps.empty else args.max_relative_norm,
+        "mean_router_relative_norm_cap": float(final_caps.mean()) if not final_caps.empty else args.max_relative_norm,
+        "max_router_relative_norm_cap": float(final_caps.max()) if not final_caps.empty else args.max_relative_norm,
+        "max_cap_utilization": float(final["cap_utilization"].max()) if "cap_utilization" in final else None,
         "writer_command": display_writer_command(args, delta_path),
         "outputs": {
             "router_delta_safetensors": rel(delta_path),
@@ -857,6 +923,17 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=0.5,
         help="Project each trained router delta to this relative Frobenius norm cap. Use 0 to disable.",
+    )
+    parser.add_argument(
+        "--router-cap-table",
+        type=Path,
+        default=None,
+        help="Optional CSV with tensor/router and per-router relative-norm caps.",
+    )
+    parser.add_argument(
+        "--router-cap-column",
+        default="max_relative_norm_cap",
+        help="Column to read from --router-cap-table.",
     )
     parser.add_argument("--trace-every", type=int, default=10)
     parser.add_argument("--seed", type=int, default=17)
