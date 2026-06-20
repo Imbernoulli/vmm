@@ -1,0 +1,23 @@
+{
+  "ablation_only_candidate_count": 8,
+  "candidate_count": 10,
+  "final_selectable_candidate_count": 2,
+  "final_selectable_methods": [
+    "qwen3_moe_mechanistic_unified_candidate",
+    "qwen3_moe_subspace_scaled_candidate"
+  ],
+  "max_attention_changed_tensors": 0,
+  "max_routed_tensors_gt_065": 0,
+  "max_router_changed_tensors": 0,
+  "outputs": {
+    "gate": "results/qwen3_moe_candidate_trust_region_gate/candidate_trust_region_gate.csv",
+    "report": "results/qwen3_moe_candidate_trust_region_gate/report.md",
+    "summary": "results/qwen3_moe_candidate_trust_region_gate/summary.json"
+  },
+  "require_structural_frontier": true,
+  "schema_version": 1,
+  "source_count": 2,
+  "status": "candidate_trust_region_gate_ready",
+  "strict_routed_max_relative_delta": 0.6505,
+  "structural_reject_candidate_count": 0
+}

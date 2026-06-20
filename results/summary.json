@@ -381,6 +381,11 @@
       "status": "complete"
     },
     {
+      "evidence": "results/qwen3_moe_candidate_trust_region_gate/report.md marks old high-risk candidates as ablation-only and exposes only strict routed-expert trust-region candidates to final default selection.",
+      "item": "Qwen3 MoE candidate trust-region gate",
+      "status": "complete"
+    },
+    {
       "evidence": "results/unified_average_optimizer/report.md converts Dense barrier probes, Dense/Qwen3 MoE straight-line connectivity, MoE gauge probes, Qwen3 expert identity, router movement, router margin fragility, router-only NLL calibration evidence, unified mechanism caps, router-calibration gating, and final candidate-selection gates into one same-shape operation policy.",
       "item": "Unified Dense/MoE average optimizer",
       "status": "complete"
@@ -472,7 +477,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 93,
+    "complete": 94,
     "missing": 0,
     "partial": 1
   },
@@ -10339,6 +10344,227 @@
         }
       ]
     },
+    "qwen3_moe_candidate_trust_region_gate": {
+      "ablation_only_candidate_count": 8,
+      "candidate_count": 10,
+      "final_selectable_candidate_count": 2,
+      "final_selectable_methods": [
+        "qwen3_moe_mechanistic_unified_candidate",
+        "qwen3_moe_subspace_scaled_candidate"
+      ],
+      "gate": "results/qwen3_moe_candidate_trust_region_gate/candidate_trust_region_gate.csv",
+      "gate_rows": [
+        {
+          "attention_changed_tensors": null,
+          "audit_passed": true,
+          "final_selectable_by_trust_region": true,
+          "method": "source_qwen3_30b_instruct",
+          "role": "source",
+          "routed_max_tensor_relative_delta": null,
+          "routed_tensors_gt_0_65": null,
+          "router_changed_tensors": null,
+          "structural_frontier_member": null,
+          "structural_safety_score": null,
+          "structurally_dominated": null,
+          "trust_region_category": "source_control",
+          "trust_region_rejection_reasons": null
+        },
+        {
+          "attention_changed_tensors": null,
+          "audit_passed": true,
+          "final_selectable_by_trust_region": true,
+          "method": "source_qwen3_30b_coder",
+          "role": "source",
+          "routed_max_tensor_relative_delta": null,
+          "routed_tensors_gt_0_65": null,
+          "router_changed_tensors": null,
+          "structural_frontier_member": null,
+          "structural_safety_score": null,
+          "structurally_dominated": null,
+          "trust_region_category": "source_control",
+          "trust_region_rejection_reasons": null
+        },
+        {
+          "attention_changed_tensors": 288.0,
+          "audit_passed": true,
+          "final_selectable_by_trust_region": false,
+          "method": "qwen3_moe_unified_route_guarded_candidate",
+          "role": "candidate",
+          "routed_max_tensor_relative_delta": 1.327236932104148,
+          "routed_tensors_gt_0_65": 1156.0,
+          "router_changed_tensors": 0.0,
+          "structural_frontier_member": false,
+          "structural_safety_score": 0.0199999999999999,
+          "structurally_dominated": true,
+          "trust_region_category": "ablation_only",
+          "trust_region_rejection_reasons": "shared_attention_changed,routed_max_delta_over_strict_cap,routed_tail_over_065,structurally_dominated"
+        },
+        {
+          "attention_changed_tensors": 288.0,
+          "audit_passed": true,
+          "final_selectable_by_trust_region": false,
+          "method": "qwen3_moe_audit_gated_candidate",
+          "role": "candidate",
+          "routed_max_tensor_relative_delta": 0.7500417154655807,
+          "routed_tensors_gt_0_65": 1146.0,
+          "router_changed_tensors": 0.0,
+          "structural_frontier_member": false,
+          "structural_safety_score": 0.5034980329099124,
+          "structurally_dominated": true,
+          "trust_region_category": "ablation_only",
+          "trust_region_rejection_reasons": "shared_attention_changed,routed_max_delta_over_strict_cap,routed_tail_over_065,structurally_dominated"
+        },
+        {
+          "attention_changed_tensors": 288.0,
+          "audit_passed": true,
+          "final_selectable_by_trust_region": false,
+          "method": "qwen3_moe_trust_region_candidate",
+          "role": "candidate",
+          "routed_max_tensor_relative_delta": 0.7500218768922794,
+          "routed_tensors_gt_0_65": 366.0,
+          "router_changed_tensors": 0.0,
+          "structural_frontier_member": false,
+          "structural_safety_score": 0.7483534988920628,
+          "structurally_dominated": true,
+          "trust_region_category": "ablation_only",
+          "trust_region_rejection_reasons": "shared_attention_changed,routed_max_delta_over_strict_cap,routed_tail_over_065,structurally_dominated"
+        },
+        {
+          "attention_changed_tensors": 0.0,
+          "audit_passed": true,
+          "final_selectable_by_trust_region": false,
+          "method": "qwen3_moe_expert_only_trust_region_candidate",
+          "role": "candidate",
+          "routed_max_tensor_relative_delta": 0.7500218768922794,
+          "routed_tensors_gt_0_65": 366.0,
+          "router_changed_tensors": 0.0,
+          "structural_frontier_member": false,
+          "structural_safety_score": 0.8394373152790531,
+          "structurally_dominated": true,
+          "trust_region_category": "ablation_only",
+          "trust_region_rejection_reasons": "routed_max_delta_over_strict_cap,routed_tail_over_065,structurally_dominated"
+        },
+        {
+          "attention_changed_tensors": 0.0,
+          "audit_passed": true,
+          "final_selectable_by_trust_region": false,
+          "method": "qwen3_moe_tail_trimmed_expert_only_candidate",
+          "role": "candidate",
+          "routed_max_tensor_relative_delta": 0.650082822181077,
+          "routed_tensors_gt_0_65": 80.0,
+          "router_changed_tensors": 0.0,
+          "structural_frontier_member": false,
+          "structural_safety_score": 0.9314648784066032,
+          "structurally_dominated": true,
+          "trust_region_category": "ablation_only",
+          "trust_region_rejection_reasons": "routed_tail_over_065,structurally_dominated"
+        },
+        {
+          "attention_changed_tensors": 0.0,
+          "audit_passed": true,
+          "final_selectable_by_trust_region": false,
+          "method": "qwen3_moe_searched_no_gt065_max_retention_candidate",
+          "role": "candidate",
+          "routed_max_tensor_relative_delta": 0.6500814121910361,
+          "routed_tensors_gt_0_65": 245.0,
+          "router_changed_tensors": 0.0,
+          "structural_frontier_member": false,
+          "structural_safety_score": 0.87694299312927,
+          "structurally_dominated": true,
+          "trust_region_category": "ablation_only",
+          "trust_region_rejection_reasons": "routed_tail_over_065,structurally_dominated"
+        },
+        {
+          "attention_changed_tensors": 0.0,
+          "audit_passed": true,
+          "final_selectable_by_trust_region": false,
+          "method": "qwen3_moe_layer_chunk_candidate",
+          "role": "candidate",
+          "routed_max_tensor_relative_delta": 0.6500325043027619,
+          "routed_tensors_gt_0_65": 89.0,
+          "router_changed_tensors": 0.0,
+          "structural_frontier_member": false,
+          "structural_safety_score": 0.9289446385321238,
+          "structurally_dominated": true,
+          "trust_region_category": "ablation_only",
+          "trust_region_rejection_reasons": "routed_tail_over_065,structurally_dominated"
+        },
+        {
+          "attention_changed_tensors": 0.0,
+          "audit_passed": true,
+          "final_selectable_by_trust_region": false,
+          "method": "qwen3_moe_unified_mechanism_candidate",
+          "role": "candidate",
+          "routed_max_tensor_relative_delta": 0.6438415286791134,
+          "routed_tensors_gt_0_65": 0.0,
+          "router_changed_tensors": 0.0,
+          "structural_frontier_member": false,
+          "structural_safety_score": 0.974167520902644,
+          "structurally_dominated": true,
+          "trust_region_category": "ablation_only",
+          "trust_region_rejection_reasons": "structurally_dominated"
+        },
+        {
+          "attention_changed_tensors": 0.0,
+          "audit_passed": true,
+          "final_selectable_by_trust_region": true,
+          "method": "qwen3_moe_mechanistic_unified_candidate",
+          "role": "candidate",
+          "routed_max_tensor_relative_delta": 0.6490630862881142,
+          "routed_tensors_gt_0_65": 0.0,
+          "router_changed_tensors": 0.0,
+          "structural_frontier_member": true,
+          "structural_safety_score": 0.988643592739873,
+          "structurally_dominated": false,
+          "trust_region_category": "final_selectable_trust_region",
+          "trust_region_rejection_reasons": null
+        },
+        {
+          "attention_changed_tensors": 0.0,
+          "audit_passed": true,
+          "final_selectable_by_trust_region": true,
+          "method": "qwen3_moe_subspace_scaled_candidate",
+          "role": "candidate",
+          "routed_max_tensor_relative_delta": 0.6234276715724305,
+          "routed_tensors_gt_0_65": 0.0,
+          "router_changed_tensors": 0.0,
+          "structural_frontier_member": true,
+          "structural_safety_score": 0.9892989752314326,
+          "structurally_dominated": false,
+          "trust_region_category": "final_selectable_trust_region",
+          "trust_region_rejection_reasons": null
+        }
+      ],
+      "max_routed_tensors_gt_065": 0,
+      "report": "results/qwen3_moe_candidate_trust_region_gate/report.md",
+      "status": "candidate_trust_region_gate_ready",
+      "strict_routed_max_relative_delta": 0.6505,
+      "structural_reject_candidate_count": 0,
+      "summary": {
+        "ablation_only_candidate_count": 8,
+        "candidate_count": 10,
+        "final_selectable_candidate_count": 2,
+        "final_selectable_methods": [
+          "qwen3_moe_mechanistic_unified_candidate",
+          "qwen3_moe_subspace_scaled_candidate"
+        ],
+        "max_attention_changed_tensors": 0,
+        "max_routed_tensors_gt_065": 0,
+        "max_router_changed_tensors": 0,
+        "outputs": {
+          "gate": "results/qwen3_moe_candidate_trust_region_gate/candidate_trust_region_gate.csv",
+          "report": "results/qwen3_moe_candidate_trust_region_gate/report.md",
+          "summary": "results/qwen3_moe_candidate_trust_region_gate/summary.json"
+        },
+        "require_structural_frontier": true,
+        "schema_version": 1,
+        "source_count": 2,
+        "status": "candidate_trust_region_gate_ready",
+        "strict_routed_max_relative_delta": 0.6505,
+        "structural_reject_candidate_count": 0
+      },
+      "summary_path": "results/qwen3_moe_candidate_trust_region_gate/summary.json"
+    },
     "qwen3_moe_delta_frontier": {
       "audit_to_trust_routed_gt_075_reduction": 150,
       "best_delta_safety_candidate": "mechanistic_unified",
@@ -17789,6 +18015,7 @@
           "confidence_dominated_by_source": null,
           "dominated_by_source": null,
           "eval_usable": false,
+          "final_selectable_by_trust_region": true,
           "method": "source_qwen3_30b_instruct",
           "nearest_structural_candidate": null,
           "nearest_structural_distance": null,
@@ -17814,6 +18041,8 @@
           "task_regression_columns": null,
           "task_safety_score": null,
           "total_relative_delta_norm": null,
+          "trust_region_category": "source_control",
+          "trust_region_rejection_reasons": null,
           "worst_primary_lower": null,
           "worst_primary_score": null,
           "worst_primary_upper": null
@@ -17826,6 +18055,7 @@
           "confidence_dominated_by_source": null,
           "dominated_by_source": null,
           "eval_usable": false,
+          "final_selectable_by_trust_region": true,
           "method": "source_qwen3_30b_coder",
           "nearest_structural_candidate": null,
           "nearest_structural_distance": null,
@@ -17851,6 +18081,8 @@
           "task_regression_columns": null,
           "task_safety_score": null,
           "total_relative_delta_norm": null,
+          "trust_region_category": "source_control",
+          "trust_region_rejection_reasons": null,
           "worst_primary_lower": null,
           "worst_primary_score": null,
           "worst_primary_upper": null
@@ -17863,6 +18095,7 @@
           "confidence_dominated_by_source": null,
           "dominated_by_source": null,
           "eval_usable": false,
+          "final_selectable_by_trust_region": false,
           "method": "qwen3_moe_unified_route_guarded_candidate",
           "nearest_structural_candidate": "audit_gated",
           "nearest_structural_distance": 0.4834980329099123,
@@ -17870,7 +18103,7 @@
           "paired_min_pvalue": null,
           "paired_shared_examples": null,
           "paired_source_only_correct": null,
-          "rejection_reasons": "awaiting_candidate_eval",
+          "rejection_reasons": "trust_region_gate_failed,awaiting_candidate_eval",
           "role": "candidate",
           "routed_tensors_gt_0_75": 839.0,
           "selection_eligible": false,
@@ -17888,6 +18121,8 @@
           "task_regression_columns": null,
           "task_safety_score": null,
           "total_relative_delta_norm": 0.2856374928013712,
+          "trust_region_category": "ablation_only",
+          "trust_region_rejection_reasons": "shared_attention_changed,routed_max_delta_over_strict_cap,routed_tail_over_065,structurally_dominated",
           "worst_primary_lower": null,
           "worst_primary_score": null,
           "worst_primary_upper": null
@@ -17900,6 +18135,7 @@
           "confidence_dominated_by_source": null,
           "dominated_by_source": null,
           "eval_usable": false,
+          "final_selectable_by_trust_region": false,
           "method": "qwen3_moe_audit_gated_candidate",
           "nearest_structural_candidate": "trust_region",
           "nearest_structural_distance": 0.2448554659821506,
@@ -17907,7 +18143,7 @@
           "paired_min_pvalue": null,
           "paired_shared_examples": null,
           "paired_source_only_correct": null,
-          "rejection_reasons": "awaiting_candidate_eval",
+          "rejection_reasons": "trust_region_gate_failed,awaiting_candidate_eval",
           "role": "candidate",
           "routed_tensors_gt_0_75": 164.0,
           "selection_eligible": false,
@@ -17925,6 +18161,8 @@
           "task_regression_columns": null,
           "task_safety_score": null,
           "total_relative_delta_norm": 0.263843627182202,
+          "trust_region_category": "ablation_only",
+          "trust_region_rejection_reasons": "shared_attention_changed,routed_max_delta_over_strict_cap,routed_tail_over_065,structurally_dominated",
           "worst_primary_lower": null,
           "worst_primary_score": null,
           "worst_primary_upper": null
@@ -17937,6 +18175,7 @@
           "confidence_dominated_by_source": null,
           "dominated_by_source": null,
           "eval_usable": false,
+          "final_selectable_by_trust_region": false,
           "method": "qwen3_moe_trust_region_candidate",
           "nearest_structural_candidate": "expert_only",
           "nearest_structural_distance": 0.0910838163869901,
@@ -17944,7 +18183,7 @@
           "paired_min_pvalue": null,
           "paired_shared_examples": null,
           "paired_source_only_correct": null,
-          "rejection_reasons": "awaiting_candidate_eval",
+          "rejection_reasons": "trust_region_gate_failed,awaiting_candidate_eval",
           "role": "candidate",
           "routed_tensors_gt_0_75": 14.0,
           "selection_eligible": false,
@@ -17962,6 +18201,8 @@
           "task_regression_columns": null,
           "task_safety_score": null,
           "total_relative_delta_norm": 0.2486605810368496,
+          "trust_region_category": "ablation_only",
+          "trust_region_rejection_reasons": "shared_attention_changed,routed_max_delta_over_strict_cap,routed_tail_over_065,structurally_dominated",
           "worst_primary_lower": null,
           "worst_primary_score": null,
           "worst_primary_upper": null
@@ -17974,6 +18215,7 @@
           "confidence_dominated_by_source": null,
           "dominated_by_source": null,
           "eval_usable": false,
+          "final_selectable_by_trust_region": false,
           "method": "qwen3_moe_expert_only_trust_region_candidate",
           "nearest_structural_candidate": "searched_no_gt065",
           "nearest_structural_distance": 0.0631411147982164,
@@ -17981,7 +18223,7 @@
           "paired_min_pvalue": null,
           "paired_shared_examples": null,
           "paired_source_only_correct": null,
-          "rejection_reasons": "awaiting_candidate_eval",
+          "rejection_reasons": "trust_region_gate_failed,awaiting_candidate_eval",
           "role": "candidate",
           "routed_tensors_gt_0_75": 14.0,
           "selection_eligible": false,
@@ -17999,6 +18241,8 @@
           "task_regression_columns": null,
           "task_safety_score": null,
           "total_relative_delta_norm": 0.2460330539488216,
+          "trust_region_category": "ablation_only",
+          "trust_region_rejection_reasons": "routed_max_delta_over_strict_cap,routed_tail_over_065,structurally_dominated",
           "worst_primary_lower": null,
           "worst_primary_score": null,
           "worst_primary_upper": null
@@ -18011,6 +18255,7 @@
           "confidence_dominated_by_source": null,
           "dominated_by_source": null,
           "eval_usable": false,
+          "final_selectable_by_trust_region": false,
           "method": "qwen3_moe_tail_trimmed_expert_only_candidate",
           "nearest_structural_candidate": "layer_chunk",
           "nearest_structural_distance": 0.0044199756974084,
@@ -18018,7 +18263,7 @@
           "paired_min_pvalue": null,
           "paired_shared_examples": null,
           "paired_source_only_correct": null,
-          "rejection_reasons": "awaiting_candidate_eval",
+          "rejection_reasons": "trust_region_gate_failed,awaiting_candidate_eval",
           "role": "candidate",
           "routed_tensors_gt_0_75": 0.0,
           "selection_eligible": false,
@@ -18036,6 +18281,8 @@
           "task_regression_columns": null,
           "task_safety_score": null,
           "total_relative_delta_norm": 0.2431453154573603,
+          "trust_region_category": "ablation_only",
+          "trust_region_rejection_reasons": "routed_tail_over_065,structurally_dominated",
           "worst_primary_lower": null,
           "worst_primary_score": null,
           "worst_primary_upper": null
@@ -18048,6 +18295,7 @@
           "confidence_dominated_by_source": null,
           "dominated_by_source": null,
           "eval_usable": false,
+          "final_selectable_by_trust_region": false,
           "method": "qwen3_moe_searched_no_gt065_max_retention_candidate",
           "nearest_structural_candidate": "layer_chunk",
           "nearest_structural_distance": 0.0520016454028538,
@@ -18055,7 +18303,7 @@
           "paired_min_pvalue": null,
           "paired_shared_examples": null,
           "paired_source_only_correct": null,
-          "rejection_reasons": "awaiting_candidate_eval",
+          "rejection_reasons": "trust_region_gate_failed,awaiting_candidate_eval",
           "role": "candidate",
           "routed_tensors_gt_0_75": 0.0,
           "selection_eligible": false,
@@ -18073,6 +18321,8 @@
           "task_regression_columns": null,
           "task_safety_score": null,
           "total_relative_delta_norm": 0.2475948491291486,
+          "trust_region_category": "ablation_only",
+          "trust_region_rejection_reasons": "routed_tail_over_065,structurally_dominated",
           "worst_primary_lower": null,
           "worst_primary_score": null,
           "worst_primary_upper": null
@@ -18085,6 +18335,7 @@
           "confidence_dominated_by_source": null,
           "dominated_by_source": null,
           "eval_usable": false,
+          "final_selectable_by_trust_region": false,
           "method": "qwen3_moe_layer_chunk_candidate",
           "nearest_structural_candidate": "tail_trimmed",
           "nearest_structural_distance": 0.0044199756974084,
@@ -18092,7 +18343,7 @@
           "paired_min_pvalue": null,
           "paired_shared_examples": null,
           "paired_source_only_correct": null,
-          "rejection_reasons": "awaiting_candidate_eval",
+          "rejection_reasons": "trust_region_gate_failed,awaiting_candidate_eval",
           "role": "candidate",
           "routed_tensors_gt_0_75": 0.0,
           "selection_eligible": false,
@@ -18110,6 +18361,8 @@
           "task_regression_columns": null,
           "task_safety_score": null,
           "total_relative_delta_norm": 0.243454300322247,
+          "trust_region_category": "ablation_only",
+          "trust_region_rejection_reasons": "routed_tail_over_065,structurally_dominated",
           "worst_primary_lower": null,
           "worst_primary_score": null,
           "worst_primary_upper": null
@@ -18122,6 +18375,7 @@
           "confidence_dominated_by_source": null,
           "dominated_by_source": null,
           "eval_usable": false,
+          "final_selectable_by_trust_region": false,
           "method": "qwen3_moe_unified_mechanism_candidate",
           "nearest_structural_candidate": "subspace_scaled",
           "nearest_structural_distance": 0.0151314543287885,
@@ -18129,7 +18383,7 @@
           "paired_min_pvalue": null,
           "paired_shared_examples": null,
           "paired_source_only_correct": null,
-          "rejection_reasons": "awaiting_candidate_eval",
+          "rejection_reasons": "trust_region_gate_failed,awaiting_candidate_eval",
           "role": "candidate",
           "routed_tensors_gt_0_75": 0.0,
           "selection_eligible": false,
@@ -18147,6 +18401,8 @@
           "task_regression_columns": null,
           "task_safety_score": null,
           "total_relative_delta_norm": 0.2403784248994999,
+          "trust_region_category": "ablation_only",
+          "trust_region_rejection_reasons": "structurally_dominated",
           "worst_primary_lower": null,
           "worst_primary_score": null,
           "worst_primary_upper": null
@@ -18159,6 +18415,7 @@
           "confidence_dominated_by_source": null,
           "dominated_by_source": null,
           "eval_usable": false,
+          "final_selectable_by_trust_region": true,
           "method": "qwen3_moe_mechanistic_unified_candidate",
           "nearest_structural_candidate": "unified_mechanism",
           "nearest_structural_distance": 0.0208616178671907,
@@ -18184,6 +18441,8 @@
           "task_regression_columns": null,
           "task_safety_score": null,
           "total_relative_delta_norm": 0.2382255365529426,
+          "trust_region_category": "final_selectable_trust_region",
+          "trust_region_rejection_reasons": null,
           "worst_primary_lower": null,
           "worst_primary_score": null,
           "worst_primary_upper": null
@@ -18196,6 +18455,7 @@
           "confidence_dominated_by_source": null,
           "dominated_by_source": null,
           "eval_usable": false,
+          "final_selectable_by_trust_region": true,
           "method": "qwen3_moe_subspace_scaled_candidate",
           "nearest_structural_candidate": "unified_mechanism",
           "nearest_structural_distance": 0.0151314543287885,
@@ -18221,6 +18481,8 @@
           "task_regression_columns": null,
           "task_safety_score": null,
           "total_relative_delta_norm": 0.2395294198409091,
+          "trust_region_category": "final_selectable_trust_region",
+          "trust_region_rejection_reasons": null,
           "worst_primary_lower": null,
           "worst_primary_score": null,
           "worst_primary_upper": null
@@ -18320,7 +18582,7 @@
       "usable_candidate_count": 0
     },
     "qwen3_moe_final_candidate_selection_smoke": {
-      "case_count": 10,
+      "case_count": 11,
       "case_rows": [
         {
           "case": "candidate_win",
@@ -18422,6 +18684,17 @@
           "status": "select_candidate"
         },
         {
+          "case": "trust_region_gate",
+          "eligible_candidate_count": 2,
+          "expected_selected_method": "qwen3_moe_mechanistic_unified_candidate",
+          "expected_status": "select_candidate",
+          "passed": true,
+          "rank_band_size": 2,
+          "rank_mode": "confidence_tie_band_structural",
+          "selected_method": "qwen3_moe_mechanistic_unified_candidate",
+          "status": "select_candidate"
+        },
+        {
           "case": "partial",
           "eligible_candidate_count": 1,
           "expected_selected_method": "qwen3_moe_tail_trimmed_expert_only_candidate",
@@ -18435,11 +18708,11 @@
       ],
       "failed_case_count": 0,
       "matrix": "results/qwen3_moe_final_candidate_selection_smoke/selector_matrix.csv",
-      "passed_case_count": 10,
+      "passed_case_count": 11,
       "report": "results/qwen3_moe_final_candidate_selection_smoke/report.md",
       "status": "passed",
       "summary": {
-        "case_count": 10,
+        "case_count": 11,
         "cases": [
           {
             "case": "candidate_win",
@@ -18541,6 +18814,17 @@
             "status": "select_candidate"
           },
           {
+            "case": "trust_region_gate",
+            "eligible_candidate_count": 2,
+            "expected_selected_method": "qwen3_moe_mechanistic_unified_candidate",
+            "expected_status": "select_candidate",
+            "passed": true,
+            "rank_band_size": 2,
+            "rank_mode": "confidence_tie_band_structural",
+            "selected_method": "qwen3_moe_mechanistic_unified_candidate",
+            "status": "select_candidate"
+          },
+          {
             "case": "partial",
             "eligible_candidate_count": 1,
             "expected_selected_method": "qwen3_moe_tail_trimmed_expert_only_candidate",
@@ -18558,7 +18842,7 @@
           "report": "results/qwen3_moe_final_candidate_selection_smoke/report.md",
           "summary": "results/qwen3_moe_final_candidate_selection_smoke/summary.json"
         },
-        "passed_case_count": 10,
+        "passed_case_count": 11,
         "schema_version": 1,
         "status": "passed"
       },
@@ -28095,17 +28379,17 @@
       "mechanistic_retention": 0.9650345047849123,
       "mechanistic_selected_candidate": "s0.08_b1.65_h0.75_i0.75",
       "mechanistic_status": "mechanistic_unified_candidate_ready",
-      "passed_step_count": 20,
+      "passed_step_count": 21,
       "report": "results/qwen3_moe_post_eval_refresh/report.md",
       "selected_method": null,
       "selection_reason": "Both Qwen3 source endpoints must complete matched vLLM downstream eval before accepting an average.",
       "selection_status": "awaiting_source_eval",
       "status": "passed",
-      "step_count": 20,
+      "step_count": 21,
       "step_rows": [
         {
           "command": "python scripts/audit_qwen3_moe_eval_bundle.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_eval_bundle_audit",
-          "duration_sec": 0.4358510971069336,
+          "duration_sec": 0.4100329875946045,
           "kind": "gate",
           "returncode": 0,
           "status": "passed",
@@ -28115,7 +28399,7 @@
         },
         {
           "command": "python scripts/select_qwen3_moe_unified_result.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_unified_result_selection",
-          "duration_sec": 0.4204206466674804,
+          "duration_sec": 0.3946123123168945,
           "kind": "selector",
           "returncode": 0,
           "status": "passed",
@@ -28124,8 +28408,18 @@
           "step": "select_unified_result"
         },
         {
-          "command": "python scripts/select_qwen3_moe_final_candidate.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_final_candidate_selection",
-          "duration_sec": 0.4454214572906494,
+          "command": "python scripts/build_qwen3_moe_candidate_trust_region_gate.py --gate-plan results/qwen3_moe_mechanism_eval_gate/eval_gate_plan.csv --output-dir results/qwen3_moe_candidate_trust_region_gate",
+          "duration_sec": 0.4232580661773681,
+          "kind": "gate",
+          "returncode": 0,
+          "status": "passed",
+          "stderr_tail": null,
+          "stdout_tail": "Wrote Qwen3 MoE candidate trust-region gate to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_candidate_trust_region_gate\nStatus: candidate_trust_region_gate_ready; final-selectable 2/10\n",
+          "step": "build_candidate_trust_region_gate"
+        },
+        {
+          "command": "python scripts/select_qwen3_moe_final_candidate.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_final_candidate_selection --candidate-trust-gate results/qwen3_moe_candidate_trust_region_gate/candidate_trust_region_gate.csv",
+          "duration_sec": 0.4067742824554443,
           "kind": "selector",
           "returncode": 0,
           "status": "passed",
@@ -28135,7 +28429,7 @@
         },
         {
           "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_mechanism_effect_attribution",
-          "duration_sec": 0.4381003379821777,
+          "duration_sec": 0.3928043842315674,
           "kind": "attribution",
           "returncode": 0,
           "status": "passed",
@@ -28145,7 +28439,7 @@
         },
         {
           "command": "python scripts/build_qwen3_moe_feedback_optimizer.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_feedback_optimizer",
-          "duration_sec": 1.083678960800171,
+          "duration_sec": 1.0769929885864258,
           "kind": "optimizer",
           "returncode": 0,
           "status": "passed",
@@ -28155,7 +28449,7 @@
         },
         {
           "command": "python scripts/build_qwen3_moe_mechanistic_unified_candidate.py --output-dir results/qwen3_moe_mechanistic_unified_candidate",
-          "duration_sec": 2.514933824539185,
+          "duration_sec": 2.54417085647583,
           "kind": "optimizer",
           "returncode": 0,
           "status": "passed",
@@ -28165,7 +28459,7 @@
         },
         {
           "command": "python scripts/audit_qwen3_moe_mechanistic_evidence.py --output-dir results/qwen3_moe_mechanistic_evidence_audit",
-          "duration_sec": 1.433743238449097,
+          "duration_sec": 1.403001070022583,
           "kind": "attribution",
           "returncode": 0,
           "status": "passed",
@@ -28175,7 +28469,7 @@
         },
         {
           "command": "python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer",
-          "duration_sec": 0.4433751106262207,
+          "duration_sec": 0.4237735271453857,
           "kind": "optimizer",
           "returncode": 0,
           "status": "passed",
@@ -28185,7 +28479,7 @@
         },
         {
           "command": "python scripts/build_average_method_gate_matrix.py --output-dir results/average_method_gate_matrix --optimizer-summary results/unified_average_optimizer/summary.json --optimizer-features results/unified_average_optimizer/mechanism_features.csv",
-          "duration_sec": 0.406987190246582,
+          "duration_sec": 0.3844130039215088,
           "kind": "optimizer",
           "returncode": 0,
           "status": "passed",
@@ -28195,7 +28489,7 @@
         },
         {
           "command": "python scripts/build_average_trust_region_bounds.py --output-dir results/average_trust_region_bounds",
-          "duration_sec": 0.3987696170806885,
+          "duration_sec": 0.3920726776123047,
           "kind": "optimizer",
           "returncode": 0,
           "status": "passed",
@@ -28205,7 +28499,7 @@
         },
         {
           "command": "python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke",
-          "duration_sec": 0.6421363353729248,
+          "duration_sec": 0.6651897430419922,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -28215,7 +28509,7 @@
         },
         {
           "command": "python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke",
-          "duration_sec": 0.4280798435211181,
+          "duration_sec": 0.406667947769165,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -28225,17 +28519,17 @@
         },
         {
           "command": "python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke",
-          "duration_sec": 0.5249433517456055,
+          "duration_sec": 0.4896001815795898,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
           "stderr_tail": null,
-          "stdout_tail": "Wrote Qwen3 MoE final candidate selector smoke to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_final_candidate_selection_smoke\nStatus: passed; cases 10/10\n",
+          "stdout_tail": "Wrote Qwen3 MoE final candidate selector smoke to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_final_candidate_selection_smoke\nStatus: passed; cases 11/11\n",
           "step": "select_final_candidate_smoke"
         },
         {
           "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --smoke-matrix --output-dir results/qwen3_moe_mechanism_effect_attribution_smoke",
-          "duration_sec": 0.4098184108734131,
+          "duration_sec": 0.4005820751190185,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -28245,7 +28539,7 @@
         },
         {
           "command": "python scripts/build_qwen3_moe_feedback_optimizer.py --smoke-matrix --output-dir results/qwen3_moe_feedback_optimizer_smoke",
-          "duration_sec": 0.4675655364990234,
+          "duration_sec": 0.4838447570800781,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -28255,7 +28549,7 @@
         },
         {
           "command": "python scripts/build_qwen3_moe_mechanistic_unified_candidate.py --smoke-matrix --output-dir results/qwen3_moe_mechanistic_unified_candidate_smoke",
-          "duration_sec": 1.5933921337127686,
+          "duration_sec": 1.604548692703247,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -28265,7 +28559,7 @@
         },
         {
           "command": "python scripts/smoke_unified_average_optimizer_ledger.py --summary results/unified_average_optimizer/summary.json --output-dir results/unified_average_optimizer_ledger_smoke",
-          "duration_sec": 0.4221584796905517,
+          "duration_sec": 0.4136860370635986,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -28275,7 +28569,7 @@
         },
         {
           "command": "python scripts/smoke_average_method_gate_matrix.py --optimizer-summary results/unified_average_optimizer/summary.json --method-gate-dir results/average_method_gate_matrix --output-dir results/average_method_gate_matrix_consistency_smoke",
-          "duration_sec": 0.4461650848388672,
+          "duration_sec": 0.3906445503234863,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -28285,7 +28579,7 @@
         },
         {
           "command": "python scripts/smoke_average_trust_region_bounds.py --bounds-dir results/average_trust_region_bounds --output-dir results/average_trust_region_bounds_smoke",
-          "duration_sec": 0.390946626663208,
+          "duration_sec": 0.3911323547363281,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -28295,12 +28589,12 @@
         },
         {
           "command": "python scripts/collect_results.py",
-          "duration_sec": 1.6250371932983398,
+          "duration_sec": 1.59309720993042,
           "kind": "summary",
           "returncode": 0,
           "status": "passed",
           "stderr_tail": null,
-          "stdout_tail": "Wrote results/summary.json\nWrote results/summary.md\nWrote ARTIFACT_MANIFEST.json\nArtifacts indexed: 1186\n",
+          "stdout_tail": "Wrote results/summary.json\nWrote results/summary.md\nWrote ARTIFACT_MANIFEST.json\nArtifacts indexed: 1190\n",
           "step": "collect_results"
         }
       ],
@@ -28328,6 +28622,10 @@
           "average_trust_region_bounds_smoke_status": "passed",
           "average_trust_region_bounds_status": "trust_region_bounds_ready_waiting_vllm",
           "average_trust_region_bounds_waiting": 2,
+          "candidate_trust_region_ablation_only": 8,
+          "candidate_trust_region_candidates": 10,
+          "candidate_trust_region_final_selectable": 2,
+          "candidate_trust_region_gate_status": "candidate_trust_region_gate_ready",
           "dense_local_task_vector_lambda_bound": 0.34155204135935996,
           "feedback_changed_group_count": 0,
           "feedback_regression_task_count": 0,
@@ -28368,16 +28666,16 @@
           "steps": "results/qwen3_moe_post_eval_refresh/steps.csv",
           "summary": "results/qwen3_moe_post_eval_refresh/summary.json"
         },
-        "passed_step_count": 20,
+        "passed_step_count": 21,
         "plan_only": false,
         "planned_step_count": 0,
         "schema_version": 1,
         "status": "passed",
-        "step_count": 20,
+        "step_count": 21,
         "steps": [
           {
             "command": "python scripts/audit_qwen3_moe_eval_bundle.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_eval_bundle_audit",
-            "duration_sec": 0.4358510971069336,
+            "duration_sec": 0.4100329875946045,
             "kind": "gate",
             "returncode": 0,
             "status": "passed",
@@ -28387,7 +28685,7 @@
           },
           {
             "command": "python scripts/select_qwen3_moe_unified_result.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_unified_result_selection",
-            "duration_sec": 0.42042064666748047,
+            "duration_sec": 0.39461231231689453,
             "kind": "selector",
             "returncode": 0,
             "status": "passed",
@@ -28396,8 +28694,18 @@
             "step": "select_unified_result"
           },
           {
-            "command": "python scripts/select_qwen3_moe_final_candidate.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_final_candidate_selection",
-            "duration_sec": 0.4454214572906494,
+            "command": "python scripts/build_qwen3_moe_candidate_trust_region_gate.py --gate-plan results/qwen3_moe_mechanism_eval_gate/eval_gate_plan.csv --output-dir results/qwen3_moe_candidate_trust_region_gate",
+            "duration_sec": 0.42325806617736816,
+            "kind": "gate",
+            "returncode": 0,
+            "status": "passed",
+            "stderr_tail": "",
+            "stdout_tail": "Wrote Qwen3 MoE candidate trust-region gate to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_candidate_trust_region_gate\nStatus: candidate_trust_region_gate_ready; final-selectable 2/10\n",
+            "step": "build_candidate_trust_region_gate"
+          },
+          {
+            "command": "python scripts/select_qwen3_moe_final_candidate.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_final_candidate_selection --candidate-trust-gate results/qwen3_moe_candidate_trust_region_gate/candidate_trust_region_gate.csv",
+            "duration_sec": 0.40677428245544434,
             "kind": "selector",
             "returncode": 0,
             "status": "passed",
@@ -28407,7 +28715,7 @@
           },
           {
             "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_mechanism_effect_attribution",
-            "duration_sec": 0.43810033798217773,
+            "duration_sec": 0.3928043842315674,
             "kind": "attribution",
             "returncode": 0,
             "status": "passed",
@@ -28417,7 +28725,7 @@
           },
           {
             "command": "python scripts/build_qwen3_moe_feedback_optimizer.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_feedback_optimizer",
-            "duration_sec": 1.083678960800171,
+            "duration_sec": 1.0769929885864258,
             "kind": "optimizer",
             "returncode": 0,
             "status": "passed",
@@ -28427,7 +28735,7 @@
           },
           {
             "command": "python scripts/build_qwen3_moe_mechanistic_unified_candidate.py --output-dir results/qwen3_moe_mechanistic_unified_candidate",
-            "duration_sec": 2.5149338245391846,
+            "duration_sec": 2.54417085647583,
             "kind": "optimizer",
             "returncode": 0,
             "status": "passed",
@@ -28437,7 +28745,7 @@
           },
           {
             "command": "python scripts/audit_qwen3_moe_mechanistic_evidence.py --output-dir results/qwen3_moe_mechanistic_evidence_audit",
-            "duration_sec": 1.4337432384490967,
+            "duration_sec": 1.403001070022583,
             "kind": "attribution",
             "returncode": 0,
             "status": "passed",
@@ -28447,7 +28755,7 @@
           },
           {
             "command": "python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer",
-            "duration_sec": 0.4433751106262207,
+            "duration_sec": 0.42377352714538574,
             "kind": "optimizer",
             "returncode": 0,
             "status": "passed",
@@ -28457,7 +28765,7 @@
           },
           {
             "command": "python scripts/build_average_method_gate_matrix.py --output-dir results/average_method_gate_matrix --optimizer-summary results/unified_average_optimizer/summary.json --optimizer-features results/unified_average_optimizer/mechanism_features.csv",
-            "duration_sec": 0.40698719024658203,
+            "duration_sec": 0.3844130039215088,
             "kind": "optimizer",
             "returncode": 0,
             "status": "passed",
@@ -28467,7 +28775,7 @@
           },
           {
             "command": "python scripts/build_average_trust_region_bounds.py --output-dir results/average_trust_region_bounds",
-            "duration_sec": 0.3987696170806885,
+            "duration_sec": 0.3920726776123047,
             "kind": "optimizer",
             "returncode": 0,
             "status": "passed",
@@ -28477,7 +28785,7 @@
           },
           {
             "command": "python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke",
-            "duration_sec": 0.6421363353729248,
+            "duration_sec": 0.6651897430419922,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -28487,7 +28795,7 @@
           },
           {
             "command": "python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke",
-            "duration_sec": 0.42807984352111816,
+            "duration_sec": 0.40666794776916504,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -28497,17 +28805,17 @@
           },
           {
             "command": "python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke",
-            "duration_sec": 0.5249433517456055,
+            "duration_sec": 0.48960018157958984,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
             "stderr_tail": "",
-            "stdout_tail": "Wrote Qwen3 MoE final candidate selector smoke to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_final_candidate_selection_smoke\nStatus: passed; cases 10/10\n",
+            "stdout_tail": "Wrote Qwen3 MoE final candidate selector smoke to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_final_candidate_selection_smoke\nStatus: passed; cases 11/11\n",
             "step": "select_final_candidate_smoke"
           },
           {
             "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --smoke-matrix --output-dir results/qwen3_moe_mechanism_effect_attribution_smoke",
-            "duration_sec": 0.4098184108734131,
+            "duration_sec": 0.40058207511901855,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -28517,7 +28825,7 @@
           },
           {
             "command": "python scripts/build_qwen3_moe_feedback_optimizer.py --smoke-matrix --output-dir results/qwen3_moe_feedback_optimizer_smoke",
-            "duration_sec": 0.46756553649902344,
+            "duration_sec": 0.4838447570800781,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -28527,7 +28835,7 @@
           },
           {
             "command": "python scripts/build_qwen3_moe_mechanistic_unified_candidate.py --smoke-matrix --output-dir results/qwen3_moe_mechanistic_unified_candidate_smoke",
-            "duration_sec": 1.5933921337127686,
+            "duration_sec": 1.604548692703247,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -28537,7 +28845,7 @@
           },
           {
             "command": "python scripts/smoke_unified_average_optimizer_ledger.py --summary results/unified_average_optimizer/summary.json --output-dir results/unified_average_optimizer_ledger_smoke",
-            "duration_sec": 0.42215847969055176,
+            "duration_sec": 0.41368603706359863,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -28547,7 +28855,7 @@
           },
           {
             "command": "python scripts/smoke_average_method_gate_matrix.py --optimizer-summary results/unified_average_optimizer/summary.json --method-gate-dir results/average_method_gate_matrix --output-dir results/average_method_gate_matrix_consistency_smoke",
-            "duration_sec": 0.4461650848388672,
+            "duration_sec": 0.39064455032348633,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -28557,7 +28865,7 @@
           },
           {
             "command": "python scripts/smoke_average_trust_region_bounds.py --bounds-dir results/average_trust_region_bounds --output-dir results/average_trust_region_bounds_smoke",
-            "duration_sec": 0.390946626663208,
+            "duration_sec": 0.3911323547363281,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -28567,12 +28875,12 @@
           },
           {
             "command": "python scripts/collect_results.py",
-            "duration_sec": 1.6250371932983398,
+            "duration_sec": 1.59309720993042,
             "kind": "summary",
             "returncode": 0,
             "status": "passed",
             "stderr_tail": "",
-            "stdout_tail": "Wrote results/summary.json\nWrote results/summary.md\nWrote ARTIFACT_MANIFEST.json\nArtifacts indexed: 1186\n",
+            "stdout_tail": "Wrote results/summary.json\nWrote results/summary.md\nWrote ARTIFACT_MANIFEST.json\nArtifacts indexed: 1190\n",
             "step": "collect_results"
           }
         ]
@@ -28580,10 +28888,10 @@
       "summary_path": "results/qwen3_moe_post_eval_refresh/summary.json"
     },
     "qwen3_moe_post_eval_refresh_plan": {
-      "planned_step_count": 20,
+      "planned_step_count": 21,
       "report": "results/qwen3_moe_post_eval_refresh_plan/report.md",
       "status": "planned",
-      "step_count": 20,
+      "step_count": 21,
       "step_rows": [
         {
           "command": "python scripts/audit_qwen3_moe_eval_bundle.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_eval_bundle_audit",
@@ -28606,7 +28914,17 @@
           "step": "select_unified_result"
         },
         {
-          "command": "python scripts/select_qwen3_moe_final_candidate.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_final_candidate_selection",
+          "command": "python scripts/build_qwen3_moe_candidate_trust_region_gate.py --gate-plan results/qwen3_moe_mechanism_eval_gate/eval_gate_plan.csv --output-dir results/qwen3_moe_candidate_trust_region_gate",
+          "duration_sec": 0.0,
+          "kind": "gate",
+          "returncode": null,
+          "status": "planned",
+          "stderr_tail": null,
+          "stdout_tail": null,
+          "step": "build_candidate_trust_region_gate"
+        },
+        {
+          "command": "python scripts/select_qwen3_moe_final_candidate.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_final_candidate_selection --candidate-trust-gate results/qwen3_moe_candidate_trust_region_gate/candidate_trust_region_gate.csv",
           "duration_sec": 0.0,
           "kind": "selector",
           "returncode": null,
@@ -28797,10 +29115,10 @@
         },
         "passed_step_count": 0,
         "plan_only": true,
-        "planned_step_count": 20,
+        "planned_step_count": 21,
         "schema_version": 1,
         "status": "planned",
-        "step_count": 20,
+        "step_count": 21,
         "steps": [
           {
             "command": "python scripts/audit_qwen3_moe_eval_bundle.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_eval_bundle_audit",
@@ -28823,7 +29141,17 @@
             "step": "select_unified_result"
           },
           {
-            "command": "python scripts/select_qwen3_moe_final_candidate.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_final_candidate_selection",
+            "command": "python scripts/build_qwen3_moe_candidate_trust_region_gate.py --gate-plan results/qwen3_moe_mechanism_eval_gate/eval_gate_plan.csv --output-dir results/qwen3_moe_candidate_trust_region_gate",
+            "duration_sec": 0.0,
+            "kind": "gate",
+            "returncode": null,
+            "status": "planned",
+            "stderr_tail": "",
+            "stdout_tail": "",
+            "step": "build_candidate_trust_region_gate"
+          },
+          {
+            "command": "python scripts/select_qwen3_moe_final_candidate.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_final_candidate_selection --candidate-trust-gate results/qwen3_moe_candidate_trust_region_gate/candidate_trust_region_gate.csv",
             "duration_sec": 0.0,
             "kind": "selector",
             "returncode": null,
@@ -47638,7 +47966,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-20T11:29:45.206317+00:00",
+  "generated_at": "2026-06-20T11:42:15.938453+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -47743,6 +48071,7 @@
     "python scripts/audit_materialized_checkpoint_delta.py --base BASE --candidate results/checkpoints/qwen3_moe_unified_mechanism_candidate --output-dir results/qwen3_moe_unified_mechanism_delta_audit",
     "python scripts/select_qwen3_moe_unified_result.py --output-dir results/qwen3_moe_unified_result_selection",
     "python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke",
+    "python scripts/build_qwen3_moe_candidate_trust_region_gate.py --output-dir results/qwen3_moe_candidate_trust_region_gate",
     "python scripts/select_qwen3_moe_final_candidate.py --output-dir results/qwen3_moe_final_candidate_selection",
     "python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke",
     "python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer",

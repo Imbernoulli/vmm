@@ -1,0 +1,13 @@
+method,role,trust_region_category,final_selectable_by_trust_region,trust_region_rejection_reasons,audit_passed,structural_frontier_member,structurally_dominated,structural_safety_score,routed_max_tensor_relative_delta,routed_tensors_gt_0_65,attention_changed_tensors,router_changed_tensors
+source_qwen3_30b_instruct,source,source_control,True,,True,,,,,,,
+source_qwen3_30b_coder,source,source_control,True,,True,,,,,,,
+qwen3_moe_unified_route_guarded_candidate,candidate,ablation_only,False,"shared_attention_changed,routed_max_delta_over_strict_cap,routed_tail_over_065,structurally_dominated",True,False,True,0.0199999999999999,1.327236932104148,1156.0,288.0,0.0
+qwen3_moe_audit_gated_candidate,candidate,ablation_only,False,"shared_attention_changed,routed_max_delta_over_strict_cap,routed_tail_over_065,structurally_dominated",True,False,True,0.5034980329099124,0.7500417154655807,1146.0,288.0,0.0
+qwen3_moe_trust_region_candidate,candidate,ablation_only,False,"shared_attention_changed,routed_max_delta_over_strict_cap,routed_tail_over_065,structurally_dominated",True,False,True,0.7483534988920628,0.7500218768922794,366.0,288.0,0.0
+qwen3_moe_expert_only_trust_region_candidate,candidate,ablation_only,False,"routed_max_delta_over_strict_cap,routed_tail_over_065,structurally_dominated",True,False,True,0.8394373152790531,0.7500218768922794,366.0,0.0,0.0
+qwen3_moe_tail_trimmed_expert_only_candidate,candidate,ablation_only,False,"routed_tail_over_065,structurally_dominated",True,False,True,0.9314648784066032,0.650082822181077,80.0,0.0,0.0
+qwen3_moe_searched_no_gt065_max_retention_candidate,candidate,ablation_only,False,"routed_tail_over_065,structurally_dominated",True,False,True,0.87694299312927,0.6500814121910361,245.0,0.0,0.0
+qwen3_moe_layer_chunk_candidate,candidate,ablation_only,False,"routed_tail_over_065,structurally_dominated",True,False,True,0.9289446385321238,0.6500325043027619,89.0,0.0,0.0
+qwen3_moe_unified_mechanism_candidate,candidate,ablation_only,False,structurally_dominated,True,False,True,0.974167520902644,0.6438415286791134,0.0,0.0,0.0
+qwen3_moe_mechanistic_unified_candidate,candidate,final_selectable_trust_region,True,,True,True,False,0.988643592739873,0.6490630862881142,0.0,0.0,0.0
+qwen3_moe_subspace_scaled_candidate,candidate,final_selectable_trust_region,True,,True,True,False,0.9892989752314326,0.6234276715724305,0.0,0.0,0.0

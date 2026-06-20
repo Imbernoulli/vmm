@@ -1875,6 +1875,27 @@ def summarize_qwen3_moe_unified_result_selection_smoke() -> dict[str, Any]:
     }
 
 
+def summarize_qwen3_moe_candidate_trust_region_gate() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_candidate_trust_region_gate")
+    summary = read_json(root / "summary.json")
+    table = read_csv(root / "candidate_trust_region_gate.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "candidate_count": int(summary.get("candidate_count", 0)),
+        "final_selectable_candidate_count": int(summary.get("final_selectable_candidate_count", 0)),
+        "ablation_only_candidate_count": int(summary.get("ablation_only_candidate_count", 0)),
+        "structural_reject_candidate_count": int(summary.get("structural_reject_candidate_count", 0)),
+        "strict_routed_max_relative_delta": maybe_float(summary.get("strict_routed_max_relative_delta")),
+        "max_routed_tensors_gt_065": maybe_int(summary.get("max_routed_tensors_gt_065")),
+        "final_selectable_methods": summary.get("final_selectable_methods", []),
+        "gate_rows": [clean_row(row) for _, row in table.iterrows()],
+        "report": rel(root / "report.md"),
+        "gate": rel(root / "candidate_trust_region_gate.csv"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_qwen3_moe_final_candidate_selection() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_final_candidate_selection")
     summary = read_json(root / "summary.json")
@@ -4726,6 +4747,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/qwen3_moe_final_candidate_selection/report.md ranks all registered same-shape Qwen3 MoE candidates against both source endpoints after eval-bundle audit, with source-dominance, task-regression, score-confidence, paired-prediction, checkpoint-audit, and provisional-selection gates.",
         },
         {
+            "item": "Qwen3 MoE candidate trust-region gate",
+            "status": "complete",
+            "evidence": "results/qwen3_moe_candidate_trust_region_gate/report.md marks old high-risk candidates as ablation-only and exposes only strict routed-expert trust-region candidates to final default selection.",
+        },
+        {
             "item": "Unified Dense/MoE average optimizer",
             "status": "complete",
             "evidence": "results/unified_average_optimizer/report.md converts Dense barrier probes, Dense/Qwen3 MoE straight-line connectivity, MoE gauge probes, Qwen3 expert identity, router movement, router margin fragility, router-only NLL calibration evidence, unified mechanism caps, router-calibration gating, and final candidate-selection gates into one same-shape operation policy.",
@@ -4903,6 +4929,7 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_layer_chunk_candidate": summarize_qwen3_moe_layer_chunk_candidate(),
         "qwen3_moe_unified_result_selection": summarize_qwen3_moe_unified_result_selection(),
         "qwen3_moe_unified_result_selection_smoke": summarize_qwen3_moe_unified_result_selection_smoke(),
+        "qwen3_moe_candidate_trust_region_gate": summarize_qwen3_moe_candidate_trust_region_gate(),
         "qwen3_moe_final_candidate_selection": summarize_qwen3_moe_final_candidate_selection(),
         "qwen3_moe_final_candidate_selection_smoke": summarize_qwen3_moe_final_candidate_selection_smoke(),
         "unified_average_optimizer": summarize_unified_average_optimizer(),
@@ -5095,6 +5122,7 @@ def build_summary() -> dict[str, Any]:
             "python scripts/audit_materialized_checkpoint_delta.py --base BASE --candidate results/checkpoints/qwen3_moe_unified_mechanism_candidate --output-dir results/qwen3_moe_unified_mechanism_delta_audit",
             "python scripts/select_qwen3_moe_unified_result.py --output-dir results/qwen3_moe_unified_result_selection",
             "python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke",
+            "python scripts/build_qwen3_moe_candidate_trust_region_gate.py --output-dir results/qwen3_moe_candidate_trust_region_gate",
             "python scripts/select_qwen3_moe_final_candidate.py --output-dir results/qwen3_moe_final_candidate_selection",
             "python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke",
             "python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer",
@@ -5204,6 +5232,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_layer_chunk_candidate = exp["qwen3_moe_layer_chunk_candidate"]
     qwen3_moe_unified_result_selection = exp["qwen3_moe_unified_result_selection"]
     qwen3_moe_unified_result_selection_smoke = exp["qwen3_moe_unified_result_selection_smoke"]
+    qwen3_moe_candidate_trust_region_gate = exp["qwen3_moe_candidate_trust_region_gate"]
     qwen3_moe_final_candidate_selection = exp["qwen3_moe_final_candidate_selection"]
     qwen3_moe_final_candidate_selection_smoke = exp["qwen3_moe_final_candidate_selection_smoke"]
     unified_average_optimizer = exp["unified_average_optimizer"]
@@ -6059,6 +6088,18 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_unified_result_selection_smoke['status']} / "
                 f"{qwen3_moe_unified_result_selection_smoke['passed_case_count']}"
                 f"/{qwen3_moe_unified_result_selection_smoke['case_count']} |"
+            ),
+            (
+                "| Qwen3 MoE candidate trust-region gate | status / final-selectable / ablation-only | "
+                f"{qwen3_moe_candidate_trust_region_gate['status']} / "
+                f"{qwen3_moe_candidate_trust_region_gate['final_selectable_candidate_count']}"
+                f"/{qwen3_moe_candidate_trust_region_gate['candidate_count']} / "
+                f"{qwen3_moe_candidate_trust_region_gate['ablation_only_candidate_count']} |"
+            ),
+            (
+                "| Qwen3 MoE candidate trust-region gate | strict cap / selected methods | "
+                f"{fmt(qwen3_moe_candidate_trust_region_gate['strict_routed_max_relative_delta'])} / "
+                f"{qwen3_moe_candidate_trust_region_gate['final_selectable_methods']} |"
             ),
             (
                 "| Qwen3 MoE final candidate selector | status / selected / eligible | "

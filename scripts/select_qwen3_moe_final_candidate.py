@@ -151,6 +151,43 @@ def attach_structural_dominance(
     return rows
 
 
+def read_candidate_trust_gate(path: str | Path | None) -> dict[str, dict[str, Any]]:
+    if path is None:
+        return {}
+    table = read_csv(path)
+    if table.empty or "method" not in table:
+        return {}
+    return {
+        str(row["method"]): {str(key): clean_value(value) for key, value in row.to_dict().items()}
+        for _, row in table.iterrows()
+    }
+
+
+def attach_candidate_trust_gate(
+    rows: pd.DataFrame,
+    candidate_trust_gate: dict[str, dict[str, Any]] | None,
+) -> pd.DataFrame:
+    rows = rows.copy()
+    columns = [
+        "trust_region_category",
+        "final_selectable_by_trust_region",
+        "trust_region_rejection_reasons",
+    ]
+    for column in columns:
+        if column not in rows:
+            rows[column] = None
+    if not candidate_trust_gate:
+        return rows
+    for index, row in rows.iterrows():
+        method = str(row.get("method", "")).strip()
+        trust = candidate_trust_gate.get(method)
+        if not trust:
+            continue
+        for column in columns:
+            rows.at[index, column] = trust.get(column)
+    return rows
+
+
 def primary_metric(row: pd.Series | dict[str, Any]) -> tuple[str, float] | None:
     for column in ("strict_exact", "accuracy", "policy_accuracy", "compile_rate"):
         value = maybe_float(row.get(column))
@@ -546,6 +583,7 @@ def build_selection_table(
     rows: pd.DataFrame,
     *,
     structural_dominance: dict[str, dict[str, Any]] | None = None,
+    candidate_trust_gate: dict[str, dict[str, Any]] | None = None,
     task_regression_tolerance: float,
     use_uncertainty_gate: bool,
     use_paired_gate: bool,
@@ -555,6 +593,7 @@ def build_selection_table(
     use_confidence_tie_band: bool = True,
 ) -> tuple[pd.DataFrame, dict[str, Any]]:
     rows = attach_structural_dominance(rows, structural_dominance)
+    rows = attach_candidate_trust_gate(rows, candidate_trust_gate)
     sources = rows[rows["method"].isin(SOURCE_METHODS)].copy()
     candidates = rows[rows["role"] == "candidate"].copy()
     sources_complete = bool(len(sources) == len(SOURCE_METHODS) and sources["eval_usable"].astype(bool).all())
@@ -584,6 +623,9 @@ def build_selection_table(
         eligible = False
         rejection_reasons = []
         if is_candidate:
+            trust_final_selectable = maybe_bool(row.get("final_selectable_by_trust_region"))
+            if trust_final_selectable is False:
+                rejection_reasons.append("trust_region_gate_failed")
             if not bool(row.get("eval_usable", False)):
                 rejection_reasons.append("awaiting_candidate_eval")
             if not bool(row.get("audit_passed", False)):
@@ -656,6 +698,9 @@ def build_selection_table(
                 "structural_dominating_candidates": row.get("structural_dominating_candidates"),
                 "nearest_structural_candidate": row.get("nearest_structural_candidate"),
                 "nearest_structural_distance": row.get("nearest_structural_distance"),
+                "trust_region_category": row.get("trust_region_category"),
+                "final_selectable_by_trust_region": row.get("final_selectable_by_trust_region"),
+                "trust_region_rejection_reasons": row.get("trust_region_rejection_reasons"),
                 "dominated_by_source": ",".join(dominated_by),
                 "confidence_dominated_by_source": ",".join(confidence_dominated_by),
                 "task_regression_columns": ",".join(regressions),
@@ -796,8 +841,8 @@ def build_report(summary: dict[str, Any], table: pd.DataFrame) -> str:
         f"- Structural dominance available: `{selection.get('structural_dominance_available')}`",
         f"- Structural-frontier eligible candidates: `{selection.get('structural_frontier_eligible_count')}`",
         "",
-        "| method | role | usable | audit | avg | avg CI | worst | worst CI | rel norm | struct frontier | struct dom | struct safety | nearest struct | rank band | dominated | conf dom | regressions | conf regressions | paired net | paired p | paired regressions | eligible |",
-        "| --- | --- | --- | --- | ---: | --- | ---: | --- | ---: | --- | --- | ---: | --- | --- | --- | --- | --- | --- | ---: | ---: | --- | --- |",
+        "| method | role | usable | audit | trust | trust reasons | avg | avg CI | worst | worst CI | rel norm | struct frontier | struct dom | struct safety | nearest struct | rank band | dominated | conf dom | regressions | conf regressions | paired net | paired p | paired regressions | eligible |",
+        "| --- | --- | --- | --- | --- | --- | ---: | --- | ---: | --- | ---: | --- | --- | ---: | --- | --- | --- | --- | --- | --- | ---: | ---: | --- | --- |",
     ]
     for _, row in table.iterrows():
         paired_net = None
@@ -809,7 +854,10 @@ def build_report(summary: dict[str, Any], table: pd.DataFrame) -> str:
             )
         lines.append(
             f"| `{row['method']}` | `{row['role']}` | `{bool(row['eval_usable'])}` | "
-            f"`{bool(row['audit_passed'])}` | {fmt(row.get('avg_primary_score'))} | "
+            f"`{bool(row['audit_passed'])}` | "
+            f"`{fmt(row.get('trust_region_category'))}` | "
+            f"`{fmt(row.get('trust_region_rejection_reasons'))}` | "
+            f"{fmt(row.get('avg_primary_score'))} | "
             f"[{fmt(row.get('avg_primary_lower'))}, {fmt(row.get('avg_primary_upper'))}] | "
             f"{fmt(row.get('worst_primary_score'))} | "
             f"[{fmt(row.get('worst_primary_lower'))}, {fmt(row.get('worst_primary_upper'))}] | "
@@ -863,6 +911,7 @@ def write_outputs(
             "both source endpoints must pass eval-bundle audit",
             "candidate must pass eval-bundle audit",
             "candidate checkpoint audit must pass",
+            "candidate must pass the candidate-level trust-region gate when that gate artifact is available",
             "candidate must not be dominated by either source endpoint",
             "candidate must not be dominated by either source endpoint after score confidence intervals",
             "candidate must not regress a task below both source endpoints",
@@ -1104,6 +1153,36 @@ def smoke_rows(case: str) -> pd.DataFrame:
             nearest_structural_candidate="subspace_scaled",
         )
         rows = add_smoke_intervals(rows)
+    elif case == "trust_region_gate":
+        rows[2].update(
+            avg_primary_score=0.80,
+            worst_primary_score=0.80,
+            task_gsm8k_score=0.80,
+            task_mmlu_score=0.80,
+            task_safety_score=0.80,
+            task_humaneval_compile_score=0.80,
+            trust_region_category="ablation_only",
+            final_selectable_by_trust_region=False,
+            trust_region_rejection_reasons="routed_tail_over_065",
+        )
+        rows[3].update(
+            method="qwen3_moe_mechanistic_unified_candidate",
+            avg_primary_score=0.70,
+            worst_primary_score=0.70,
+            task_gsm8k_score=0.70,
+            task_mmlu_score=0.70,
+            task_safety_score=0.70,
+            task_humaneval_compile_score=0.70,
+            total_relative_delta_norm=0.240,
+            structural_frontier_member=True,
+            structurally_dominated=False,
+            structural_safety_score=0.99,
+            nearest_structural_candidate="subspace_scaled",
+            trust_region_category="final_selectable_trust_region",
+            final_selectable_by_trust_region=True,
+            trust_region_rejection_reasons="",
+        )
+        rows = add_smoke_intervals(rows)
     elif case == "partial":
         rows[3]["eval_usable"] = False
     elif case != "candidate_win":
@@ -1125,6 +1204,7 @@ def run_smoke_matrix(args: argparse.Namespace) -> dict[str, Any]:
             "select_candidate",
             "qwen3_moe_tail_trimmed_expert_only_candidate",
         ),
+        "trust_region_gate": ("select_candidate", "qwen3_moe_mechanistic_unified_candidate"),
         "partial": ("provisional_candidate", "qwen3_moe_tail_trimmed_expert_only_candidate"),
     }
     rows = []
@@ -1206,6 +1286,11 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=Path("results/qwen3_moe_delta_frontier/structural_dominance.csv"),
     )
+    parser.add_argument(
+        "--candidate-trust-gate",
+        type=Path,
+        default=Path("results/qwen3_moe_candidate_trust_region_gate/candidate_trust_region_gate.csv"),
+    )
     parser.add_argument("--smoke-matrix", action="store_true")
     parser.add_argument("--task-regression-tolerance", type=float, default=1e-9)
     parser.add_argument("--selection-score-tie-tolerance", type=float, default=0.0)
@@ -1227,9 +1312,11 @@ def main() -> None:
         return
     rows = load_real_rows(args.gate_dir, args.audit_dir, confidence_z=args.confidence_z)
     structural_dominance = read_structural_dominance(args.structural_dominance)
+    candidate_trust_gate = read_candidate_trust_gate(args.candidate_trust_gate)
     table, selection = build_selection_table(
         rows,
         structural_dominance=structural_dominance,
+        candidate_trust_gate=candidate_trust_gate,
         task_regression_tolerance=args.task_regression_tolerance,
         use_uncertainty_gate=not args.disable_uncertainty_gate,
         use_paired_gate=not args.disable_paired_gate,

@@ -8,10 +8,10 @@
   },
   "passed_step_count": 0,
   "plan_only": true,
-  "planned_step_count": 20,
+  "planned_step_count": 21,
   "schema_version": 1,
   "status": "planned",
-  "step_count": 20,
+  "step_count": 21,
   "steps": [
     {
       "command": "python scripts/audit_qwen3_moe_eval_bundle.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_eval_bundle_audit",
@@ -34,7 +34,17 @@
       "step": "select_unified_result"
     },
     {
-      "command": "python scripts/select_qwen3_moe_final_candidate.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_final_candidate_selection",
+      "command": "python scripts/build_qwen3_moe_candidate_trust_region_gate.py --gate-plan results/qwen3_moe_mechanism_eval_gate/eval_gate_plan.csv --output-dir results/qwen3_moe_candidate_trust_region_gate",
+      "duration_sec": 0.0,
+      "kind": "gate",
+      "returncode": null,
+      "status": "planned",
+      "stderr_tail": "",
+      "stdout_tail": "",
+      "step": "build_candidate_trust_region_gate"
+    },
+    {
+      "command": "python scripts/select_qwen3_moe_final_candidate.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_final_candidate_selection --candidate-trust-gate results/qwen3_moe_candidate_trust_region_gate/candidate_trust_region_gate.csv",
       "duration_sec": 0.0,
       "kind": "selector",
       "returncode": null,

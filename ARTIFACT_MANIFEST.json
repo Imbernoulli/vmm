@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 93164,
+      "bytes": 93726,
       "kind": "document",
       "path": "README.md",
-      "sha256": "dc648d174b76ffae5a278cc7e4e3f0625ab3df796f4f4cf02db6141bb7a4c8eb"
+      "sha256": "d29acd0cc92d48238fdedd8ed365de47bac6368905d780ce6ee1c0a92170fc5c"
     },
     {
       "bytes": 33211,
@@ -2065,6 +2065,24 @@
       "sha256": "5ee3b96ebbcbac4cecc882f19503bc91ac83278214714540a915ed1e6f4e4eb5"
     },
     {
+      "bytes": 2372,
+      "kind": "data",
+      "path": "results/qwen3_moe_candidate_trust_region_gate/candidate_trust_region_gate.csv",
+      "sha256": "0aac87367afba783613a2ae9496ee4fdc7db5d03af41346a67ec7d8235528c8c"
+    },
+    {
+      "bytes": 2674,
+      "kind": "document",
+      "path": "results/qwen3_moe_candidate_trust_region_gate/report.md",
+      "sha256": "bdf9b0311db9e9b750ceeffb8197c2cc51b0918a505625752260972606728976"
+    },
+    {
+      "bytes": 822,
+      "kind": "data",
+      "path": "results/qwen3_moe_candidate_trust_region_gate/summary.json",
+      "sha256": "b3dbe230507f11acc11a40db3babd96c3713464eaf1c8ce1e5679b149ed90827"
+    },
+    {
       "bytes": 4422,
       "kind": "data",
       "path": "results/qwen3_moe_delta_frontier/candidate_delta_frontier.csv",
@@ -2479,22 +2497,22 @@
       "sha256": "430fe9ff771c796952bbac2c7d275e0af31fc30f0c69182d77ef985cae3c9d7e"
     },
     {
-      "bytes": 1263,
+      "bytes": 1365,
       "kind": "data",
       "path": "results/qwen3_moe_final_candidate_selection/decision_rules.json",
-      "sha256": "a4a797fbea760cb539c8d5d422d88bdfbfa770a4c4a501a390bd117f30111c40"
+      "sha256": "51923b436f525a764a8c8cf6edbfd4e487b7d88b60c0c98cec8fe26e4c3e7ee5"
     },
     {
-      "bytes": 4457,
+      "bytes": 5345,
       "kind": "document",
       "path": "results/qwen3_moe_final_candidate_selection/report.md",
-      "sha256": "96aaf92ec3e4ab8962f704878ddf7558aa1b545fe0251c4b6ba99276cf6d89ac"
+      "sha256": "c85b1fac2eec428652247d8342877a4f4bc05c5257edba2def6e218f270c40e5"
     },
     {
-      "bytes": 3760,
+      "bytes": 4888,
       "kind": "data",
       "path": "results/qwen3_moe_final_candidate_selection/selection_table.csv",
-      "sha256": "2cc014e3c6bb6374040ccc1f40c11034df1b3acb0f9bf11ceff0bec904c4ab23"
+      "sha256": "657a5c840b94f645b56408331a4663c498295bad4ac658cb5643bd44d1fd6dfa"
     },
     {
       "bytes": 2074,
@@ -2503,22 +2521,22 @@
       "sha256": "e1ad150effe35b21b8b0140d96213aef1740c6bc68a06313dc2a5dbee6de62d5"
     },
     {
-      "bytes": 1514,
+      "bytes": 1655,
       "kind": "document",
       "path": "results/qwen3_moe_final_candidate_selection_smoke/report.md",
-      "sha256": "339b90836d63b4e6e87e4473829a5333944025e372b08c0e5a00cfedd2bce373"
+      "sha256": "ffa28b94ce2d41c25b85377207a779cdcf3fb0bd4f23682a9577b337e6c5fc96"
     },
     {
-      "bytes": 1735,
+      "bytes": 1907,
       "kind": "data",
       "path": "results/qwen3_moe_final_candidate_selection_smoke/selector_matrix.csv",
-      "sha256": "4b58d73df4bc10be7ea6c876e3878ddfe887fea99858c1a547cab3f5099875d7"
+      "sha256": "a6d940ee0a528e7af9e591e15be390e7e2308fba25062556da12df897897967e"
     },
     {
-      "bytes": 4419,
+      "bytes": 4831,
       "kind": "data",
       "path": "results/qwen3_moe_final_candidate_selection_smoke/summary.json",
-      "sha256": "98a27d0aafab0833222285dc6725976d9cbb5e47d1a4a61260f24d3118600278"
+      "sha256": "790a40f8a5385648cb6636c9c7ac123df4866c217a369b1c7f24d8747c9b077e"
     },
     {
       "bytes": 722,
@@ -2905,40 +2923,40 @@
       "sha256": "16040e4106918bfa5bcc11154b4fde0dea87231b51ff334f4546f583c8a3b464"
     },
     {
-      "bytes": 6249,
+      "bytes": 6727,
       "kind": "document",
       "path": "results/qwen3_moe_post_eval_refresh/report.md",
-      "sha256": "2011bdb9678ff32778ab23d16f6399aaf5d4d1df2b257582a43e6ec1b5a426b6"
+      "sha256": "5790a80d03845851190795c26038edc2c55af594fac35a87759e33aabe6cf7b3"
     },
     {
-      "bytes": 7641,
+      "bytes": 8205,
       "kind": "data",
       "path": "results/qwen3_moe_post_eval_refresh/steps.csv",
-      "sha256": "204abe209e7e2958dd6706126a22095fded037ecc8cb3539f835823fb41ed5dc"
+      "sha256": "cf7079ad1a8018e5dfaf87ba8ee0228060507c5235488465a4fc84bb46f1c09c"
     },
     {
-      "bytes": 14396,
+      "bytes": 15358,
       "kind": "data",
       "path": "results/qwen3_moe_post_eval_refresh/summary.json",
-      "sha256": "af0f501aa44979d3ad4953a508a0d613cb2a8733e2972e298a39b566e0d24428"
+      "sha256": "a1e2e338203fa678a2f7a16f121d0bf0afec2e65fbd5a95079613a0b38c8505e"
     },
     {
-      "bytes": 6010,
+      "bytes": 6467,
       "kind": "document",
       "path": "results/qwen3_moe_post_eval_refresh_plan/report.md",
-      "sha256": "0042dd379a98e8f70584d2ef3a0a8cadafa1ce62a251694dab887acf6a75a60e"
+      "sha256": "4f4772f1bb94bd016656a62f1536c9fdfc44653679610aa49d48524ea134f7a5"
     },
     {
-      "bytes": 4111,
+      "bytes": 4456,
       "kind": "data",
       "path": "results/qwen3_moe_post_eval_refresh_plan/steps.csv",
-      "sha256": "bfc1f730cee11422c804980ed94055933bcef529214454e136f16b6ae688f350"
+      "sha256": "3f95b08d6e3009a47b4da17c0345f36272429caabe236b0b289b16aa3ea2109f"
     },
     {
-      "bytes": 8091,
+      "bytes": 8617,
       "kind": "data",
       "path": "results/qwen3_moe_post_eval_refresh_plan/summary.json",
-      "sha256": "b3b0044336f4cd05aaa42421abf2e460996f0eb483d99717d2f8d5acb4232962"
+      "sha256": "a0c78b017c38685ccc1cb0440a3b3b05905a19a2f0e50685d6cb5e913abdd98c"
     },
     {
       "bytes": 5214,
@@ -5437,16 +5455,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 2298653,
+      "bytes": 2315498,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "06240d27aad4d7fd90835cd4bbb8a7f5ac26226eb094b572cf60b8fe3975a54a"
+      "sha256": "bcf58b1448bf30ba8bb574570844c914d2027fd99b4c21219d1fa3b7f4100558"
     },
     {
-      "bytes": 64145,
+      "bytes": 64694,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "a05b2202459c31d811cb40197181e98f8b1450e3c324b98787e0afe6e4d2b320"
+      "sha256": "a0429830985ac38eadd26d5830b24d2d91368b9a9b274372d546729aa9cbefbb"
     },
     {
       "bytes": 288,
@@ -6673,6 +6691,12 @@
       "sha256": "6c72cb26c108b4094956a08717ee167135d6a3a6091df4bf8b57822038db519b"
     },
     {
+      "bytes": 11283,
+      "kind": "code",
+      "path": "scripts/build_qwen3_moe_candidate_trust_region_gate.py",
+      "sha256": "da685a3ea7d03ef18c5b9b94d19b18793689a6f4bd15c3c8a9f379b67ad124af"
+    },
+    {
       "bytes": 45201,
       "kind": "code",
       "path": "scripts/build_qwen3_moe_delta_frontier.py",
@@ -6793,10 +6817,10 @@
       "sha256": "cd588bc1804013f4043bd95c245b066dbae86bfd3e3f9c18317ef33eb506f123"
     },
     {
-      "bytes": 452979,
+      "bytes": 455646,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "19d1878e1f8b45bced4ba0c24b9b94ab2edc59337d15cd0c50ef76fbeba83dd2"
+      "sha256": "6d5c422186badfdb8514777e38274fcc9f15347294a2d34d65eeb3e0136d0ae6"
     },
     {
       "bytes": 16101,
@@ -6889,10 +6913,10 @@
       "sha256": "9f211e934ffbcd7d5a0df9eed38a4cdd7d5d601adf2d4877519bb4cef8ac9f02"
     },
     {
-      "bytes": 27414,
+      "bytes": 29049,
       "kind": "code",
       "path": "scripts/refresh_qwen3_moe_post_eval.py",
-      "sha256": "c62a27cd49f45104376795e385a04478d9719ca3572cb9dac2805a26d573208d"
+      "sha256": "00618667115ee514334e7c9279f466f98b73e900f55528ea598793ecb1ec66f8"
     },
     {
       "bytes": 10141,
@@ -6997,10 +7021,10 @@
       "sha256": "db053e7a0691ec45cb8f4dd82cce68e2a3c445f1ad470e2327e6483ffc17427f"
     },
     {
-      "bytes": 55729,
+      "bytes": 59374,
       "kind": "code",
       "path": "scripts/select_qwen3_moe_final_candidate.py",
-      "sha256": "27ecc99abdd013ef202267560f82137b9be06853f14dee8e8dc4f063a8b50086"
+      "sha256": "9d41c36e3033488091f7cb0add297fbfc63cc2a1ff41cda2a2423f1d77802058"
     },
     {
       "bytes": 83572,
@@ -7117,7 +7141,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-20T11:29:45.230144+00:00",
+  "generated_at": "2026-06-20T11:42:15.990332+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

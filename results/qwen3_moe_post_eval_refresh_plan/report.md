@@ -4,10 +4,11 @@
 
 - Status: `planned`
 - Plan only: `True`
-- Steps passed: `0/20`
+- Steps passed: `0/21`
 - Audit: `n/a` (`n/a/n/a` usable)
 - Selection: `n/a` -> `n/a`
 - Final selection: `n/a` -> `n/a` (`n/a/n/a` eligible)
+- Candidate trust-region gate: `n/a` (`n/a/n/a` final-selectable, `n/a` ablation-only)
 - Attribution: `n/a` (`n/a/n/a` scored)
 - Feedback optimizer: `n/a` (`n/a/n/a` scored, `n/a` changed groups)
 - Mechanistic unified: `n/a` -> `n/a` (`retention=n/a`, `violations=n/a`)
@@ -24,6 +25,7 @@
 | --- | --- | --- | ---: | ---: |
 | `audit_eval_bundles` | `gate` | `planned` | None | 0.00 |
 | `select_unified_result` | `selector` | `planned` | None | 0.00 |
+| `build_candidate_trust_region_gate` | `gate` | `planned` | None | 0.00 |
 | `select_final_candidate` | `selector` | `planned` | None | 0.00 |
 | `attribute_mechanism_effects` | `attribution` | `planned` | None | 0.00 |
 | `build_feedback_optimizer` | `optimizer` | `planned` | None | 0.00 |
@@ -47,7 +49,8 @@
 
 - `python scripts/audit_qwen3_moe_eval_bundle.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_eval_bundle_audit`
 - `python scripts/select_qwen3_moe_unified_result.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_unified_result_selection`
-- `python scripts/select_qwen3_moe_final_candidate.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_final_candidate_selection`
+- `python scripts/build_qwen3_moe_candidate_trust_region_gate.py --gate-plan results/qwen3_moe_mechanism_eval_gate/eval_gate_plan.csv --output-dir results/qwen3_moe_candidate_trust_region_gate`
+- `python scripts/select_qwen3_moe_final_candidate.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_final_candidate_selection --candidate-trust-gate results/qwen3_moe_candidate_trust_region_gate/candidate_trust_region_gate.csv`
 - `python scripts/attribute_qwen3_moe_mechanism_effects.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_mechanism_effect_attribution`
 - `python scripts/build_qwen3_moe_feedback_optimizer.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_feedback_optimizer`
 - `python scripts/build_qwen3_moe_mechanistic_unified_candidate.py --output-dir results/qwen3_moe_mechanistic_unified_candidate`

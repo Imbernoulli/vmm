@@ -3,6 +3,7 @@
     "both source endpoints must pass eval-bundle audit",
     "candidate must pass eval-bundle audit",
     "candidate checkpoint audit must pass",
+    "candidate must pass the candidate-level trust-region gate when that gate artifact is available",
     "candidate must not be dominated by either source endpoint",
     "candidate must not be dominated by either source endpoint after score confidence intervals",
     "candidate must not regress a task below both source endpoints",

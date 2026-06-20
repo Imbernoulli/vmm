@@ -122,6 +122,18 @@ def build_steps(args: argparse.Namespace) -> list[dict[str, Any]]:
             ],
         },
         {
+            "step": "build_candidate_trust_region_gate",
+            "kind": "gate",
+            "command": [
+                py,
+                "scripts/build_qwen3_moe_candidate_trust_region_gate.py",
+                "--gate-plan",
+                str(args.gate_dir / "eval_gate_plan.csv"),
+                "--output-dir",
+                str(args.candidate_trust_region_gate_dir),
+            ],
+        },
+        {
             "step": "select_final_candidate",
             "kind": "selector",
             "command": [
@@ -133,6 +145,8 @@ def build_steps(args: argparse.Namespace) -> list[dict[str, Any]]:
                 str(args.audit_dir),
                 "--output-dir",
                 str(args.final_selection_dir),
+                "--candidate-trust-gate",
+                str(args.candidate_trust_region_gate_dir / "candidate_trust_region_gate.csv"),
             ],
         },
         {
@@ -342,6 +356,7 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
     audit = read_json(repo_path(args.audit_dir) / "summary.json")
     selection = read_json(repo_path(args.selection_dir) / "summary.json")
     final_selection = read_json(repo_path(args.final_selection_dir) / "summary.json")
+    candidate_trust_region_gate = read_json(repo_path(args.candidate_trust_region_gate_dir) / "summary.json")
     attribution = read_json(repo_path(args.attribution_dir) / "summary.json")
     feedback = read_json(repo_path(args.feedback_dir) / "summary.json")
     mechanistic = read_json(repo_path(args.mechanistic_dir) / "summary.json")
@@ -371,6 +386,14 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
         "final_selection_reason": final_current.get("reason"),
         "final_eligible_candidate_count": final_current.get("eligible_candidate_count"),
         "final_candidate_count": final_current.get("candidate_count"),
+        "candidate_trust_region_gate_status": candidate_trust_region_gate.get("status"),
+        "candidate_trust_region_final_selectable": candidate_trust_region_gate.get(
+            "final_selectable_candidate_count"
+        ),
+        "candidate_trust_region_candidates": candidate_trust_region_gate.get("candidate_count"),
+        "candidate_trust_region_ablation_only": candidate_trust_region_gate.get(
+            "ablation_only_candidate_count"
+        ),
         "attribution_status": attribution.get("status"),
         "attribution_scored_transition_count": attribution.get("scored_transition_count"),
         "attribution_transition_count": attribution.get("transition_count"),
@@ -442,6 +465,7 @@ def build_report(summary: dict[str, Any]) -> str:
         f"- Audit: `{downstream.get('audit_status', 'n/a')}` (`{downstream.get('audit_usable_for_selection', 'n/a')}/{downstream.get('audit_method_count', 'n/a')}` usable)",
         f"- Selection: `{downstream.get('selection_status', 'n/a')}` -> `{downstream.get('selected_method', 'n/a')}`",
         f"- Final selection: `{downstream.get('final_selection_status', 'n/a')}` -> `{downstream.get('final_selected_method', 'n/a')}` (`{downstream.get('final_eligible_candidate_count', 'n/a')}/{downstream.get('final_candidate_count', 'n/a')}` eligible)",
+        f"- Candidate trust-region gate: `{downstream.get('candidate_trust_region_gate_status', 'n/a')}` (`{downstream.get('candidate_trust_region_final_selectable', 'n/a')}/{downstream.get('candidate_trust_region_candidates', 'n/a')}` final-selectable, `{downstream.get('candidate_trust_region_ablation_only', 'n/a')}` ablation-only)",
         f"- Attribution: `{downstream.get('attribution_status', 'n/a')}` (`{downstream.get('attribution_scored_transition_count', 'n/a')}/{downstream.get('attribution_transition_count', 'n/a')}` scored)",
         f"- Feedback optimizer: `{downstream.get('feedback_status', 'n/a')}` (`{downstream.get('feedback_scored_task_count', 'n/a')}/{downstream.get('feedback_task_count', 'n/a')}` scored, `{downstream.get('feedback_changed_group_count', 'n/a')}` changed groups)",
         f"- Mechanistic unified: `{downstream.get('mechanistic_status', 'n/a')}` -> `{downstream.get('mechanistic_selected_candidate', 'n/a')}` (`retention={downstream.get('mechanistic_retention', 'n/a')}`, `violations={downstream.get('mechanistic_hard_cap_violations', 'n/a')}`)",
@@ -509,6 +533,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--audit-dir", type=Path, default=Path("results/qwen3_moe_eval_bundle_audit"))
     parser.add_argument("--selection-dir", type=Path, default=Path("results/qwen3_moe_unified_result_selection"))
     parser.add_argument("--final-selection-dir", type=Path, default=Path("results/qwen3_moe_final_candidate_selection"))
+    parser.add_argument(
+        "--candidate-trust-region-gate-dir",
+        type=Path,
+        default=Path("results/qwen3_moe_candidate_trust_region_gate"),
+    )
     parser.add_argument("--attribution-dir", type=Path, default=Path("results/qwen3_moe_mechanism_effect_attribution"))
     parser.add_argument("--feedback-dir", type=Path, default=Path("results/qwen3_moe_feedback_optimizer"))
     parser.add_argument(

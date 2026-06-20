@@ -1,5 +1,5 @@
 {
-  "case_count": 10,
+  "case_count": 11,
   "cases": [
     {
       "case": "candidate_win",
@@ -101,6 +101,17 @@
       "status": "select_candidate"
     },
     {
+      "case": "trust_region_gate",
+      "eligible_candidate_count": 2,
+      "expected_selected_method": "qwen3_moe_mechanistic_unified_candidate",
+      "expected_status": "select_candidate",
+      "passed": true,
+      "rank_band_size": 2,
+      "rank_mode": "confidence_tie_band_structural",
+      "selected_method": "qwen3_moe_mechanistic_unified_candidate",
+      "status": "select_candidate"
+    },
+    {
       "case": "partial",
       "eligible_candidate_count": 1,
       "expected_selected_method": "qwen3_moe_tail_trimmed_expert_only_candidate",
@@ -118,7 +129,7 @@
     "report": "results/qwen3_moe_final_candidate_selection_smoke/report.md",
     "summary": "results/qwen3_moe_final_candidate_selection_smoke/summary.json"
   },
-  "passed_case_count": 10,
+  "passed_case_count": 11,
   "schema_version": 1,
   "status": "passed"
 }

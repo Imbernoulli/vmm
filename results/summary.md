@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-20T11:29:45.206317+00:00`
+Generated at: `2026-06-20T11:42:15.938453+00:00`
 
 ## Coverage
 
-Complete: `93`; partial: `1`; missing: `0`.
+Complete: `94`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -84,6 +84,7 @@ Complete: `93`; partial: `1`; missing: `0`.
 | Qwen3 MoE layer/chunk coefficient candidate | complete | results/qwen3_moe_layer_chunk_candidate/report.md converts the mechanism leverage layer scores into writer-ready same-shape tensor rules; results/qwen3_moe_layer_chunk_delta_audit/report.md verifies the materialized same-shape checkpoint. |
 | Qwen3 MoE unified downstream result selector | complete | results/qwen3_moe_unified_result_selection/report.md gates the unified same-shape average against both Qwen3 source endpoints after matched vLLM eval; results/qwen3_moe_unified_result_selection_smoke/report.md covers candidate-win, source-dominance, task-regression, and no-gain branches. |
 | Qwen3 MoE final candidate selector | complete | results/qwen3_moe_final_candidate_selection/report.md ranks all registered same-shape Qwen3 MoE candidates against both source endpoints after eval-bundle audit, with source-dominance, task-regression, score-confidence, paired-prediction, checkpoint-audit, and provisional-selection gates. |
+| Qwen3 MoE candidate trust-region gate | complete | results/qwen3_moe_candidate_trust_region_gate/report.md marks old high-risk candidates as ablation-only and exposes only strict routed-expert trust-region candidates to final default selection. |
 | Unified Dense/MoE average optimizer | complete | results/unified_average_optimizer/report.md converts Dense barrier probes, Dense/Qwen3 MoE straight-line connectivity, MoE gauge probes, Qwen3 expert identity, router movement, router margin fragility, router-only NLL calibration evidence, unified mechanism caps, router-calibration gating, and final candidate-selection gates into one same-shape operation policy. |
 | Qwen3 MoE vLLM eval bundle audit | complete | results/qwen3_moe_eval_bundle_audit/report.md checks every Qwen3 source/candidate eval output for model-id, task-manifest sha, task, example-count, prediction, primary-score, and paired prediction-key consistency before selector use; results/qwen3_moe_eval_bundle_audit_smoke/report.md covers valid, stale-model, missing-task, low-example, key-mismatch, and manifest-mismatch bundles. |
 | Qwen3 MoE mechanism effect attribution | complete | results/qwen3_moe_mechanism_effect_attribution/report.md decomposes the Qwen3 MoE source-frontier -> route-guarded -> audit-gated -> trust-region -> expert-only -> tail-trimmed -> searched-cap -> layer/chunk -> unified-mechanism chain into structural and downstream score deltas, gated by the eval-bundle audit. |
@@ -244,12 +245,14 @@ Complete: `93`; partial: `1`; missing: `0`.
 | Qwen3 MoE unified result selector | status / selected / reason | awaiting_source_eval / None / Both Qwen3 source endpoints must complete matched vLLM downstream eval before accepting an average. |
 | Qwen3 MoE unified result selector | source complete / unified complete / eligible | False / False / 0/3 |
 | Qwen3 MoE unified result selector smoke | status / passed cases | passed / 4/4 |
+| Qwen3 MoE candidate trust-region gate | status / final-selectable / ablation-only | candidate_trust_region_gate_ready / 2/10 / 8 |
+| Qwen3 MoE candidate trust-region gate | strict cap / selected methods | 0.650 / ['qwen3_moe_mechanistic_unified_candidate', 'qwen3_moe_subspace_scaled_candidate'] |
 | Qwen3 MoE final candidate selector | status / selected / eligible | awaiting_source_eval / None / 0/10 |
 | Qwen3 MoE final candidate selector | usable / complete / best source | 0/10 / False / None |
 | Qwen3 MoE final candidate selector | uncertainty / paired gates / paired alpha | True / True / 0.050 |
 | Qwen3 MoE final candidate selector | structural frontier / dominated / safety / tie tolerance | None / None / n/a / 0.000 |
 | Qwen3 MoE final candidate selector | rank mode / confidence band / band size / point leader | None / True / 0 / None |
-| Qwen3 MoE final candidate selector smoke | status / passed cases | passed / 10/10 |
+| Qwen3 MoE final candidate selector smoke | status / passed cases | passed / 11/11 |
 | unified average optimizer | status / dense / MoE | built_waiting_for_qwen3_vllm_eval / avoid_linear_midpoint_use_probe_selected_anchor_or_low_lambda / align_experts_freeze_router_then_gate_candidate_by_vllm |
 | unified average optimizer | hypotheses / queue / top experiment | 9 / 5 / budgeted_qwen3_moe_downstream_eval |
 | unified average optimizer | evidence ledger / verdicts | 9 / {'awaiting_downstream_eval': 2, 'promising_but_unaccepted': 1, 'supports_conditional_action': 1, 'supports_current_action': 5} |
@@ -287,8 +290,8 @@ Complete: `93`; partial: `1`; missing: `0`.
 | Qwen3 MoE mechanistic evidence audit | gradient agree / objective improved / hard-cap bound | 1.000 / 0.945 / 319 |
 | Qwen3 MoE mechanistic evidence audit | dominant binding / suppressing features | cost_gradient_shrink / curvature_score, feature_router_instability, feature_expert_internal_geometry |
 | Qwen3 MoE mechanistic unified smoke | status / passed cases | passed / 4/4 |
-| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | passed / 20/20 / 0/12 |
-| Qwen3 MoE post-eval refresh | selection / final selection / attribution scored / plan steps | awaiting_source_eval / awaiting_source_eval / 0/10 / 20/20 |
+| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | passed / 21/21 / 0/12 |
+| Qwen3 MoE post-eval refresh | selection / final selection / attribution scored / plan steps | awaiting_source_eval / awaiting_source_eval / 0/10 / 21/21 |
 | Qwen3 MoE post-eval refresh | feedback status / scored tasks / changed groups | awaiting_eval / 0/4 / 0 |
 | Qwen3 MoE post-eval refresh | mechanistic status / retention / hard-cap violations | mechanistic_unified_candidate_ready / 0.965 / 0 |
 | Qwen3 MoE router move gate | status / action / allowed layers | router_move_rejected_freeze_router / freeze_router / 0/48 |

@@ -1,7 +1,7 @@
 # Qwen3 MoE Final Candidate Selector Smoke
 
 - Status: `passed`
-- Cases: `10/10`
+- Cases: `11/11`
 
 | case | status | selected | eligible | rank mode | band | passed |
 | --- | --- | --- | ---: | --- | ---: | --- |
@@ -14,4 +14,5 @@
 | `structural_tie_break` | `select_candidate` | `qwen3_moe_mechanistic_unified_candidate` | 2 | `confidence_tie_band_structural` | 2 | `True` |
 | `confidence_structural_band` | `select_candidate` | `qwen3_moe_mechanistic_unified_candidate` | 2 | `confidence_tie_band_structural` | 2 | `True` |
 | `confidence_separated_point_leader` | `select_candidate` | `qwen3_moe_tail_trimmed_expert_only_candidate` | 2 | `confidence_tie_band_structural` | 1 | `True` |
+| `trust_region_gate` | `select_candidate` | `qwen3_moe_mechanistic_unified_candidate` | 2 | `confidence_tie_band_structural` | 2 | `True` |
 | `partial` | `provisional_candidate` | `qwen3_moe_tail_trimmed_expert_only_candidate` | 1 | `confidence_tie_band_structural` | 1 | `True` |
