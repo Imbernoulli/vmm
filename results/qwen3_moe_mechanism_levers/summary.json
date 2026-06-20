@@ -1,0 +1,18 @@
+{
+  "fine_calibration_layers": "12,17,18,20,21,22,23,26",
+  "lever_count": 9,
+  "literature_count": 5,
+  "outputs": {
+    "layer_chunking_plan": "results/qwen3_moe_mechanism_levers/layer_chunking_plan.csv",
+    "literature_sources": "results/qwen3_moe_mechanism_levers/literature_sources.json",
+    "mechanism_levers": "results/qwen3_moe_mechanism_levers/mechanism_levers.csv",
+    "next_experiment_queue": "results/qwen3_moe_mechanism_levers/next_experiment_queue.csv",
+    "report": "results/qwen3_moe_mechanism_levers/report.md",
+    "summary": "results/qwen3_moe_mechanism_levers/summary.json"
+  },
+  "queue_count": 6,
+  "schema_version": 1,
+  "status": "mechanism_leverage_map_ready",
+  "top_lever": "source_and_candidate_downstream_eval",
+  "top_lever_priority": 0.98
+}

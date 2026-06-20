@@ -1216,6 +1216,39 @@ def summarize_qwen3_moe_eval_budget_plan() -> dict[str, Any]:
     }
 
 
+def summarize_qwen3_moe_mechanism_levers() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_mechanism_levers")
+    summary = read_json(root / "summary.json")
+    levers = read_csv(root / "mechanism_levers.csv")
+    queue = read_csv(root / "next_experiment_queue.csv")
+    chunking = read_csv(root / "layer_chunking_plan.csv")
+    top_lever = clean_row(levers.iloc[0]) if not levers.empty else {}
+    top_chunk = clean_row(chunking.iloc[0]) if not chunking.empty else {}
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "lever_count": int(summary.get("lever_count", len(levers))),
+        "top_lever": summary.get("top_lever"),
+        "top_lever_priority": maybe_float(summary.get("top_lever_priority")),
+        "fine_calibration_layers": summary.get("fine_calibration_layers"),
+        "queue_count": int(summary.get("queue_count", len(queue))),
+        "literature_count": int(summary.get("literature_count", 0)),
+        "top_lever_action": top_lever.get("current_action"),
+        "top_lever_next_test": top_lever.get("next_test"),
+        "top_chunk_layer": maybe_int(top_chunk.get("layer")),
+        "top_chunk_score": maybe_float(top_chunk.get("layer_importance_score")),
+        "lever_rows": [clean_row(row) for _, row in levers.iterrows()],
+        "queue_rows": [clean_row(row) for _, row in queue.iterrows()],
+        "chunking_rows": [clean_row(row) for _, row in chunking.iterrows()],
+        "report": rel(root / "report.md"),
+        "mechanism_levers": rel(root / "mechanism_levers.csv"),
+        "next_experiment_queue": rel(root / "next_experiment_queue.csv"),
+        "layer_chunking_plan": rel(root / "layer_chunking_plan.csv"),
+        "literature_sources": rel(root / "literature_sources.json"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_qwen3_moe_unified_result_selection() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_unified_result_selection")
     summary = read_json(root / "summary.json")
@@ -3359,6 +3392,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/qwen3_moe_eval_budget_plan/report.md raises the Qwen3 source/candidate vLLM run from a 64-example smoke floor to a Wilson/paired-test budgeted eval script.",
         },
         {
+            "item": "Qwen3 MoE mechanism leverage map",
+            "status": "complete",
+            "evidence": "results/qwen3_moe_mechanism_levers/report.md ranks MoE-specific failure mechanisms, next experiments, and importance-guided layer/chunk calibration slots from real Qwen3 probes.",
+        },
+        {
             "item": "Qwen3 MoE unified downstream result selector",
             "status": "complete",
             "evidence": "results/qwen3_moe_unified_result_selection/report.md gates the unified same-shape average against both Qwen3 source endpoints after matched vLLM eval; results/qwen3_moe_unified_result_selection_smoke/report.md covers candidate-win, source-dominance, task-regression, and no-gain branches.",
@@ -3508,6 +3546,7 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_delta_frontier": summarize_qwen3_moe_delta_frontier(),
         "qwen3_moe_mechanism_eval_gate": summarize_qwen3_moe_mechanism_eval_gate(),
         "qwen3_moe_eval_budget_plan": summarize_qwen3_moe_eval_budget_plan(),
+        "qwen3_moe_mechanism_levers": summarize_qwen3_moe_mechanism_levers(),
         "qwen3_moe_unified_result_selection": summarize_qwen3_moe_unified_result_selection(),
         "qwen3_moe_unified_result_selection_smoke": summarize_qwen3_moe_unified_result_selection_smoke(),
         "qwen3_moe_final_candidate_selection": summarize_qwen3_moe_final_candidate_selection(),
@@ -3664,6 +3703,7 @@ def build_summary() -> dict[str, Any]:
             "python scripts/audit_materialized_checkpoint_delta.py --base BASE --candidate results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate --output-dir results/qwen3_moe_searched_no_gt065_delta_audit",
             "python scripts/build_qwen3_moe_delta_frontier.py --output-dir results/qwen3_moe_delta_frontier",
             "python scripts/plan_qwen3_moe_eval_budget.py --output-dir results/qwen3_moe_eval_budget_plan",
+            "python scripts/analyze_qwen3_moe_mechanism_levers.py --output-dir results/qwen3_moe_mechanism_levers",
             "python scripts/build_qwen3_moe_router_move_gate.py --output-dir results/qwen3_moe_router_move_gate",
             "python scripts/build_qwen3_moe_router_calibration_job.py --output-dir results/qwen3_moe_router_calibration_job",
             "python scripts/select_qwen3_moe_router_calibration_result.py --output-dir results/qwen3_moe_router_calibration_selection",
@@ -3761,6 +3801,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_delta_frontier = exp["qwen3_moe_delta_frontier"]
     qwen3_moe_mechanism_eval_gate = exp["qwen3_moe_mechanism_eval_gate"]
     qwen3_moe_eval_budget_plan = exp["qwen3_moe_eval_budget_plan"]
+    qwen3_moe_mechanism_levers = exp["qwen3_moe_mechanism_levers"]
     qwen3_moe_unified_result_selection = exp["qwen3_moe_unified_result_selection"]
     qwen3_moe_unified_result_selection_smoke = exp["qwen3_moe_unified_result_selection_smoke"]
     qwen3_moe_final_candidate_selection = exp["qwen3_moe_final_candidate_selection"]
@@ -4334,6 +4375,18 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_eval_budget_plan['wilson_required_examples']} / "
                 f"{qwen3_moe_eval_budget_plan['paired_required_examples']} / "
                 f"{qwen3_moe_eval_budget_plan['dataset_capped_tasks']} |"
+            ),
+            (
+                "| Qwen3 MoE mechanism levers | top lever / priority / next test | "
+                f"{qwen3_moe_mechanism_levers['top_lever']} / "
+                f"{qwen3_moe_mechanism_levers['top_lever_priority']:.2f} / "
+                f"{qwen3_moe_mechanism_levers['top_lever_next_test']} |"
+            ),
+            (
+                "| Qwen3 MoE mechanism levers | fine calibration layers / top layer score | "
+                f"{qwen3_moe_mechanism_levers['fine_calibration_layers']} / "
+                f"{qwen3_moe_mechanism_levers['top_chunk_layer']}:"
+                f"{qwen3_moe_mechanism_levers['top_chunk_score']:.3f} |"
             ),
             (
                 "| Qwen3 MoE unified result selector | status / selected / reason | "

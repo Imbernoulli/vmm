@@ -1,0 +1,7 @@
+rank,mechanism,action,test_or_command,priority_score,confidence
+1,source_and_candidate_downstream_eval,run budgeted one-model-at-a-time vLLM eval before accepting any average,results/qwen3_moe_eval_budget_plan/run_eval_budget.sh all,0.98,high
+2,router_direct_movement,freeze router for same-shape candidate; only consider calibrated router deltas,route-KD/HARC-style router calibration after frozen-router baseline and sources finish vLLM eval,0.94,high
+3,routed_expert_tail_cap_0_75,keep file-level/audit-level relative-delta cap as a mandatory safety gate,compare route_guarded vs audit_gated under budgeted vLLM eval,0.86,high
+4,risk_penalty_complexity,prefer the simpler uniform 0.65 cap unless downstream eval proves risk penalties preserve task behavior,budgeted paired vLLM comparison of tail_trimmed vs searched_no_gt065/unified alias,0.83,medium_high
+5,tail_cap_0_65,evaluate tail-trimmed as the conservative expert-only candidate,budgeted paired vLLM comparison of expert_only vs tail_trimmed,0.8,medium_high
+6,route_load_trust_region,"keep trust-region as an ablation, but do not assume its extra risk flags improve utility",compare audit_gated vs trust_region and inspect paired task regressions,0.78,medium_high

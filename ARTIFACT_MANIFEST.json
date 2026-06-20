@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 74813,
+      "bytes": 75978,
       "kind": "document",
       "path": "README.md",
-      "sha256": "88f70578e1f5905563d80731ce9178880f7d07bb7037d1194349c4884c3470c1"
+      "sha256": "6a95aa47ac2cbd5800ad6b323833ead316b2fba92eb2ee3fab589c177309338d"
     },
     {
       "bytes": 33211,
@@ -2051,6 +2051,42 @@
       "kind": "data",
       "path": "results/qwen3_moe_mechanism_eval_gate/summary.json",
       "sha256": "c0e34f42780270c1e0cb50d464aceda544bee0011a4de4250a0d3b35b059db30"
+    },
+    {
+      "bytes": 12406,
+      "kind": "data",
+      "path": "results/qwen3_moe_mechanism_levers/layer_chunking_plan.csv",
+      "sha256": "079768c2842ffef304a56a5ffbe0dfb692fb502525b5b1ca913ddfaf4d4ee985"
+    },
+    {
+      "bytes": 1627,
+      "kind": "data",
+      "path": "results/qwen3_moe_mechanism_levers/literature_sources.json",
+      "sha256": "b52826fa1f598a3d69c37e1e565857e213ebf805b6c348f2bec0fc7271fd101e"
+    },
+    {
+      "bytes": 4207,
+      "kind": "data",
+      "path": "results/qwen3_moe_mechanism_levers/mechanism_levers.csv",
+      "sha256": "f3cc90ef2896995c2d38b6c6f591d0f8ed674404de554ed1a94d194624020ee5"
+    },
+    {
+      "bytes": 1225,
+      "kind": "data",
+      "path": "results/qwen3_moe_mechanism_levers/next_experiment_queue.csv",
+      "sha256": "c578e518919405b2e5dc4c6f1e613ce8bd29733fe09295a830d62983e45d8988"
+    },
+    {
+      "bytes": 6597,
+      "kind": "document",
+      "path": "results/qwen3_moe_mechanism_levers/report.md",
+      "sha256": "ba0f37ead9859477eec30acdb17c1c79864d1b4cc6fb69d869bdea417e6232c0"
+    },
+    {
+      "bytes": 776,
+      "kind": "data",
+      "path": "results/qwen3_moe_mechanism_levers/summary.json",
+      "sha256": "ad7005b14b45fc48162aa6e2621f32661d52b73d4e0756e07541d29f83ea9d73"
     },
     {
       "bytes": 2446,
@@ -4447,16 +4483,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 1240878,
+      "bytes": 1288214,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "32a60ca199f03b27a2029b08b693e0b94a071faa0a26e87336b56c169ed10256"
+      "sha256": "79c38a0b77ab1c35f8755eaf4306308af368c375ab747179cfe38c95707e7eb1"
     },
     {
-      "bytes": 47350,
+      "bytes": 47862,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "123dc30c36af09ac0a1e8096606da3a9da1a10911cdc7a6184eb5c587544cbb3"
+      "sha256": "87c655d5724d403eb8a4a821bfc07b77849c8208eaf0aef6a17d78c8a370a6d9"
     },
     {
       "bytes": 288,
@@ -5449,6 +5485,12 @@
       "sha256": "bbc62bccc12e36bcf2302539fa82ef2a2476cbbadd540efa70d284e9b69fba60"
     },
     {
+      "bytes": 25214,
+      "kind": "code",
+      "path": "scripts/analyze_qwen3_moe_mechanism_levers.py",
+      "sha256": "ff9f910a83be2bdfbf8a0072db6d6809de39afab8cf730bc7abc0585b4105afb"
+    },
+    {
       "bytes": 22469,
       "kind": "code",
       "path": "scripts/attribute_qwen3_moe_mechanism_effects.py",
@@ -5659,10 +5701,10 @@
       "sha256": "cd588bc1804013f4043bd95c245b066dbae86bfd3e3f9c18317ef33eb506f123"
     },
     {
-      "bytes": 322984,
+      "bytes": 326062,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "e94a9a31cb24df6cc920648e05bb97d1bd72d306917adf00c600a37c627ecb85"
+      "sha256": "a05361718d5963d00ed07db4a90d981a10e98c3cd41937763f25852ee22ef2b7"
     },
     {
       "bytes": 16101,
@@ -5929,7 +5971,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-20T01:16:13.465355+00:00",
+  "generated_at": "2026-06-20T01:24:29.113291+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

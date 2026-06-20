@@ -1,0 +1,32 @@
+[
+  {
+    "key": "harc_routing_breakdown",
+    "mechanism": "MoE averages can fail through router/top-k dispatch breakdown; router movement needs calibration evidence.",
+    "title": "When Model Merging Breaks Routing: Training-Free Calibration for MoE",
+    "url": "https://arxiv.org/abs/2606.03391"
+  },
+  {
+    "key": "router_kd_calibration",
+    "mechanism": "After expert edits/merges, router-expert mismatch is a distinct failure mode; lightweight router KD can recover routing.",
+    "title": "Is Retraining-Free Enough? The Necessity of Router Calibration for Efficient MoE Compression",
+    "url": "https://arxiv.org/abs/2603.02217"
+  },
+  {
+    "key": "expert_merging_chunking",
+    "mechanism": "Layer/chunk coefficient learning on unlabeled calibration data is useful because merge sensitivity is heterogeneous across layers.",
+    "title": "Expert Merging: Model Merging with Unsupervised Expert Alignment and Importance-Guided Layer Chunking",
+    "url": "https://arxiv.org/abs/2509.25712"
+  },
+  {
+    "key": "sub_moe_subspace",
+    "mechanism": "Expert-output similarity and shared subspaces help separate coherent expert groups from conflicting specializations.",
+    "title": "Sub-MoE: Efficient Mixture-of-Expert LLMs Compression via Subspace Expert Merging",
+    "url": "https://arxiv.org/abs/2506.23266"
+  },
+  {
+    "key": "mergeme",
+    "mechanism": "MoE merging needs explicit interference mitigation and routing heuristics beyond unweighted expert averaging.",
+    "title": "MergeME: Model Merging Techniques for Homogeneous and Heterogeneous MoEs",
+    "url": "https://arxiv.org/abs/2502.00997"
+  }
+]
