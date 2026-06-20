@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-20T04:45:05.786799+00:00`
+Generated at: `2026-06-20T04:50:36.966594+00:00`
 
 ## Coverage
 
@@ -243,11 +243,13 @@ Complete: `84`; partial: `1`; missing: `0`.
 | Qwen3 MoE router calibration job | source controls / ready | 2 / True |
 | Qwen3 MoE router calibration job | task manifest / create-if-missing | results/qwen3_moe_router_calibration_job/task_manifest.json / True |
 | Qwen3 MoE router calibration job | margin safe-lambda / planned-pass caps | 0.020 / 1/3 |
+| Qwen3 MoE router calibration job | default-run caps | 1/3 |
 | Qwen3 MoE router calibration job | inputs student / teacher / prompts | True / True / True |
 | Qwen3 MoE router calibration selector | status / selected / eligible | awaiting_baseline_eval / None / 0/3 |
 | Qwen3 MoE router calibration selector | source required-complete / baseline eval / candidate eval / audit | True-False / False / False / False |
 | Qwen3 MoE router calibration selector | training / hard route-load / group validation | False / False / False |
 | Qwen3 MoE router calibration selector | margin gate / safe-lambda / high layers | True / 0.020 / 24/48 |
+| Qwen3 MoE router calibration selector | active / plan-pruned candidates | 1 / 2 |
 | Qwen3 MoE router row-validation negative smoke | status / eligible / group validation | awaiting_router_calibration_eval / 0/3 / False |
 | Qwen3 MoE router row-validation negative smoke | first decision reason | router_validation_not_group_heldout |
 | Qwen3 MoE router source-dominance negative smoke | status / selected / eligible | keep_frozen_router_baseline / qwen3_moe_searched_no_gt065_max_retention_candidate / 0/3 |

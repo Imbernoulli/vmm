@@ -4,6 +4,7 @@
   "baseline_served_model": "baseline_qwen3_moe_searched_no_gt065",
   "candidate_count": 3,
   "create_task_manifest_if_missing": true,
+  "default_run_candidate_count": 1,
   "local_gpu_status": "unavailable",
   "mechanism": "route_kd_router_delta_after_frozen_router_expert_cap_law_candidate",
   "outputs": {

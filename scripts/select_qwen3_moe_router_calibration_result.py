@@ -458,6 +458,7 @@ def build_candidate_rows(
             )
         )
         margin_gate_passed = bool(not margin_enabled or (margin_planned_passed and margin_actual_passed))
+        plan_level_pruned = bool(margin_enabled and margin_ready and not margin_planned_passed)
         training_passed = training_state["training_status"] == "passed"
         top1_overflow = training_state.get("max_final_top1_capacity_overflow_fraction")
         topk_overflow = training_state.get("max_final_topk_capacity_overflow_fraction")
@@ -559,6 +560,7 @@ def build_candidate_rows(
             "router_margin_planned_cap_passed": margin_planned_passed,
             "router_margin_actual_delta_passed": margin_actual_passed,
             "router_margin_gate_passed": margin_gate_passed,
+            "plan_level_pruned": plan_level_pruned,
         }
         candidate_manifest_sha = clean_value(eval_state.get("task_manifest_sha256"))
         row["baseline_task_manifest_sha256"] = baseline_manifest_sha
@@ -750,13 +752,21 @@ def build_selection(
     args: argparse.Namespace,
 ) -> dict[str, Any]:
     baseline_complete = bool(baseline_eval.get("eval_completed"))
-    candidate_eval_complete = bool((table["eval_completed"].astype(bool)).all()) if not table.empty else False
-    audit_complete = bool((table["audit_exists"].astype(bool)).all()) if not table.empty else False
-    training_complete = bool((table["training_summary_exists"].astype(bool)).all()) if not table.empty else False
-    capacity_metrics_complete = bool((table["capacity_metrics_ready"].astype(bool)).all()) if not table.empty else False
+    active_table = table[~table.get("plan_level_pruned", pd.Series(False, index=table.index)).astype(bool)].copy()
+    plan_pruned_count = int(len(table) - len(active_table))
+    candidate_eval_complete = bool((active_table["eval_completed"].astype(bool)).all()) if not active_table.empty else True
+    audit_complete = bool((active_table["audit_exists"].astype(bool)).all()) if not active_table.empty else True
+    training_complete = (
+        bool((active_table["training_summary_exists"].astype(bool)).all()) if not active_table.empty else True
+    )
+    capacity_metrics_complete = (
+        bool((active_table["capacity_metrics_ready"].astype(bool)).all()) if not active_table.empty else True
+    )
     source_complete = all(bool(row.get("eval_completed")) for row in source_evals) if source_evals else False
     source_required = not bool(args.allow_missing_source_eval)
-    group_validation_complete = bool((table["group_validation_passed"].astype(bool)).all()) if not table.empty else False
+    group_validation_complete = (
+        bool((active_table["group_validation_passed"].astype(bool)).all()) if not active_table.empty else True
+    )
     router_margin_gate_enabled = bool(table["router_margin_gate_enabled"].iloc[0]) if not table.empty else False
     router_margin_gate_complete = bool(
         not router_margin_gate_enabled
@@ -767,7 +777,7 @@ def build_selection(
         )
     )
     candidate_manifest_gates_passed = (
-        bool((table["task_manifest_gate_passed"].astype(bool)).all()) if not table.empty else False
+        bool((active_table["task_manifest_gate_passed"].astype(bool)).all()) if not active_table.empty else True
     )
     task_manifest_gate_complete = bool(
         baseline_complete
@@ -857,6 +867,8 @@ def build_selection(
         "source_eval_required": source_required,
         "eligible_candidate_count": int(len(eligible)),
         "candidate_count": int(len(table)),
+        "active_candidate_count": int(len(active_table)),
+        "plan_pruned_candidate_count": plan_pruned_count,
     }
 
 
@@ -979,6 +991,8 @@ def build_report(
         f"- Router margin high-fragility layers: `{selection.get('router_margin_high_fragility_layer_count')}/{selection.get('router_margin_layer_count')}`",
         f"- Task manifest gate completed: `{selection['task_manifest_gate_completed']}`",
         f"- Eligible candidates: `{selection['eligible_candidate_count']}/{selection['candidate_count']}`",
+        f"- Active candidates: `{selection['active_candidate_count']}`",
+        f"- Plan-pruned candidates: `{selection['plan_pruned_candidate_count']}`",
         f"- Baseline task manifest sha: `{selection.get('baseline_task_manifest_sha256')}`",
         "",
         "## Baseline",
@@ -994,8 +1008,8 @@ def build_report(
         "",
         "## Candidate Gate",
         "",
-        "| cap | method | manifest | split | groups | selected epoch | KL gap | top1 drop | decision | avg delta | worst delta | worst task delta | router max rel | margin pass | top1/top-k overflow | top1/top-k increase | load pass | gen pass | group pass | router-only | cap pass | score | reason |",
-        "| ---: | --- | --- | --- | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | --- | ---: | ---: | --- | --- | --- | --- | --- | ---: | --- |",
+        "| cap | method | manifest | split | groups | selected epoch | KL gap | top1 drop | decision | avg delta | worst delta | worst task delta | router max rel | margin pass | plan-pruned | top1/top-k overflow | top1/top-k increase | load pass | gen pass | group pass | router-only | cap pass | score | reason |",
+        "| ---: | --- | --- | --- | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | --- | --- | ---: | ---: | --- | --- | --- | --- | --- | ---: | --- |",
     ]
     for _, row in table.iterrows():
         overflow_text = (
@@ -1018,7 +1032,8 @@ def build_report(
             f"{fmt(row.get('delta_vs_baseline_worst_primary_score'))} | "
             f"{fmt(row.get('worst_task_delta_vs_baseline'))} | "
             f"{fmt(row.get('router_max_relative_delta_norm'))} | "
-            f"`{row.get('router_margin_gate_passed')}` | {overflow_text} | "
+            f"`{row.get('router_margin_gate_passed')}` | "
+            f"`{row.get('plan_level_pruned')}` | {overflow_text} | "
             f"{increase_text} | "
             f"`{row.get('router_load_capacity_passed')}` | `{row.get('router_generalization_passed')}` | "
             f"`{row.get('group_validation_passed')}` | "

@@ -18,6 +18,8 @@
 - Router margin high-fragility layers: `24/48`
 - Task manifest gate completed: `True`
 - Eligible candidates: `0/3`
+- Active candidates: `1`
+- Plan-pruned candidates: `2`
 - Baseline task manifest sha: `smoke-shared-manifest-sha`
 
 ## Baseline
@@ -28,11 +30,11 @@
 
 ## Candidate Gate
 
-| cap | method | manifest | split | groups | selected epoch | KL gap | top1 drop | decision | avg delta | worst delta | worst task delta | router max rel | margin pass | top1/top-k overflow | top1/top-k increase | load pass | gen pass | group pass | router-only | cap pass | score | reason |
-| ---: | --- | --- | --- | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | --- | ---: | ---: | --- | --- | --- | --- | --- | ---: | --- |
-| 0.0100 | `smoke_router_calibrated_cap001` | `matched` | `validation` | 8.0/2.0 | 10.0 | 0.0200 | 0.0200 | `reject_or_wait` | 0.0060 | 0.0050 | 0.0010 | 0.0080 | `True` | 0.0000/0.0000 | 0.0000/0.0000 | `True` | `True` | `False` | `True` | `True` | 0.0062 | `router_validation_not_group_heldout` |
-| 0.0250 | `smoke_router_calibrated_cap0025` | `matched` | `validation` | 8.0/2.0 | 10.0 | 0.0200 | 0.0200 | `reject_or_wait` | 0.0150 | 0.0100 | 0.0000 | 0.0220 | `False` | 0.0150/0.0200 | 0.0050/0.0150 | `True` | `True` | `False` | `True` | `True` | 0.0055 | `router_validation_not_group_heldout,router_margin_planned_cap_violation` |
-| 0.0500 | `smoke_router_calibrated_cap005` | `matched` | `validation` | 8.0/2.0 | 10.0 | 0.0200 | 0.0200 | `reject_or_wait` | 0.0250 | 0.0150 | 0.0000 | 0.0710 | `False` | 0.0900/0.0400 | 0.0600/0.0250 | `False` | `True` | `False` | `False` | `False` | -0.0055 | `top1_capacity_overflow_increase,router_validation_not_group_heldout,audit_not_router_only,router_delta_cap_violation,router_margin_planned_cap_violation` |
+| cap | method | manifest | split | groups | selected epoch | KL gap | top1 drop | decision | avg delta | worst delta | worst task delta | router max rel | margin pass | plan-pruned | top1/top-k overflow | top1/top-k increase | load pass | gen pass | group pass | router-only | cap pass | score | reason |
+| ---: | --- | --- | --- | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | --- | --- | ---: | ---: | --- | --- | --- | --- | --- | ---: | --- |
+| 0.0100 | `smoke_router_calibrated_cap001` | `matched` | `validation` | 8.0/2.0 | 10.0 | 0.0200 | 0.0200 | `reject_or_wait` | 0.0060 | 0.0050 | 0.0010 | 0.0080 | `True` | `False` | 0.0000/0.0000 | 0.0000/0.0000 | `True` | `True` | `False` | `True` | `True` | 0.0062 | `router_validation_not_group_heldout` |
+| 0.0250 | `smoke_router_calibrated_cap0025` | `matched` | `validation` | 8.0/2.0 | 10.0 | 0.0200 | 0.0200 | `reject_or_wait` | 0.0150 | 0.0100 | 0.0000 | 0.0220 | `False` | `True` | 0.0150/0.0200 | 0.0050/0.0150 | `True` | `True` | `False` | `True` | `True` | 0.0055 | `router_validation_not_group_heldout,router_margin_planned_cap_violation` |
+| 0.0500 | `smoke_router_calibrated_cap005` | `matched` | `validation` | 8.0/2.0 | 10.0 | 0.0200 | 0.0200 | `reject_or_wait` | 0.0250 | 0.0150 | 0.0000 | 0.0710 | `False` | `True` | 0.0900/0.0400 | 0.0600/0.0250 | `False` | `True` | `False` | `False` | `False` | -0.0055 | `top1_capacity_overflow_increase,router_validation_not_group_heldout,audit_not_router_only,router_delta_cap_violation,router_margin_planned_cap_violation` |
 
 ## Source Controls
 

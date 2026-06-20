@@ -25,6 +25,7 @@
     "worst_primary_score": 0.3
   },
   "current_selection": {
+    "active_candidate_count": 1,
     "audit_completed": true,
     "baseline_eval_completed": true,
     "baseline_task_manifest_sha256": "smoke-shared-manifest-sha",
@@ -33,6 +34,7 @@
     "capacity_metrics_completed": true,
     "eligible_candidate_count": 1,
     "group_validation_completed": true,
+    "plan_pruned_candidate_count": 2,
     "reason": "Selected the router-calibrated cap that improved downstream scores, stayed within cap, changed only router tensors, and was not source dominated.",
     "router_margin_gate_completed": true,
     "router_margin_gate_enabled": true,

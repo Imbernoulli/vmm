@@ -17686,6 +17686,7 @@
           "cache_path": "results/qwen3_moe_router_calibration_job/cache/router_calibration_cache.pt",
           "cap_label": "cap001",
           "checkpoint_dir": "results/checkpoints/qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate",
+          "default_run_enabled": true,
           "delta_dir": "results/qwen3_moe_router_calibration_job/delta_cap001",
           "delta_safetensors": "results/qwen3_moe_router_calibration_job/delta_cap001/router_delta.safetensors",
           "eval_dir": "results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate",
@@ -17709,6 +17710,7 @@
           "cache_path": "results/qwen3_moe_router_calibration_job/cache/router_calibration_cache.pt",
           "cap_label": "cap0025",
           "checkpoint_dir": "results/checkpoints/qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate",
+          "default_run_enabled": false,
           "delta_dir": "results/qwen3_moe_router_calibration_job/delta_cap0025",
           "delta_safetensors": "results/qwen3_moe_router_calibration_job/delta_cap0025/router_delta.safetensors",
           "eval_dir": "results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate",
@@ -17732,6 +17734,7 @@
           "cache_path": "results/qwen3_moe_router_calibration_job/cache/router_calibration_cache.pt",
           "cap_label": "cap005",
           "checkpoint_dir": "results/checkpoints/qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate",
+          "default_run_enabled": false,
           "delta_dir": "results/qwen3_moe_router_calibration_job/delta_cap005",
           "delta_safetensors": "results/qwen3_moe_router_calibration_job/delta_cap005/router_delta.safetensors",
           "eval_dir": "results/vllm_checkpoint_eval/qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate",
@@ -17750,6 +17753,7 @@
         }
       ],
       "create_task_manifest_if_missing": true,
+      "default_run_candidate_count": 1,
       "local_gpu_status": "unavailable",
       "mechanism": "route_kd_router_delta_after_frozen_router_expert_cap_law_candidate",
       "prompts_exists": true,
@@ -17947,6 +17951,7 @@
         "baseline_served_model": "baseline_qwen3_moe_searched_no_gt065",
         "candidate_count": 3,
         "create_task_manifest_if_missing": true,
+        "default_run_candidate_count": 1,
         "local_gpu_status": "unavailable",
         "mechanism": "route_kd_router_delta_after_frozen_router_expert_cap_law_candidate",
         "outputs": {
@@ -18153,6 +18158,7 @@
       "worst_nll_reduction_vs_linear": 0.22142744874642561
     },
     "qwen3_moe_router_calibration_no_gain_negative_smoke": {
+      "active_candidate_count": 1,
       "audit_completed": true,
       "baseline_eval_completed": true,
       "best_available_score": -0.0018299999999999,
@@ -18243,6 +18249,7 @@
           "model": "smoke_router_calibrated_cap001",
           "model_summary_path": "results/qwen3_moe_router_calibration_selection_no_gain_negative_smoke/input_job/eval_cap001/model_summary.csv",
           "non_router_changed_tensors": 0,
+          "plan_level_pruned": false,
           "planned_router_cap": 0.01,
           "preserves_average": true,
           "preserves_tasks": true,
@@ -18383,6 +18390,7 @@
           "model": "smoke_router_calibrated_cap0025",
           "model_summary_path": "results/qwen3_moe_router_calibration_selection_no_gain_negative_smoke/input_job/eval_cap0025/model_summary.csv",
           "non_router_changed_tensors": 0,
+          "plan_level_pruned": true,
           "planned_router_cap": 0.025,
           "preserves_average": true,
           "preserves_tasks": true,
@@ -18523,6 +18531,7 @@
           "model": "smoke_router_calibrated_cap005",
           "model_summary_path": "results/qwen3_moe_router_calibration_selection_no_gain_negative_smoke/input_job/eval_cap005/model_summary.csv",
           "non_router_changed_tensors": 1,
+          "plan_level_pruned": true,
           "planned_router_cap": 0.05,
           "preserves_average": true,
           "preserves_tasks": true,
@@ -18584,6 +18593,7 @@
       "decision_rules": "results/qwen3_moe_router_calibration_selection_no_gain_negative_smoke/decision_rules.json",
       "eligible_candidate_count": 0,
       "group_validation_completed": true,
+      "plan_pruned_candidate_count": 2,
       "report": "results/qwen3_moe_router_calibration_selection_no_gain_negative_smoke/report.md",
       "router_margin_gate_completed": true,
       "router_margin_gate_enabled": true,
@@ -18625,6 +18635,7 @@
           "worst_primary_score": 0.3
         },
         "current_selection": {
+          "active_candidate_count": 1,
           "audit_completed": true,
           "baseline_eval_completed": true,
           "baseline_task_manifest_sha256": "smoke-shared-manifest-sha",
@@ -18633,6 +18644,7 @@
           "capacity_metrics_completed": true,
           "eligible_candidate_count": 0,
           "group_validation_completed": true,
+          "plan_pruned_candidate_count": 2,
           "reason": "No router-calibrated cap improved downstream scores while preserving baseline/source-control gates.",
           "router_margin_gate_completed": true,
           "router_margin_gate_enabled": true,
@@ -18724,6 +18736,7 @@
       "training_completed": true
     },
     "qwen3_moe_router_calibration_row_validation_negative_smoke": {
+      "active_candidate_count": 1,
       "audit_completed": true,
       "baseline_eval_completed": true,
       "best_available_score": 0.00617,
@@ -18814,6 +18827,7 @@
           "model": "smoke_router_calibrated_cap001",
           "model_summary_path": "results/qwen3_moe_router_calibration_selection_row_validation_negative_smoke/input_job/eval_cap001/model_summary.csv",
           "non_router_changed_tensors": 0,
+          "plan_level_pruned": false,
           "planned_router_cap": 0.01,
           "preserves_average": true,
           "preserves_tasks": true,
@@ -18954,6 +18968,7 @@
           "model": "smoke_router_calibrated_cap0025",
           "model_summary_path": "results/qwen3_moe_router_calibration_selection_row_validation_negative_smoke/input_job/eval_cap0025/model_summary.csv",
           "non_router_changed_tensors": 0,
+          "plan_level_pruned": true,
           "planned_router_cap": 0.025,
           "preserves_average": true,
           "preserves_tasks": true,
@@ -19094,6 +19109,7 @@
           "model": "smoke_router_calibrated_cap005",
           "model_summary_path": "results/qwen3_moe_router_calibration_selection_row_validation_negative_smoke/input_job/eval_cap005/model_summary.csv",
           "non_router_changed_tensors": 1,
+          "plan_level_pruned": true,
           "planned_router_cap": 0.05,
           "preserves_average": true,
           "preserves_tasks": true,
@@ -19155,6 +19171,7 @@
       "decision_rules": "results/qwen3_moe_router_calibration_selection_row_validation_negative_smoke/decision_rules.json",
       "eligible_candidate_count": 0,
       "group_validation_completed": false,
+      "plan_pruned_candidate_count": 2,
       "report": "results/qwen3_moe_router_calibration_selection_row_validation_negative_smoke/report.md",
       "router_margin_gate_completed": true,
       "router_margin_gate_enabled": true,
@@ -19196,6 +19213,7 @@
           "worst_primary_score": 0.3
         },
         "current_selection": {
+          "active_candidate_count": 1,
           "audit_completed": true,
           "baseline_eval_completed": true,
           "baseline_task_manifest_sha256": "smoke-shared-manifest-sha",
@@ -19204,6 +19222,7 @@
           "capacity_metrics_completed": true,
           "eligible_candidate_count": 0,
           "group_validation_completed": false,
+          "plan_pruned_candidate_count": 2,
           "reason": "The cap sweep is not complete; all candidates need router training summaries, hard route-load metrics, group-heldout validation, router margin gates, audit, and matched vLLM downstream eval.",
           "router_margin_gate_completed": true,
           "router_margin_gate_enabled": true,
@@ -19295,6 +19314,7 @@
       "training_completed": true
     },
     "qwen3_moe_router_calibration_selection": {
+      "active_candidate_count": 1,
       "audit_completed": false,
       "baseline_eval_completed": false,
       "best_available_score": -0.0001,
@@ -19379,6 +19399,7 @@
           "model": null,
           "model_summary_path": null,
           "non_router_changed_tensors": null,
+          "plan_level_pruned": false,
           "planned_router_cap": 0.01,
           "preserves_average": false,
           "preserves_tasks": true,
@@ -19513,6 +19534,7 @@
           "model": null,
           "model_summary_path": null,
           "non_router_changed_tensors": null,
+          "plan_level_pruned": true,
           "planned_router_cap": 0.025,
           "preserves_average": false,
           "preserves_tasks": true,
@@ -19647,6 +19669,7 @@
           "model": null,
           "model_summary_path": null,
           "non_router_changed_tensors": null,
+          "plan_level_pruned": true,
           "planned_router_cap": 0.05,
           "preserves_average": false,
           "preserves_tasks": true,
@@ -19708,6 +19731,7 @@
       "decision_rules": "results/qwen3_moe_router_calibration_selection/decision_rules.json",
       "eligible_candidate_count": 0,
       "group_validation_completed": false,
+      "plan_pruned_candidate_count": 2,
       "report": "results/qwen3_moe_router_calibration_selection/report.md",
       "router_margin_gate_completed": true,
       "router_margin_gate_enabled": true,
@@ -19744,6 +19768,7 @@
           "worst_primary_score": null
         },
         "current_selection": {
+          "active_candidate_count": 1,
           "audit_completed": false,
           "baseline_eval_completed": false,
           "baseline_task_manifest_sha256": null,
@@ -19752,6 +19777,7 @@
           "capacity_metrics_completed": false,
           "eligible_candidate_count": 0,
           "group_validation_completed": false,
+          "plan_pruned_candidate_count": 2,
           "reason": "Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps.",
           "router_margin_gate_completed": true,
           "router_margin_gate_enabled": true,
@@ -20096,6 +20122,7 @@
       "summary_path": "results/qwen3_moe_router_calibration_selector_matrix_smoke/summary.json"
     },
     "qwen3_moe_router_calibration_source_dominance_negative_smoke": {
+      "active_candidate_count": 1,
       "audit_completed": true,
       "baseline_eval_completed": true,
       "best_available_score": 0.00617,
@@ -20186,6 +20213,7 @@
           "model": "smoke_router_calibrated_cap001",
           "model_summary_path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/eval_cap001/model_summary.csv",
           "non_router_changed_tensors": 0,
+          "plan_level_pruned": false,
           "planned_router_cap": 0.01,
           "preserves_average": true,
           "preserves_tasks": true,
@@ -20326,6 +20354,7 @@
           "model": "smoke_router_calibrated_cap0025",
           "model_summary_path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/eval_cap0025/model_summary.csv",
           "non_router_changed_tensors": 0,
+          "plan_level_pruned": true,
           "planned_router_cap": 0.025,
           "preserves_average": true,
           "preserves_tasks": true,
@@ -20466,6 +20495,7 @@
           "model": "smoke_router_calibrated_cap005",
           "model_summary_path": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/input_job/eval_cap005/model_summary.csv",
           "non_router_changed_tensors": 1,
+          "plan_level_pruned": true,
           "planned_router_cap": 0.05,
           "preserves_average": true,
           "preserves_tasks": true,
@@ -20527,6 +20557,7 @@
       "decision_rules": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/decision_rules.json",
       "eligible_candidate_count": 0,
       "group_validation_completed": true,
+      "plan_pruned_candidate_count": 2,
       "report": "results/qwen3_moe_router_calibration_selection_source_dominance_negative_smoke/report.md",
       "router_margin_gate_completed": true,
       "router_margin_gate_enabled": true,
@@ -20568,6 +20599,7 @@
           "worst_primary_score": 0.3
         },
         "current_selection": {
+          "active_candidate_count": 1,
           "audit_completed": true,
           "baseline_eval_completed": true,
           "baseline_task_manifest_sha256": "smoke-shared-manifest-sha",
@@ -20576,6 +20608,7 @@
           "capacity_metrics_completed": true,
           "eligible_candidate_count": 0,
           "group_validation_completed": true,
+          "plan_pruned_candidate_count": 2,
           "reason": "No router-calibrated cap improved downstream scores while preserving baseline/source-control gates.",
           "router_margin_gate_completed": true,
           "router_margin_gate_enabled": true,
@@ -20667,6 +20700,7 @@
       "training_completed": true
     },
     "qwen3_moe_router_calibration_task_regression_negative_smoke": {
+      "active_candidate_count": 1,
       "audit_completed": true,
       "baseline_eval_completed": true,
       "best_available_score": -0.0040799999999999,
@@ -20757,6 +20791,7 @@
           "model": "smoke_router_calibrated_cap001",
           "model_summary_path": "results/qwen3_moe_router_calibration_selection_task_regression_negative_smoke/input_job/eval_cap001/model_summary.csv",
           "non_router_changed_tensors": 0,
+          "plan_level_pruned": false,
           "planned_router_cap": 0.01,
           "preserves_average": true,
           "preserves_tasks": false,
@@ -20897,6 +20932,7 @@
           "model": "smoke_router_calibrated_cap0025",
           "model_summary_path": "results/qwen3_moe_router_calibration_selection_task_regression_negative_smoke/input_job/eval_cap0025/model_summary.csv",
           "non_router_changed_tensors": 0,
+          "plan_level_pruned": true,
           "planned_router_cap": 0.025,
           "preserves_average": true,
           "preserves_tasks": false,
@@ -21037,6 +21073,7 @@
           "model": "smoke_router_calibrated_cap005",
           "model_summary_path": "results/qwen3_moe_router_calibration_selection_task_regression_negative_smoke/input_job/eval_cap005/model_summary.csv",
           "non_router_changed_tensors": 1,
+          "plan_level_pruned": true,
           "planned_router_cap": 0.05,
           "preserves_average": true,
           "preserves_tasks": true,
@@ -21098,6 +21135,7 @@
       "decision_rules": "results/qwen3_moe_router_calibration_selection_task_regression_negative_smoke/decision_rules.json",
       "eligible_candidate_count": 0,
       "group_validation_completed": true,
+      "plan_pruned_candidate_count": 2,
       "report": "results/qwen3_moe_router_calibration_selection_task_regression_negative_smoke/report.md",
       "router_margin_gate_completed": true,
       "router_margin_gate_enabled": true,
@@ -21139,6 +21177,7 @@
           "worst_primary_score": 0.3
         },
         "current_selection": {
+          "active_candidate_count": 1,
           "audit_completed": true,
           "baseline_eval_completed": true,
           "baseline_task_manifest_sha256": "smoke-shared-manifest-sha",
@@ -21147,6 +21186,7 @@
           "capacity_metrics_completed": true,
           "eligible_candidate_count": 0,
           "group_validation_completed": true,
+          "plan_pruned_candidate_count": 2,
           "reason": "No router-calibrated cap improved downstream scores while preserving baseline/source-control gates.",
           "router_margin_gate_completed": true,
           "router_margin_gate_enabled": true,
@@ -34688,7 +34728,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-20T04:45:05.786799+00:00",
+  "generated_at": "2026-06-20T04:50:36.966594+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [

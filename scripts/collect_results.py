@@ -1858,6 +1858,7 @@ def summarize_qwen3_moe_router_calibration_job() -> dict[str, Any]:
         "router_margin_safe_lambda_proxy": maybe_float(summary.get("router_margin_safe_lambda_proxy")),
         "router_margin_limit_with_tolerance": maybe_float(summary.get("router_margin_limit_with_tolerance")),
         "router_margin_planned_pass_count": maybe_int(summary.get("router_margin_planned_pass_count")),
+        "default_run_candidate_count": maybe_int(summary.get("default_run_candidate_count")),
         "task_manifest": summary.get("task_manifest"),
         "create_task_manifest_if_missing": bool(summary.get("create_task_manifest_if_missing", False)),
         "source_control_count": int(summary.get("source_control_count", len(source_plan))),
@@ -1917,6 +1918,8 @@ def summarize_qwen3_moe_router_calibration_selection_dir(root: str | Path) -> di
         "source_eval_completed": bool(selection.get("source_eval_completed", False)),
         "eligible_candidate_count": int(selection.get("eligible_candidate_count", len(eligible))),
         "candidate_count": int(selection.get("candidate_count", len(table))),
+        "active_candidate_count": maybe_int(selection.get("active_candidate_count")),
+        "plan_pruned_candidate_count": maybe_int(selection.get("plan_pruned_candidate_count")),
         "best_available_score": None if table.empty else maybe_float(table["selection_score"].max()),
         "candidate_rows": [clean_row(row) for _, row in table.iterrows()],
         "report": rel(root / "report.md"),
@@ -5212,6 +5215,11 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"/{qwen3_moe_router_calibration_job['candidate_count']} |"
             ),
             (
+                "| Qwen3 MoE router calibration job | default-run caps | "
+                f"{qwen3_moe_router_calibration_job['default_run_candidate_count']}"
+                f"/{qwen3_moe_router_calibration_job['candidate_count']} |"
+            ),
+            (
                 "| Qwen3 MoE router calibration job | inputs student / teacher / prompts | "
                 f"{qwen3_moe_router_calibration_job['student_exists']} / "
                 f"{qwen3_moe_router_calibration_job['teacher_exists']} / "
@@ -5244,6 +5252,11 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(qwen3_moe_router_calibration_selection['router_margin_min_safe_lambda_proxy'])} / "
                 f"{qwen3_moe_router_calibration_selection['router_margin_high_fragility_layer_count']}"
                 f"/{qwen3_moe_router_calibration_selection['router_margin_layer_count']} |"
+            ),
+            (
+                "| Qwen3 MoE router calibration selector | active / plan-pruned candidates | "
+                f"{qwen3_moe_router_calibration_selection['active_candidate_count']} / "
+                f"{qwen3_moe_router_calibration_selection['plan_pruned_candidate_count']} |"
             ),
             (
                 "| Qwen3 MoE router row-validation negative smoke | status / eligible / group validation | "

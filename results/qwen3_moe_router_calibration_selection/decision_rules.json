@@ -22,6 +22,7 @@
     "A candidate is rejected when a source endpoint dominates it on all available scores."
   ],
   "current_selection": {
+    "active_candidate_count": 1,
     "audit_completed": false,
     "baseline_eval_completed": false,
     "baseline_task_manifest_sha256": null,
@@ -30,6 +31,7 @@
     "capacity_metrics_completed": false,
     "eligible_candidate_count": 0,
     "group_validation_completed": false,
+    "plan_pruned_candidate_count": 2,
     "reason": "Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps.",
     "router_margin_gate_completed": true,
     "router_margin_gate_enabled": true,

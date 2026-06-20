@@ -18,6 +18,8 @@
 - Router margin high-fragility layers: `24/48`
 - Task manifest gate completed: `False`
 - Eligible candidates: `0/3`
+- Active candidates: `1`
+- Plan-pruned candidates: `2`
 - Baseline task manifest sha: `None`
 
 ## Baseline
@@ -28,11 +30,11 @@
 
 ## Candidate Gate
 
-| cap | method | manifest | split | groups | selected epoch | KL gap | top1 drop | decision | avg delta | worst delta | worst task delta | router max rel | margin pass | top1/top-k overflow | top1/top-k increase | load pass | gen pass | group pass | router-only | cap pass | score | reason |
-| ---: | --- | --- | --- | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | --- | ---: | ---: | --- | --- | --- | --- | --- | ---: | --- |
-| 0.0100 | `qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate` | `awaiting_eval` | `None` | / |  |  |  | `reject_or_wait` |  |  |  |  | `False` | / | / | `False` | `False` | `False` | `False` | `False` | -0.0001 | `awaiting_baseline_eval,awaiting_source_eval,awaiting_router_training,awaiting_candidate_eval,awaiting_audit` |
-| 0.0250 | `qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate` | `awaiting_eval` | `None` | / |  |  |  | `reject_or_wait` |  |  |  |  | `False` | / | / | `False` | `False` | `False` | `False` | `False` | -0.0003 | `awaiting_baseline_eval,awaiting_source_eval,awaiting_router_training,awaiting_candidate_eval,awaiting_audit,router_margin_planned_cap_violation` |
-| 0.0500 | `qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate` | `awaiting_eval` | `None` | / |  |  |  | `reject_or_wait` |  |  |  |  | `False` | / | / | `False` | `False` | `False` | `False` | `False` | -0.0005 | `awaiting_baseline_eval,awaiting_source_eval,awaiting_router_training,awaiting_candidate_eval,awaiting_audit,router_margin_planned_cap_violation` |
+| cap | method | manifest | split | groups | selected epoch | KL gap | top1 drop | decision | avg delta | worst delta | worst task delta | router max rel | margin pass | plan-pruned | top1/top-k overflow | top1/top-k increase | load pass | gen pass | group pass | router-only | cap pass | score | reason |
+| ---: | --- | --- | --- | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | --- | --- | ---: | ---: | --- | --- | --- | --- | --- | ---: | --- |
+| 0.0100 | `qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate` | `awaiting_eval` | `None` | / |  |  |  | `reject_or_wait` |  |  |  |  | `False` | `False` | / | / | `False` | `False` | `False` | `False` | `False` | -0.0001 | `awaiting_baseline_eval,awaiting_source_eval,awaiting_router_training,awaiting_candidate_eval,awaiting_audit` |
+| 0.0250 | `qwen3_moe_router_calibrated_searched_no_gt065_cap0025_candidate` | `awaiting_eval` | `None` | / |  |  |  | `reject_or_wait` |  |  |  |  | `False` | `True` | / | / | `False` | `False` | `False` | `False` | `False` | -0.0003 | `awaiting_baseline_eval,awaiting_source_eval,awaiting_router_training,awaiting_candidate_eval,awaiting_audit,router_margin_planned_cap_violation` |
+| 0.0500 | `qwen3_moe_router_calibrated_searched_no_gt065_cap005_candidate` | `awaiting_eval` | `None` | / |  |  |  | `reject_or_wait` |  |  |  |  | `False` | `True` | / | / | `False` | `False` | `False` | `False` | `False` | -0.0005 | `awaiting_baseline_eval,awaiting_source_eval,awaiting_router_training,awaiting_candidate_eval,awaiting_audit,router_margin_planned_cap_violation` |
 
 ## Source Controls
 
