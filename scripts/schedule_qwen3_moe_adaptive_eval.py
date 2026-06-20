@@ -27,6 +27,18 @@ TASK_TO_SCORE_COLUMN = {
 }
 PAIRED_TASKS = set(TASK_TO_SCORE_COLUMN)
 SCORE_COLUMNS = ["avg_primary_score", "worst_primary_score", *TASK_SCORE_COLUMNS]
+DEFAULT_TASK_ORDER = ["gsm8k", "mmlu", "safety", "humaneval_compile"]
+TASKS_BY_MECHANISM_TEST = {
+    "candidate_vs_sources": DEFAULT_TASK_ORDER,
+    "unified_mechanism_optimizer": ["gsm8k", "mmlu", "humaneval_compile"],
+    "expert_subspace_conflict_ablation": ["gsm8k", "humaneval_compile"],
+    "layer_chunk_sensitivity": ["mmlu", "humaneval_compile"],
+    "risk_penalty_simplification": ["gsm8k", "humaneval_compile"],
+    "second_stage_tail_trim": ["gsm8k", "humaneval_compile"],
+    "shared_attention_ablation": ["mmlu", "humaneval_compile"],
+    "route_load_trust_region": ["gsm8k", "mmlu", "humaneval_compile"],
+    "tail_delta_cap": DEFAULT_TASK_ORDER,
+}
 
 
 def repo_path(path: str | Path) -> Path:
@@ -142,6 +154,30 @@ def replace_cli_arg(command: str, option: str, value: int) -> str:
             return " ".join(shlex.quote(item) for item in tokens)
     tokens.extend([option, str(value)])
     return " ".join(shlex.quote(item) for item in tokens)
+
+
+def replace_cli_arg_text(command: str, option: str, value: str) -> str:
+    if not command:
+        return command
+    tokens = shlex.split(command)
+    for index, token in enumerate(tokens):
+        if token == option and index + 1 < len(tokens):
+            tokens[index + 1] = value
+            return " ".join(shlex.quote(item) for item in tokens)
+        prefix = option + "="
+        if token.startswith(prefix):
+            tokens[index] = f"{option}={value}"
+            return " ".join(shlex.quote(item) for item in tokens)
+    tokens.extend([option, value])
+    return " ".join(shlex.quote(item) for item in tokens)
+
+
+def parse_tasks(value: Any) -> list[str]:
+    return [part.strip() for part in str(clean_value(value) or "").split(",") if part.strip()]
+
+
+def tasks_from_command(command: str) -> list[str]:
+    return parse_tasks(cli_arg_value(command, "--tasks") or ",".join(DEFAULT_TASK_ORDER))
 
 
 def serve_model_path(command: str) -> str:
@@ -342,6 +378,37 @@ def covered_tests_for_selection(mechanism_budget: pd.DataFrame, selected_methods
         if test and candidate_required and required.issubset(controls):
             covered.add(test)
     return covered
+
+
+def probe_tasks_for_tests(tests: list[str], available_tasks: list[str]) -> tuple[list[str], str]:
+    if not tests:
+        return list(available_tasks), "default_all_tasks_no_mechanism_context"
+    task_set: set[str] = set()
+    for test in tests:
+        task_set.update(TASKS_BY_MECHANISM_TEST.get(test, DEFAULT_TASK_ORDER))
+    ordered = [task for task in DEFAULT_TASK_ORDER if task in task_set and task in available_tasks]
+    if not ordered:
+        ordered = list(available_tasks)
+    return ordered, "mechanism_tests:" + ",".join(sorted(tests))
+
+
+def row_recommended_tasks(
+    row: pd.Series,
+    decision: dict[str, Any],
+    covered_tests: list[str],
+    available_tasks: list[str],
+) -> tuple[list[str], str]:
+    if not decision["recommended_max_examples"]:
+        return [], "no_eval_action"
+    role = str(row.get("role") or "")
+    action = str(decision["eval_action"])
+    if role == "source":
+        return list(available_tasks), "source_controls_need_all_tasks"
+    if action == "extend_promising_candidate_to_full_budget":
+        return list(available_tasks), "full_budget_escalation_needs_all_tasks"
+    if action in {"run_initial_mechanism_probe", "queue_after_source_controls"}:
+        return probe_tasks_for_tests(covered_tests, available_tasks)
+    return list(available_tasks), "default_all_tasks_for_eval_action"
 
 
 def choose_round1_probe_methods(
@@ -696,6 +763,7 @@ def build_schedule(
 
     rows = []
     for _, row in budget.iterrows():
+        method = str(row["method"])
         decision = candidate_decision(
             row,
             sources=sources,
@@ -709,9 +777,18 @@ def build_schedule(
             paired_loss_tolerance_rate=paired_loss_tolerance_rate,
             paired_alpha=paired_alpha,
         )
+        covered_tests = coverage_by_method.get(method, [])
         eval_command = str(row.get("eval_command_recommended") or row.get("eval_command_current") or "")
+        available_tasks = parse_tasks(row.get("tasks")) or tasks_from_command(eval_command)
+        recommended_tasks, task_selection_reason = row_recommended_tasks(
+            row,
+            decision,
+            covered_tests,
+            available_tasks,
+        )
         if decision["recommended_max_examples"]:
             eval_command = replace_cli_arg(eval_command, "--max-examples", int(decision["recommended_max_examples"]))
+            eval_command = replace_cli_arg_text(eval_command, "--tasks", ",".join(recommended_tasks))
         else:
             eval_command = ""
         rows.append(
@@ -724,11 +801,15 @@ def build_schedule(
                 "eval_action": decision["eval_action"],
                 "decision_status": decision["decision_status"],
                 "mechanism_priority": row["mechanism_priority"],
-                "selected_for_round1_probe": str(row["method"]) in selected_probe_methods,
+                "selected_for_round1_probe": method in selected_probe_methods,
                 "round1_selection_policy": coverage_summary["round1_selection_policy"]
-                if str(row["method"]) in selected_probe_methods
+                if method in selected_probe_methods
                 else "",
-                "covered_mechanism_tests": ",".join(coverage_by_method.get(str(row["method"]), [])),
+                "covered_mechanism_tests": ",".join(covered_tests),
+                "recommended_tasks": ",".join(recommended_tasks),
+                "recommended_task_count": len(recommended_tasks),
+                "task_selection_reason": task_selection_reason,
+                "recommended_prompt_budget": int(decision["recommended_max_examples"]) * len(recommended_tasks),
                 "serve_status": row.get("serve_status"),
                 "checkpoint_exists": checkpoint_ready(row),
                 "eval_status_observed": row.get("eval_status_observed"),
@@ -811,6 +892,8 @@ def build_schedule(
             }
         )
     mechanism_schedule = pd.DataFrame(mechanism_rows)
+    round1_rows = schedule[schedule["selected_for_round1_probe"].astype(bool)]
+    runnable_rows = schedule[schedule["recommended_max_examples"].astype(int) > 0]
     summary = {
         "schema_version": 1,
         "status": "adaptive_schedule_ready",
@@ -820,6 +903,9 @@ def build_schedule(
         "round1_selection_policy": coverage_summary["round1_selection_policy"],
         "round1_covered_mechanism_tests": coverage_summary["round1_covered_mechanism_tests"],
         "round1_covered_mechanism_test_count": coverage_summary["round1_covered_mechanism_test_count"],
+        "round1_probe_task_budget": int(round1_rows["recommended_prompt_budget"].sum()),
+        "runnable_prompt_budget": int(runnable_rows["recommended_prompt_budget"].sum()),
+        "runnable_method_count": int(len(runnable_rows)),
         "eval_action_counts": {
             str(key): int(value) for key, value in schedule["eval_action"].value_counts().to_dict().items()
         },
@@ -917,12 +1003,14 @@ def build_report(summary: dict[str, Any], schedule: pd.DataFrame, mechanism_sche
         f"- Round-1 probe candidates: `{summary['round1_probe_candidate_count']}`",
         f"- Round-1 coverage policy: `{summary['round1_selection_policy']}`",
         f"- Round-1 covered mechanism tests: `{summary['round1_covered_mechanism_test_count']}`",
+        f"- Round-1 probe prompt budget: `{summary['round1_probe_task_budget']}`",
+        f"- Runnable prompt budget now: `{summary['runnable_prompt_budget']}`",
         f"- Top action: `{summary['top_eval_action']}` for `{summary['top_method']}`",
         "",
         "## Method Schedule",
         "",
-        "| rank | method | action | status | examples | priority | covered tests | paired gate | paired net | paired p | reason |",
-        "| ---: | --- | --- | --- | ---: | ---: | --- | --- | ---: | ---: | --- |",
+        "| rank | method | action | status | tasks | examples | prompts | priority | covered tests | paired gate | paired net | paired p | reason |",
+        "| ---: | --- | --- | --- | --- | ---: | ---: | ---: | --- | --- | ---: | ---: | --- |",
     ]
     for _, row in schedule.iterrows():
         paired_net = row["paired_net_delta"]
@@ -931,7 +1019,8 @@ def build_report(summary: dict[str, Any], schedule: pd.DataFrame, mechanism_sche
         paired_p_text = "" if clean_value(paired_p) is None else f"{float(paired_p):.4f}"
         lines.append(
             f"| {int(row['schedule_rank'])} | `{row['method']}` | `{row['eval_action']}` | "
-            f"`{row['decision_status']}` | {int(row['recommended_max_examples'])} | "
+            f"`{row['decision_status']}` | `{row['recommended_tasks']}` | "
+            f"{int(row['recommended_max_examples'])} | {int(row['recommended_prompt_budget'])} | "
             f"{float(row['mechanism_priority']):.3f} | `{row['covered_mechanism_tests']}` | "
             f"`{row['paired_gate_status']}` | "
             f"{paired_net_text} | {paired_p_text} | {row['decision_reason']} |"
@@ -1257,6 +1346,18 @@ def run_smoke(args: argparse.Namespace) -> None:
             "expected": "2",
             "actual": str(coverage_summary["round1_covered_mechanism_test_count"]),
             "passed": coverage_summary["round1_covered_mechanism_test_count"] == 2,
+        }
+    )
+    subspace_row = coverage_schedule[
+        coverage_schedule["method"] == "qwen3_moe_subspace_scaled_candidate"
+    ].iloc[0]
+    rows.append(
+        {
+            "case": "coverage_selects_complement",
+            "assertion": "subspace_probe_tasks",
+            "expected": "gsm8k,humaneval_compile",
+            "actual": str(subspace_row["recommended_tasks"]),
+            "passed": str(subspace_row["recommended_tasks"]) == "gsm8k,humaneval_compile",
         }
     )
     matrix = pd.DataFrame(rows)

@@ -336,7 +336,7 @@
       "status": "complete"
     },
     {
-      "evidence": "results/qwen3_moe_adaptive_eval_schedule/report.md turns the fixed Qwen3 MoE budget into a sequential source-control, mechanism-probe, and full-budget escalation schedule; results/qwen3_moe_adaptive_eval_schedule_smoke/report.md covers source-missing, probe-selected, promising-escalation, full-ready, and dominated-prune branches.",
+      "evidence": "results/qwen3_moe_adaptive_eval_schedule/report.md turns the fixed Qwen3 MoE budget into a sequential source-control, mechanism-targeted probe-task, and full-budget escalation schedule; results/qwen3_moe_adaptive_eval_schedule_smoke/report.md covers source-missing, probe-selected, promising-escalation, full-ready, dominated-prune, coverage-selection, and task-selection branches.",
       "item": "Qwen3 MoE adaptive vLLM eval scheduler",
       "status": "complete"
     },
@@ -8330,8 +8330,11 @@
       ],
       "round1_probe_candidate_count": 5,
       "round1_probe_methods": "qwen3_moe_unified_mechanism_candidate,qwen3_moe_searched_no_gt065_max_retention_candidate,qwen3_moe_layer_chunk_candidate,qwen3_moe_subspace_scaled_candidate,qwen3_moe_tail_trimmed_expert_only_candidate",
+      "round1_probe_task_budget": 896,
       "round1_selection_policy": "greedy_mechanism_coverage_then_priority",
       "run_script": "results/qwen3_moe_adaptive_eval_schedule/run_adaptive_eval.sh",
+      "runnable_method_count": 7,
+      "runnable_prompt_budget": 1408,
       "schedule": "results/qwen3_moe_adaptive_eval_schedule/adaptive_schedule.csv",
       "schedule_rows": [
         {
@@ -8357,6 +8360,9 @@
           "paired_shared_examples": 0,
           "paired_source_only_correct": 0,
           "recommended_max_examples": 64,
+          "recommended_prompt_budget": 256,
+          "recommended_task_count": 4,
+          "recommended_tasks": "gsm8k,mmlu,safety,humaneval_compile",
           "role": "source",
           "round1_selection_policy": null,
           "schedule_rank": 1,
@@ -8366,6 +8372,7 @@
           "stage": "round0_source_controls",
           "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
           "task_paired_regression_columns": null,
+          "task_selection_reason": "source_controls_need_all_tasks",
           "worst_primary_score": null
         },
         {
@@ -8391,6 +8398,9 @@
           "paired_shared_examples": 0,
           "paired_source_only_correct": 0,
           "recommended_max_examples": 64,
+          "recommended_prompt_budget": 256,
+          "recommended_task_count": 4,
+          "recommended_tasks": "gsm8k,mmlu,safety,humaneval_compile",
           "role": "source",
           "round1_selection_policy": null,
           "schedule_rank": 2,
@@ -8400,6 +8410,7 @@
           "stage": "round0_source_controls",
           "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
           "task_paired_regression_columns": null,
+          "task_selection_reason": "source_controls_need_all_tasks",
           "worst_primary_score": null
         },
         {
@@ -8425,6 +8436,9 @@
           "paired_shared_examples": 0,
           "paired_source_only_correct": 0,
           "recommended_max_examples": 64,
+          "recommended_prompt_budget": 256,
+          "recommended_task_count": 4,
+          "recommended_tasks": "gsm8k,mmlu,safety,humaneval_compile",
           "role": "candidate",
           "round1_selection_policy": "greedy_mechanism_coverage_then_priority",
           "schedule_rank": 3,
@@ -8434,10 +8448,11 @@
           "stage": "blocked_by_source_controls",
           "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
           "task_paired_regression_columns": null,
+          "task_selection_reason": "mechanism_tests:candidate_vs_sources,expert_subspace_conflict_ablation,unified_mechanism_optimizer",
           "worst_primary_score": null
         },
         {
-          "adaptive_eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8107/v1 --models candidate_qwen3_moe_searched_no_gt065_max_retention_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
+          "adaptive_eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8107/v1 --models candidate_qwen3_moe_searched_no_gt065_max_retention_candidate --tasks gsm8k,mmlu,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "avg_primary_score": null,
           "base_url": "http://127.0.0.1:8107/v1",
           "checkpoint_exists": true,
@@ -8459,6 +8474,9 @@
           "paired_shared_examples": 0,
           "paired_source_only_correct": 0,
           "recommended_max_examples": 64,
+          "recommended_prompt_budget": 192,
+          "recommended_task_count": 3,
+          "recommended_tasks": "gsm8k,mmlu,humaneval_compile",
           "role": "candidate",
           "round1_selection_policy": "greedy_mechanism_coverage_then_priority",
           "schedule_rank": 4,
@@ -8468,10 +8486,11 @@
           "stage": "blocked_by_source_controls",
           "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
           "task_paired_regression_columns": null,
+          "task_selection_reason": "mechanism_tests:layer_chunk_sensitivity,risk_penalty_simplification",
           "worst_primary_score": null
         },
         {
-          "adaptive_eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8108/v1 --models candidate_qwen3_moe_layer_chunk_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_layer_chunk_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
+          "adaptive_eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8108/v1 --models candidate_qwen3_moe_layer_chunk_candidate --tasks gsm8k,mmlu,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_layer_chunk_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "avg_primary_score": null,
           "base_url": "http://127.0.0.1:8108/v1",
           "checkpoint_exists": true,
@@ -8493,6 +8512,9 @@
           "paired_shared_examples": 0,
           "paired_source_only_correct": 0,
           "recommended_max_examples": 64,
+          "recommended_prompt_budget": 192,
+          "recommended_task_count": 3,
+          "recommended_tasks": "gsm8k,mmlu,humaneval_compile",
           "role": "candidate",
           "round1_selection_policy": "greedy_mechanism_coverage_then_priority",
           "schedule_rank": 5,
@@ -8502,10 +8524,11 @@
           "stage": "blocked_by_source_controls",
           "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
           "task_paired_regression_columns": null,
+          "task_selection_reason": "mechanism_tests:layer_chunk_sensitivity,unified_mechanism_optimizer",
           "worst_primary_score": null
         },
         {
-          "adaptive_eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8110/v1 --models candidate_qwen3_moe_subspace_scaled_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_subspace_scaled_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
+          "adaptive_eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8110/v1 --models candidate_qwen3_moe_subspace_scaled_candidate --tasks gsm8k,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_subspace_scaled_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "avg_primary_score": null,
           "base_url": "http://127.0.0.1:8110/v1",
           "checkpoint_exists": true,
@@ -8527,6 +8550,9 @@
           "paired_shared_examples": 0,
           "paired_source_only_correct": 0,
           "recommended_max_examples": 64,
+          "recommended_prompt_budget": 128,
+          "recommended_task_count": 2,
+          "recommended_tasks": "gsm8k,humaneval_compile",
           "role": "candidate",
           "round1_selection_policy": "greedy_mechanism_coverage_then_priority",
           "schedule_rank": 6,
@@ -8536,10 +8562,11 @@
           "stage": "blocked_by_source_controls",
           "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
           "task_paired_regression_columns": null,
+          "task_selection_reason": "mechanism_tests:expert_subspace_conflict_ablation",
           "worst_primary_score": null
         },
         {
-          "adaptive_eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8106/v1 --models candidate_qwen3_moe_tail_trimmed_expert_only_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_tail_trimmed_expert_only_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
+          "adaptive_eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8106/v1 --models candidate_qwen3_moe_tail_trimmed_expert_only_candidate --tasks gsm8k,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_tail_trimmed_expert_only_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "avg_primary_score": null,
           "base_url": "http://127.0.0.1:8106/v1",
           "checkpoint_exists": true,
@@ -8561,6 +8588,9 @@
           "paired_shared_examples": 0,
           "paired_source_only_correct": 0,
           "recommended_max_examples": 64,
+          "recommended_prompt_budget": 128,
+          "recommended_task_count": 2,
+          "recommended_tasks": "gsm8k,humaneval_compile",
           "role": "candidate",
           "round1_selection_policy": "greedy_mechanism_coverage_then_priority",
           "schedule_rank": 7,
@@ -8570,6 +8600,7 @@
           "stage": "blocked_by_source_controls",
           "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
           "task_paired_regression_columns": null,
+          "task_selection_reason": "mechanism_tests:risk_penalty_simplification,second_stage_tail_trim",
           "worst_primary_score": null
         },
         {
@@ -8595,6 +8626,9 @@
           "paired_shared_examples": 0,
           "paired_source_only_correct": 0,
           "recommended_max_examples": 0,
+          "recommended_prompt_budget": 0,
+          "recommended_task_count": 0,
+          "recommended_tasks": null,
           "role": "candidate",
           "round1_selection_policy": null,
           "schedule_rank": 8,
@@ -8604,6 +8638,7 @@
           "stage": "blocked_by_source_controls",
           "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
           "task_paired_regression_columns": null,
+          "task_selection_reason": "no_eval_action",
           "worst_primary_score": null
         },
         {
@@ -8629,6 +8664,9 @@
           "paired_shared_examples": 0,
           "paired_source_only_correct": 0,
           "recommended_max_examples": 0,
+          "recommended_prompt_budget": 0,
+          "recommended_task_count": 0,
+          "recommended_tasks": null,
           "role": "candidate",
           "round1_selection_policy": null,
           "schedule_rank": 9,
@@ -8638,6 +8676,7 @@
           "stage": "blocked_by_source_controls",
           "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
           "task_paired_regression_columns": null,
+          "task_selection_reason": "no_eval_action",
           "worst_primary_score": null
         },
         {
@@ -8663,6 +8702,9 @@
           "paired_shared_examples": 0,
           "paired_source_only_correct": 0,
           "recommended_max_examples": 0,
+          "recommended_prompt_budget": 0,
+          "recommended_task_count": 0,
+          "recommended_tasks": null,
           "role": "candidate",
           "round1_selection_policy": null,
           "schedule_rank": 10,
@@ -8672,6 +8714,7 @@
           "stage": "blocked_by_source_controls",
           "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
           "task_paired_regression_columns": null,
+          "task_selection_reason": "no_eval_action",
           "worst_primary_score": null
         },
         {
@@ -8697,6 +8740,9 @@
           "paired_shared_examples": 0,
           "paired_source_only_correct": 0,
           "recommended_max_examples": 0,
+          "recommended_prompt_budget": 0,
+          "recommended_task_count": 0,
+          "recommended_tasks": null,
           "role": "candidate",
           "round1_selection_policy": null,
           "schedule_rank": 11,
@@ -8706,6 +8752,7 @@
           "stage": "blocked_by_source_controls",
           "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
           "task_paired_regression_columns": null,
+          "task_selection_reason": "no_eval_action",
           "worst_primary_score": null
         },
         {
@@ -8731,6 +8778,9 @@
           "paired_shared_examples": 0,
           "paired_source_only_correct": 0,
           "recommended_max_examples": 0,
+          "recommended_prompt_budget": 0,
+          "recommended_task_count": 0,
+          "recommended_tasks": null,
           "role": "candidate",
           "round1_selection_policy": null,
           "schedule_rank": 12,
@@ -8740,6 +8790,7 @@
           "stage": "materialize_before_eval",
           "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
           "task_paired_regression_columns": null,
+          "task_selection_reason": "no_eval_action",
           "worst_primary_score": null
         },
         {
@@ -8765,6 +8816,9 @@
           "paired_shared_examples": 0,
           "paired_source_only_correct": 0,
           "recommended_max_examples": 0,
+          "recommended_prompt_budget": 0,
+          "recommended_task_count": 0,
+          "recommended_tasks": null,
           "role": "candidate",
           "round1_selection_policy": null,
           "schedule_rank": 13,
@@ -8774,6 +8828,7 @@
           "stage": "materialize_before_eval",
           "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
           "task_paired_regression_columns": null,
+          "task_selection_reason": "no_eval_action",
           "worst_primary_score": null
         }
       ],
@@ -8813,7 +8868,10 @@
           "unified_mechanism_optimizer"
         ],
         "round1_probe_candidate_count": 5,
+        "round1_probe_task_budget": 896,
         "round1_selection_policy": "greedy_mechanism_coverage_then_priority",
+        "runnable_method_count": 7,
+        "runnable_prompt_budget": 1408,
         "schema_version": 1,
         "source_controls_complete": false,
         "status": "adaptive_schedule_ready",
@@ -8826,7 +8884,7 @@
       "top_method": "source_qwen3_30b_instruct"
     },
     "qwen3_moe_adaptive_eval_schedule_smoke": {
-      "assertion_count": 14,
+      "assertion_count": 15,
       "case_count": 7,
       "case_rows": [
         {
@@ -8926,15 +8984,22 @@
           "case": "coverage_selects_complement",
           "expected": "2",
           "passed": true
+        },
+        {
+          "actual": "gsm8k,humaneval_compile",
+          "assertion": "subspace_probe_tasks",
+          "case": "coverage_selects_complement",
+          "expected": "gsm8k,humaneval_compile",
+          "passed": true
         }
       ],
       "failed_assertion_count": 0,
       "matrix": "results/qwen3_moe_adaptive_eval_schedule_smoke/adaptive_eval_schedule_smoke_matrix.csv",
-      "passed_assertion_count": 14,
+      "passed_assertion_count": 15,
       "report": "results/qwen3_moe_adaptive_eval_schedule_smoke/report.md",
       "status": "passed",
       "summary": {
-        "assertion_count": 14,
+        "assertion_count": 15,
         "case_count": 7,
         "failed_assertion_count": 0,
         "outputs": {
@@ -8942,7 +9007,7 @@
           "report": "results/qwen3_moe_adaptive_eval_schedule_smoke/report.md",
           "summary": "results/qwen3_moe_adaptive_eval_schedule_smoke/summary.json"
         },
-        "passed_assertion_count": 14,
+        "passed_assertion_count": 15,
         "schema_version": 1,
         "status": "passed"
       },
@@ -39385,7 +39450,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-20T08:23:07.791308+00:00",
+  "generated_at": "2026-06-20T08:29:35.984384+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [

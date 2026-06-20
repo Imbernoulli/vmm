@@ -1482,6 +1482,9 @@ def summarize_qwen3_moe_adaptive_eval_schedule() -> dict[str, Any]:
         "round1_selection_policy": summary.get("round1_selection_policy"),
         "round1_covered_mechanism_test_count": int(summary.get("round1_covered_mechanism_test_count", 0)),
         "round1_covered_mechanism_tests": summary.get("round1_covered_mechanism_tests", []),
+        "round1_probe_task_budget": maybe_int(summary.get("round1_probe_task_budget")),
+        "runnable_prompt_budget": maybe_int(summary.get("runnable_prompt_budget")),
+        "runnable_method_count": maybe_int(summary.get("runnable_method_count")),
         "top_eval_action": summary.get("top_eval_action"),
         "top_method": summary.get("top_method"),
         "probe_examples": maybe_int(summary.get("probe_examples")),
@@ -4334,7 +4337,7 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "Qwen3 MoE adaptive vLLM eval scheduler",
             "status": "complete",
-            "evidence": "results/qwen3_moe_adaptive_eval_schedule/report.md turns the fixed Qwen3 MoE budget into a sequential source-control, mechanism-probe, and full-budget escalation schedule; results/qwen3_moe_adaptive_eval_schedule_smoke/report.md covers source-missing, probe-selected, promising-escalation, full-ready, and dominated-prune branches.",
+            "evidence": "results/qwen3_moe_adaptive_eval_schedule/report.md turns the fixed Qwen3 MoE budget into a sequential source-control, mechanism-targeted probe-task, and full-budget escalation schedule; results/qwen3_moe_adaptive_eval_schedule_smoke/report.md covers source-missing, probe-selected, promising-escalation, full-ready, dominated-prune, coverage-selection, and task-selection branches.",
         },
         {
             "item": "Qwen3 MoE eval task manifest preflight",
@@ -5500,6 +5503,12 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_adaptive_eval_schedule['round1_probe_candidate_count']} / "
                 f"{qwen3_moe_adaptive_eval_schedule['probe_examples']} -> "
                 f"{qwen3_moe_adaptive_eval_schedule['full_examples']} |"
+            ),
+            (
+                "| Qwen3 MoE adaptive eval schedule | runnable methods / prompt budget / round1 probe prompts | "
+                f"{qwen3_moe_adaptive_eval_schedule['runnable_method_count']} / "
+                f"{qwen3_moe_adaptive_eval_schedule['runnable_prompt_budget']} / "
+                f"{qwen3_moe_adaptive_eval_schedule['round1_probe_task_budget']} |"
             ),
             (
                 "| Qwen3 MoE adaptive eval schedule | round1 policy / covered mechanism tests | "

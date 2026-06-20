@@ -1,5 +1,5 @@
 {
-  "assertion_count": 14,
+  "assertion_count": 15,
   "case_count": 7,
   "failed_assertion_count": 0,
   "outputs": {
@@ -7,7 +7,7 @@
     "report": "results/qwen3_moe_adaptive_eval_schedule_smoke/report.md",
     "summary": "results/qwen3_moe_adaptive_eval_schedule_smoke/summary.json"
   },
-  "passed_assertion_count": 14,
+  "passed_assertion_count": 15,
   "schema_version": 1,
   "status": "passed"
 }

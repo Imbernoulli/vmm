@@ -32,7 +32,10 @@
     "unified_mechanism_optimizer"
   ],
   "round1_probe_candidate_count": 5,
+  "round1_probe_task_budget": 896,
   "round1_selection_policy": "greedy_mechanism_coverage_then_priority",
+  "runnable_method_count": 7,
+  "runnable_prompt_budget": 1408,
   "schema_version": 1,
   "source_controls_complete": false,
   "status": "adaptive_schedule_ready",
