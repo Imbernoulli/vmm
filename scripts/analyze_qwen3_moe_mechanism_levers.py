@@ -131,6 +131,59 @@ def find_candidate(frontier: pd.DataFrame, candidate: str) -> dict[str, Any]:
     return {} if rows.empty else rows.iloc[0].to_dict()
 
 
+def build_task_gap_policy(task_gap_targets: pd.DataFrame) -> pd.DataFrame:
+    if task_gap_targets.empty:
+        return pd.DataFrame()
+    rows: list[dict[str, Any]] = []
+    for _, row in task_gap_targets.iterrows():
+        status = str(row.get("status"))
+        task = str(row.get("task"))
+        capability = str(row.get("capability"))
+        additional_needed = maybe_float(row.get("additional_task_gain_needed"))
+        if status == "no_task_frontier_gain":
+            hypothesis = "the current source set has no measurable endpoint frontier signal on this task"
+            average_policy = "block_final_average_budget_and_search_or_eval_a_stronger_task_source"
+            probe = "host specialist endpoints, score the same task manifest, then recompute source surplus before changing MoE weights"
+            moe_lever = "source_frontier_first"
+            priority_bonus = 0.08
+        elif status == "gain_below_interference_budget":
+            hypothesis = "the task has a positive source frontier signal, but it is smaller than observed merge interference"
+            average_policy = "expand_endpoint_eval_and_only_then_try_output_or_layer_chunk_alignment"
+            probe = "increase task examples and compare source frontier against the observed interference budget"
+            moe_lever = "output_or_layer_chunk_alignment_after_positive_source_signal"
+            priority_bonus = 0.04
+        elif status == "observed_merge_loses_frontier":
+            hypothesis = "the average is actively regressing a task where sources already contain usable signal"
+            average_policy = "repair_task_regression_with_router_expert_or_subspace_caps_before_acceptance"
+            probe = "paired vLLM regression audit plus router/expert attribution for the regressed task"
+            moe_lever = "regression_repair"
+            priority_bonus = 0.06
+        else:
+            hypothesis = "the task is not currently a blocker, but it remains part of the locked source frontier gate"
+            average_policy = "keep_as_guardrail_for_future_average_acceptance"
+            probe = "keep task in paired source/candidate eval"
+            moe_lever = "guardrail"
+            priority_bonus = 0.0
+        rows.append(
+            {
+                "task": task,
+                "runner_task": row.get("runner_task"),
+                "capability": capability,
+                "frontier_source": row.get("frontier_source"),
+                "frontier_gain_vs_best_single": maybe_float(row.get("frontier_gain_vs_best_single")),
+                "interference_budget": maybe_float(row.get("interference_budget")),
+                "additional_task_gain_needed": additional_needed,
+                "status": status,
+                "mechanism_hypothesis": hypothesis,
+                "average_policy": average_policy,
+                "recommended_probe": probe,
+                "preferred_moe_lever": moe_lever,
+                "priority_score": additional_needed + priority_bonus,
+            }
+        )
+    return pd.DataFrame(rows).sort_values(["priority_score", "task"], ascending=[False, True]).reset_index(drop=True)
+
+
 def build_layer_chunking_plan(
     layer_frontier: pd.DataFrame,
     router_layers: pd.DataFrame,
@@ -250,6 +303,9 @@ def build_levers(
     final_selection_summary: dict[str, Any],
     chunking_plan: pd.DataFrame,
     subspace_summary: dict[str, Any],
+    qwen_source_discovery_summary: dict[str, Any],
+    average_source_set_optimizer: dict[str, Any],
+    task_gap_policy: pd.DataFrame,
 ) -> pd.DataFrame:
     route_to_audit = find_pair(pairwise, "route_guarded", "audit_gated")
     audit_to_trust = find_pair(pairwise, "audit_gated", "trust_region")
@@ -300,7 +356,41 @@ def build_levers(
         if subspace_available
         else "collect per-expert output embeddings and cluster/subspace similarity before materializing third-party MoE merges"
     )
+    top_source_set = average_source_set_optimizer.get("top_source_set") or {}
+    top_task_gap = task_gap_policy.iloc[0].to_dict() if not task_gap_policy.empty else {}
+    task_gap_text = "; ".join(
+        f"{row['task']}:{row['status']} needs {maybe_float(row['additional_task_gain_needed']):.4f}"
+        for _, row in task_gap_policy.iterrows()
+    )
+    measured_queue = qwen_source_discovery_summary.get("top_queue_item") or {}
     levers = [
+        {
+            "mechanism": "source_task_gap_frontier_acquisition",
+            "evidence_type": "task_surplus_gate",
+            "quantitative_evidence": (
+                f"top source set {top_source_set.get('source_set')}; surplus "
+                f"{top_source_set.get('frontier_avg_surplus_vs_interference')}; "
+                f"task blockers {task_gap_text or 'none'}"
+            ),
+            "inferred_failure_mode": (
+                "the current sources do not yet contain enough task-frontier complementarity to justify "
+                "spending final average budget on MoE weight optimization"
+            ),
+            "current_action": (
+                "prioritize task-source acquisition/eval; do not promote any average until "
+                "task-level source surplus covers observed merge interference"
+            ),
+            "next_test": measured_queue.get(
+                "command",
+                "python scripts/build_qwen_source_discovery_plan.py --output-dir results/qwen_source_discovery_plan",
+            ),
+            "priority_score": 0.995 if not task_gap_policy.empty else 0.58,
+            "confidence": "high" if not task_gap_policy.empty else "medium",
+            "source_artifacts": (
+                "results/qwen_source_discovery_plan/task_gap_targets.csv; "
+                "results/qwen3_average_source_set_optimizer/task_surplus.csv"
+            ),
+        },
         {
             "mechanism": "source_and_candidate_downstream_eval",
             "evidence_type": "statistical_eval_budget",
@@ -435,8 +525,15 @@ def build_levers(
     ]
     final_status = (final_selection_summary.get("current_selection") or {}).get("status")
     if final_status not in {None, "awaiting_source_eval", "awaiting_candidate_eval"}:
-        levers[0]["priority_score"] = 0.60
-        levers[0]["quantitative_evidence"] += f"; final selector status {final_status}"
+        eval_index = 1 if len(levers) > 1 else 0
+        levers[eval_index]["priority_score"] = 0.60
+        levers[eval_index]["quantitative_evidence"] += f"; final selector status {final_status}"
+    if not task_gap_policy.empty and top_task_gap:
+        levers[0]["quantitative_evidence"] += (
+            f"; top task gap {top_task_gap.get('task')} "
+            f"{top_task_gap.get('status')} needs "
+            f"{maybe_float(top_task_gap.get('additional_task_gain_needed')):.4f}"
+        )
     return pd.DataFrame(levers).sort_values("priority_score", ascending=False).reset_index(drop=True)
 
 
@@ -467,7 +564,13 @@ def fmt(value: Any) -> str:
     return str(value)
 
 
-def build_report(summary: dict[str, Any], levers: pd.DataFrame, queue: pd.DataFrame, chunking: pd.DataFrame) -> str:
+def build_report(
+    summary: dict[str, Any],
+    levers: pd.DataFrame,
+    queue: pd.DataFrame,
+    chunking: pd.DataFrame,
+    task_gap_policy: pd.DataFrame,
+) -> str:
     lines = [
         "# Qwen3 MoE Mechanism Leverage Map",
         "",
@@ -477,6 +580,8 @@ def build_report(summary: dict[str, Any], levers: pd.DataFrame, queue: pd.DataFr
         f"- Lever count: `{summary['lever_count']}`",
         f"- Top lever: `{summary['top_lever']}`",
         f"- Top next test: `{summary['top_lever_next_test']}`",
+        f"- Task-gap blockers: `{summary['task_gap_blocker_count']}`",
+        f"- Top task gap: `{summary['top_task_gap_task']}` / `{summary['top_task_gap_status']}` needs `{fmt(summary['top_task_gap_additional_gain_needed'])}`",
         f"- Fine calibration layers: `{summary['fine_calibration_layers']}`",
         "",
         "## Levers",
@@ -500,6 +605,25 @@ def build_report(summary: dict[str, Any], levers: pd.DataFrame, queue: pd.DataFr
     )
     for _, row in queue.iterrows():
         lines.append(f"| {int(row['rank'])} | `{row['mechanism']}` | `{row['test_or_command']}` |")
+    if not task_gap_policy.empty:
+        lines.extend(
+            [
+                "",
+                "## Task-Gap Mechanism Policy",
+                "",
+                "这个表把 source surplus 的 task-level blocker 翻译成 average policy：source frontier 没有通过时，不把失败归因给某个 averaging 算法超参，而是先证明任务源互补性。",
+                "",
+                "| task | capability | status | gain | needed | average policy | probe |",
+                "| --- | --- | --- | ---: | ---: | --- | --- |",
+            ]
+        )
+        for _, row in task_gap_policy.iterrows():
+            lines.append(
+                f"| `{row['task']}` | `{row['capability']}` | `{row['status']}` | "
+                f"{fmt(row['frontier_gain_vs_best_single'])} | "
+                f"{fmt(row['additional_task_gain_needed'])} | "
+                f"{row['average_policy']} | {row['recommended_probe']} |"
+            )
     if not chunking.empty:
         lines.extend(
             [
@@ -548,18 +672,21 @@ def write_outputs(
     queue: pd.DataFrame,
     chunking: pd.DataFrame,
     subspace_summary: dict[str, Any],
+    task_gap_policy: pd.DataFrame,
 ) -> dict[str, Any]:
     output_dir = repo_path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     levers_path = output_dir / "mechanism_levers.csv"
     queue_path = output_dir / "next_experiment_queue.csv"
     chunking_path = output_dir / "layer_chunking_plan.csv"
+    task_gap_path = output_dir / "task_gap_policy.csv"
     literature_path = output_dir / "literature_sources.json"
     summary_path = output_dir / "summary.json"
     report_path = output_dir / "report.md"
     levers.to_csv(levers_path, index=False)
     queue.to_csv(queue_path, index=False)
     chunking.to_csv(chunking_path, index=False)
+    task_gap_policy.to_csv(task_gap_path, index=False)
     literature_path.write_text(
         json.dumps(json_safe(LITERATURE_SOURCES), indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
@@ -570,6 +697,7 @@ def write_outputs(
         else ""
     )
     top = levers.iloc[0].to_dict() if not levers.empty else {}
+    top_task_gap = task_gap_policy.iloc[0].to_dict() if not task_gap_policy.empty else {}
     geometry_available = (
         not chunking.empty
         and "route_mass_weighted_route_geometry_risk_score" in chunking
@@ -587,6 +715,18 @@ def write_outputs(
         "top_lever": top.get("mechanism"),
         "top_lever_priority": maybe_float(top.get("priority_score")),
         "top_lever_next_test": top.get("next_test"),
+        "task_gap_blocker_count": int(len(task_gap_policy)),
+        "task_gap_tasks": ",".join(str(row["task"]) for _, row in task_gap_policy.iterrows()),
+        "top_task_gap_task": top_task_gap.get("task"),
+        "top_task_gap_status": top_task_gap.get("status"),
+        "top_task_gap_capability": top_task_gap.get("capability"),
+        "top_task_gap_additional_gain_needed": maybe_float(
+            top_task_gap.get("additional_task_gain_needed"),
+            default=0.0,
+        )
+        if top_task_gap
+        else None,
+        "top_task_gap_average_policy": top_task_gap.get("average_policy"),
         "fine_calibration_layers": fine_layers,
         "expert_geometry_probe_used": geometry_available,
         "expert_subspace_probe_used": bool(subspace_summary),
@@ -617,11 +757,12 @@ def write_outputs(
             "mechanism_levers": rel(levers_path),
             "next_experiment_queue": rel(queue_path),
             "layer_chunking_plan": rel(chunking_path),
+            "task_gap_policy": rel(task_gap_path),
             "literature_sources": rel(literature_path),
         },
     }
     summary_path.write_text(json.dumps(json_safe(summary), indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    report_path.write_text(build_report(summary, levers, queue, chunking), encoding="utf-8")
+    report_path.write_text(build_report(summary, levers, queue, chunking, task_gap_policy), encoding="utf-8")
     return summary
 
 
@@ -642,6 +783,21 @@ def parse_args() -> argparse.Namespace:
         "--expert-subspace-dir",
         type=Path,
         default=Path("results/qwen3_moe_expert_subspace_conflict_probe"),
+    )
+    parser.add_argument(
+        "--qwen-source-discovery-plan",
+        type=Path,
+        default=Path("results/qwen_source_discovery_plan/summary.json"),
+    )
+    parser.add_argument(
+        "--qwen-source-task-gap-targets",
+        type=Path,
+        default=Path("results/qwen_source_discovery_plan/task_gap_targets.csv"),
+    )
+    parser.add_argument(
+        "--average-source-set-optimizer",
+        type=Path,
+        default=Path("results/qwen3_average_source_set_optimizer/summary.json"),
     )
     return parser.parse_args()
 
@@ -666,6 +822,10 @@ def main() -> None:
     eval_budget_summary = read_json(eval_budget_dir / "summary.json")
     final_selection_summary = read_json(final_dir / "summary.json")
     subspace_summary = read_json(subspace_dir / "summary.json")
+    qwen_source_discovery_summary = read_json(args.qwen_source_discovery_plan)
+    average_source_set_optimizer = read_json(args.average_source_set_optimizer)
+    task_gap_targets = read_csv(args.qwen_source_task_gap_targets)
+    task_gap_policy = build_task_gap_policy(task_gap_targets)
     chunking = build_layer_chunking_plan(layer_frontier, router_layers, expert_geometry_layers)
     levers = build_levers(
         delta_summary=delta_summary,
@@ -678,9 +838,12 @@ def main() -> None:
         final_selection_summary=final_selection_summary,
         chunking_plan=chunking,
         subspace_summary=subspace_summary,
+        qwen_source_discovery_summary=qwen_source_discovery_summary,
+        average_source_set_optimizer=average_source_set_optimizer,
+        task_gap_policy=task_gap_policy,
     )
     queue = build_experiment_queue(levers)
-    summary = write_outputs(args.output_dir, levers, queue, chunking, subspace_summary)
+    summary = write_outputs(args.output_dir, levers, queue, chunking, subspace_summary, task_gap_policy)
     print(f"Wrote Qwen3 MoE mechanism leverage map to {repo_path(args.output_dir).resolve()}")
     print(f"Top lever: {summary['top_lever']} ({summary['top_lever_priority']:.3f})")
 

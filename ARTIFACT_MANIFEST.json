@@ -3511,28 +3511,34 @@
       "sha256": "b52826fa1f598a3d69c37e1e565857e213ebf805b6c348f2bec0fc7271fd101e"
     },
     {
-      "bytes": 4507,
+      "bytes": 5452,
       "kind": "data",
       "path": "results/qwen3_moe_mechanism_levers/mechanism_levers.csv",
-      "sha256": "5dc2a1c3577278ed7a2964ec07982fb0cff78352f661693c7653c45279ca4375"
+      "sha256": "f059684348577cf3a773ab4ed8a1c4540c606dc08916f3a455ea77a1ee785363"
     },
     {
-      "bytes": 1249,
+      "bytes": 1444,
       "kind": "data",
       "path": "results/qwen3_moe_mechanism_levers/next_experiment_queue.csv",
-      "sha256": "8cfe6ee4b0071b3e7948c40f4258eea1da76fc3de7e2ccaef41776cd11aa503c"
+      "sha256": "4579a282e5def4334bcd87bedf1060e1998862b0235fa997561722994690d686"
     },
     {
-      "bytes": 7116,
+      "bytes": 9217,
       "kind": "document",
       "path": "results/qwen3_moe_mechanism_levers/report.md",
-      "sha256": "07c3807e3b1f30203034326d305336383c2d7c56ac2dd9c5872f97559da6da59"
+      "sha256": "7d6a23bf3e702684cde6b46de2571b7a6bead234948fb633b970ec8055b16a47"
     },
     {
-      "bytes": 1159,
+      "bytes": 1766,
       "kind": "data",
       "path": "results/qwen3_moe_mechanism_levers/summary.json",
-      "sha256": "c3037f119dc493f8ddd61f3619f6843c953679cb7e34039734bb46411998d969"
+      "sha256": "9348f8e7a22b27ab1ca8ad0fef6dc98b9d43fa54e6a1a102e07923bbe48f6c57"
+    },
+    {
+      "bytes": 1529,
+      "kind": "data",
+      "path": "results/qwen3_moe_mechanism_levers/task_gap_policy.csv",
+      "sha256": "0680cb5fcb935dffa66751298a24fca2423a0c08ee946bd0fbe8da283320811a"
     },
     {
       "bytes": 952,
@@ -3709,40 +3715,40 @@
       "sha256": "16040e4106918bfa5bcc11154b4fde0dea87231b51ff334f4546f583c8a3b464"
     },
     {
-      "bytes": 16695,
+      "bytes": 17194,
       "kind": "document",
       "path": "results/qwen3_moe_post_eval_refresh/report.md",
-      "sha256": "d4f691575fcb72c67fc14a88d8cec155e664d8abf7b073ba0ab6d827611ea51c"
+      "sha256": "e2efca156ec58a4af5f97c6b33717ab7c7f0e23e2ff5a44ca8381e7b1700080a"
     },
     {
-      "bytes": 20296,
+      "bytes": 20540,
       "kind": "data",
       "path": "results/qwen3_moe_post_eval_refresh/steps.csv",
-      "sha256": "e3cfc8fe18c68651181c52967aa2845fe8f1d6c54ad54d2c9bfc743fd5a04919"
+      "sha256": "af2111b9e4766d0f2cae74e310366576ac74c8ff4812b2749e3e68bafd54b313"
     },
     {
-      "bytes": 40858,
+      "bytes": 41596,
       "kind": "data",
       "path": "results/qwen3_moe_post_eval_refresh/summary.json",
-      "sha256": "43a29ead89add3d7750bc75b6234cf6b333b97ea7b232db2c6dd4ad597aba4ab"
+      "sha256": "99b3ad620d254bc5f73dc95c10f03d0f99fbcbac5ffec7bec1eb988b62c356d8"
     },
     {
-      "bytes": 14808,
+      "bytes": 15120,
       "kind": "document",
       "path": "results/qwen3_moe_post_eval_refresh_plan/report.md",
-      "sha256": "e7deaa0ab88e193f571e70f5db1e27c49a61cb579033ef711d6bbf40793e5e72"
+      "sha256": "54007798b5267409eceaebe647fbde59729f173a0c6527e2e7f5faba5438f802"
     },
     {
-      "bytes": 9682,
+      "bytes": 9933,
       "kind": "data",
       "path": "results/qwen3_moe_post_eval_refresh_plan/steps.csv",
-      "sha256": "cf8599420d8f366fff13e83646933d025894119f246c32499e0924f328c8d342"
+      "sha256": "ae8e76eb8b1b0de97a1dfe188e281611cc125591a4f301f3d72582f6126ee601"
     },
     {
-      "bytes": 18006,
+      "bytes": 18257,
       "kind": "data",
       "path": "results/qwen3_moe_post_eval_refresh_plan/summary.json",
-      "sha256": "e2cb018e1c228dea6ba5de2311dbb3bcba1724558266b0dda5e068a8a69ae3bd"
+      "sha256": "f643875a9e9e10a69655ea982e72da589025e03c0115c70a99ce4ef9c443b3ac"
     },
     {
       "bytes": 1274,
@@ -6655,16 +6661,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 3323862,
+      "bytes": 3330824,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "ede24988ee8d622558716d98d468d4948178e372666d32fdaae8a8db839cb954"
+      "sha256": "8587e2b1c2b467d0f2cea850bc1d2a4ac9eebe302455379121d9e2112615148a"
     },
     {
-      "bytes": 75106,
+      "bytes": 75442,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "c9403cab1818cc231198268684e7e854b58a87be5ac37f29413f3df170eb76ab"
+      "sha256": "855ce1bc415b5bfea2d14c7e3f7750d7c49b81b9f8cdc2c0a91d77d73a250913"
     },
     {
       "bytes": 288,
@@ -7753,10 +7759,10 @@
       "sha256": "2795e81917d9df635089183ff85d00ccda1e54dadf00e6227853ade1914e3f1e"
     },
     {
-      "bytes": 31923,
+      "bytes": 40571,
       "kind": "code",
       "path": "scripts/analyze_qwen3_moe_mechanism_levers.py",
-      "sha256": "f661faf58920eebf75e2a38f55c0b002d796c8dab07bb26fd4a2bfc9e4cd92e0"
+      "sha256": "b7dfca9952fbb0df143e2f8c0622e0e06257e5e752280fd0444bc49462052849"
     },
     {
       "bytes": 28667,
@@ -8143,10 +8149,10 @@
       "sha256": "50dd5e2722cebe90c587c42d4771a46a6778455bb41c2b3a7e413036fd215de2"
     },
     {
-      "bytes": 541880,
+      "bytes": 543150,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "178e077284e62a29ba9dfced6684cc78a9beaf63d6d77c856aeec4ae7906a9b5"
+      "sha256": "5bcf5112484f41871e4cdb604a80d72697ef111f1eb5fca135d4254f3a447a1d"
     },
     {
       "bytes": 16101,
@@ -8239,10 +8245,10 @@
       "sha256": "9f211e934ffbcd7d5a0df9eed38a4cdd7d5d601adf2d4877519bb4cef8ac9f02"
     },
     {
-      "bytes": 73035,
+      "bytes": 74235,
       "kind": "code",
       "path": "scripts/refresh_qwen3_moe_post_eval.py",
-      "sha256": "3c81564ec7609f908569e3e849ee7d90e7cfe08fcc1c3b3319249c29ef07cddd"
+      "sha256": "3d18fdfd306ebb1bed54a28cae8c28c691b5112ea449d493bcec4601b05d0b2e"
     },
     {
       "bytes": 10141,
@@ -8479,7 +8485,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-20T16:59:09.993618+00:00",
+  "generated_at": "2026-06-20T17:06:35.619470+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

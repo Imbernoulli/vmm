@@ -427,6 +427,12 @@ def build_steps(args: argparse.Namespace) -> list[dict[str, Any]]:
                 "scripts/analyze_qwen3_moe_mechanism_levers.py",
                 "--eval-budget-dir",
                 str(args.eval_budget_dir),
+                "--qwen-source-discovery-plan",
+                str(args.qwen_source_discovery_plan_dir / "summary.json"),
+                "--qwen-source-task-gap-targets",
+                str(args.qwen_source_discovery_plan_dir / "task_gap_targets.csv"),
+                "--average-source-set-optimizer",
+                str(args.average_source_set_optimizer_dir / "summary.json"),
                 "--output-dir",
                 str(args.mechanism_levers_dir),
             ],
@@ -1054,6 +1060,15 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
         "mechanism_levers_status": mechanism_levers.get("status"),
         "mechanism_levers_top_lever": mechanism_levers.get("top_lever"),
         "mechanism_levers_top_next_test": mechanism_levers.get("top_lever_next_test"),
+        "mechanism_levers_task_gap_blockers": mechanism_levers.get("task_gap_blocker_count"),
+        "mechanism_levers_top_task_gap": mechanism_levers.get("top_task_gap_task"),
+        "mechanism_levers_top_task_gap_status": mechanism_levers.get("top_task_gap_status"),
+        "mechanism_levers_top_task_gap_needed": mechanism_levers.get(
+            "top_task_gap_additional_gain_needed"
+        ),
+        "mechanism_levers_top_task_gap_policy": mechanism_levers.get(
+            "top_task_gap_average_policy"
+        ),
     }
 
 
@@ -1105,7 +1120,7 @@ def build_report(summary: dict[str, Any]) -> str:
         f"- Average method gate smoke: `{downstream.get('average_method_gate_smoke_status', 'n/a')}` (`{downstream.get('average_method_gate_smoke_passed', 'n/a')}/{downstream.get('average_method_gate_smoke_assertions', 'n/a')}` assertions)",
         f"- Average trust-region bounds: `{downstream.get('average_trust_region_bounds_status', 'n/a')}` (`passed={downstream.get('average_trust_region_bounds_passed', 'n/a')}`, `rejected={downstream.get('average_trust_region_bounds_rejected', 'n/a')}`, `waiting={downstream.get('average_trust_region_bounds_waiting', 'n/a')}`); dense lambda bound `{downstream.get('dense_local_task_vector_lambda_bound', 'n/a')}`, router midpoint over safe bound `{downstream.get('moe_direct_router_average_over_safe_bound', 'n/a')}`",
         f"- Average trust-region smoke: `{downstream.get('average_trust_region_bounds_smoke_status', 'n/a')}` (`{downstream.get('average_trust_region_bounds_smoke_passed', 'n/a')}/{downstream.get('average_trust_region_bounds_smoke_assertions', 'n/a')}` assertions)",
-        f"- Mechanism levers: `{downstream.get('mechanism_levers_status', 'n/a')}` (top `{downstream.get('mechanism_levers_top_lever', 'n/a')}` -> `{downstream.get('mechanism_levers_top_next_test', 'n/a')}`)",
+        f"- Mechanism levers: `{downstream.get('mechanism_levers_status', 'n/a')}` (top `{downstream.get('mechanism_levers_top_lever', 'n/a')}` -> `{downstream.get('mechanism_levers_top_next_test', 'n/a')}`, task blockers `{downstream.get('mechanism_levers_task_gap_blockers', 'n/a')}`, top task gap `{downstream.get('mechanism_levers_top_task_gap', 'n/a')}` / `{downstream.get('mechanism_levers_top_task_gap_status', 'n/a')}` needs `{downstream.get('mechanism_levers_top_task_gap_needed', 'n/a')}`)",
         "",
         "| step | kind | status | returncode | seconds |",
         "| --- | --- | --- | ---: | ---: |",

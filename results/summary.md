@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-20T16:59:09.767951+00:00`
+Generated at: `2026-06-20T17:06:35.544974+00:00`
 
 ## Coverage
 
@@ -260,7 +260,8 @@ Complete: `106`; partial: `1`; missing: `0`.
 | Qwen3 MoE adaptive eval schedule smoke | status / assertions | passed / 17/17 |
 | Qwen3 MoE eval manifest preflight | status / tasks sufficient / methods aligned | task_manifest_ready / 4/4 / 15/15 |
 | Qwen3 MoE eval budget plan | router active / ready / pending / plan-pruned caps | 2 / 0 / 2 / 2 |
-| Qwen3 MoE mechanism levers | top lever / priority / next test | source_and_candidate_downstream_eval / 0.98 / results/qwen3_moe_eval_budget_plan/run_eval_budget.sh final |
+| Qwen3 MoE mechanism levers | top lever / priority / next test | source_task_gap_frontier_acquisition / 0.99 / python scripts/run_vllm_downstream_eval.py --models SERVED_CODER,SERVED_THINKING --tasks gsm8k,humaneval_compile,mmlu --max-examples 256 --output-dir results/qwen_source_discovery_plan/measured_coder_thinking_vllm |
+| Qwen3 MoE mechanism levers | task blockers / top task gap / policy | 3 / gsm8k no_task_frontier_gain 0.069 / block_final_average_budget_and_search_or_eval_a_stronger_task_source |
 | Qwen3 MoE mechanism levers | fine calibration layers / top layer score | 12,13,17,20,21,22,23,26 / 17:0.905 |
 | Qwen3 MoE mechanism levers | expert geometry used / top geometry layer | True / 17:0.714 |
 | Qwen3 MoE mechanism levers | expert subspace used / high / extra-scaled / top layer | True / 1323 / 17 / 17 |

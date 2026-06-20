@@ -1945,6 +1945,7 @@ def summarize_qwen3_moe_mechanism_levers() -> dict[str, Any]:
     levers = read_csv(root / "mechanism_levers.csv")
     queue = read_csv(root / "next_experiment_queue.csv")
     chunking = read_csv(root / "layer_chunking_plan.csv")
+    task_gap = read_csv(root / "task_gap_policy.csv")
     top_lever = clean_row(levers.iloc[0]) if not levers.empty else {}
     top_chunk = clean_row(chunking.iloc[0]) if not chunking.empty else {}
     return {
@@ -1953,6 +1954,15 @@ def summarize_qwen3_moe_mechanism_levers() -> dict[str, Any]:
         "lever_count": int(summary.get("lever_count", len(levers))),
         "top_lever": summary.get("top_lever"),
         "top_lever_priority": maybe_float(summary.get("top_lever_priority")),
+        "task_gap_blocker_count": maybe_int(summary.get("task_gap_blocker_count")),
+        "task_gap_tasks": summary.get("task_gap_tasks"),
+        "top_task_gap_task": summary.get("top_task_gap_task"),
+        "top_task_gap_status": summary.get("top_task_gap_status"),
+        "top_task_gap_capability": summary.get("top_task_gap_capability"),
+        "top_task_gap_additional_gain_needed": maybe_float(
+            summary.get("top_task_gap_additional_gain_needed")
+        ),
+        "top_task_gap_average_policy": summary.get("top_task_gap_average_policy"),
         "fine_calibration_layers": summary.get("fine_calibration_layers"),
         "expert_geometry_probe_used": bool(summary.get("expert_geometry_probe_used", False)),
         "expert_subspace_probe_used": bool(summary.get("expert_subspace_probe_used", False)),
@@ -1970,10 +1980,12 @@ def summarize_qwen3_moe_mechanism_levers() -> dict[str, Any]:
         "lever_rows": [clean_row(row) for _, row in levers.iterrows()],
         "queue_rows": [clean_row(row) for _, row in queue.iterrows()],
         "chunking_rows": [clean_row(row) for _, row in chunking.iterrows()],
+        "task_gap_rows": [clean_row(row) for _, row in task_gap.iterrows()],
         "report": rel(root / "report.md"),
         "mechanism_levers": rel(root / "mechanism_levers.csv"),
         "next_experiment_queue": rel(root / "next_experiment_queue.csv"),
         "layer_chunking_plan": rel(root / "layer_chunking_plan.csv"),
+        "task_gap_policy": rel(root / "task_gap_policy.csv"),
         "literature_sources": rel(root / "literature_sources.json"),
         "summary_path": rel(root / "summary.json"),
     }
@@ -7172,6 +7184,14 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_mechanism_levers['top_lever']} / "
                 f"{qwen3_moe_mechanism_levers['top_lever_priority']:.2f} / "
                 f"{qwen3_moe_mechanism_levers['top_lever_next_test']} |"
+            ),
+            (
+                "| Qwen3 MoE mechanism levers | task blockers / top task gap / policy | "
+                f"{qwen3_moe_mechanism_levers['task_gap_blocker_count']} / "
+                f"{qwen3_moe_mechanism_levers['top_task_gap_task']} "
+                f"{qwen3_moe_mechanism_levers['top_task_gap_status']} "
+                f"{fmt(qwen3_moe_mechanism_levers['top_task_gap_additional_gain_needed'])} / "
+                f"{qwen3_moe_mechanism_levers['top_task_gap_average_policy']} |"
             ),
             (
                 "| Qwen3 MoE mechanism levers | fine calibration layers / top layer score | "

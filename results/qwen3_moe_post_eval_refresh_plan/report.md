@@ -43,7 +43,7 @@
 - Average method gate smoke: `n/a` (`n/a/n/a` assertions)
 - Average trust-region bounds: `n/a` (`passed=n/a`, `rejected=n/a`, `waiting=n/a`); dense lambda bound `n/a`, router midpoint over safe bound `n/a`
 - Average trust-region smoke: `n/a` (`n/a/n/a` assertions)
-- Mechanism levers: `n/a` (top `n/a` -> `n/a`)
+- Mechanism levers: `n/a` (top `n/a` -> `n/a`, task blockers `n/a`, top task gap `n/a` / `n/a` needs `n/a`)
 
 | step | kind | status | returncode | seconds |
 | --- | --- | --- | ---: | ---: |
@@ -121,7 +121,7 @@
 - `python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer --qwen-source-discovery-plan results/qwen_source_discovery_plan/summary.json --qwen-source-discovery-eval-plan results/qwen_source_discovery_eval_plan/summary.json --qwen-source-frontier-eval-feedback results/qwen_source_frontier_eval_feedback/summary.json --qwen3-router-calibration-frontier results/qwen3_moe_router_calibration_frontier/summary.json`
 - `python scripts/build_average_method_gate_matrix.py --output-dir results/average_method_gate_matrix --optimizer-summary results/unified_average_optimizer/summary.json --optimizer-features results/unified_average_optimizer/mechanism_features.csv`
 - `python scripts/build_average_trust_region_bounds.py --output-dir results/average_trust_region_bounds`
-- `python scripts/analyze_qwen3_moe_mechanism_levers.py --eval-budget-dir results/qwen3_moe_eval_budget_plan --output-dir results/qwen3_moe_mechanism_levers`
+- `python scripts/analyze_qwen3_moe_mechanism_levers.py --eval-budget-dir results/qwen3_moe_eval_budget_plan --qwen-source-discovery-plan results/qwen_source_discovery_plan/summary.json --qwen-source-task-gap-targets results/qwen_source_discovery_plan/task_gap_targets.csv --average-source-set-optimizer results/qwen3_average_source_set_optimizer/summary.json --output-dir results/qwen3_moe_mechanism_levers`
 - `python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke`
 - `python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke`
 - `python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke`

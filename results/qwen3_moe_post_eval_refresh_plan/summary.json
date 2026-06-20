@@ -284,7 +284,7 @@
       "step": "build_average_trust_region_bounds"
     },
     {
-      "command": "python scripts/analyze_qwen3_moe_mechanism_levers.py --eval-budget-dir results/qwen3_moe_eval_budget_plan --output-dir results/qwen3_moe_mechanism_levers",
+      "command": "python scripts/analyze_qwen3_moe_mechanism_levers.py --eval-budget-dir results/qwen3_moe_eval_budget_plan --qwen-source-discovery-plan results/qwen_source_discovery_plan/summary.json --qwen-source-task-gap-targets results/qwen_source_discovery_plan/task_gap_targets.csv --average-source-set-optimizer results/qwen3_average_source_set_optimizer/summary.json --output-dir results/qwen3_moe_mechanism_levers",
       "duration_sec": 0.0,
       "kind": "attribution",
       "returncode": null,

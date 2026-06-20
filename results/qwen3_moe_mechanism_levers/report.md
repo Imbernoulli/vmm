@@ -3,15 +3,18 @@
 这个 artifact 把现有 Qwen3 MoE probe 结果压成一个优化优先级表：不是问哪个算法名更好，而是问哪个机制最可能解释平均失败，以及下一步应该用什么实验验证。
 
 - Status: `mechanism_leverage_map_ready`
-- Lever count: `9`
-- Top lever: `source_and_candidate_downstream_eval`
-- Top next test: `results/qwen3_moe_eval_budget_plan/run_eval_budget.sh final`
+- Lever count: `10`
+- Top lever: `source_task_gap_frontier_acquisition`
+- Top next test: `python scripts/run_vllm_downstream_eval.py --models SERVED_CODER,SERVED_THINKING --tasks gsm8k,humaneval_compile,mmlu --max-examples 256 --output-dir results/qwen_source_discovery_plan/measured_coder_thinking_vllm`
+- Task-gap blockers: `3`
+- Top task gap: `gsm8k` / `no_task_frontier_gain` needs `0.0694444`
 - Fine calibration layers: `12,13,17,20,21,22,23,26`
 
 ## Levers
 
 | mechanism | priority | confidence | evidence | action |
 | --- | ---: | --- | --- | --- |
+| `source_task_gap_frontier_acquisition` | 0.995 | `high` | top source set coder+thinking; surplus -0.06111111111111099; task blockers gsm8k:no_task_frontier_gain needs 0.0694; humaneval:no_task_frontier_gain needs 0.0694; mmlu:gain_below_interference_budget needs 0.0444; top task gap gsm8k no_task_frontier_gain needs 0.0694 | prioritize task-source acquisition/eval; do not promote any average until task-level source surplus covers observed merge interference |
 | `source_and_candidate_downstream_eval` | 0.98 | `high` | examples 64 -> 384; extra prompts 20480 | run budgeted one-model-at-a-time vLLM eval before accepting any average |
 | `router_direct_movement` | 0.94 | `high` | allowed layers 0/48; min top1 0.0689655169844627; router rel-norm 0.7392916983133861 | freeze router for same-shape candidate; only consider calibrated router deltas |
 | `routed_expert_tail_cap_0_75` | 0.86 | `high` | route->audit removes >0.75 by 675 and >1.0 by 182 | keep file-level/audit-level relative-delta cap as a mandatory safety gate |
@@ -26,12 +29,22 @@
 
 | rank | mechanism | test or command |
 | ---: | --- | --- |
-| 1 | `source_and_candidate_downstream_eval` | `results/qwen3_moe_eval_budget_plan/run_eval_budget.sh final` |
-| 2 | `router_direct_movement` | `route-KD/HARC-style router calibration after frozen-router baseline and sources finish vLLM eval` |
-| 3 | `routed_expert_tail_cap_0_75` | `compare route_guarded vs audit_gated under budgeted vLLM eval` |
-| 4 | `risk_penalty_complexity` | `budgeted paired vLLM comparison of tail_trimmed vs searched_no_gt065 vs layer_chunk vs unified mechanism` |
-| 5 | `tail_cap_0_65` | `budgeted paired vLLM comparison of expert_only vs tail_trimmed` |
-| 6 | `route_load_trust_region` | `compare audit_gated vs trust_region and inspect paired task regressions` |
+| 1 | `source_task_gap_frontier_acquisition` | `python scripts/run_vllm_downstream_eval.py --models SERVED_CODER,SERVED_THINKING --tasks gsm8k,humaneval_compile,mmlu --max-examples 256 --output-dir results/qwen_source_discovery_plan/measured_coder_thinking_vllm` |
+| 2 | `source_and_candidate_downstream_eval` | `results/qwen3_moe_eval_budget_plan/run_eval_budget.sh final` |
+| 3 | `router_direct_movement` | `route-KD/HARC-style router calibration after frozen-router baseline and sources finish vLLM eval` |
+| 4 | `routed_expert_tail_cap_0_75` | `compare route_guarded vs audit_gated under budgeted vLLM eval` |
+| 5 | `risk_penalty_complexity` | `budgeted paired vLLM comparison of tail_trimmed vs searched_no_gt065 vs layer_chunk vs unified mechanism` |
+| 6 | `tail_cap_0_65` | `budgeted paired vLLM comparison of expert_only vs tail_trimmed` |
+
+## Task-Gap Mechanism Policy
+
+这个表把 source surplus 的 task-level blocker 翻译成 average policy：source frontier 没有通过时，不把失败归因给某个 averaging 算法超参，而是先证明任务源互补性。
+
+| task | capability | status | gain | needed | average policy | probe |
+| --- | --- | --- | ---: | ---: | --- | --- |
+| `gsm8k` | `math_reasoning` | `no_task_frontier_gain` | 0 | 0.0694444 | block_final_average_budget_and_search_or_eval_a_stronger_task_source | host specialist endpoints, score the same task manifest, then recompute source surplus before changing MoE weights |
+| `humaneval` | `code_generation_agentic` | `no_task_frontier_gain` | 0 | 0.0694444 | block_final_average_budget_and_search_or_eval_a_stronger_task_source | host specialist endpoints, score the same task manifest, then recompute source surplus before changing MoE weights |
+| `mmlu` | `general_knowledge_instruction` | `gain_below_interference_budget` | 0.025 | 0.0444444 | expand_endpoint_eval_and_only_then_try_output_or_layer_chunk_alignment | increase task examples and compare source frontier against the observed interference budget |
 
 ## Layer/Chunk Calibration Plan
 
@@ -71,4 +84,5 @@
 - `mechanism_levers`: `results/qwen3_moe_mechanism_levers/mechanism_levers.csv`
 - `next_experiment_queue`: `results/qwen3_moe_mechanism_levers/next_experiment_queue.csv`
 - `layer_chunking_plan`: `results/qwen3_moe_mechanism_levers/layer_chunking_plan.csv`
+- `task_gap_policy`: `results/qwen3_moe_mechanism_levers/task_gap_policy.csv`
 - `literature_sources`: `results/qwen3_moe_mechanism_levers/literature_sources.json`
