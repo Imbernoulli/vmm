@@ -2650,6 +2650,62 @@ def summarize_qwen3_moe_router_coupled_candidate() -> dict[str, Any]:
     }
 
 
+def summarize_qwen3_moe_router_coupled_retention_frontier() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_router_coupled_retention_frontier")
+    summary = read_json(root / "summary.json")
+    frontier = read_csv(root / "retention_frontier.csv")
+    constrained = summary.get("constrained") or {}
+    stress = summary.get("stress") or {}
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "gate": summary.get("gate"),
+        "recommended_unified_action": summary.get("recommended_unified_action"),
+        "base_mechanistic_candidate_id": summary.get("base_mechanistic_candidate_id"),
+        "effective_hard_cap": maybe_float(summary.get("effective_hard_cap")),
+        "min_retention": maybe_float(summary.get("min_retention")),
+        "base_nonbase_mass_retention": maybe_float(summary.get("base_nonbase_mass_retention")),
+        "base_router_coupled_weighted_predicted_delta": maybe_float(
+            summary.get("base_router_coupled_weighted_predicted_delta")
+        ),
+        "candidate_count": int(summary.get("candidate_count", len(frontier))),
+        "default_gate_candidate_count": maybe_int(summary.get("default_gate_candidate_count")),
+        "minimum_effective_fraction": maybe_float(summary.get("minimum_effective_fraction")),
+        "constrained_effect_fraction_vs_stress": maybe_float(
+            summary.get("constrained_effect_fraction_vs_stress")
+        ),
+        "constrained_candidate_id": constrained.get("candidate_id"),
+        "constrained_retention": maybe_float(constrained.get("nonbase_mass_retention")),
+        "constrained_retention_delta": maybe_float(constrained.get("retention_delta_vs_base")),
+        "constrained_router_coupled_delta_reduction": maybe_float(
+            constrained.get("router_coupled_delta_reduction_vs_base")
+        ),
+        "constrained_risk_delta_reduction": maybe_float(
+            constrained.get("risk_delta_reduction_vs_base")
+        ),
+        "stress_candidate_id": stress.get("candidate_id"),
+        "stress_retention": maybe_float(stress.get("nonbase_mass_retention")),
+        "stress_retention_delta": maybe_float(stress.get("retention_delta_vs_base")),
+        "stress_router_coupled_delta_reduction": maybe_float(
+            stress.get("router_coupled_delta_reduction_vs_base")
+        ),
+        "stress_risk_delta_reduction": maybe_float(stress.get("risk_delta_reduction_vs_base")),
+        "report": rel(root / "report.md"),
+        "retention_frontier": rel(root / "retention_frontier.csv"),
+        "retention_constrained_group_rules": rel(
+            root / "retention_constrained_group_rules.csv"
+        ),
+        "selected_retention_constrained_candidate": rel(
+            root / "selected_retention_constrained_candidate.json"
+        ),
+        "selected_stress_candidate": rel(root / "selected_stress_candidate.json"),
+        "tensor_rules": rel(root / "tensor_rules.txt"),
+        "writer_command": rel(root / "writer_command.txt"),
+        "dry_run_command": rel(root / "dry_run_command.txt"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_qwen3_moe_post_eval_refresh() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_post_eval_refresh")
     summary = read_json(root / "summary.json")
@@ -2728,6 +2784,18 @@ def summarize_qwen3_moe_post_eval_refresh() -> dict[str, Any]:
         ),
         "router_coupled_candidate_delta_reduction": maybe_float(
             downstream.get("router_coupled_candidate_delta_reduction")
+        ),
+        "router_coupled_frontier_status": downstream.get("router_coupled_frontier_status"),
+        "router_coupled_frontier_gate": downstream.get("router_coupled_frontier_gate"),
+        "router_coupled_frontier_action": downstream.get("router_coupled_frontier_action"),
+        "router_coupled_frontier_effect_fraction": maybe_float(
+            downstream.get("router_coupled_frontier_effect_fraction")
+        ),
+        "router_coupled_frontier_default_gate_candidates": maybe_int(
+            downstream.get("router_coupled_frontier_default_gate_candidates")
+        ),
+        "router_coupled_frontier_candidate_count": maybe_int(
+            downstream.get("router_coupled_frontier_candidate_count")
         ),
         "step_rows": [clean_row(row) for _, row in steps.iterrows()],
         "report": rel(root / "report.md"),
@@ -5184,6 +5252,9 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_mechanistic_sensitivity": summarize_qwen3_moe_mechanistic_sensitivity(),
         "qwen3_moe_router_expert_coupling": summarize_qwen3_moe_router_expert_coupling(),
         "qwen3_moe_router_coupled_candidate": summarize_qwen3_moe_router_coupled_candidate(),
+        "qwen3_moe_router_coupled_retention_frontier": (
+            summarize_qwen3_moe_router_coupled_retention_frontier()
+        ),
         "qwen3_moe_post_eval_refresh": summarize_qwen3_moe_post_eval_refresh(),
         "qwen3_moe_post_eval_refresh_plan": summarize_qwen3_moe_post_eval_refresh_plan(),
         "qwen3_moe_router_move_gate": summarize_qwen3_moe_router_move_gate(),
@@ -5495,6 +5566,9 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_mechanistic_sensitivity = exp["qwen3_moe_mechanistic_sensitivity"]
     qwen3_moe_router_expert_coupling = exp["qwen3_moe_router_expert_coupling"]
     qwen3_moe_router_coupled_candidate = exp["qwen3_moe_router_coupled_candidate"]
+    qwen3_moe_router_coupled_retention_frontier = exp[
+        "qwen3_moe_router_coupled_retention_frontier"
+    ]
     qwen3_moe_post_eval_refresh = exp["qwen3_moe_post_eval_refresh"]
     qwen3_moe_post_eval_refresh_plan = exp["qwen3_moe_post_eval_refresh_plan"]
     qwen3_moe_router_move_gate = exp["qwen3_moe_router_move_gate"]
@@ -6671,6 +6745,19 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(qwen3_moe_router_coupled_candidate['selected_retention_delta_vs_mechanistic'], 4)} / "
                 f"{fmt(qwen3_moe_router_coupled_candidate['selected_router_coupled_delta_reduction_vs_mechanistic'], 4)} / "
                 f"{fmt(qwen3_moe_router_coupled_candidate['selected_risk_delta_reduction_vs_mechanistic'], 4)} |"
+            ),
+            (
+                "| Qwen3 MoE router-coupled retention frontier | gate / constrained / stress | "
+                f"{qwen3_moe_router_coupled_retention_frontier['gate']} / "
+                f"{qwen3_moe_router_coupled_retention_frontier['constrained_candidate_id']} / "
+                f"{qwen3_moe_router_coupled_retention_frontier['stress_candidate_id']} |"
+            ),
+            (
+                "| Qwen3 MoE router-coupled retention frontier | pass default / effect fraction / action | "
+                f"{qwen3_moe_router_coupled_retention_frontier['default_gate_candidate_count']}"
+                f"/{qwen3_moe_router_coupled_retention_frontier['candidate_count']} / "
+                f"{fmt(qwen3_moe_router_coupled_retention_frontier['constrained_effect_fraction_vs_stress'], 4)} / "
+                f"{qwen3_moe_router_coupled_retention_frontier['recommended_unified_action']} |"
             ),
             (
                 "| Qwen3 MoE mechanistic unified smoke | status / passed cases | "

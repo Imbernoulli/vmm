@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-20T12:59:00.404027+00:00`
+Generated at: `2026-06-20T13:15:44.693209+00:00`
 
 ## Coverage
 
@@ -300,9 +300,11 @@ Complete: `94`; partial: `1`; missing: `0`.
 | Qwen3 MoE router-expert coupling | high-low shrink lift / top layer / high-low scale | 0.0138 / L20 / 0.970-0.991 |
 | Qwen3 MoE router-coupled candidate | gate / selected / changed groups | ablation_only_waiting_vllm / router_q0.75_s0.0100_cap0.0100 / 972 |
 | Qwen3 MoE router-coupled candidate | retention delta / coupled delta reduction / risk reduction | -0.0031 / 0.0011 / 0.0009 |
+| Qwen3 MoE router-coupled retention frontier | gate / constrained / stress | direct_router_boundary_term_not_default / router_q0.85_s0.00020_cap0.00010 / router_q0.75_s0.01000_cap0.01000 |
+| Qwen3 MoE router-coupled retention frontier | pass default / effect fraction / action | 146/770 / 0.0103 / keep_router_fragility_inside_BHI_and_keep_direct_extra_shrink_as_ablation |
 | Qwen3 MoE mechanistic unified smoke | status / passed cases | passed / 4/4 |
-| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | passed / 27/27 / 0/13 |
-| Qwen3 MoE post-eval refresh | selection / final selection / attribution scored / plan steps | awaiting_source_eval / awaiting_source_eval / 0/10 / 27/27 |
+| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | passed / 28/28 / 0/13 |
+| Qwen3 MoE post-eval refresh | selection / final selection / attribution scored / plan steps | awaiting_source_eval / awaiting_source_eval / 0/10 / 28/28 |
 | Qwen3 MoE post-eval refresh | feedback status / scored tasks / changed groups | awaiting_eval / 0/4 / 0 |
 | Qwen3 MoE post-eval refresh | mechanistic status / retention / hard-cap violations | mechanistic_unified_candidate_ready / 0.965 / 0 |
 | Qwen3 MoE post-eval refresh | sensitivity objective / scale | no_category_prior 0.003 / no_subspace_conflict 0.0086 |

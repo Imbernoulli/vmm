@@ -1,0 +1,22 @@
+{
+  "candidate_id": "router_q0.85_s0.00020_cap0.00010",
+  "changed_group_count": 638,
+  "extra_shrink_cap": 0.0001,
+  "extra_shrink_strength": 0.0002,
+  "hard_cap_violation_count": 0,
+  "max_predicted_relative_delta": 0.6490000000000001,
+  "mean_scale": 0.9620668681526269,
+  "min_scale": 0.4306440943988023,
+  "nonbase_mass_retention": 0.9650028504517598,
+  "passes_default_gate": true,
+  "passes_hard_cap": true,
+  "passes_retention_gate": true,
+  "pressure_quantile": 0.85,
+  "retention_delta_vs_base": -3.165433315233113e-05,
+  "risk_delta_reduction_vs_base": 9.685671150727604e-06,
+  "risk_weighted_predicted_delta": 0.23041379578850626,
+  "route_mass_weighted_scale": 0.980130044766926,
+  "router_coupled_delta_reduction_vs_base": 1.1645541860866304e-05,
+  "router_coupled_weighted_predicted_delta": 0.22417519942672728,
+  "router_coupled_weighted_scale": 0.9749809090864663
+}
