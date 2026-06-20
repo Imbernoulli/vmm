@@ -1,0 +1,21 @@
+{
+  "contract": "The output model must keep the input model class, config, tokenizer, tensor names, tensor shapes, router count, and expert count.",
+  "current_bounds": {
+    "dense_local_task_vector_lambda_bound": 0.34155204135935996,
+    "dense_safe_uniform_lambda": 0.0,
+    "mechanistic_effective_expert_delta_cap": 0.649,
+    "moe_router_safe_lambda_proxy": 0.019725152295719042
+  },
+  "dense_rule": [
+    "Estimate whether the local quadratic/Fisher approximation is valid along the candidate task-vector direction.",
+    "If actual/predicted degradation is above the trust threshold, reject fixed midpoint averaging.",
+    "Search coefficients on held-out tasks and keep endpoint/anchor fallback in the candidate set."
+  ],
+  "moe_rule": [
+    "Canonicalize or verify expert identity before any expert tensor average.",
+    "Reject direct router movement unless router top-k margin/load gates allow a bounded delta.",
+    "Move routed experts under route/evidence/geometry/subspace caps and keep structural candidates provisional.",
+    "Accept an average only after audited source/candidate vLLM eval proves source dominance and task-regression gates."
+  ],
+  "name": "same_shape_average_trust_region_policy"
+}

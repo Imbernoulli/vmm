@@ -4158,6 +4158,46 @@ def summarize_average_method_gate_matrix() -> dict[str, Any]:
     }
 
 
+def summarize_average_trust_region_bounds() -> dict[str, Any]:
+    root = repo_path("results/average_trust_region_bounds")
+    summary = read_json(root / "summary.json")
+    constraints = read_csv(root / "trust_region_constraints.csv")
+    decisions = read_csv(root / "trust_region_decisions.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "constraint_count": int(summary.get("constraint_count", len(constraints))),
+        "passed_count": int(summary.get("passed_count", 0)),
+        "rejected_count": int(summary.get("rejected_count", 0)),
+        "waiting_count": int(summary.get("waiting_count", 0)),
+        "dense_local_task_vector_lambda_bound": maybe_float(
+            summary.get("dense_local_task_vector_lambda_bound")
+        ),
+        "dense_safe_uniform_lambda": maybe_float(summary.get("dense_safe_uniform_lambda")),
+        "dense_linear_candidate_over_safe_uniform_bound": maybe_float(
+            summary.get("dense_linear_candidate_over_safe_uniform_bound")
+        ),
+        "moe_router_safe_lambda_proxy": maybe_float(summary.get("moe_router_safe_lambda_proxy")),
+        "moe_direct_router_average_over_safe_bound": maybe_float(
+            summary.get("moe_direct_router_average_over_safe_bound")
+        ),
+        "mechanistic_effective_expert_delta_cap": maybe_float(
+            summary.get("mechanistic_effective_expert_delta_cap")
+        ),
+        "mechanistic_selected_max_predicted_relative_delta": maybe_float(
+            summary.get("mechanistic_selected_max_predicted_relative_delta")
+        ),
+        "final_selection_status": summary.get("final_selection_status"),
+        "constraint_rows": [clean_row(row) for _, row in constraints.iterrows()],
+        "decision_rows": [clean_row(row) for _, row in decisions.iterrows()],
+        "report": rel(root / "report.md"),
+        "constraints": rel(root / "trust_region_constraints.csv"),
+        "decisions": rel(root / "trust_region_decisions.csv"),
+        "algorithm": rel(root / "algorithm.json"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_average_connectivity_diagnostic() -> dict[str, Any]:
     root = repo_path("results/average_connectivity_diagnostic")
     summary = read_json(root / "summary.json")
@@ -4452,6 +4492,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "item": "Average method gate matrix",
             "status": "complete",
             "evidence": "results/average_method_gate_matrix/report.md turns common Dense/MoE averaging method families into current-evidence accept/reject/conditional gates.",
+        },
+        {
+            "item": "Average trust-region bounds",
+            "status": "complete",
+            "evidence": "results/average_trust_region_bounds/report.md converts Dense curvature failure, held-out lambda paths, MoE source-line barriers, router top-k margins, and routed expert caps into executable average-movement bounds.",
         },
         {
             "item": "Average connectivity diagnostic",
@@ -4780,6 +4825,7 @@ def build_summary() -> dict[str, Any]:
         "average_decision_report": summarize_average_decision_report(),
         "model_averaging_literature_review": summarize_model_averaging_literature_review(),
         "average_method_gate_matrix": summarize_average_method_gate_matrix(),
+        "average_trust_region_bounds": summarize_average_trust_region_bounds(),
         "average_connectivity_diagnostic": summarize_average_connectivity_diagnostic(),
         "average_invariant_audit": summarize_average_invariant_audit(),
         "qwen_target_model_registry": summarize_qwen_target_model_registry(),
@@ -4956,6 +5002,7 @@ def build_summary() -> dict[str, Any]:
             ),
             "python scripts/build_model_averaging_literature_review.py",
             "python scripts/build_average_method_gate_matrix.py --output-dir results/average_method_gate_matrix",
+            "python scripts/build_average_trust_region_bounds.py --output-dir results/average_trust_region_bounds",
             "python scripts/build_connectivity_diagnostic.py --output-dir results/average_connectivity_diagnostic",
             "python scripts/build_average_invariant_audit.py --output-dir results/average_invariant_audit",
             "python scripts/smoke_moe_routing_probe_contract.py",
@@ -5081,6 +5128,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     average_decision = exp["average_decision_report"]
     literature_review = exp["model_averaging_literature_review"]
     average_method_gate_matrix = exp["average_method_gate_matrix"]
+    average_trust_region_bounds = exp["average_trust_region_bounds"]
     average_connectivity = exp["average_connectivity_diagnostic"]
     average_invariant_audit = exp["average_invariant_audit"]
     qwen_registry = exp["qwen_target_model_registry"]
@@ -7134,6 +7182,26 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(average_method_gate_matrix['dense_lambda_linear_worst_nll'])} / "
                 f"{fmt(average_method_gate_matrix['dense_lambda_best_worst_nll'])} / "
                 f"{fmt(average_method_gate_matrix['qwen3_interpolation_interior_gap_nll'])} |"
+            ),
+            (
+                "| average trust-region bounds | status / constraints / passed-rejected-waiting | "
+                f"{average_trust_region_bounds['status']} / "
+                f"{average_trust_region_bounds['constraint_count']} / "
+                f"{average_trust_region_bounds['passed_count']}-"
+                f"{average_trust_region_bounds['rejected_count']}-"
+                f"{average_trust_region_bounds['waiting_count']} |"
+            ),
+            (
+                "| average trust-region bounds | Dense lambda bound / safe uniform lambda / router safe lambda | "
+                f"{fmt(average_trust_region_bounds['dense_local_task_vector_lambda_bound'])} / "
+                f"{fmt(average_trust_region_bounds['dense_safe_uniform_lambda'])} / "
+                f"{fmt(average_trust_region_bounds['moe_router_safe_lambda_proxy'])} |"
+            ),
+            (
+                "| average trust-region bounds | router midpoint over bound / mechanistic cap / selected max delta | "
+                f"{fmt(average_trust_region_bounds['moe_direct_router_average_over_safe_bound'])} / "
+                f"{fmt(average_trust_region_bounds['mechanistic_effective_expert_delta_cap'])} / "
+                f"{fmt(average_trust_region_bounds['mechanistic_selected_max_predicted_relative_delta'])} |"
             ),
             (
                 "| average connectivity diagnostic | path rejected / midpoint rejected / frontier wins | "

@@ -8,10 +8,10 @@
   },
   "passed_step_count": 0,
   "plan_only": true,
-  "planned_step_count": 18,
+  "planned_step_count": 19,
   "schema_version": 1,
   "status": "planned",
-  "step_count": 18,
+  "step_count": 19,
   "steps": [
     {
       "command": "python scripts/audit_qwen3_moe_eval_bundle.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_eval_bundle_audit",
@@ -102,6 +102,16 @@
       "stderr_tail": "",
       "stdout_tail": "",
       "step": "build_average_method_gate_matrix"
+    },
+    {
+      "command": "python scripts/build_average_trust_region_bounds.py --output-dir results/average_trust_region_bounds",
+      "duration_sec": 0.0,
+      "kind": "optimizer",
+      "returncode": null,
+      "status": "planned",
+      "stderr_tail": "",
+      "stdout_tail": "",
+      "step": "build_average_trust_region_bounds"
     },
     {
       "command": "python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke",

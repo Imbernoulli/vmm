@@ -1,0 +1,24 @@
+{
+  "constraint_count": 11,
+  "curvature_ratio_limit": 5.0,
+  "dense_linear_candidate_over_safe_uniform_bound": null,
+  "dense_local_task_vector_lambda_bound": 0.34155204135935996,
+  "dense_safe_uniform_lambda": 0.0,
+  "final_selection_status": "awaiting_matched_vllm_eval",
+  "mechanistic_effective_expert_delta_cap": 0.649,
+  "mechanistic_selected_max_predicted_relative_delta": 0.649,
+  "moe_direct_router_average_over_safe_bound": 25.34834674551614,
+  "moe_router_safe_lambda_proxy": 0.019725152295719042,
+  "outputs": {
+    "algorithm": "results/average_trust_region_bounds/algorithm.json",
+    "constraints": "results/average_trust_region_bounds/trust_region_constraints.csv",
+    "decisions": "results/average_trust_region_bounds/trust_region_decisions.csv",
+    "report": "results/average_trust_region_bounds/report.md",
+    "summary": "results/average_trust_region_bounds/summary.json"
+  },
+  "passed_count": 2,
+  "rejected_count": 7,
+  "schema_version": 1,
+  "status": "trust_region_bounds_ready_waiting_vllm",
+  "waiting_count": 2
+}

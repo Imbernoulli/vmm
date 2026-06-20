@@ -8,6 +8,7 @@ build_mechanistic_unified_candidate,optimizer,python scripts/build_qwen3_moe_mec
 audit_mechanistic_evidence,attribution,python scripts/audit_qwen3_moe_mechanistic_evidence.py --output-dir results/qwen3_moe_mechanistic_evidence_audit,planned,,0.0,,
 build_unified_average_optimizer,optimizer,python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer,planned,,0.0,,
 build_average_method_gate_matrix,optimizer,python scripts/build_average_method_gate_matrix.py --output-dir results/average_method_gate_matrix --optimizer-summary results/unified_average_optimizer/summary.json --optimizer-features results/unified_average_optimizer/mechanism_features.csv,planned,,0.0,,
+build_average_trust_region_bounds,optimizer,python scripts/build_average_trust_region_bounds.py --output-dir results/average_trust_region_bounds,planned,,0.0,,
 audit_eval_bundles_smoke,smoke,python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke,planned,,0.0,,
 select_unified_result_smoke,smoke,python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke,planned,,0.0,,
 select_final_candidate_smoke,smoke,python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke,planned,,0.0,,

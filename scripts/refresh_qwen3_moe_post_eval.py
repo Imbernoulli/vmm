@@ -207,6 +207,16 @@ def build_steps(args: argparse.Namespace) -> list[dict[str, Any]]:
                 str(args.unified_optimizer_dir / "mechanism_features.csv"),
             ],
         },
+        {
+            "step": "build_average_trust_region_bounds",
+            "kind": "optimizer",
+            "command": [
+                py,
+                "scripts/build_average_trust_region_bounds.py",
+                "--output-dir",
+                str(args.average_trust_region_bounds_dir),
+            ],
+        },
     ]
     if args.include_smoke:
         steps.extend(
@@ -328,6 +338,9 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
     unified_optimizer_smoke = read_json(repo_path(args.unified_optimizer_smoke_dir) / "summary.json")
     average_method_gate = read_json(repo_path(args.average_method_gate_dir) / "summary.json")
     average_method_gate_smoke = read_json(repo_path(args.average_method_gate_smoke_dir) / "summary.json")
+    average_trust_region_bounds = read_json(
+        repo_path(args.average_trust_region_bounds_dir) / "summary.json"
+    )
     final_current = final_selection.get("current_selection") or {}
     optimizer_moe = unified_optimizer.get("moe") or {}
     optimizer_top = unified_optimizer.get("top_next_experiment") or {}
@@ -379,6 +392,18 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
         "average_method_gate_smoke_status": average_method_gate_smoke.get("status"),
         "average_method_gate_smoke_passed": average_method_gate_smoke.get("passed_assertion_count"),
         "average_method_gate_smoke_assertions": average_method_gate_smoke.get("assertion_count"),
+        "average_trust_region_bounds_status": average_trust_region_bounds.get("status"),
+        "average_trust_region_bounds_constraints": average_trust_region_bounds.get("constraint_count"),
+        "average_trust_region_bounds_passed": average_trust_region_bounds.get("passed_count"),
+        "average_trust_region_bounds_rejected": average_trust_region_bounds.get("rejected_count"),
+        "average_trust_region_bounds_waiting": average_trust_region_bounds.get("waiting_count"),
+        "dense_local_task_vector_lambda_bound": average_trust_region_bounds.get(
+            "dense_local_task_vector_lambda_bound"
+        ),
+        "moe_router_safe_lambda_proxy": average_trust_region_bounds.get("moe_router_safe_lambda_proxy"),
+        "moe_direct_router_average_over_safe_bound": average_trust_region_bounds.get(
+            "moe_direct_router_average_over_safe_bound"
+        ),
     }
 
 
@@ -387,7 +412,7 @@ def build_report(summary: dict[str, Any]) -> str:
     lines = [
         "# Qwen3 MoE Post-Eval Refresh",
         "",
-        "这个脚本在远端 vLLM eval 落盘后按固定顺序刷新 eval bundle audit、unified/final selector、mechanism attribution、feedback/mechanistic optimizer、unified average optimizer、average method gate matrix 和总汇总，避免手工漏跑或用到旧结果。",
+        "这个脚本在远端 vLLM eval 落盘后按固定顺序刷新 eval bundle audit、unified/final selector、mechanism attribution、feedback/mechanistic optimizer、unified average optimizer、average method gate matrix、average trust-region bounds 和总汇总，避免手工漏跑或用到旧结果。",
         "",
         f"- Status: `{summary['status']}`",
         f"- Plan only: `{summary['plan_only']}`",
@@ -404,6 +429,7 @@ def build_report(summary: dict[str, Any]) -> str:
         f"- Unified optimizer ledger smoke: `{downstream.get('unified_optimizer_smoke_status', 'n/a')}` (`{downstream.get('unified_optimizer_smoke_passed', 'n/a')}/{downstream.get('unified_optimizer_smoke_cases', 'n/a')}` cases)",
         f"- Average method gate matrix: `{downstream.get('average_method_gate_status', 'n/a')}` (`accepted_by_default={downstream.get('average_method_gate_default_accepted', 'n/a')}`, `rejected={downstream.get('average_method_gate_default_rejected', 'n/a')}`, `conditional={downstream.get('average_method_gate_conditional', 'n/a')}`)",
         f"- Average method gate smoke: `{downstream.get('average_method_gate_smoke_status', 'n/a')}` (`{downstream.get('average_method_gate_smoke_passed', 'n/a')}/{downstream.get('average_method_gate_smoke_assertions', 'n/a')}` assertions)",
+        f"- Average trust-region bounds: `{downstream.get('average_trust_region_bounds_status', 'n/a')}` (`passed={downstream.get('average_trust_region_bounds_passed', 'n/a')}`, `rejected={downstream.get('average_trust_region_bounds_rejected', 'n/a')}`, `waiting={downstream.get('average_trust_region_bounds_waiting', 'n/a')}`); dense lambda bound `{downstream.get('dense_local_task_vector_lambda_bound', 'n/a')}`, router midpoint over safe bound `{downstream.get('moe_direct_router_average_over_safe_bound', 'n/a')}`",
         "",
         "| step | kind | status | returncode | seconds |",
         "| --- | --- | --- | ---: | ---: |",
@@ -481,6 +507,11 @@ def parse_args() -> argparse.Namespace:
         "--average-method-gate-dir",
         type=Path,
         default=Path("results/average_method_gate_matrix"),
+    )
+    parser.add_argument(
+        "--average-trust-region-bounds-dir",
+        type=Path,
+        default=Path("results/average_trust_region_bounds"),
     )
     parser.add_argument("--audit-smoke-dir", type=Path, default=Path("results/qwen3_moe_eval_bundle_audit_smoke"))
     parser.add_argument("--selection-smoke-dir", type=Path, default=Path("results/qwen3_moe_unified_result_selection_smoke"))

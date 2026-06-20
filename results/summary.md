@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-20T11:11:52.786550+00:00`
+Generated at: `2026-06-20T11:24:34.248352+00:00`
 
 ## Coverage
 
-Complete: `92`; partial: `1`; missing: `0`.
+Complete: `93`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -41,6 +41,7 @@ Complete: `92`; partial: `1`; missing: `0`.
 | Probe-guided Average decision report | complete | results/average_decision_report/report.md converts merge grids, conflict probes, and optional MoE routing probes into same-shape average decisions. |
 | Dense/MoE averaging literature matrix | complete | results/model_averaging_literature_review/report.md maps recent model averaging and MoE merging papers to probes, failure signals, and same-shape writer actions. |
 | Average method gate matrix | complete | results/average_method_gate_matrix/report.md turns common Dense/MoE averaging method families into current-evidence accept/reject/conditional gates. |
+| Average trust-region bounds | complete | results/average_trust_region_bounds/report.md converts Dense curvature failure, held-out lambda paths, MoE source-line barriers, router top-k margins, and routed expert caps into executable average-movement bounds. |
 | Average connectivity diagnostic | complete | results/average_connectivity_diagnostic/report.md unifies Dense/MoE endpoint-frontier, midpoint, barrier, complementarity, and local-quadratic gates. |
 | Average invariant audit | complete | results/average_invariant_audit/report.md converts model-averaging literature and current Dense/MoE probes into executable acceptance invariants and method gates. |
 | Qwen target model registry | complete | results/qwen_target_model_registry/report.md maps representative official, third-party, downstream, and adapter-pool Qwen candidates to scenarios, eval slices, probes, and same-shape topology gates. |
@@ -286,8 +287,8 @@ Complete: `92`; partial: `1`; missing: `0`.
 | Qwen3 MoE mechanistic evidence audit | gradient agree / objective improved / hard-cap bound | 1.000 / 0.945 / 319 |
 | Qwen3 MoE mechanistic evidence audit | dominant binding / suppressing features | cost_gradient_shrink / curvature_score, feature_router_instability, feature_expert_internal_geometry |
 | Qwen3 MoE mechanistic unified smoke | status / passed cases | passed / 4/4 |
-| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | passed / 18/18 / 0/12 |
-| Qwen3 MoE post-eval refresh | selection / final selection / attribution scored / plan steps | awaiting_source_eval / awaiting_source_eval / 0/10 / 18/18 |
+| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | passed / 19/19 / 0/12 |
+| Qwen3 MoE post-eval refresh | selection / final selection / attribution scored / plan steps | awaiting_source_eval / awaiting_source_eval / 0/10 / 19/19 |
 | Qwen3 MoE post-eval refresh | feedback status / scored tasks / changed groups | awaiting_eval / 0/4 / 0 |
 | Qwen3 MoE post-eval refresh | mechanistic status / retention / hard-cap violations | mechanistic_unified_candidate_ready / 0.965 / 0 |
 | Qwen3 MoE router move gate | status / action / allowed layers | router_move_rejected_freeze_router / freeze_router / 0/48 |
@@ -473,6 +474,9 @@ Complete: `92`; partial: `1`; missing: `0`.
 | model averaging literature review | method / probe / MoE-stage counts | 7 / 7 / 7 |
 | average method gate matrix | accepted / rejected-default / conditional / active / required | 0 / 1 / 3 / 1 / 2 |
 | average method gate matrix | dense midpoint / best-family / Qwen3 interior gap | 6.040 / 3.073 / 0.119 |
+| average trust-region bounds | status / constraints / passed-rejected-waiting | trust_region_bounds_ready_waiting_vllm / 11 / 2-7-2 |
+| average trust-region bounds | Dense lambda bound / safe uniform lambda / router safe lambda | 0.342 / 0.000 / 0.020 |
+| average trust-region bounds | router midpoint over bound / mechanistic cap / selected max delta | 25.348 / 0.649 / 0.649 |
 | average connectivity diagnostic | path rejected / midpoint rejected / frontier wins | 5/6 / 5/6 / 1 |
 | average connectivity diagnostic | Dense midpoint gap / Dense anchor gap / Qwen3 MoE gap | 2.917 / -0.101 / 0.119 |
 | average invariant audit | invariants / hard blockers / default accepted methods | 10 / 4 / 0 |
