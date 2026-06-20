@@ -7,7 +7,7 @@
   "dry_run_manifest": "results/checkpoints/qwen3_moe_mechanistic_unified_candidate/merge_manifest.json",
   "dry_run_tensor_rule_count": 5243,
   "dry_run_tensor_rule_hit_count": 15729,
-  "dry_run_validated": true,
+  "dry_run_validated": false,
   "expert_group_count": 5243,
   "feedback_materialization_gate": "do_not_materialize_feedback_candidate_yet",
   "feedback_status": "awaiting_eval",
@@ -37,5 +37,7 @@
   "selected_min_scale": 0.4306440943988023,
   "selected_nonbase_mass_retention": 0.9650416550239659,
   "selected_risk_weighted_predicted_delta": 0.23042415119706997,
-  "status": "mechanistic_unified_candidate_ready"
+  "status": "mechanistic_unified_candidate_ready",
+  "writer_manifest_dry_run": false,
+  "writer_manifest_validated": true
 }

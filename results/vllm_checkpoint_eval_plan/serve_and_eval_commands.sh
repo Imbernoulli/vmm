@@ -115,7 +115,7 @@ set -euo pipefail
 # Eval:
 # python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8109/v1 --models candidate_qwen3_moe_unified_mechanism_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_unified_mechanism_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing
 
-# [10] qwen3_moe_mechanistic_unified_candidate - checkpoint_missing_until_materialized
+# [10] qwen3_moe_mechanistic_unified_candidate - ready_to_host
 # Checkpoint: results/checkpoints/qwen3_moe_mechanistic_unified_candidate
 # Serve:
 # CUDA_VISIBLE_DEVICES=0,1,2,3 vllm serve results/checkpoints/qwen3_moe_mechanistic_unified_candidate --served-model-name candidate_qwen3_moe_mechanistic_unified_candidate --host 127.0.0.1 --port 8110 --dtype bfloat16 --tensor-parallel-size 4

@@ -1,5 +1,5 @@
 {
-  "best_delta_safety_candidate": "subspace_scaled",
+  "best_delta_safety_candidate": "mechanistic_unified",
   "candidate_count": 10,
   "completed_eval_count": 0,
   "current_selection": {
@@ -36,7 +36,7 @@
     "selection_rules": "results/qwen3_moe_mechanism_eval_gate/selection_rules.json",
     "summary": "results/qwen3_moe_mechanism_eval_gate/summary.json"
   },
-  "ready_to_host_count": 11,
+  "ready_to_host_count": 12,
   "schema_version": 1,
   "source_count": 2,
   "status": "awaiting_remote_vllm_eval"

@@ -5,7 +5,7 @@
 - Status: `task_manifest_ready`
 - Canonical task manifest: `results/qwen3_moe_mechanism_eval_gate/task_manifest.json`
 - Manifest exists: `True`
-- Methods aligned: `13/13`
+- Methods aligned: `14/14`
 - Tasks sufficient: `4/4`
 - Total manifest / required examples: `1316/1316`
 

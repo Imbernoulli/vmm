@@ -299,6 +299,7 @@ def build_summary(
     searched = candidate_rows[candidate_rows["candidate"] == "searched_no_gt065"].iloc[0]
     layer_chunk = candidate_rows[candidate_rows["candidate"] == "layer_chunk"].iloc[0]
     unified = candidate_rows[candidate_rows["candidate"] == "unified_mechanism"].iloc[0]
+    mechanistic = candidate_rows[candidate_rows["candidate"] == "mechanistic_unified"].iloc[0]
     subspace = candidate_rows[candidate_rows["candidate"] == "subspace_scaled"].iloc[0]
     route_to_trust = pairwise_rows[
         (pairwise_rows["from_candidate"] == "audit_gated")
@@ -324,8 +325,12 @@ def build_summary(
         (pairwise_rows["from_candidate"] == "layer_chunk")
         & (pairwise_rows["to_candidate"] == "unified_mechanism")
     ]
-    unified_to_subspace = pairwise_rows[
+    unified_to_mechanistic = pairwise_rows[
         (pairwise_rows["from_candidate"] == "unified_mechanism")
+        & (pairwise_rows["to_candidate"] == "mechanistic_unified")
+    ]
+    mechanistic_to_subspace = pairwise_rows[
+        (pairwise_rows["from_candidate"] == "mechanistic_unified")
         & (pairwise_rows["to_candidate"] == "subspace_scaled")
     ]
     return {
@@ -341,6 +346,7 @@ def build_summary(
         "searched_no_gt065_total_relative_delta_norm": float(searched["total_relative_delta_norm"]),
         "layer_chunk_total_relative_delta_norm": float(layer_chunk["total_relative_delta_norm"]),
         "unified_mechanism_total_relative_delta_norm": float(unified["total_relative_delta_norm"]),
+        "mechanistic_unified_total_relative_delta_norm": float(mechanistic["total_relative_delta_norm"]),
         "subspace_scaled_total_relative_delta_norm": float(subspace["total_relative_delta_norm"]),
         "expert_only_attention_changed_tensors": int(expert["attention_changed_tensors"]),
         "tail_trimmed_attention_changed_tensors": int(tail["attention_changed_tensors"]),
@@ -351,6 +357,7 @@ def build_summary(
         "searched_no_gt065_router_changed_tensors": int(searched["router_changed_tensors"]),
         "layer_chunk_router_changed_tensors": int(layer_chunk["router_changed_tensors"]),
         "unified_mechanism_router_changed_tensors": int(unified["router_changed_tensors"]),
+        "mechanistic_unified_router_changed_tensors": int(mechanistic["router_changed_tensors"]),
         "subspace_scaled_router_changed_tensors": int(subspace["router_changed_tensors"]),
         "unified_mechanism_matches_searched_no_gt065_delta": bool(
             abs(float(unified["total_relative_delta_norm"]) - float(searched["total_relative_delta_norm"])) <= 1e-12
@@ -394,6 +401,8 @@ def build_summary(
         "layer_chunk_routed_gt_0_65": int(layer_chunk["routed_tensors_gt_0_65"]),
         "unified_mechanism_routed_gt_0_6505": int(unified["routed_tensors_gt_0_6505"]),
         "unified_mechanism_routed_gt_0_65": int(unified["routed_tensors_gt_0_65"]),
+        "mechanistic_unified_routed_gt_0_6505": int(mechanistic["routed_tensors_gt_0_6505"]),
+        "mechanistic_unified_routed_gt_0_65": int(mechanistic["routed_tensors_gt_0_65"]),
         "subspace_scaled_routed_gt_0_6505": int(subspace["routed_tensors_gt_0_6505"]),
         "subspace_scaled_routed_gt_0_65": int(subspace["routed_tensors_gt_0_65"]),
         "layer_chunk_to_unified_relative_norm_reduction": 0.0
@@ -402,12 +411,18 @@ def build_summary(
         "layer_chunk_to_unified_routed_gt_065_reduction": 0
         if layer_chunk_to_unified.empty
         else int(layer_chunk_to_unified.iloc[0].get("routed_gt_065_reduction", 0)),
-        "unified_to_subspace_relative_norm_reduction": 0.0
-        if unified_to_subspace.empty
-        else float(unified_to_subspace.iloc[0]["total_relative_delta_norm_reduction"]),
-        "unified_to_subspace_routed_gt_065_reduction": 0
-        if unified_to_subspace.empty
-        else int(unified_to_subspace.iloc[0].get("routed_gt_065_reduction", 0)),
+        "unified_to_mechanistic_relative_norm_reduction": 0.0
+        if unified_to_mechanistic.empty
+        else float(unified_to_mechanistic.iloc[0]["total_relative_delta_norm_reduction"]),
+        "unified_to_mechanistic_routed_gt_065_reduction": 0
+        if unified_to_mechanistic.empty
+        else int(unified_to_mechanistic.iloc[0].get("routed_gt_065_reduction", 0)),
+        "mechanistic_to_subspace_relative_norm_delta": float(
+            subspace["total_relative_delta_norm"] - mechanistic["total_relative_delta_norm"]
+        ),
+        "mechanistic_to_subspace_routed_gt_065_reduction": 0
+        if mechanistic_to_subspace.empty
+        else int(mechanistic_to_subspace.iloc[0].get("routed_gt_065_reduction", 0)),
         "audit_to_trust_routed_gt_075_reduction": 0
         if route_to_trust.empty
         else int(route_to_trust.iloc[0]["routed_gt_075_reduction"]),
@@ -425,9 +440,10 @@ def build_summary(
             "can reduce structural delta further without removing useful Coder specialization. The unified "
             "mechanism candidate now uses router/evidence/geometry risk to lower the routed tail below the "
             "uniform 0.65 cap while staying same-shape. The mechanistic unified candidate then turns the same "
-            "signals into a benefit/curvature/interference scale law, pending materialization and delta audit. "
-            "The subspace-scaled ablation then applies only a "
-            "small extra shrink to uncovered channel/chunk conflict experts. Attention, cap-law complexity, "
+            "signals into a benefit/curvature/interference scale law and is now materialized plus delta-audited. "
+            "The subspace-scaled ablation then applies a "
+            "small extra shrink to uncovered channel/chunk conflict experts, trading a slightly higher total norm than "
+            "mechanistic unified for a lower routed tail. Attention, cap-law complexity, "
             "layer sensitivity, geometry-aware shrink, mechanistic scale law, and subspace-conflict shrink should therefore be "
             "decided by downstream eval, not by delta safety alone."
         ),
@@ -465,6 +481,7 @@ def build_report(
         f"- Searched no-gt-0.65 total relative delta norm: `{fmt(summary['searched_no_gt065_total_relative_delta_norm'])}`",
         f"- Layer/chunk total relative delta norm: `{fmt(summary['layer_chunk_total_relative_delta_norm'])}`",
         f"- Unified mechanism total relative delta norm: `{fmt(summary['unified_mechanism_total_relative_delta_norm'])}`",
+        f"- Mechanistic unified total relative delta norm: `{fmt(summary['mechanistic_unified_total_relative_delta_norm'])}`",
         f"- Subspace-scaled total relative delta norm: `{fmt(summary['subspace_scaled_total_relative_delta_norm'])}`",
         f"- Unified mechanism matches searched no-gt-0.65 delta: `{summary['unified_mechanism_matches_searched_no_gt065_delta']}`",
         f"- Trust -> expert-only relative norm reduction: `{fmt(summary['trust_to_expert_only_relative_norm_reduction'])}`",
@@ -472,8 +489,9 @@ def build_report(
         f"- Tail-trimmed -> searched no-gt-0.65 relative norm delta: `{fmt(summary['tail_trimmed_to_searched_no_gt065_relative_norm_delta'])}`",
         f"- Searched no-gt-0.65 -> layer/chunk relative norm reduction: `{fmt(summary['searched_no_gt065_to_layer_chunk_relative_norm_reduction'])}`",
         f"- Layer/chunk -> unified relative norm reduction: `{fmt(summary['layer_chunk_to_unified_relative_norm_reduction'])}`",
-        f"- Unified -> subspace-scaled relative norm reduction: `{fmt(summary['unified_to_subspace_relative_norm_reduction'])}`",
-        f"- Tail-trimmed / searched / layer-chunk / unified / subspace routed tensors >0.6505: `{summary['tail_trimmed_routed_gt_0_6505']}` / `{summary['searched_no_gt065_routed_gt_0_6505']}` / `{summary['layer_chunk_routed_gt_0_6505']}` / `{summary['unified_mechanism_routed_gt_0_6505']}` / `{summary['subspace_scaled_routed_gt_0_6505']}`",
+        f"- Unified -> mechanistic relative norm reduction: `{fmt(summary['unified_to_mechanistic_relative_norm_reduction'])}`",
+        f"- Mechanistic -> subspace-scaled relative norm delta: `{fmt(summary['mechanistic_to_subspace_relative_norm_delta'])}`",
+        f"- Tail-trimmed / searched / layer-chunk / unified / mechanistic / subspace routed tensors >0.6505: `{summary['tail_trimmed_routed_gt_0_6505']}` / `{summary['searched_no_gt065_routed_gt_0_6505']}` / `{summary['layer_chunk_routed_gt_0_6505']}` / `{summary['unified_mechanism_routed_gt_0_6505']}` / `{summary['mechanistic_unified_routed_gt_0_6505']}` / `{summary['subspace_scaled_routed_gt_0_6505']}`",
         f"- Expert-only attention changed tensors: `{summary['expert_only_attention_changed_tensors']}`",
         f"- Tail-trimmed attention changed tensors: `{summary['tail_trimmed_attention_changed_tensors']}`",
         f"- Layer/chunk attention changed tensors: `{summary['layer_chunk_attention_changed_tensors']}`",
@@ -553,7 +571,8 @@ def build_report(
             "searched no-gt-0.65 则把复杂风险 penalty 换成统一 cap，给下一轮 eval 一个更简单的候选。"
             "layer/chunk candidate 再把机制 leverage 里的层敏感度转成系数，给下一轮 eval 一个更细粒度的候选。"
             "unified mechanism candidate 进一步把 router/evidence/geometry risk 放进同一个约束优化器，成为当前最保守的 same-shape average 候选。"
-            "subspace-scaled ablation 只在 unified 之后额外压少数 uncovered 子空间冲突 expert。"
+            "mechanistic unified 把同样的内部信号改写成 benefit/curvature/interference scale law，并已通过真实 checkpoint delta audit。"
+            "subspace-scaled ablation 只在 mechanistic/unified 链路之后额外压少数 uncovered 子空间冲突 expert。"
             "所以 attention 是否保留、risk penalty 是否保留、layer sensitivity 是否有用、subspace shrink 是否值得默认启用，都不能靠 delta safety 单独判断，必须靠同任务 vLLM 下游结果决定。",
             "",
             "## Files",

@@ -3,7 +3,7 @@
   "canonical_task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
   "manifest_exists": true,
   "manifest_sha256": "84945db35ae5a366be5df909a53820bbfbfdeaaa5850ca5d7e03e29ebe8e5082",
-  "method_count": 13,
+  "method_count": 14,
   "outputs": {
     "prepare_manifest_command": "results/qwen3_moe_eval_manifest_preflight/prepare_manifest_command.txt",
     "report": "results/qwen3_moe_eval_manifest_preflight/report.md",
@@ -14,7 +14,7 @@
   "schema_version": 1,
   "status": "task_manifest_ready",
   "task_count": 4,
-  "task_manifest_aligned_method_count": 13,
+  "task_manifest_aligned_method_count": 14,
   "task_manifest_unaligned_method_count": 0,
   "task_sufficient_count": 4,
   "total_manifest_examples": 1316,

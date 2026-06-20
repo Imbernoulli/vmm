@@ -654,9 +654,11 @@ def write_literature(path: Path) -> None:
     path.write_text(json.dumps(LITERATURE_PRIORS, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
-def summarize_dry_run_manifest(path: Path) -> dict[str, Any]:
+def summarize_writer_manifest(path: Path) -> dict[str, Any]:
     if not path.exists() or path.stat().st_size == 0:
         return {
+            "writer_manifest_validated": False,
+            "writer_manifest_dry_run": None,
             "dry_run_validated": False,
             "dry_run_manifest": rel(path),
             "dry_run_floating_tensors": 0,
@@ -671,8 +673,12 @@ def summarize_dry_run_manifest(path: Path) -> dict[str, Any]:
     tensor_rule_hits = int(
         sum(int(value) for key, value in rule_counts.items() if str(key).startswith("tensor_rule:"))
     )
+    dry_run = bool(manifest.get("dry_run"))
+    writer_manifest_validated = tensor_rule_hits > 0 and int(rule_counts.get("freeze_router", 0)) > 0
     return {
-        "dry_run_validated": bool(manifest.get("dry_run")) and tensor_rule_hits > 0,
+        "writer_manifest_validated": writer_manifest_validated,
+        "writer_manifest_dry_run": dry_run,
+        "dry_run_validated": dry_run and writer_manifest_validated,
         "dry_run_manifest": rel(path),
         "dry_run_floating_tensors": int(manifest.get("floating_tensors", 0)),
         "dry_run_frozen_tensors": int(manifest.get("frozen_tensors", 0)),
@@ -709,9 +715,10 @@ def build_report(summary: dict[str, Any], search: pd.DataFrame, group_rules: pd.
         f"- High-benefit low-risk mean scale: `{fmt(summary['selected_high_benefit_low_risk_mean_scale'])}`",
         f"- High-interference low-benefit mean scale: `{fmt(summary['selected_high_interference_low_benefit_mean_scale'])}`",
         f"- High-subspace-conflict mean scale: `{fmt(summary['selected_high_subspace_mean_scale'])}`",
-        f"- Dry-run validated: `{summary['dry_run_validated']}`",
-        f"- Dry-run tensor rules / hits: `{summary['dry_run_tensor_rule_count']}` / `{summary['dry_run_tensor_rule_hit_count']}`",
-        f"- Dry-run freeze-router hits: `{summary['dry_run_freeze_router_hits']}`",
+        f"- Writer manifest validated: `{summary['writer_manifest_validated']}`",
+        f"- Writer manifest dry-run: `{summary['writer_manifest_dry_run']}`",
+        f"- Writer tensor rules / hits: `{summary['dry_run_tensor_rule_count']}` / `{summary['dry_run_tensor_rule_hit_count']}`",
+        f"- Writer freeze-router hits: `{summary['dry_run_freeze_router_hits']}`",
         "",
         "## Mechanism Interpretation",
         "",
@@ -963,7 +970,7 @@ def run_real(args: argparse.Namespace) -> None:
     literature_path = output_dir / "literature_sources.json"
     artifacts = write_rules_and_commands(group_rules, output_dir, args.writer_context_command)
     write_literature(literature_path)
-    dry_run_check = summarize_dry_run_manifest(repo_path(artifacts["checkpoint_output_dir"]) / "merge_manifest.json")
+    dry_run_check = summarize_writer_manifest(repo_path(artifacts["checkpoint_output_dir"]) / "merge_manifest.json")
     search.to_csv(search_path, index=False)
     group_rules.to_csv(group_rules_path, index=False)
     selected_path.write_text(

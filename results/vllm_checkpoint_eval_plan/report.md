@@ -4,9 +4,9 @@
 
 - Plan status: `hosted_eval_complete`
 - Candidate rows: `16`
-- Ready to host: `12`
+- Ready to host: `13`
 - Completed evals: `1`
-- Missing checkpoints: `3`
+- Missing checkpoints: `2`
 - Tasks: `gsm8k,mmlu,safety,humaneval_compile`
 
 ## Plan
@@ -23,7 +23,7 @@
 | 7 | `qwen3_moe_searched_no_gt065_max_retention_candidate` | `ready_to_host` | `not_run` |  |  | `results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate` | 8107 | `results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate` |
 | 8 | `qwen3_moe_layer_chunk_candidate` | `ready_to_host` | `not_run` |  |  | `results/checkpoints/qwen3_moe_layer_chunk_candidate` | 8108 | `results/vllm_checkpoint_eval/qwen3_moe_layer_chunk_candidate` |
 | 9 | `qwen3_moe_unified_mechanism_candidate` | `ready_to_host` | `not_run` |  |  | `results/checkpoints/qwen3_moe_unified_mechanism_candidate` | 8109 | `results/vllm_checkpoint_eval/qwen3_moe_unified_mechanism_candidate` |
-| 10 | `qwen3_moe_mechanistic_unified_candidate` | `checkpoint_missing_until_materialized` | `not_run` |  |  | `results/checkpoints/qwen3_moe_mechanistic_unified_candidate` | 8110 | `results/vllm_checkpoint_eval/qwen3_moe_mechanistic_unified_candidate` |
+| 10 | `qwen3_moe_mechanistic_unified_candidate` | `ready_to_host` | `not_run` |  |  | `results/checkpoints/qwen3_moe_mechanistic_unified_candidate` | 8110 | `results/vllm_checkpoint_eval/qwen3_moe_mechanistic_unified_candidate` |
 | 11 | `qwen3_moe_subspace_scaled_candidate` | `ready_to_host` | `not_run` |  |  | `results/checkpoints/qwen3_moe_subspace_scaled_candidate` | 8111 | `results/vllm_checkpoint_eval/qwen3_moe_subspace_scaled_candidate` |
 | 12 | `qwen_0_5b_instruct_coder_uniform_average` | `ready_to_host` | `complete` | 0.180 | 0.000 | `results/checkpoints/qwen_0_5b_instruct_coder_uniform_average` | 8112 | `results/vllm_checkpoint_eval/qwen_0_5b_instruct_coder_uniform_average` |
 | 13 | `moe_route_aware_candidate` | `checkpoint_missing_until_materialized` | `not_run` |  |  | `results/checkpoints/moe_route_aware_candidate` | 8113 | `results/vllm_checkpoint_eval/moe_route_aware_candidate` |

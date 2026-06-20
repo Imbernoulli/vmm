@@ -22,9 +22,10 @@
 - High-benefit low-risk mean scale: `0.8654`
 - High-interference low-benefit mean scale: `0.9665`
 - High-subspace-conflict mean scale: `0.9376`
-- Dry-run validated: `True`
-- Dry-run tensor rules / hits: `5243` / `15729`
-- Dry-run freeze-router hits: `48`
+- Writer manifest validated: `True`
+- Writer manifest dry-run: `False`
+- Writer tensor rules / hits: `5243` / `15729`
+- Writer freeze-router hits: `48`
 
 ## Mechanism Interpretation
 

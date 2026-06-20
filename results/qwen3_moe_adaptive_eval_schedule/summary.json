@@ -1,18 +1,18 @@
 {
   "close_margin": 0.02,
   "decision_status_counts": {
-    "awaiting_source_controls": 9,
+    "awaiting_source_controls": 10,
     "checkpoint_missing": 2,
     "source_control_required": 2
   },
   "eval_action_counts": {
-    "hold_until_source_controls_and_probe_slots": 4,
+    "hold_until_source_controls_and_probe_slots": 5,
     "materialize_checkpoint_first": 2,
     "queue_after_source_controls": 5,
     "run_or_extend_source_control_probe": 2
   },
   "full_examples": 384,
-  "method_count": 13,
+  "method_count": 14,
   "outputs": {
     "mechanism_schedule": "results/qwen3_moe_adaptive_eval_schedule/mechanism_schedule.csv",
     "report": "results/qwen3_moe_adaptive_eval_schedule/report.md",
@@ -26,16 +26,16 @@
   "round1_covered_mechanism_test_count": 5,
   "round1_covered_mechanism_tests": [
     "candidate_vs_sources",
-    "expert_subspace_conflict_ablation",
     "layer_chunk_sensitivity",
+    "mechanistic_unified_optimizer",
     "risk_penalty_simplification",
     "unified_mechanism_optimizer"
   ],
   "round1_probe_candidate_count": 5,
-  "round1_probe_task_budget": 896,
+  "round1_probe_task_budget": 1024,
   "round1_selection_policy": "greedy_mechanism_coverage_then_priority",
   "runnable_method_count": 7,
-  "runnable_prompt_budget": 1408,
+  "runnable_prompt_budget": 1536,
   "schema_version": 1,
   "source_controls_complete": false,
   "status": "adaptive_schedule_ready",
