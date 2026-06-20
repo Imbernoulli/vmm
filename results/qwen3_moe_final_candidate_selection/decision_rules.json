@@ -1,0 +1,16 @@
+{
+  "candidate_policy": [
+    "both source endpoints must pass eval-bundle audit",
+    "candidate must pass eval-bundle audit",
+    "candidate checkpoint audit must pass",
+    "candidate must not be dominated by either source endpoint",
+    "candidate must not regress a task below both source endpoints",
+    "rank eligible candidates by avg primary score, then worst primary score, then lower total relative delta norm"
+  ],
+  "required_controls": [
+    "source_qwen3_30b_instruct",
+    "source_qwen3_30b_coder"
+  ],
+  "schema_version": 1,
+  "target_contract": "same-shape Qwen3 MoE output; no ensemble, no added experts, no architecture change"
+}

@@ -1,0 +1,32 @@
+{
+  "current_selection": {
+    "best_source_by_avg": null,
+    "best_source_by_worst": null,
+    "candidate_count": 7,
+    "candidates_complete": false,
+    "eligible_candidate_count": 0,
+    "reason": "Both Qwen3 source endpoints must complete audited vLLM eval before final candidate selection.",
+    "score_columns": [
+      "avg_primary_score",
+      "worst_primary_score",
+      "task_gsm8k_score",
+      "task_mmlu_score",
+      "task_safety_score",
+      "task_humaneval_compile_score"
+    ],
+    "selected_method": null,
+    "source_count": 2,
+    "sources_complete": false,
+    "status": "awaiting_source_eval",
+    "usable_candidate_count": 0
+  },
+  "outputs": {
+    "decision_rules": "results/qwen3_moe_final_candidate_selection/decision_rules.json",
+    "report": "results/qwen3_moe_final_candidate_selection/report.md",
+    "selection_table": "results/qwen3_moe_final_candidate_selection/selection_table.csv",
+    "summary": "results/qwen3_moe_final_candidate_selection/summary.json"
+  },
+  "schema_version": 1,
+  "smoke_case": null,
+  "status": "awaiting_source_eval"
+}

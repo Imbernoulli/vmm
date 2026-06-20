@@ -4,27 +4,32 @@
 
 - Status: `passed`
 - Plan only: `False`
-- Steps passed: `7/7`
+- Steps passed: `9/9`
 - Audit: `awaiting_eval` (`0/9` usable)
 - Selection: `awaiting_source_eval` -> `None`
+- Final selection: `awaiting_source_eval` -> `None` (`0/7` eligible)
 - Attribution: `awaiting_eval` (`0/7` scored)
 
 | step | kind | status | returncode | seconds |
 | --- | --- | --- | ---: | ---: |
 | `audit_eval_bundles` | `gate` | `passed` | 0 | 0.40 |
-| `select_unified_result` | `selector` | `passed` | 0 | 0.40 |
-| `attribute_mechanism_effects` | `attribution` | `passed` | 0 | 0.41 |
-| `audit_eval_bundles_smoke` | `smoke` | `passed` | 0 | 0.54 |
-| `select_unified_result_smoke` | `smoke` | `passed` | 0 | 0.41 |
-| `attribute_mechanism_effects_smoke` | `smoke` | `passed` | 0 | 0.47 |
-| `collect_results` | `summary` | `passed` | 0 | 1.29 |
+| `select_unified_result` | `selector` | `passed` | 0 | 0.39 |
+| `select_final_candidate` | `selector` | `passed` | 0 | 0.40 |
+| `attribute_mechanism_effects` | `attribution` | `passed` | 0 | 0.39 |
+| `audit_eval_bundles_smoke` | `smoke` | `passed` | 0 | 0.69 |
+| `select_unified_result_smoke` | `smoke` | `passed` | 0 | 0.39 |
+| `select_final_candidate_smoke` | `smoke` | `passed` | 0 | 0.40 |
+| `attribute_mechanism_effects_smoke` | `smoke` | `passed` | 0 | 0.39 |
+| `collect_results` | `summary` | `passed` | 0 | 1.25 |
 
 ## Commands
 
 - `python scripts/audit_qwen3_moe_eval_bundle.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_eval_bundle_audit`
 - `python scripts/select_qwen3_moe_unified_result.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_unified_result_selection`
+- `python scripts/select_qwen3_moe_final_candidate.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_final_candidate_selection`
 - `python scripts/attribute_qwen3_moe_mechanism_effects.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_mechanism_effect_attribution`
 - `python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke`
 - `python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke`
+- `python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke`
 - `python scripts/attribute_qwen3_moe_mechanism_effects.py --smoke-matrix --output-dir results/qwen3_moe_mechanism_effect_attribution_smoke`
 - `python scripts/collect_results.py`

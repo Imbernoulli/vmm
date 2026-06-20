@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 72566,
+      "bytes": 73369,
       "kind": "document",
       "path": "README.md",
-      "sha256": "30bfc2150099ae00c55ef56c07377eae6c1593d2b5ea4eade4f20fd622d504f9"
+      "sha256": "530d85e0bb9a3ac9473efb1f890c33ec194ba635064645eab5e766340b6c0853"
     },
     {
       "bytes": 33211,
@@ -1873,6 +1873,48 @@
       "sha256": "4b23f3659915d83589c7375623bb9fc75854f4fd11a2ce7f3a525f7d9ea43246"
     },
     {
+      "bytes": 650,
+      "kind": "data",
+      "path": "results/qwen3_moe_final_candidate_selection/decision_rules.json",
+      "sha256": "6332df8857ec40f13125cbb98963c6ee5c8dd332b61aa61f82521f8fdf9c1b57"
+    },
+    {
+      "bytes": 2026,
+      "kind": "document",
+      "path": "results/qwen3_moe_final_candidate_selection/report.md",
+      "sha256": "11a8911af3006ac2da7f38b915c5da4e129f58a7f4328c7ca1472fd37a45aaed"
+    },
+    {
+      "bytes": 1270,
+      "kind": "data",
+      "path": "results/qwen3_moe_final_candidate_selection/selection_table.csv",
+      "sha256": "33890465f489ff6b17cd94b8d92e12104e32775dd132b57d119cf69cd6a0db83"
+    },
+    {
+      "bytes": 1084,
+      "kind": "data",
+      "path": "results/qwen3_moe_final_candidate_selection/summary.json",
+      "sha256": "4d9207662bba91ccf889456d9a72d1837f84380e3ffc791f187349c6be26c797"
+    },
+    {
+      "bytes": 547,
+      "kind": "document",
+      "path": "results/qwen3_moe_final_candidate_selection_smoke/report.md",
+      "sha256": "fd955e321a49fbb90acf8da4e0df67e5265f2b1de898e064296829cabae926b8"
+    },
+    {
+      "bytes": 630,
+      "kind": "data",
+      "path": "results/qwen3_moe_final_candidate_selection_smoke/selector_matrix.csv",
+      "sha256": "714f556907f6857663761db921cb0792974e448c1731b032b22416afb2395a8a"
+    },
+    {
+      "bytes": 1701,
+      "kind": "data",
+      "path": "results/qwen3_moe_final_candidate_selection_smoke/summary.json",
+      "sha256": "78fcf3d0c9671ffcf05472131c05d3e55202448e7534dd9f66ff6df753a00fb9"
+    },
+    {
       "bytes": 560,
       "kind": "data",
       "path": "results/qwen3_moe_materialized_delta_audit/group_delta_summary.csv",
@@ -1981,40 +2023,40 @@
       "sha256": "c0e34f42780270c1e0cb50d464aceda544bee0011a4de4250a0d3b35b059db30"
     },
     {
-      "bytes": 1904,
+      "bytes": 2446,
       "kind": "document",
       "path": "results/qwen3_moe_post_eval_refresh/report.md",
-      "sha256": "043ff83c1eaa439c147796b49163643e76ada58cbc0757062c310b114cc0cbdf"
+      "sha256": "8c0eeaafce09bb4da127798d75c9c6cd2f30c7a06b1d6331da30c194f7a9cc33"
     },
     {
-      "bytes": 2526,
+      "bytes": 3337,
       "kind": "data",
       "path": "results/qwen3_moe_post_eval_refresh/steps.csv",
-      "sha256": "044a9d0b3cd78fca5a53f32d0f87605b88becea48cda21d54716b1388af45cac"
+      "sha256": "e20ef4d75a9662cd98b9e6688d63feb70b6780685b40a04dff34de306a09312d"
     },
     {
-      "bytes": 4547,
+      "bytes": 6001,
       "kind": "data",
       "path": "results/qwen3_moe_post_eval_refresh/summary.json",
-      "sha256": "6c856b92c44658499d92eb25ff63c0fd87e3afe4a34f34baf15ea536bee357e4"
+      "sha256": "ce077a8fd00b7394fc8e234c87e926697de79a3c06c6081cd32201410c9780f7"
     },
     {
-      "bytes": 1902,
+      "bytes": 2438,
       "kind": "document",
       "path": "results/qwen3_moe_post_eval_refresh_plan/report.md",
-      "sha256": "f39a014512c1cbfdb8bc6cb78fe6501a09497eec172eba3ec312395905660489"
+      "sha256": "be7458ffa86304c87d446649d0ee584cc193dc951928eadf331a250d9b5e654c"
     },
     {
-      "bytes": 1328,
+      "bytes": 1759,
       "kind": "data",
       "path": "results/qwen3_moe_post_eval_refresh_plan/steps.csv",
-      "sha256": "1cb80a64911c369a63d8219dff18114d1f8b5e8d6f402629a9a20a8b9f18a56c"
+      "sha256": "9d2b2054b480a57890796149b5db59098b810e93abce6105a6f2b9cf70305420"
     },
     {
-      "bytes": 2953,
+      "bytes": 3746,
       "kind": "data",
       "path": "results/qwen3_moe_post_eval_refresh_plan/summary.json",
-      "sha256": "34227a5953516c0c787df15b5ca0ec1d8e215e57d4ba3988998fbcecb36e9959"
+      "sha256": "e3e00bd50ba2bce0006e0c0da8e681db71ffb50ea26e6795274d4c6a53b99be7"
     },
     {
       "bytes": 3253,
@@ -4375,16 +4417,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 1176131,
+      "bytes": 1193851,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "ab75cb3eadd010f536c2c0917aa3974d2c3cbcf199c9a12a2585fa93c25c033e"
+      "sha256": "c0fb4f400da989bfa63adf3aeafeecf3152877459ac7b7ad18ea25b9534ac7b6"
     },
     {
-      "bytes": 45326,
+      "bytes": 45951,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "16ae873f6f3183ff4b5b72ba220a01431db63512ee0d606985c7ca3f8976a4e0"
+      "sha256": "21a45f631aad83b02cd5de417d389fb2f5e63a41cd3c86c27fa218d5fcbd5860"
     },
     {
       "bytes": 288,
@@ -5551,10 +5593,10 @@
       "sha256": "cd588bc1804013f4043bd95c245b066dbae86bfd3e3f9c18317ef33eb506f123"
     },
     {
-      "bytes": 309361,
+      "bytes": 314405,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "c416d95ecf829e9b70c9fd5bd316659438fccbc6c3d79da35ab979dbf62f606b"
+      "sha256": "f46bd1c7af14981c651142fd9c57f4db87c83a1e6658e33aa9134324ce34dbe0"
     },
     {
       "bytes": 16101,
@@ -5611,10 +5653,10 @@
       "sha256": "9f211e934ffbcd7d5a0df9eed38a4cdd7d5d601adf2d4877519bb4cef8ac9f02"
     },
     {
-      "bytes": 11047,
+      "bytes": 12968,
       "kind": "code",
       "path": "scripts/refresh_qwen3_moe_post_eval.py",
-      "sha256": "d1a26cbd8ab71b084d1a072eaecfb284a11880d959f5b12b926ce9a0c8cb8348"
+      "sha256": "1b60995d41e5cb32d40b62751a06faeaaca7e0f085c9a34367ad1f1e6f57474d"
     },
     {
       "bytes": 10141,
@@ -5713,6 +5755,12 @@
       "sha256": "db053e7a0691ec45cb8f4dd82cce68e2a3c445f1ad470e2327e6483ffc17427f"
     },
     {
+      "bytes": 22648,
+      "kind": "code",
+      "path": "scripts/select_qwen3_moe_final_candidate.py",
+      "sha256": "00227b4dba3bdfc5d1fef021ed98b4d8a50e682192388b304f124d94601bca22"
+    },
+    {
       "bytes": 66802,
       "kind": "code",
       "path": "scripts/select_qwen3_moe_router_calibration_result.py",
@@ -5809,7 +5857,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-20T00:28:24.257920+00:00",
+  "generated_at": "2026-06-20T00:39:34.507447+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

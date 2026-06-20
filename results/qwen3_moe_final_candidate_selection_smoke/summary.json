@@ -1,0 +1,50 @@
+{
+  "case_count": 4,
+  "cases": [
+    {
+      "case": "candidate_win",
+      "eligible_candidate_count": 2,
+      "expected_selected_method": "qwen3_moe_tail_trimmed_expert_only_candidate",
+      "expected_status": "select_candidate",
+      "passed": true,
+      "selected_method": "qwen3_moe_tail_trimmed_expert_only_candidate",
+      "status": "select_candidate"
+    },
+    {
+      "case": "source_dominance",
+      "eligible_candidate_count": 0,
+      "expected_selected_method": "source_qwen3_30b_instruct",
+      "expected_status": "keep_source_endpoint",
+      "passed": true,
+      "selected_method": "source_qwen3_30b_instruct",
+      "status": "keep_source_endpoint"
+    },
+    {
+      "case": "task_regression",
+      "eligible_candidate_count": 0,
+      "expected_selected_method": "source_qwen3_30b_instruct",
+      "expected_status": "keep_source_endpoint",
+      "passed": true,
+      "selected_method": "source_qwen3_30b_instruct",
+      "status": "keep_source_endpoint"
+    },
+    {
+      "case": "partial",
+      "eligible_candidate_count": 1,
+      "expected_selected_method": "qwen3_moe_tail_trimmed_expert_only_candidate",
+      "expected_status": "provisional_candidate",
+      "passed": true,
+      "selected_method": "qwen3_moe_tail_trimmed_expert_only_candidate",
+      "status": "provisional_candidate"
+    }
+  ],
+  "failed_case_count": 0,
+  "outputs": {
+    "matrix": "results/qwen3_moe_final_candidate_selection_smoke/selector_matrix.csv",
+    "report": "results/qwen3_moe_final_candidate_selection_smoke/report.md",
+    "summary": "results/qwen3_moe_final_candidate_selection_smoke/summary.json"
+  },
+  "passed_case_count": 4,
+  "schema_version": 1,
+  "status": "passed"
+}

@@ -1228,6 +1228,49 @@ def summarize_qwen3_moe_unified_result_selection_smoke() -> dict[str, Any]:
     }
 
 
+def summarize_qwen3_moe_final_candidate_selection() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_final_candidate_selection")
+    summary = read_json(root / "summary.json")
+    table = read_csv(root / "selection_table.csv")
+    selection = summary.get("current_selection", {})
+    eligible = table[table["selection_eligible"].astype(bool)] if "selection_eligible" in table else pd.DataFrame()
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "selected_method": selection.get("selected_method"),
+        "selection_reason": selection.get("reason"),
+        "sources_complete": bool(selection.get("sources_complete", False)),
+        "candidates_complete": bool(selection.get("candidates_complete", False)),
+        "usable_candidate_count": int(selection.get("usable_candidate_count", 0)),
+        "eligible_candidate_count": int(selection.get("eligible_candidate_count", len(eligible))),
+        "candidate_count": int(selection.get("candidate_count", len(table[table["role"] == "candidate"]))),
+        "best_source_by_avg": selection.get("best_source_by_avg"),
+        "best_source_by_worst": selection.get("best_source_by_worst"),
+        "candidate_rows": [clean_row(row) for _, row in table.iterrows()],
+        "report": rel(root / "report.md"),
+        "selection_table": rel(root / "selection_table.csv"),
+        "decision_rules": rel(root / "decision_rules.json"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
+def summarize_qwen3_moe_final_candidate_selection_smoke() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_final_candidate_selection_smoke")
+    summary = read_json(root / "summary.json")
+    matrix = read_csv(root / "selector_matrix.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "case_count": int(summary.get("case_count", len(matrix))),
+        "passed_case_count": int(summary.get("passed_case_count", 0)),
+        "failed_case_count": int(summary.get("failed_case_count", 0)),
+        "case_rows": [clean_row(row) for _, row in matrix.iterrows()],
+        "report": rel(root / "report.md"),
+        "matrix": rel(root / "selector_matrix.csv"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_qwen3_moe_eval_bundle_audit() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_eval_bundle_audit")
     summary = read_json(root / "summary.json")
@@ -1324,6 +1367,11 @@ def summarize_qwen3_moe_post_eval_refresh() -> dict[str, Any]:
         "selection_status": downstream.get("selection_status"),
         "selected_method": downstream.get("selected_method"),
         "selection_reason": downstream.get("selection_reason"),
+        "final_selection_status": downstream.get("final_selection_status"),
+        "final_selected_method": downstream.get("final_selected_method"),
+        "final_selection_reason": downstream.get("final_selection_reason"),
+        "final_eligible_candidate_count": maybe_int(downstream.get("final_eligible_candidate_count")),
+        "final_candidate_count": maybe_int(downstream.get("final_candidate_count")),
         "attribution_status": downstream.get("attribution_status"),
         "attribution_scored_transition_count": maybe_int(
             downstream.get("attribution_scored_transition_count")
@@ -3236,6 +3284,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/qwen3_moe_unified_result_selection/report.md gates the unified same-shape average against both Qwen3 source endpoints after matched vLLM eval; results/qwen3_moe_unified_result_selection_smoke/report.md covers candidate-win, source-dominance, task-regression, and no-gain branches.",
         },
         {
+            "item": "Qwen3 MoE final candidate selector",
+            "status": "complete",
+            "evidence": "results/qwen3_moe_final_candidate_selection/report.md ranks all seven same-shape Qwen3 MoE candidates against both source endpoints after eval-bundle audit, with source-dominance, task-regression, checkpoint-audit, and provisional-selection gates.",
+        },
+        {
             "item": "Qwen3 MoE vLLM eval bundle audit",
             "status": "complete",
             "evidence": "results/qwen3_moe_eval_bundle_audit/report.md checks every Qwen3 source/candidate eval output for model-id, task, example-count, prediction, and primary-score consistency before selector use; results/qwen3_moe_eval_bundle_audit_smoke/report.md covers valid, stale-model, missing-task, and low-example bundles.",
@@ -3371,6 +3424,8 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_mechanism_eval_gate": summarize_qwen3_moe_mechanism_eval_gate(),
         "qwen3_moe_unified_result_selection": summarize_qwen3_moe_unified_result_selection(),
         "qwen3_moe_unified_result_selection_smoke": summarize_qwen3_moe_unified_result_selection_smoke(),
+        "qwen3_moe_final_candidate_selection": summarize_qwen3_moe_final_candidate_selection(),
+        "qwen3_moe_final_candidate_selection_smoke": summarize_qwen3_moe_final_candidate_selection_smoke(),
         "qwen3_moe_eval_bundle_audit": summarize_qwen3_moe_eval_bundle_audit(),
         "qwen3_moe_eval_bundle_audit_smoke": summarize_qwen3_moe_eval_bundle_audit_smoke(),
         "qwen3_moe_mechanism_effect_attribution": summarize_qwen3_moe_mechanism_effect_attribution(),
@@ -3533,6 +3588,8 @@ def build_summary() -> dict[str, Any]:
             "python scripts/build_qwen3_moe_unified_mechanism_candidate.py --output-dir results/qwen3_moe_unified_mechanism_candidate",
             "python scripts/select_qwen3_moe_unified_result.py --output-dir results/qwen3_moe_unified_result_selection",
             "python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke",
+            "python scripts/select_qwen3_moe_final_candidate.py --output-dir results/qwen3_moe_final_candidate_selection",
+            "python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke",
             "python scripts/audit_qwen3_moe_eval_bundle.py --output-dir results/qwen3_moe_eval_bundle_audit",
             "python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke",
             "python scripts/attribute_qwen3_moe_mechanism_effects.py --output-dir results/qwen3_moe_mechanism_effect_attribution",
@@ -3616,6 +3673,8 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_mechanism_eval_gate = exp["qwen3_moe_mechanism_eval_gate"]
     qwen3_moe_unified_result_selection = exp["qwen3_moe_unified_result_selection"]
     qwen3_moe_unified_result_selection_smoke = exp["qwen3_moe_unified_result_selection_smoke"]
+    qwen3_moe_final_candidate_selection = exp["qwen3_moe_final_candidate_selection"]
+    qwen3_moe_final_candidate_selection_smoke = exp["qwen3_moe_final_candidate_selection_smoke"]
     qwen3_moe_eval_bundle_audit = exp["qwen3_moe_eval_bundle_audit"]
     qwen3_moe_eval_bundle_audit_smoke = exp["qwen3_moe_eval_bundle_audit_smoke"]
     qwen3_moe_mechanism_effect_attribution = exp["qwen3_moe_mechanism_effect_attribution"]
@@ -4187,6 +4246,26 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"/{qwen3_moe_unified_result_selection_smoke['case_count']} |"
             ),
             (
+                "| Qwen3 MoE final candidate selector | status / selected / eligible | "
+                f"{qwen3_moe_final_candidate_selection['status']} / "
+                f"{qwen3_moe_final_candidate_selection['selected_method']} / "
+                f"{qwen3_moe_final_candidate_selection['eligible_candidate_count']}"
+                f"/{qwen3_moe_final_candidate_selection['candidate_count']} |"
+            ),
+            (
+                "| Qwen3 MoE final candidate selector | usable / complete / best source | "
+                f"{qwen3_moe_final_candidate_selection['usable_candidate_count']}"
+                f"/{qwen3_moe_final_candidate_selection['candidate_count']} / "
+                f"{qwen3_moe_final_candidate_selection['candidates_complete']} / "
+                f"{qwen3_moe_final_candidate_selection['best_source_by_avg']} |"
+            ),
+            (
+                "| Qwen3 MoE final candidate selector smoke | status / passed cases | "
+                f"{qwen3_moe_final_candidate_selection_smoke['status']} / "
+                f"{qwen3_moe_final_candidate_selection_smoke['passed_case_count']}"
+                f"/{qwen3_moe_final_candidate_selection_smoke['case_count']} |"
+            ),
+            (
                 "| Qwen3 MoE eval bundle audit | status / usable / invalid complete | "
                 f"{qwen3_moe_eval_bundle_audit['status']} / "
                 f"{qwen3_moe_eval_bundle_audit['usable_for_selection_count']}"
@@ -4234,8 +4313,9 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"/{qwen3_moe_post_eval_refresh['audit_method_count']} |"
             ),
             (
-                "| Qwen3 MoE post-eval refresh | selection / attribution scored / plan steps | "
+                "| Qwen3 MoE post-eval refresh | selection / final selection / attribution scored / plan steps | "
                 f"{qwen3_moe_post_eval_refresh['selection_status']} / "
+                f"{qwen3_moe_post_eval_refresh['final_selection_status']} / "
                 f"{qwen3_moe_post_eval_refresh['attribution_scored_transition_count']}"
                 f"/{qwen3_moe_post_eval_refresh['attribution_transition_count']} / "
                 f"{qwen3_moe_post_eval_refresh_plan['planned_step_count']}"

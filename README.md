@@ -16,11 +16,13 @@
 
 最新 [Qwen3 MoE Unified Result Selector](results/qwen3_moe_unified_result_selection/report.md) 单独处理“什么时候真正接受 unified average”：它要求两个 source endpoints 和 `qwen3_moe_unified_mechanism_candidate` 完成同一套 vLLM 下游评测、candidate audit 通过、没有任务分数跌破两个 source、没有被任一 source endpoint 支配，并且 avg 或 worst source frontier 有增益。当前状态是 `awaiting_source_eval`，也就是还不能声称 average 更好；[selector smoke](results/qwen3_moe_unified_result_selection_smoke/report.md) 覆盖了 candidate-win、source-dominance、task-regression 和 no-gain 四种分支，`4/4` 通过。
 
+最新 [Qwen3 MoE Final Candidate Selector](results/qwen3_moe_final_candidate_selection/report.md) 把选择范围从 unified alias 扩展到全部七个 same-shape Qwen3 MoE candidates，并和两个 source endpoint 做同场比较。规则是：source endpoints 必须先通过 eval-bundle audit；candidate 必须通过 vLLM bundle audit 和 checkpoint audit；如果被任一 source 在可用 score 上支配，或某个任务跌破两个 source，就不能选。当前真实状态是 `awaiting_source_eval`、`0/7` candidate usable；[selector smoke](results/qwen3_moe_final_candidate_selection_smoke/report.md) 覆盖 candidate-win、source-dominance、task-regression 和 partial/provisional selection，`4/4` 通过。
+
 最新 [Qwen3 MoE vLLM Eval Bundle Audit](results/qwen3_moe_eval_bundle_audit/report.md) 又在 selector 前加了一层结果包校验：每个 source/candidate 的 `summary.json`、`eval_plan.csv`、`metrics.csv`、`model_summary.csv` 和 `predictions.csv` 必须存在，模型名必须和 gate 计划一致，四个任务必须齐全，每任务样本数不能低于计划值，且每个任务都有 primary score。当前真实状态是 `awaiting_eval`、`0/9` 个 eval bundle 可用于选择；[audit smoke](results/qwen3_moe_eval_bundle_audit_smoke/report.md) 覆盖 valid、stale-model、missing-task 和 low-example 四种情况，`4/4` 通过。
 
 最新 [Qwen3 MoE Mechanism Effect Attribution](results/qwen3_moe_mechanism_effect_attribution/report.md) 把 source frontier -> route-guarded -> audit-gated -> trust-region -> expert-only -> tail-trimmed -> searched cap-law -> unified alias 拆成相邻机制对比。它现在只输出 structural delta，因为 vLLM eval bundle 还没通过 audit；真实状态是 `awaiting_eval`、`0/7` 个 transition 已评分。当前结构链条显示：audit-gated 消掉 routed `>0.75` 的 `675` 个 tensor，trust-region 再消掉 `150` 个，expert-only 清零 `288` 个 attention changed tensors，tail-trimmed 再消掉剩余 `14` 个 routed `>0.75` tensor。后续一旦 vLLM 分数落盘，它会自动给出每一步对 avg/worst/task score 的影响，而不是只给最终排名。
 
-最新 [Qwen3 MoE Post-Eval Refresh](results/qwen3_moe_post_eval_refresh/report.md) 把远端 vLLM eval 之后必须跑的步骤固定成一条命令：eval bundle audit、unified selector、mechanism attribution、三个 smoke 和 `collect_results`。当前本地刷新链路 `7/7` 步通过，真实状态仍是 audit `0/9` usable、selector `awaiting_source_eval`、attribution `0/7` scored；[plan-only report](results/qwen3_moe_post_eval_refresh_plan/report.md) 也写出了远端可复制的命令清单。
+最新 [Qwen3 MoE Post-Eval Refresh](results/qwen3_moe_post_eval_refresh/report.md) 把远端 vLLM eval 之后必须跑的步骤固定成一条命令：eval bundle audit、unified selector、final candidate selector、mechanism attribution、四个 smoke 和 `collect_results`。当前本地刷新链路 `9/9` 步通过，真实状态仍是 audit `0/9` usable、unified selector `awaiting_source_eval`、final selector `awaiting_source_eval`、attribution `0/7` scored；[plan-only report](results/qwen3_moe_post_eval_refresh_plan/report.md) 也写出了远端可复制的命令清单。
 
 最新 [Qwen3 MoE Router Move Gate](results/qwen3_moe_router_move_gate/report.md) 把“router 要不要也平均”单独拿出来测了：它读取真实 Qwen3 routing readiness 和 Instruct/Coder router tensor delta，结论是直接 router weight movement 应被拒绝。48 层没有任何一层在全部观察场景里通过 all-category guard；`493/576` 个 readiness rows 要求 `calibrate_router_before_average`，另有 `6` 个要求 freeze/check load；source router 总 relative delta norm 是 `0.739`，top-k Jaccard mean/min 是 `0.454/0.242`，top1 agreement min 只有 `0.069`。所以 unified MoE 默认继续 freeze router；如果要动 router，下一步必须是 route-KD/HARC-style calibration 后重新 probe，而不是直接线性平均 router weights。
 
@@ -156,7 +158,7 @@ z 轴 = loss
 
 ## 结论摘要
 
-当前 coverage audit：`complete = 73`, `partial = 1`, `missing = 0`；唯一 partial 是 generic target-registry vLLM eval 还没有跑完，但 materialized checkpoint、source-vs-merge 对照、probe-guided dense candidate、dense guard ablation 的真实 vLLM eval、真实 Qwen3 MoE materialized checkpoint，以及 probe-gated/unified average selection gate 都已完成。完整汇总见 `results/summary.md` 和 `results/summary.json`。
+当前 coverage audit：`complete = 74`, `partial = 1`, `missing = 0`；唯一 partial 是 generic target-registry vLLM eval 还没有跑完，但 materialized checkpoint、source-vs-merge 对照、probe-guided dense candidate、dense guard ablation 的真实 vLLM eval、真实 Qwen3 MoE materialized checkpoint，以及 probe-gated/unified average selection gate 都已完成。完整汇总见 `results/summary.md` 和 `results/summary.json`。
 
 主要结论：
 
