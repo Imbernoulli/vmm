@@ -12,3 +12,4 @@ qwen3_moe_unified_mechanism_candidate,candidate,False,True,,,,,,,0.2403784248994
 qwen3_moe_mechanistic_unified_candidate,candidate,False,True,,,,,,,0.2382255365529426,0.0,,False
 qwen3_moe_subspace_scaled_candidate,candidate,False,True,,,,,,,0.2395294198409091,0.0,,False
 qwen3_moe_router_coupled_candidate,candidate,False,False,,,,,,,,,,False
+qwen3_moe_harc_router_candidate,candidate,False,False,,,,,,,,,,False

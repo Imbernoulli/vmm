@@ -1,6 +1,6 @@
 {
   "assumed_paired_discordance_rate": 0.25,
-  "candidate_count": 13,
+  "candidate_count": 14,
   "canonical_task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
   "confidence_z": 1.96,
   "current_gate_examples": 64,
@@ -16,13 +16,13 @@
       "recommended_prompt_budget": 6144
     },
     {
-      "additional_prompt_budget": 11520,
-      "current_prompt_budget": 2304,
+      "additional_prompt_budget": 12800,
+      "current_prompt_budget": 2560,
       "eval_queue": "mechanism_ablation",
-      "method_count": 9,
+      "method_count": 10,
       "queue_alias": "mechanism",
       "ready_to_host_method_count": 8,
-      "recommended_prompt_budget": 13824
+      "recommended_prompt_budget": 15360
     },
     {
       "additional_prompt_budget": 2560,
@@ -39,12 +39,12 @@
   "final_core_method_count": 4,
   "final_core_ready_to_host_method_count": 4,
   "final_core_recommended_prompt_budget": 6144,
-  "mechanism_ablation_additional_prompt_budget": 11520,
-  "mechanism_ablation_current_prompt_budget": 2304,
-  "mechanism_ablation_method_count": 9,
+  "mechanism_ablation_additional_prompt_budget": 12800,
+  "mechanism_ablation_current_prompt_budget": 2560,
+  "mechanism_ablation_method_count": 10,
   "mechanism_ablation_ready_to_host_method_count": 8,
-  "mechanism_ablation_recommended_prompt_budget": 13824,
-  "method_count": 15,
+  "mechanism_ablation_recommended_prompt_budget": 15360,
+  "method_count": 16,
   "outputs": {
     "mechanism_budget": "results/qwen3_moe_eval_budget_plan/mechanism_budget.csv",
     "method_budget": "results/qwen3_moe_eval_budget_plan/method_budget.csv",
@@ -82,13 +82,13 @@
   "status": "ready_for_budgeted_remote_vllm_eval",
   "target_paired_net_loss_rate": 0.05,
   "target_wilson_half_width": 0.05,
-  "task_manifest_aligned_method_count": 15,
+  "task_manifest_aligned_method_count": 16,
   "task_manifest_pairing_contract": "All source and candidate eval commands must use the same task manifest so final paired prediction comparisons share task/example keys.",
   "task_manifest_path_count": 1,
   "task_manifest_unaligned_method_count": 0,
-  "total_additional_prompt_budget": 19200,
-  "total_current_prompt_budget": 3840,
-  "total_recommended_prompt_budget": 23040,
+  "total_additional_prompt_budget": 20480,
+  "total_current_prompt_budget": 4096,
+  "total_recommended_prompt_budget": 24576,
   "wilson_required_examples": 381,
   "wilson_rounded_examples": 384
 }

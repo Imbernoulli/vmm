@@ -24,7 +24,7 @@
 | `moe` | `unified_routed_expert_cap` | `expert_delta_cap_passed` | 0.6438 | 0.6500 | 0.6438 | 0.9905 | Keep the unified mechanism candidate provisional until downstream source-dominance gates pass. |
 | `moe` | `mechanistic_scale_law_cap` | `mechanistic_cap_and_retention_passed` | 0.6490 | 0.6490 | 0.6490 | 1.0000 | Use as a structural-frontier candidate, but do not override a statistically separated downstream leader. |
 | `moe` | `router_calibration_acceptance` | `router_calibration_promising_but_unaccepted` | 0.2214 | 4.0000 | 0.0000 | 0.0000 | Run matched frozen-router baseline/source/candidate vLLM eval before attaching router deltas. |
-| `moe` | `final_average_acceptance` | `awaiting_matched_vllm_eval` | 0.0000 | 11.0000 | 0.0000 | 0.0000 | Accept no average until source endpoints and same-shape candidates pass locked-manifest eval bundle audit. |
+| `moe` | `final_average_acceptance` | `awaiting_matched_vllm_eval` | 0.0000 | 12.0000 | 0.0000 | 0.0000 | Accept no average until source endpoints and same-shape candidates pass locked-manifest eval bundle audit. |
 
 ## Decisions
 
@@ -33,7 +33,7 @@
 | `dense` | `reject fixed midpoint; use coefficient search with endpoint or anchor fallback` | linear worst NLL = 6.0398; best lambda-family worst NLL = 3.0727; best endpoint worst NLL = 3.1737; max accepted uniform lambda = 0.0000. | `held-out generation or vLLM eval for any new interior point` |
 | `moe_router` | `freeze direct router average; route-KD/router calibration remains a separate ablation` | min safe-lambda proxy = 0.0197; direct midpoint router lambda = 0.5000; high-fragility layers = 24/48. | `matched frozen-router baseline/source/candidate vLLM eval` |
 | `moe_experts` | `allow capped same-shape expert movement only inside routed delta and retention bounds` | candidate s0.08_b1.65_h0.75_i0.75 max predicted relative delta = 0.6490; effective cap = 0.6490; route-mass retention = 0.9650; min retention = 0.9650. | `locked-manifest downstream source-dominance selector` |
-| `final_selection` | `do not accept any average before audited downstream eval bundles exist` | final selector status = awaiting_source_eval; eligible candidates = 0/11; reason = Both Qwen3 source endpoints must complete audited vLLM eval before final candidate selection.. | `qwen3_moe_eval_bundle_audit plus final candidate selector` |
+| `final_selection` | `do not accept any average before audited downstream eval bundles exist` | final selector status = awaiting_source_eval; eligible candidates = 0/12; reason = Both Qwen3 source endpoints must complete audited vLLM eval before final candidate selection.. | `qwen3_moe_eval_bundle_audit plus final candidate selector` |
 
 ## Outputs
 

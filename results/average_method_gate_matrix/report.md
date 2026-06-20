@@ -34,7 +34,7 @@
 | `router_movement` | `qwen3_router_move_gate` | 0.0000 | 48.0000 | `failed_freeze_or_calibrate` | allowed router layers = 0/48; top-k Jaccard mean/min = 0.4539/0.2422; top1 agreement mean/min = 0.4125/0.0690 |
 | `router_coupled_direct_shrink` | `qwen3_router_coupled_retention_frontier` | 0.0103 | 0.0500 | `direct_router_boundary_term_not_default` | gate = direct_router_boundary_term_not_default; default-gate candidates = 146/770; constrained = router_q0.85_s0.00020_cap0.00010 retention_delta -0.000032 coupled_reduction 0.00001165; stress = router_q0.75_s0.01000_cap0.01000 coupled_reduction 0.001135; effect fraction = 0.0103 |
 | `router_calibration` | `qwen3_router_calibration_nll_probe` | 0.2214 | 0.0000 | `awaiting_baseline_eval` | status = router_calibration_improves_linear_merge_but_needs_downstream_gate; linear worst NLL = 2.6355; router-cal worst NLL = 2.4140; worst reduction = 0.2214; code gap to best source = -0.0139 |
-| `final_downstream_acceptance` | `qwen3_final_candidate_selection` | 0.0000 | 11.0000 | `awaiting_source_eval` | status = awaiting_source_eval; eligible candidates = 0/11; reason = Both Qwen3 source endpoints must complete audited vLLM eval before final candidate selection. |
+| `final_downstream_acceptance` | `qwen3_final_candidate_selection` | 0.0000 | 12.0000 | `awaiting_source_eval` | status = awaiting_source_eval; eligible candidates = 0/12; reason = Both Qwen3 source endpoints must complete audited vLLM eval before final candidate selection. |
 
 ## Outputs
 

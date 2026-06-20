@@ -153,6 +153,14 @@ def gate_row(row: dict[str, Any], structural: dict[str, Any], args: argparse.Nam
             "pending_delta_frontier_structural_audit",
             "retention_below_default_gate",
         ]
+    elif method == "qwen3_moe_harc_router_candidate":
+        final_selectable = False
+        category = "ablation_only"
+        reasons = [
+            "pending_harc_solver_delta_and_materialization",
+            "pending_harc_router_delta_audit",
+            "router_movement_not_default_final_gate",
+        ]
     else:
         final_selectable = not reasons
         if final_selectable:

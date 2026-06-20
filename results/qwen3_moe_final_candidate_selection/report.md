@@ -7,7 +7,7 @@
 - Reason: `Both Qwen3 source endpoints must complete audited vLLM eval before final candidate selection.`
 - Sources complete: `False`
 - Candidates complete: `False`
-- Eligible candidates: `0/11`
+- Eligible candidates: `0/12`
 - Uncertainty gate: `True`
 - Paired prediction gate: `True`
 - Paired alpha: `0.05`
@@ -34,6 +34,7 @@
 | `qwen3_moe_mechanistic_unified_candidate` | `candidate` | `False` | `True` | `final_selectable_trust_region` | `n/a` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.238226 | `True` | `False` | 0.988644 | `unified_mechanism` | `False` | `` | `` | `` | `` | n/a | n/a | `` | `False` |
 | `qwen3_moe_subspace_scaled_candidate` | `candidate` | `False` | `True` | `final_selectable_trust_region` | `n/a` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.239529 | `True` | `False` | 0.989299 | `unified_mechanism` | `False` | `` | `` | `` | `` | n/a | n/a | `` | `False` |
 | `qwen3_moe_router_coupled_candidate` | `candidate` | `False` | `False` | `ablation_only` | `pending_router_coupled_materialization_and_delta_audit,pending_delta_frontier_structural_audit,retention_below_default_gate` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | n/a | `n/a` | `n/a` | n/a | `n/a` | `False` | `` | `` | `` | `` | n/a | n/a | `` | `False` |
+| `qwen3_moe_harc_router_candidate` | `candidate` | `False` | `False` | `ablation_only` | `pending_harc_solver_delta_and_materialization,pending_harc_router_delta_audit,router_movement_not_default_final_gate` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | n/a | `n/a` | `n/a` | n/a | `n/a` | `False` | `` | `` | `` | `` | n/a | n/a | `` | `False` |
 
 ## Outputs
 

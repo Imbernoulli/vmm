@@ -8,10 +8,11 @@
     "source_qwen3_30b_coder",
     "source_qwen3_30b_instruct"
   ],
-  "mechanism_queue_method_count": 9,
+  "mechanism_queue_method_count": 10,
   "mechanism_queue_methods": [
     "qwen3_moe_audit_gated_candidate",
     "qwen3_moe_expert_only_trust_region_candidate",
+    "qwen3_moe_harc_router_candidate",
     "qwen3_moe_layer_chunk_candidate",
     "qwen3_moe_router_coupled_candidate",
     "qwen3_moe_searched_no_gt065_max_retention_candidate",

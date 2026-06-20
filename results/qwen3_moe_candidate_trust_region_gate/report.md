@@ -3,8 +3,8 @@
 这个 gate 把结构 probe 转成 final selector 可消费的候选级约束：旧 candidate 仍可作为机制 ablation 跑 vLLM，但只有满足 router freeze、attention freeze、strict routed tail cap 和结构 frontier 的 candidate 才能进入最终默认 average 选择。
 
 - Status: `candidate_trust_region_gate_ready`
-- Candidate final-selectable: `2/11`
-- Ablation-only candidates: `9`
+- Candidate final-selectable: `2/12`
+- Ablation-only candidates: `10`
 - Structural rejects: `0`
 - Strict routed max cap: `0.6505`
 
@@ -21,6 +21,7 @@
 | `qwen3_moe_mechanistic_unified_candidate` | `final_selectable_trust_region` | `True` | `` | `True` | 0.9886 | 0.6491 | 0 | 0 | 0 |
 | `qwen3_moe_subspace_scaled_candidate` | `final_selectable_trust_region` | `True` | `` | `True` | 0.9893 | 0.6234 | 0 | 0 | 0 |
 | `qwen3_moe_router_coupled_candidate` | `ablation_only` | `False` | `pending_router_coupled_materialization_and_delta_audit,pending_delta_frontier_structural_audit,retention_below_default_gate` | `None` | n/a | n/a | n/a | n/a | n/a |
+| `qwen3_moe_harc_router_candidate` | `ablation_only` | `False` | `pending_harc_solver_delta_and_materialization,pending_harc_router_delta_audit,router_movement_not_default_final_gate` | `None` | n/a | n/a | n/a | n/a | n/a |
 
 ## Outputs
 

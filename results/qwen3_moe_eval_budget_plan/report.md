@@ -3,17 +3,17 @@
 这份计划解决的是评测强度问题：现在 Qwen3 MoE gate 的 `64` examples 只适合 smoke，不足以支撑 final selector 的 Wilson confidence gate 和 paired prediction gate。
 
 - Status: `ready_for_budgeted_remote_vllm_eval`
-- Methods to evaluate: `15`
+- Methods to evaluate: `16`
 - Ready-to-host methods now: `12`
 - Current gate max examples: `64`
 - Recommended command max examples: `384`
-- Total current prompt budget: `3840`
-- Total recommended prompt budget: `23040`
-- Additional prompt budget: `19200`
+- Total current prompt budget: `4096`
+- Total recommended prompt budget: `24576`
+- Additional prompt budget: `20480`
 - Final core methods / prompts: `4` / `6144`
-- Mechanism ablation methods / prompts: `9` / `13824`
+- Mechanism ablation methods / prompts: `10` / `15360`
 - Canonical task manifest: `results/qwen3_moe_mechanism_eval_gate/task_manifest.json`
-- Task manifest aligned methods: `15/15`
+- Task manifest aligned methods: `16/16`
 - Router calibration active / ready / plan-pruned caps: `2` / `0` / `2`
 
 ## Why This Budget
@@ -44,7 +44,7 @@ Queue split: the default runner request is `final`, which evaluates the two sour
 | queue | alias | methods | ready | recommended prompts | additional prompts |
 | --- | --- | ---: | ---: | ---: | ---: |
 | `final_selection_core` | `final` | 4 | 4 | 6144 | 5120 |
-| `mechanism_ablation` | `mechanism` | 9 | 8 | 13824 | 11520 |
+| `mechanism_ablation` | `mechanism` | 10 | 8 | 15360 | 12800 |
 | `router_calibration_pending` | `router` | 2 | 0 | 3072 | 2560 |
 
 ## Method Budget
@@ -64,8 +64,9 @@ Queue split: the default runner request is `final`, which evaluates the two sour
 | 10 | `qwen3_moe_mechanistic_unified_candidate` | `final_selection_core` | `candidate` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
 | 11 | `qwen3_moe_subspace_scaled_candidate` | `final_selection_core` | `candidate` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
 | 12 | `qwen3_moe_router_coupled_candidate` | `mechanism_ablation` | `candidate` | `checkpoint_missing_until_materialized` | 64 | 384 | 1280 | `not_run` |
-| 13 | `qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate` | `router_calibration_pending` | `candidate` | `pending_materialization` | 64 | 384 | 1280 | `not_run` |
-| 14 | `qwen3_moe_router_calibrated_searched_no_gt065_margin_profile_candidate` | `router_calibration_pending` | `candidate` | `pending_materialization` | 64 | 384 | 1280 | `not_run` |
+| 13 | `qwen3_moe_harc_router_candidate` | `mechanism_ablation` | `candidate` | `checkpoint_missing_until_harc_solver_delta` | 64 | 384 | 1280 | `not_run` |
+| 14 | `qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate` | `router_calibration_pending` | `candidate` | `pending_materialization` | 64 | 384 | 1280 | `not_run` |
+| 15 | `qwen3_moe_router_calibrated_searched_no_gt065_margin_profile_candidate` | `router_calibration_pending` | `candidate` | `pending_materialization` | 64 | 384 | 1280 | `not_run` |
 
 ## Task Manifest Alignment
 
@@ -84,6 +85,7 @@ Queue split: the default runner request is `final`, which evaluates the two sour
 | `qwen3_moe_mechanistic_unified_candidate` | `candidate` | `ready_to_host` | `True` | `results/qwen3_moe_mechanism_eval_gate/task_manifest.json` |
 | `qwen3_moe_subspace_scaled_candidate` | `candidate` | `ready_to_host` | `True` | `results/qwen3_moe_mechanism_eval_gate/task_manifest.json` |
 | `qwen3_moe_router_coupled_candidate` | `candidate` | `checkpoint_missing_until_materialized` | `True` | `results/qwen3_moe_mechanism_eval_gate/task_manifest.json` |
+| `qwen3_moe_harc_router_candidate` | `candidate` | `checkpoint_missing_until_harc_solver_delta` | `True` | `results/qwen3_moe_mechanism_eval_gate/task_manifest.json` |
 | `qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate` | `candidate` | `pending_materialization` | `True` | `results/qwen3_moe_mechanism_eval_gate/task_manifest.json` |
 | `qwen3_moe_router_calibrated_searched_no_gt065_margin_profile_candidate` | `candidate` | `pending_materialization` | `True` | `results/qwen3_moe_mechanism_eval_gate/task_manifest.json` |
 
@@ -112,6 +114,7 @@ Queue split: the default runner request is `final`, which evaluates the two sour
 | `expert_subspace_conflict_ablation` | `qwen3_moe_mechanistic_unified_candidate` -> `qwen3_moe_subspace_scaled_candidate` | 3072 | Do uncovered high subspace-conflict experts need additional non-base shrink after the unified mechanism cap? |
 | `mechanistic_unified_optimizer` | `qwen3_moe_unified_mechanism_candidate` -> `qwen3_moe_mechanistic_unified_candidate` | 3072 | Does the benefit/curvature/interference objective explain a better scale law than the current risk-weighted cap search? |
 | `router_coupled_boundary_ablation` | `qwen3_moe_mechanistic_unified_candidate` -> `qwen3_moe_router_coupled_candidate` | 3072 | Does the layer-level router-boundary fragility signal justify extra expert shrink after the B/H/I scale law? |
+| `harc_router_calibration_ablation` | `qwen3_moe_unified_mechanism_candidate` -> `qwen3_moe_harc_router_candidate` | 3072 | Does HARC-style second-order router calibration recover downstream score beyond the frozen-router unified mechanism candidate? |
 
 ## How To Run
 

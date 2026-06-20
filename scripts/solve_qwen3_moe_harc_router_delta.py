@@ -326,18 +326,27 @@ def output_paths(output_dir: Path) -> dict[str, str | None]:
     }
 
 
+def display_input_path(value: Any, smoke_label: str) -> str:
+    text = str(value)
+    if "harc_router_solver_" in text:
+        return smoke_label
+    return text
+
+
 def build_requirements(summary: dict[str, Any]) -> pd.DataFrame:
+    cache_path = display_input_path(summary.get("cache_path"), "SMOKE_ROUTER_CACHE")
+    base_path = display_input_path(summary.get("base_path"), "SMOKE_BASE_CHECKPOINT")
     rows = [
         {
             "requirement": "router_cache_exists",
             "passed": bool(summary.get("cache_exists", False)),
-            "evidence": f"cache={summary.get('cache_path')}; exists={summary.get('cache_exists')}",
+            "evidence": f"cache={cache_path}; exists={summary.get('cache_exists')}",
             "next_action": "collect router calibration cache before solving HARC deltas",
         },
         {
             "requirement": "base_checkpoint_exists",
             "passed": bool(summary.get("base_exists", False)),
-            "evidence": f"base={summary.get('base_path')}; exists={summary.get('base_exists')}",
+            "evidence": f"base={base_path}; exists={summary.get('base_exists')}",
             "next_action": "point --base to the same-shape checkpoint whose routers will receive the delta",
         },
         {

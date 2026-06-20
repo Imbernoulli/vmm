@@ -12,3 +12,4 @@ qwen3_moe_unified_mechanism_candidate,candidate,ablation_only,False,structurally
 qwen3_moe_mechanistic_unified_candidate,candidate,final_selectable_trust_region,True,,True,True,False,0.988643592739873,0.6490630862881142,0.0,0.0,0.0
 qwen3_moe_subspace_scaled_candidate,candidate,final_selectable_trust_region,True,,True,True,False,0.9892989752314326,0.6234276715724305,0.0,0.0,0.0
 qwen3_moe_router_coupled_candidate,candidate,ablation_only,False,"pending_router_coupled_materialization_and_delta_audit,pending_delta_frontier_structural_audit,retention_below_default_gate",False,,,,,,,
+qwen3_moe_harc_router_candidate,candidate,ablation_only,False,"pending_harc_solver_delta_and_materialization,pending_harc_router_delta_audit,router_movement_not_default_final_gate",False,,,,,,,

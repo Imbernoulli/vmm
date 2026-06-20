@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-20T16:22:02.526574+00:00`
+Generated at: `2026-06-20T16:38:20.962364+00:00`
 
 ## Coverage
 
@@ -235,19 +235,19 @@ Complete: `106`; partial: `1`; missing: `0`.
 | Qwen3 MoE delta frontier | unified->mechanistic rel-norm reduction / >0.65 delta / mechanistic >0.6505 | 0.002 / 0 / 0 |
 | Qwen3 MoE delta frontier | mechanistic->subspace rel-norm delta / >0.65 reduction / subspace >0.6505 | 0.001 / 0 / 0 |
 | Qwen3 MoE mechanism eval gate | status / selection / selected | awaiting_remote_vllm_eval / awaiting_source_eval / None |
-| Qwen3 MoE mechanism eval gate | ready / completed / awaiting tests | 12 / 0 / 12 |
+| Qwen3 MoE mechanism eval gate | ready / completed / awaiting tests | 12 / 0 / 13 |
 | Qwen3 MoE mechanism eval gate | local GPU / best delta-safety candidate | nvidia_smi_failed / mechanistic_unified |
 | Qwen3 MoE mechanism eval gate | unified serve / audit / optimizer test | ready_to_host / True / awaiting_eval |
 | Qwen3 MoE eval budget plan | status / current -> recommended examples | ready_for_budgeted_remote_vllm_eval / 64 -> 384 |
-| Qwen3 MoE eval budget plan | planned / ready / pending methods | 15 / 12 / 2 |
-| Qwen3 MoE eval budget plan | current / recommended / extra prompt budget | 3840 / 23040 / 19200 |
+| Qwen3 MoE eval budget plan | planned / ready / pending methods | 16 / 12 / 2 |
+| Qwen3 MoE eval budget plan | current / recommended / extra prompt budget | 4096 / 24576 / 20480 |
 | Qwen3 MoE eval budget plan | ready current / recommended / extra prompt budget | 3072 / 18432 / 15360 |
 | Qwen3 MoE eval budget plan | default queue / final methods / final prompts | final / 4 / 6144 |
-| Qwen3 MoE eval budget plan | mechanism ablation methods / prompts | 9 / 13824 |
+| Qwen3 MoE eval budget plan | mechanism ablation methods / prompts | 10 / 15360 |
 | Qwen3 MoE eval budget plan | Wilson n / paired n / capped tasks | 381 / 248 / humaneval_compile |
-| Qwen3 MoE eval budget plan | task manifest aligned / canonical manifest | 15/15 / results/qwen3_moe_mechanism_eval_gate/task_manifest.json |
+| Qwen3 MoE eval budget plan | task manifest aligned / canonical manifest | 16/16 / results/qwen3_moe_mechanism_eval_gate/task_manifest.json |
 | Qwen3 MoE eval budget queue smoke | status / assertions | passed / 11/11 |
-| Qwen3 MoE eval budget queue smoke | final / mechanism / router methods | 4 / 9 / 2 |
+| Qwen3 MoE eval budget queue smoke | final / mechanism / router methods | 4 / 10 / 2 |
 | Qwen3 MoE adaptive eval schedule | status / top action / top method | adaptive_schedule_ready / run_or_extend_source_control_probe / source_qwen3_30b_instruct |
 | Qwen3 MoE adaptive eval schedule | source controls / round1 probes / probe->full examples | False / 6 / 64 -> 384 |
 | Qwen3 MoE adaptive eval schedule | runnable methods / prompt budget / round1 probe prompts | 8 / 1664 / 1152 |
@@ -275,10 +275,10 @@ Complete: `106`; partial: `1`; missing: `0`.
 | Qwen3 MoE unified result selector | status / selected / reason | awaiting_source_eval / None / Both Qwen3 source endpoints must complete matched vLLM downstream eval before accepting an average. |
 | Qwen3 MoE unified result selector | source complete / unified complete / eligible | False / False / 0/3 |
 | Qwen3 MoE unified result selector smoke | status / passed cases | passed / 4/4 |
-| Qwen3 MoE candidate trust-region gate | status / final-selectable / ablation-only | candidate_trust_region_gate_ready / 2/11 / 9 |
+| Qwen3 MoE candidate trust-region gate | status / final-selectable / ablation-only | candidate_trust_region_gate_ready / 2/12 / 10 |
 | Qwen3 MoE candidate trust-region gate | strict cap / selected methods | 0.650 / ['qwen3_moe_mechanistic_unified_candidate', 'qwen3_moe_subspace_scaled_candidate'] |
-| Qwen3 MoE final candidate selector | status / selected / eligible | awaiting_source_eval / None / 0/11 |
-| Qwen3 MoE final candidate selector | usable / complete / best source | 0/11 / False / None |
+| Qwen3 MoE final candidate selector | status / selected / eligible | awaiting_source_eval / None / 0/12 |
+| Qwen3 MoE final candidate selector | usable / complete / best source | 0/12 / False / None |
 | Qwen3 MoE final candidate selector | uncertainty / paired gates / paired alpha | True / True / 0.050 |
 | Qwen3 MoE final candidate selector | structural frontier / dominated / safety / tie tolerance | None / None / n/a / 0.000 |
 | Qwen3 MoE final candidate selector | rank mode / confidence band / band size / point leader | None / True / 0 / None |
@@ -290,7 +290,7 @@ Complete: `106`; partial: `1`; missing: `0`.
 | unified average optimizer ledger smoke | status / passed cases / assertions | passed / 5/5 / 29/29 |
 | unified average optimizer | dense linear / unified / endpoint worst NLL | 8.948 / 5.183 / 5.151 |
 | unified average optimizer | dense lambda midpoint / best-family worst NLL | 6.040 / 3.073 |
-| unified average optimizer | real MoE gauge / router / Qwen3 final | 5.491 -> 0.000 / freeze_router / awaiting_source_eval (0/11) |
+| unified average optimizer | real MoE gauge / router / Qwen3 final | 5.491 -> 0.000 / freeze_router / awaiting_source_eval (0/12) |
 | unified average optimizer | Qwen3 unified candidate / subspace-delta / rule status | subspace_cap_s1.00 / 0.215 / fresh |
 | unified average optimizer | Qwen3 unified audit norm / >0.65 / manifest max diff | 0.240 / 0 / 0.000 |
 | unified average optimizer | final selector confidence band / rank mode / band size | True / None / 0 |
@@ -301,8 +301,8 @@ Complete: `106`; partial: `1`; missing: `0`.
 | unified average optimizer | layer/chunk->unified norm / >0.65 reduction | 0.003 / 89 |
 | unified average optimizer | router calibration status / eligible | awaiting_baseline_eval / 0/4 |
 | unified average optimizer | router NLL probe worst reduction / code gap | 0.221 / -0.014 |
-| Qwen3 MoE eval bundle audit | status / usable / invalid complete | awaiting_eval / 0/13 / 0 |
-| Qwen3 MoE eval bundle audit | source usable / candidate usable / unified usable | 0/2 / 0/11 / False |
+| Qwen3 MoE eval bundle audit | status / usable / invalid complete | awaiting_eval / 0/14 / 0 |
+| Qwen3 MoE eval bundle audit | source usable / candidate usable / unified usable | 0/2 / 0/12 / False |
 | Qwen3 MoE eval bundle audit | pairable sources / failed methods | 0 / 0 |
 | Qwen3 MoE eval bundle audit smoke | status / passed cases | passed / 6/6 |
 | Qwen3 MoE mechanism attribution | status / scored / regressions | awaiting_eval / 0/10 / 0 |
@@ -330,7 +330,7 @@ Complete: `106`; partial: `1`; missing: `0`.
 | Qwen3 MoE router-coupled retention frontier | gate / constrained / stress | direct_router_boundary_term_not_default / router_q0.85_s0.00020_cap0.00010 / router_q0.75_s0.01000_cap0.01000 |
 | Qwen3 MoE router-coupled retention frontier | pass default / effect fraction / action | 146/770 / 0.0103 / keep_router_fragility_inside_BHI_and_keep_direct_extra_shrink_as_ablation |
 | Qwen3 MoE mechanistic unified smoke | status / passed cases | passed / 4/4 |
-| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | passed / 44/44 / 0/13 |
+| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | passed / 44/44 / 0/14 |
 | Qwen3 MoE post-eval refresh | selection / final selection / attribution scored / plan steps | awaiting_source_eval / awaiting_source_eval / 0/10 / 44/44 |
 | Qwen3 MoE post-eval refresh | feedback status / scored tasks / changed groups | awaiting_eval / 0/4 / 0 |
 | Qwen3 MoE post-eval refresh | mechanistic status / retention / hard-cap violations | mechanistic_unified_candidate_ready / 0.965 / 0 |

@@ -103,7 +103,7 @@
       "blocking_status": "blocked_on_downstream_eval",
       "mechanism": "locked_manifest_vllm_eval",
       "next_command": "results/qwen3_moe_eval_budget_plan/run_eval_budget.sh final",
-      "observed_state": "final_status=awaiting_source_eval; eligible=0/11; downstream_verdict=awaiting_downstream_eval; unified_verdict=awaiting_downstream_eval",
+      "observed_state": "final_status=awaiting_source_eval; eligible=0/12; downstream_verdict=awaiting_downstream_eval; unified_verdict=awaiting_downstream_eval",
       "passed": false,
       "required_state": "sources and final candidates pass eval-bundle audit, source dominance, task regression, confidence, and paired-prediction gates",
       "requirement": "downstream_source_dominance_gate"

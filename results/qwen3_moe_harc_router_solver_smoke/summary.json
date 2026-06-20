@@ -1,9 +1,9 @@
 {
   "all_cg_converged": true,
   "base_exists": true,
-  "base_path": "/tmp/harc_router_solver_cb9ksqbi/base",
+  "base_path": "/tmp/harc_router_solver_4k1ovnsn/base",
   "cache_exists": true,
-  "cache_path": "/tmp/harc_router_solver_cb9ksqbi/router_cache.torch",
+  "cache_path": "/tmp/harc_router_solver_4k1ovnsn/router_cache.torch",
   "capacity_factor": 1.25,
   "delta_tensor_count": 2,
   "kl_improved": true,

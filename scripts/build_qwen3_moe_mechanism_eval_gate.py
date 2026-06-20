@@ -31,6 +31,7 @@ CANDIDATE_METHODS = [
     "qwen3_moe_mechanistic_unified_candidate",
     "qwen3_moe_subspace_scaled_candidate",
     "qwen3_moe_router_coupled_candidate",
+    "qwen3_moe_harc_router_candidate",
 ]
 
 METHOD_ORDER = SOURCE_METHODS + CANDIDATE_METHODS
@@ -126,6 +127,13 @@ METHOD_META: dict[str, dict[str, str]] = {
         "mechanism": "mechanistic unified candidate plus extra shrink for high router-boundary-fragility expert groups",
         "question": "Does extra router-boundary conservative expert shrink improve downstream robustness beyond mechanistic_unified?",
         "required_controls": "both sources; mechanistic_unified; router-expert coupling probe; expert subspace conflict probe",
+    },
+    "qwen3_moe_harc_router_candidate": {
+        "role": "candidate",
+        "short_name": "harc_router",
+        "mechanism": "unified mechanism candidate plus matrix-free HARC router calibration delta",
+        "question": "Does second-order router calibration improve dispatch beyond the frozen-router unified mechanism candidate?",
+        "required_controls": "both sources; unified_mechanism; router-only baseline; HARC stats/solver/materialization checks",
     },
 }
 
@@ -237,6 +245,15 @@ MECHANISM_TESTS = [
         "why_it_matters": "The coupling probe shows router fragility already correlates with expert shrink; this ablation tests whether adding a direct router-boundary term gives real downstream robustness or only sacrifices retention.",
         "pass_signal": "Router-coupled matches or beats mechanistic_unified on avg/worst/task scores despite lower nonbase retention; keep a direct router-boundary term.",
         "fail_signal": "Mechanistic_unified beats router-coupled; B/H/I already captured the useful router-boundary risk and the extra shrink is over-conservative.",
+    },
+    {
+        "test": "harc_router_calibration_ablation",
+        "from_method": "qwen3_moe_unified_mechanism_candidate",
+        "to_method": "qwen3_moe_harc_router_candidate",
+        "mechanism_question": "Does HARC-style second-order router calibration recover downstream score beyond the frozen-router unified mechanism candidate?",
+        "why_it_matters": "The current safe default freezes routers because direct router averaging breaks routing; HARC should only become useful if a curvature-calibrated router delta improves downstream behavior under the same task manifest.",
+        "pass_signal": "HARC router candidate matches or beats unified_mechanism on avg/worst/task scores without source dominance or task regression; promote HARC router calibration from ablation to a gated candidate family.",
+        "fail_signal": "Unified_mechanism or a source endpoint beats HARC router candidate; keep router freeze as the default and treat router calibration as overfit or under-supported.",
     },
 ]
 
@@ -435,6 +452,150 @@ def load_ordered_plan(plan_path: Path) -> pd.DataFrame:
         selected = plan[plan["method"] == method]
         if selected.empty:
             raise ValueError(f"{plan_path} is missing required method: {method}")
+        rows.append(selected.iloc[0].to_dict())
+    return pd.DataFrame(rows)
+
+
+def command_join(tokens: list[str]) -> str:
+    return " ".join(shlex.quote(str(token)) for token in tokens)
+
+
+def bool_from_summary(value: Any) -> bool:
+    value = clean_value(value)
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return bool(value)
+    return str(value).strip().lower() in {"1", "true", "yes", "y"}
+
+
+def add_harc_router_candidate_plan_row(
+    plan: pd.DataFrame,
+    *,
+    summary_path: Path,
+    port: int,
+) -> pd.DataFrame:
+    method = "qwen3_moe_harc_router_candidate"
+    if method in set(str(item) for item in plan.get("method", pd.Series(dtype=object)).tolist()):
+        return plan
+
+    summary = read_json_if_exists(summary_path)
+    reference = plan[plan["method"] == "qwen3_moe_unified_mechanism_candidate"]
+    if reference.empty:
+        reference = plan[plan["method"].astype(str).str.startswith("source_")]
+    if reference.empty:
+        raise ValueError("Cannot build HARC router candidate plan row without a reference Qwen3 row")
+    ref = reference.iloc[0].to_dict()
+    checkpoint_path = str(
+        summary.get("candidate_checkpoint_dir")
+        or "results/checkpoints/qwen3_moe_harc_router_candidate"
+    )
+    checkpoint_exists = bool_from_summary(summary.get("candidate_checkpoint_exists")) and repo_path(checkpoint_path).exists()
+    if checkpoint_exists:
+        serve_status = "ready_to_host"
+    elif summary.get("status") == "harc_router_candidate_waiting_for_solver_delta":
+        serve_status = "checkpoint_missing_until_harc_solver_delta"
+    else:
+        serve_status = "checkpoint_missing_until_materialized"
+
+    served_model_id = "candidate_qwen3_moe_harc_router_candidate"
+    base_url = f"http://127.0.0.1:{port}/v1"
+    eval_output_dir = "results/vllm_checkpoint_eval/qwen3_moe_harc_router_candidate"
+    tasks = str(ref.get("tasks") or "gsm8k,mmlu,safety,humaneval_compile")
+    example_source = str(ref.get("example_source") or "datasets")
+    max_examples = int(ref.get("max_examples") or 64)
+    dtype = str(ref.get("dtype") or "bfloat16")
+    tensor_parallel = int(ref.get("tensor_parallel_size") or 4)
+    gpu = str(ref.get("gpu") or "0,1,2,3")
+    serve_command = command_join(
+        [
+            f"CUDA_VISIBLE_DEVICES={gpu}",
+            "vllm",
+            "serve",
+            checkpoint_path,
+            "--served-model-name",
+            served_model_id,
+            "--host",
+            "127.0.0.1",
+            "--port",
+            port,
+            "--dtype",
+            dtype,
+            "--tensor-parallel-size",
+            tensor_parallel,
+        ]
+    )
+    eval_command = command_join(
+        [
+            "python",
+            "scripts/run_vllm_downstream_eval.py",
+            "--base-url",
+            base_url,
+            "--models",
+            served_model_id,
+            "--tasks",
+            tasks,
+            "--example-source",
+            example_source,
+            "--max-examples",
+            max_examples,
+            "--output-dir",
+            eval_output_dir,
+            "--task-manifest",
+            "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+            "--create-task-manifest-if-missing",
+        ]
+    )
+    row = {
+        "eval_order": int(pd.to_numeric(plan.get("eval_order"), errors="coerce").max()) + 1,
+        "candidate_source": rel(summary_path),
+        "method": method,
+        "checkpoint_path": checkpoint_path,
+        "checkpoint_exists": checkpoint_exists,
+        "serve_status": serve_status,
+        "served_model_id": served_model_id,
+        "host": "127.0.0.1",
+        "port": port,
+        "base_url": base_url,
+        "dtype": dtype,
+        "tensor_parallel_size": tensor_parallel,
+        "gpu": gpu,
+        "tasks": tasks,
+        "example_source": example_source,
+        "max_examples": max_examples,
+        "eval_output_dir": eval_output_dir,
+        "eval_status": "not_run",
+        "eval_completed": False,
+        "eval_avg_primary_score": None,
+        "eval_worst_primary_score": None,
+        "serve_command": serve_command,
+        "eval_command": eval_command,
+        "notes": (
+            "HARC router calibration ablation: start from the unified mechanism candidate, then apply "
+            "a matrix-free second-order router delta. Current materialization status is "
+            f"{summary.get('status', 'missing_summary')}; this row becomes hostable only after the "
+            "router cache, solver delta, and materialization checks succeed."
+        ),
+    }
+    for column in plan.columns:
+        row.setdefault(column, None)
+    augmented = plan.copy()
+    augmented.loc[len(augmented), list(plan.columns)] = [row.get(column) for column in plan.columns]
+    return augmented
+
+
+def load_augmented_ordered_plan(args: argparse.Namespace) -> pd.DataFrame:
+    plan = pd.read_csv(repo_path(args.vllm_plan))
+    plan = add_harc_router_candidate_plan_row(
+        plan,
+        summary_path=repo_path(args.harc_router_candidate_summary),
+        port=args.harc_router_candidate_port,
+    )
+    rows = []
+    for method in METHOD_ORDER:
+        selected = plan[plan["method"] == method]
+        if selected.empty:
+            raise ValueError(f"{repo_path(args.vllm_plan)} is missing required method after augmentation: {method}")
         rows.append(selected.iloc[0].to_dict())
     return pd.DataFrame(rows)
 
@@ -1012,6 +1173,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--vllm-plan", type=Path, default=Path("results/vllm_checkpoint_eval_plan/checkpoint_eval_plan.csv"))
     parser.add_argument("--delta-frontier-dir", type=Path, default=Path("results/qwen3_moe_delta_frontier"))
     parser.add_argument("--readiness-csv", type=Path, default=Path("results/checkpoint_materialization_readiness/candidate_readiness.csv"))
+    parser.add_argument(
+        "--harc-router-candidate-summary",
+        type=Path,
+        default=Path("results/qwen3_moe_harc_router_candidate/summary.json"),
+    )
+    parser.add_argument("--harc-router-candidate-port", type=int, default=8113)
     parser.add_argument("--output-dir", type=Path, default=Path("results/qwen3_moe_mechanism_eval_gate"))
     return parser.parse_args()
 
@@ -1021,7 +1188,7 @@ def main() -> None:
     output_dir = repo_path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    plan = load_ordered_plan(repo_path(args.vllm_plan))
+    plan = load_augmented_ordered_plan(args)
     delta_candidates, pairwise, delta_summary = load_delta_frontier(repo_path(args.delta_frontier_dir))
     readiness = read_csv_if_exists(args.readiness_csv)
     gate = build_eval_gate_plan(plan, delta_candidates, readiness)
