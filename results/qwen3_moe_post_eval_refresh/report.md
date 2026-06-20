@@ -13,17 +13,17 @@
 
 | step | kind | status | returncode | seconds |
 | --- | --- | --- | ---: | ---: |
-| `audit_eval_bundles` | `gate` | `passed` | 0 | 0.42 |
-| `select_unified_result` | `selector` | `passed` | 0 | 0.40 |
-| `select_final_candidate` | `selector` | `passed` | 0 | 0.40 |
-| `attribute_mechanism_effects` | `attribution` | `passed` | 0 | 0.46 |
-| `build_feedback_optimizer` | `optimizer` | `passed` | 0 | 1.26 |
-| `audit_eval_bundles_smoke` | `smoke` | `passed` | 0 | 0.73 |
-| `select_unified_result_smoke` | `smoke` | `passed` | 0 | 0.60 |
-| `select_final_candidate_smoke` | `smoke` | `passed` | 0 | 0.50 |
-| `attribute_mechanism_effects_smoke` | `smoke` | `passed` | 0 | 0.41 |
-| `build_feedback_optimizer_smoke` | `smoke` | `passed` | 0 | 0.43 |
-| `collect_results` | `summary` | `passed` | 0 | 1.64 |
+| `audit_eval_bundles` | `gate` | `passed` | 0 | 0.41 |
+| `select_unified_result` | `selector` | `passed` | 0 | 0.42 |
+| `select_final_candidate` | `selector` | `passed` | 0 | 0.39 |
+| `attribute_mechanism_effects` | `attribution` | `passed` | 0 | 0.39 |
+| `build_feedback_optimizer` | `optimizer` | `passed` | 0 | 1.02 |
+| `audit_eval_bundles_smoke` | `smoke` | `passed` | 0 | 0.67 |
+| `select_unified_result_smoke` | `smoke` | `passed` | 0 | 0.40 |
+| `select_final_candidate_smoke` | `smoke` | `passed` | 0 | 0.42 |
+| `attribute_mechanism_effects_smoke` | `smoke` | `passed` | 0 | 0.45 |
+| `build_feedback_optimizer_smoke` | `smoke` | `passed` | 0 | 0.46 |
+| `collect_results` | `summary` | `passed` | 0 | 1.55 |
 
 ## Commands
 

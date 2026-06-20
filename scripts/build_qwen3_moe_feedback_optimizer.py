@@ -5,6 +5,7 @@ import argparse
 import json
 import math
 import shlex
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -660,6 +661,211 @@ def run_real(args: argparse.Namespace) -> None:
     print(f"Status: {summary['status']}; regressions={summary['regression_task_count']}; changed_groups={summary['changed_group_count']}")
 
 
+def write_smoke_eval_output(root: Path, *, scores: dict[str, float], predictions: list[dict[str, Any]]) -> None:
+    root.mkdir(parents=True, exist_ok=True)
+    model_summary = {
+        "avg_primary_score": sum(scores.values()) / max(1, len(scores)),
+        "worst_primary_score": min(scores.values()) if scores else None,
+        **{TASKS[task]["score_column"]: score for task, score in scores.items()},
+    }
+    metrics = []
+    for task, score in scores.items():
+        row: dict[str, Any] = {
+            "task": task,
+            "examples": 2,
+            "strict_exact": None,
+            "accuracy": None,
+            "policy_accuracy": None,
+            "compile_rate": None,
+        }
+        if task == "gsm8k":
+            row["strict_exact"] = score
+        elif task == "mmlu":
+            row["accuracy"] = score
+        elif task == "safety":
+            row["policy_accuracy"] = score
+        elif task == "humaneval_compile":
+            row["compile_rate"] = score
+        metrics.append(row)
+    pd.DataFrame([model_summary]).to_csv(root / "model_summary.csv", index=False)
+    pd.DataFrame(metrics).to_csv(root / "metrics.csv", index=False)
+    pd.DataFrame(predictions).to_csv(root / "predictions.csv", index=False)
+    (root / "summary.json").write_text(json.dumps({"status": "complete"}, indent=2) + "\n", encoding="utf-8")
+
+
+def integration_smoke_rows(args: argparse.Namespace) -> list[dict[str, Any]]:
+    with tempfile.TemporaryDirectory(prefix="qwen3_moe_feedback_smoke_") as temp:
+        root = Path(temp)
+        gate_dir = root / "gate"
+        audit_dir = root / "audit"
+        eval_root = root / "eval"
+        gate_dir.mkdir()
+        audit_dir.mkdir()
+        methods = {
+            "source_qwen3_30b_instruct": {
+                "scores": {
+                    "gsm8k": 0.80,
+                    "mmlu": 0.80,
+                    "safety": 0.90,
+                    "humaneval_compile": 0.20,
+                },
+                "predictions": [
+                    {"task": "safety", "task_id": "s0", "expected_refusal": True, "refused": True},
+                    {"task": "safety", "task_id": "s1", "expected_refusal": True, "refused": True},
+                ],
+            },
+            "source_qwen3_30b_coder": {
+                "scores": {
+                    "gsm8k": 0.30,
+                    "mmlu": 0.40,
+                    "safety": 0.20,
+                    "humaneval_compile": 0.80,
+                },
+                "predictions": [
+                    {"task": "humaneval_compile", "task_id": "h0", "compile_ok": True},
+                    {"task": "humaneval_compile", "task_id": "h1", "compile_ok": True},
+                ],
+            },
+            DEFAULT_CANDIDATE: {
+                "scores": {
+                    "gsm8k": 0.82,
+                    "mmlu": 0.79,
+                    "safety": 0.65,
+                    "humaneval_compile": 0.65,
+                },
+                "predictions": [
+                    {"task": "safety", "task_id": "s0", "expected_refusal": True, "refused": False},
+                    {"task": "safety", "task_id": "s1", "expected_refusal": True, "refused": True},
+                    {"task": "humaneval_compile", "task_id": "h0", "compile_ok": False},
+                    {"task": "humaneval_compile", "task_id": "h1", "compile_ok": True},
+                ],
+            },
+        }
+        gate_rows = []
+        audit_rows = []
+        for method, payload in methods.items():
+            output_dir = eval_root / method
+            write_smoke_eval_output(output_dir, scores=payload["scores"], predictions=payload["predictions"])
+            gate_rows.append(
+                {
+                    "method": method,
+                    "role": "source" if method in SOURCE_METHODS else "candidate",
+                    "eval_output_dir": str(output_dir),
+                }
+            )
+            audit_rows.append({"method": method, "usable_for_selection": True})
+        pd.DataFrame(gate_rows).to_csv(gate_dir / "eval_gate_plan.csv", index=False)
+        pd.DataFrame(audit_rows).to_csv(audit_dir / "audit_rows.csv", index=False)
+
+        loaded = load_method_rows(gate_dir, audit_dir)
+        task_feedback = build_task_feedback(
+            loaded,
+            candidate_method=DEFAULT_CANDIDATE,
+            regression_margin=args.regression_margin,
+            improvement_margin=args.improvement_margin,
+            pressure_scale=args.pressure_scale,
+        )
+        groups = pd.DataFrame(
+            [
+                {
+                    "layer_id": 0,
+                    "expert_id": 0,
+                    "dominant_source": "coder",
+                    "dominant_category": "code",
+                    "original_weight_instruct": 0.10,
+                    "original_weight_coder": 0.80,
+                    "selected_weight_instruct": 0.10,
+                    "selected_weight_coder": 0.40,
+                    "selected_scale": 0.50,
+                    "audit_max_relative_delta_norm": 0.80,
+                    "selected_expected_max_relative_delta_norm": 0.40,
+                    "mechanism_risk_score": 0.20,
+                    "total_topk_fraction": 0.40,
+                    "tensor_pattern": ".*layers\\.0\\..*experts\\.0\\..*",
+                },
+                {
+                    "layer_id": 0,
+                    "expert_id": 1,
+                    "dominant_source": "instruct",
+                    "dominant_category": "safety",
+                    "original_weight_instruct": 0.75,
+                    "original_weight_coder": 0.15,
+                    "selected_weight_instruct": 0.75,
+                    "selected_weight_coder": 0.15,
+                    "selected_scale": 1.00,
+                    "audit_max_relative_delta_norm": 0.30,
+                    "selected_expected_max_relative_delta_norm": 0.30,
+                    "mechanism_risk_score": 0.80,
+                    "total_topk_fraction": 0.35,
+                    "tensor_pattern": ".*layers\\.0\\..*experts\\.1\\..*",
+                },
+            ]
+        )
+        adjusted, _ = apply_feedback_to_groups(
+            groups,
+            task_feedback,
+            hard_cap=args.hard_cap,
+            max_restore_step=args.max_restore_step,
+            max_shrink_step=args.max_shrink_step,
+        )
+        metrics = feedback_metrics(adjusted, hard_cap=args.hard_cap)
+        regressions = task_feedback[task_feedback["feedback_status"] == "source_frontier_regression"]
+        materialization_gate = (
+            "materialize_feedback_candidate"
+            if not regressions.empty and metrics["changed_group_count"] > 0
+            else "do_not_materialize_feedback_candidate_yet"
+        )
+        code_scale = float(adjusted.loc[adjusted["expert_id"] == 0, "feedback_selected_scale"].iloc[0])
+        safety_scale = float(adjusted.loc[adjusted["expert_id"] == 1, "feedback_selected_scale"].iloc[0])
+        human = task_feedback[task_feedback["task"] == "humaneval_compile"].iloc[0]
+        safety = task_feedback[task_feedback["task"] == "safety"].iloc[0]
+        return [
+            {
+                "case": "integration_eval_bundle",
+                "assertion": "humaneval_regression_detected",
+                "expected": "source_frontier_regression",
+                "actual": str(human["feedback_status"]),
+                "passed": str(human["feedback_status"]) == "source_frontier_regression",
+            },
+            {
+                "case": "integration_eval_bundle",
+                "assertion": "safety_regression_detected",
+                "expected": "source_frontier_regression",
+                "actual": str(safety["feedback_status"]),
+                "passed": str(safety["feedback_status"]) == "source_frontier_regression",
+            },
+            {
+                "case": "integration_eval_bundle",
+                "assertion": "paired_predictions_loaded",
+                "expected": "negative humaneval paired delta",
+                "actual": fmt(human["paired_net_delta"]),
+                "passed": maybe_float(human["paired_net_delta"]) is not None
+                and float(human["paired_net_delta"]) < 0.0,
+            },
+            {
+                "case": "integration_eval_bundle",
+                "assertion": "code_scale_restored",
+                "expected": ">0.50",
+                "actual": f"{code_scale:.6f}",
+                "passed": code_scale > 0.50,
+            },
+            {
+                "case": "integration_eval_bundle",
+                "assertion": "safety_scale_shrunk",
+                "expected": "<1.00",
+                "actual": f"{safety_scale:.6f}",
+                "passed": safety_scale < 1.00,
+            },
+            {
+                "case": "integration_eval_bundle",
+                "assertion": "materialization_gate_opens",
+                "expected": "materialize_feedback_candidate",
+                "actual": materialization_gate,
+                "passed": materialization_gate == "materialize_feedback_candidate",
+            },
+        ]
+
+
 def run_smoke(args: argparse.Namespace) -> None:
     output_dir = repo_path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -793,6 +999,7 @@ def run_smoke(args: argparse.Namespace) -> None:
             },
         ]
     )
+    matrix = pd.concat([matrix, pd.DataFrame(integration_smoke_rows(args))], ignore_index=True)
     matrix_path = output_dir / "feedback_optimizer_smoke_matrix.csv"
     summary_path = output_dir / "summary.json"
     report_path = output_dir / "report.md"

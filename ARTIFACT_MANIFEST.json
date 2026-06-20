@@ -2383,22 +2383,22 @@
       "sha256": "ee64558aefb3719cf2b2cccf0df22817224dca148606d71607312aaeb0d2d44f"
     },
     {
-      "bytes": 279,
+      "bytes": 843,
       "kind": "data",
       "path": "results/qwen3_moe_feedback_optimizer_smoke/feedback_optimizer_smoke_matrix.csv",
-      "sha256": "a26986417fdf1f7b13d9026b67186dc8ce5f1768b2ea0f1b2bb93d430105486e"
+      "sha256": "576ceaf6ee5c5447bb4555e08259fefdcac53fbe6735c01bfc5ebbb2af36430d"
     },
     {
-      "bytes": 491,
+      "bytes": 1189,
       "kind": "document",
       "path": "results/qwen3_moe_feedback_optimizer_smoke/report.md",
-      "sha256": "e62ffd53d149d79c1e625bb0c721bdfd765ef92bb753bb306b431decb1300f7a"
+      "sha256": "5322b39ab5652d7b027218879958aee97dd653072ffa6dd663f6616d18190d7c"
     },
     {
-      "bytes": 378,
+      "bytes": 380,
       "kind": "data",
       "path": "results/qwen3_moe_feedback_optimizer_smoke/summary.json",
-      "sha256": "a029244b65cee5feeea68eaf7794e6b39ab1a19e226845fa6174f18a8653c1e9"
+      "sha256": "f0d14857db522d8dc111a2ca9832c441bd3ebfd7dd8904fc1431ea4bdf8e1ccf"
     },
     {
       "bytes": 948,
@@ -2686,19 +2686,19 @@
       "bytes": 2990,
       "kind": "document",
       "path": "results/qwen3_moe_post_eval_refresh/report.md",
-      "sha256": "b286c6a649a066246d1bc89c57c8e2f26bc3e74c3463f8058569b6e195204a29"
+      "sha256": "b941528acdaf7990571c1fb4380e44ed2dff4822b44b0fbeb226f2c486f4ae08"
     },
     {
-      "bytes": 4132,
+      "bytes": 4131,
       "kind": "data",
       "path": "results/qwen3_moe_post_eval_refresh/steps.csv",
-      "sha256": "cd87a59ae6b5f472bcd159afd239a4964f9a3120cb7bd98c4e3911aa54f2dead"
+      "sha256": "40331ddfb745647d043cc9004ee02369779ce2fa6ac58b5419c66a9461e58028"
     },
     {
-      "bytes": 7340,
+      "bytes": 7339,
       "kind": "data",
       "path": "results/qwen3_moe_post_eval_refresh/summary.json",
-      "sha256": "e6c9378740471bdc7e6ff1a20714e4d1ad2191f43c65f2a400b77a686579a7dd"
+      "sha256": "5162987e3eb176d720993411d10795e24594fb7c46986031dd4969c9ccb1700b"
     },
     {
       "bytes": 2984,
@@ -5215,16 +5215,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 1907436,
+      "bytes": 1908863,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "25005f23e2dbce4bf8613e9e48e17000e1ee32c44f0e7e189894f96a8d0413b2"
+      "sha256": "e62e0e73d36153a09eefb7f55d04c904bc59cacd0c30c40a1a8f973d7008e588"
     },
     {
-      "bytes": 60461,
+      "bytes": 60500,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "14af1fa8fa71c2583b1b9b3b1d822a6ab8b8e58612c446b1c499ed0cbe4a9b3a"
+      "sha256": "b7a4aa673f1dea01d9cbc61d9ad48d04fb2cea739b690f306f20f66980ed8a73"
     },
     {
       "bytes": 288,
@@ -6451,10 +6451,10 @@
       "sha256": "61c5fe6f885c6475627f04cddb6a4f61de9f83cc31d347c741efd71642e9d911"
     },
     {
-      "bytes": 35620,
+      "bytes": 44796,
       "kind": "code",
       "path": "scripts/build_qwen3_moe_feedback_optimizer.py",
-      "sha256": "72623574792a9636a78ab63a4f56296055733ca73d7a730739a8aff598b74a81"
+      "sha256": "b89fb52fd8babb75b3cac3ad48a1446d6f19e45299f8170b8ee028d0075f9886"
     },
     {
       "bytes": 25478,
@@ -6553,10 +6553,10 @@
       "sha256": "cd588bc1804013f4043bd95c245b066dbae86bfd3e3f9c18317ef33eb506f123"
     },
     {
-      "bytes": 424272,
+      "bytes": 424309,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "39cd7fc1bc289a2ffda4b9a161c488c16148d92e9b40ba5f3328372f4aaab805"
+      "sha256": "712263252fc4239cd4549dfd72572140de0246188fce0d3838f466e21b10341f"
     },
     {
       "bytes": 16101,
@@ -6865,7 +6865,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-20T08:42:23.875822+00:00",
+  "generated_at": "2026-06-20T08:46:30.141396+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"
