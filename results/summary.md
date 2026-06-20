@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-20T04:50:36.966594+00:00`
+Generated at: `2026-06-20T04:59:39.672563+00:00`
 
 ## Coverage
 
@@ -193,8 +193,11 @@ Complete: `84`; partial: `1`; missing: `0`.
 | Qwen3 MoE mechanism eval gate | local GPU / best delta-safety candidate | nvidia_smi_failed / unified_mechanism |
 | Qwen3 MoE mechanism eval gate | unified serve / audit / optimizer test | ready_to_host / True / awaiting_eval |
 | Qwen3 MoE eval budget plan | status / current -> recommended examples | ready_for_budgeted_remote_vllm_eval / 64 -> 384 |
-| Qwen3 MoE eval budget plan | current / recommended / extra prompt budget | 2560 / 15360 / 12800 |
+| Qwen3 MoE eval budget plan | planned / ready / pending methods | 11 / 10 / 1 |
+| Qwen3 MoE eval budget plan | current / recommended / extra prompt budget | 2816 / 16896 / 14080 |
+| Qwen3 MoE eval budget plan | ready current / recommended / extra prompt budget | 2560 / 15360 / 12800 |
 | Qwen3 MoE eval budget plan | Wilson n / paired n / capped tasks | 381 / 248 / humaneval_compile |
+| Qwen3 MoE eval budget plan | router active / ready / pending / plan-pruned caps | 1 / 0 / 1 / 2 |
 | Qwen3 MoE mechanism levers | top lever / priority / next test | source_and_candidate_downstream_eval / 0.98 / results/qwen3_moe_eval_budget_plan/run_eval_budget.sh all |
 | Qwen3 MoE mechanism levers | fine calibration layers / top layer score | 12,13,17,20,21,22,23,26 / 17:0.905 |
 | Qwen3 MoE mechanism levers | expert geometry used / top geometry layer | True / 17:0.714 |

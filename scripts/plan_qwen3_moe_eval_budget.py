@@ -42,6 +42,21 @@ def clean_value(value: Any) -> Any:
     return value
 
 
+def clean_row(row: pd.Series) -> dict[str, Any]:
+    return {str(key): clean_value(value) for key, value in row.items()}
+
+
+def bool_value(value: Any) -> bool:
+    value = clean_value(value)
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return False
+    if isinstance(value, (int, float)):
+        return bool(value)
+    return str(value).strip().lower() in {"1", "true", "yes", "y"}
+
+
 def json_safe(value: Any) -> Any:
     value = clean_value(value)
     if isinstance(value, dict):
@@ -172,6 +187,22 @@ def replace_cli_arg(command: str, option: str, value: int) -> str:
 
 def shell_quote(value: str) -> str:
     return shlex.quote(value)
+
+
+def first_gate_tasks(gate: pd.DataFrame) -> list[str]:
+    for _, row in gate.iterrows():
+        tasks = parse_tasks(row.get("tasks"))
+        if tasks:
+            return tasks
+    return []
+
+
+def first_gate_example_source(gate: pd.DataFrame) -> str:
+    for _, row in gate.iterrows():
+        example_source = str(clean_value(row.get("example_source")) or "").strip()
+        if example_source:
+            return example_source
+    return "datasets"
 
 
 def observed_examples_by_task(eval_output_dir: str | Path) -> dict[str, int]:
@@ -313,6 +344,210 @@ def build_method_budget(gate: pd.DataFrame, task_budget_meta: dict[str, Any]) ->
     return pd.DataFrame(rows)
 
 
+def router_calibration_eval_command(
+    *,
+    base_url: str,
+    served_model: str,
+    tasks: list[str],
+    example_source: str,
+    current_max_examples: int,
+    eval_dir: str,
+    task_manifest: str,
+) -> str:
+    tokens = [
+        "python",
+        "scripts/run_vllm_downstream_eval.py",
+        "--base-url",
+        base_url,
+        "--models",
+        served_model,
+        "--tasks",
+        ",".join(tasks),
+        "--example-source",
+        example_source,
+        "--max-examples",
+        str(current_max_examples),
+        "--output-dir",
+        eval_dir,
+        "--task-manifest",
+        task_manifest,
+        "--create-task-manifest-if-missing",
+    ]
+    return " ".join(shlex.quote(token) for token in tokens)
+
+
+def router_calibration_serve_command(*, checkpoint_dir: str, served_model: str, port: int) -> str:
+    tokens = [
+        "CUDA_VISIBLE_DEVICES=0,1,2,3",
+        "vllm",
+        "serve",
+        checkpoint_dir,
+        "--served-model-name",
+        served_model,
+        "--host",
+        "127.0.0.1",
+        "--port",
+        str(port),
+        "--dtype",
+        "bfloat16",
+        "--tensor-parallel-size",
+        "4",
+    ]
+    return " ".join(shlex.quote(token) for token in tokens)
+
+
+def build_router_calibration_budget(
+    gate: pd.DataFrame,
+    method_budget: pd.DataFrame,
+    task_budget_meta: dict[str, Any],
+    *,
+    candidate_plan_path: str | Path,
+    selection_table_path: str | Path,
+) -> tuple[pd.DataFrame, pd.DataFrame, dict[str, Any]]:
+    candidate_plan_file = repo_path(candidate_plan_path)
+    selection_table_file = repo_path(selection_table_path)
+    candidate_plan = read_csv_if_exists(candidate_plan_file)
+    selection_table = read_csv_if_exists(selection_table_file)
+    if candidate_plan.empty:
+        meta = {
+            "enabled": False,
+            "candidate_plan": rel(candidate_plan_file),
+            "selection_table": rel(selection_table_file),
+            "candidate_count": 0,
+            "active_candidate_count": 0,
+            "active_ready_count": 0,
+            "active_pending_count": 0,
+            "plan_pruned_candidate_count": 0,
+            "default_run_candidate_count": 0,
+            "methods_added": 0,
+        }
+        return method_budget, pd.DataFrame(), meta
+
+    selection_by_cap = {
+        str(row.get("cap_label")): clean_row(row) for _, row in selection_table.iterrows()
+    } if not selection_table.empty and "cap_label" in selection_table else {}
+    existing_methods = set(str(method) for method in method_budget["method"].tolist())
+    current = int(task_budget_meta["current_gate_examples"])
+    recommended = int(task_budget_meta["recommended_command_max_examples"])
+    tasks = first_gate_tasks(gate)
+    example_source = first_gate_example_source(gate)
+    task_manifest = rel(candidate_plan_file.parent / "task_manifest.json")
+    next_order = int(method_budget["gate_order"].max()) + 1 if not method_budget.empty else 0
+
+    additions = []
+    router_rows = []
+    for _, row in candidate_plan.iterrows():
+        cap_label = str(row.get("cap_label"))
+        method = str(row.get("method"))
+        selection_row = selection_by_cap.get(cap_label, {})
+        plan_pruned = bool_value(selection_row.get("plan_level_pruned")) or not bool_value(
+            row.get("router_margin_planned_cap_passed")
+        )
+        default_enabled = bool_value(row.get("default_run_enabled"))
+        margin_planned_passed = bool_value(row.get("router_margin_planned_cap_passed"))
+        active = default_enabled and margin_planned_passed and not plan_pruned
+        checkpoint_dir = str(row.get("checkpoint_dir"))
+        checkpoint_exists = repo_path(checkpoint_dir).exists()
+        eval_status = str(selection_row.get("eval_status") or "not_run")
+        router_rows.append(
+            {
+                "cap_label": cap_label,
+                "method": method,
+                "router_max_relative_norm": clean_value(row.get("router_max_relative_norm")),
+                "default_run_enabled": default_enabled,
+                "router_margin_planned_cap_passed": margin_planned_passed,
+                "plan_level_pruned": plan_pruned,
+                "active_for_budget": active,
+                "checkpoint_exists": checkpoint_exists,
+                "serve_status": "ready_to_host" if active and checkpoint_exists else "pending_materialization",
+                "eval_status": eval_status,
+                "decision": selection_row.get("decision"),
+                "decision_reason": selection_row.get("decision_reason"),
+            }
+        )
+        if not active or method in existing_methods:
+            continue
+        port = int(row.get("port"))
+        served_model = str(row.get("served_model"))
+        base_url = str(row.get("base_url"))
+        eval_dir = str(row.get("eval_dir"))
+        task_count = len(tasks)
+        current_prompt_budget = current * task_count
+        recommended_prompt_budget = recommended * task_count
+        serve_status = "ready_to_host" if checkpoint_exists else "pending_materialization"
+        eval_command = router_calibration_eval_command(
+            base_url=base_url,
+            served_model=served_model,
+            tasks=tasks,
+            example_source=example_source,
+            current_max_examples=current,
+            eval_dir=eval_dir,
+            task_manifest=task_manifest,
+        )
+        additions.append(
+            {
+                "gate_order": next_order + len(additions),
+                "method": method,
+                "role": "candidate",
+                "serve_status": serve_status,
+                "eval_status": eval_status,
+                "served_model_id": served_model,
+                "base_url": base_url,
+                "tasks": ",".join(tasks),
+                "task_count": task_count,
+                "current_max_examples": current,
+                "recommended_max_examples": recommended,
+                "additional_examples_per_task": max(0, recommended - current),
+                "current_prompt_budget": current_prompt_budget,
+                "recommended_prompt_budget": recommended_prompt_budget,
+                "additional_prompt_budget": max(0, recommended_prompt_budget - current_prompt_budget),
+                "eval_output_dir": eval_dir,
+                "serve_command": router_calibration_serve_command(
+                    checkpoint_dir=checkpoint_dir,
+                    served_model=served_model,
+                    port=port,
+                ),
+                "eval_command_current": eval_command,
+                "eval_command_recommended": replace_cli_arg(eval_command, "--max-examples", recommended),
+                "audit_min_examples_required_by_gate": current,
+                "budget_reason": (
+                    "active router-calibration cap: included because the route-margin planned cap "
+                    "passes and the job default-run list enables it; plan-pruned caps stay out of "
+                    "the default vLLM budget"
+                ),
+                "router_calibration_cap_label": cap_label,
+                "router_max_relative_norm": clean_value(row.get("router_max_relative_norm")),
+                "router_margin_planned_cap_passed": margin_planned_passed,
+                "plan_level_pruned": plan_pruned,
+                "checkpoint_path": checkpoint_dir,
+                "checkpoint_exists": checkpoint_exists,
+            }
+        )
+
+    router_table = pd.DataFrame(router_rows)
+    if additions:
+        method_budget = pd.concat([method_budget, pd.DataFrame(additions)], ignore_index=True)
+    meta = {
+        "enabled": True,
+        "candidate_plan": rel(candidate_plan_file),
+        "selection_table": rel(selection_table_file),
+        "candidate_count": int(len(candidate_plan)),
+        "active_candidate_count": int(router_table["active_for_budget"].sum()) if not router_table.empty else 0,
+        "active_ready_count": int((router_table["active_for_budget"] & router_table["checkpoint_exists"]).sum())
+        if not router_table.empty
+        else 0,
+        "active_pending_count": int(
+            (router_table["active_for_budget"] & ~router_table["checkpoint_exists"]).sum()
+        )
+        if not router_table.empty
+        else 0,
+        "plan_pruned_candidate_count": int(router_table["plan_level_pruned"].sum()) if not router_table.empty else 0,
+        "default_run_candidate_count": int(router_table["default_run_enabled"].sum()) if not router_table.empty else 0,
+        "methods_added": int(len(additions)),
+    }
+    return method_budget, router_table, meta
+
+
 def build_mechanism_budget(
     tests: pd.DataFrame,
     method_budget: pd.DataFrame,
@@ -424,7 +659,9 @@ def build_report(
     task_budget: pd.DataFrame,
     method_budget: pd.DataFrame,
     mechanism_budget: pd.DataFrame,
+    router_calibration_budget: pd.DataFrame,
 ) -> str:
+    router_meta = summary.get("router_calibration", {})
     lines = [
         "# Qwen3 MoE vLLM Eval Budget Plan",
         "",
@@ -432,11 +669,18 @@ def build_report(
         "",
         f"- Status: `{summary['status']}`",
         f"- Methods to evaluate: `{summary['method_count']}`",
+        f"- Ready-to-host methods now: `{summary['ready_to_host_method_count']}`",
         f"- Current gate max examples: `{summary['current_gate_examples']}`",
         f"- Recommended command max examples: `{summary['recommended_max_examples']}`",
         f"- Total current prompt budget: `{summary['total_current_prompt_budget']}`",
         f"- Total recommended prompt budget: `{summary['total_recommended_prompt_budget']}`",
         f"- Additional prompt budget: `{summary['total_additional_prompt_budget']}`",
+        (
+            f"- Router calibration active / ready / plan-pruned caps: "
+            f"`{router_meta.get('active_candidate_count', 0)}` / "
+            f"`{router_meta.get('active_ready_count', 0)}` / "
+            f"`{router_meta.get('plan_pruned_candidate_count', 0)}`"
+        ),
         "",
         "## Why This Budget",
         "",
@@ -455,6 +699,12 @@ def build_report(
         "",
         "因此这里推荐的不是“静态多跑一点”，而是让下游 eval 能真正支持 source dominance、task regression、score confidence 和 paired-prediction regression 这些机制判断。",
         "",
+        (
+            "Router calibration: budget planning now reads the route-margin-gated calibration plan. "
+            "Only caps that pass the planned margin gate and are enabled by the job default-run list enter the default budget; "
+            "plan-pruned caps remain explicit ablations."
+        ),
+        "",
         "## Task Budget",
         "",
         "| task | current | Wilson n | paired n | recommended max | achievable | half-width | status |",
@@ -472,16 +722,37 @@ def build_report(
             "",
             "## Method Budget",
             "",
-            "| order | method | role | current | recommended | extra prompts | eval status |",
-            "| ---: | --- | --- | ---: | ---: | ---: | --- |",
+            "| order | method | role | serve | current | recommended | extra prompts | eval status |",
+            "| ---: | --- | --- | --- | ---: | ---: | ---: | --- |",
         ]
     )
     for _, row in method_budget.iterrows():
         lines.append(
             f"| {int(row['gate_order'])} | `{row['method']}` | `{row['role']}` | "
+            f"`{row['serve_status']}` | "
             f"{int(row['current_max_examples'])} | {int(row['recommended_max_examples'])} | "
             f"{int(row['additional_prompt_budget'])} | `{row['eval_status']}` |"
         )
+    if not router_calibration_budget.empty:
+        lines.extend(
+            [
+                "",
+                "## Router Calibration Budget",
+                "",
+                "| cap | method | active | checkpoint | default | margin planned pass | plan-pruned | eval status | reason |",
+                "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+            ]
+        )
+        for _, row in router_calibration_budget.iterrows():
+            reason = str(clean_value(row.get("decision_reason")) or "")
+            if len(reason) > 96:
+                reason = reason[:93] + "..."
+            lines.append(
+                f"| `{row['cap_label']}` | `{row['method']}` | `{bool_value(row['active_for_budget'])}` | "
+                f"`{bool_value(row['checkpoint_exists'])}` | `{bool_value(row['default_run_enabled'])}` | "
+                f"`{bool_value(row['router_margin_planned_cap_passed'])}` | "
+                f"`{bool_value(row['plan_level_pruned'])}` | `{row['eval_status']}` | {reason} |"
+            )
     if not mechanism_budget.empty:
         lines.extend(
             [
@@ -523,6 +794,7 @@ def build_report(
             f"- `{summary['outputs']['task_budget']}`",
             f"- `{summary['outputs']['method_budget']}`",
             f"- `{summary['outputs']['mechanism_budget']}`",
+            f"- `{summary['outputs']['router_calibration_budget']}`",
             f"- `{summary['outputs']['run_script']}`",
             f"- `{summary['outputs']['summary']}`",
         ]
@@ -535,6 +807,7 @@ def write_outputs(
     task_budget: pd.DataFrame,
     method_budget: pd.DataFrame,
     mechanism_budget: pd.DataFrame,
+    router_calibration_budget: pd.DataFrame,
     *,
     target_half_width: float,
     confidence_z: float,
@@ -542,12 +815,14 @@ def write_outputs(
     paired_alpha: float,
     assumed_paired_discordance_rate: float,
     task_budget_meta: dict[str, Any],
+    router_calibration_meta: dict[str, Any],
 ) -> dict[str, Any]:
     output_dir = repo_path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     task_path = output_dir / "task_budget.csv"
     method_path = output_dir / "method_budget.csv"
     mechanism_path = output_dir / "mechanism_budget.csv"
+    router_calibration_path = output_dir / "router_calibration_budget.csv"
     run_script_path = output_dir / "run_eval_budget.sh"
     summary_path = output_dir / "summary.json"
     report_path = output_dir / "report.md"
@@ -555,16 +830,20 @@ def write_outputs(
     task_budget.to_csv(task_path, index=False)
     method_budget.to_csv(method_path, index=False)
     mechanism_budget.to_csv(mechanism_path, index=False)
+    router_calibration_budget.to_csv(router_calibration_path, index=False)
     run_script_path.write_text(build_shell_script(method_budget, output_dir), encoding="utf-8")
     os.chmod(run_script_path, 0o755)
 
     total_current = int(method_budget["current_prompt_budget"].sum())
     total_recommended = int(method_budget["recommended_prompt_budget"].sum())
     total_additional = int(method_budget["additional_prompt_budget"].sum())
+    ready = method_budget[method_budget["serve_status"] == "ready_to_host"]
     summary = {
-        "schema_version": 1,
+        "schema_version": 2,
         "status": "ready_for_budgeted_remote_vllm_eval",
         "method_count": int(len(method_budget)),
+        "ready_to_host_method_count": int(len(ready)),
+        "pending_materialization_method_count": int((method_budget["serve_status"] == "pending_materialization").sum()),
         "source_count": int((method_budget["role"] == "source").sum()),
         "candidate_count": int((method_budget["role"] == "candidate").sum()),
         "current_gate_examples": int(task_budget_meta["current_gate_examples"]),
@@ -582,17 +861,25 @@ def write_outputs(
         "total_current_prompt_budget": total_current,
         "total_recommended_prompt_budget": total_recommended,
         "total_additional_prompt_budget": total_additional,
+        "ready_to_host_current_prompt_budget": int(ready["current_prompt_budget"].sum()),
+        "ready_to_host_recommended_prompt_budget": int(ready["recommended_prompt_budget"].sum()),
+        "ready_to_host_additional_prompt_budget": int(ready["additional_prompt_budget"].sum()),
+        "router_calibration": json_safe(router_calibration_meta),
         "outputs": {
             "task_budget": rel(task_path),
             "method_budget": rel(method_path),
             "mechanism_budget": rel(mechanism_path),
+            "router_calibration_budget": rel(router_calibration_path),
             "run_script": rel(run_script_path),
             "summary": rel(summary_path),
             "report": rel(report_path),
         },
     }
     summary_path.write_text(json.dumps(json_safe(summary), indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    report_path.write_text(build_report(summary, task_budget, method_budget, mechanism_budget), encoding="utf-8")
+    report_path.write_text(
+        build_report(summary, task_budget, method_budget, mechanism_budget, router_calibration_budget),
+        encoding="utf-8",
+    )
     return summary
 
 
@@ -607,6 +894,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--assumed-paired-discordance-rate", type=float, default=0.25)
     parser.add_argument("--rounding-unit", type=int, default=64)
     parser.add_argument("--task-cap", action="append", default=[], help="Optional task cap, e.g. humaneval_compile=164")
+    parser.add_argument(
+        "--router-calibration-candidate-plan",
+        type=Path,
+        default=Path("results/qwen3_moe_router_calibration_job/candidate_plan.csv"),
+    )
+    parser.add_argument(
+        "--router-calibration-selection-table",
+        type=Path,
+        default=Path("results/qwen3_moe_router_calibration_selection/selection_table.csv"),
+    )
     return parser.parse_args()
 
 
@@ -629,6 +926,13 @@ def main() -> None:
         task_caps=task_caps,
     )
     method_budget = build_method_budget(gate, task_budget_meta)
+    method_budget, router_calibration_budget, router_calibration_meta = build_router_calibration_budget(
+        gate,
+        method_budget,
+        task_budget_meta,
+        candidate_plan_path=args.router_calibration_candidate_plan,
+        selection_table_path=args.router_calibration_selection_table,
+    )
     mechanism_budget = build_mechanism_budget(
         tests,
         method_budget,
@@ -639,12 +943,14 @@ def main() -> None:
         task_budget,
         method_budget,
         mechanism_budget,
+        router_calibration_budget,
         target_half_width=args.target_wilson_half_width,
         confidence_z=args.confidence_z,
         target_paired_net_loss_rate=args.target_paired_net_loss_rate,
         paired_alpha=args.paired_alpha,
         assumed_paired_discordance_rate=args.assumed_paired_discordance_rate,
         task_budget_meta=task_budget_meta,
+        router_calibration_meta=router_calibration_meta,
     )
     print(f"Wrote Qwen3 MoE eval budget plan to {repo_path(args.output_dir).resolve()}")
     print(

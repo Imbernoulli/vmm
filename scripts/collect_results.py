@@ -1232,6 +1232,10 @@ def summarize_qwen3_moe_eval_budget_plan() -> dict[str, Any]:
         "summary": summary,
         "status": summary.get("status"),
         "method_count": int(summary.get("method_count", len(method_budget))),
+        "ready_to_host_method_count": int(
+            summary.get("ready_to_host_method_count", (method_budget["serve_status"] == "ready_to_host").sum())
+        ),
+        "pending_materialization_method_count": int(summary.get("pending_materialization_method_count", 0)),
         "source_count": int(summary.get("source_count", 0)),
         "candidate_count": int(summary.get("candidate_count", 0)),
         "current_gate_examples": maybe_int(summary.get("current_gate_examples")),
@@ -1246,6 +1250,21 @@ def summarize_qwen3_moe_eval_budget_plan() -> dict[str, Any]:
         "total_current_prompt_budget": maybe_int(summary.get("total_current_prompt_budget")),
         "total_recommended_prompt_budget": maybe_int(summary.get("total_recommended_prompt_budget")),
         "total_additional_prompt_budget": maybe_int(summary.get("total_additional_prompt_budget")),
+        "ready_to_host_current_prompt_budget": maybe_int(summary.get("ready_to_host_current_prompt_budget")),
+        "ready_to_host_recommended_prompt_budget": maybe_int(summary.get("ready_to_host_recommended_prompt_budget")),
+        "ready_to_host_additional_prompt_budget": maybe_int(summary.get("ready_to_host_additional_prompt_budget")),
+        "router_calibration_active_candidate_count": int(
+            (summary.get("router_calibration") or {}).get("active_candidate_count", 0)
+        ),
+        "router_calibration_active_ready_count": int(
+            (summary.get("router_calibration") or {}).get("active_ready_count", 0)
+        ),
+        "router_calibration_active_pending_count": int(
+            (summary.get("router_calibration") or {}).get("active_pending_count", 0)
+        ),
+        "router_calibration_plan_pruned_candidate_count": int(
+            (summary.get("router_calibration") or {}).get("plan_pruned_candidate_count", 0)
+        ),
         "dataset_capped_tasks": ",".join(str(row["task"]) for _, row in capped_tasks.iterrows()),
         "task_rows": [clean_row(row) for _, row in task_budget.iterrows()],
         "method_rows": [clean_row(row) for _, row in method_budget.iterrows()],
@@ -1254,6 +1273,7 @@ def summarize_qwen3_moe_eval_budget_plan() -> dict[str, Any]:
         "task_budget": rel(root / "task_budget.csv"),
         "method_budget": rel(root / "method_budget.csv"),
         "mechanism_budget": rel(root / "mechanism_budget.csv"),
+        "router_calibration_budget": rel(root / "router_calibration_budget.csv"),
         "run_script": rel(root / "run_eval_budget.sh"),
         "summary_path": rel(root / "summary.json"),
     }
@@ -4901,16 +4921,35 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_eval_budget_plan['recommended_max_examples']} |"
             ),
             (
+                "| Qwen3 MoE eval budget plan | planned / ready / pending methods | "
+                f"{qwen3_moe_eval_budget_plan['method_count']} / "
+                f"{qwen3_moe_eval_budget_plan['ready_to_host_method_count']} / "
+                f"{qwen3_moe_eval_budget_plan['pending_materialization_method_count']} |"
+            ),
+            (
                 "| Qwen3 MoE eval budget plan | current / recommended / extra prompt budget | "
                 f"{qwen3_moe_eval_budget_plan['total_current_prompt_budget']} / "
                 f"{qwen3_moe_eval_budget_plan['total_recommended_prompt_budget']} / "
                 f"{qwen3_moe_eval_budget_plan['total_additional_prompt_budget']} |"
             ),
             (
+                "| Qwen3 MoE eval budget plan | ready current / recommended / extra prompt budget | "
+                f"{qwen3_moe_eval_budget_plan['ready_to_host_current_prompt_budget']} / "
+                f"{qwen3_moe_eval_budget_plan['ready_to_host_recommended_prompt_budget']} / "
+                f"{qwen3_moe_eval_budget_plan['ready_to_host_additional_prompt_budget']} |"
+            ),
+            (
                 "| Qwen3 MoE eval budget plan | Wilson n / paired n / capped tasks | "
                 f"{qwen3_moe_eval_budget_plan['wilson_required_examples']} / "
                 f"{qwen3_moe_eval_budget_plan['paired_required_examples']} / "
                 f"{qwen3_moe_eval_budget_plan['dataset_capped_tasks']} |"
+            ),
+            (
+                "| Qwen3 MoE eval budget plan | router active / ready / pending / plan-pruned caps | "
+                f"{qwen3_moe_eval_budget_plan['router_calibration_active_candidate_count']} / "
+                f"{qwen3_moe_eval_budget_plan['router_calibration_active_ready_count']} / "
+                f"{qwen3_moe_eval_budget_plan['router_calibration_active_pending_count']} / "
+                f"{qwen3_moe_eval_budget_plan['router_calibration_plan_pruned_candidate_count']} |"
             ),
             (
                 "| Qwen3 MoE mechanism levers | top lever / priority / next test | "
