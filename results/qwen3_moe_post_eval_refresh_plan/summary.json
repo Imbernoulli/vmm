@@ -8,10 +8,10 @@
   },
   "passed_step_count": 0,
   "plan_only": true,
-  "planned_step_count": 23,
+  "planned_step_count": 24,
   "schema_version": 1,
   "status": "planned",
-  "step_count": 23,
+  "step_count": 24,
   "steps": [
     {
       "command": "python scripts/build_qwen3_moe_candidate_trust_region_gate.py --gate-plan results/qwen3_moe_mechanism_eval_gate/eval_gate_plan.csv --output-dir results/qwen3_moe_candidate_trust_region_gate",
@@ -172,6 +172,16 @@
       "stderr_tail": "",
       "stdout_tail": "",
       "step": "select_final_candidate_smoke"
+    },
+    {
+      "command": "python scripts/smoke_qwen3_moe_eval_budget_queue.py --eval-budget-dir results/qwen3_moe_eval_budget_plan --candidate-trust-gate results/qwen3_moe_candidate_trust_region_gate/candidate_trust_region_gate.csv --output-dir results/qwen3_moe_eval_budget_queue_smoke",
+      "duration_sec": 0.0,
+      "kind": "smoke",
+      "returncode": null,
+      "status": "planned",
+      "stderr_tail": "",
+      "stdout_tail": "",
+      "step": "eval_budget_queue_smoke"
     },
     {
       "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --smoke-matrix --output-dir results/qwen3_moe_mechanism_effect_attribution_smoke",

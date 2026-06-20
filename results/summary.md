@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-20T11:55:48.809132+00:00`
+Generated at: `2026-06-20T12:04:16.953961+00:00`
 
 ## Coverage
 
@@ -75,7 +75,7 @@ Complete: `94`; partial: `1`; missing: `0`.
 | Qwen3 MoE real routing readiness | complete | results/moe_routing_readiness/qwen3_30b_instruct_vs_coder/report.md analyzes the real Qwen3-30B Instruct/Coder route overlap and expert load probe, showing direct router averaging is high risk and needs calibration or freeze. |
 | Qwen3 MoE route-guarded unified candidate | complete | results/qwen3_moe_unified_route_guarded_candidate/report.md converts the real Qwen3 route/load probe into source-route-conditioned same-shape tensor rules and a validated writer dry-run command. |
 | Qwen3 MoE mechanism-gated vLLM eval gate | complete | results/qwen3_moe_mechanism_eval_gate/report.md turns two source endpoints and all registered same-shape Qwen3 MoE candidates into mechanism tests, a one-model-at-a-time vLLM run script, and endpoint-fallback selection rules. |
-| Qwen3 MoE statistically powered vLLM eval budget | complete | results/qwen3_moe_eval_budget_plan/report.md raises the Qwen3 source/candidate vLLM run from a 64-example smoke floor to a Wilson/paired-test budgeted eval script. |
+| Qwen3 MoE statistically powered vLLM eval budget | complete | results/qwen3_moe_eval_budget_plan/report.md raises the Qwen3 source/candidate vLLM run from a 64-example smoke floor to a Wilson/paired-test budgeted eval script; results/qwen3_moe_eval_budget_queue_smoke/report.md verifies the default final queue excludes ablation-only candidates. |
 | Qwen3 MoE adaptive vLLM eval scheduler | complete | results/qwen3_moe_adaptive_eval_schedule/report.md turns the fixed Qwen3 MoE budget into a sequential source-control, mechanism-targeted probe-task, and full-budget escalation schedule; results/qwen3_moe_adaptive_eval_schedule_smoke/report.md covers source-missing, probe-selected, promising-escalation, full-ready, dominated-prune, coverage-selection, and task-selection branches. |
 | Qwen3 MoE eval task manifest preflight | complete | results/qwen3_moe_eval_manifest_preflight/report.md checks that all budgeted source/candidate evals share one canonical task manifest and that the manifest contains the required task/example keys before vLLM runs. |
 | Qwen3 MoE mechanism leverage map | complete | results/qwen3_moe_mechanism_levers/report.md ranks MoE-specific failure mechanisms, next experiments, and importance-guided layer/chunk calibration slots from real Qwen3 probes, including expert geometry and subspace conflict probes. |
@@ -220,6 +220,8 @@ Complete: `94`; partial: `1`; missing: `0`.
 | Qwen3 MoE eval budget plan | mechanism ablation methods / prompts | 8 / 12288 |
 | Qwen3 MoE eval budget plan | Wilson n / paired n / capped tasks | 381 / 248 / humaneval_compile |
 | Qwen3 MoE eval budget plan | task manifest aligned / canonical manifest | 14/14 / results/qwen3_moe_mechanism_eval_gate/task_manifest.json |
+| Qwen3 MoE eval budget queue smoke | status / assertions | passed / 11/11 |
+| Qwen3 MoE eval budget queue smoke | final / mechanism / router methods | 4 / 8 / 2 |
 | Qwen3 MoE adaptive eval schedule | status / top action / top method | adaptive_schedule_ready / run_or_extend_source_control_probe / source_qwen3_30b_instruct |
 | Qwen3 MoE adaptive eval schedule | source controls / round1 probes / probe->full examples | False / 6 / 64 -> 384 |
 | Qwen3 MoE adaptive eval schedule | runnable methods / prompt budget / round1 probe prompts | 8 / 1664 / 1152 |
@@ -292,8 +294,8 @@ Complete: `94`; partial: `1`; missing: `0`.
 | Qwen3 MoE mechanistic evidence audit | gradient agree / objective improved / hard-cap bound | 1.000 / 0.945 / 319 |
 | Qwen3 MoE mechanistic evidence audit | dominant binding / suppressing features | cost_gradient_shrink / curvature_score, feature_router_instability, feature_expert_internal_geometry |
 | Qwen3 MoE mechanistic unified smoke | status / passed cases | passed / 4/4 |
-| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | passed / 23/23 / 0/12 |
-| Qwen3 MoE post-eval refresh | selection / final selection / attribution scored / plan steps | awaiting_source_eval / awaiting_source_eval / 0/10 / 23/23 |
+| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | passed / 24/24 / 0/12 |
+| Qwen3 MoE post-eval refresh | selection / final selection / attribution scored / plan steps | awaiting_source_eval / awaiting_source_eval / 0/10 / 24/24 |
 | Qwen3 MoE post-eval refresh | feedback status / scored tasks / changed groups | awaiting_eval / 0/4 / 0 |
 | Qwen3 MoE post-eval refresh | mechanistic status / retention / hard-cap violations | mechanistic_unified_candidate_ready / 0.965 / 0 |
 | Qwen3 MoE router move gate | status / action / allowed layers | router_move_rejected_freeze_router / freeze_router / 0/48 |

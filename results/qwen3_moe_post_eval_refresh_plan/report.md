@@ -4,12 +4,13 @@
 
 - Status: `planned`
 - Plan only: `True`
-- Steps passed: `0/23`
+- Steps passed: `0/24`
 - Audit: `n/a` (`n/a/n/a` usable)
 - Selection: `n/a` -> `n/a`
 - Final selection: `n/a` -> `n/a` (`n/a/n/a` eligible)
 - Candidate trust-region gate: `n/a` (`n/a/n/a` final-selectable, `n/a` ablation-only)
 - Eval budget queue: `n/a` (default `n/a`, final `n/a` methods / `n/a` prompts, max examples `n/a`)
+- Eval budget queue smoke: `n/a` (`n/a/n/a` assertions)
 - Attribution: `n/a` (`n/a/n/a` scored)
 - Feedback optimizer: `n/a` (`n/a/n/a` scored, `n/a` changed groups)
 - Mechanistic unified: `n/a` -> `n/a` (`retention=n/a`, `violations=n/a`)
@@ -41,6 +42,7 @@
 | `audit_eval_bundles_smoke` | `smoke` | `planned` | None | 0.00 |
 | `select_unified_result_smoke` | `smoke` | `planned` | None | 0.00 |
 | `select_final_candidate_smoke` | `smoke` | `planned` | None | 0.00 |
+| `eval_budget_queue_smoke` | `smoke` | `planned` | None | 0.00 |
 | `attribute_mechanism_effects_smoke` | `smoke` | `planned` | None | 0.00 |
 | `build_feedback_optimizer_smoke` | `smoke` | `planned` | None | 0.00 |
 | `build_mechanistic_unified_candidate_smoke` | `smoke` | `planned` | None | 0.00 |
@@ -67,6 +69,7 @@
 - `python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke`
 - `python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke`
 - `python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke`
+- `python scripts/smoke_qwen3_moe_eval_budget_queue.py --eval-budget-dir results/qwen3_moe_eval_budget_plan --candidate-trust-gate results/qwen3_moe_candidate_trust_region_gate/candidate_trust_region_gate.csv --output-dir results/qwen3_moe_eval_budget_queue_smoke`
 - `python scripts/attribute_qwen3_moe_mechanism_effects.py --smoke-matrix --output-dir results/qwen3_moe_mechanism_effect_attribution_smoke`
 - `python scripts/build_qwen3_moe_feedback_optimizer.py --smoke-matrix --output-dir results/qwen3_moe_feedback_optimizer_smoke`
 - `python scripts/build_qwen3_moe_mechanistic_unified_candidate.py --smoke-matrix --output-dir results/qwen3_moe_mechanistic_unified_candidate_smoke`

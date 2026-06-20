@@ -295,6 +295,20 @@ def build_steps(args: argparse.Namespace) -> list[dict[str, Any]]:
                     ],
                 },
                 {
+                    "step": "eval_budget_queue_smoke",
+                    "kind": "smoke",
+                    "command": [
+                        py,
+                        "scripts/smoke_qwen3_moe_eval_budget_queue.py",
+                        "--eval-budget-dir",
+                        str(args.eval_budget_dir),
+                        "--candidate-trust-gate",
+                        str(args.candidate_trust_region_gate_dir / "candidate_trust_region_gate.csv"),
+                        "--output-dir",
+                        str(args.eval_budget_smoke_dir),
+                    ],
+                },
+                {
                     "step": "attribute_mechanism_effects_smoke",
                     "kind": "smoke",
                     "command": [
@@ -392,6 +406,7 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
     unified_optimizer_smoke = read_json(repo_path(args.unified_optimizer_smoke_dir) / "summary.json")
     average_method_gate = read_json(repo_path(args.average_method_gate_dir) / "summary.json")
     average_method_gate_smoke = read_json(repo_path(args.average_method_gate_smoke_dir) / "summary.json")
+    eval_budget_smoke = read_json(repo_path(args.eval_budget_smoke_dir) / "summary.json")
     average_trust_region_bounds = read_json(
         repo_path(args.average_trust_region_bounds_dir) / "summary.json"
     )
@@ -428,6 +443,9 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
         "eval_budget_final_core_prompt_budget": eval_budget.get("final_core_recommended_prompt_budget"),
         "eval_budget_mechanism_ablation_method_count": eval_budget.get("mechanism_ablation_method_count"),
         "eval_budget_recommended_max_examples": eval_budget.get("recommended_max_examples"),
+        "eval_budget_smoke_status": eval_budget_smoke.get("status"),
+        "eval_budget_smoke_passed": eval_budget_smoke.get("passed_assertion_count"),
+        "eval_budget_smoke_assertions": eval_budget_smoke.get("assertion_count"),
         "attribution_status": attribution.get("status"),
         "attribution_scored_transition_count": attribution.get("scored_transition_count"),
         "attribution_transition_count": attribution.get("transition_count"),
@@ -504,6 +522,7 @@ def build_report(summary: dict[str, Any]) -> str:
         f"- Final selection: `{downstream.get('final_selection_status', 'n/a')}` -> `{downstream.get('final_selected_method', 'n/a')}` (`{downstream.get('final_eligible_candidate_count', 'n/a')}/{downstream.get('final_candidate_count', 'n/a')}` eligible)",
         f"- Candidate trust-region gate: `{downstream.get('candidate_trust_region_gate_status', 'n/a')}` (`{downstream.get('candidate_trust_region_final_selectable', 'n/a')}/{downstream.get('candidate_trust_region_candidates', 'n/a')}` final-selectable, `{downstream.get('candidate_trust_region_ablation_only', 'n/a')}` ablation-only)",
         f"- Eval budget queue: `{downstream.get('eval_budget_status', 'n/a')}` (default `{downstream.get('eval_budget_default_runner_request', 'n/a')}`, final `{downstream.get('eval_budget_final_core_method_count', 'n/a')}` methods / `{downstream.get('eval_budget_final_core_prompt_budget', 'n/a')}` prompts, max examples `{downstream.get('eval_budget_recommended_max_examples', 'n/a')}`)",
+        f"- Eval budget queue smoke: `{downstream.get('eval_budget_smoke_status', 'n/a')}` (`{downstream.get('eval_budget_smoke_passed', 'n/a')}/{downstream.get('eval_budget_smoke_assertions', 'n/a')}` assertions)",
         f"- Attribution: `{downstream.get('attribution_status', 'n/a')}` (`{downstream.get('attribution_scored_transition_count', 'n/a')}/{downstream.get('attribution_transition_count', 'n/a')}` scored)",
         f"- Feedback optimizer: `{downstream.get('feedback_status', 'n/a')}` (`{downstream.get('feedback_scored_task_count', 'n/a')}/{downstream.get('feedback_task_count', 'n/a')}` scored, `{downstream.get('feedback_changed_group_count', 'n/a')}` changed groups)",
         f"- Mechanistic unified: `{downstream.get('mechanistic_status', 'n/a')}` -> `{downstream.get('mechanistic_selected_candidate', 'n/a')}` (`retention={downstream.get('mechanistic_retention', 'n/a')}`, `violations={downstream.get('mechanistic_hard_cap_violations', 'n/a')}`)",
@@ -637,6 +656,11 @@ def parse_args() -> argparse.Namespace:
         "--average-method-gate-smoke-dir",
         type=Path,
         default=Path("results/average_method_gate_matrix_consistency_smoke"),
+    )
+    parser.add_argument(
+        "--eval-budget-smoke-dir",
+        type=Path,
+        default=Path("results/qwen3_moe_eval_budget_queue_smoke"),
     )
     parser.add_argument(
         "--average-trust-region-bounds-smoke-dir",

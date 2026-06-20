@@ -1533,6 +1533,28 @@ def summarize_qwen3_moe_eval_budget_plan() -> dict[str, Any]:
     }
 
 
+def summarize_qwen3_moe_eval_budget_queue_smoke() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_eval_budget_queue_smoke")
+    summary = read_json(root / "summary.json")
+    matrix = read_csv(root / "eval_budget_queue_smoke_matrix.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "assertion_count": int(summary.get("assertion_count", len(matrix))),
+        "passed_assertion_count": int(summary.get("passed_assertion_count", 0)),
+        "failed_assertion_count": int(summary.get("failed_assertion_count", 0)),
+        "final_queue_method_count": maybe_int(summary.get("final_queue_method_count")),
+        "mechanism_queue_method_count": maybe_int(summary.get("mechanism_queue_method_count")),
+        "router_queue_method_count": maybe_int(summary.get("router_queue_method_count")),
+        "final_queue_methods": summary.get("final_queue_methods", []),
+        "mechanism_queue_methods": summary.get("mechanism_queue_methods", []),
+        "matrix_rows": [clean_row(row) for _, row in matrix.iterrows()],
+        "report": rel(root / "report.md"),
+        "matrix": rel(root / "eval_budget_queue_smoke_matrix.csv"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_qwen3_moe_adaptive_eval_schedule() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_adaptive_eval_schedule")
     summary = read_json(root / "summary.json")
@@ -4716,7 +4738,7 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "Qwen3 MoE statistically powered vLLM eval budget",
             "status": "complete",
-            "evidence": "results/qwen3_moe_eval_budget_plan/report.md raises the Qwen3 source/candidate vLLM run from a 64-example smoke floor to a Wilson/paired-test budgeted eval script.",
+            "evidence": "results/qwen3_moe_eval_budget_plan/report.md raises the Qwen3 source/candidate vLLM run from a 64-example smoke floor to a Wilson/paired-test budgeted eval script; results/qwen3_moe_eval_budget_queue_smoke/report.md verifies the default final queue excludes ablation-only candidates.",
         },
         {
             "item": "Qwen3 MoE adaptive vLLM eval scheduler",
@@ -4932,6 +4954,7 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_delta_frontier": summarize_qwen3_moe_delta_frontier(),
         "qwen3_moe_mechanism_eval_gate": summarize_qwen3_moe_mechanism_eval_gate(),
         "qwen3_moe_eval_budget_plan": summarize_qwen3_moe_eval_budget_plan(),
+        "qwen3_moe_eval_budget_queue_smoke": summarize_qwen3_moe_eval_budget_queue_smoke(),
         "qwen3_moe_adaptive_eval_schedule": summarize_qwen3_moe_adaptive_eval_schedule(),
         "qwen3_moe_adaptive_eval_schedule_smoke": summarize_qwen3_moe_adaptive_eval_schedule_smoke(),
         "qwen3_moe_eval_manifest_preflight": summarize_qwen3_moe_eval_manifest_preflight(),
@@ -5110,6 +5133,7 @@ def build_summary() -> dict[str, Any]:
             "python scripts/audit_materialized_checkpoint_delta.py --base BASE --candidate results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate --output-dir results/qwen3_moe_searched_no_gt065_delta_audit",
             "python scripts/build_qwen3_moe_delta_frontier.py --output-dir results/qwen3_moe_delta_frontier",
             "python scripts/plan_qwen3_moe_eval_budget.py --output-dir results/qwen3_moe_eval_budget_plan",
+            "python scripts/smoke_qwen3_moe_eval_budget_queue.py --output-dir results/qwen3_moe_eval_budget_queue_smoke",
             "python scripts/schedule_qwen3_moe_adaptive_eval.py --output-dir results/qwen3_moe_adaptive_eval_schedule",
             "python scripts/schedule_qwen3_moe_adaptive_eval.py --smoke-matrix --output-dir results/qwen3_moe_adaptive_eval_schedule_smoke",
             "python scripts/probe_qwen3_moe_expert_geometry.py --output-dir results/qwen3_moe_expert_geometry_probe",
@@ -5235,6 +5259,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_delta_frontier = exp["qwen3_moe_delta_frontier"]
     qwen3_moe_mechanism_eval_gate = exp["qwen3_moe_mechanism_eval_gate"]
     qwen3_moe_eval_budget_plan = exp["qwen3_moe_eval_budget_plan"]
+    qwen3_moe_eval_budget_queue_smoke = exp["qwen3_moe_eval_budget_queue_smoke"]
     qwen3_moe_adaptive_eval_schedule = exp["qwen3_moe_adaptive_eval_schedule"]
     qwen3_moe_adaptive_eval_schedule_smoke = exp["qwen3_moe_adaptive_eval_schedule_smoke"]
     qwen3_moe_eval_manifest_preflight = exp["qwen3_moe_eval_manifest_preflight"]
@@ -5939,6 +5964,18 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_eval_budget_plan['task_manifest_aligned_method_count']}"
                 f"/{qwen3_moe_eval_budget_plan['method_count']} / "
                 f"{qwen3_moe_eval_budget_plan['canonical_task_manifest']} |"
+            ),
+            (
+                "| Qwen3 MoE eval budget queue smoke | status / assertions | "
+                f"{qwen3_moe_eval_budget_queue_smoke['status']} / "
+                f"{qwen3_moe_eval_budget_queue_smoke['passed_assertion_count']}"
+                f"/{qwen3_moe_eval_budget_queue_smoke['assertion_count']} |"
+            ),
+            (
+                "| Qwen3 MoE eval budget queue smoke | final / mechanism / router methods | "
+                f"{qwen3_moe_eval_budget_queue_smoke['final_queue_method_count']} / "
+                f"{qwen3_moe_eval_budget_queue_smoke['mechanism_queue_method_count']} / "
+                f"{qwen3_moe_eval_budget_queue_smoke['router_queue_method_count']} |"
             ),
             (
                 "| Qwen3 MoE adaptive eval schedule | status / top action / top method | "
