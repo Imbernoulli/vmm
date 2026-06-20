@@ -193,6 +193,20 @@ def build_steps(args: argparse.Namespace) -> list[dict[str, Any]]:
                 str(args.unified_optimizer_dir),
             ],
         },
+        {
+            "step": "build_average_method_gate_matrix",
+            "kind": "optimizer",
+            "command": [
+                py,
+                "scripts/build_average_method_gate_matrix.py",
+                "--output-dir",
+                str(args.average_method_gate_dir),
+                "--optimizer-summary",
+                str(args.unified_optimizer_dir / "summary.json"),
+                "--optimizer-features",
+                str(args.unified_optimizer_dir / "mechanism_features.csv"),
+            ],
+        },
     ]
     if args.include_smoke:
         steps.extend(
@@ -275,6 +289,20 @@ def build_steps(args: argparse.Namespace) -> list[dict[str, Any]]:
                         str(args.unified_optimizer_smoke_dir),
                     ],
                 },
+                {
+                    "step": "average_method_gate_matrix_consistency_smoke",
+                    "kind": "smoke",
+                    "command": [
+                        py,
+                        "scripts/smoke_average_method_gate_matrix.py",
+                        "--optimizer-summary",
+                        str(args.unified_optimizer_dir / "summary.json"),
+                        "--method-gate-dir",
+                        str(args.average_method_gate_dir),
+                        "--output-dir",
+                        str(args.average_method_gate_smoke_dir),
+                    ],
+                },
             ]
         )
     if not args.skip_collect:
@@ -298,6 +326,8 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
     mechanistic_evidence = read_json(repo_path(args.mechanistic_evidence_dir) / "summary.json")
     unified_optimizer = read_json(repo_path(args.unified_optimizer_dir) / "summary.json")
     unified_optimizer_smoke = read_json(repo_path(args.unified_optimizer_smoke_dir) / "summary.json")
+    average_method_gate = read_json(repo_path(args.average_method_gate_dir) / "summary.json")
+    average_method_gate_smoke = read_json(repo_path(args.average_method_gate_smoke_dir) / "summary.json")
     final_current = final_selection.get("current_selection") or {}
     optimizer_moe = unified_optimizer.get("moe") or {}
     optimizer_top = unified_optimizer.get("top_next_experiment") or {}
@@ -342,6 +372,13 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
         "unified_optimizer_smoke_status": unified_optimizer_smoke.get("status"),
         "unified_optimizer_smoke_passed": unified_optimizer_smoke.get("passed_case_count"),
         "unified_optimizer_smoke_cases": unified_optimizer_smoke.get("case_count"),
+        "average_method_gate_status": average_method_gate.get("status"),
+        "average_method_gate_default_accepted": average_method_gate.get("accepted_by_default_count"),
+        "average_method_gate_default_rejected": average_method_gate.get("default_rejected_count"),
+        "average_method_gate_conditional": average_method_gate.get("conditional_count"),
+        "average_method_gate_smoke_status": average_method_gate_smoke.get("status"),
+        "average_method_gate_smoke_passed": average_method_gate_smoke.get("passed_assertion_count"),
+        "average_method_gate_smoke_assertions": average_method_gate_smoke.get("assertion_count"),
     }
 
 
@@ -350,7 +387,7 @@ def build_report(summary: dict[str, Any]) -> str:
     lines = [
         "# Qwen3 MoE Post-Eval Refresh",
         "",
-        "这个脚本在远端 vLLM eval 落盘后按固定顺序刷新 eval bundle audit、unified/final selector、mechanism attribution、feedback/mechanistic optimizer、unified average optimizer 和总汇总，避免手工漏跑或用到旧结果。",
+        "这个脚本在远端 vLLM eval 落盘后按固定顺序刷新 eval bundle audit、unified/final selector、mechanism attribution、feedback/mechanistic optimizer、unified average optimizer、average method gate matrix 和总汇总，避免手工漏跑或用到旧结果。",
         "",
         f"- Status: `{summary['status']}`",
         f"- Plan only: `{summary['plan_only']}`",
@@ -365,6 +402,8 @@ def build_report(summary: dict[str, Any]) -> str:
         f"- Unified average optimizer: `{downstream.get('unified_optimizer_status', 'n/a')}` (top next experiment `{downstream.get('unified_optimizer_top_experiment', 'n/a')}` / `{downstream.get('unified_optimizer_top_experiment_status', 'n/a')}`)",
         f"- Unified selector rank gate in optimizer: confidence band `{downstream.get('unified_optimizer_final_confidence_tie_band', 'n/a')}`, rank mode `{downstream.get('unified_optimizer_final_rank_mode', 'n/a')}`, band size `{downstream.get('unified_optimizer_final_rank_band_size', 'n/a')}`",
         f"- Unified optimizer ledger smoke: `{downstream.get('unified_optimizer_smoke_status', 'n/a')}` (`{downstream.get('unified_optimizer_smoke_passed', 'n/a')}/{downstream.get('unified_optimizer_smoke_cases', 'n/a')}` cases)",
+        f"- Average method gate matrix: `{downstream.get('average_method_gate_status', 'n/a')}` (`accepted_by_default={downstream.get('average_method_gate_default_accepted', 'n/a')}`, `rejected={downstream.get('average_method_gate_default_rejected', 'n/a')}`, `conditional={downstream.get('average_method_gate_conditional', 'n/a')}`)",
+        f"- Average method gate smoke: `{downstream.get('average_method_gate_smoke_status', 'n/a')}` (`{downstream.get('average_method_gate_smoke_passed', 'n/a')}/{downstream.get('average_method_gate_smoke_assertions', 'n/a')}` assertions)",
         "",
         "| step | kind | status | returncode | seconds |",
         "| --- | --- | --- | ---: | ---: |",
@@ -438,6 +477,11 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=Path("results/unified_average_optimizer"),
     )
+    parser.add_argument(
+        "--average-method-gate-dir",
+        type=Path,
+        default=Path("results/average_method_gate_matrix"),
+    )
     parser.add_argument("--audit-smoke-dir", type=Path, default=Path("results/qwen3_moe_eval_bundle_audit_smoke"))
     parser.add_argument("--selection-smoke-dir", type=Path, default=Path("results/qwen3_moe_unified_result_selection_smoke"))
     parser.add_argument(
@@ -464,6 +508,11 @@ def parse_args() -> argparse.Namespace:
         "--unified-optimizer-smoke-dir",
         type=Path,
         default=Path("results/unified_average_optimizer_ledger_smoke"),
+    )
+    parser.add_argument(
+        "--average-method-gate-smoke-dir",
+        type=Path,
+        default=Path("results/average_method_gate_matrix_consistency_smoke"),
     )
     parser.add_argument("--output-dir", type=Path, default=Path("results/qwen3_moe_post_eval_refresh"))
     parser.add_argument("--include-smoke", action="store_true")

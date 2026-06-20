@@ -1,0 +1,12 @@
+{
+  "assertion_count": 5,
+  "failed_assertion_count": 0,
+  "outputs": {
+    "matrix": "results/average_method_gate_matrix_consistency_smoke/consistency_matrix.csv",
+    "report": "results/average_method_gate_matrix_consistency_smoke/report.md",
+    "summary": "results/average_method_gate_matrix_consistency_smoke/summary.json"
+  },
+  "passed_assertion_count": 5,
+  "schema_version": 1,
+  "status": "passed"
+}

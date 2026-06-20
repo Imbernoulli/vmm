@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-20T11:01:43.104384+00:00`
+Generated at: `2026-06-20T11:11:52.786550+00:00`
 
 ## Coverage
 
@@ -273,23 +273,23 @@ Complete: `92`; partial: `1`; missing: `0`.
 | Qwen3 MoE mechanism attribution | best avg / best worst transition | None / None |
 | Qwen3 MoE mechanism attribution smoke | status / passed cases | passed / 3/3 |
 | Qwen3 MoE feedback optimizer | status / scored tasks / regressions / changed groups | awaiting_eval / 0/4 / 0 / 0 |
-| Qwen3 MoE feedback optimizer | candidate / base selection / frontier-dominated | qwen3_moe_mechanistic_unified_candidate / auto_selected / True-False |
-| Qwen3 MoE feedback optimizer | feedback base candidates considered | 3 |
+| Qwen3 MoE feedback optimizer | candidate / base selection / frontier-dominated | qwen3_moe_unified_mechanism_candidate / auto_selected / False-True |
+| Qwen3 MoE feedback optimizer | feedback base candidates considered | 1 |
 | Qwen3 MoE feedback optimizer | materialization gate | do_not_materialize_feedback_candidate_yet |
-| Qwen3 MoE feedback optimizer | nonbase ratio / max expected delta / hard-cap violations | 1.000 / 0.649 / 0 |
-| Qwen3 MoE feedback optimizer smoke | status / passed cases | passed / 14/14 |
-| Qwen3 MoE mechanistic unified candidate | selected / candidates / feedback | s0.04_b1.65_h0.75_i0.75 / 144 / awaiting_eval |
+| Qwen3 MoE feedback optimizer | nonbase ratio / max expected delta / hard-cap violations | 1.000 / 0.644 / 0 |
+| Qwen3 MoE feedback optimizer smoke | status / passed cases | passed / 15/15 |
+| Qwen3 MoE mechanistic unified candidate | selected / candidates / feedback | s0.08_b1.65_h0.75_i0.75 / 144 / awaiting_eval |
 | Qwen3 MoE mechanistic unified candidate | nominal cap / effective cap / write margin | 0.650 / 0.649 / 0.001 |
-| Qwen3 MoE mechanistic unified candidate | retention / max rel-delta / hard-cap violations | 0.962 / 0.649 / 0 |
-| Qwen3 MoE mechanistic unified candidate | risk-delta / benefit-scale / loss proxy | 0.221 / 0.971 / 0.012 |
+| Qwen3 MoE mechanistic unified candidate | retention / max rel-delta / hard-cap violations | 0.965 / 0.649 / 0 |
+| Qwen3 MoE mechanistic unified candidate | risk-delta / benefit-scale / loss proxy | 0.230 / 0.976 / 0.029 |
 | Qwen3 MoE mechanistic unified candidate | writer manifest / dry-run / tensor-rule hits / freeze-router hits | True / False / 15729 / 48 |
-| Qwen3 MoE mechanistic evidence audit | gradient agree / objective improved / hard-cap bound | 1.000 / 0.899 / 636 |
-| Qwen3 MoE mechanistic evidence audit | dominant binding / suppressing features | cost_gradient_shrink / interference_score, feature_expert_internal_geometry, feature_subspace_conflict |
+| Qwen3 MoE mechanistic evidence audit | gradient agree / objective improved / hard-cap bound | 1.000 / 0.945 / 319 |
+| Qwen3 MoE mechanistic evidence audit | dominant binding / suppressing features | cost_gradient_shrink / curvature_score, feature_router_instability, feature_expert_internal_geometry |
 | Qwen3 MoE mechanistic unified smoke | status / passed cases | passed / 4/4 |
-| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | passed / 16/16 / 0/12 |
-| Qwen3 MoE post-eval refresh | selection / final selection / attribution scored / plan steps | awaiting_source_eval / awaiting_source_eval / 0/10 / 16/16 |
+| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | passed / 18/18 / 0/12 |
+| Qwen3 MoE post-eval refresh | selection / final selection / attribution scored / plan steps | awaiting_source_eval / awaiting_source_eval / 0/10 / 18/18 |
 | Qwen3 MoE post-eval refresh | feedback status / scored tasks / changed groups | awaiting_eval / 0/4 / 0 |
-| Qwen3 MoE post-eval refresh | mechanistic status / retention / hard-cap violations | mechanistic_unified_candidate_ready / 0.962 / 0 |
+| Qwen3 MoE post-eval refresh | mechanistic status / retention / hard-cap violations | mechanistic_unified_candidate_ready / 0.965 / 0 |
 | Qwen3 MoE router move gate | status / action / allowed layers | router_move_rejected_freeze_router / freeze_router / 0/48 |
 | Qwen3 MoE router move gate | unsafe / calibrate / freeze rows | 499 / 493 / 6 |
 | Qwen3 MoE router move gate | router rel-norm / mean-min top-k Jaccard / min top1 | 0.739 / 0.454-0.242 / 0.069 |

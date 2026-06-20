@@ -8,10 +8,10 @@
   },
   "passed_step_count": 0,
   "plan_only": true,
-  "planned_step_count": 16,
+  "planned_step_count": 18,
   "schema_version": 1,
   "status": "planned",
-  "step_count": 16,
+  "step_count": 18,
   "steps": [
     {
       "command": "python scripts/audit_qwen3_moe_eval_bundle.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_eval_bundle_audit",
@@ -94,6 +94,16 @@
       "step": "build_unified_average_optimizer"
     },
     {
+      "command": "python scripts/build_average_method_gate_matrix.py --output-dir results/average_method_gate_matrix --optimizer-summary results/unified_average_optimizer/summary.json --optimizer-features results/unified_average_optimizer/mechanism_features.csv",
+      "duration_sec": 0.0,
+      "kind": "optimizer",
+      "returncode": null,
+      "status": "planned",
+      "stderr_tail": "",
+      "stdout_tail": "",
+      "step": "build_average_method_gate_matrix"
+    },
+    {
       "command": "python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke",
       "duration_sec": 0.0,
       "kind": "smoke",
@@ -162,6 +172,16 @@
       "stderr_tail": "",
       "stdout_tail": "",
       "step": "unified_average_optimizer_ledger_smoke"
+    },
+    {
+      "command": "python scripts/smoke_average_method_gate_matrix.py --optimizer-summary results/unified_average_optimizer/summary.json --method-gate-dir results/average_method_gate_matrix --output-dir results/average_method_gate_matrix_consistency_smoke",
+      "duration_sec": 0.0,
+      "kind": "smoke",
+      "returncode": null,
+      "status": "planned",
+      "stderr_tail": "",
+      "stdout_tail": "",
+      "step": "average_method_gate_matrix_consistency_smoke"
     },
     {
       "command": "python scripts/collect_results.py",

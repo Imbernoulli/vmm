@@ -1,23 +1,7 @@
 {
-  "candidate_method": "qwen3_moe_mechanistic_unified_candidate",
+  "candidate_method": "qwen3_moe_unified_mechanism_candidate",
   "changed_group_count": 0,
   "feedback_base_candidate_rows_considered": [
-    {
-      "method": "qwen3_moe_mechanistic_unified_candidate",
-      "selection_score": 1.6274803095454906,
-      "structural_frontier_member": true,
-      "structural_safety_score": 0.988643592739873,
-      "structurally_dominated": false,
-      "total_relative_delta_norm": 0.2382255365529426
-    },
-    {
-      "method": "qwen3_moe_subspace_scaled_candidate",
-      "selection_score": 1.6270249826489753,
-      "structural_frontier_member": true,
-      "structural_safety_score": 0.9892989752314326,
-      "structurally_dominated": false,
-      "total_relative_delta_norm": 0.2395294198409091
-    },
     {
       "method": "qwen3_moe_unified_mechanism_candidate",
       "selection_score": 0.6220610438210432,
@@ -27,16 +11,16 @@
       "total_relative_delta_norm": 0.2403784248994999
     }
   ],
-  "feedback_base_selection_reason": "selected highest-scoring known group-rule candidate using structural dominance; frontier=True, dominated=False",
+  "feedback_base_selection_reason": "selected highest-scoring known group-rule candidate using structural dominance; provisional feedback bases skipped until scored eval exists; frontier=False, dominated=True",
   "feedback_base_selection_status": "auto_selected",
-  "feedback_base_structural_frontier_member": true,
-  "feedback_base_structural_safety_score": 0.988643592739873,
-  "feedback_base_structurally_dominated": false,
-  "group_rules_source": "results/qwen3_moe_mechanistic_unified_candidate/mechanistic_group_rules.csv",
+  "feedback_base_structural_frontier_member": false,
+  "feedback_base_structural_safety_score": 0.974167520902644,
+  "feedback_base_structurally_dominated": true,
+  "group_rules_source": "results/qwen3_moe_unified_mechanism_candidate/unified_group_rules.csv",
   "groups_over_hard_cap_after_feedback": 0,
   "hard_cap": 0.65,
   "materialization_gate": "do_not_materialize_feedback_candidate_yet",
-  "max_feedback_expected_relative_delta": 0.6490000000000001,
+  "max_feedback_expected_relative_delta": 0.6438448490662684,
   "max_feedback_scale_delta": 0.0,
   "mean_feedback_scale_delta": 0.0,
   "min_feedback_scale_delta": 0.0,
@@ -53,12 +37,12 @@
   },
   "regression_task_count": 0,
   "requested_candidate_method": "auto",
-  "route_mass_weighted_nonbase_after": 117.2145397488703,
-  "route_mass_weighted_nonbase_before": 117.21453974887028,
-  "route_mass_weighted_nonbase_ratio": 1.0000000000000002,
+  "route_mass_weighted_nonbase_after": 118.74270651265624,
+  "route_mass_weighted_nonbase_before": 118.74270651265624,
+  "route_mass_weighted_nonbase_ratio": 1.0,
   "schema_version": 1,
   "scored_task_count": 0,
   "status": "awaiting_eval",
   "task_count": 4,
-  "writer_context_command_source": "results/qwen3_moe_mechanistic_unified_candidate/writer_command.txt"
+  "writer_context_command_source": "results/qwen3_moe_unified_mechanism_candidate/writer_command.txt"
 }

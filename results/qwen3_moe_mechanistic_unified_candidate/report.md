@@ -10,21 +10,21 @@
 
 - Status: `mechanistic_unified_candidate_ready`
 - Expert groups: `5243`
-- Selected candidate: `s0.04_b1.65_h0.75_i0.75`
+- Selected candidate: `s0.08_b1.65_h0.75_i0.75`
 - Search points: `144`
 - Nominal hard cap: `0.6500`
 - Materialization safety margin: `0.0010`
 - Effective solver hard cap: `0.6490`
-- Nonbase route-mass retention: `0.9621`
+- Nonbase route-mass retention: `0.9650`
 - Max predicted routed relative delta: `0.6490`
 - Hard-cap violations: `0`
-- Risk-weighted predicted delta: `0.2214`
-- Benefit-weighted scale: `0.9705`
-- Mean mechanistic loss proxy: `0.0122`
-- Mean scale: `0.9524`
-- High-benefit low-risk mean scale: `0.8615`
-- High-interference low-benefit mean scale: `1.0000`
-- High-subspace-conflict mean scale: `0.9194`
+- Risk-weighted predicted delta: `0.2304`
+- Benefit-weighted scale: `0.9756`
+- Mean mechanistic loss proxy: `0.0290`
+- Mean scale: `0.9621`
+- High-benefit low-risk mean scale: `0.8652`
+- High-interference low-benefit mean scale: `0.9665`
+- High-subspace-conflict mean scale: `0.9376`
 - Writer manifest validated: `True`
 - Writer manifest dry-run: `False`
 - Writer tensor rules / hits: `5243` / `15729`
@@ -40,29 +40,31 @@
 
 | candidate | pass cap | retention | max delta | risk delta | benefit scale | loss proxy | mean scale | objective |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| `s0.04_b1.65_h0.75_i0.75` | `True` | 0.9621 | 0.6490 | 0.2214 | 0.9705 | 0.0122 | 0.9524 | 0.1614 |
-| `s0.04_b1.65_h1.00_i0.75` | `True` | 0.9616 | 0.6490 | 0.2213 | 0.9702 | 0.0122 | 0.9521 | 0.1624 |
-| `s0.04_b1.65_h1.25_i0.75` | `True` | 0.9612 | 0.6490 | 0.2212 | 0.9699 | 0.0122 | 0.9519 | 0.1633 |
-| `s0.04_b1.40_h0.75_i0.75` | `True` | 0.9605 | 0.6490 | 0.2210 | 0.9690 | 0.0121 | 0.9512 | 0.1647 |
-| `s0.08_b1.65_h0.75_i0.75` | `True` | 0.9601 | 0.6490 | 0.2208 | 0.9681 | 0.0119 | 0.9475 | 0.1653 |
-| `s0.04_b1.40_h1.00_i0.75` | `True` | 0.9601 | 0.6490 | 0.2209 | 0.9687 | 0.0121 | 0.9510 | 0.1656 |
-| `s0.04_b1.40_h1.25_i0.75` | `True` | 0.9597 | 0.6490 | 0.2208 | 0.9684 | 0.0121 | 0.9507 | 0.1665 |
-| `s0.04_b1.65_h0.75_i1.00` | `True` | 0.9595 | 0.6490 | 0.2207 | 0.9678 | 0.0120 | 0.9499 | 0.1671 |
-| `s0.08_b1.65_h1.00_i0.75` | `True` | 0.9593 | 0.6490 | 0.2206 | 0.9675 | 0.0118 | 0.9469 | 0.1672 |
-| `s0.04_b1.65_h1.00_i1.00` | `True` | 0.9591 | 0.6490 | 0.2206 | 0.9676 | 0.0120 | 0.9497 | 0.1679 |
-| `s0.04_b1.15_h0.75_i0.75` | `True` | 0.9589 | 0.6490 | 0.2206 | 0.9674 | 0.0120 | 0.9500 | 0.1683 |
-| `s0.04_b1.65_h1.25_i1.00` | `True` | 0.9588 | 0.6490 | 0.2206 | 0.9673 | 0.0120 | 0.9495 | 0.1686 |
-| `s0.08_b1.65_h1.25_i0.75` | `True` | 0.9585 | 0.6490 | 0.2204 | 0.9669 | 0.0118 | 0.9464 | 0.1690 |
-| `s0.04_b1.15_h1.00_i0.75` | `True` | 0.9585 | 0.6490 | 0.2205 | 0.9671 | 0.0120 | 0.9497 | 0.1692 |
+| `s0.08_b1.65_h0.75_i0.75` | `True` | 0.9650 | 0.6490 | 0.2304 | 0.9756 | 0.0290 | 0.9621 | 0.1822 |
+| `s0.04_b1.40_h1.00_i1.00` | `True` | 0.9652 | 0.6490 | 0.2307 | 0.9757 | 0.0293 | 0.9657 | 0.1829 |
+| `s0.04_b1.40_h0.75_i1.00` | `True` | 0.9655 | 0.6490 | 0.2308 | 0.9760 | 0.0293 | 0.9659 | 0.1830 |
+| `s0.04_b1.15_h1.25_i0.75` | `True` | 0.9660 | 0.6456 | 0.2309 | 0.9768 | 0.0294 | 0.9668 | 0.1831 |
+| `s0.04_b1.40_h1.25_i1.00` | `True` | 0.9649 | 0.6481 | 0.2306 | 0.9755 | 0.0293 | 0.9655 | 0.1832 |
+| `s0.04_b1.65_h1.25_i1.00` | `True` | 0.9665 | 0.6490 | 0.2310 | 0.9771 | 0.0294 | 0.9666 | 0.1832 |
+| `s0.04_b1.15_h1.00_i0.75` | `True` | 0.9664 | 0.6479 | 0.2310 | 0.9770 | 0.0295 | 0.9670 | 0.1832 |
+| `s0.04_b1.65_h1.00_i1.00` | `True` | 0.9669 | 0.6490 | 0.2311 | 0.9774 | 0.0295 | 0.9668 | 0.1833 |
+| `s0.04_b1.15_h0.75_i0.75` | `True` | 0.9668 | 0.6490 | 0.2311 | 0.9774 | 0.0295 | 0.9672 | 0.1834 |
+| `s0.04_b1.65_h0.75_i1.00` | `True` | 0.9672 | 0.6490 | 0.2312 | 0.9776 | 0.0295 | 0.9671 | 0.1835 |
+| `s0.04_b0.90_h0.75_i0.75` | `True` | 0.9647 | 0.6465 | 0.2306 | 0.9753 | 0.0293 | 0.9658 | 0.1835 |
+| `s0.04_b1.40_h1.25_i0.75` | `True` | 0.9680 | 0.6490 | 0.2314 | 0.9787 | 0.0296 | 0.9681 | 0.1836 |
+| `s0.04_b1.65_h0.75_i1.25` | `True` | 0.9646 | 0.6490 | 0.2305 | 0.9750 | 0.0292 | 0.9649 | 0.1837 |
+| `s0.04_b1.40_h1.00_i0.75` | `True` | 0.9684 | 0.6490 | 0.2315 | 0.9790 | 0.0297 | 0.9684 | 0.1838 |
 
 ## Top Shrink Reasons
 
 | reason | groups | route mass | mean benefit | mean curvature | mean interference | mean scale |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| `balanced` | 4468 | 414.4203 | 0.2202 | 0.3682 | 0.2974 | 0.9588 |
-| `route_important_fragile_boundary` | 402 | 135.4564 | 0.4176 | 0.5058 | 0.4647 | 0.9709 |
-| `preserve_high_benefit_low_curvature` | 139 | 18.0120 | 0.7033 | 0.3880 | 0.2440 | 0.9966 |
-| `preserve_benefit_but_delta_cap_limited` | 234 | 8.1113 | 0.7126 | 0.4359 | 0.2461 | 0.7727 |
+| `balanced` | 4372 | 414.5307 | 0.2374 | 0.4319 | 0.3759 | 0.9707 |
+| `route_important_fragile_boundary` | 402 | 135.4564 | 0.4212 | 0.5842 | 0.5936 | 0.9799 |
+| `shrink_high_interference_low_benefit` | 200 | 9.8881 | 0.2537 | 0.5443 | 0.6710 | 0.9631 |
+| `preserve_high_benefit_low_curvature` | 58 | 8.5385 | 0.7204 | 0.4114 | 0.3274 | 0.9975 |
+| `shrink_curved_subspace_conflict` | 89 | 4.0721 | 0.6250 | 0.7280 | 0.5407 | 0.6590 |
+| `preserve_benefit_but_delta_cap_limited` | 122 | 3.5141 | 0.7090 | 0.4524 | 0.2073 | 0.7958 |
 
 ## Outputs
 

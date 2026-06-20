@@ -25,18 +25,21 @@ FEEDBACK_BASES = [
         "group_rules": "results/qwen3_moe_mechanistic_unified_candidate/mechanistic_group_rules.csv",
         "writer_command": "results/qwen3_moe_mechanistic_unified_candidate/writer_command.txt",
         "base_priority": 1.0,
+        "requires_scored_feedback": True,
     },
     {
         "method": "qwen3_moe_subspace_scaled_candidate",
         "group_rules": "results/qwen3_moe_expert_subspace_conflict_probe/subspace_adjusted_group_rules.csv",
         "writer_command": "results/qwen3_moe_expert_subspace_conflict_probe/writer_command.txt",
         "base_priority": 1.0,
+        "requires_scored_feedback": True,
     },
     {
         "method": "qwen3_moe_unified_mechanism_candidate",
         "group_rules": "results/qwen3_moe_unified_mechanism_candidate/unified_group_rules.csv",
         "writer_command": "results/qwen3_moe_unified_mechanism_candidate/writer_command.txt",
         "base_priority": 0.6,
+        "requires_scored_feedback": False,
     },
 ]
 
@@ -355,6 +358,10 @@ def known_feedback_base(method: str) -> dict[str, Any] | None:
     return None
 
 
+def has_scored_feedback(rows: dict[str, dict[str, Any]]) -> bool:
+    return any(bool(row.get("eval_usable", False)) for row in rows.values())
+
+
 def resolve_feedback_base(
     args: argparse.Namespace,
     rows: dict[str, dict[str, Any]],
@@ -385,10 +392,15 @@ def resolve_feedback_base(
         }
 
     candidates = []
+    scored_feedback_available = has_scored_feedback(rows)
     for base in FEEDBACK_BASES:
         method = str(base["method"])
         group_path = repo_path(base["group_rules"])
         writer_path = repo_path(base["writer_command"])
+        if bool(base.get("requires_scored_feedback")) and not (
+            scored_feedback_available or bool(args.allow_provisional_feedback_base)
+        ):
+            continue
         if method not in rows:
             continue
         if not group_path.exists() or not writer_path.exists():
@@ -448,10 +460,10 @@ def resolve_feedback_base(
             "candidate_rows_considered": [],
         }
     selected = max(candidates, key=lambda item: (item["selection_score"], item["base_priority"], item["method"]))
-    reason = (
-        "selected highest-scoring known group-rule candidate using structural dominance; "
-        f"frontier={selected['structural_frontier_member']}, dominated={selected['structurally_dominated']}"
-    )
+    reason = "selected highest-scoring known group-rule candidate using structural dominance"
+    if not scored_feedback_available and not bool(args.allow_provisional_feedback_base):
+        reason += "; provisional feedback bases skipped until scored eval exists"
+    reason += f"; frontier={selected['structural_frontier_member']}, dominated={selected['structurally_dominated']}"
     return {
         "candidate_method": selected["method"],
         "requested_candidate_method": requested,
@@ -1274,6 +1286,16 @@ def run_smoke(args: argparse.Namespace) -> None:
         },
     )
     auto_methods = {str(row["method"]) for row in auto_base["candidate_rows_considered"]}
+    provisional_args = argparse.Namespace(**vars(args))
+    provisional_args.allow_provisional_feedback_base = True
+    provisional_auto_base = resolve_feedback_base(
+        provisional_args,
+        {
+            "qwen3_moe_unified_mechanism_candidate": {},
+            "qwen3_moe_mechanistic_unified_candidate": {},
+            "qwen3_moe_subspace_scaled_candidate": {},
+        },
+    )
     matrix = pd.DataFrame(
         [
             {
@@ -1320,17 +1342,25 @@ def run_smoke(args: argparse.Namespace) -> None:
             },
             {
                 "case": "auto_feedback_base",
-                "assertion": "mechanistic_selected",
-                "expected": "qwen3_moe_mechanistic_unified_candidate",
+                "assertion": "stable_base_without_scored_eval",
+                "expected": "qwen3_moe_unified_mechanism_candidate",
                 "actual": str(auto_base["candidate_method"]),
-                "passed": str(auto_base["candidate_method"]) == "qwen3_moe_mechanistic_unified_candidate",
+                "passed": str(auto_base["candidate_method"]) == "qwen3_moe_unified_mechanism_candidate",
             },
             {
                 "case": "auto_feedback_base",
-                "assertion": "subspace_candidate_considered",
-                "expected": "True",
+                "assertion": "provisional_candidates_skipped_without_scores",
+                "expected": "False",
                 "actual": str("qwen3_moe_subspace_scaled_candidate" in auto_methods),
-                "passed": "qwen3_moe_subspace_scaled_candidate" in auto_methods,
+                "passed": "qwen3_moe_subspace_scaled_candidate" not in auto_methods,
+            },
+            {
+                "case": "auto_feedback_base",
+                "assertion": "provisional_override_can_select_mechanistic",
+                "expected": "qwen3_moe_mechanistic_unified_candidate",
+                "actual": str(provisional_auto_base["candidate_method"]),
+                "passed": str(provisional_auto_base["candidate_method"])
+                == "qwen3_moe_mechanistic_unified_candidate",
             },
         ]
     )
@@ -1409,6 +1439,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--pressure-scale", type=float, default=0.12)
     parser.add_argument("--max-restore-step", type=float, default=0.10)
     parser.add_argument("--max-shrink-step", type=float, default=0.12)
+    parser.add_argument(
+        "--allow-provisional-feedback-base",
+        action="store_true",
+        help="Allow auto feedback to use prior mechanistic/subspace outputs before scored eval exists.",
+    )
     parser.add_argument("--smoke-matrix", action="store_true")
     return parser.parse_args()
 
