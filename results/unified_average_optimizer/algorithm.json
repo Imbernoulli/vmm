@@ -440,25 +440,32 @@
       "step": 10
     },
     {
+      "condition": "direct router averaging is rejected, but local NLL and small generation probes show router calibration can repair dispatch; current safe-lambda proxy is 0.0197, and 2/4 route-KD caps are default-run candidates",
+      "operation": "restrict router calibration to margin-safe frontier probes",
+      "selected_action": "run default router-cal frontier candidates [cap001,margin_profile] only as ablations; stress caps stay non-default; blocker=baseline_eval,source_eval,candidate_eval,audit,group_validation,capacity_metrics",
+      "stage": "moe_router_calibration_frontier_gate",
+      "step": 11
+    },
+    {
       "condition": "router-only NLL probe improves the linear MoE merge, but Qwen3 baseline/source vLLM eval is not complete",
       "operation": "treat router calibration as a separately audited ablation",
       "selected_action": "nll_probe_worst_reduction=0.2214; generation_avg_gain=0.0333; generation_recovery_fraction=0.3243; confidence_positive_tasks=0/3; confidence_source_frontier_wins=0/3; awaiting_baseline_eval: Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps.",
       "stage": "moe_router_calibration_gate",
-      "step": 11
+      "step": 12
     },
     {
       "condition": "finite-budget vLLM eval can make point estimates differ by noise; after hard source/task/paired gates, structural frontier and safety are used only when the point leader's confidence interval overlaps the candidate band",
       "operation": "rank structural mechanisms only inside a downstream confidence tie band",
       "selected_action": "confidence_tie_band=True; rank_mode=None; point_leader=None; band_size=0; structural_frontier_eligible=0",
       "stage": "moe_statistical_selector_gate",
-      "step": 12
+      "step": 13
     },
     {
       "condition": "structural probes can rank risk, but source dominance and task regression need vLLM scores",
       "operation": "select only after audited downstream eval",
       "selected_action": "keep all registered Qwen3 candidates provisional until eval-bundle audit passes",
       "stage": "moe_candidate_gate",
-      "step": 13
+      "step": 14
     }
   ]
 }

@@ -294,6 +294,16 @@ def build_steps(args: argparse.Namespace) -> list[dict[str, Any]]:
             ],
         },
         {
+            "step": "build_router_calibration_frontier",
+            "kind": "gate",
+            "command": [
+                py,
+                "scripts/build_qwen3_moe_router_calibration_frontier.py",
+                "--output-dir",
+                str(args.router_calibration_frontier_dir),
+            ],
+        },
+        {
             "step": "build_unified_average_optimizer",
             "kind": "optimizer",
             "command": [
@@ -305,6 +315,8 @@ def build_steps(args: argparse.Namespace) -> list[dict[str, Any]]:
                 str(args.qwen_source_discovery_plan_dir / "summary.json"),
                 "--qwen-source-discovery-eval-plan",
                 str(args.qwen_source_discovery_eval_plan_dir / "summary.json"),
+                "--qwen3-router-calibration-frontier",
+                str(args.router_calibration_frontier_dir / "summary.json"),
             ],
         },
         {
@@ -506,6 +518,9 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
     qwen_source_discovery_eval_plan = read_json(
         repo_path(args.qwen_source_discovery_eval_plan_dir) / "summary.json"
     )
+    router_calibration_frontier = read_json(
+        repo_path(args.router_calibration_frontier_dir) / "summary.json"
+    )
     unified_optimizer = read_json(repo_path(args.unified_optimizer_dir) / "summary.json")
     unified_optimizer_smoke = read_json(repo_path(args.unified_optimizer_smoke_dir) / "summary.json")
     average_method_gate = read_json(repo_path(args.average_method_gate_dir) / "summary.json")
@@ -681,6 +696,25 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
         "qwen_source_discovery_eval_plan_tasks": ",".join(
             qwen_source_discovery_eval_plan.get("task_names") or []
         ),
+        "router_calibration_frontier_status": router_calibration_frontier.get("status"),
+        "router_calibration_frontier_default_candidates": router_calibration_frontier.get(
+            "default_candidate_count"
+        ),
+        "router_calibration_frontier_candidate_count": router_calibration_frontier.get(
+            "candidate_count"
+        ),
+        "router_calibration_frontier_recommended": ",".join(
+            router_calibration_frontier.get("recommended_default_candidates") or []
+        ),
+        "router_calibration_frontier_blocker": router_calibration_frontier.get(
+            "acceptance_blocker"
+        ),
+        "router_calibration_frontier_nll_signal": router_calibration_frontier.get(
+            "nll_worst_reduction_signal"
+        ),
+        "router_calibration_frontier_generation_signal": router_calibration_frontier.get(
+            "generation_avg_gain_signal"
+        ),
         "unified_optimizer_status": unified_optimizer.get("status"),
         "unified_optimizer_contract_status": unified_optimizer.get("contract_status"),
         "unified_optimizer_contract_passed": unified_optimizer.get("contract_passed_requirement_count"),
@@ -754,6 +788,7 @@ def build_report(summary: dict[str, Any]) -> str:
         f"- Average source-set optimizer: `{downstream.get('average_source_set_optimizer_top_gate', 'n/a')}` for `{downstream.get('average_source_set_optimizer_top_source_set', 'n/a')}` (gain `{downstream.get('average_source_set_optimizer_top_gain', 'n/a')}` vs interference budget `{downstream.get('average_source_set_optimizer_interference_budget', 'n/a')}`, surplus `{downstream.get('average_source_set_optimizer_top_surplus', 'n/a')}`, final-budget `{downstream.get('average_source_set_optimizer_final_budget_candidates', 'n/a')}`, probe-only `{downstream.get('average_source_set_optimizer_probe_only', 'n/a')}`)",
         f"- Qwen source discovery plan: `{downstream.get('qwen_source_discovery_plan_status', 'n/a')}` (top scenario `{downstream.get('qwen_source_discovery_top_scenario', 'n/a')}`, queue `{downstream.get('qwen_source_discovery_top_queue_item', 'n/a')}`, additional gain needed `{downstream.get('qwen_source_discovery_measured_additional_gain_needed', 'n/a')}`)",
         f"- Qwen source discovery eval plan: `{downstream.get('qwen_source_discovery_eval_plan_status', 'n/a')}` (`{downstream.get('qwen_source_discovery_eval_plan_job_count', 'n/a')}` jobs, top `{downstream.get('qwen_source_discovery_eval_plan_top_job', 'n/a')}`, tasks `{downstream.get('qwen_source_discovery_eval_plan_tasks', 'n/a')}`, task names `{downstream.get('qwen_source_discovery_eval_plan_task_status', 'n/a')}`)",
+        f"- Router calibration frontier: `{downstream.get('router_calibration_frontier_status', 'n/a')}` (`{downstream.get('router_calibration_frontier_default_candidates', 'n/a')}/{downstream.get('router_calibration_frontier_candidate_count', 'n/a')}` default, recommended `{downstream.get('router_calibration_frontier_recommended', 'n/a')}`, blocker `{downstream.get('router_calibration_frontier_blocker', 'n/a')}`, nll `{downstream.get('router_calibration_frontier_nll_signal', 'n/a')}`, generation `{downstream.get('router_calibration_frontier_generation_signal', 'n/a')}`)",
         f"- Unified average optimizer: `{downstream.get('unified_optimizer_status', 'n/a')}` (top next experiment `{downstream.get('unified_optimizer_top_experiment', 'n/a')}` / `{downstream.get('unified_optimizer_top_experiment_status', 'n/a')}`)",
         f"- Unified algorithm contract: `{downstream.get('unified_optimizer_contract_status', 'n/a')}` (`{downstream.get('unified_optimizer_contract_passed', 'n/a')}/{downstream.get('unified_optimizer_contract_requirements', 'n/a')}` passed, blocking `{downstream.get('unified_optimizer_contract_blocking', [])}`)",
         f"- Unified selector rank gate in optimizer: confidence band `{downstream.get('unified_optimizer_final_confidence_tie_band', 'n/a')}`, rank mode `{downstream.get('unified_optimizer_final_rank_mode', 'n/a')}`, band size `{downstream.get('unified_optimizer_final_rank_band_size', 'n/a')}`",
@@ -876,6 +911,11 @@ def parse_args() -> argparse.Namespace:
         "--qwen-source-discovery-eval-plan-dir",
         type=Path,
         default=Path("results/qwen_source_discovery_eval_plan"),
+    )
+    parser.add_argument(
+        "--router-calibration-frontier-dir",
+        type=Path,
+        default=Path("results/qwen3_moe_router_calibration_frontier"),
     )
     parser.add_argument(
         "--unified-optimizer-dir",

@@ -103,6 +103,16 @@
     "qwen3_mechanistic_to_subspace_routed_gt_065_reduction": 0,
     "qwen3_router_calibration_candidate_count": 4,
     "qwen3_router_calibration_eligible_candidates": 0,
+    "qwen3_router_calibration_frontier_blocker": "baseline_eval,source_eval,candidate_eval,audit,group_validation,capacity_metrics",
+    "qwen3_router_calibration_frontier_candidate_count": 4,
+    "qwen3_router_calibration_frontier_default_candidates": 2,
+    "qwen3_router_calibration_frontier_generation_signal": 0.03333333333333344,
+    "qwen3_router_calibration_frontier_nll_signal": 0.22142744874642561,
+    "qwen3_router_calibration_frontier_recommended": [
+      "cap001",
+      "margin_profile"
+    ],
+    "qwen3_router_calibration_frontier_status": "router_calibration_frontier_ready",
     "qwen3_router_calibration_nll_avg_reduction": 0.16095849526094863,
     "qwen3_router_calibration_nll_code_gap_to_best_source": -0.013927339347633183,
     "qwen3_router_calibration_nll_status": "router_calibration_improves_linear_merge_but_needs_downstream_gate",

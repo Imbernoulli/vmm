@@ -1,0 +1,26 @@
+[
+  {
+    "key": "harc",
+    "title": "When Model Merging Breaks Routing: Training-Free Calibration for MoE",
+    "url": "https://arxiv.org/abs/2606.03391",
+    "mechanism": "Direct router averaging can cross top-k dispatch boundaries; router movement should be a calibrated, margin-gated intervention."
+  },
+  {
+    "key": "router_kd_calibration",
+    "title": "Is Retraining-Free Enough? The Necessity of Router Calibration for Efficient MoE Compression",
+    "url": "https://arxiv.org/abs/2603.02217",
+    "mechanism": "After experts are edited or merged, router-expert mismatch is a separate failure mode; router-only KD is a small repair lever."
+  },
+  {
+    "key": "output_space_projection",
+    "title": "Model Merging by Output-Space Projection",
+    "url": "https://arxiv.org/abs/2605.29101",
+    "mechanism": "Output-space calibration is useful only when the local repair signal transfers to downstream held-out behavior."
+  },
+  {
+    "key": "model_soups",
+    "title": "Model soups: averaging weights of multiple fine-tuned models improves accuracy without increasing inference time",
+    "url": "https://arxiv.org/abs/2203.05482",
+    "mechanism": "Averaging is accepted only after validation, with source or baseline fallback kept in the candidate set."
+  }
+]

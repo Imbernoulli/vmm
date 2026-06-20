@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "status": "router_calibration_frontier_ready",
+  "candidate_count": 4,
+  "default_candidate_count": 2,
+  "stress_candidate_count": 2,
+  "recommended_default_candidates": [
+    "cap001",
+    "margin_profile"
+  ],
+  "safe_lambda_proxy": 0.019725152295719042,
+  "limit_with_tolerance": 0.020119655341633423,
+  "high_fragility_layer_count": 24,
+  "router_layer_count": 48,
+  "top_fragile_layer": 17,
+  "top_fragility_score": 0.7522782693160674,
+  "nll_worst_reduction_signal": 0.22142744874642561,
+  "nll_acceptance_decision": "mechanism_supported_but_do_not_accept_without_matched_vllm_eval",
+  "generation_avg_gain_signal": 0.03333333333333344,
+  "generation_gap_to_best_parent_signal": -0.06944444444444431,
+  "selection_status": "awaiting_baseline_eval",
+  "eligible_candidate_count": 0,
+  "active_candidate_count": 2,
+  "plan_pruned_candidate_count": 2,
+  "acceptance_blocker": "baseline_eval,source_eval,candidate_eval,audit,group_validation,capacity_metrics",
+  "algorithm_update": "route_kd_router_delta_is_active_probe_only; append to unified average only after matched vllm source-dominance and router-only audits pass",
+  "outputs": {
+    "frontier": "results/qwen3_moe_router_calibration_frontier/router_calibration_frontier.csv",
+    "contract": "results/qwen3_moe_router_calibration_frontier/router_calibration_contract.csv",
+    "literature": "results/qwen3_moe_router_calibration_frontier/literature_sources.json",
+    "summary": "results/qwen3_moe_router_calibration_frontier/summary.json",
+    "report": "results/qwen3_moe_router_calibration_frontier/report.md"
+  }
+}

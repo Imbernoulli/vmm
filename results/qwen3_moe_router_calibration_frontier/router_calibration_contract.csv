@@ -1,0 +1,6 @@
+requirement,mechanism,status,passed,observed,action
+direct_router_average_rejected,topk_boundary_stability,router_margin_fragility_rejects_direct_router_average,True,allowed_layers=0/48; min_safe_lambda=0.0197,freeze source-averaged router; only test calibrated router deltas
+safe_router_delta_frontier_exists,margin_capped_route_kd,job_ready_awaiting_gpu,True,default_run_candidates=2/4,run only cap001 and margin-profile by default; keep larger caps as stress ablations
+local_router_repair_signal,router_expert_mismatch,signal_present,True,nll_worst_reduction=0.2214; generation_avg_gain=0.0333,"treat router calibration as active repair lever, not final acceptance"
+matched_vllm_source_dominance_gate,selector_level_no_regression,awaiting_baseline_eval,False,baseline_eval=False; source_eval=False; eligible=0/4,"reject or wait until baseline, source endpoints, candidate eval, audit, and manifest gates pass"
+same_shape_router_only_delta,architecture_invariant,False,False,audit_completed=False; candidate_eval=False,"accept only audited router tensors; no expert, attention, embedding, config, or topology changes"

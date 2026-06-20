@@ -50,24 +50,57 @@ Answer: Each time 3*2=6 pages. Twice a week 6*2=12. Per year 12*52=624. #### 624
 """
 
 
-def extract_num(text):
+def _after_think(text):
+    # reasoning models emit <think>...</think> before the answer; keep the answer part
+    if "</think>" in text:
+        text = text.split("</think>")[-1]
+    return text
+
+
+def _last_num(text):
+    text = _after_think(text)
     if "####" in text:
-        text = text.split("####")[1]
+        text = text.split("####")[-1]
     nums = re.findall(r"-?\d[\d,]*\.?\d*", text)
-    return nums[0].replace(",", "").rstrip(".") if nums else None
+    return nums[-1].replace(",", "").rstrip(".") if nums else None  # LAST number = final answer
+
+
+def _gold_num(ans):
+    seg = ans.split("####")[-1] if "####" in ans else ans
+    nums = re.findall(r"-?\d[\d,]*\.?\d*", seg)
+    return nums[-1].replace(",", "").rstrip(".") if nums else None
+
+
+def _extract_letter(text):
+    text = _after_think(text)
+    m = re.search(r"\b([ABCD])\b", text)
+    return "ABCD".index(m.group(1)) if m else -1
 
 
 @torch.no_grad()
-def eval_gsm8k(model, tok, device, n):
+def generate(model, tok, device, user_msg, chat, max_new):
+    if chat and tok.chat_template:
+        ids = tok.apply_chat_template([{"role": "user", "content": user_msg}],
+                                      add_generation_prompt=True, return_tensors="pt").to(device)
+    else:
+        ids = tok(user_msg, return_tensors="pt").input_ids.to(device)
+    out = model.generate(ids, max_new_tokens=max_new, do_sample=False, pad_token_id=tok.eos_token_id)
+    return tok.decode(out[0, ids.shape[1]:], skip_special_tokens=True)
+
+
+@torch.no_grad()
+def eval_gsm8k(model, tok, device, n, chat, max_new):
     from datasets import load_dataset
 
     ds = load_dataset("openai/gsm8k", "main", split="test").select(range(n))
     ok = 0
     for ex in ds:
-        ids = tok(GSM8K_FEWSHOT + f"Question: {ex['question']}\nAnswer:", return_tensors="pt").input_ids.to(device)
-        out = model.generate(ids, max_new_tokens=256, do_sample=False, pad_token_id=tok.eos_token_id)
-        gen = tok.decode(out[0, ids.shape[1]:], skip_special_tokens=True).split("Question:")[0]
-        ok += int((extract_num(gen) or "X") == (extract_num(ex["answer"]) or "Y"))
+        if chat:
+            msg = f"Solve this math problem. End your reply with the final answer on its own line as '#### <number>'.\n\n{ex['question']}"
+            gen = generate(model, tok, device, msg, True, max_new)
+        else:
+            gen = generate(model, tok, device, GSM8K_FEWSHOT + f"Question: {ex['question']}\nAnswer:", False, 256).split("Question:")[0]
+        ok += int((_last_num(gen) or "X") == (_gold_num(ex["answer"]) or "Y"))
     return ok / max(n, 1)
 
 

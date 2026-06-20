@@ -3122,6 +3122,47 @@ def summarize_qwen3_moe_router_calibration_job() -> dict[str, Any]:
     }
 
 
+def summarize_qwen3_moe_router_calibration_frontier() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_router_calibration_frontier")
+    summary = read_json(root / "summary.json")
+    frontier = read_csv(root / "router_calibration_frontier.csv")
+    contract = read_csv(root / "router_calibration_contract.csv")
+    recommended = summary.get("recommended_default_candidates") or []
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "candidate_count": maybe_int(summary.get("candidate_count")),
+        "default_candidate_count": maybe_int(summary.get("default_candidate_count")),
+        "stress_candidate_count": maybe_int(summary.get("stress_candidate_count")),
+        "recommended_default_candidates": recommended,
+        "recommended_default_candidates_text": ",".join(str(item) for item in recommended),
+        "safe_lambda_proxy": maybe_float(summary.get("safe_lambda_proxy")),
+        "limit_with_tolerance": maybe_float(summary.get("limit_with_tolerance")),
+        "high_fragility_layer_count": maybe_int(summary.get("high_fragility_layer_count")),
+        "router_layer_count": maybe_int(summary.get("router_layer_count")),
+        "top_fragile_layer": maybe_int(summary.get("top_fragile_layer")),
+        "top_fragility_score": maybe_float(summary.get("top_fragility_score")),
+        "nll_worst_reduction_signal": maybe_float(summary.get("nll_worst_reduction_signal")),
+        "generation_avg_gain_signal": maybe_float(summary.get("generation_avg_gain_signal")),
+        "generation_gap_to_best_parent_signal": maybe_float(
+            summary.get("generation_gap_to_best_parent_signal")
+        ),
+        "selection_status": summary.get("selection_status"),
+        "eligible_candidate_count": maybe_int(summary.get("eligible_candidate_count")),
+        "active_candidate_count": maybe_int(summary.get("active_candidate_count")),
+        "plan_pruned_candidate_count": maybe_int(summary.get("plan_pruned_candidate_count")),
+        "acceptance_blocker": summary.get("acceptance_blocker"),
+        "algorithm_update": summary.get("algorithm_update"),
+        "frontier_rows": [clean_row(row) for _, row in frontier.iterrows()],
+        "contract_rows": [clean_row(row) for _, row in contract.iterrows()],
+        "report": rel(root / "report.md"),
+        "frontier": rel(root / "router_calibration_frontier.csv"),
+        "contract": rel(root / "router_calibration_contract.csv"),
+        "literature_sources": rel(root / "literature_sources.json"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_qwen3_moe_router_calibration_selection() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_router_calibration_selection")
     return summarize_qwen3_moe_router_calibration_selection_dir(root)
@@ -5319,6 +5360,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/qwen3_moe_router_calibration_selection/report.md accepts a router-calibrated cap only when matched vLLM eval, router-only tensor audit, top-k margin cap compliance, and source/baseline dominance gates pass.",
         },
         {
+            "item": "Qwen3 MoE router calibration frontier",
+            "status": "complete",
+            "evidence": "results/qwen3_moe_router_calibration_frontier/report.md turns HARC/Router-KD evidence into a margin-safe router-calibration frontier: cap001 and margin_profile are default probes, larger caps remain stress ablations.",
+        },
+        {
             "item": "Qwen3 MoE trust-region cap-law search",
             "status": "complete",
             "evidence": "results/qwen3_moe_trust_region_cap_search/report.md searches interpretable expert cap laws over real Qwen3 route-mass, risk-flag, and safetensors-delta probes and emits writer-ready next-candidate rules.",
@@ -5471,6 +5517,7 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_router_margin_fragility": summarize_qwen3_moe_router_margin_fragility(),
         "qwen3_moe_router_calibration_nll_probe": summarize_qwen3_moe_router_calibration_nll_probe(),
         "qwen3_moe_router_calibration_job": summarize_qwen3_moe_router_calibration_job(),
+        "qwen3_moe_router_calibration_frontier": summarize_qwen3_moe_router_calibration_frontier(),
         "qwen3_moe_router_calibration_selection": summarize_qwen3_moe_router_calibration_selection(),
         "qwen3_moe_router_calibration_row_validation_negative_smoke": (
             summarize_qwen3_moe_router_calibration_row_validation_negative_smoke()
@@ -5629,6 +5676,7 @@ def build_summary() -> dict[str, Any]:
             "python scripts/build_qwen3_moe_router_margin_fragility.py --output-dir results/qwen3_moe_router_margin_fragility",
             "python scripts/build_qwen3_moe_router_calibration_nll_probe.py --output-dir results/qwen3_moe_router_calibration_nll_probe",
             "python scripts/build_qwen3_moe_router_calibration_job.py --output-dir results/qwen3_moe_router_calibration_job",
+            "python scripts/build_qwen3_moe_router_calibration_frontier.py --output-dir results/qwen3_moe_router_calibration_frontier",
             "python scripts/select_qwen3_moe_router_calibration_result.py --output-dir results/qwen3_moe_router_calibration_selection",
             "python scripts/select_qwen3_moe_router_calibration_result.py --smoke --output-dir results/qwen3_moe_router_calibration_selection_smoke",
             "python scripts/select_qwen3_moe_router_calibration_result.py --row-validation-negative-smoke --output-dir results/qwen3_moe_router_calibration_selection_row_validation_negative_smoke",
@@ -5789,6 +5837,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_router_margin_fragility = exp["qwen3_moe_router_margin_fragility"]
     qwen3_moe_router_calibration_nll_probe = exp["qwen3_moe_router_calibration_nll_probe"]
     qwen3_moe_router_calibration_job = exp["qwen3_moe_router_calibration_job"]
+    qwen3_moe_router_calibration_frontier = exp["qwen3_moe_router_calibration_frontier"]
     qwen3_moe_router_calibration_selection = exp["qwen3_moe_router_calibration_selection"]
     qwen3_moe_router_calibration_row_validation_negative_smoke = exp[
         "qwen3_moe_router_calibration_row_validation_negative_smoke"
@@ -7169,6 +7218,24 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_router_calibration_job['student_exists']} / "
                 f"{qwen3_moe_router_calibration_job['teacher_exists']} / "
                 f"{qwen3_moe_router_calibration_job['prompts_exists']} |"
+            ),
+            (
+                "| Qwen3 MoE router calibration frontier | status / default / stress | "
+                f"{qwen3_moe_router_calibration_frontier['status']} / "
+                f"{qwen3_moe_router_calibration_frontier['default_candidate_count']}"
+                f"/{qwen3_moe_router_calibration_frontier['candidate_count']} / "
+                f"{qwen3_moe_router_calibration_frontier['stress_candidate_count']} |"
+            ),
+            (
+                "| Qwen3 MoE router calibration frontier | recommended / blocker | "
+                f"{qwen3_moe_router_calibration_frontier['recommended_default_candidates_text']} / "
+                f"{qwen3_moe_router_calibration_frontier['acceptance_blocker']} |"
+            ),
+            (
+                "| Qwen3 MoE router calibration frontier | safe lambda / nll signal / generation signal | "
+                f"{fmt(qwen3_moe_router_calibration_frontier['safe_lambda_proxy'])} / "
+                f"{fmt(qwen3_moe_router_calibration_frontier['nll_worst_reduction_signal'])} / "
+                f"{fmt(qwen3_moe_router_calibration_frontier['generation_avg_gain_signal'])} |"
             ),
             (
                 "| Qwen3 MoE router calibration selector | status / selected / eligible | "

@@ -245,6 +245,7 @@ def moe_feature_rows(
     qwen3_average_source_set_optimizer: dict[str, Any],
     qwen_source_discovery_plan: dict[str, Any],
     qwen_source_discovery_eval_plan: dict[str, Any],
+    qwen3_router_calibration_frontier: dict[str, Any],
 ) -> list[dict[str, Any]]:
     selection = final_selection.get("current_selection") or {}
     router_selection = router_calibration.get("current_selection") or {}
@@ -609,6 +610,23 @@ def moe_feature_rows(
         },
         {
             "domain": "moe",
+            "probe": "qwen3_router_calibration_frontier",
+            "value": qwen3_router_calibration_frontier.get("default_candidate_count"),
+            "threshold": 1,
+            "decision_signal": "router_calibration_is_margin_frontier_not_default_router_average",
+            "evidence": (
+                f"status = {qwen3_router_calibration_frontier.get('status')}; "
+                f"default candidates = {qwen3_router_calibration_frontier.get('default_candidate_count')}/"
+                f"{qwen3_router_calibration_frontier.get('candidate_count')}; "
+                f"recommended = {qwen3_router_calibration_frontier.get('recommended_default_candidates')}; "
+                f"safe lambda = {fmt(qwen3_router_calibration_frontier.get('safe_lambda_proxy'))}; "
+                f"nll signal = {fmt(qwen3_router_calibration_frontier.get('nll_worst_reduction_signal'))}; "
+                f"generation signal = {fmt(qwen3_router_calibration_frontier.get('generation_avg_gain_signal'))}; "
+                f"blocker = {qwen3_router_calibration_frontier.get('acceptance_blocker')}"
+            ),
+        },
+        {
+            "domain": "moe",
             "probe": "qwen3_router_calibration_gate",
             "value": router_selection.get("eligible_candidate_count"),
             "threshold": router_selection.get("candidate_count"),
@@ -669,6 +687,7 @@ def build_decisions(
     qwen3_router_coupled_retention_frontier: dict[str, Any],
     qwen3_source_set_complementarity: dict[str, Any],
     qwen3_average_source_set_optimizer: dict[str, Any],
+    qwen3_router_calibration_frontier: dict[str, Any],
 ) -> pd.DataFrame:
     dense_config = ((dense_selector.get("results") or {}).get("unified") or {}).get("config") or {}
     final_current = final_selection.get("current_selection") or {}
@@ -676,6 +695,9 @@ def build_decisions(
     constrained_router = qwen3_router_coupled_retention_frontier.get("constrained") or {}
     stress_router = qwen3_router_coupled_retention_frontier.get("stress") or {}
     top_source_set = qwen3_average_source_set_optimizer.get("top_source_set") or {}
+    router_frontier_recommended = ",".join(
+        str(item) for item in (qwen3_router_calibration_frontier.get("recommended_default_candidates") or [])
+    )
     interpolation_gap = None
     if qwen3_moe_interpolation.get("best_interior_worst") is not None and qwen3_moe_interpolation.get(
         "endpoint_best_worst"
@@ -832,6 +854,23 @@ def build_decisions(
             ),
             "why_it_should_improve": "It keeps useful Coder-route mass while shrinking high-risk routed expert deltas and local subspace conflicts instead of using one global coefficient.",
             "same_shape_invariant": "only routed expert tensor values change; router, attention, embeddings, norms, names, and shapes stay fixed",
+        },
+        {
+            "stage": "moe_router_calibration_frontier_gate",
+            "operation": "restrict router calibration to margin-safe frontier probes",
+            "condition": (
+                "direct router averaging is rejected, but local NLL and small generation probes show router "
+                "calibration can repair dispatch; current safe-lambda proxy is "
+                f"{fmt(qwen3_router_calibration_frontier.get('safe_lambda_proxy'))}, and "
+                f"{qwen3_router_calibration_frontier.get('default_candidate_count')}/"
+                f"{qwen3_router_calibration_frontier.get('candidate_count')} route-KD caps are default-run candidates"
+            ),
+            "selected_action": (
+                f"run default router-cal frontier candidates [{router_frontier_recommended}] only as ablations; "
+                f"stress caps stay non-default; blocker={qwen3_router_calibration_frontier.get('acceptance_blocker')}"
+            ),
+            "why_it_should_improve": "It turns router calibration into a bounded same-shape repair test instead of reintroducing unsafe direct router averaging.",
+            "same_shape_invariant": "accepted router-cal variants may only add audited same-shape router tensors after matched vLLM source-dominance gates pass",
         },
         {
             "stage": "moe_router_calibration_gate",
@@ -2030,6 +2069,7 @@ def build_report(
         f"- Qwen3 source-set surplus: top `{moe['qwen3_source_set_top_source_set']}` gate `{moe['qwen3_source_set_top_optimizer_gate']}`，frontier avg gain `{fmt(moe['qwen3_source_set_top_frontier_avg_gain'])}` vs interference budget `{fmt(moe['qwen3_source_set_interference_budget'])}`，surplus `{fmt(moe['qwen3_source_set_top_surplus_vs_interference'])}`，weights `{moe['qwen3_source_set_top_source_weights']}`。",
         f"- Qwen source discovery: `{moe['qwen_source_discovery_status']}`，top scenario `{moe['qwen_source_discovery_top_scenario']}`，top queue `{moe['qwen_source_discovery_top_queue_item']}`，additional frontier avg gain needed `{fmt(moe['qwen_source_discovery_measured_additional_frontier_avg_gain_needed'])}`。",
         f"- Qwen source discovery eval: `{moe['qwen_source_discovery_eval_status']}`，jobs `{moe['qwen_source_discovery_eval_job_count']}`，top job `{moe['qwen_source_discovery_eval_top_job']}`，task names `{moe['qwen_source_discovery_eval_task_names']}`，compatibility `{moe['qwen_source_discovery_eval_task_name_status']}`。",
+        f"- Qwen3 router calibration frontier: `{moe['qwen3_router_calibration_frontier_status']}`，default `{moe['qwen3_router_calibration_frontier_default_candidates']}/{moe['qwen3_router_calibration_frontier_candidate_count']}`，recommended `{moe['qwen3_router_calibration_frontier_recommended']}`，blocker `{moe['qwen3_router_calibration_frontier_blocker']}`，nll `{fmt(moe['qwen3_router_calibration_frontier_nll_signal'])}`，generation `{fmt(moe['qwen3_router_calibration_frontier_generation_signal'])}`。",
         f"- Qwen3 router calibration: `{moe['qwen3_router_calibration_status']}`。",
         f"- Qwen3 final selection: `{moe['qwen3_final_selection_status']}`，eligible `{moe['qwen3_eligible_candidates']}/{moe['qwen3_candidate_count']}`。",
         f"- Qwen3 final selector rank gate: confidence band `{moe['qwen3_final_confidence_tie_band']}`，rank mode `{moe['qwen3_final_selection_rank_mode']}`，band size `{moe['qwen3_final_selection_rank_band_size']}`，point leader `{moe['qwen3_final_selection_point_leader_method']}`。",
@@ -2170,6 +2210,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
     qwen3_average_source_set_optimizer = read_json(args.qwen3_average_source_set_optimizer)
     qwen_source_discovery_plan = read_json(args.qwen_source_discovery_plan)
     qwen_source_discovery_eval_plan = read_json(args.qwen_source_discovery_eval_plan)
+    qwen3_router_calibration_frontier = read_json(args.qwen3_router_calibration_frontier)
 
     feature_rows = dense_feature_rows(curvature, dense_selector, dense_lambda, gen_eval)
     feature_rows.extend(
@@ -2196,6 +2237,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
             qwen3_average_source_set_optimizer,
             qwen_source_discovery_plan,
             qwen_source_discovery_eval_plan,
+            qwen3_router_calibration_frontier,
         )
     )
     features = pd.DataFrame(feature_rows)
@@ -2218,6 +2260,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         qwen3_router_coupled_retention_frontier,
         qwen3_source_set_complementarity,
         qwen3_average_source_set_optimizer,
+        qwen3_router_calibration_frontier,
     )
 
     dense_results = dense_selector.get("results") or {}
@@ -2496,6 +2539,27 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
             "qwen_source_discovery_eval_task_names": qwen_source_discovery_eval_plan.get(
                 "task_names"
             ),
+            "qwen3_router_calibration_frontier_status": qwen3_router_calibration_frontier.get(
+                "status"
+            ),
+            "qwen3_router_calibration_frontier_default_candidates": qwen3_router_calibration_frontier.get(
+                "default_candidate_count"
+            ),
+            "qwen3_router_calibration_frontier_candidate_count": qwen3_router_calibration_frontier.get(
+                "candidate_count"
+            ),
+            "qwen3_router_calibration_frontier_recommended": qwen3_router_calibration_frontier.get(
+                "recommended_default_candidates"
+            ),
+            "qwen3_router_calibration_frontier_blocker": qwen3_router_calibration_frontier.get(
+                "acceptance_blocker"
+            ),
+            "qwen3_router_calibration_frontier_nll_signal": fnum(
+                qwen3_router_calibration_frontier.get("nll_worst_reduction_signal")
+            ),
+            "qwen3_router_calibration_frontier_generation_signal": fnum(
+                qwen3_router_calibration_frontier.get("generation_avg_gain_signal")
+            ),
             "qwen3_layer_chunk_to_unified_relative_norm_reduction": fnum(
                 delta_frontier.get("layer_chunk_to_unified_relative_norm_reduction")
             ),
@@ -2732,6 +2796,11 @@ def parse_args() -> argparse.Namespace:
         "--qwen-source-discovery-eval-plan",
         type=Path,
         default=Path("results/qwen_source_discovery_eval_plan/summary.json"),
+    )
+    parser.add_argument(
+        "--qwen3-router-calibration-frontier",
+        type=Path,
+        default=Path("results/qwen3_moe_router_calibration_frontier/summary.json"),
     )
     parser.add_argument(
         "--qwen3-router-margin-fragility",
