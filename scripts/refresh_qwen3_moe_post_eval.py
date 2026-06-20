@@ -835,6 +835,24 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
         "qwen_source_discovery_measured_additional_gain_needed": qwen_source_discovery_plan.get(
             "measured_additional_frontier_avg_gain_needed"
         ),
+        "qwen_source_discovery_task_gap_targets": qwen_source_discovery_plan.get(
+            "task_gap_target_count"
+        ),
+        "qwen_source_discovery_task_gap_blockers": qwen_source_discovery_plan.get(
+            "task_gap_blocker_count"
+        ),
+        "qwen_source_discovery_task_gap_tasks": qwen_source_discovery_plan.get(
+            "task_gap_tasks"
+        ),
+        "qwen_source_discovery_top_task_gap_task": qwen_source_discovery_plan.get(
+            "top_task_gap_task"
+        ),
+        "qwen_source_discovery_top_task_gap_status": qwen_source_discovery_plan.get(
+            "top_task_gap_status"
+        ),
+        "qwen_source_discovery_top_task_gap_additional_gain_needed": qwen_source_discovery_plan.get(
+            "top_task_gap_additional_gain_needed"
+        ),
         "qwen_source_discovery_eval_plan_status": qwen_source_discovery_eval_plan.get("status"),
         "qwen_source_discovery_eval_plan_job_count": qwen_source_discovery_eval_plan.get(
             "eval_job_count"
@@ -1065,7 +1083,7 @@ def build_report(summary: dict[str, Any]) -> str:
         f"- Router-coupled retention frontier: `{downstream.get('router_coupled_frontier_gate', 'n/a')}` (`effect_fraction={downstream.get('router_coupled_frontier_effect_fraction', 'n/a')}`, candidates `{downstream.get('router_coupled_frontier_default_gate_candidates', 'n/a')}/{downstream.get('router_coupled_frontier_candidate_count', 'n/a')}` pass default gate)",
         f"- Source-set complementarity: `{downstream.get('source_set_complementarity_current_gate', 'n/a')}` (dominant `{downstream.get('source_set_complementarity_current_dominant_source', 'n/a')}`, frontier avg gain `{downstream.get('source_set_complementarity_frontier_avg_gain', 'n/a')}`, best observed gap `{downstream.get('source_set_complementarity_best_observed_gap', 'n/a')}`, complementary sets `{downstream.get('source_set_complementarity_complementary_count', 'n/a')}`)",
         f"- Average source-set optimizer: `{downstream.get('average_source_set_optimizer_top_gate', 'n/a')}` for `{downstream.get('average_source_set_optimizer_top_source_set', 'n/a')}` (gain `{downstream.get('average_source_set_optimizer_top_gain', 'n/a')}` vs interference budget `{downstream.get('average_source_set_optimizer_interference_budget', 'n/a')}`, surplus `{downstream.get('average_source_set_optimizer_top_surplus', 'n/a')}`, final-budget `{downstream.get('average_source_set_optimizer_final_budget_candidates', 'n/a')}`, probe-only `{downstream.get('average_source_set_optimizer_probe_only', 'n/a')}`)",
-        f"- Qwen source discovery plan: `{downstream.get('qwen_source_discovery_plan_status', 'n/a')}` (top scenario `{downstream.get('qwen_source_discovery_top_scenario', 'n/a')}`, queue `{downstream.get('qwen_source_discovery_top_queue_item', 'n/a')}`, additional gain needed `{downstream.get('qwen_source_discovery_measured_additional_gain_needed', 'n/a')}`)",
+        f"- Qwen source discovery plan: `{downstream.get('qwen_source_discovery_plan_status', 'n/a')}` (top scenario `{downstream.get('qwen_source_discovery_top_scenario', 'n/a')}`, queue `{downstream.get('qwen_source_discovery_top_queue_item', 'n/a')}`, additional gain needed `{downstream.get('qwen_source_discovery_measured_additional_gain_needed', 'n/a')}`, task blockers `{downstream.get('qwen_source_discovery_task_gap_tasks', 'n/a')}`, top task gap `{downstream.get('qwen_source_discovery_top_task_gap_task', 'n/a')}` / `{downstream.get('qwen_source_discovery_top_task_gap_status', 'n/a')}` needs `{downstream.get('qwen_source_discovery_top_task_gap_additional_gain_needed', 'n/a')}`)",
         f"- Qwen source discovery eval plan: `{downstream.get('qwen_source_discovery_eval_plan_status', 'n/a')}` (`{downstream.get('qwen_source_discovery_eval_plan_job_count', 'n/a')}` jobs, top `{downstream.get('qwen_source_discovery_eval_plan_top_job', 'n/a')}`, tasks `{downstream.get('qwen_source_discovery_eval_plan_tasks', 'n/a')}`, task names `{downstream.get('qwen_source_discovery_eval_plan_task_status', 'n/a')}`)",
         f"- Qwen source discovery served-model preflight: `{downstream.get('qwen_source_discovery_served_preflight_status', 'n/a')}` (endpoint `{downstream.get('qwen_source_discovery_served_preflight_endpoint', 'n/a')}`, required `{downstream.get('qwen_source_discovery_served_preflight_required', 'n/a')}`, missing `{downstream.get('qwen_source_discovery_served_preflight_missing', 'n/a')}`, manifests `{downstream.get('qwen_source_discovery_served_preflight_ready_manifests', 'n/a')}/{downstream.get('qwen_source_discovery_served_preflight_manifests', 'n/a')}`, blocker `{downstream.get('qwen_source_discovery_served_preflight_blocker', 'n/a')}`)",
         f"- Qwen source frontier eval feedback: `{downstream.get('qwen_source_frontier_eval_feedback_status', 'n/a')}` (scored `{downstream.get('qwen_source_frontier_eval_feedback_scored', 'n/a')}/{downstream.get('qwen_source_frontier_eval_feedback_jobs', 'n/a')}`, final candidates `{downstream.get('qwen_source_frontier_eval_feedback_final_candidates', 'n/a')}`, probe-only `{downstream.get('qwen_source_frontier_eval_feedback_probe_only', 'n/a')}`, top `{downstream.get('qwen_source_frontier_eval_feedback_top_job', 'n/a')}` / `{downstream.get('qwen_source_frontier_eval_feedback_top_gate', 'n/a')}`, surplus `{downstream.get('qwen_source_frontier_eval_feedback_top_surplus', 'n/a')}`, blocker `{downstream.get('qwen_source_frontier_eval_feedback_blocker', 'n/a')}`)",

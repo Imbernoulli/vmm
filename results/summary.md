@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-20T16:48:27.986813+00:00`
+Generated at: `2026-06-20T16:59:09.767951+00:00`
 
 ## Coverage
 
@@ -170,6 +170,7 @@ Complete: `106`; partial: `1`; missing: `0`.
 | Qwen3 average source-set optimizer | task surplus-positive / no-gain / best task gain | 0/3 / 2/3 / mmlu 0.025 |
 | Qwen source discovery plan | top scenario / action | dense_7b_general_code_math_reasoning / run_endpoint_eval_plus_connectivity_probe_then_surplus_gate |
 | Qwen source discovery plan | measured set / additional avg gain needed / top queue | coder+thinking / 0.061 / measured_coder_thinking_endpoint_expansion |
+| Qwen source discovery plan | task blockers / top task gap | 3 / gsm8k no_task_frontier_gain 0.069 |
 | Qwen source discovery eval plan | jobs / top job / tasks | 4 / measured_coder_thinking_source_frontier / mmlu,gsm8k,humaneval_compile |
 | Qwen source discovery eval plan | task-name compatibility / task names | passed_humaneval_compile_task_name / ['gsm8k', 'humaneval_compile', 'mmlu', 'safety'] |
 | Qwen source discovery served-model preflight | status / endpoint / missing | static_preflight_ready_waiting_for_endpoint_model_list / not_requested / 0 |

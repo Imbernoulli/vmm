@@ -21,7 +21,7 @@
 - Router-coupled retention frontier: `n/a` (`effect_fraction=n/a`, candidates `n/a/n/a` pass default gate)
 - Source-set complementarity: `n/a` (dominant `n/a`, frontier avg gain `n/a`, best observed gap `n/a`, complementary sets `n/a`)
 - Average source-set optimizer: `n/a` for `n/a` (gain `n/a` vs interference budget `n/a`, surplus `n/a`, final-budget `n/a`, probe-only `n/a`)
-- Qwen source discovery plan: `n/a` (top scenario `n/a`, queue `n/a`, additional gain needed `n/a`)
+- Qwen source discovery plan: `n/a` (top scenario `n/a`, queue `n/a`, additional gain needed `n/a`, task blockers `n/a`, top task gap `n/a` / `n/a` needs `n/a`)
 - Qwen source discovery eval plan: `n/a` (`n/a` jobs, top `n/a`, tasks `n/a`, task names `n/a`)
 - Qwen source discovery served-model preflight: `n/a` (endpoint `n/a`, required `n/a`, missing `n/a`, manifests `n/a/n/a`, blocker `n/a`)
 - Qwen source frontier eval feedback: `n/a` (scored `n/a/n/a`, final candidates `n/a`, probe-only `n/a`, top `n/a` / `n/a`, surplus `n/a`, blocker `n/a`)

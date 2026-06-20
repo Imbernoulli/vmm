@@ -597,7 +597,11 @@ def moe_feature_rows(
                 f"top scenario = "
                 f"{(qwen_source_discovery_plan.get('top_scenario') or {}).get('scenario_id')}; "
                 f"top queue = "
-                f"{(qwen_source_discovery_plan.get('top_queue_item') or {}).get('queue_item')}"
+                f"{(qwen_source_discovery_plan.get('top_queue_item') or {}).get('queue_item')}; "
+                f"task blockers = {qwen_source_discovery_plan.get('task_gap_tasks')}; "
+                f"top task gap = {qwen_source_discovery_plan.get('top_task_gap_task')} "
+                f"{qwen_source_discovery_plan.get('top_task_gap_status')} needs "
+                f"{fmt(qwen_source_discovery_plan.get('top_task_gap_additional_gain_needed'))}"
             ),
         },
         {
@@ -2123,7 +2127,7 @@ def build_report(
         f"- Qwen3 generation confidence: positive tasks vs naive `{moe['qwen3_generation_routercal_positive_tasks_vs_naive']}/{moe['qwen3_generation_confidence_task_count']}`，confident positives `{moe['qwen3_generation_routercal_confident_positive_tasks']}/{moe['qwen3_generation_confidence_task_count']}`，confident source-frontier wins `{moe['qwen3_generation_routercal_confident_source_frontier_wins']}/{moe['qwen3_generation_confidence_task_count']}`；avg gain interval `[{fmt(moe['qwen3_generation_routercal_avg_gain_lower'])}, {fmt(moe['qwen3_generation_routercal_avg_gain_upper'])}]`。",
         f"- Qwen3 source-set complementarity: `{moe['qwen3_source_set_current']}` gate `{moe['qwen3_source_set_current_gate']}`，dominant `{moe['qwen3_source_set_current_dominant_source']}`，frontier avg gain `{fmt(moe['qwen3_source_set_current_frontier_avg_gain'])}`，best observed merge gap `{fmt(moe['qwen3_source_set_current_best_observed_avg_gap'])}`。",
         f"- Qwen3 source-set surplus: top `{moe['qwen3_source_set_top_source_set']}` gate `{moe['qwen3_source_set_top_optimizer_gate']}`，frontier avg gain `{fmt(moe['qwen3_source_set_top_frontier_avg_gain'])}` vs interference budget `{fmt(moe['qwen3_source_set_interference_budget'])}`，surplus `{fmt(moe['qwen3_source_set_top_surplus_vs_interference'])}`；task surplus-positive `{moe['qwen3_source_set_top_task_surplus_positive_count']}/{moe['qwen3_source_set_task_count']}`，no-gain `{moe['qwen3_source_set_top_no_gain_task_count']}/{moe['qwen3_source_set_task_count']}`，best task `{moe['qwen3_source_set_top_best_task_gain_task']}` gain `{fmt(moe['qwen3_source_set_top_best_task_gain'])}`，weights `{moe['qwen3_source_set_top_source_weights']}`。",
-        f"- Qwen source discovery: `{moe['qwen_source_discovery_status']}`，top scenario `{moe['qwen_source_discovery_top_scenario']}`，top queue `{moe['qwen_source_discovery_top_queue_item']}`，additional frontier avg gain needed `{fmt(moe['qwen_source_discovery_measured_additional_frontier_avg_gain_needed'])}`。",
+        f"- Qwen source discovery: `{moe['qwen_source_discovery_status']}`，top scenario `{moe['qwen_source_discovery_top_scenario']}`，top queue `{moe['qwen_source_discovery_top_queue_item']}`，additional frontier avg gain needed `{fmt(moe['qwen_source_discovery_measured_additional_frontier_avg_gain_needed'])}`；task blockers `{moe['qwen_source_discovery_task_gap_tasks']}`，top task gap `{moe['qwen_source_discovery_top_task_gap_task']}` / `{moe['qwen_source_discovery_top_task_gap_status']}` needs `{fmt(moe['qwen_source_discovery_top_task_gap_additional_gain_needed'])}`。",
         f"- Qwen source discovery eval: `{moe['qwen_source_discovery_eval_status']}`，jobs `{moe['qwen_source_discovery_eval_job_count']}`，top job `{moe['qwen_source_discovery_eval_top_job']}`，task names `{moe['qwen_source_discovery_eval_task_names']}`，compatibility `{moe['qwen_source_discovery_eval_task_name_status']}`。",
         f"- Qwen source frontier eval feedback: `{moe['qwen_source_frontier_eval_feedback_status']}`，scored `{moe['qwen_source_frontier_eval_feedback_scored']}/{moe['qwen_source_frontier_eval_feedback_jobs']}`，final `{moe['qwen_source_frontier_eval_feedback_final_candidates']}`，probe-only `{moe['qwen_source_frontier_eval_feedback_probe_only']}`，top `{moe['qwen_source_frontier_eval_feedback_top_job']}` gate `{moe['qwen_source_frontier_eval_feedback_top_gate']}`，surplus `{fmt(moe['qwen_source_frontier_eval_feedback_top_surplus'])}`，blocker `{moe['qwen_source_frontier_eval_feedback_blocker']}`。",
         f"- Qwen3 router calibration frontier: `{moe['qwen3_router_calibration_frontier_status']}`，default `{moe['qwen3_router_calibration_frontier_default_candidates']}/{moe['qwen3_router_calibration_frontier_candidate_count']}`，recommended `{moe['qwen3_router_calibration_frontier_recommended']}`，blocker `{moe['qwen3_router_calibration_frontier_blocker']}`，nll `{fmt(moe['qwen3_router_calibration_frontier_nll_signal'])}`，generation `{fmt(moe['qwen3_router_calibration_frontier_generation_signal'])}`。",
@@ -2607,6 +2611,30 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
             ).get("queue_item"),
             "qwen_source_discovery_measured_additional_frontier_avg_gain_needed": fnum(
                 qwen_source_discovery_plan.get("measured_additional_frontier_avg_gain_needed")
+            ),
+            "qwen_source_discovery_task_gap_targets": qwen_source_discovery_plan.get(
+                "task_gap_target_count"
+            ),
+            "qwen_source_discovery_task_gap_blockers": qwen_source_discovery_plan.get(
+                "task_gap_blocker_count"
+            ),
+            "qwen_source_discovery_task_gap_tasks": qwen_source_discovery_plan.get(
+                "task_gap_tasks"
+            ),
+            "qwen_source_discovery_top_task_gap_task": qwen_source_discovery_plan.get(
+                "top_task_gap_task"
+            ),
+            "qwen_source_discovery_top_task_gap_status": qwen_source_discovery_plan.get(
+                "top_task_gap_status"
+            ),
+            "qwen_source_discovery_top_task_gap_capability": qwen_source_discovery_plan.get(
+                "top_task_gap_capability"
+            ),
+            "qwen_source_discovery_top_task_gap_additional_gain_needed": fnum(
+                qwen_source_discovery_plan.get("top_task_gap_additional_gain_needed")
+            ),
+            "qwen_source_discovery_top_task_gap_next_action": qwen_source_discovery_plan.get(
+                "top_task_gap_next_action"
             ),
             "qwen_source_discovery_eval_status": qwen_source_discovery_eval_plan.get("status"),
             "qwen_source_discovery_eval_job_count": qwen_source_discovery_eval_plan.get(

@@ -835,6 +835,7 @@ def summarize_qwen_source_discovery_plan() -> dict[str, Any]:
     root = repo_path("results/qwen_source_discovery_plan")
     summary = read_json(root / "summary.json")
     candidates = read_csv(root / "candidate_source_sets.csv")
+    task_gap = read_csv(root / "task_gap_targets.csv")
     endpoint = read_csv(root / "endpoint_eval_expansion.csv")
     scenarios = read_csv(root / "scenario_priority.csv")
     queue = read_csv(root / "source_discovery_queue.csv")
@@ -847,6 +848,9 @@ def summarize_qwen_source_discovery_plan() -> dict[str, Any]:
         "registry_model_count": maybe_int(summary.get("registry_model_count")),
         "scenario_count": maybe_int(summary.get("scenario_count")),
         "candidate_source_set_count": maybe_int(summary.get("candidate_source_set_count")),
+        "task_gap_target_count": maybe_int(summary.get("task_gap_target_count")),
+        "task_gap_blocker_count": maybe_int(summary.get("task_gap_blocker_count")),
+        "task_gap_tasks": summary.get("task_gap_tasks"),
         "endpoint_eval_expansion_count": maybe_int(summary.get("endpoint_eval_expansion_count")),
         "source_discovery_queue_count": maybe_int(summary.get("source_discovery_queue_count")),
         "ready_p0_scenario_count": maybe_int(summary.get("ready_p0_scenario_count")),
@@ -867,12 +871,21 @@ def summarize_qwen_source_discovery_plan() -> dict[str, Any]:
         "top_queue_item": top_queue.get("queue_item"),
         "top_queue_status": top_queue.get("status"),
         "top_queue_command": top_queue.get("command"),
+        "top_task_gap_task": summary.get("top_task_gap_task"),
+        "top_task_gap_status": summary.get("top_task_gap_status"),
+        "top_task_gap_capability": summary.get("top_task_gap_capability"),
+        "top_task_gap_additional_gain_needed": maybe_float(
+            summary.get("top_task_gap_additional_gain_needed")
+        ),
+        "top_task_gap_next_action": summary.get("top_task_gap_next_action"),
         "candidate_rows": [clean_row(row) for _, row in candidates.iterrows()],
+        "task_gap_rows": [clean_row(row) for _, row in task_gap.iterrows()],
         "endpoint_eval_rows": [clean_row(row) for _, row in endpoint.iterrows()],
         "scenario_rows": [clean_row(row) for _, row in scenarios.iterrows()],
         "queue_rows": [clean_row(row) for _, row in queue.iterrows()],
         "report": rel(root / "report.md"),
         "candidate_source_sets": rel(root / "candidate_source_sets.csv"),
+        "task_gap_targets": rel(root / "task_gap_targets.csv"),
         "endpoint_eval_expansion": rel(root / "endpoint_eval_expansion.csv"),
         "scenario_priority": rel(root / "scenario_priority.csv"),
         "source_discovery_queue": rel(root / "source_discovery_queue.csv"),
@@ -6625,6 +6638,13 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen_source_discovery_plan['top_measured_source_set']} / "
                 f"{fmt(qwen_source_discovery_plan['measured_additional_frontier_avg_gain_needed'])} / "
                 f"{qwen_source_discovery_plan['top_queue_item']} |"
+            ),
+            (
+                "| Qwen source discovery plan | task blockers / top task gap | "
+                f"{qwen_source_discovery_plan['task_gap_blocker_count']} / "
+                f"{qwen_source_discovery_plan['top_task_gap_task']} "
+                f"{qwen_source_discovery_plan['top_task_gap_status']} "
+                f"{fmt(qwen_source_discovery_plan['top_task_gap_additional_gain_needed'])} |"
             ),
             (
                 "| Qwen source discovery eval plan | jobs / top job / tasks | "

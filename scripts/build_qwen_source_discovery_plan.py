@@ -57,6 +57,30 @@ CAPABILITY_MIN_EXAMPLES = {
     "materialization": 16,
 }
 
+TASK_TO_CAPABILITY = {
+    "mmlu": "general_knowledge_instruction",
+    "gsm8k": "math_reasoning",
+    "humaneval": "code_generation_agentic",
+    "humaneval_compile": "code_generation_agentic",
+    "safety": "safety_refusal",
+}
+
+TASK_TO_RUNNER_TASK = {
+    "mmlu": "mmlu",
+    "gsm8k": "gsm8k",
+    "humaneval": "humaneval_compile",
+    "humaneval_compile": "humaneval_compile",
+    "safety": "safety",
+}
+
+TASK_ROLE_HINT = {
+    "mmlu": "general instruction / knowledge source",
+    "gsm8k": "math reasoning source",
+    "humaneval": "code generation source",
+    "humaneval_compile": "code generation source",
+    "safety": "safety refusal source",
+}
+
 
 def repo_path(path: str | Path) -> Path:
     path = Path(path)
@@ -340,6 +364,69 @@ def measured_top_row(
     }
 
 
+def build_task_gap_targets(
+    task_surplus: pd.DataFrame,
+    optimizer: dict[str, Any],
+    eval_matrix: pd.DataFrame,
+) -> pd.DataFrame:
+    top = optimizer.get("top_source_set") or {}
+    top_key = str(top.get("source_set_key") or top.get("source_set") or "")
+    if task_surplus.empty or not top_key:
+        return pd.DataFrame()
+
+    selected = task_surplus[task_surplus["source_set_key"].astype(str) == top_key].copy()
+    if selected.empty:
+        return pd.DataFrame()
+
+    eval_by_capability = {
+        str(row["capability"]): row.to_dict() for _, row in eval_matrix.iterrows()
+    }
+    rows: list[dict[str, Any]] = []
+    for _, row in selected.iterrows():
+        task = str(row["task"])
+        capability = TASK_TO_CAPABILITY.get(task, "general_knowledge_instruction")
+        eval_row = eval_by_capability.get(capability, {})
+        task_gain = fnum(row.get("frontier_gain_vs_best_single")) or 0.0
+        task_surplus_value = fnum(row.get("task_surplus_vs_interference")) or 0.0
+        additional_needed = max(0.0, -task_surplus_value)
+        status = str(row.get("status"))
+        if status == "no_task_frontier_gain":
+            action = "find_or_eval_a_source_that_beats_the_current_best_single_on_this_task"
+            priority_bonus = 0.03
+        elif status == "gain_below_interference_budget":
+            action = "expand_endpoint_eval_and_search_a_stronger_specialist_for_this_task"
+            priority_bonus = 0.02
+        elif status == "observed_merge_loses_frontier":
+            action = "repair_task_regression_before_promoting_any_average"
+            priority_bonus = 0.01
+        else:
+            action = "keep_as_positive_task_signal_after_locked_eval"
+            priority_bonus = 0.0
+        rows.append(
+            {
+                "source_set": row.get("source_set"),
+                "source_set_key": row.get("source_set_key"),
+                "task": task,
+                "runner_task": TASK_TO_RUNNER_TASK.get(task, task),
+                "capability": capability,
+                "frontier_source": row.get("frontier_source"),
+                "frontier_gain_vs_best_single": task_gain,
+                "interference_budget": fnum(row.get("interference_budget")),
+                "task_surplus_vs_interference": task_surplus_value,
+                "additional_task_gain_needed": additional_needed,
+                "status": status,
+                "benchmark_slice": eval_row.get("benchmark_slice"),
+                "metric": eval_row.get("metric"),
+                "min_examples": CAPABILITY_MIN_EXAMPLES.get(capability, 64),
+                "recommended_source_role": TASK_ROLE_HINT.get(task, "task specialist source"),
+                "next_action": action,
+                "priority_score": additional_needed + priority_bonus,
+            }
+        )
+    out = pd.DataFrame(rows)
+    return out.sort_values(["priority_score", "task"], ascending=[False, True]).reset_index(drop=True)
+
+
 def build_candidate_source_sets(
     scenario_priority: pd.DataFrame,
     optimizer: dict[str, Any],
@@ -391,6 +478,7 @@ def build_endpoint_eval_expansion(
     scenario_priority: pd.DataFrame,
     eval_matrix: pd.DataFrame,
     measured: dict[str, Any],
+    task_gap_targets: pd.DataFrame,
 ) -> pd.DataFrame:
     by_capability = {str(row["capability"]): row.to_dict() for _, row in eval_matrix.iterrows()}
     rows: list[dict[str, Any]] = []
@@ -403,6 +491,9 @@ def build_endpoint_eval_expansion(
         purpose: str,
         architecture_kind: str,
         runner_scope: str,
+        target_task: str | None = None,
+        additional_task_gain_needed: float | None = None,
+        task_gap_status: str | None = None,
     ) -> None:
         row = by_capability.get(capability, {})
         route_required = capability == "moe_routing" or architecture_kind == "moe"
@@ -420,7 +511,27 @@ def build_endpoint_eval_expansion(
                 "route_probe_required": route_required,
                 "acceptance_signal": "frontier_gain_over_best_single_then_no_task_regression",
                 "runner_scope": runner_scope,
+                "target_task": target_task,
+                "additional_task_gain_needed": additional_task_gain_needed,
+                "task_gap_status": task_gap_status,
             }
+        )
+
+    for _, target in task_gap_targets.iterrows():
+        add_row(
+            scenario_id="measured_qwen3_moe_source_set",
+            plan_id=f"task_gap_{target['task']}",
+            capability=str(target["capability"]),
+            purpose=(
+                f"task-level blocker for {target['task']}: status={target['status']}; "
+                f"additional task gain needed {fmt(target['additional_task_gain_needed'])}; "
+                f"frontier source {target['frontier_source']}"
+            ),
+            architecture_kind="moe",
+            runner_scope="endpoint_expansion_or_probe_only",
+            target_task=str(target["runner_task"]),
+            additional_task_gain_needed=fnum(target["additional_task_gain_needed"]),
+            task_gap_status=str(target["status"]),
         )
 
     measured_caps = [
@@ -441,6 +552,9 @@ def build_endpoint_eval_expansion(
             ),
             architecture_kind="moe",
             runner_scope="endpoint_expansion_or_probe_only",
+            target_task=None,
+            additional_task_gain_needed=None,
+            task_gap_status=None,
         )
 
     for _, scenario in scenario_priority.iterrows():
@@ -464,15 +578,42 @@ def build_endpoint_eval_expansion(
                 ),
                 architecture_kind=str(scenario["architecture_kind"]),
                 runner_scope="vllm_endpoint_eval" if "routing" not in capability and "connectivity" not in capability else "probe_then_eval",
+                target_task=None,
+                additional_task_gain_needed=None,
+                task_gap_status=None,
             )
     return pd.DataFrame(rows)
+
+
+def task_blocker_text(task_gap_targets: pd.DataFrame) -> str:
+    if task_gap_targets.empty:
+        return "no task-level blocker table"
+    parts = []
+    for _, row in task_gap_targets.iterrows():
+        parts.append(
+            f"{row['task']}:{row['status']} needs {fmt(row['additional_task_gain_needed'])}"
+        )
+    return "; ".join(parts)
+
+
+def runner_task_list(task_gap_targets: pd.DataFrame) -> str:
+    if task_gap_targets.empty:
+        return "mmlu,gsm8k,humaneval_compile"
+    tasks = []
+    for task in task_gap_targets["runner_task"].astype(str).tolist():
+        if task not in tasks:
+            tasks.append(task)
+    return ",".join(tasks)
 
 
 def build_source_discovery_queue(
     scenario_priority: pd.DataFrame,
     candidate_source_sets: pd.DataFrame,
     measured: dict[str, Any],
+    task_gap_targets: pd.DataFrame,
 ) -> pd.DataFrame:
+    measured_tasks = runner_task_list(task_gap_targets)
+    task_blockers = task_blocker_text(task_gap_targets)
     rows: list[dict[str, Any]] = [
         {
             "base_rank": 1,
@@ -483,11 +624,12 @@ def build_source_discovery_queue(
             "why_now": (
                 f"Current frontier avg gain {fmt(measured.get('frontier_avg_gain_vs_best_single'))} "
                 f"is below the observed interference budget {fmt(measured.get('interference_budget'))}; "
-                f"additional gain needed {fmt(measured.get('additional_frontier_avg_gain_needed'))}."
+                f"additional gain needed {fmt(measured.get('additional_frontier_avg_gain_needed'))}. "
+                f"Task blockers: {task_blockers}."
             ),
             "command": (
                 "python scripts/run_vllm_downstream_eval.py --models SERVED_CODER,SERVED_THINKING "
-                "--tasks mmlu,gsm8k,humaneval_compile --max-examples 256 "
+                f"--tasks {measured_tasks} --max-examples 256 "
                 "--output-dir results/qwen_source_discovery_plan/measured_coder_thinking_vllm"
             ),
             "preflight_command": "results/qwen3_moe_eval_budget_plan/run_eval_budget.sh preflight final",
@@ -574,6 +716,7 @@ def build_report(
     summary: dict[str, Any],
     scenario_priority: pd.DataFrame,
     candidate_source_sets: pd.DataFrame,
+    task_gap_targets: pd.DataFrame,
     endpoint_eval_expansion: pd.DataFrame,
     source_discovery_queue: pd.DataFrame,
 ) -> str:
@@ -589,7 +732,9 @@ def build_report(
             f"`{top.get('source_weights')}`；它的 endpoint frontier avg gain 是 "
             f"`{fmt(top.get('frontier_avg_gain_vs_best_single'))}`，但已观测 merge interference budget 是 "
             f"`{fmt(summary.get('interference_budget'))}`，还差 "
-            f"`{fmt(summary.get('measured_additional_frontier_avg_gain_needed'))}`。所以它只能进入 probe-only / endpoint-expansion，不能作为 final average budget。"
+            f"`{fmt(summary.get('measured_additional_frontier_avg_gain_needed'))}`。任务级 blocker 是 "
+            f"`{summary.get('top_task_gap_task')}`，需要额外 `{fmt(summary.get('top_task_gap_additional_gain_needed'))}`。"
+            "所以它只能进入 probe-only / endpoint-expansion，不能作为 final average budget。"
         ),
         "",
         (
@@ -608,6 +753,22 @@ def build_report(
             f"| `{row['candidate_id']}` | `{row['scenario_id']}` | `{row['readiness_gate']}` | "
             f"{row['mechanism_focus']} | {fmt(row['additional_frontier_avg_gain_needed'])} | "
             f"{row['next_action']} |"
+        )
+
+    lines.extend(
+        [
+            "",
+            "## Task Gap Targets",
+            "",
+            "| task | capability | frontier source | gain | additional needed | status | next action |",
+            "| --- | --- | --- | ---: | ---: | --- | --- |",
+        ]
+    )
+    for _, row in task_gap_targets.iterrows():
+        lines.append(
+            f"| `{row['task']}` | `{row['capability']}` | `{row['frontier_source']}` | "
+            f"{fmt(row['frontier_gain_vs_best_single'])} | {fmt(row['additional_task_gain_needed'])} | "
+            f"`{row['status']}` | {row['next_action']} |"
         )
 
     lines.extend(
@@ -674,6 +835,7 @@ def build_report(
             "## Outputs",
             "",
             f"- `{summary['outputs']['candidate_source_sets']}`",
+            f"- `{summary['outputs']['task_gap_targets']}`",
             f"- `{summary['outputs']['endpoint_eval_expansion']}`",
             f"- `{summary['outputs']['scenario_priority']}`",
             f"- `{summary['outputs']['source_discovery_queue']}`",
@@ -690,22 +852,31 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
     eval_matrix = read_csv(args.eval_probe_matrix)
     optimizer = read_json(args.average_source_set_optimizer)
     optimizer_candidates = read_csv(args.average_source_set_candidates)
+    task_surplus = read_csv(args.average_source_task_surplus)
     source_set_gate = read_csv(args.source_set_gate)
 
     scenario_priority = build_scenario_priority(registry, scenarios)
     measured = measured_top_row(optimizer, optimizer_candidates)
+    task_gap_targets = build_task_gap_targets(task_surplus, optimizer, eval_matrix)
     candidate_source_sets = build_candidate_source_sets(scenario_priority, optimizer, optimizer_candidates)
-    endpoint_eval_expansion = build_endpoint_eval_expansion(scenario_priority, eval_matrix, measured)
-    source_discovery_queue = build_source_discovery_queue(scenario_priority, candidate_source_sets, measured)
+    endpoint_eval_expansion = build_endpoint_eval_expansion(scenario_priority, eval_matrix, measured, task_gap_targets)
+    source_discovery_queue = build_source_discovery_queue(
+        scenario_priority,
+        candidate_source_sets,
+        measured,
+        task_gap_targets,
+    )
 
     non_control = scenario_priority[scenario_priority["scenario_id"].astype(str) != "negative_controls"]
     top_scenario = non_control.iloc[0].to_dict() if not non_control.empty else {}
     top_queue = source_discovery_queue.iloc[0].to_dict() if not source_discovery_queue.empty else {}
+    top_gap = task_gap_targets.iloc[0].to_dict() if not task_gap_targets.empty else {}
     top_measured = optimizer.get("top_source_set") or {}
     output_dir = repo_path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     candidate_path = output_dir / "candidate_source_sets.csv"
+    task_gap_path = output_dir / "task_gap_targets.csv"
     endpoint_path = output_dir / "endpoint_eval_expansion.csv"
     scenario_path = output_dir / "scenario_priority.csv"
     queue_path = output_dir / "source_discovery_queue.csv"
@@ -718,6 +889,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         "registry_model_count": int(len(registry)),
         "scenario_count": int(len(scenario_priority)),
         "candidate_source_set_count": int(len(candidate_source_sets)),
+        "task_gap_target_count": int(len(task_gap_targets)),
         "endpoint_eval_expansion_count": int(len(endpoint_eval_expansion)),
         "source_discovery_queue_count": int(len(source_discovery_queue)),
         "ready_p0_scenario_count": int(
@@ -736,6 +908,18 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         "measured_additional_frontier_avg_gain_needed": measured.get(
             "additional_frontier_avg_gain_needed"
         ),
+        "task_gap_tasks": ",".join(str(item) for item in task_gap_targets.get("task", pd.Series(dtype=str)).tolist()),
+        "task_gap_blocker_count": int(
+            task_gap_targets.get("status", pd.Series(dtype=str))
+            .astype(str)
+            .isin(["no_task_frontier_gain", "gain_below_interference_budget", "observed_merge_loses_frontier"])
+            .sum()
+        ),
+        "top_task_gap_task": top_gap.get("task"),
+        "top_task_gap_status": top_gap.get("status"),
+        "top_task_gap_capability": top_gap.get("capability"),
+        "top_task_gap_additional_gain_needed": fnum(top_gap.get("additional_task_gain_needed")),
+        "top_task_gap_next_action": top_gap.get("next_action"),
         "top_measured_source_set": top_measured,
         "top_scenario": {
             "scenario_id": top_scenario.get("scenario_id"),
@@ -756,6 +940,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         "mechanism_equation": "promote average only if source_frontier_avg_gain - observed_merge_interference_budget >= 0",
         "outputs": {
             "candidate_source_sets": rel(candidate_path),
+            "task_gap_targets": rel(task_gap_path),
             "endpoint_eval_expansion": rel(endpoint_path),
             "scenario_priority": rel(scenario_path),
             "source_discovery_queue": rel(queue_path),
@@ -765,12 +950,20 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
     }
 
     candidate_source_sets.to_csv(candidate_path, index=False)
+    task_gap_targets.to_csv(task_gap_path, index=False)
     endpoint_eval_expansion.to_csv(endpoint_path, index=False)
     scenario_priority.to_csv(scenario_path, index=False)
     source_discovery_queue.to_csv(queue_path, index=False)
     summary_path.write_text(json.dumps(json_safe(summary), indent=2, sort_keys=True) + "\n", encoding="utf-8")
     report_path.write_text(
-        build_report(summary, scenario_priority, candidate_source_sets, endpoint_eval_expansion, source_discovery_queue),
+        build_report(
+            summary,
+            scenario_priority,
+            candidate_source_sets,
+            task_gap_targets,
+            endpoint_eval_expansion,
+            source_discovery_queue,
+        ),
         encoding="utf-8",
     )
     return summary
@@ -791,6 +984,11 @@ def parse_args() -> argparse.Namespace:
         "--average-source-set-candidates",
         type=Path,
         default=Path("results/qwen3_average_source_set_optimizer/candidate_source_sets.csv"),
+    )
+    parser.add_argument(
+        "--average-source-task-surplus",
+        type=Path,
+        default=Path("results/qwen3_average_source_set_optimizer/task_surplus.csv"),
     )
     parser.add_argument(
         "--source-set-gate",

@@ -21,7 +21,7 @@
 - Router-coupled retention frontier: `direct_router_boundary_term_not_default` (`effect_fraction=0.010260661865575978`, candidates `146/770` pass default gate)
 - Source-set complementarity: `source_dominated_not_averageable_as_final` (dominant `instruct`, frontier avg gain `0.0`, best observed gap `-0.06944444444444431`, complementary sets `2`)
 - Average source-set optimizer: `probe_only_below_interference_budget` for `coder+thinking` (gain `0.0083333333333333` vs interference budget `0.0694444444444443`, surplus `-0.06111111111111099`, final-budget `0`, probe-only `2`)
-- Qwen source discovery plan: `source_discovery_plan_ready` (top scenario `dense_7b_general_code_math_reasoning`, queue `measured_coder_thinking_endpoint_expansion`, additional gain needed `0.06111111111111099`)
+- Qwen source discovery plan: `source_discovery_plan_ready` (top scenario `dense_7b_general_code_math_reasoning`, queue `measured_coder_thinking_endpoint_expansion`, additional gain needed `0.06111111111111099`, task blockers `gsm8k,humaneval,mmlu`, top task gap `gsm8k` / `no_task_frontier_gain` needs `0.0694444444444443`)
 - Qwen source discovery eval plan: `source_discovery_vllm_eval_plan_ready` (`4` jobs, top `measured_coder_thinking_source_frontier`, tasks `gsm8k,humaneval_compile,mmlu,safety`, task names `passed_humaneval_compile_task_name`)
 - Qwen source discovery served-model preflight: `static_preflight_ready_waiting_for_endpoint_model_list` (endpoint `not_requested`, required `12`, missing `0`, manifests `4/8`, blocker `Start the vLLM server and rerun this preflight with --base-url.`)
 - Qwen source frontier eval feedback: `awaiting_vllm_source_frontier_results` (scored `0/4`, final candidates `0`, probe-only `0`, top `None` / `None`, surplus `None`, blocker `Run the planned vLLM source-frontier eval jobs, then rerun this feedback builder.`)
@@ -47,50 +47,50 @@
 
 | step | kind | status | returncode | seconds |
 | --- | --- | --- | ---: | ---: |
-| `build_candidate_trust_region_gate` | `gate` | `passed` | 0 | 0.40 |
-| `plan_eval_budget` | `planner` | `passed` | 0 | 0.45 |
-| `audit_eval_bundles` | `gate` | `passed` | 0 | 0.42 |
-| `select_unified_result` | `selector` | `passed` | 0 | 0.42 |
-| `select_final_candidate` | `selector` | `passed` | 0 | 0.40 |
-| `attribute_mechanism_effects` | `attribution` | `passed` | 0 | 0.42 |
-| `build_feedback_optimizer` | `optimizer` | `passed` | 0 | 1.03 |
-| `build_mechanistic_unified_candidate` | `optimizer` | `passed` | 0 | 2.60 |
-| `audit_mechanistic_evidence` | `attribution` | `passed` | 0 | 1.44 |
-| `analyze_mechanistic_sensitivity` | `attribution` | `passed` | 0 | 16.90 |
+| `build_candidate_trust_region_gate` | `gate` | `passed` | 0 | 0.39 |
+| `plan_eval_budget` | `planner` | `passed` | 0 | 0.48 |
+| `audit_eval_bundles` | `gate` | `passed` | 0 | 0.47 |
+| `select_unified_result` | `selector` | `passed` | 0 | 0.50 |
+| `select_final_candidate` | `selector` | `passed` | 0 | 0.41 |
+| `attribute_mechanism_effects` | `attribution` | `passed` | 0 | 0.41 |
+| `build_feedback_optimizer` | `optimizer` | `passed` | 0 | 1.09 |
+| `build_mechanistic_unified_candidate` | `optimizer` | `passed` | 0 | 2.58 |
+| `audit_mechanistic_evidence` | `attribution` | `passed` | 0 | 1.43 |
+| `analyze_mechanistic_sensitivity` | `attribution` | `passed` | 0 | 16.97 |
 | `analyze_router_expert_coupling` | `attribution` | `passed` | 0 | 0.83 |
-| `build_router_coupled_candidate` | `optimizer` | `passed` | 0 | 1.32 |
-| `analyze_router_coupled_retention_frontier` | `attribution` | `passed` | 0 | 3.74 |
-| `build_source_set_complementarity_gate` | `gate` | `passed` | 0 | 0.43 |
-| `build_average_source_set_optimizer` | `optimizer` | `passed` | 0 | 0.44 |
-| `build_qwen_source_discovery_plan` | `planner` | `passed` | 0 | 0.43 |
-| `build_qwen_source_discovery_eval_plan` | `planner` | `passed` | 0 | 0.44 |
-| `audit_qwen_source_discovery_served_model_preflight` | `gate` | `passed` | 0 | 0.42 |
-| `build_qwen_source_frontier_eval_feedback` | `gate` | `passed` | 0 | 0.41 |
+| `build_router_coupled_candidate` | `optimizer` | `passed` | 0 | 1.30 |
+| `analyze_router_coupled_retention_frontier` | `attribution` | `passed` | 0 | 3.63 |
+| `build_source_set_complementarity_gate` | `gate` | `passed` | 0 | 0.44 |
+| `build_average_source_set_optimizer` | `optimizer` | `passed` | 0 | 0.41 |
+| `build_qwen_source_discovery_plan` | `planner` | `passed` | 0 | 0.45 |
+| `build_qwen_source_discovery_eval_plan` | `planner` | `passed` | 0 | 0.42 |
+| `audit_qwen_source_discovery_served_model_preflight` | `gate` | `passed` | 0 | 0.40 |
+| `build_qwen_source_frontier_eval_feedback` | `gate` | `passed` | 0 | 0.40 |
 | `build_router_calibration_frontier` | `gate` | `passed` | 0 | 0.44 |
-| `collect_qwen3_moe_harc_router_stats` | `probe` | `passed` | 0 | 2.11 |
-| `solve_qwen3_moe_harc_router_delta` | `optimizer` | `passed` | 0 | 3.44 |
-| `build_qwen3_moe_harc_router_candidate` | `optimizer` | `passed` | 0 | 3.50 |
+| `collect_qwen3_moe_harc_router_stats` | `probe` | `passed` | 0 | 2.08 |
+| `solve_qwen3_moe_harc_router_delta` | `optimizer` | `passed` | 0 | 3.42 |
+| `build_qwen3_moe_harc_router_candidate` | `optimizer` | `passed` | 0 | 3.55 |
 | `build_qwen3_moe_harc_readiness_gate` | `gate` | `passed` | 0 | 0.45 |
-| `build_unified_average_optimizer` | `optimizer` | `passed` | 0 | 0.48 |
-| `build_average_method_gate_matrix` | `optimizer` | `passed` | 0 | 0.40 |
-| `build_average_trust_region_bounds` | `optimizer` | `passed` | 0 | 0.45 |
-| `analyze_mechanism_levers` | `attribution` | `passed` | 0 | 0.42 |
-| `audit_eval_bundles_smoke` | `smoke` | `passed` | 0 | 0.77 |
+| `build_unified_average_optimizer` | `optimizer` | `passed` | 0 | 0.44 |
+| `build_average_method_gate_matrix` | `optimizer` | `passed` | 0 | 0.42 |
+| `build_average_trust_region_bounds` | `optimizer` | `passed` | 0 | 0.39 |
+| `analyze_mechanism_levers` | `attribution` | `passed` | 0 | 0.44 |
+| `audit_eval_bundles_smoke` | `smoke` | `passed` | 0 | 0.70 |
 | `select_unified_result_smoke` | `smoke` | `passed` | 0 | 0.41 |
-| `select_final_candidate_smoke` | `smoke` | `passed` | 0 | 0.51 |
-| `eval_budget_queue_smoke` | `smoke` | `passed` | 0 | 0.42 |
-| `build_qwen_source_frontier_eval_feedback_smoke` | `smoke` | `passed` | 0 | 0.41 |
-| `collect_qwen3_moe_harc_router_stats_smoke` | `smoke` | `passed` | 0 | 2.14 |
-| `solve_qwen3_moe_harc_router_delta_smoke` | `smoke` | `passed` | 0 | 3.66 |
-| `build_qwen3_moe_harc_router_candidate_smoke` | `smoke` | `passed` | 0 | 3.57 |
-| `build_qwen3_moe_harc_readiness_gate_smoke` | `smoke` | `passed` | 0 | 0.47 |
-| `attribute_mechanism_effects_smoke` | `smoke` | `passed` | 0 | 0.39 |
+| `select_final_candidate_smoke` | `smoke` | `passed` | 0 | 0.49 |
+| `eval_budget_queue_smoke` | `smoke` | `passed` | 0 | 0.41 |
+| `build_qwen_source_frontier_eval_feedback_smoke` | `smoke` | `passed` | 0 | 0.43 |
+| `collect_qwen3_moe_harc_router_stats_smoke` | `smoke` | `passed` | 0 | 2.01 |
+| `solve_qwen3_moe_harc_router_delta_smoke` | `smoke` | `passed` | 0 | 3.52 |
+| `build_qwen3_moe_harc_router_candidate_smoke` | `smoke` | `passed` | 0 | 3.54 |
+| `build_qwen3_moe_harc_readiness_gate_smoke` | `smoke` | `passed` | 0 | 0.50 |
+| `attribute_mechanism_effects_smoke` | `smoke` | `passed` | 0 | 0.41 |
 | `build_feedback_optimizer_smoke` | `smoke` | `passed` | 0 | 0.45 |
 | `build_mechanistic_unified_candidate_smoke` | `smoke` | `passed` | 0 | 1.63 |
 | `unified_average_optimizer_ledger_smoke` | `smoke` | `passed` | 0 | 0.41 |
 | `average_method_gate_matrix_consistency_smoke` | `smoke` | `passed` | 0 | 0.39 |
-| `average_trust_region_bounds_smoke` | `smoke` | `passed` | 0 | 0.38 |
-| `collect_results` | `summary` | `passed` | 0 | 1.83 |
+| `average_trust_region_bounds_smoke` | `smoke` | `passed` | 0 | 0.44 |
+| `collect_results` | `summary` | `passed` | 0 | 1.79 |
 
 ## Commands
 

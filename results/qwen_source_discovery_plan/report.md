@@ -2,7 +2,7 @@
 
 ## Result
 
-当前最好的 measured source set 是 `coder+thinking`，source weights `{"coder": 0.6666666666666666, "thinking": 0.3333333333333333}`；它的 endpoint frontier avg gain 是 `0.0083`，但已观测 merge interference budget 是 `0.0694`，还差 `0.0611`。所以它只能进入 probe-only / endpoint-expansion，不能作为 final average budget。
+当前最好的 measured source set 是 `coder+thinking`，source weights `{"coder": 0.6666666666666666, "thinking": 0.3333333333333333}`；它的 endpoint frontier avg gain 是 `0.0083`，但已观测 merge interference budget 是 `0.0694`，还差 `0.0611`。任务级 blocker 是 `gsm8k`，需要额外 `0.0694`。所以它只能进入 probe-only / endpoint-expansion，不能作为 final average budget。
 
 下一批 source discovery 的最高优先场景是 `dense_7b_general_code_math_reasoning`：`run_endpoint_eval_plus_connectivity_probe_then_surplus_gate`。这一步的目标不是机械比较算法，而是找到 `source_frontier_gain - observed_merge_interference_budget >= 0` 的源集合，然后再做同构 average。
 
@@ -16,6 +16,14 @@
 | `dense_32b_reasoning_long_reasoning_planned_source_set` | `dense_32b_reasoning_long_reasoning` | `ready_after_p0_wave` | connectivity_barrier_then_source_surplus_gate | 0.0694 | run_endpoint_eval_plus_connectivity_probe_then_surplus_gate |
 | `moe_30b_downstream_adapter_average_planned_source_set` | `moe_30b_downstream_adapter_average` | `manual_model_resolution_first` | router_expert_probe_then_source_surplus_gate | 0.0694 | resolve_public_same_shape_weight_ids_before_endpoint_eval |
 | `dense_7b_domain_extension_planned_source_set` | `dense_7b_domain_extension` | `manual_model_resolution_first` | connectivity_barrier_then_source_surplus_gate | 0.0694 | resolve_public_same_shape_weight_ids_before_endpoint_eval |
+
+## Task Gap Targets
+
+| task | capability | frontier source | gain | additional needed | status | next action |
+| --- | --- | --- | ---: | ---: | --- | --- |
+| `gsm8k` | `math_reasoning` | `coder` | 0.0000 | 0.0694 | `no_task_frontier_gain` | find_or_eval_a_source_that_beats_the_current_best_single_on_this_task |
+| `humaneval` | `code_generation_agentic` | `coder` | 0.0000 | 0.0694 | `no_task_frontier_gain` | find_or_eval_a_source_that_beats_the_current_best_single_on_this_task |
+| `mmlu` | `general_knowledge_instruction` | `thinking` | 0.0250 | 0.0444 | `gain_below_interference_budget` | expand_endpoint_eval_and_search_a_stronger_specialist_for_this_task |
 
 ## Scenario Priority
 
@@ -32,6 +40,9 @@
 
 | scenario | capability | benchmarks | metric | min examples | runner |
 | --- | --- | --- | --- | ---: | --- |
+| `measured_qwen3_moe_source_set` | `math_reasoning` | GSM8K, MATH-500, AIME slice | exact_match, gold-answer NLL, CoT/TIR format_success | 256 | `endpoint_expansion_or_probe_only` |
+| `measured_qwen3_moe_source_set` | `code_generation_agentic` | HumanEval, MBPP, LiveCodeBench, repo-level/tool-call slice | pass@1, canonical solution NLL, syntax/test failure type, tool-call format_success | 128 | `endpoint_expansion_or_probe_only` |
+| `measured_qwen3_moe_source_set` | `general_knowledge_instruction` | MMLU, C-Eval, CMMLU, IFEval, small chat-format pack | accuracy, response-only NLL, format_success, general_retention | 256 | `endpoint_expansion_or_probe_only` |
 | `measured_qwen3_moe_source_set` | `general_knowledge_instruction` | MMLU, C-Eval, CMMLU, IFEval, small chat-format pack | accuracy, response-only NLL, format_success, general_retention | 256 | `endpoint_expansion_or_probe_only` |
 | `measured_qwen3_moe_source_set` | `math_reasoning` | GSM8K, MATH-500, AIME slice | exact_match, gold-answer NLL, CoT/TIR format_success | 256 | `endpoint_expansion_or_probe_only` |
 | `measured_qwen3_moe_source_set` | `code_generation_agentic` | HumanEval, MBPP, LiveCodeBench, repo-level/tool-call slice | pass@1, canonical solution NLL, syntax/test failure type, tool-call format_success | 128 | `endpoint_expansion_or_probe_only` |
@@ -68,7 +79,7 @@
 
 | rank | item | status | priority | command | expected update |
 | ---: | --- | --- | ---: | --- | --- |
-| 1 | `measured_coder_thinking_endpoint_expansion` | `ready_endpoint_expansion_probe_only` | 0.98 | `python scripts/run_vllm_downstream_eval.py --models SERVED_CODER,SERVED_THINKING --tasks mmlu,gsm8k,humaneval_compile --max-examples 256 --output-dir results/qwen_source_discovery_plan/measured_coder_thinking_vllm` | move Coder+Thinking from probe-only to final-budget only if surplus becomes non-negative |
+| 1 | `measured_coder_thinking_endpoint_expansion` | `ready_endpoint_expansion_probe_only` | 0.98 | `python scripts/run_vllm_downstream_eval.py --models SERVED_CODER,SERVED_THINKING --tasks gsm8k,humaneval_compile,mmlu --max-examples 256 --output-dir results/qwen_source_discovery_plan/measured_coder_thinking_vllm` | move Coder+Thinking from probe-only to final-budget only if surplus becomes non-negative |
 | 2 | `dense_7b_general_code_math_reasoning_endpoint_frontier` | `ready_for_endpoint_eval_and_surplus_gate` | 0.95 | `python scripts/run_vllm_downstream_eval.py --models Qwen/Qwen2.5-7B-Instruct,Qwen/Qwen2.5-Coder-7B-Instruct,Qwen/Qwen2.5-Math-7B-Instruct,deepseek-ai/DeepSeek-R1-Distill-Qwen-7B --tasks mmlu,gsm8k,humaneval_compile,safety --max-examples 256 --output-dir results/qwen_source_discovery_plan/vllm_endpoint_eval` | endpoint frontier plus connectivity plane decide if Dense source set can enter average budget |
 | 3 | `moe_30b_general_code_route_aware_endpoint_frontier` | `ready_for_endpoint_eval_and_surplus_gate` | 0.95 | `python scripts/run_vllm_downstream_eval.py --models Qwen/Qwen3-30B-A3B-Base,Qwen/Qwen3-30B-A3B,Qwen/Qwen3-Coder-30B-A3B-Instruct --tasks mmlu,gsm8k,humaneval_compile --max-examples 256 --output-dir results/qwen_source_discovery_plan/vllm_endpoint_eval` | router/expert probes plus endpoint frontier decide if MoE source set can enter surplus optimizer |
 | 4 | `dense_32b_reasoning_long_reasoning_endpoint_frontier` | `ready_after_p0_wave` | 0.72 | `python scripts/run_vllm_downstream_eval.py --models Qwen/Qwen2.5-32B,Qwen/Qwen2.5-32B-Instruct,a-m-team/AM-Thinking-v1,deepseek-ai/DeepSeek-R1-Distill-Qwen-32B --tasks mmlu,gsm8k,humaneval_compile,safety --max-examples 256 --output-dir results/qwen_source_discovery_plan/vllm_endpoint_eval` | endpoint frontier plus connectivity plane decide if Dense source set can enter average budget |
@@ -89,6 +100,7 @@
 ## Outputs
 
 - `results/qwen_source_discovery_plan/candidate_source_sets.csv`
+- `results/qwen_source_discovery_plan/task_gap_targets.csv`
 - `results/qwen_source_discovery_plan/endpoint_eval_expansion.csv`
 - `results/qwen_source_discovery_plan/scenario_priority.csv`
 - `results/qwen_source_discovery_plan/source_discovery_queue.csv`
