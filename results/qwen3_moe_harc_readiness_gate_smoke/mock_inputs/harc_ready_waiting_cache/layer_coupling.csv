@@ -1,0 +1,3 @@
+layer_id,route_mass,weighted_router_instability_feature,weighted_scale_shrink,router_coupled_risk_sum,route_mass_weighted_router_residual_pressure,top_expert_id
+1,12.0,0.9,0.02,6.0,0.1,7
+2,6.0,0.4,0.01,2.0,0.0,3

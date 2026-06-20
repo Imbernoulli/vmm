@@ -1,0 +1,31 @@
+{
+  "matrix_free_matvec": "sum_i E_x [x x^T dW^T H_i] without materializing kron(H_i, xx^T)",
+  "objective": "min_Wm sum_i E_x KL(softmax(W_i x) || softmax(W_m x))",
+  "quadratic_proxy": "0.5 * (W_m x - W_i x)^T (diag(r_i)-r_i r_i^T) (W_m x - W_i x)",
+  "ready_router_count": 2,
+  "router_rows": [
+    {
+      "harc_boundary_cov_proxy": 0.012943997650487815,
+      "harc_precision_proxy": 4.930107902949345,
+      "hidden_cov_trace": 5.91412878036499,
+      "hidden_dim": 6,
+      "hidden_rows": 96,
+      "layer": 1,
+      "mean_hessian_trace": 0.833615243434906,
+      "num_experts": 12,
+      "tensor": "model.layers.1.mlp.gate.weight"
+    },
+    {
+      "harc_boundary_cov_proxy": 0.014064669036457644,
+      "harc_precision_proxy": 4.8628163852185935,
+      "hidden_cov_trace": 5.699119567871094,
+      "hidden_dim": 6,
+      "hidden_rows": 96,
+      "layer": 0,
+      "mean_hessian_trace": 0.8532574772834778,
+      "num_experts": 12,
+      "tensor": "model.layers.0.mlp.gate.weight"
+    }
+  ],
+  "same_shape_constraint": "solve only for existing router weight tensors; checkpoint architecture and tensor shapes stay unchanged"
+}

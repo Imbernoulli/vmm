@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-20T15:35:53.021334+00:00`
+Generated at: `2026-06-20T15:55:34.197226+00:00`
 
 ## Coverage
 
-Complete: `103`; partial: `1`; missing: `0`.
+Complete: `104`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -106,6 +106,7 @@ Complete: `103`; partial: `1`; missing: `0`.
 | Qwen3 MoE router calibration result selector | complete | results/qwen3_moe_router_calibration_selection/report.md accepts a router-calibrated cap only when matched vLLM eval, router-only tensor audit, top-k margin cap compliance, and source/baseline dominance gates pass. |
 | Qwen3 MoE router calibration frontier | complete | results/qwen3_moe_router_calibration_frontier/report.md turns HARC/Router-KD evidence into a margin-safe router-calibration frontier: cap001 and margin_profile are default probes, larger caps remain stress ablations. |
 | Qwen3 MoE HARC readiness gate | complete | results/qwen3_moe_harc_readiness_gate/report.md checks direct-router rejection, top-k boundary fragility, router-only repair, router-expert coupling, calibration frontier, calibration job preflight, and Hessian/covariance cache readiness before HARC-style router calibration. |
+| Qwen3 MoE HARC router stats collector | complete | results/qwen3_moe_harc_router_stats/report.md converts router calibration cache rows into softmax-Hessian, hidden-covariance, boundary-margin, and solver-input summaries; results/qwen3_moe_harc_router_stats_smoke/report.md verifies the ready branch on synthetic router tensors. |
 | Qwen3 MoE trust-region cap-law search | complete | results/qwen3_moe_trust_region_cap_search/report.md searches interpretable expert cap laws over real Qwen3 route-mass, risk-flag, and safetensors-delta probes and emits writer-ready next-candidate rules. |
 | Qwen3 MoE unified mechanism candidate | complete | results/qwen3_moe_unified_mechanism_candidate/report.md turns route mass, router fragility, load, source-conflict, delta, expert geometry, and subspace-conflict probes into one same-shape constrained optimizer and writer-ready candidate. |
 | Toy MoE multi-method routing readiness | complete | results/toy_moe_routing_readiness/report.md applies the generic readiness gate to toy MoE methods and flags all-weight routing drift separately from expert-matched/route-aware variants. |
@@ -327,8 +328,8 @@ Complete: `103`; partial: `1`; missing: `0`.
 | Qwen3 MoE router-coupled retention frontier | gate / constrained / stress | direct_router_boundary_term_not_default / router_q0.85_s0.00020_cap0.00010 / router_q0.75_s0.01000_cap0.01000 |
 | Qwen3 MoE router-coupled retention frontier | pass default / effect fraction / action | 146/770 / 0.0103 / keep_router_fragility_inside_BHI_and_keep_direct_extra_shrink_as_ablation |
 | Qwen3 MoE mechanistic unified smoke | status / passed cases | passed / 4/4 |
-| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | passed / 38/38 / 0/13 |
-| Qwen3 MoE post-eval refresh | selection / final selection / attribution scored / plan steps | awaiting_source_eval / awaiting_source_eval / 0/10 / 38/38 |
+| Qwen3 MoE post-eval refresh | status / passed steps / audit usable | passed / 40/40 / 0/13 |
+| Qwen3 MoE post-eval refresh | selection / final selection / attribution scored / plan steps | awaiting_source_eval / awaiting_source_eval / 0/10 / 40/40 |
 | Qwen3 MoE post-eval refresh | feedback status / scored tasks / changed groups | awaiting_eval / 0/4 / 0 |
 | Qwen3 MoE post-eval refresh | mechanistic status / retention / hard-cap violations | mechanistic_unified_candidate_ready / 0.965 / 0 |
 | Qwen3 MoE post-eval refresh | sensitivity objective / scale | no_category_prior 0.003 / no_subspace_conflict 0.0086 |
@@ -351,9 +352,12 @@ Complete: `103`; partial: `1`; missing: `0`.
 | Qwen3 MoE router calibration frontier | status / default / stress | router_calibration_frontier_ready / 2/4 / 2 |
 | Qwen3 MoE router calibration frontier | recommended / blocker | cap001,margin_profile / baseline_eval,source_eval,candidate_eval,audit,group_validation,capacity_metrics |
 | Qwen3 MoE router calibration frontier | safe lambda / nll signal / generation signal | 0.020 / 0.221 / 0.033 |
+| Qwen3 MoE HARC router stats | status / routers / first-stage coverage | harc_router_stats_missing_cache / 0/0 / 0/15 missing |
+| Qwen3 MoE HARC router stats | mean Hessian trace / mean cov trace / top proxy | n/a / n/a / n/a |
+| Qwen3 MoE HARC router stats smoke | status / checks / routers | harc_router_stats_ready / 6/6 / 2/2 |
 | Qwen3 MoE HARC readiness gate | status / preconditions / cache | harc_ready_for_curvature_collection_waiting_cache / 6/6 / missing |
 | Qwen3 MoE HARC readiness gate | top layer / score / role / first-stage layers | L17 / 0.738 / collect_hessian_covariance_first / 15 |
-| Qwen3 MoE HARC readiness smoke | status / cases | smoke_passed / 3/3 |
+| Qwen3 MoE HARC readiness smoke | status / cases | smoke_passed / 4/4 |
 | Qwen3 MoE router calibration selector | status / selected / eligible | awaiting_baseline_eval / None / 0/4 |
 | Qwen3 MoE router calibration selector | source required-complete / baseline eval / candidate eval / audit | True-False / False / False / False |
 | Qwen3 MoE router calibration selector | training / hard route-load / group validation | False / False / False |

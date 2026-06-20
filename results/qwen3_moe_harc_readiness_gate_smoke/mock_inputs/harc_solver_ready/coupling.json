@@ -1,0 +1,5 @@
+{
+  "fragility_router_feature_corr": 0.7,
+  "fragility_scale_shrink_corr": 0.5,
+  "gate": "router_expert_coupling_active"
+}

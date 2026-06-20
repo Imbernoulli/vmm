@@ -1,0 +1,64 @@
+{
+  "critical_layer_count": 1,
+  "first_stage_layer_count": 2,
+  "harc_stats_first_stage_coverage_status": null,
+  "harc_stats_first_stage_covered_layer_count": 0,
+  "harc_stats_first_stage_required_layer_count": 0,
+  "harc_stats_router_count": 0,
+  "harc_stats_status": null,
+  "harc_stats_valid_router_count": 0,
+  "hessian_covariance_cache_status": "missing",
+  "literature_sources": [
+    {
+      "key": "harc",
+      "mechanism": "MoE router merging should match source routing distributions; a second-order KL approximation yields a Hessian/input-covariance weighted linear system.",
+      "title": "When Model Merging Breaks Routing: Training-Free Calibration for MoE",
+      "url": "https://arxiv.org/abs/2606.03391"
+    },
+    {
+      "key": "model_soups",
+      "mechanism": "Weight averaging is accepted only after validation against source or held-out controls.",
+      "title": "Model soups: averaging weights of multiple fine-tuned models improves accuracy without increasing inference time",
+      "url": "https://arxiv.org/abs/2203.05482"
+    },
+    {
+      "key": "ties",
+      "mechanism": "Dense-model merging needs explicit interference handling; MoE routers need an additional top-k boundary gate.",
+      "title": "TIES-Merging: Resolving Interference When Merging Models",
+      "url": "https://arxiv.org/abs/2306.01708"
+    },
+    {
+      "key": "regmean++",
+      "mechanism": "Activation/statistics-aware closed-form merging is useful, but layer-local statistics must be checked against propagation and validation gates.",
+      "title": "RegMean++: Enhancing Effectiveness and Generalization of Regression Mean for Model Merging",
+      "url": "https://arxiv.org/abs/2508.03121"
+    }
+  ],
+  "outputs": {
+    "layer_priority": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/case_outputs/harc_ready_waiting_cache/layer_harc_priority.csv",
+    "literature": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/case_outputs/harc_ready_waiting_cache/literature_sources.json",
+    "report": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/case_outputs/harc_ready_waiting_cache/report.md",
+    "requirements": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/case_outputs/harc_ready_waiting_cache/harc_readiness_requirements.csv",
+    "solver_plan": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/case_outputs/harc_ready_waiting_cache/harc_solver_plan.json",
+    "summary": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/case_outputs/harc_ready_waiting_cache/summary.json"
+  },
+  "precondition_count": 6,
+  "precondition_passed_count": 6,
+  "recommended_action": "collect_hessian_covariance_router_stats_then_run_harc_solver",
+  "schema_version": 1,
+  "solver_plan": {
+    "current_status": "harc_ready_for_curvature_collection_waiting_cache",
+    "harc_stats_dir": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/harc_ready_waiting_cache/harc_stats",
+    "harc_stats_summary": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/harc_ready_waiting_cache/harc_stats/summary.json",
+    "hessian": "H_i = diag(r_i) - r_i r_i^T",
+    "linear_system": "(sum_i E[H_i kron xx^T]) vec(W_m^T) = sum_i E[H_i kron xx^T] vec(W_i^T)",
+    "next_command": "collect router logits and hidden states for source/candidate prompts, then solve the matrix-free HARC linear system before matched vLLM acceptance",
+    "objective": "min_Wm sum_i E_x KL(softmax(W_i x) || softmax(W_m x))",
+    "quadratic_proxy": "0.5 * (W_m x - W_i x)^T H_i (W_m x - W_i x)",
+    "same_shape_constraint": "only update existing router tensors; output checkpoint keeps the same architecture and tensor shapes",
+    "solver": "matrix_free_conjugate_gradient"
+  },
+  "status": "harc_ready_for_curvature_collection_waiting_cache",
+  "top_harc_layer": 1,
+  "top_harc_priority_score": 0.8560000000000001
+}

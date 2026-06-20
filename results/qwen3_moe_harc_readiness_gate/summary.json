@@ -1,6 +1,12 @@
 {
   "critical_layer_count": 1,
   "first_stage_layer_count": 15,
+  "harc_stats_first_stage_coverage_status": "missing",
+  "harc_stats_first_stage_covered_layer_count": 0,
+  "harc_stats_first_stage_required_layer_count": 15,
+  "harc_stats_router_count": 0,
+  "harc_stats_status": "harc_router_stats_missing_cache",
+  "harc_stats_valid_router_count": 0,
   "hessian_covariance_cache_status": "missing",
   "literature_sources": [
     {
@@ -43,6 +49,7 @@
   "solver_plan": {
     "current_status": "harc_ready_for_curvature_collection_waiting_cache",
     "harc_stats_dir": "results/qwen3_moe_harc_router_stats",
+    "harc_stats_summary": "results/qwen3_moe_harc_router_stats/summary.json",
     "hessian": "H_i = diag(r_i) - r_i r_i^T",
     "linear_system": "(sum_i E[H_i kron xx^T]) vec(W_m^T) = sum_i E[H_i kron xx^T] vec(W_i^T)",
     "next_command": "collect router logits and hidden states for source/candidate prompts, then solve the matrix-free HARC linear system before matched vLLM acceptance",

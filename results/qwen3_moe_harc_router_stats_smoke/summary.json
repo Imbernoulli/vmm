@@ -1,0 +1,87 @@
+{
+  "cache_exists": true,
+  "cache_metadata": {
+    "source": "synthetic_harc_stats_smoke"
+  },
+  "cache_path": "results/qwen3_moe_harc_router_stats_smoke/mock_inputs/router_calibration_cache.torch",
+  "first_stage_coverage_status": "complete",
+  "first_stage_covered_layer_count": 2,
+  "first_stage_missing_layers": [],
+  "first_stage_required_layer_count": 2,
+  "literature_sources": [
+    {
+      "key": "harc",
+      "mechanism": "Match source router distributions through a second-order KL proxy with softmax Hessian and hidden-state covariance.",
+      "title": "When Model Merging Breaks Routing: Training-Free Calibration for MoE",
+      "url": "https://arxiv.org/abs/2606.03391"
+    },
+    {
+      "key": "regmean",
+      "mechanism": "Activation covariance turns weight averaging into a layer-local least-squares merge; HARC applies the same statistics-aware logic to MoE routers.",
+      "title": "RegMean: A Simple and Effective Method for Model Merging",
+      "url": "https://arxiv.org/abs/2212.09849"
+    },
+    {
+      "key": "model_connectivity",
+      "mechanism": "Average candidates need connectivity and barrier checks; low router margin means linear interpolation can cross top-k assignment boundaries.",
+      "title": "Loss Surfaces, Mode Connectivity, and Fast Ensembling of DNNs",
+      "url": "https://arxiv.org/abs/1802.10026"
+    }
+  ],
+  "mean_boundary_pair_hessian": 0.0023282618494704366,
+  "mean_hessian_trace": 0.8434363603591919,
+  "mean_hidden_cov_trace": 5.806624174118042,
+  "mean_topk_logit_margin": 0.19475501775741577,
+  "outputs": {
+    "literature": "results/qwen3_moe_harc_router_stats_smoke/literature_sources.json",
+    "report": "results/qwen3_moe_harc_router_stats_smoke/report.md",
+    "requirements": "results/qwen3_moe_harc_router_stats_smoke/harc_stats_requirements.csv",
+    "router_stats": "results/qwen3_moe_harc_router_stats_smoke/router_harc_stats.csv",
+    "smoke_checks": "results/qwen3_moe_harc_router_stats_smoke/smoke_checks.csv",
+    "solver_inputs": "results/qwen3_moe_harc_router_stats_smoke/harc_solver_inputs.json",
+    "summary": "results/qwen3_moe_harc_router_stats_smoke/summary.json"
+  },
+  "recommended_action": "run_matrix_free_harc_router_solver",
+  "router_count": 2,
+  "schema_version": 1,
+  "smoke_checks": {
+    "passed": 6,
+    "total": 6
+  },
+  "smoke_status": "smoke_passed",
+  "solver_inputs": {
+    "matrix_free_matvec": "sum_i E_x [x x^T dW^T H_i] without materializing kron(H_i, xx^T)",
+    "objective": "min_Wm sum_i E_x KL(softmax(W_i x) || softmax(W_m x))",
+    "quadratic_proxy": "0.5 * (W_m x - W_i x)^T (diag(r_i)-r_i r_i^T) (W_m x - W_i x)",
+    "ready_router_count": 2,
+    "router_rows": [
+      {
+        "harc_boundary_cov_proxy": 0.012943997650487815,
+        "harc_precision_proxy": 4.930107902949345,
+        "hidden_cov_trace": 5.91412878036499,
+        "hidden_dim": 6,
+        "hidden_rows": 96,
+        "layer": 1,
+        "mean_hessian_trace": 0.833615243434906,
+        "num_experts": 12,
+        "tensor": "model.layers.1.mlp.gate.weight"
+      },
+      {
+        "harc_boundary_cov_proxy": 0.014064669036457644,
+        "harc_precision_proxy": 4.8628163852185935,
+        "hidden_cov_trace": 5.699119567871094,
+        "hidden_dim": 6,
+        "hidden_rows": 96,
+        "layer": 0,
+        "mean_hessian_trace": 0.8532574772834778,
+        "num_experts": 12,
+        "tensor": "model.layers.0.mlp.gate.weight"
+      }
+    ],
+    "same_shape_constraint": "solve only for existing router weight tensors; checkpoint architecture and tensor shapes stay unchanged"
+  },
+  "status": "harc_router_stats_ready",
+  "top_precision_proxy_tensor": "model.layers.1.mlp.gate.weight",
+  "total_hidden_rows": 192,
+  "valid_router_count": 2
+}

@@ -1,0 +1,7 @@
+requirement,passed,evidence,next_action
+router_calibration_cache_exists,True,cache=results/qwen3_moe_harc_router_stats_smoke/mock_inputs/router_calibration_cache.torch; exists=True,run router calibration cache collection on the GPU host
+router_records_present,True,routers=2,verify router hooks matched model.layers.*.mlp.gate/router modules
+hidden_logits_shape_valid,True,valid routers=2; total rows=192,collect 2D hidden states and matching teacher logits for each router
+softmax_hessian_positive,True,mean Hessian trace=0.8434,check teacher logits are not all degenerate one-hot or empty
+hidden_covariance_positive,True,mean covariance trace=5.8066,increase prompt/token coverage if hidden covariance is zero
+first_stage_priority_covered,True,coverage=complete; 2/2 layers,collect all high-priority HARC layers before solving the matrix-free system

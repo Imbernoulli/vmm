@@ -1,6 +1,7 @@
 {
   "current_status": "harc_not_recommended_router_average_not_rejected",
-  "harc_stats_dir": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/router_safe/missing_harc_stats",
+  "harc_stats_dir": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/router_safe/harc_stats",
+  "harc_stats_summary": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/router_safe/harc_stats/summary.json",
   "hessian": "H_i = diag(r_i) - r_i r_i^T",
   "linear_system": "(sum_i E[H_i kron xx^T]) vec(W_m^T) = sum_i E[H_i kron xx^T] vec(W_i^T)",
   "next_command": "collect router logits and hidden states for source/candidate prompts, then solve the matrix-free HARC linear system before matched vLLM acceptance",

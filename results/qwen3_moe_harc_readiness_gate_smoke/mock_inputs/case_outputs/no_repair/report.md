@@ -7,6 +7,7 @@ This gate turns the MoE router-breakdown mechanism into an executable decision: 
 - Status: `harc_not_recommended_no_local_repair_signal`
 - Preconditions: `5/6`
 - HARC cache: `missing`
+- HARC stats: `None` (`0/0` routers, first-stage `0/0`)
 - Top priority layer: `L1` score `0.8560`
 - Recommended action: `do_not_spend_harc_budget_until_router_only_repair_has_positive_signal`
 
@@ -20,7 +21,7 @@ This gate turns the MoE router-breakdown mechanism into an executable decision: 
 | `router_expert_coupling_active` | `harc_precondition` | `True` | gate=router_expert_coupling_active; fragility->feature corr=0.7000; shrink corr=0.5000 | calibrate router together with expert-cap law, not as an isolated tensor average |
 | `safe_default_router_calibration_frontier_exists` | `harc_precondition` | `True` | default candidates=2/4; recommended=['cap001', 'margin_profile']; blocker=baseline_eval,source_eval,candidate_eval,audit | compare HARC-style calibration against route-KD cap001 and margin_profile |
 | `calibration_job_preflight_ready` | `harc_precondition` | `True` | job status=job_ready_awaiting_gpu; prompts=True; source controls=True; student=True; teacher=True | run preflight on GPU host, then collect router logits/hidden states |
-| `hessian_covariance_cache_available` | `harc_solver_requirement` | `False` | cache dir=results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/no_repair/missing_harc_stats exists=False | collect H_i=diag(r)-rr^T and hidden covariance per router layer |
+| `hessian_covariance_cache_available` | `harc_solver_requirement` | `False` | stats=missing_summary; dir=results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/no_repair/harc_stats; routers=0/0; first-stage=0/0 (n/a) | collect H_i=diag(r)-rr^T and hidden covariance per router layer with collect_qwen3_moe_harc_router_stats.py |
 
 ## Layer Priority
 

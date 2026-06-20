@@ -1,0 +1,7 @@
+{
+  "allowed_router_layer_count": 0,
+  "mean_topk_jaccard": 0.42,
+  "min_topk_jaccard": 0.2,
+  "recommended_unified_router_action": "freeze_router",
+  "router_layer_count": 4
+}

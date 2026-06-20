@@ -7,6 +7,7 @@ This gate turns the MoE router-breakdown mechanism into an executable decision: 
 - Status: `harc_ready_for_curvature_collection_waiting_cache`
 - Preconditions: `6/6`
 - HARC cache: `missing`
+- HARC stats: `harc_router_stats_missing_cache` (`0/0` routers, first-stage `0/15`)
 - Top priority layer: `L17` score `0.7379`
 - Recommended action: `collect_hessian_covariance_router_stats_then_run_harc_solver`
 
@@ -20,7 +21,7 @@ This gate turns the MoE router-breakdown mechanism into an executable decision: 
 | `router_expert_coupling_active` | `harc_precondition` | `True` | gate=router_expert_coupling_active; fragility->feature corr=0.6947; shrink corr=0.5831 | calibrate router together with expert-cap law, not as an isolated tensor average |
 | `safe_default_router_calibration_frontier_exists` | `harc_precondition` | `True` | default candidates=2/4; recommended=['cap001', 'margin_profile']; blocker=baseline_eval,source_eval,candidate_eval,audit,group_validation,capacity_metrics | compare HARC-style calibration against route-KD cap001 and margin_profile |
 | `calibration_job_preflight_ready` | `harc_precondition` | `True` | job status=job_ready_awaiting_gpu; prompts=True; source controls=True; student=True; teacher=True | run preflight on GPU host, then collect router logits/hidden states |
-| `hessian_covariance_cache_available` | `harc_solver_requirement` | `False` | cache dir=results/qwen3_moe_harc_router_stats exists=False | collect H_i=diag(r)-rr^T and hidden covariance per router layer |
+| `hessian_covariance_cache_available` | `harc_solver_requirement` | `False` | stats=harc_router_stats_missing_cache; dir=results/qwen3_moe_harc_router_stats; routers=0/0; first-stage=0/15 (missing) | collect H_i=diag(r)-rr^T and hidden covariance per router layer with collect_qwen3_moe_harc_router_stats.py |
 
 ## Layer Priority
 

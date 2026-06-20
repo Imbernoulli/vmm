@@ -1,11 +1,11 @@
 {
-  "case_count": 3,
+  "case_count": 4,
   "outputs": {
     "cases": "results/qwen3_moe_harc_readiness_gate_smoke/smoke_cases.csv",
     "report": "results/qwen3_moe_harc_readiness_gate_smoke/report.md",
     "summary": "results/qwen3_moe_harc_readiness_gate_smoke/summary.json"
   },
-  "passed_case_count": 3,
+  "passed_case_count": 4,
   "schema_version": 1,
   "smoke_input_dir": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs",
   "status": "smoke_passed"

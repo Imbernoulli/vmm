@@ -3076,6 +3076,22 @@ def summarize_qwen3_moe_post_eval_refresh() -> dict[str, Any]:
         "router_coupled_frontier_candidate_count": maybe_int(
             downstream.get("router_coupled_frontier_candidate_count")
         ),
+        "harc_router_stats_status": downstream.get("harc_router_stats_status"),
+        "harc_router_stats_valid_routers": maybe_int(downstream.get("harc_router_stats_valid_routers")),
+        "harc_router_stats_routers": maybe_int(downstream.get("harc_router_stats_routers")),
+        "harc_router_stats_first_stage_covered": maybe_int(
+            downstream.get("harc_router_stats_first_stage_covered")
+        ),
+        "harc_router_stats_first_stage_required": maybe_int(
+            downstream.get("harc_router_stats_first_stage_required")
+        ),
+        "harc_router_stats_first_stage_status": downstream.get("harc_router_stats_first_stage_status"),
+        "harc_router_stats_mean_hessian_trace": maybe_float(
+            downstream.get("harc_router_stats_mean_hessian_trace")
+        ),
+        "harc_router_stats_mean_cov_trace": maybe_float(
+            downstream.get("harc_router_stats_mean_cov_trace")
+        ),
         "step_rows": [clean_row(row) for _, row in steps.iterrows()],
         "report": rel(root / "report.md"),
         "steps": rel(root / "steps.csv"),
@@ -3289,6 +3305,65 @@ def summarize_qwen3_moe_harc_readiness_gate() -> dict[str, Any]:
         "layer_priority": rel(root / "layer_harc_priority.csv"),
         "solver_plan_path": rel(root / "harc_solver_plan.json"),
         "literature_sources": rel(root / "literature_sources.json"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
+def summarize_qwen3_moe_harc_router_stats() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_harc_router_stats")
+    summary = read_json(root / "summary.json")
+    stats = read_csv(root / "router_harc_stats.csv")
+    requirements = read_csv(root / "harc_stats_requirements.csv")
+    top = clean_row(stats.sort_values("harc_precision_proxy", ascending=False).iloc[0]) if not stats.empty else {}
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "cache_exists": bool(summary.get("cache_exists", False)),
+        "router_count": maybe_int(summary.get("router_count")),
+        "valid_router_count": maybe_int(summary.get("valid_router_count")),
+        "total_hidden_rows": maybe_int(summary.get("total_hidden_rows")),
+        "first_stage_required_layer_count": maybe_int(summary.get("first_stage_required_layer_count")),
+        "first_stage_covered_layer_count": maybe_int(summary.get("first_stage_covered_layer_count")),
+        "first_stage_coverage_status": summary.get("first_stage_coverage_status"),
+        "first_stage_missing_layers": summary.get("first_stage_missing_layers") or [],
+        "mean_hessian_trace": maybe_float(summary.get("mean_hessian_trace")),
+        "mean_hidden_cov_trace": maybe_float(summary.get("mean_hidden_cov_trace")),
+        "mean_boundary_pair_hessian": maybe_float(summary.get("mean_boundary_pair_hessian")),
+        "mean_topk_logit_margin": maybe_float(summary.get("mean_topk_logit_margin")),
+        "top_precision_proxy_tensor": summary.get("top_precision_proxy_tensor"),
+        "top_precision_proxy_layer": maybe_int(top.get("layer")),
+        "top_precision_proxy": maybe_float(top.get("harc_precision_proxy")),
+        "top_boundary_cov_proxy": maybe_float(top.get("harc_boundary_cov_proxy")),
+        "recommended_action": summary.get("recommended_action"),
+        "cache_collection_command": summary.get("cache_collection_command"),
+        "stat_rows": [clean_row(row) for _, row in stats.head(16).iterrows()],
+        "requirement_rows": [clean_row(row) for _, row in requirements.iterrows()],
+        "report": rel(root / "report.md"),
+        "router_stats": rel(root / "router_harc_stats.csv"),
+        "requirements": rel(root / "harc_stats_requirements.csv"),
+        "solver_inputs": rel(root / "harc_solver_inputs.json"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
+def summarize_qwen3_moe_harc_router_stats_smoke() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_harc_router_stats_smoke")
+    summary = read_json(root / "summary.json")
+    checks = read_csv(root / "smoke_checks.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "smoke_status": summary.get("smoke_status"),
+        "valid_router_count": maybe_int(summary.get("valid_router_count")),
+        "router_count": maybe_int(summary.get("router_count")),
+        "first_stage_coverage_status": summary.get("first_stage_coverage_status"),
+        "mean_hessian_trace": maybe_float(summary.get("mean_hessian_trace")),
+        "mean_hidden_cov_trace": maybe_float(summary.get("mean_hidden_cov_trace")),
+        "passed_check_count": maybe_int((summary.get("smoke_checks") or {}).get("passed")),
+        "check_count": maybe_int((summary.get("smoke_checks") or {}).get("total")),
+        "check_rows": [clean_row(row) for _, row in checks.iterrows()],
+        "report": rel(root / "report.md"),
+        "checks": rel(root / "smoke_checks.csv"),
         "summary_path": rel(root / "summary.json"),
     }
 
@@ -5534,6 +5609,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/qwen3_moe_harc_readiness_gate/report.md checks direct-router rejection, top-k boundary fragility, router-only repair, router-expert coupling, calibration frontier, calibration job preflight, and Hessian/covariance cache readiness before HARC-style router calibration.",
         },
         {
+            "item": "Qwen3 MoE HARC router stats collector",
+            "status": "complete",
+            "evidence": "results/qwen3_moe_harc_router_stats/report.md converts router calibration cache rows into softmax-Hessian, hidden-covariance, boundary-margin, and solver-input summaries; results/qwen3_moe_harc_router_stats_smoke/report.md verifies the ready branch on synthetic router tensors.",
+        },
+        {
             "item": "Qwen3 MoE trust-region cap-law search",
             "status": "complete",
             "evidence": "results/qwen3_moe_trust_region_cap_search/report.md searches interpretable expert cap laws over real Qwen3 route-mass, risk-flag, and safetensors-delta probes and emits writer-ready next-candidate rules.",
@@ -5694,6 +5774,8 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_router_calibration_nll_probe": summarize_qwen3_moe_router_calibration_nll_probe(),
         "qwen3_moe_router_calibration_job": summarize_qwen3_moe_router_calibration_job(),
         "qwen3_moe_router_calibration_frontier": summarize_qwen3_moe_router_calibration_frontier(),
+        "qwen3_moe_harc_router_stats": summarize_qwen3_moe_harc_router_stats(),
+        "qwen3_moe_harc_router_stats_smoke": summarize_qwen3_moe_harc_router_stats_smoke(),
         "qwen3_moe_harc_readiness_gate": summarize_qwen3_moe_harc_readiness_gate(),
         "qwen3_moe_harc_readiness_gate_smoke": summarize_qwen3_moe_harc_readiness_gate_smoke(),
         "qwen3_moe_router_calibration_selection": summarize_qwen3_moe_router_calibration_selection(),
@@ -5860,6 +5942,8 @@ def build_summary() -> dict[str, Any]:
             "python scripts/build_qwen3_moe_router_calibration_nll_probe.py --output-dir results/qwen3_moe_router_calibration_nll_probe",
             "python scripts/build_qwen3_moe_router_calibration_job.py --output-dir results/qwen3_moe_router_calibration_job",
             "python scripts/build_qwen3_moe_router_calibration_frontier.py --output-dir results/qwen3_moe_router_calibration_frontier",
+            "python scripts/collect_qwen3_moe_harc_router_stats.py --output-dir results/qwen3_moe_harc_router_stats",
+            "python scripts/collect_qwen3_moe_harc_router_stats.py --smoke-matrix --output-dir results/qwen3_moe_harc_router_stats_smoke",
             "python scripts/select_qwen3_moe_router_calibration_result.py --output-dir results/qwen3_moe_router_calibration_selection",
             "python scripts/select_qwen3_moe_router_calibration_result.py --smoke --output-dir results/qwen3_moe_router_calibration_selection_smoke",
             "python scripts/select_qwen3_moe_router_calibration_result.py --row-validation-negative-smoke --output-dir results/qwen3_moe_router_calibration_selection_row_validation_negative_smoke",
@@ -6026,6 +6110,8 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_router_calibration_nll_probe = exp["qwen3_moe_router_calibration_nll_probe"]
     qwen3_moe_router_calibration_job = exp["qwen3_moe_router_calibration_job"]
     qwen3_moe_router_calibration_frontier = exp["qwen3_moe_router_calibration_frontier"]
+    qwen3_moe_harc_router_stats = exp["qwen3_moe_harc_router_stats"]
+    qwen3_moe_harc_router_stats_smoke = exp["qwen3_moe_harc_router_stats_smoke"]
     qwen3_moe_harc_readiness_gate = exp["qwen3_moe_harc_readiness_gate"]
     qwen3_moe_harc_readiness_gate_smoke = exp["qwen3_moe_harc_readiness_gate_smoke"]
     qwen3_moe_router_calibration_selection = exp["qwen3_moe_router_calibration_selection"]
@@ -7466,6 +7552,29 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(qwen3_moe_router_calibration_frontier['safe_lambda_proxy'])} / "
                 f"{fmt(qwen3_moe_router_calibration_frontier['nll_worst_reduction_signal'])} / "
                 f"{fmt(qwen3_moe_router_calibration_frontier['generation_avg_gain_signal'])} |"
+            ),
+            (
+                "| Qwen3 MoE HARC router stats | status / routers / first-stage coverage | "
+                f"{qwen3_moe_harc_router_stats['status']} / "
+                f"{qwen3_moe_harc_router_stats['valid_router_count']}"
+                f"/{qwen3_moe_harc_router_stats['router_count']} / "
+                f"{qwen3_moe_harc_router_stats['first_stage_covered_layer_count']}"
+                f"/{qwen3_moe_harc_router_stats['first_stage_required_layer_count']} "
+                f"{qwen3_moe_harc_router_stats['first_stage_coverage_status']} |"
+            ),
+            (
+                "| Qwen3 MoE HARC router stats | mean Hessian trace / mean cov trace / top proxy | "
+                f"{fmt(qwen3_moe_harc_router_stats['mean_hessian_trace'])} / "
+                f"{fmt(qwen3_moe_harc_router_stats['mean_hidden_cov_trace'])} / "
+                f"{fmt(qwen3_moe_harc_router_stats['top_precision_proxy'])} |"
+            ),
+            (
+                "| Qwen3 MoE HARC router stats smoke | status / checks / routers | "
+                f"{qwen3_moe_harc_router_stats_smoke['status']} / "
+                f"{qwen3_moe_harc_router_stats_smoke['passed_check_count']}"
+                f"/{qwen3_moe_harc_router_stats_smoke['check_count']} / "
+                f"{qwen3_moe_harc_router_stats_smoke['valid_router_count']}"
+                f"/{qwen3_moe_harc_router_stats_smoke['router_count']} |"
             ),
             (
                 "| Qwen3 MoE HARC readiness gate | status / preconditions / cache | "

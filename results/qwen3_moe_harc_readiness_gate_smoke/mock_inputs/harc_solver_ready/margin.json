@@ -1,0 +1,8 @@
+{
+  "high_fragility_layer_count": 2,
+  "min_safe_lambda_proxy": 0.018,
+  "recommended_unified_router_action": "freeze_router",
+  "router_layer_count": 4,
+  "top_fragile_layer": 1,
+  "top_fragility_score": 0.82
+}

@@ -1,0 +1,22 @@
+{
+  "sources": [
+    {
+      "key": "harc",
+      "mechanism": "Match source router distributions through a second-order KL proxy with softmax Hessian and hidden-state covariance.",
+      "title": "When Model Merging Breaks Routing: Training-Free Calibration for MoE",
+      "url": "https://arxiv.org/abs/2606.03391"
+    },
+    {
+      "key": "regmean",
+      "mechanism": "Activation covariance turns weight averaging into a layer-local least-squares merge; HARC applies the same statistics-aware logic to MoE routers.",
+      "title": "RegMean: A Simple and Effective Method for Model Merging",
+      "url": "https://arxiv.org/abs/2212.09849"
+    },
+    {
+      "key": "model_connectivity",
+      "mechanism": "Average candidates need connectivity and barrier checks; low router margin means linear interpolation can cross top-k assignment boundaries.",
+      "title": "Loss Surfaces, Mode Connectivity, and Fast Ensembling of DNNs",
+      "url": "https://arxiv.org/abs/1802.10026"
+    }
+  ]
+}

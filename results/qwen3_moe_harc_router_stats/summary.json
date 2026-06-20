@@ -1,0 +1,70 @@
+{
+  "cache_collection_command": "PYTHONPATH=scripts python scripts/collect_moe_router_calibration_cache.py --student-model STUDENT_OR_MERGED_CHECKPOINT --teacher-model TEACHER_SOURCE_CHECKPOINT --output-dir results/qwen3_moe_router_calibration_cache",
+  "cache_exists": false,
+  "cache_path": "results/qwen3_moe_router_calibration_cache/router_calibration_cache.pt",
+  "first_stage_coverage_status": "missing",
+  "first_stage_covered_layer_count": 0,
+  "first_stage_missing_layers": [
+    0,
+    4,
+    11,
+    12,
+    13,
+    14,
+    15,
+    17,
+    18,
+    19,
+    20,
+    22,
+    24,
+    25,
+    29
+  ],
+  "first_stage_required_layer_count": 15,
+  "literature_sources": [
+    {
+      "key": "harc",
+      "mechanism": "Match source router distributions through a second-order KL proxy with softmax Hessian and hidden-state covariance.",
+      "title": "When Model Merging Breaks Routing: Training-Free Calibration for MoE",
+      "url": "https://arxiv.org/abs/2606.03391"
+    },
+    {
+      "key": "regmean",
+      "mechanism": "Activation covariance turns weight averaging into a layer-local least-squares merge; HARC applies the same statistics-aware logic to MoE routers.",
+      "title": "RegMean: A Simple and Effective Method for Model Merging",
+      "url": "https://arxiv.org/abs/2212.09849"
+    },
+    {
+      "key": "model_connectivity",
+      "mechanism": "Average candidates need connectivity and barrier checks; low router margin means linear interpolation can cross top-k assignment boundaries.",
+      "title": "Loss Surfaces, Mode Connectivity, and Fast Ensembling of DNNs",
+      "url": "https://arxiv.org/abs/1802.10026"
+    }
+  ],
+  "mean_hessian_trace": null,
+  "mean_hidden_cov_trace": null,
+  "outputs": {
+    "literature": "results/qwen3_moe_harc_router_stats/literature_sources.json",
+    "report": "results/qwen3_moe_harc_router_stats/report.md",
+    "requirements": "results/qwen3_moe_harc_router_stats/harc_stats_requirements.csv",
+    "router_stats": "results/qwen3_moe_harc_router_stats/router_harc_stats.csv",
+    "solver_inputs": "results/qwen3_moe_harc_router_stats/harc_solver_inputs.json",
+    "summary": "results/qwen3_moe_harc_router_stats/summary.json"
+  },
+  "recommended_action": "collect_router_calibration_cache_on_gpu_host",
+  "router_count": 0,
+  "schema_version": 1,
+  "solver_inputs": {
+    "matrix_free_matvec": "sum_i E_x [x x^T dW^T H_i] without materializing kron(H_i, xx^T)",
+    "objective": "min_Wm sum_i E_x KL(softmax(W_i x) || softmax(W_m x))",
+    "quadratic_proxy": "0.5 * (W_m x - W_i x)^T (diag(r_i)-r_i r_i^T) (W_m x - W_i x)",
+    "ready_router_count": 0,
+    "router_rows": [],
+    "same_shape_constraint": "solve only for existing router weight tensors; checkpoint architecture and tensor shapes stay unchanged"
+  },
+  "status": "harc_router_stats_missing_cache",
+  "top_precision_proxy_tensor": null,
+  "total_hidden_rows": 0,
+  "valid_router_count": 0
+}

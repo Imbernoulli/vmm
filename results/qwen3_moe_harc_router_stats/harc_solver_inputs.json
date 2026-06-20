@@ -1,0 +1,8 @@
+{
+  "matrix_free_matvec": "sum_i E_x [x x^T dW^T H_i] without materializing kron(H_i, xx^T)",
+  "objective": "min_Wm sum_i E_x KL(softmax(W_i x) || softmax(W_m x))",
+  "quadratic_proxy": "0.5 * (W_m x - W_i x)^T (diag(r_i)-r_i r_i^T) (W_m x - W_i x)",
+  "ready_router_count": 0,
+  "router_rows": [],
+  "same_shape_constraint": "solve only for existing router weight tensors; checkpoint architecture and tensor shapes stay unchanged"
+}

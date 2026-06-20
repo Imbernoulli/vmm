@@ -190,6 +190,7 @@ def build_requirements(
     frontier: dict[str, Any],
     job: dict[str, Any],
     stats_dir: Path,
+    stats_summary: dict[str, Any],
     *,
     min_nll_reduction: float,
     min_coupling_corr: float,
@@ -215,7 +216,8 @@ def build_requirements(
         and bool(job.get("student_exists"))
         and bool(job.get("teacher_exists"))
     )
-    cache_ready = repo_path(stats_dir).exists()
+    stats_status = stats_summary.get("status")
+    cache_ready = stats_status == "harc_router_stats_ready"
     rows = [
         {
             "requirement": "direct_router_average_rejected",
@@ -288,8 +290,14 @@ def build_requirements(
             "requirement": "hessian_covariance_cache_available",
             "role": "harc_solver_requirement",
             "passed": cache_ready,
-            "evidence": f"cache dir={rel(stats_dir)} exists={cache_ready}",
-            "next_action": "collect H_i=diag(r)-rr^T and hidden covariance per router layer",
+            "evidence": (
+                f"stats={stats_status or 'missing_summary'}; dir={rel(stats_dir)}; "
+                f"routers={stats_summary.get('valid_router_count', 0)}/{stats_summary.get('router_count', 0)}; "
+                f"first-stage={stats_summary.get('first_stage_covered_layer_count', 0)}/"
+                f"{stats_summary.get('first_stage_required_layer_count', 0)} "
+                f"({stats_summary.get('first_stage_coverage_status', 'n/a')})"
+            ),
+            "next_action": "collect H_i=diag(r)-rr^T and hidden covariance per router layer with collect_qwen3_moe_harc_router_stats.py",
         },
     ]
     return pd.DataFrame(rows)
@@ -323,6 +331,7 @@ def solver_plan(args: argparse.Namespace, status: str) -> dict[str, Any]:
             "matrix-free HARC linear system before matched vLLM acceptance"
         ),
         "harc_stats_dir": rel(args.harc_stats_dir),
+        "harc_stats_summary": rel(args.harc_stats_summary),
     }
 
 
@@ -337,6 +346,7 @@ def build_report(summary: dict[str, Any], requirements: pd.DataFrame, layers: pd
         f"- Status: `{summary['status']}`",
         f"- Preconditions: `{summary['precondition_passed_count']}/{summary['precondition_count']}`",
         f"- HARC cache: `{summary['hessian_covariance_cache_status']}`",
+        f"- HARC stats: `{summary.get('harc_stats_status')}` (`{summary.get('harc_stats_valid_router_count')}/{summary.get('harc_stats_router_count')}` routers, first-stage `{summary.get('harc_stats_first_stage_covered_layer_count')}/{summary.get('harc_stats_first_stage_required_layer_count')}`)",
         f"- Top priority layer: `L{summary.get('top_harc_layer')}` score `{fmt(summary.get('top_harc_priority_score'))}`",
         f"- Recommended action: `{summary['recommended_action']}`",
         "",
@@ -395,6 +405,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
     coupling = read_json(args.router_expert_coupling_summary)
     frontier = read_json(args.router_calibration_frontier_summary)
     job = read_json(args.router_calibration_job_summary)
+    stats_summary = read_json(args.harc_stats_summary)
     layers = build_layer_priority(read_csv(args.layer_fragility), read_csv(args.layer_coupling))
     requirements = build_requirements(
         router_move,
@@ -404,6 +415,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         frontier,
         job,
         args.harc_stats_dir,
+        stats_summary,
         min_nll_reduction=args.min_nll_reduction,
         min_coupling_corr=args.min_coupling_corr,
     )
@@ -432,6 +444,16 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         "precondition_count": int(len(preconditions)),
         "precondition_passed_count": int(preconditions["passed"].sum()),
         "hessian_covariance_cache_status": "available" if cache_ready else "missing",
+        "harc_stats_status": stats_summary.get("status"),
+        "harc_stats_valid_router_count": int(stats_summary.get("valid_router_count") or 0),
+        "harc_stats_router_count": int(stats_summary.get("router_count") or 0),
+        "harc_stats_first_stage_coverage_status": stats_summary.get("first_stage_coverage_status"),
+        "harc_stats_first_stage_covered_layer_count": int(
+            stats_summary.get("first_stage_covered_layer_count") or 0
+        ),
+        "harc_stats_first_stage_required_layer_count": int(
+            stats_summary.get("first_stage_required_layer_count") or 0
+        ),
         "recommended_action": action,
         "top_harc_layer": int(top["layer"]) if top else None,
         "top_harc_priority_score": fnum(top.get("harc_priority_score")) if top else None,
@@ -474,7 +496,14 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
     return summary
 
 
-def write_mock_case(root: Path, case: str, *, direct_rejected: bool, local_repair: bool) -> argparse.Namespace:
+def write_mock_case(
+    root: Path,
+    case: str,
+    *,
+    direct_rejected: bool,
+    local_repair: bool,
+    stats_ready: bool = False,
+) -> argparse.Namespace:
     case_dir = root / case
     case_dir.mkdir(parents=True, exist_ok=True)
     (case_dir / "router_move.json").write_text(
@@ -615,6 +644,30 @@ def write_mock_case(root: Path, case: str, *, direct_rejected: bool, local_repai
             },
         ]
     ).to_csv(case_dir / "layer_coupling.csv", index=False)
+    harc_stats_dir = case_dir / "harc_stats"
+    harc_stats_summary = harc_stats_dir / "summary.json"
+    if stats_ready:
+        harc_stats_dir.mkdir(parents=True, exist_ok=True)
+        harc_stats_summary.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "status": "harc_router_stats_ready",
+                    "cache_exists": True,
+                    "router_count": 2,
+                    "valid_router_count": 2,
+                    "first_stage_required_layer_count": 2,
+                    "first_stage_covered_layer_count": 2,
+                    "first_stage_coverage_status": "complete",
+                    "mean_hessian_trace": 0.72,
+                    "mean_hidden_cov_trace": 4.1,
+                },
+                indent=2,
+                sort_keys=True,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
     return argparse.Namespace(
         output_dir=root / "case_outputs" / case,
         router_move_summary=case_dir / "router_move.json",
@@ -625,7 +678,8 @@ def write_mock_case(root: Path, case: str, *, direct_rejected: bool, local_repai
         router_calibration_job_summary=case_dir / "job.json",
         layer_fragility=case_dir / "layer_fragility.csv",
         layer_coupling=case_dir / "layer_coupling.csv",
-        harc_stats_dir=case_dir / "missing_harc_stats",
+        harc_stats_dir=harc_stats_dir,
+        harc_stats_summary=harc_stats_summary,
         min_nll_reduction=0.01,
         min_coupling_corr=0.3,
     )
@@ -636,17 +690,19 @@ def build_smoke(args: argparse.Namespace) -> dict[str, Any]:
     output_dir.mkdir(parents=True, exist_ok=True)
     mock_root = output_dir / "mock_inputs"
     cases = [
-        ("harc_ready", True, True, "harc_ready_for_curvature_collection_waiting_cache"),
-        ("router_safe", False, True, "harc_not_recommended_router_average_not_rejected"),
-        ("no_repair", True, False, "harc_not_recommended_no_local_repair_signal"),
+        ("harc_ready_waiting_cache", True, True, False, "harc_ready_for_curvature_collection_waiting_cache"),
+        ("harc_solver_ready", True, True, True, "harc_ready_for_matrix_free_solver"),
+        ("router_safe", False, True, False, "harc_not_recommended_router_average_not_rejected"),
+        ("no_repair", True, False, False, "harc_not_recommended_no_local_repair_signal"),
     ]
     rows = []
-    for case, direct_rejected, local_repair, expected in cases:
+    for case, direct_rejected, local_repair, stats_ready, expected in cases:
         case_args = write_mock_case(
             mock_root,
             case,
             direct_rejected=direct_rejected,
             local_repair=local_repair,
+            stats_ready=stats_ready,
         )
         summary = build(case_args)
         rows.append(
@@ -744,6 +800,11 @@ def parse_args() -> argparse.Namespace:
         "--harc-stats-dir",
         type=Path,
         default=Path("results/qwen3_moe_harc_router_stats"),
+    )
+    parser.add_argument(
+        "--harc-stats-summary",
+        type=Path,
+        default=Path("results/qwen3_moe_harc_router_stats/summary.json"),
     )
     parser.add_argument("--min-nll-reduction", type=float, default=0.01)
     parser.add_argument("--min-coupling-corr", type=float, default=0.30)

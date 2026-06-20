@@ -330,6 +330,16 @@ def build_steps(args: argparse.Namespace) -> list[dict[str, Any]]:
             ],
         },
         {
+            "step": "collect_qwen3_moe_harc_router_stats",
+            "kind": "probe",
+            "command": [
+                py,
+                "scripts/collect_qwen3_moe_harc_router_stats.py",
+                "--output-dir",
+                str(args.harc_router_stats_dir),
+            ],
+        },
+        {
             "step": "build_qwen3_moe_harc_readiness_gate",
             "kind": "gate",
             "command": [
@@ -337,6 +347,10 @@ def build_steps(args: argparse.Namespace) -> list[dict[str, Any]]:
                 "scripts/build_qwen3_moe_harc_readiness_gate.py",
                 "--output-dir",
                 str(args.harc_readiness_gate_dir),
+                "--harc-stats-dir",
+                str(args.harc_router_stats_dir),
+                "--harc-stats-summary",
+                str(args.harc_router_stats_dir / "summary.json"),
             ],
         },
         {
@@ -453,6 +467,17 @@ def build_steps(args: argparse.Namespace) -> list[dict[str, Any]]:
                         "--smoke-matrix",
                         "--output-dir",
                         str(args.qwen_source_frontier_eval_feedback_smoke_dir),
+                    ],
+                },
+                {
+                    "step": "collect_qwen3_moe_harc_router_stats_smoke",
+                    "kind": "smoke",
+                    "command": [
+                        py,
+                        "scripts/collect_qwen3_moe_harc_router_stats.py",
+                        "--smoke-matrix",
+                        "--output-dir",
+                        str(args.harc_router_stats_smoke_dir),
                     ],
                 },
                 {
@@ -590,6 +615,8 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
     router_calibration_frontier = read_json(
         repo_path(args.router_calibration_frontier_dir) / "summary.json"
     )
+    harc_router_stats = read_json(repo_path(args.harc_router_stats_dir) / "summary.json")
+    harc_router_stats_smoke = read_json(repo_path(args.harc_router_stats_smoke_dir) / "summary.json")
     harc_readiness_gate = read_json(repo_path(args.harc_readiness_gate_dir) / "summary.json")
     harc_readiness_gate_smoke = read_json(
         repo_path(args.harc_readiness_gate_smoke_dir) / "summary.json"
@@ -851,6 +878,27 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
         "router_calibration_frontier_generation_signal": router_calibration_frontier.get(
             "generation_avg_gain_signal"
         ),
+        "harc_router_stats_status": harc_router_stats.get("status"),
+        "harc_router_stats_valid_routers": harc_router_stats.get("valid_router_count"),
+        "harc_router_stats_routers": harc_router_stats.get("router_count"),
+        "harc_router_stats_first_stage_covered": harc_router_stats.get(
+            "first_stage_covered_layer_count"
+        ),
+        "harc_router_stats_first_stage_required": harc_router_stats.get(
+            "first_stage_required_layer_count"
+        ),
+        "harc_router_stats_first_stage_status": harc_router_stats.get(
+            "first_stage_coverage_status"
+        ),
+        "harc_router_stats_mean_hessian_trace": harc_router_stats.get("mean_hessian_trace"),
+        "harc_router_stats_mean_cov_trace": harc_router_stats.get("mean_hidden_cov_trace"),
+        "harc_router_stats_smoke_status": harc_router_stats_smoke.get("status"),
+        "harc_router_stats_smoke_checks_passed": (
+            harc_router_stats_smoke.get("smoke_checks") or {}
+        ).get("passed"),
+        "harc_router_stats_smoke_checks_total": (
+            harc_router_stats_smoke.get("smoke_checks") or {}
+        ).get("total"),
         "harc_readiness_gate_status": harc_readiness_gate.get("status"),
         "harc_readiness_gate_preconditions": harc_readiness_gate.get("precondition_count"),
         "harc_readiness_gate_passed_preconditions": harc_readiness_gate.get(
@@ -943,6 +991,8 @@ def build_report(summary: dict[str, Any]) -> str:
         f"- Qwen source frontier eval feedback: `{downstream.get('qwen_source_frontier_eval_feedback_status', 'n/a')}` (scored `{downstream.get('qwen_source_frontier_eval_feedback_scored', 'n/a')}/{downstream.get('qwen_source_frontier_eval_feedback_jobs', 'n/a')}`, final candidates `{downstream.get('qwen_source_frontier_eval_feedback_final_candidates', 'n/a')}`, probe-only `{downstream.get('qwen_source_frontier_eval_feedback_probe_only', 'n/a')}`, top `{downstream.get('qwen_source_frontier_eval_feedback_top_job', 'n/a')}` / `{downstream.get('qwen_source_frontier_eval_feedback_top_gate', 'n/a')}`, surplus `{downstream.get('qwen_source_frontier_eval_feedback_top_surplus', 'n/a')}`, blocker `{downstream.get('qwen_source_frontier_eval_feedback_blocker', 'n/a')}`)",
         f"- Qwen source frontier eval feedback smoke: `{downstream.get('qwen_source_frontier_eval_feedback_smoke_status', 'n/a')}` (passed `{downstream.get('qwen_source_frontier_eval_feedback_smoke_passed', 'n/a')}`, scored `{downstream.get('qwen_source_frontier_eval_feedback_smoke_scored', 'n/a')}/{downstream.get('qwen_source_frontier_eval_feedback_smoke_jobs', 'n/a')}`, final candidates `{downstream.get('qwen_source_frontier_eval_feedback_smoke_final_candidates', 'n/a')}`)",
         f"- Router calibration frontier: `{downstream.get('router_calibration_frontier_status', 'n/a')}` (`{downstream.get('router_calibration_frontier_default_candidates', 'n/a')}/{downstream.get('router_calibration_frontier_candidate_count', 'n/a')}` default, recommended `{downstream.get('router_calibration_frontier_recommended', 'n/a')}`, blocker `{downstream.get('router_calibration_frontier_blocker', 'n/a')}`, nll `{downstream.get('router_calibration_frontier_nll_signal', 'n/a')}`, generation `{downstream.get('router_calibration_frontier_generation_signal', 'n/a')}`)",
+        f"- HARC router stats: `{downstream.get('harc_router_stats_status', 'n/a')}` (`{downstream.get('harc_router_stats_valid_routers', 'n/a')}/{downstream.get('harc_router_stats_routers', 'n/a')}` routers, first-stage `{downstream.get('harc_router_stats_first_stage_covered', 'n/a')}/{downstream.get('harc_router_stats_first_stage_required', 'n/a')}` `{downstream.get('harc_router_stats_first_stage_status', 'n/a')}`, Hessian `{downstream.get('harc_router_stats_mean_hessian_trace', 'n/a')}`, cov `{downstream.get('harc_router_stats_mean_cov_trace', 'n/a')}`)",
+        f"- HARC router stats smoke: `{downstream.get('harc_router_stats_smoke_status', 'n/a')}` (`{downstream.get('harc_router_stats_smoke_checks_passed', 'n/a')}/{downstream.get('harc_router_stats_smoke_checks_total', 'n/a')}` checks)",
         f"- HARC readiness gate: `{downstream.get('harc_readiness_gate_status', 'n/a')}` (`{downstream.get('harc_readiness_gate_passed_preconditions', 'n/a')}/{downstream.get('harc_readiness_gate_preconditions', 'n/a')}` preconditions, cache `{downstream.get('harc_readiness_gate_cache', 'n/a')}`, top layer `L{downstream.get('harc_readiness_gate_top_layer', 'n/a')}` score `{downstream.get('harc_readiness_gate_top_score', 'n/a')}`, first-stage layers `{downstream.get('harc_readiness_gate_first_stage_layers', 'n/a')}`, action `{downstream.get('harc_readiness_gate_action', 'n/a')}`)",
         f"- HARC readiness smoke: `{downstream.get('harc_readiness_gate_smoke_status', 'n/a')}` (`{downstream.get('harc_readiness_gate_smoke_passed', 'n/a')}/{downstream.get('harc_readiness_gate_smoke_cases', 'n/a')}` cases)",
         f"- Unified average optimizer: `{downstream.get('unified_optimizer_status', 'n/a')}` (top next experiment `{downstream.get('unified_optimizer_top_experiment', 'n/a')}` / `{downstream.get('unified_optimizer_top_experiment_status', 'n/a')}`)",
@@ -1089,6 +1139,11 @@ def parse_args() -> argparse.Namespace:
         default=Path("results/qwen3_moe_router_calibration_frontier"),
     )
     parser.add_argument(
+        "--harc-router-stats-dir",
+        type=Path,
+        default=Path("results/qwen3_moe_harc_router_stats"),
+    )
+    parser.add_argument(
         "--harc-readiness-gate-dir",
         type=Path,
         default=Path("results/qwen3_moe_harc_readiness_gate"),
@@ -1155,6 +1210,11 @@ def parse_args() -> argparse.Namespace:
         "--harc-readiness-gate-smoke-dir",
         type=Path,
         default=Path("results/qwen3_moe_harc_readiness_gate_smoke"),
+    )
+    parser.add_argument(
+        "--harc-router-stats-smoke-dir",
+        type=Path,
+        default=Path("results/qwen3_moe_harc_router_stats_smoke"),
     )
     parser.add_argument("--output-dir", type=Path, default=Path("results/qwen3_moe_post_eval_refresh"))
     parser.add_argument("--include-smoke", action="store_true")

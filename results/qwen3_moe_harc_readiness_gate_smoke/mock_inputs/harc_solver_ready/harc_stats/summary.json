@@ -1,0 +1,12 @@
+{
+  "cache_exists": true,
+  "first_stage_coverage_status": "complete",
+  "first_stage_covered_layer_count": 2,
+  "first_stage_required_layer_count": 2,
+  "mean_hessian_trace": 0.72,
+  "mean_hidden_cov_trace": 4.1,
+  "router_count": 2,
+  "schema_version": 1,
+  "status": "harc_router_stats_ready",
+  "valid_router_count": 2
+}
