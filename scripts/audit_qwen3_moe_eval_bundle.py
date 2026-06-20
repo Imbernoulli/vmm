@@ -13,6 +13,7 @@ import pandas as pd
 REPO_ROOT = Path(__file__).resolve().parents[1]
 REQUIRED_FILES = ["summary.json", "eval_plan.csv", "metrics.csv", "model_summary.csv", "predictions.csv"]
 PRIMARY_SCORE_COLUMNS = ["strict_exact", "accuracy", "policy_accuracy", "compile_rate"]
+PAIRED_TASKS = {"gsm8k", "mmlu", "safety", "humaneval_compile"}
 
 
 def repo_path(path: str | Path) -> Path:
@@ -83,6 +84,31 @@ def primary_score(row: pd.Series) -> float | None:
         if value is not None:
             return float(value)
     return None
+
+
+def prediction_key(row: pd.Series | dict[str, Any]) -> str | None:
+    task = str(row.get("task", "")).strip()
+    if task not in PAIRED_TASKS:
+        return None
+    for column in ("task_id", "index"):
+        value = clean_value(row.get(column))
+        if value is not None and str(value).strip():
+            return f"{task}::{value}"
+    return None
+
+
+def prediction_key_sets(output_dir: str | Path) -> dict[str, set[str]]:
+    predictions = read_csv(repo_path(output_dir) / "predictions.csv")
+    by_task: dict[str, set[str]] = {task: set() for task in PAIRED_TASKS}
+    if predictions.empty:
+        return by_task
+    for _, row in predictions.iterrows():
+        key = prediction_key(row)
+        if key is None:
+            continue
+        task = key.split("::", 1)[0]
+        by_task.setdefault(task, set()).add(key)
+    return by_task
 
 
 def expected_model_id(row: pd.Series) -> str:
@@ -187,6 +213,7 @@ def audit_eval_row(row: pd.Series, *, min_examples: int | None = None) -> dict[s
         "expected_model": expected_model,
         "eval_output_dir": rel(output_dir),
         "summary_status": summary_status,
+        "expected_tasks": ",".join(expected_tasks),
         "required_task_count": len(expected_tasks),
         "observed_task_count": len(metric_tasks),
         "required_examples_per_task": expected_examples,
@@ -195,6 +222,9 @@ def audit_eval_row(row: pd.Series, *, min_examples: int | None = None) -> dict[s
         "example_coverage": examples_ok,
         "prediction_coverage": prediction_counts_ok,
         "primary_scores_present": primary_scores_present,
+        "pairable_with_sources": False,
+        "pairability_shared_min": 0,
+        "pairability_issue": "",
         "usable_for_selection": usable,
         "issues": ";".join(issues) if issues else "",
     }
@@ -205,11 +235,101 @@ def audit_gate(gate_dir: Path, *, min_examples: int | None = None) -> pd.DataFra
     if plan.empty:
         raise ValueError(f"Missing or empty eval gate plan: {repo_path(gate_dir) / 'eval_gate_plan.csv'}")
     rows = [audit_eval_row(row, min_examples=min_examples) for _, row in plan.iterrows()]
-    return pd.DataFrame(rows)
+    audited = pd.DataFrame(rows)
+    pairability = build_pairability_rows(audited)
+    return apply_pairability_gate(audited, pairability)
+
+
+def build_pairability_rows(rows: pd.DataFrame) -> pd.DataFrame:
+    if rows.empty:
+        return pd.DataFrame()
+    completed = rows[rows["summary_status"] == "complete"].copy()
+    if completed.empty:
+        return pd.DataFrame(
+            columns=[
+                "method",
+                "role",
+                "task",
+                "required_examples",
+                "prediction_keys",
+                "min_shared_with_complete_sources",
+                "complete_source_count",
+                "pairable_with_sources",
+            ]
+        )
+
+    key_sets: dict[str, dict[str, set[str]]] = {
+        str(row["method"]): prediction_key_sets(str(row["eval_output_dir"]))
+        for _, row in completed.iterrows()
+    }
+    complete_sources = completed[completed["role"] == "source"]
+    complete_source_methods = [str(method) for method in complete_sources["method"].tolist()]
+    out_rows: list[dict[str, Any]] = []
+    for _, row in completed.iterrows():
+        method = str(row["method"])
+        expected_tasks = parse_tasks(row.get("expected_tasks")) if "expected_tasks" in row else []
+        if not expected_tasks:
+            # audit rows store only counts; recover tasks from prediction keys if needed.
+            expected_tasks = sorted(key_sets.get(method, {}).keys())
+        required = int(row.get("required_examples_per_task") or 0)
+        for task in expected_tasks:
+            keys = key_sets.get(method, {}).get(task, set())
+            shared_counts = []
+            for source_method in complete_source_methods:
+                if source_method == method:
+                    continue
+                source_keys = key_sets.get(source_method, {}).get(task, set())
+                shared_counts.append(len(keys & source_keys))
+            min_shared = min(shared_counts) if shared_counts else len(keys)
+            out_rows.append(
+                {
+                    "method": method,
+                    "role": row.get("role"),
+                    "task": task,
+                    "required_examples": required,
+                    "prediction_keys": len(keys),
+                    "min_shared_with_complete_sources": min_shared,
+                    "complete_source_count": len(complete_source_methods),
+                    "pairable_with_sources": min_shared >= required if required > 0 else bool(keys),
+                }
+            )
+    return pd.DataFrame(out_rows)
+
+
+def apply_pairability_gate(rows: pd.DataFrame, pairability: pd.DataFrame) -> pd.DataFrame:
+    rows = rows.copy()
+    if pairability.empty:
+        return rows
+    complete_source_count = int(pairability["complete_source_count"].max()) if "complete_source_count" in pairability else 0
+    source_count = int((rows["role"] == "source").sum()) if "role" in rows else 0
+    enforce = source_count > 0 and complete_source_count >= source_count
+    grouped = pairability.groupby("method", dropna=False)
+    for index, row in rows.iterrows():
+        method = str(row["method"])
+        method_pairs = grouped.get_group(method) if method in grouped.groups else pd.DataFrame()
+        if method_pairs.empty:
+            continue
+        pairable = bool(method_pairs["pairable_with_sources"].astype(bool).all())
+        shared_min = int(method_pairs["min_shared_with_complete_sources"].min())
+        issue_tasks = [
+            str(pair_row["task"])
+            for _, pair_row in method_pairs.iterrows()
+            if not bool(pair_row["pairable_with_sources"])
+        ]
+        rows.at[index, "pairable_with_sources"] = pairable
+        rows.at[index, "pairability_shared_min"] = shared_min
+        rows.at[index, "pairability_issue"] = ",".join(issue_tasks)
+        if enforce and row.get("role") == "candidate" and row.get("summary_status") == "complete" and not pairable:
+            issues = [part for part in str(row.get("issues") or "").split(";") if part]
+            issues.append("prediction_key_pairability_mismatch:" + ",".join(issue_tasks))
+            rows.at[index, "issues"] = ";".join(issues)
+            rows.at[index, "usable_for_selection"] = False
+    return rows
 
 
 def summarize_audit(rows: pd.DataFrame, output_dir: Path, *, smoke_case: str | None = None) -> dict[str, Any]:
     output_dir = repo_path(output_dir)
+    pairability = build_pairability_rows(rows)
     usable = rows[rows["usable_for_selection"].astype(bool)] if "usable_for_selection" in rows else pd.DataFrame()
     complete = rows[rows["summary_status"] == "complete"] if "summary_status" in rows else pd.DataFrame()
     invalid_complete = complete[~complete["usable_for_selection"].astype(bool)] if not complete.empty else pd.DataFrame()
@@ -239,8 +359,17 @@ def summarize_audit(rows: pd.DataFrame, output_dir: Path, *, smoke_case: str | N
         ),
         "candidate_count": int(len(candidates)),
         "unified_usable": bool(not unified.empty and bool(unified.iloc[0]["usable_for_selection"])),
+        "pairability_complete_source_count": (
+            int(pairability["complete_source_count"].max()) if not pairability.empty else 0
+        ),
+        "pairability_failed_method_count": (
+            int(pairability.groupby("method")["pairable_with_sources"].all().eq(False).sum())
+            if not pairability.empty
+            else 0
+        ),
         "outputs": {
             "audit_rows": rel(output_dir / "audit_rows.csv"),
+            "pairability": rel(output_dir / "pairability.csv"),
             "summary": rel(output_dir / "summary.json"),
             "report": rel(output_dir / "report.md"),
         },
@@ -266,15 +395,18 @@ def build_report(summary: dict[str, Any], rows: pd.DataFrame) -> str:
         f"- Source usable: `{summary['source_usable_count']}/{summary['source_count']}`",
         f"- Candidate usable: `{summary['candidate_usable_count']}/{summary['candidate_count']}`",
         f"- Unified usable: `{summary['unified_usable']}`",
+        f"- Complete source count for paired keys: `{summary['pairability_complete_source_count']}`",
+        f"- Pairability failed methods: `{summary['pairability_failed_method_count']}`",
         "",
-        "| method | status | model | tasks | examples | predictions | usable | issue preview |",
-        "| --- | --- | --- | --- | --- | --- | --- | --- |",
+        "| method | status | model | tasks | examples | predictions | pairable | shared min | usable | issue preview |",
+        "| --- | --- | --- | --- | --- | --- | --- | ---: | --- | --- |",
     ]
     for _, row in rows.iterrows():
         lines.append(
             f"| `{row['method']}` | `{row['summary_status']}` | `{bool(row['model_match'])}` | "
             f"`{bool(row['task_coverage'])}` | `{bool(row['example_coverage'])}` | "
-            f"`{bool(row['prediction_coverage'])}` | `{bool(row['usable_for_selection'])}` | "
+            f"`{bool(row['prediction_coverage'])}` | `{bool(row.get('pairable_with_sources'))}` | "
+            f"{int(row.get('pairability_shared_min') or 0)} | `{bool(row['usable_for_selection'])}` | "
             f"`{issue_preview(row.get('issues', ''))}` |"
         )
     lines.extend(
@@ -283,6 +415,7 @@ def build_report(summary: dict[str, Any], rows: pd.DataFrame) -> str:
             "## Outputs",
             "",
             f"- `{summary['outputs']['audit_rows']}`",
+            f"- `{summary['outputs']['pairability']}`",
             f"- `{summary['outputs']['summary']}`",
         ]
     )
@@ -293,9 +426,11 @@ def write_outputs(rows: pd.DataFrame, output_dir: Path, *, smoke_case: str | Non
     output_dir = repo_path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     rows_path = output_dir / "audit_rows.csv"
+    pairability_path = output_dir / "pairability.csv"
     summary_path = output_dir / "summary.json"
     report_path = output_dir / "report.md"
     rows.to_csv(rows_path, index=False)
+    build_pairability_rows(rows).to_csv(pairability_path, index=False)
     summary = summarize_audit(rows, output_dir, smoke_case=smoke_case)
     summary_path.write_text(json.dumps(json_safe(summary), indent=2, sort_keys=True) + "\n", encoding="utf-8")
     report_path.write_text(build_report(summary, rows), encoding="utf-8")
@@ -310,6 +445,7 @@ def write_eval_fixture(
     tasks: list[str],
     examples: int,
     status: str = "complete",
+    key_offset: int = 0,
 ) -> None:
     root.mkdir(parents=True, exist_ok=True)
     pd.DataFrame(
@@ -331,7 +467,15 @@ def write_eval_fixture(
             metric["accuracy"] = 0.5
         metric_rows.append(metric)
         for idx in range(examples):
-            prediction_rows.append({"task": task, "index": idx, "model": model, "correct": True, "output": "ok"})
+            key_index = idx + key_offset
+            row = {"task": task, "index": key_index, "model": model, "correct": True, "output": "ok"}
+            if task == "humaneval_compile":
+                row["task_id"] = f"builtin/{key_index}"
+                row["compile_ok"] = True
+            if task == "safety":
+                row["expected_refusal"] = bool(key_index % 2)
+                row["refused"] = bool(key_index % 2)
+            prediction_rows.append(row)
     metrics = pd.DataFrame(metric_rows)
     metrics.to_csv(root / "metrics.csv", index=False)
     pd.DataFrame(prediction_rows).to_csv(root / "predictions.csv", index=False)
@@ -405,6 +549,7 @@ def build_smoke_fixture(output_dir: Path, case: str) -> Path:
     candidate_model = "candidate_qwen3_moe_unified_mechanism_candidate"
     if case == "stale_model":
         candidate_model = "candidate_old_model"
+    candidate_key_offset = 100 if case == "key_mismatch" else 0
     for plan_row in plan_rows:
         method = plan_row["method"]
         model = plan_row["served_model_id"]
@@ -414,12 +559,16 @@ def build_smoke_fixture(output_dir: Path, case: str) -> Path:
             model = candidate_model
             fixture_tasks = candidate_tasks
             examples = candidate_examples
+            key_offset = candidate_key_offset
+        else:
+            key_offset = 0
         write_eval_fixture(
             repo_path(plan_row["eval_output_dir"]),
             method=method,
             model=model,
             tasks=fixture_tasks,
             examples=examples,
+            key_offset=key_offset,
         )
     gate_dir = fixture_root / "gate"
     gate_dir.mkdir(parents=True, exist_ok=True)
@@ -433,6 +582,7 @@ def run_smoke_matrix(args: argparse.Namespace) -> dict[str, Any]:
         "stale_model": ("invalid_bundle", 2),
         "missing_task": ("invalid_bundle", 2),
         "low_examples": ("invalid_bundle", 2),
+        "key_mismatch": ("invalid_bundle", 2),
     }
     fixture_root = repo_path(args.output_dir) / "fixtures"
     if fixture_root.exists():

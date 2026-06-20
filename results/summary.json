@@ -336,7 +336,7 @@
       "status": "complete"
     },
     {
-      "evidence": "results/qwen3_moe_eval_bundle_audit/report.md checks every Qwen3 source/candidate eval output for model-id, task, example-count, prediction, and primary-score consistency before selector use; results/qwen3_moe_eval_bundle_audit_smoke/report.md covers valid, stale-model, missing-task, and low-example bundles.",
+      "evidence": "results/qwen3_moe_eval_bundle_audit/report.md checks every Qwen3 source/candidate eval output for model-id, task, example-count, prediction, primary-score, and paired prediction-key consistency before selector use; results/qwen3_moe_eval_bundle_audit_smoke/report.md covers valid, stale-model, missing-task, low-example, and key-mismatch bundles.",
       "item": "Qwen3 MoE vLLM eval bundle audit",
       "status": "complete"
     },
@@ -8495,10 +8495,14 @@
           "eval_output_dir": "results/vllm_checkpoint_eval/source_qwen3_30b_instruct",
           "example_coverage": false,
           "expected_model": "candidate_source_qwen3_30b_instruct",
+          "expected_tasks": "gsm8k,mmlu,safety,humaneval_compile",
           "issues": "eval_output_dir_missing;missing_files:summary.json,eval_plan.csv,metrics.csv,model_summary.csv,predictions.csv;summary_status:missing;model_mismatch;task_coverage_mismatch;insufficient_examples:gsm8k,mmlu,safety,humaneval_compile;insufficient_predictions:gsm8k,mmlu,safety,humaneval_compile;missing_primary_scores:gsm8k,mmlu,safety,humaneval_compile",
           "method": "source_qwen3_30b_instruct",
           "model_match": false,
           "observed_task_count": 0,
+          "pairability_issue": null,
+          "pairability_shared_min": 0,
+          "pairable_with_sources": false,
           "prediction_coverage": false,
           "primary_scores_present": false,
           "required_examples_per_task": 64,
@@ -8512,10 +8516,14 @@
           "eval_output_dir": "results/vllm_checkpoint_eval/source_qwen3_30b_coder",
           "example_coverage": false,
           "expected_model": "candidate_source_qwen3_30b_coder",
+          "expected_tasks": "gsm8k,mmlu,safety,humaneval_compile",
           "issues": "eval_output_dir_missing;missing_files:summary.json,eval_plan.csv,metrics.csv,model_summary.csv,predictions.csv;summary_status:missing;model_mismatch;task_coverage_mismatch;insufficient_examples:gsm8k,mmlu,safety,humaneval_compile;insufficient_predictions:gsm8k,mmlu,safety,humaneval_compile;missing_primary_scores:gsm8k,mmlu,safety,humaneval_compile",
           "method": "source_qwen3_30b_coder",
           "model_match": false,
           "observed_task_count": 0,
+          "pairability_issue": null,
+          "pairability_shared_min": 0,
+          "pairable_with_sources": false,
           "prediction_coverage": false,
           "primary_scores_present": false,
           "required_examples_per_task": 64,
@@ -8529,10 +8537,14 @@
           "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_unified_route_guarded_candidate",
           "example_coverage": false,
           "expected_model": "candidate_qwen3_moe_unified_route_guarded_candidate",
+          "expected_tasks": "gsm8k,mmlu,safety,humaneval_compile",
           "issues": "eval_output_dir_missing;missing_files:summary.json,eval_plan.csv,metrics.csv,model_summary.csv,predictions.csv;summary_status:missing;model_mismatch;task_coverage_mismatch;insufficient_examples:gsm8k,mmlu,safety,humaneval_compile;insufficient_predictions:gsm8k,mmlu,safety,humaneval_compile;missing_primary_scores:gsm8k,mmlu,safety,humaneval_compile",
           "method": "qwen3_moe_unified_route_guarded_candidate",
           "model_match": false,
           "observed_task_count": 0,
+          "pairability_issue": null,
+          "pairability_shared_min": 0,
+          "pairable_with_sources": false,
           "prediction_coverage": false,
           "primary_scores_present": false,
           "required_examples_per_task": 64,
@@ -8546,10 +8558,14 @@
           "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_audit_gated_candidate",
           "example_coverage": false,
           "expected_model": "candidate_qwen3_moe_audit_gated_candidate",
+          "expected_tasks": "gsm8k,mmlu,safety,humaneval_compile",
           "issues": "eval_output_dir_missing;missing_files:summary.json,eval_plan.csv,metrics.csv,model_summary.csv,predictions.csv;summary_status:missing;model_mismatch;task_coverage_mismatch;insufficient_examples:gsm8k,mmlu,safety,humaneval_compile;insufficient_predictions:gsm8k,mmlu,safety,humaneval_compile;missing_primary_scores:gsm8k,mmlu,safety,humaneval_compile",
           "method": "qwen3_moe_audit_gated_candidate",
           "model_match": false,
           "observed_task_count": 0,
+          "pairability_issue": null,
+          "pairability_shared_min": 0,
+          "pairable_with_sources": false,
           "prediction_coverage": false,
           "primary_scores_present": false,
           "required_examples_per_task": 64,
@@ -8563,10 +8579,14 @@
           "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_trust_region_candidate",
           "example_coverage": false,
           "expected_model": "candidate_qwen3_moe_trust_region_candidate",
+          "expected_tasks": "gsm8k,mmlu,safety,humaneval_compile",
           "issues": "eval_output_dir_missing;missing_files:summary.json,eval_plan.csv,metrics.csv,model_summary.csv,predictions.csv;summary_status:missing;model_mismatch;task_coverage_mismatch;insufficient_examples:gsm8k,mmlu,safety,humaneval_compile;insufficient_predictions:gsm8k,mmlu,safety,humaneval_compile;missing_primary_scores:gsm8k,mmlu,safety,humaneval_compile",
           "method": "qwen3_moe_trust_region_candidate",
           "model_match": false,
           "observed_task_count": 0,
+          "pairability_issue": null,
+          "pairability_shared_min": 0,
+          "pairable_with_sources": false,
           "prediction_coverage": false,
           "primary_scores_present": false,
           "required_examples_per_task": 64,
@@ -8580,10 +8600,14 @@
           "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_expert_only_trust_region_candidate",
           "example_coverage": false,
           "expected_model": "candidate_qwen3_moe_expert_only_trust_region_candidate",
+          "expected_tasks": "gsm8k,mmlu,safety,humaneval_compile",
           "issues": "eval_output_dir_missing;missing_files:summary.json,eval_plan.csv,metrics.csv,model_summary.csv,predictions.csv;summary_status:missing;model_mismatch;task_coverage_mismatch;insufficient_examples:gsm8k,mmlu,safety,humaneval_compile;insufficient_predictions:gsm8k,mmlu,safety,humaneval_compile;missing_primary_scores:gsm8k,mmlu,safety,humaneval_compile",
           "method": "qwen3_moe_expert_only_trust_region_candidate",
           "model_match": false,
           "observed_task_count": 0,
+          "pairability_issue": null,
+          "pairability_shared_min": 0,
+          "pairable_with_sources": false,
           "prediction_coverage": false,
           "primary_scores_present": false,
           "required_examples_per_task": 64,
@@ -8597,10 +8621,14 @@
           "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_tail_trimmed_expert_only_candidate",
           "example_coverage": false,
           "expected_model": "candidate_qwen3_moe_tail_trimmed_expert_only_candidate",
+          "expected_tasks": "gsm8k,mmlu,safety,humaneval_compile",
           "issues": "eval_output_dir_missing;missing_files:summary.json,eval_plan.csv,metrics.csv,model_summary.csv,predictions.csv;summary_status:missing;model_mismatch;task_coverage_mismatch;insufficient_examples:gsm8k,mmlu,safety,humaneval_compile;insufficient_predictions:gsm8k,mmlu,safety,humaneval_compile;missing_primary_scores:gsm8k,mmlu,safety,humaneval_compile",
           "method": "qwen3_moe_tail_trimmed_expert_only_candidate",
           "model_match": false,
           "observed_task_count": 0,
+          "pairability_issue": null,
+          "pairability_shared_min": 0,
+          "pairable_with_sources": false,
           "prediction_coverage": false,
           "primary_scores_present": false,
           "required_examples_per_task": 64,
@@ -8614,10 +8642,14 @@
           "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate",
           "example_coverage": false,
           "expected_model": "candidate_qwen3_moe_searched_no_gt065_max_retention_candidate",
+          "expected_tasks": "gsm8k,mmlu,safety,humaneval_compile",
           "issues": "eval_output_dir_missing;missing_files:summary.json,eval_plan.csv,metrics.csv,model_summary.csv,predictions.csv;summary_status:missing;model_mismatch;task_coverage_mismatch;insufficient_examples:gsm8k,mmlu,safety,humaneval_compile;insufficient_predictions:gsm8k,mmlu,safety,humaneval_compile;missing_primary_scores:gsm8k,mmlu,safety,humaneval_compile",
           "method": "qwen3_moe_searched_no_gt065_max_retention_candidate",
           "model_match": false,
           "observed_task_count": 0,
+          "pairability_issue": null,
+          "pairability_shared_min": 0,
+          "pairable_with_sources": false,
           "prediction_coverage": false,
           "primary_scores_present": false,
           "required_examples_per_task": 64,
@@ -8631,10 +8663,14 @@
           "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_layer_chunk_candidate",
           "example_coverage": false,
           "expected_model": "candidate_qwen3_moe_layer_chunk_candidate",
+          "expected_tasks": "gsm8k,mmlu,safety,humaneval_compile",
           "issues": "eval_output_dir_missing;missing_files:summary.json,eval_plan.csv,metrics.csv,model_summary.csv,predictions.csv;summary_status:missing;model_mismatch;task_coverage_mismatch;insufficient_examples:gsm8k,mmlu,safety,humaneval_compile;insufficient_predictions:gsm8k,mmlu,safety,humaneval_compile;missing_primary_scores:gsm8k,mmlu,safety,humaneval_compile",
           "method": "qwen3_moe_layer_chunk_candidate",
           "model_match": false,
           "observed_task_count": 0,
+          "pairability_issue": null,
+          "pairability_shared_min": 0,
+          "pairable_with_sources": false,
           "prediction_coverage": false,
           "primary_scores_present": false,
           "required_examples_per_task": 64,
@@ -8648,10 +8684,14 @@
           "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_unified_mechanism_candidate",
           "example_coverage": false,
           "expected_model": "candidate_qwen3_moe_unified_mechanism_candidate",
+          "expected_tasks": "gsm8k,mmlu,safety,humaneval_compile",
           "issues": "eval_output_dir_missing;missing_files:summary.json,eval_plan.csv,metrics.csv,model_summary.csv,predictions.csv;summary_status:missing;model_mismatch;task_coverage_mismatch;insufficient_examples:gsm8k,mmlu,safety,humaneval_compile;insufficient_predictions:gsm8k,mmlu,safety,humaneval_compile;missing_primary_scores:gsm8k,mmlu,safety,humaneval_compile",
           "method": "qwen3_moe_unified_mechanism_candidate",
           "model_match": false,
           "observed_task_count": 0,
+          "pairability_issue": null,
+          "pairability_shared_min": 0,
+          "pairable_with_sources": false,
           "prediction_coverage": false,
           "primary_scores_present": false,
           "required_examples_per_task": 64,
@@ -8668,6 +8708,9 @@
       "complete_eval_count": 0,
       "invalid_complete_count": 0,
       "method_count": 10,
+      "pairability": "results/qwen3_moe_eval_bundle_audit/pairability.csv",
+      "pairability_complete_source_count": 0,
+      "pairability_failed_method_count": 0,
       "report": "results/qwen3_moe_eval_bundle_audit/report.md",
       "source_count": 2,
       "source_usable_count": 0,
@@ -8680,9 +8723,12 @@
         "method_count": 10,
         "outputs": {
           "audit_rows": "results/qwen3_moe_eval_bundle_audit/audit_rows.csv",
+          "pairability": "results/qwen3_moe_eval_bundle_audit/pairability.csv",
           "report": "results/qwen3_moe_eval_bundle_audit/report.md",
           "summary": "results/qwen3_moe_eval_bundle_audit/summary.json"
         },
+        "pairability_complete_source_count": 0,
+        "pairability_failed_method_count": 0,
         "schema_version": 1,
         "smoke_case": null,
         "source_count": 2,
@@ -8696,7 +8742,7 @@
       "usable_for_selection_count": 0
     },
     "qwen3_moe_eval_bundle_audit_smoke": {
-      "case_count": 4,
+      "case_count": 5,
       "case_rows": [
         {
           "case": "valid_bundle",
@@ -8729,15 +8775,23 @@
           "passed": true,
           "status": "invalid_bundle",
           "usable_for_selection_count": 2
+        },
+        {
+          "case": "key_mismatch",
+          "expected_status": "invalid_bundle",
+          "expected_usable_for_selection_count": 2,
+          "passed": true,
+          "status": "invalid_bundle",
+          "usable_for_selection_count": 2
         }
       ],
       "failed_case_count": 0,
       "matrix": "results/qwen3_moe_eval_bundle_audit_smoke/audit_matrix.csv",
-      "passed_case_count": 4,
+      "passed_case_count": 5,
       "report": "results/qwen3_moe_eval_bundle_audit_smoke/report.md",
       "status": "passed",
       "summary": {
-        "case_count": 4,
+        "case_count": 5,
         "cases": [
           {
             "case": "valid_bundle",
@@ -8770,6 +8824,14 @@
             "passed": true,
             "status": "invalid_bundle",
             "usable_for_selection_count": 2
+          },
+          {
+            "case": "key_mismatch",
+            "expected_status": "invalid_bundle",
+            "expected_usable_for_selection_count": 2,
+            "passed": true,
+            "status": "invalid_bundle",
+            "usable_for_selection_count": 2
           }
         ],
         "failed_case_count": 0,
@@ -8778,7 +8840,7 @@
           "report": "results/qwen3_moe_eval_bundle_audit_smoke/report.md",
           "summary": "results/qwen3_moe_eval_bundle_audit_smoke/summary.json"
         },
-        "passed_case_count": 4,
+        "passed_case_count": 5,
         "schema_version": 1,
         "status": "passed"
       },
@@ -16223,7 +16285,7 @@
       "step_rows": [
         {
           "command": "python scripts/audit_qwen3_moe_eval_bundle.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_eval_bundle_audit",
-          "duration_sec": 0.4363772869110107,
+          "duration_sec": 0.4519901275634765,
           "kind": "gate",
           "returncode": 0,
           "status": "passed",
@@ -16233,7 +16295,7 @@
         },
         {
           "command": "python scripts/select_qwen3_moe_unified_result.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_unified_result_selection",
-          "duration_sec": 0.3936905860900879,
+          "duration_sec": 0.4972081184387207,
           "kind": "selector",
           "returncode": 0,
           "status": "passed",
@@ -16243,7 +16305,7 @@
         },
         {
           "command": "python scripts/select_qwen3_moe_final_candidate.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_final_candidate_selection",
-          "duration_sec": 0.4275290966033935,
+          "duration_sec": 0.4729623794555664,
           "kind": "selector",
           "returncode": 0,
           "status": "passed",
@@ -16253,7 +16315,7 @@
         },
         {
           "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_mechanism_effect_attribution",
-          "duration_sec": 0.3919672966003418,
+          "duration_sec": 0.4307999610900879,
           "kind": "attribution",
           "returncode": 0,
           "status": "passed",
@@ -16263,17 +16325,17 @@
         },
         {
           "command": "python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke",
-          "duration_sec": 0.500241756439209,
+          "duration_sec": 0.7261981964111328,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
           "stderr_tail": null,
-          "stdout_tail": "Wrote Qwen3 MoE eval bundle audit smoke to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_eval_bundle_audit_smoke\nStatus: passed; cases 4/4\n",
+          "stdout_tail": "Wrote Qwen3 MoE eval bundle audit smoke to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_eval_bundle_audit_smoke\nStatus: passed; cases 5/5\n",
           "step": "audit_eval_bundles_smoke"
         },
         {
           "command": "python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke",
-          "duration_sec": 0.4009823799133301,
+          "duration_sec": 0.4800045490264892,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -16283,7 +16345,7 @@
         },
         {
           "command": "python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke",
-          "duration_sec": 0.4910340309143066,
+          "duration_sec": 0.5158336162567139,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -16293,7 +16355,7 @@
         },
         {
           "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --smoke-matrix --output-dir results/qwen3_moe_mechanism_effect_attribution_smoke",
-          "duration_sec": 0.4008815288543701,
+          "duration_sec": 0.5020701885223389,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -16303,12 +16365,12 @@
         },
         {
           "command": "python scripts/collect_results.py",
-          "duration_sec": 1.4363126754760742,
+          "duration_sec": 1.5768563747406006,
           "kind": "summary",
           "returncode": 0,
           "status": "passed",
           "stderr_tail": null,
-          "stdout_tail": "Wrote results/summary.json\nWrote results/summary.md\nWrote ARTIFACT_MANIFEST.json\nArtifacts indexed: 1030\n",
+          "stdout_tail": "Wrote results/summary.json\nWrote results/summary.md\nWrote ARTIFACT_MANIFEST.json\nArtifacts indexed: 1031\n",
           "step": "collect_results"
         }
       ],
@@ -16345,7 +16407,7 @@
         "steps": [
           {
             "command": "python scripts/audit_qwen3_moe_eval_bundle.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_eval_bundle_audit",
-            "duration_sec": 0.43637728691101074,
+            "duration_sec": 0.45199012756347656,
             "kind": "gate",
             "returncode": 0,
             "status": "passed",
@@ -16355,7 +16417,7 @@
           },
           {
             "command": "python scripts/select_qwen3_moe_unified_result.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_unified_result_selection",
-            "duration_sec": 0.3936905860900879,
+            "duration_sec": 0.4972081184387207,
             "kind": "selector",
             "returncode": 0,
             "status": "passed",
@@ -16365,7 +16427,7 @@
           },
           {
             "command": "python scripts/select_qwen3_moe_final_candidate.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_final_candidate_selection",
-            "duration_sec": 0.42752909660339355,
+            "duration_sec": 0.4729623794555664,
             "kind": "selector",
             "returncode": 0,
             "status": "passed",
@@ -16375,7 +16437,7 @@
           },
           {
             "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_mechanism_effect_attribution",
-            "duration_sec": 0.3919672966003418,
+            "duration_sec": 0.4307999610900879,
             "kind": "attribution",
             "returncode": 0,
             "status": "passed",
@@ -16385,17 +16447,17 @@
           },
           {
             "command": "python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke",
-            "duration_sec": 0.500241756439209,
+            "duration_sec": 0.7261981964111328,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
             "stderr_tail": "",
-            "stdout_tail": "Wrote Qwen3 MoE eval bundle audit smoke to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_eval_bundle_audit_smoke\nStatus: passed; cases 4/4\n",
+            "stdout_tail": "Wrote Qwen3 MoE eval bundle audit smoke to /srv/home/bohanlyu/visualizing-model-merging/results/qwen3_moe_eval_bundle_audit_smoke\nStatus: passed; cases 5/5\n",
             "step": "audit_eval_bundles_smoke"
           },
           {
             "command": "python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke",
-            "duration_sec": 0.4009823799133301,
+            "duration_sec": 0.48000454902648926,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -16405,7 +16467,7 @@
           },
           {
             "command": "python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke",
-            "duration_sec": 0.49103403091430664,
+            "duration_sec": 0.5158336162567139,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -16415,7 +16477,7 @@
           },
           {
             "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --smoke-matrix --output-dir results/qwen3_moe_mechanism_effect_attribution_smoke",
-            "duration_sec": 0.4008815288543701,
+            "duration_sec": 0.5020701885223389,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -16425,12 +16487,12 @@
           },
           {
             "command": "python scripts/collect_results.py",
-            "duration_sec": 1.4363126754760742,
+            "duration_sec": 1.5768563747406006,
             "kind": "summary",
             "returncode": 0,
             "status": "passed",
             "stderr_tail": "",
-            "stdout_tail": "Wrote results/summary.json\nWrote results/summary.md\nWrote ARTIFACT_MANIFEST.json\nArtifacts indexed: 1030\n",
+            "stdout_tail": "Wrote results/summary.json\nWrote results/summary.md\nWrote ARTIFACT_MANIFEST.json\nArtifacts indexed: 1031\n",
             "step": "collect_results"
           }
         ]
@@ -32040,7 +32102,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-20T03:04:38.541129+00:00",
+  "generated_at": "2026-06-20T03:09:57.617841+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [

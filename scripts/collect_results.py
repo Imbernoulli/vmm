@@ -1567,9 +1567,12 @@ def summarize_qwen3_moe_eval_bundle_audit() -> dict[str, Any]:
         "candidate_usable_count": int(summary.get("candidate_usable_count", 0)),
         "candidate_count": int(summary.get("candidate_count", 0)),
         "unified_usable": bool(summary.get("unified_usable", False)),
+        "pairability_complete_source_count": int(summary.get("pairability_complete_source_count", 0)),
+        "pairability_failed_method_count": int(summary.get("pairability_failed_method_count", 0)),
         "audit_rows": [clean_row(row) for _, row in rows.iterrows()],
         "report": rel(root / "report.md"),
         "audit_rows_path": rel(root / "audit_rows.csv"),
+        "pairability": rel(root / "pairability.csv"),
         "summary_path": rel(root / "summary.json"),
     }
 
@@ -3608,7 +3611,7 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "Qwen3 MoE vLLM eval bundle audit",
             "status": "complete",
-            "evidence": "results/qwen3_moe_eval_bundle_audit/report.md checks every Qwen3 source/candidate eval output for model-id, task, example-count, prediction, and primary-score consistency before selector use; results/qwen3_moe_eval_bundle_audit_smoke/report.md covers valid, stale-model, missing-task, and low-example bundles.",
+            "evidence": "results/qwen3_moe_eval_bundle_audit/report.md checks every Qwen3 source/candidate eval output for model-id, task, example-count, prediction, primary-score, and paired prediction-key consistency before selector use; results/qwen3_moe_eval_bundle_audit_smoke/report.md covers valid, stale-model, missing-task, low-example, and key-mismatch bundles.",
         },
         {
             "item": "Qwen3 MoE mechanism effect attribution",
@@ -4768,6 +4771,11 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_eval_bundle_audit['candidate_usable_count']}"
                 f"/{qwen3_moe_eval_bundle_audit['candidate_count']} / "
                 f"{qwen3_moe_eval_bundle_audit['unified_usable']} |"
+            ),
+            (
+                "| Qwen3 MoE eval bundle audit | pairable sources / failed methods | "
+                f"{qwen3_moe_eval_bundle_audit['pairability_complete_source_count']} / "
+                f"{qwen3_moe_eval_bundle_audit['pairability_failed_method_count']} |"
             ),
             (
                 "| Qwen3 MoE eval bundle audit smoke | status / passed cases | "

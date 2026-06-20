@@ -1813,40 +1813,46 @@
       "sha256": "af0e6eaff803c79952343a8dc858ebf6a10acba7311716c8485417208cc8464a"
     },
     {
-      "bytes": 5857,
+      "bytes": 6405,
       "kind": "data",
       "path": "results/qwen3_moe_eval_bundle_audit/audit_rows.csv",
-      "sha256": "d7959889d156160844389244ba517db2d79406a4a42c1ac496a077b6b0aac5b0"
+      "sha256": "1577861eeeb91c1958a799e1448331cf8fd6b9240458281a8e66db774f4f958a"
     },
     {
-      "bytes": 2906,
+      "bytes": 128,
+      "kind": "data",
+      "path": "results/qwen3_moe_eval_bundle_audit/pairability.csv",
+      "sha256": "5872cd83d2baf5eebc35c7790dfa6c894f56d099cf01f1ffb8ba95520d301b6d"
+    },
+    {
+      "bytes": 3218,
       "kind": "document",
       "path": "results/qwen3_moe_eval_bundle_audit/report.md",
-      "sha256": "7c10d580e87a1a5d57c1c6f2b57c635f332c9c6d3ec4a4a88368970594e63548"
+      "sha256": "cad75588323a9ebb89fc642115c5c33234d24cde9c54c0d719f4854ffbc3e274"
     },
     {
-      "bytes": 545,
+      "bytes": 701,
       "kind": "data",
       "path": "results/qwen3_moe_eval_bundle_audit/summary.json",
-      "sha256": "010716cf3f0b004c39f38e5d6bf05e4af7e93787a6a7506572d6030e6358dbdd"
+      "sha256": "5ab8733db0ca51c0810e68c13f573a207ee876bf1df38b9591a8fab8cc8d1155"
     },
     {
-      "bytes": 289,
+      "bytes": 341,
       "kind": "data",
       "path": "results/qwen3_moe_eval_bundle_audit_smoke/audit_matrix.csv",
-      "sha256": "09e82a2cbc8951b524c7b26e45a97639638cda6dc7493c5875ceb33bdb14da55"
+      "sha256": "b589a4b5ef4ebadd26e636555af93dc866bbfe2fccd2a656df1bd7c8dc78db7f"
     },
     {
-      "bytes": 369,
+      "bytes": 424,
       "kind": "document",
       "path": "results/qwen3_moe_eval_bundle_audit_smoke/report.md",
-      "sha256": "b0a3907734b1f6bf064b14e10ab2e624ac380832e173af70d7733b4a25209aa4"
+      "sha256": "fef60c51b03986fee5c8882e92c01bc3b5887122e7508bd83ec0ca9736f76ba3"
     },
     {
-      "bytes": 1268,
+      "bytes": 1496,
       "kind": "data",
       "path": "results/qwen3_moe_eval_bundle_audit_smoke/summary.json",
-      "sha256": "bb9a32adb33104ab22cb849e4bf12fee4fefae9510a2fc97be20bae5d9f222f6"
+      "sha256": "e7735ec580270333621eccbdd8c86daa99aa823937552fd7c44218e3221cc6ec"
     },
     {
       "bytes": 4950116,
@@ -2248,19 +2254,19 @@
       "bytes": 2447,
       "kind": "document",
       "path": "results/qwen3_moe_post_eval_refresh/report.md",
-      "sha256": "56d1d178e1b0f4192e80fd4a4be02536a6625479a270996ffc2978f240a90858"
+      "sha256": "1f73cc693495b2f55158b4eadf44f7d9350ad385bedaf2b29aad4781cefbd287"
     },
     {
       "bytes": 3340,
       "kind": "data",
       "path": "results/qwen3_moe_post_eval_refresh/steps.csv",
-      "sha256": "fd0d01cd18701e69ab7048b1632f3c7109b0bf64c0a4cbd1261d8c8e06106473"
+      "sha256": "1b06260007c79c30fb3f88775f0d50819a2f09e6f78e4fbe0c15e76e08b697ec"
     },
     {
       "bytes": 6005,
       "kind": "data",
       "path": "results/qwen3_moe_post_eval_refresh/summary.json",
-      "sha256": "f4ccdd93b453879f1e1b2e8188812fa5684e9146b83ac7f29d9a9c339e7f8ff2"
+      "sha256": "1c58017a84c56874d2c31039aad3502c63bf1b7734ee6137d0a69eabad511734"
     },
     {
       "bytes": 2438,
@@ -4669,16 +4675,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 1488944,
+      "bytes": 1491708,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "d7d187b7f1ff159927f5e62538a4148ac09e49b3692fc3bfbee4839f6f29bc88"
+      "sha256": "91de2e17614acd5eb17f6b640d2ad42ec613a4bb97902d3ab6223d560c3da485"
     },
     {
-      "bytes": 50265,
+      "bytes": 50378,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "38fd669c6a0b2bb54487657cba1f2b5a660629ac7ae276d346f873f9c5b97a2c"
+      "sha256": "a716385d3faade5f229ee7301b97312bd007c85dddab7001b490f2b54e4d660f"
     },
     {
       "bytes": 288,
@@ -5689,10 +5695,10 @@
       "sha256": "b3ebd77cc5f9e6f02b4a4e6928ff4414875d91aeaa5f53d99a4dabf318481d68"
     },
     {
-      "bytes": 21115,
+      "bytes": 28002,
       "kind": "code",
       "path": "scripts/audit_qwen3_moe_eval_bundle.py",
-      "sha256": "76d232a06e68229b8e5989d59a8c62020489bf68395ff9a69edc44cd836a64dc"
+      "sha256": "cbe124d72615cd5b0f46161cd3238b1a4a17d8769254b89606d09992a674f29a"
     },
     {
       "bytes": 13129,
@@ -5893,10 +5899,10 @@
       "sha256": "cd588bc1804013f4043bd95c245b066dbae86bfd3e3f9c18317ef33eb506f123"
     },
     {
-      "bytes": 345894,
+      "bytes": 346478,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "1b5c28b312e975e2ac7a30bef2dcaeaf08d5add3c272e2844cdc053fde245013"
+      "sha256": "bfff0af3fa1ac8ecb75cace5cd84ad4ff3f2452de6bf256608bf9c7dc8ad58a1"
     },
     {
       "bytes": 16101,
@@ -6181,7 +6187,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-20T03:04:38.616846+00:00",
+  "generated_at": "2026-06-20T03:09:57.732943+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

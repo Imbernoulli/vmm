@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-20T03:04:38.541129+00:00`
+Generated at: `2026-06-20T03:09:57.617841+00:00`
 
 ## Coverage
 
@@ -75,7 +75,7 @@ Complete: `79`; partial: `1`; missing: `0`.
 | Qwen3 MoE unified downstream result selector | complete | results/qwen3_moe_unified_result_selection/report.md gates the unified same-shape average against both Qwen3 source endpoints after matched vLLM eval; results/qwen3_moe_unified_result_selection_smoke/report.md covers candidate-win, source-dominance, task-regression, and no-gain branches. |
 | Qwen3 MoE final candidate selector | complete | results/qwen3_moe_final_candidate_selection/report.md ranks all eight same-shape Qwen3 MoE candidates against both source endpoints after eval-bundle audit, with source-dominance, task-regression, score-confidence, paired-prediction, checkpoint-audit, and provisional-selection gates. |
 | Unified Dense/MoE average optimizer | complete | results/unified_average_optimizer/report.md converts Dense barrier probes, MoE gauge probes, Qwen3 expert identity, router movement, unified mechanism caps, router-calibration gating, and final candidate-selection gates into one same-shape operation policy. |
-| Qwen3 MoE vLLM eval bundle audit | complete | results/qwen3_moe_eval_bundle_audit/report.md checks every Qwen3 source/candidate eval output for model-id, task, example-count, prediction, and primary-score consistency before selector use; results/qwen3_moe_eval_bundle_audit_smoke/report.md covers valid, stale-model, missing-task, and low-example bundles. |
+| Qwen3 MoE vLLM eval bundle audit | complete | results/qwen3_moe_eval_bundle_audit/report.md checks every Qwen3 source/candidate eval output for model-id, task, example-count, prediction, primary-score, and paired prediction-key consistency before selector use; results/qwen3_moe_eval_bundle_audit_smoke/report.md covers valid, stale-model, missing-task, low-example, and key-mismatch bundles. |
 | Qwen3 MoE mechanism effect attribution | complete | results/qwen3_moe_mechanism_effect_attribution/report.md decomposes the Qwen3 MoE source-frontier -> route-guarded -> audit-gated -> trust-region -> expert-only -> tail-trimmed -> searched-cap -> layer/chunk -> unified-mechanism chain into structural and downstream score deltas, gated by the eval-bundle audit. |
 | Qwen3 MoE post-vLLM eval refresh pipeline | complete | results/qwen3_moe_post_eval_refresh/report.md runs eval-bundle audit, unified result selection, mechanism attribution, smoke checks, and collect_results in a fixed post-eval order after remote vLLM outputs land. |
 | Qwen3 MoE searched cap-law materialized candidate | complete | results/qwen3_moe_searched_no_gt065_delta_audit/report.md verifies the materialized searched 0.65 cap-law checkpoint and adds it to the Qwen3 MoE eval gate. |
@@ -215,7 +215,8 @@ Complete: `79`; partial: `1`; missing: `0`.
 | unified average optimizer | router calibration status / eligible | awaiting_baseline_eval / 0/3 |
 | Qwen3 MoE eval bundle audit | status / usable / invalid complete | awaiting_eval / 0/10 / 0 |
 | Qwen3 MoE eval bundle audit | source usable / candidate usable / unified usable | 0/2 / 0/8 / False |
-| Qwen3 MoE eval bundle audit smoke | status / passed cases | passed / 4/4 |
+| Qwen3 MoE eval bundle audit | pairable sources / failed methods | 0 / 0 |
+| Qwen3 MoE eval bundle audit smoke | status / passed cases | passed / 5/5 |
 | Qwen3 MoE mechanism attribution | status / scored / regressions | awaiting_eval / 0/8 / 0 |
 | Qwen3 MoE mechanism attribution | best avg / best worst transition | None / None |
 | Qwen3 MoE mechanism attribution smoke | status / passed cases | passed / 3/3 |

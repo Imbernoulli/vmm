@@ -6,9 +6,12 @@
   "method_count": 10,
   "outputs": {
     "audit_rows": "results/qwen3_moe_eval_bundle_audit/audit_rows.csv",
+    "pairability": "results/qwen3_moe_eval_bundle_audit/pairability.csv",
     "report": "results/qwen3_moe_eval_bundle_audit/report.md",
     "summary": "results/qwen3_moe_eval_bundle_audit/summary.json"
   },
+  "pairability_complete_source_count": 0,
+  "pairability_failed_method_count": 0,
   "schema_version": 1,
   "smoke_case": null,
   "source_count": 2,
