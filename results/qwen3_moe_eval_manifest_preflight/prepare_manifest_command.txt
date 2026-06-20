@@ -1,0 +1,1 @@
+python scripts/run_vllm_downstream_eval.py --tasks gsm8k,humaneval_compile,mmlu,safety --example-source datasets --max-examples 384 --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing --prepare-task-manifest-only

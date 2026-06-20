@@ -1,0 +1,22 @@
+{
+  "blocking_reason": "Run the prepare_manifest_command before launching vLLM evals.",
+  "canonical_task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+  "manifest_exists": false,
+  "manifest_sha256": null,
+  "method_count": 13,
+  "outputs": {
+    "prepare_manifest_command": "results/qwen3_moe_eval_manifest_preflight/prepare_manifest_command.txt",
+    "report": "results/qwen3_moe_eval_manifest_preflight/report.md",
+    "summary": "results/qwen3_moe_eval_manifest_preflight/summary.json",
+    "task_manifest_checks": "results/qwen3_moe_eval_manifest_preflight/task_manifest_checks.csv"
+  },
+  "prepare_manifest_command": "python scripts/run_vllm_downstream_eval.py --tasks gsm8k,humaneval_compile,mmlu,safety --example-source datasets --max-examples 384 --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing --prepare-task-manifest-only",
+  "schema_version": 1,
+  "status": "task_manifest_missing",
+  "task_count": 4,
+  "task_manifest_aligned_method_count": 13,
+  "task_manifest_unaligned_method_count": 0,
+  "task_sufficient_count": 0,
+  "total_manifest_examples": 0,
+  "total_required_examples": 1316
+}

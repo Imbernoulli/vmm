@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-20T06:40:28.879825+00:00`
+Generated at: `2026-06-20T06:45:20.326826+00:00`
 
 ## Coverage
 
-Complete: `88`; partial: `1`; missing: `0`.
+Complete: `89`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -75,6 +75,7 @@ Complete: `88`; partial: `1`; missing: `0`.
 | Qwen3 MoE route-guarded unified candidate | complete | results/qwen3_moe_unified_route_guarded_candidate/report.md converts the real Qwen3 route/load probe into source-route-conditioned same-shape tensor rules and a validated writer dry-run command. |
 | Qwen3 MoE mechanism-gated vLLM eval gate | complete | results/qwen3_moe_mechanism_eval_gate/report.md turns two source endpoints and all registered same-shape Qwen3 MoE candidates into mechanism tests, a one-model-at-a-time vLLM run script, and endpoint-fallback selection rules. |
 | Qwen3 MoE statistically powered vLLM eval budget | complete | results/qwen3_moe_eval_budget_plan/report.md raises the Qwen3 source/candidate vLLM run from a 64-example smoke floor to a Wilson/paired-test budgeted eval script. |
+| Qwen3 MoE eval task manifest preflight | complete | results/qwen3_moe_eval_manifest_preflight/report.md checks that all budgeted source/candidate evals share one canonical task manifest and that the manifest contains the required task/example keys before vLLM runs. |
 | Qwen3 MoE mechanism leverage map | complete | results/qwen3_moe_mechanism_levers/report.md ranks MoE-specific failure mechanisms, next experiments, and importance-guided layer/chunk calibration slots from real Qwen3 probes, including expert geometry and subspace conflict probes. |
 | Qwen3 MoE expert geometry probe | complete | results/qwen3_moe_expert_geometry_probe/report.md reads 18,432 routed expert tensors from real Qwen3 Instruct/Coder safetensors and joins internal geometry risk with route/load context. |
 | Qwen3 MoE expert subspace conflict probe | complete | results/qwen3_moe_expert_subspace_conflict_probe/report.md converts real expert channel/chunk geometry into subspace conflict gates and a candidate scale plan for uncovered high-risk experts. |
@@ -210,6 +211,7 @@ Complete: `88`; partial: `1`; missing: `0`.
 | Qwen3 MoE eval budget plan | ready current / recommended / extra prompt budget | 2816 / 16896 / 14080 |
 | Qwen3 MoE eval budget plan | Wilson n / paired n / capped tasks | 381 / 248 / humaneval_compile |
 | Qwen3 MoE eval budget plan | task manifest aligned / canonical manifest | 13/13 / results/qwen3_moe_mechanism_eval_gate/task_manifest.json |
+| Qwen3 MoE eval manifest preflight | status / tasks sufficient / methods aligned | task_manifest_missing / 0/4 / 13/13 |
 | Qwen3 MoE eval budget plan | router active / ready / pending / plan-pruned caps | 2 / 0 / 2 / 2 |
 | Qwen3 MoE mechanism levers | top lever / priority / next test | source_and_candidate_downstream_eval / 0.98 / results/qwen3_moe_eval_budget_plan/run_eval_budget.sh all |
 | Qwen3 MoE mechanism levers | fine calibration layers / top layer score | 12,13,17,20,21,22,23,26 / 17:0.905 |

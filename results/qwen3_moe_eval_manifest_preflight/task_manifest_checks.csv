@@ -1,0 +1,5 @@
+task,required_examples,manifest_examples,task_present,count_sufficient,deficit
+gsm8k,384,0,False,False,384
+humaneval_compile,164,0,False,False,164
+mmlu,384,0,False,False,384
+safety,384,0,False,False,384

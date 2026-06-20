@@ -1467,6 +1467,34 @@ def summarize_qwen3_moe_eval_budget_plan() -> dict[str, Any]:
     }
 
 
+def summarize_qwen3_moe_eval_manifest_preflight() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_eval_manifest_preflight")
+    summary = read_json(root / "summary.json")
+    task_checks = read_csv(root / "task_manifest_checks.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "canonical_task_manifest": summary.get("canonical_task_manifest"),
+        "manifest_exists": bool(summary.get("manifest_exists", False)),
+        "manifest_sha256": summary.get("manifest_sha256"),
+        "method_count": maybe_int(summary.get("method_count")),
+        "task_manifest_aligned_method_count": maybe_int(summary.get("task_manifest_aligned_method_count")),
+        "task_manifest_unaligned_method_count": maybe_int(
+            summary.get("task_manifest_unaligned_method_count")
+        ),
+        "task_count": maybe_int(summary.get("task_count")),
+        "task_sufficient_count": maybe_int(summary.get("task_sufficient_count")),
+        "total_required_examples": maybe_int(summary.get("total_required_examples")),
+        "total_manifest_examples": maybe_int(summary.get("total_manifest_examples")),
+        "blocking_reason": summary.get("blocking_reason"),
+        "task_rows": [clean_row(row) for _, row in task_checks.iterrows()],
+        "report": rel(root / "report.md"),
+        "task_manifest_checks": rel(root / "task_manifest_checks.csv"),
+        "prepare_manifest_command": rel(root / "prepare_manifest_command.txt"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_qwen3_moe_mechanism_levers() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_mechanism_levers")
     summary = read_json(root / "summary.json")
@@ -4177,6 +4205,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/qwen3_moe_eval_budget_plan/report.md raises the Qwen3 source/candidate vLLM run from a 64-example smoke floor to a Wilson/paired-test budgeted eval script.",
         },
         {
+            "item": "Qwen3 MoE eval task manifest preflight",
+            "status": "complete",
+            "evidence": "results/qwen3_moe_eval_manifest_preflight/report.md checks that all budgeted source/candidate evals share one canonical task manifest and that the manifest contains the required task/example keys before vLLM runs.",
+        },
+        {
             "item": "Qwen3 MoE mechanism leverage map",
             "status": "complete",
             "evidence": "results/qwen3_moe_mechanism_levers/report.md ranks MoE-specific failure mechanisms, next experiments, and importance-guided layer/chunk calibration slots from real Qwen3 probes, including expert geometry and subspace conflict probes.",
@@ -4363,6 +4396,7 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_delta_frontier": summarize_qwen3_moe_delta_frontier(),
         "qwen3_moe_mechanism_eval_gate": summarize_qwen3_moe_mechanism_eval_gate(),
         "qwen3_moe_eval_budget_plan": summarize_qwen3_moe_eval_budget_plan(),
+        "qwen3_moe_eval_manifest_preflight": summarize_qwen3_moe_eval_manifest_preflight(),
         "qwen3_moe_mechanism_levers": summarize_qwen3_moe_mechanism_levers(),
         "qwen3_moe_expert_geometry_probe": summarize_qwen3_moe_expert_geometry_probe(),
         "qwen3_moe_expert_subspace_conflict_probe": summarize_qwen3_moe_expert_subspace_conflict_probe(),
@@ -4642,6 +4676,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_delta_frontier = exp["qwen3_moe_delta_frontier"]
     qwen3_moe_mechanism_eval_gate = exp["qwen3_moe_mechanism_eval_gate"]
     qwen3_moe_eval_budget_plan = exp["qwen3_moe_eval_budget_plan"]
+    qwen3_moe_eval_manifest_preflight = exp["qwen3_moe_eval_manifest_preflight"]
     qwen3_moe_mechanism_levers = exp["qwen3_moe_mechanism_levers"]
     qwen3_moe_expert_geometry_probe = exp["qwen3_moe_expert_geometry_probe"]
     qwen3_moe_expert_subspace_conflict_probe = exp["qwen3_moe_expert_subspace_conflict_probe"]
@@ -5311,6 +5346,14 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_eval_budget_plan['task_manifest_aligned_method_count']}"
                 f"/{qwen3_moe_eval_budget_plan['method_count']} / "
                 f"{qwen3_moe_eval_budget_plan['canonical_task_manifest']} |"
+            ),
+            (
+                "| Qwen3 MoE eval manifest preflight | status / tasks sufficient / methods aligned | "
+                f"{qwen3_moe_eval_manifest_preflight['status']} / "
+                f"{qwen3_moe_eval_manifest_preflight['task_sufficient_count']}"
+                f"/{qwen3_moe_eval_manifest_preflight['task_count']} / "
+                f"{qwen3_moe_eval_manifest_preflight['task_manifest_aligned_method_count']}"
+                f"/{qwen3_moe_eval_manifest_preflight['method_count']} |"
             ),
             (
                 "| Qwen3 MoE eval budget plan | router active / ready / pending / plan-pruned caps | "

@@ -336,6 +336,11 @@
       "status": "complete"
     },
     {
+      "evidence": "results/qwen3_moe_eval_manifest_preflight/report.md checks that all budgeted source/candidate evals share one canonical task manifest and that the manifest contains the required task/example keys before vLLM runs.",
+      "item": "Qwen3 MoE eval task manifest preflight",
+      "status": "complete"
+    },
+    {
       "evidence": "results/qwen3_moe_mechanism_levers/report.md ranks MoE-specific failure mechanisms, next experiments, and importance-guided layer/chunk calibration slots from real Qwen3 probes, including expert geometry and subspace conflict probes.",
       "item": "Qwen3 MoE mechanism leverage map",
       "status": "complete"
@@ -447,7 +452,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 88,
+    "complete": 89,
     "missing": 0,
     "partial": 1
   },
@@ -10977,6 +10982,80 @@
         "status": "passed"
       },
       "summary_path": "results/qwen3_moe_eval_bundle_audit_smoke/summary.json"
+    },
+    "qwen3_moe_eval_manifest_preflight": {
+      "blocking_reason": "Run the prepare_manifest_command before launching vLLM evals.",
+      "canonical_task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+      "manifest_exists": false,
+      "manifest_sha256": null,
+      "method_count": 13,
+      "prepare_manifest_command": "results/qwen3_moe_eval_manifest_preflight/prepare_manifest_command.txt",
+      "report": "results/qwen3_moe_eval_manifest_preflight/report.md",
+      "status": "task_manifest_missing",
+      "summary": {
+        "blocking_reason": "Run the prepare_manifest_command before launching vLLM evals.",
+        "canonical_task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+        "manifest_exists": false,
+        "manifest_sha256": null,
+        "method_count": 13,
+        "outputs": {
+          "prepare_manifest_command": "results/qwen3_moe_eval_manifest_preflight/prepare_manifest_command.txt",
+          "report": "results/qwen3_moe_eval_manifest_preflight/report.md",
+          "summary": "results/qwen3_moe_eval_manifest_preflight/summary.json",
+          "task_manifest_checks": "results/qwen3_moe_eval_manifest_preflight/task_manifest_checks.csv"
+        },
+        "prepare_manifest_command": "python scripts/run_vllm_downstream_eval.py --tasks gsm8k,humaneval_compile,mmlu,safety --example-source datasets --max-examples 384 --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing --prepare-task-manifest-only",
+        "schema_version": 1,
+        "status": "task_manifest_missing",
+        "task_count": 4,
+        "task_manifest_aligned_method_count": 13,
+        "task_manifest_unaligned_method_count": 0,
+        "task_sufficient_count": 0,
+        "total_manifest_examples": 0,
+        "total_required_examples": 1316
+      },
+      "summary_path": "results/qwen3_moe_eval_manifest_preflight/summary.json",
+      "task_count": 4,
+      "task_manifest_aligned_method_count": 13,
+      "task_manifest_checks": "results/qwen3_moe_eval_manifest_preflight/task_manifest_checks.csv",
+      "task_manifest_unaligned_method_count": 0,
+      "task_rows": [
+        {
+          "count_sufficient": false,
+          "deficit": 384,
+          "manifest_examples": 0,
+          "required_examples": 384,
+          "task": "gsm8k",
+          "task_present": false
+        },
+        {
+          "count_sufficient": false,
+          "deficit": 164,
+          "manifest_examples": 0,
+          "required_examples": 164,
+          "task": "humaneval_compile",
+          "task_present": false
+        },
+        {
+          "count_sufficient": false,
+          "deficit": 384,
+          "manifest_examples": 0,
+          "required_examples": 384,
+          "task": "mmlu",
+          "task_present": false
+        },
+        {
+          "count_sufficient": false,
+          "deficit": 384,
+          "manifest_examples": 0,
+          "required_examples": 384,
+          "task": "safety",
+          "task_present": false
+        }
+      ],
+      "task_sufficient_count": 0,
+      "total_manifest_examples": 0,
+      "total_required_examples": 1316
     },
     "qwen3_moe_expert_geometry_probe": {
       "expert_count": 6144,
@@ -37628,7 +37707,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-20T06:40:28.879825+00:00",
+  "generated_at": "2026-06-20T06:45:20.326826+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
