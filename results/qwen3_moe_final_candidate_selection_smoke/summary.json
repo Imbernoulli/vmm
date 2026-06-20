@@ -1,5 +1,5 @@
 {
-  "case_count": 5,
+  "case_count": 6,
   "cases": [
     {
       "case": "candidate_win",
@@ -38,6 +38,15 @@
       "status": "awaiting_candidate_eval"
     },
     {
+      "case": "paired_regression",
+      "eligible_candidate_count": 0,
+      "expected_selected_method": "source_qwen3_30b_instruct",
+      "expected_status": "awaiting_candidate_eval",
+      "passed": true,
+      "selected_method": "source_qwen3_30b_instruct",
+      "status": "awaiting_candidate_eval"
+    },
+    {
       "case": "partial",
       "eligible_candidate_count": 1,
       "expected_selected_method": "qwen3_moe_tail_trimmed_expert_only_candidate",
@@ -53,7 +62,7 @@
     "report": "results/qwen3_moe_final_candidate_selection_smoke/report.md",
     "summary": "results/qwen3_moe_final_candidate_selection_smoke/summary.json"
   },
-  "passed_case_count": 5,
+  "passed_case_count": 6,
   "schema_version": 1,
   "status": "passed"
 }

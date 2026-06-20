@@ -24,6 +24,7 @@ TASK_TO_SCORE_COLUMN = {
     "safety": "task_safety_score",
     "humaneval_compile": "task_humaneval_compile_score",
 }
+PAIRED_TASKS = set(TASK_TO_SCORE_COLUMN)
 SCORE_COLUMNS = ["avg_primary_score", "worst_primary_score", *TASK_SCORE_COLUMNS]
 
 
@@ -67,6 +68,22 @@ def maybe_float(value: Any) -> float | None:
     return None if value is None else float(value)
 
 
+def maybe_bool(value: Any) -> bool | None:
+    value = clean_value(value)
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return bool(value)
+    text = str(value).strip().lower()
+    if text in {"true", "1", "yes", "y"}:
+        return True
+    if text in {"false", "0", "no", "n"}:
+        return False
+    return None
+
+
 def read_json(path: str | Path) -> dict[str, Any]:
     path = repo_path(path)
     if not path.exists() or path.stat().st_size == 0:
@@ -87,6 +104,50 @@ def primary_metric(row: pd.Series | dict[str, Any]) -> tuple[str, float] | None:
         if value is not None:
             return column, value
     return None
+
+
+def prediction_key(row: pd.Series | dict[str, Any]) -> str | None:
+    task = str(row.get("task", "")).strip()
+    if not task:
+        return None
+    for column in ("task_id", "index"):
+        value = clean_value(row.get(column))
+        if value is not None and str(value).strip():
+            return f"{task}::{value}"
+    return None
+
+
+def prediction_correct(row: pd.Series | dict[str, Any]) -> bool | None:
+    task = str(row.get("task", "")).strip()
+    if task in {"gsm8k", "mmlu"}:
+        return maybe_bool(row.get("correct"))
+    if task == "safety":
+        expected = maybe_bool(row.get("expected_refusal"))
+        refused = maybe_bool(row.get("refused"))
+        if expected is not None and refused is not None:
+            return refused == expected
+        return maybe_bool(row.get("correct"))
+    if task == "humaneval_compile":
+        return maybe_bool(row.get("compile_ok"))
+    for column in ("correct", "compile_ok", "loose_correct"):
+        value = maybe_bool(row.get(column))
+        if value is not None:
+            return value
+    return None
+
+
+def read_prediction_scores(eval_dir: str | Path) -> dict[str, bool]:
+    predictions = read_csv(repo_path(eval_dir) / "predictions.csv")
+    if predictions.empty:
+        return {}
+    scores: dict[str, bool] = {}
+    for _, row in predictions.iterrows():
+        key = prediction_key(row)
+        correct = prediction_correct(row)
+        task = str(row.get("task", "")).strip()
+        if key is not None and correct is not None and task in PAIRED_TASKS:
+            scores[key] = correct
+    return scores
 
 
 def wilson_interval(score: float | None, n: int | None, z: float) -> tuple[float | None, float | None]:
@@ -133,6 +194,7 @@ def read_eval_scores(eval_dir: str | Path, *, confidence_z: float) -> dict[str, 
     summary = read_json(root / "summary.json")
     model_summary = read_csv(root / "model_summary.csv")
     metrics = read_csv(root / "metrics.csv")
+    prediction_scores = read_prediction_scores(root)
     status = str(summary.get("status", "missing"))
     model_row = model_summary.iloc[0].to_dict() if not model_summary.empty else {}
     task_scores: dict[str, float] = {}
@@ -166,6 +228,7 @@ def read_eval_scores(eval_dir: str | Path, *, confidence_z: float) -> dict[str, 
         "task_safety_score": task_scores.get("safety"),
         "task_humaneval_compile_score": task_scores.get("humaneval_compile"),
         **task_interval_values,
+        "_prediction_scores": prediction_scores,
     }
 
 
@@ -239,6 +302,49 @@ def interval_dominates(left: pd.Series | dict[str, Any], right: pd.Series | dict
     )
 
 
+def paired_task_regressions(
+    sources: pd.DataFrame,
+    candidate: pd.Series,
+    *,
+    tolerance_rate: float,
+) -> tuple[list[str], list[dict[str, Any]]]:
+    candidate_scores = candidate.get("_prediction_scores")
+    if not isinstance(candidate_scores, dict) or not candidate_scores:
+        return [], []
+    regressions: list[str] = []
+    rows: list[dict[str, Any]] = []
+    for _, source in sources.iterrows():
+        source_scores = source.get("_prediction_scores")
+        if not isinstance(source_scores, dict) or not source_scores:
+            continue
+        by_task: dict[str, list[str]] = {}
+        shared_keys = sorted(set(candidate_scores) & set(source_scores))
+        for key in shared_keys:
+            task = key.split("::", 1)[0]
+            if task in PAIRED_TASKS:
+                by_task.setdefault(task, []).append(key)
+        for task, keys in sorted(by_task.items()):
+            candidate_only = sum(int(candidate_scores[key] and not source_scores[key]) for key in keys)
+            source_only = sum(int(source_scores[key] and not candidate_scores[key]) for key in keys)
+            shared = len(keys)
+            net_delta = (candidate_only - source_only) / max(shared, 1)
+            regression = source_only > candidate_only and net_delta < -tolerance_rate
+            if regression:
+                regressions.append(TASK_TO_SCORE_COLUMN[task])
+            rows.append(
+                {
+                    "source": source.get("method"),
+                    "task": task,
+                    "shared": shared,
+                    "candidate_only_correct": candidate_only,
+                    "source_only_correct": source_only,
+                    "net_delta": net_delta,
+                    "regression": regression,
+                }
+            )
+    return sorted(set(regressions)), rows
+
+
 def load_real_rows(gate_dir: Path, audit_dir: Path, *, confidence_z: float) -> pd.DataFrame:
     gate = read_csv(repo_path(gate_dir) / "eval_gate_plan.csv")
     usable = bundle_usable_map(audit_dir)
@@ -268,6 +374,8 @@ def build_selection_table(
     *,
     task_regression_tolerance: float,
     use_uncertainty_gate: bool,
+    use_paired_gate: bool,
+    paired_loss_tolerance_rate: float,
 ) -> tuple[pd.DataFrame, dict[str, Any]]:
     rows = rows.copy()
     sources = rows[rows["method"].isin(SOURCE_METHODS)].copy()
@@ -294,6 +402,8 @@ def build_selection_table(
         confidence_dominated_by = []
         regressions = []
         confidence_regressions = []
+        paired_regressions = []
+        paired_rows: list[dict[str, Any]] = []
         eligible = False
         rejection_reasons = []
         if is_candidate:
@@ -310,6 +420,12 @@ def build_selection_table(
                 regressions = task_regressions(sources, row, task_regression_tolerance)
                 if use_uncertainty_gate:
                     confidence_regressions = confidence_task_regressions(sources, row, task_regression_tolerance)
+                if use_paired_gate:
+                    paired_regressions, paired_rows = paired_task_regressions(
+                        sources,
+                        row,
+                        tolerance_rate=paired_loss_tolerance_rate,
+                    )
                 if dominated_by:
                     rejection_reasons.append("source_endpoint_dominates")
                 if confidence_dominated_by:
@@ -318,6 +434,8 @@ def build_selection_table(
                     rejection_reasons.append("task_score_regression")
                 if confidence_regressions:
                     rejection_reasons.append("task_confidence_regression")
+                if paired_regressions:
+                    rejection_reasons.append("paired_prediction_regression")
             elif is_candidate and bool(row.get("eval_usable", False)):
                 rejection_reasons.append("awaiting_source_eval")
             eligible = bool(
@@ -329,7 +447,11 @@ def build_selection_table(
                 and not confidence_dominated_by
                 and not regressions
                 and not confidence_regressions
+                and not paired_regressions
             )
+        paired_shared = sum(int(item["shared"]) for item in paired_rows)
+        paired_candidate_only = sum(int(item["candidate_only_correct"]) for item in paired_rows)
+        paired_source_only = sum(int(item["source_only_correct"]) for item in paired_rows)
         table_rows.append(
             {
                 "method": row.get("method"),
@@ -352,6 +474,10 @@ def build_selection_table(
                 "confidence_dominated_by_source": ",".join(confidence_dominated_by),
                 "task_regression_columns": ",".join(regressions),
                 "task_confidence_regression_columns": ",".join(confidence_regressions),
+                "task_paired_regression_columns": ",".join(paired_regressions),
+                "paired_shared_examples": paired_shared if paired_rows else None,
+                "paired_candidate_only_correct": paired_candidate_only if paired_rows else None,
+                "paired_source_only_correct": paired_source_only if paired_rows else None,
                 "rejection_reasons": ",".join(rejection_reasons),
                 "selection_eligible": eligible,
             }
@@ -400,6 +526,8 @@ def build_selection_table(
             "best_source_by_worst": best_source_by_worst,
             "score_columns": SCORE_COLUMNS,
             "uncertainty_gate": use_uncertainty_gate,
+            "paired_prediction_gate": use_paired_gate,
+            "paired_loss_tolerance_rate": paired_loss_tolerance_rate,
         }
     )
     return table, selection
@@ -427,11 +555,19 @@ def build_report(summary: dict[str, Any], table: pd.DataFrame) -> str:
         f"- Candidates complete: `{selection.get('candidates_complete')}`",
         f"- Eligible candidates: `{selection.get('eligible_candidate_count')}/{selection.get('candidate_count')}`",
         f"- Uncertainty gate: `{selection.get('uncertainty_gate')}`",
+        f"- Paired prediction gate: `{selection.get('paired_prediction_gate')}`",
         "",
-        "| method | role | usable | audit | avg | avg CI | worst | worst CI | rel norm | dominated | conf dom | regressions | conf regressions | eligible |",
-        "| --- | --- | --- | --- | ---: | --- | ---: | --- | ---: | --- | --- | --- | --- | --- |",
+        "| method | role | usable | audit | avg | avg CI | worst | worst CI | rel norm | dominated | conf dom | regressions | conf regressions | paired net | paired regressions | eligible |",
+        "| --- | --- | --- | --- | ---: | --- | ---: | --- | ---: | --- | --- | --- | --- | ---: | --- | --- |",
     ]
     for _, row in table.iterrows():
+        paired_net = None
+        paired_shared = clean_value(row.get("paired_shared_examples"))
+        if paired_shared:
+            paired_net = (
+                int(clean_value(row.get("paired_candidate_only_correct")) or 0)
+                - int(clean_value(row.get("paired_source_only_correct")) or 0)
+            )
         lines.append(
             f"| `{row['method']}` | `{row['role']}` | `{bool(row['eval_usable'])}` | "
             f"`{bool(row['audit_passed'])}` | {fmt(row.get('avg_primary_score'))} | "
@@ -443,6 +579,8 @@ def build_report(summary: dict[str, Any], table: pd.DataFrame) -> str:
             f"`{row.get('confidence_dominated_by_source', '')}` | "
             f"`{row.get('task_regression_columns', '')}` | "
             f"`{row.get('task_confidence_regression_columns', '')}` | "
+            f"{fmt(paired_net)} | "
+            f"`{row.get('task_paired_regression_columns', '')}` | "
             f"`{bool(row.get('selection_eligible'))}` |"
         )
     lines.extend(
@@ -484,6 +622,7 @@ def write_outputs(
             "candidate must not be dominated by either source endpoint after score confidence intervals",
             "candidate must not regress a task below both source endpoints",
             "candidate task confidence lower bound must not fall below both source lower bounds",
+            "candidate must not have paired prediction regression on shared eval examples",
             "rank eligible candidates by avg primary score, then worst primary score, then lower total relative delta norm",
         ],
     }
@@ -618,6 +757,11 @@ def smoke_rows(case: str) -> pd.DataFrame:
         )
         rows[3]["eval_usable"] = False
         rows = add_smoke_intervals(rows)
+    elif case == "paired_regression":
+        rows[2]["_prediction_scores"] = {f"gsm8k::{idx}": idx < 3 for idx in range(12)}
+        rows[0]["_prediction_scores"] = {f"gsm8k::{idx}": True for idx in range(12)}
+        rows[1]["_prediction_scores"] = {f"gsm8k::{idx}": idx < 6 for idx in range(12)}
+        rows[3]["eval_usable"] = False
     elif case == "partial":
         rows[3]["eval_usable"] = False
     elif case != "candidate_win":
@@ -631,6 +775,7 @@ def run_smoke_matrix(args: argparse.Namespace) -> dict[str, Any]:
         "source_dominance": ("keep_source_endpoint", "source_qwen3_30b_instruct"),
         "task_regression": ("keep_source_endpoint", "source_qwen3_30b_instruct"),
         "uncertain_small_sample": ("awaiting_candidate_eval", "source_qwen3_30b_instruct"),
+        "paired_regression": ("awaiting_candidate_eval", "source_qwen3_30b_instruct"),
         "partial": ("provisional_candidate", "qwen3_moe_tail_trimmed_expert_only_candidate"),
     }
     rows = []
@@ -639,6 +784,8 @@ def run_smoke_matrix(args: argparse.Namespace) -> dict[str, Any]:
             smoke_rows(case),
             task_regression_tolerance=args.task_regression_tolerance,
             use_uncertainty_gate=not args.disable_uncertainty_gate,
+            use_paired_gate=not args.disable_paired_gate,
+            paired_loss_tolerance_rate=args.paired_loss_tolerance_rate,
         )
         rows.append(
             {
@@ -703,6 +850,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--task-regression-tolerance", type=float, default=1e-9)
     parser.add_argument("--confidence-z", type=float, default=1.96)
     parser.add_argument("--disable-uncertainty-gate", action="store_true")
+    parser.add_argument("--disable-paired-gate", action="store_true")
+    parser.add_argument("--paired-loss-tolerance-rate", type=float, default=0.0)
     return parser.parse_args()
 
 
@@ -718,6 +867,8 @@ def main() -> None:
         rows,
         task_regression_tolerance=args.task_regression_tolerance,
         use_uncertainty_gate=not args.disable_uncertainty_gate,
+        use_paired_gate=not args.disable_paired_gate,
+        paired_loss_tolerance_rate=args.paired_loss_tolerance_rate,
     )
     summary = write_outputs(args.output_dir, table, selection)
     print(f"Wrote Qwen3 MoE final candidate selection to {repo_path(args.output_dir).resolve()}")
