@@ -1,0 +1,17 @@
+[
+  {
+    "key": "expert_merging_chunking",
+    "mechanism": "Importance-guided layer/chunk coefficients address inter-layer heterogeneity in model merging.",
+    "url": "https://arxiv.org/abs/2509.25712"
+  },
+  {
+    "key": "harc_routing_breakdown",
+    "mechanism": "Router perturbation can break MoE top-k dispatch; this candidate keeps router frozen.",
+    "url": "https://arxiv.org/abs/2606.03391"
+  },
+  {
+    "key": "router_kd_calibration",
+    "mechanism": "Router-expert mismatch should be handled by a separate calibrated router delta, not direct router averaging.",
+    "url": "https://arxiv.org/abs/2603.02217"
+  }
+]

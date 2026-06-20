@@ -1249,6 +1249,62 @@ def summarize_qwen3_moe_mechanism_levers() -> dict[str, Any]:
     }
 
 
+def summarize_qwen3_moe_layer_chunk_candidate() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_layer_chunk_candidate")
+    summary = read_json(root / "summary.json")
+    search = read_csv(root / "schedule_search.csv")
+    layers = read_csv(root / "layer_coefficients.csv")
+    feasible = (
+        search[search["feasible_for_selection"].astype(str).str.lower().eq("true")]
+        if "feasible_for_selection" in search
+        else pd.DataFrame()
+    )
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "expert_group_count": int(summary.get("expert_group_count", 0)),
+        "schedule_count": int(summary.get("schedule_count", len(search))),
+        "feasible_schedule_count": int(len(feasible)),
+        "selected_schedule_id": summary.get("selected_schedule_id"),
+        "selected_route_mass_weighted_coder_retention": maybe_float(
+            summary.get("selected_route_mass_weighted_coder_retention")
+        ),
+        "selected_fine_layer_coder_retention": maybe_float(
+            summary.get("selected_fine_layer_coder_retention")
+        ),
+        "selected_risk_weighted_delta_reduction": maybe_float(
+            summary.get("selected_risk_weighted_delta_reduction")
+        ),
+        "selected_delta_norm_proxy_ratio": maybe_float(summary.get("selected_delta_norm_proxy_ratio")),
+        "selected_max_predicted_relative_delta": maybe_float(
+            summary.get("selected_max_predicted_relative_delta")
+        ),
+        "selected_changed_group_count": int(summary.get("selected_changed_group_count", 0)),
+        "selection_min_retention": maybe_float(summary.get("selection_min_retention")),
+        "selection_hard_cap": maybe_float(summary.get("selection_hard_cap")),
+        "dry_run_validated": bool(summary.get("dry_run_validated", False)),
+        "dry_run_floating_tensors": int(summary.get("dry_run_floating_tensors", 0)),
+        "dry_run_frozen_tensors": int(summary.get("dry_run_frozen_tensors", 0)),
+        "dry_run_freeze_router": bool(summary.get("dry_run_freeze_router", False)),
+        "dry_run_default_tensor_count": int(summary.get("dry_run_default_tensor_count", 0)),
+        "dry_run_freeze_router_hits": int(summary.get("dry_run_freeze_router_hits", 0)),
+        "dry_run_tensor_rule_count": int(summary.get("dry_run_tensor_rule_count", 0)),
+        "dry_run_tensor_rule_hit_count": int(summary.get("dry_run_tensor_rule_hit_count", 0)),
+        "schedule_rows": [clean_row(row) for _, row in search.iterrows()],
+        "layer_rows": [clean_row(row) for _, row in layers.iterrows()],
+        "report": rel(root / "report.md"),
+        "selected_schedule": rel(root / "selected_schedule.json"),
+        "schedule_search": rel(root / "schedule_search.csv"),
+        "layer_coefficients": rel(root / "layer_coefficients.csv"),
+        "selected_group_rules": rel(root / "selected_group_rules.csv"),
+        "tensor_rules": rel(root / "tensor_rules.txt"),
+        "writer_command": rel(root / "writer_command.txt"),
+        "dry_run_command": rel(root / "dry_run_command.txt"),
+        "dry_run_manifest": rel(repo_path("results/checkpoints/qwen3_moe_layer_chunk_candidate/merge_manifest.json")),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_qwen3_moe_unified_result_selection() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_unified_result_selection")
     summary = read_json(root / "summary.json")
@@ -3397,6 +3453,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/qwen3_moe_mechanism_levers/report.md ranks MoE-specific failure mechanisms, next experiments, and importance-guided layer/chunk calibration slots from real Qwen3 probes.",
         },
         {
+            "item": "Qwen3 MoE layer/chunk coefficient candidate",
+            "status": "complete",
+            "evidence": "results/qwen3_moe_layer_chunk_candidate/report.md converts the mechanism leverage layer scores into writer-ready same-shape tensor rules and validates the real Qwen3 writer dry-run path.",
+        },
+        {
             "item": "Qwen3 MoE unified downstream result selector",
             "status": "complete",
             "evidence": "results/qwen3_moe_unified_result_selection/report.md gates the unified same-shape average against both Qwen3 source endpoints after matched vLLM eval; results/qwen3_moe_unified_result_selection_smoke/report.md covers candidate-win, source-dominance, task-regression, and no-gain branches.",
@@ -3547,6 +3608,7 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_mechanism_eval_gate": summarize_qwen3_moe_mechanism_eval_gate(),
         "qwen3_moe_eval_budget_plan": summarize_qwen3_moe_eval_budget_plan(),
         "qwen3_moe_mechanism_levers": summarize_qwen3_moe_mechanism_levers(),
+        "qwen3_moe_layer_chunk_candidate": summarize_qwen3_moe_layer_chunk_candidate(),
         "qwen3_moe_unified_result_selection": summarize_qwen3_moe_unified_result_selection(),
         "qwen3_moe_unified_result_selection_smoke": summarize_qwen3_moe_unified_result_selection_smoke(),
         "qwen3_moe_final_candidate_selection": summarize_qwen3_moe_final_candidate_selection(),
@@ -3704,6 +3766,7 @@ def build_summary() -> dict[str, Any]:
             "python scripts/build_qwen3_moe_delta_frontier.py --output-dir results/qwen3_moe_delta_frontier",
             "python scripts/plan_qwen3_moe_eval_budget.py --output-dir results/qwen3_moe_eval_budget_plan",
             "python scripts/analyze_qwen3_moe_mechanism_levers.py --output-dir results/qwen3_moe_mechanism_levers",
+            "python scripts/build_qwen3_moe_layer_chunk_candidate.py --output-dir results/qwen3_moe_layer_chunk_candidate",
             "python scripts/build_qwen3_moe_router_move_gate.py --output-dir results/qwen3_moe_router_move_gate",
             "python scripts/build_qwen3_moe_router_calibration_job.py --output-dir results/qwen3_moe_router_calibration_job",
             "python scripts/select_qwen3_moe_router_calibration_result.py --output-dir results/qwen3_moe_router_calibration_selection",
@@ -3802,6 +3865,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_mechanism_eval_gate = exp["qwen3_moe_mechanism_eval_gate"]
     qwen3_moe_eval_budget_plan = exp["qwen3_moe_eval_budget_plan"]
     qwen3_moe_mechanism_levers = exp["qwen3_moe_mechanism_levers"]
+    qwen3_moe_layer_chunk_candidate = exp["qwen3_moe_layer_chunk_candidate"]
     qwen3_moe_unified_result_selection = exp["qwen3_moe_unified_result_selection"]
     qwen3_moe_unified_result_selection_smoke = exp["qwen3_moe_unified_result_selection_smoke"]
     qwen3_moe_final_candidate_selection = exp["qwen3_moe_final_candidate_selection"]
@@ -4387,6 +4451,26 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_mechanism_levers['fine_calibration_layers']} / "
                 f"{qwen3_moe_mechanism_levers['top_chunk_layer']}:"
                 f"{qwen3_moe_mechanism_levers['top_chunk_score']:.3f} |"
+            ),
+            (
+                "| Qwen3 MoE layer/chunk candidate | schedule / feasible schedules / changed groups | "
+                f"{qwen3_moe_layer_chunk_candidate['selected_schedule_id']} / "
+                f"{qwen3_moe_layer_chunk_candidate['feasible_schedule_count']}"
+                f"/{qwen3_moe_layer_chunk_candidate['schedule_count']} / "
+                f"{qwen3_moe_layer_chunk_candidate['selected_changed_group_count']} |"
+            ),
+            (
+                "| Qwen3 MoE layer/chunk candidate | retention / risk delta reduction / max rel-delta | "
+                f"{fmt(qwen3_moe_layer_chunk_candidate['selected_route_mass_weighted_coder_retention'])} / "
+                f"{fmt(qwen3_moe_layer_chunk_candidate['selected_risk_weighted_delta_reduction'])} / "
+                f"{fmt(qwen3_moe_layer_chunk_candidate['selected_max_predicted_relative_delta'])} |"
+            ),
+            (
+                "| Qwen3 MoE layer/chunk candidate | dry-run / floating / frozen / tensor-rule hits | "
+                f"{qwen3_moe_layer_chunk_candidate['dry_run_validated']} / "
+                f"{qwen3_moe_layer_chunk_candidate['dry_run_floating_tensors']} / "
+                f"{qwen3_moe_layer_chunk_candidate['dry_run_frozen_tensors']} / "
+                f"{qwen3_moe_layer_chunk_candidate['dry_run_tensor_rule_hit_count']} |"
             ),
             (
                 "| Qwen3 MoE unified result selector | status / selected / reason | "
