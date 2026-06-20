@@ -1,0 +1,83 @@
+{
+  "candidate_source_set_count": 6,
+  "endpoint_eval_expansion_count": 31,
+  "interference_budget": 0.0694444444444443,
+  "interference_budget_source": "max_floor_observed_negative_gap_q0.50",
+  "literature_priors": [
+    {
+      "key": "mode_connectivity",
+      "mechanism": "Only average inside a measured low-loss component; source identity alone is not enough.",
+      "source": "https://arxiv.org/abs/1802.10026"
+    },
+    {
+      "key": "model_soups",
+      "mechanism": "Average same-basin finetunes, but keep endpoint fallback and held-out selection.",
+      "source": "https://arxiv.org/abs/2203.05482"
+    },
+    {
+      "key": "ties",
+      "mechanism": "Task-vector interference means endpoint complementarity must be larger than merge damage.",
+      "source": "https://arxiv.org/abs/2306.01708"
+    },
+    {
+      "key": "expert_merging",
+      "mechanism": "MoE coefficients should follow calibration behavior instead of one global average.",
+      "source": "https://arxiv.org/abs/2509.25712"
+    },
+    {
+      "key": "sub_moe",
+      "mechanism": "Expert similarity, expert output behavior, and subspace conflict are primary MoE probes.",
+      "source": "https://arxiv.org/abs/2506.23266"
+    },
+    {
+      "key": "harc",
+      "mechanism": "Router top-k boundary movement must be audited before any MoE router change is accepted.",
+      "source": "https://arxiv.org/abs/2606.03391"
+    }
+  ],
+  "manual_resolution_scenario_count": 2,
+  "measured_additional_frontier_avg_gain_needed": 0.06111111111111099,
+  "mechanism_equation": "promote average only if source_frontier_avg_gain - observed_merge_interference_budget >= 0",
+  "outputs": {
+    "candidate_source_sets": "results/qwen_source_discovery_plan/candidate_source_sets.csv",
+    "endpoint_eval_expansion": "results/qwen_source_discovery_plan/endpoint_eval_expansion.csv",
+    "report": "results/qwen_source_discovery_plan/report.md",
+    "scenario_priority": "results/qwen_source_discovery_plan/scenario_priority.csv",
+    "source_discovery_queue": "results/qwen_source_discovery_plan/source_discovery_queue.csv",
+    "summary": "results/qwen_source_discovery_plan/summary.json"
+  },
+  "ready_p0_scenario_count": 2,
+  "registry_model_count": 17,
+  "scenario_count": 6,
+  "schema_version": 1,
+  "source_discovery_queue_count": 6,
+  "source_set_gate_rows": 11,
+  "status": "source_discovery_plan_ready",
+  "top_measured_source_set": {
+    "active_source_set_key": "coder+thinking",
+    "candidate_id": "qwen3_moe_coder_thinking_frontier_weighted_probe",
+    "frontier_avg_gain_vs_best_single": 0.0083333333333333,
+    "frontier_avg_surplus_vs_interference": -0.06111111111111099,
+    "frontier_worst_gain_vs_best_single": 0.0249999999999999,
+    "optimizer_gate": "probe_only_below_interference_budget",
+    "priority_score": 0.6333333333333333,
+    "recommended_action": "run_larger_endpoint_eval_and_small_weighted_probe_no_final_acceptance",
+    "source_set": "coder+thinking",
+    "source_set_key": "coder+thinking",
+    "source_weights": "{\"coder\": 0.6666666666666666, \"thinking\": 0.3333333333333333}"
+  },
+  "top_queue_item": {
+    "command": "python scripts/run_vllm_downstream_eval.py --models SERVED_CODER,SERVED_THINKING --tasks mmlu,gsm8k,humaneval --max-examples 256 --output-dir results/qwen_source_discovery_plan/measured_coder_thinking_vllm",
+    "priority_score": 0.98,
+    "queue_item": "measured_coder_thinking_endpoint_expansion",
+    "scenario_id": "measured_qwen3_moe_source_set",
+    "status": "ready_endpoint_expansion_probe_only"
+  },
+  "top_scenario": {
+    "mechanism_focus": "connectivity_barrier_then_source_surplus_gate",
+    "next_action": "run_endpoint_eval_plus_connectivity_probe_then_surplus_gate",
+    "priority_score": 0.95,
+    "readiness_gate": "ready_for_endpoint_eval_and_surplus_gate",
+    "scenario_id": "dense_7b_general_code_math_reasoning"
+  }
+}

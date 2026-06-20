@@ -8,10 +8,10 @@
   },
   "passed_step_count": 0,
   "plan_only": true,
-  "planned_step_count": 30,
+  "planned_step_count": 31,
   "schema_version": 1,
   "status": "planned",
-  "step_count": 30,
+  "step_count": 31,
   "steps": [
     {
       "command": "python scripts/build_qwen3_moe_candidate_trust_region_gate.py --gate-plan results/qwen3_moe_mechanism_eval_gate/eval_gate_plan.csv --output-dir results/qwen3_moe_candidate_trust_region_gate",
@@ -164,7 +164,17 @@
       "step": "build_average_source_set_optimizer"
     },
     {
-      "command": "python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer",
+      "command": "python scripts/build_qwen_source_discovery_plan.py --output-dir results/qwen_source_discovery_plan",
+      "duration_sec": 0.0,
+      "kind": "planner",
+      "returncode": null,
+      "status": "planned",
+      "stderr_tail": "",
+      "stdout_tail": "",
+      "step": "build_qwen_source_discovery_plan"
+    },
+    {
+      "command": "python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer --qwen-source-discovery-plan results/qwen_source_discovery_plan/summary.json",
       "duration_sec": 0.0,
       "kind": "optimizer",
       "returncode": null,

@@ -815,6 +815,55 @@ def summarize_qwen3_average_source_set_optimizer() -> dict[str, Any]:
     }
 
 
+def summarize_qwen_source_discovery_plan() -> dict[str, Any]:
+    root = repo_path("results/qwen_source_discovery_plan")
+    summary = read_json(root / "summary.json")
+    candidates = read_csv(root / "candidate_source_sets.csv")
+    endpoint = read_csv(root / "endpoint_eval_expansion.csv")
+    scenarios = read_csv(root / "scenario_priority.csv")
+    queue = read_csv(root / "source_discovery_queue.csv")
+    top_scenario = summary.get("top_scenario") or {}
+    top_queue = summary.get("top_queue_item") or {}
+    measured = summary.get("top_measured_source_set") or {}
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "registry_model_count": maybe_int(summary.get("registry_model_count")),
+        "scenario_count": maybe_int(summary.get("scenario_count")),
+        "candidate_source_set_count": maybe_int(summary.get("candidate_source_set_count")),
+        "endpoint_eval_expansion_count": maybe_int(summary.get("endpoint_eval_expansion_count")),
+        "source_discovery_queue_count": maybe_int(summary.get("source_discovery_queue_count")),
+        "ready_p0_scenario_count": maybe_int(summary.get("ready_p0_scenario_count")),
+        "manual_resolution_scenario_count": maybe_int(summary.get("manual_resolution_scenario_count")),
+        "interference_budget": maybe_float(summary.get("interference_budget")),
+        "measured_additional_frontier_avg_gain_needed": maybe_float(
+            summary.get("measured_additional_frontier_avg_gain_needed")
+        ),
+        "top_measured_source_set": measured.get("source_set"),
+        "top_measured_source_weights": measured.get("source_weights"),
+        "top_measured_frontier_avg_gain": maybe_float(
+            measured.get("frontier_avg_gain_vs_best_single")
+        ),
+        "top_measured_optimizer_gate": measured.get("optimizer_gate"),
+        "top_scenario": top_scenario.get("scenario_id"),
+        "top_scenario_action": top_scenario.get("next_action"),
+        "top_scenario_mechanism_focus": top_scenario.get("mechanism_focus"),
+        "top_queue_item": top_queue.get("queue_item"),
+        "top_queue_status": top_queue.get("status"),
+        "top_queue_command": top_queue.get("command"),
+        "candidate_rows": [clean_row(row) for _, row in candidates.iterrows()],
+        "endpoint_eval_rows": [clean_row(row) for _, row in endpoint.iterrows()],
+        "scenario_rows": [clean_row(row) for _, row in scenarios.iterrows()],
+        "queue_rows": [clean_row(row) for _, row in queue.iterrows()],
+        "report": rel(root / "report.md"),
+        "candidate_source_sets": rel(root / "candidate_source_sets.csv"),
+        "endpoint_eval_expansion": rel(root / "endpoint_eval_expansion.csv"),
+        "scenario_priority": rel(root / "scenario_priority.csv"),
+        "source_discovery_queue": rel(root / "source_discovery_queue.csv"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_average_decision_report() -> dict[str, Any]:
     summary = read_json("results/average_decision_report/summary.json")
     decisions = summary.get("decisions", [])
@@ -4872,6 +4921,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/qwen3_average_source_set_optimizer/report.md compares source-frontier gain against observed merge-interference budget and keeps the top Coder+Thinking source set probe-only because its surplus is still negative.",
         },
         {
+            "item": "Qwen source discovery and endpoint-expansion plan",
+            "status": "complete",
+            "evidence": "results/qwen_source_discovery_plan/report.md turns the negative source-set surplus into concrete Qwen endpoint/source-set discovery queues, including Dense 7B and Qwen3 MoE route-aware scenarios.",
+        },
+        {
             "item": "Formal LLM benchmark slices",
             "status": "complete",
             "evidence": "Representative Qwen2.5-1.5B benchmark slices cover MMLU, GSM8K, HumanEval canonical-solution NLL, and BeaverTails safety/refusal NLL.",
@@ -5281,6 +5335,7 @@ def build_summary() -> dict[str, Any]:
         "fp_downstream_confidence_audit": summarize_fp_downstream_confidence_audit(),
         "qwen3_source_set_complementarity_gate": summarize_qwen3_source_set_complementarity_gate(),
         "qwen3_average_source_set_optimizer": summarize_qwen3_average_source_set_optimizer(),
+        "qwen_source_discovery_plan": summarize_qwen_source_discovery_plan(),
         "qwen_probe_smoke": summarize_qwen_probe_smoke(),
         "average_decision_report": summarize_average_decision_report(),
         "model_averaging_literature_review": summarize_model_averaging_literature_review(),
@@ -5601,6 +5656,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     fp_downstream_confidence = exp["fp_downstream_confidence_audit"]
     qwen3_source_set_complementarity = exp["qwen3_source_set_complementarity_gate"]
     qwen3_average_source_set_optimizer = exp["qwen3_average_source_set_optimizer"]
+    qwen_source_discovery_plan = exp["qwen_source_discovery_plan"]
     average_decision = exp["average_decision_report"]
     literature_review = exp["model_averaging_literature_review"]
     average_method_gate_matrix = exp["average_method_gate_matrix"]
@@ -5993,6 +6049,17 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(qwen3_average_source_set_optimizer['interference_budget'])} / "
                 f"{fmt(qwen3_average_source_set_optimizer['top_frontier_avg_surplus_vs_interference'])} / "
                 f"{qwen3_average_source_set_optimizer['final_average_budget_candidate_count']} |"
+            ),
+            (
+                "| Qwen source discovery plan | top scenario / action | "
+                f"{qwen_source_discovery_plan['top_scenario']} / "
+                f"{qwen_source_discovery_plan['top_scenario_action']} |"
+            ),
+            (
+                "| Qwen source discovery plan | measured set / additional avg gain needed / top queue | "
+                f"{qwen_source_discovery_plan['top_measured_source_set']} / "
+                f"{fmt(qwen_source_discovery_plan['measured_additional_frontier_avg_gain_needed'])} / "
+                f"{qwen_source_discovery_plan['top_queue_item']} |"
             ),
             (
                 "| first-principles MoE mechanism | gauge-equivalent B MSE | "

@@ -243,6 +243,7 @@ def moe_feature_rows(
     qwen3_router_coupled_retention_frontier: dict[str, Any],
     qwen3_source_set_complementarity: dict[str, Any],
     qwen3_average_source_set_optimizer: dict[str, Any],
+    qwen_source_discovery_plan: dict[str, Any],
 ) -> list[dict[str, Any]]:
     selection = final_selection.get("current_selection") or {}
     router_selection = router_calibration.get("current_selection") or {}
@@ -567,6 +568,26 @@ def moe_feature_rows(
                 f"final-budget sets = "
                 f"{qwen3_average_source_set_optimizer.get('final_average_budget_candidate_count')}; "
                 f"probe-only sets = {qwen3_average_source_set_optimizer.get('probe_only_source_set_count')}"
+            ),
+        },
+        {
+            "domain": "moe",
+            "probe": "qwen_source_discovery_plan",
+            "value": qwen_source_discovery_plan.get(
+                "measured_additional_frontier_avg_gain_needed"
+            ),
+            "threshold": 0.0,
+            "decision_signal": "search_stronger_source_sets_before_more_average_tuning",
+            "evidence": (
+                f"status = {qwen_source_discovery_plan.get('status')}; "
+                f"top measured set = "
+                f"{(qwen_source_discovery_plan.get('top_measured_source_set') or {}).get('source_set')}; "
+                f"additional avg frontier gain needed = "
+                f"{fmt(qwen_source_discovery_plan.get('measured_additional_frontier_avg_gain_needed'))}; "
+                f"top scenario = "
+                f"{(qwen_source_discovery_plan.get('top_scenario') or {}).get('scenario_id')}; "
+                f"top queue = "
+                f"{(qwen_source_discovery_plan.get('top_queue_item') or {}).get('queue_item')}"
             ),
         },
         {
@@ -1306,8 +1327,8 @@ def build_next_experiment_queue(
             "driving_verdict": source_surplus_verdict,
             "gate_type": "source_set_selection_before_average",
             "why_now": source_set_why,
-            "command": "python scripts/build_qwen3_average_source_set_optimizer.py --output-dir results/qwen3_average_source_set_optimizer",
-            "preflight_command": "python scripts/build_qwen3_source_set_complementarity_gate.py --output-dir results/qwen3_source_set_complementarity_gate",
+            "command": "python scripts/build_qwen_source_discovery_plan.py --output-dir results/qwen_source_discovery_plan",
+            "preflight_command": "python scripts/build_qwen3_average_source_set_optimizer.py --output-dir results/qwen3_average_source_set_optimizer",
             "priority_score": source_set_priority,
             "status": source_set_status,
             "expected_decision_update": source_set_expected,
@@ -1990,6 +2011,7 @@ def build_report(
         f"- Qwen3 generation confidence: positive tasks vs naive `{moe['qwen3_generation_routercal_positive_tasks_vs_naive']}/{moe['qwen3_generation_confidence_task_count']}`，confident positives `{moe['qwen3_generation_routercal_confident_positive_tasks']}/{moe['qwen3_generation_confidence_task_count']}`，confident source-frontier wins `{moe['qwen3_generation_routercal_confident_source_frontier_wins']}/{moe['qwen3_generation_confidence_task_count']}`；avg gain interval `[{fmt(moe['qwen3_generation_routercal_avg_gain_lower'])}, {fmt(moe['qwen3_generation_routercal_avg_gain_upper'])}]`。",
         f"- Qwen3 source-set complementarity: `{moe['qwen3_source_set_current']}` gate `{moe['qwen3_source_set_current_gate']}`，dominant `{moe['qwen3_source_set_current_dominant_source']}`，frontier avg gain `{fmt(moe['qwen3_source_set_current_frontier_avg_gain'])}`，best observed merge gap `{fmt(moe['qwen3_source_set_current_best_observed_avg_gap'])}`。",
         f"- Qwen3 source-set surplus: top `{moe['qwen3_source_set_top_source_set']}` gate `{moe['qwen3_source_set_top_optimizer_gate']}`，frontier avg gain `{fmt(moe['qwen3_source_set_top_frontier_avg_gain'])}` vs interference budget `{fmt(moe['qwen3_source_set_interference_budget'])}`，surplus `{fmt(moe['qwen3_source_set_top_surplus_vs_interference'])}`，weights `{moe['qwen3_source_set_top_source_weights']}`。",
+        f"- Qwen source discovery: `{moe['qwen_source_discovery_status']}`，top scenario `{moe['qwen_source_discovery_top_scenario']}`，top queue `{moe['qwen_source_discovery_top_queue_item']}`，additional frontier avg gain needed `{fmt(moe['qwen_source_discovery_measured_additional_frontier_avg_gain_needed'])}`。",
         f"- Qwen3 router calibration: `{moe['qwen3_router_calibration_status']}`。",
         f"- Qwen3 final selection: `{moe['qwen3_final_selection_status']}`，eligible `{moe['qwen3_eligible_candidates']}/{moe['qwen3_candidate_count']}`。",
         f"- Qwen3 final selector rank gate: confidence band `{moe['qwen3_final_confidence_tie_band']}`，rank mode `{moe['qwen3_final_selection_rank_mode']}`，band size `{moe['qwen3_final_selection_rank_band_size']}`，point leader `{moe['qwen3_final_selection_point_leader_method']}`。",
@@ -2128,6 +2150,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
     )
     qwen3_source_set_complementarity = read_json(args.qwen3_source_set_complementarity)
     qwen3_average_source_set_optimizer = read_json(args.qwen3_average_source_set_optimizer)
+    qwen_source_discovery_plan = read_json(args.qwen_source_discovery_plan)
 
     feature_rows = dense_feature_rows(curvature, dense_selector, dense_lambda, gen_eval)
     feature_rows.extend(
@@ -2152,6 +2175,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
             qwen3_router_coupled_retention_frontier,
             qwen3_source_set_complementarity,
             qwen3_average_source_set_optimizer,
+            qwen_source_discovery_plan,
         )
     )
     features = pd.DataFrame(feature_rows)
@@ -2426,6 +2450,19 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
             ),
             "qwen3_source_set_top_source_weights": source_set_top.get("source_weights"),
             "qwen3_source_set_top_action": source_set_top.get("recommended_action"),
+            "qwen_source_discovery_status": qwen_source_discovery_plan.get("status"),
+            "qwen_source_discovery_top_scenario": (
+                qwen_source_discovery_plan.get("top_scenario") or {}
+            ).get("scenario_id"),
+            "qwen_source_discovery_top_action": (
+                qwen_source_discovery_plan.get("top_scenario") or {}
+            ).get("next_action"),
+            "qwen_source_discovery_top_queue_item": (
+                qwen_source_discovery_plan.get("top_queue_item") or {}
+            ).get("queue_item"),
+            "qwen_source_discovery_measured_additional_frontier_avg_gain_needed": fnum(
+                qwen_source_discovery_plan.get("measured_additional_frontier_avg_gain_needed")
+            ),
             "qwen3_layer_chunk_to_unified_relative_norm_reduction": fnum(
                 delta_frontier.get("layer_chunk_to_unified_relative_norm_reduction")
             ),
@@ -2652,6 +2689,11 @@ def parse_args() -> argparse.Namespace:
         "--qwen3-average-source-set-optimizer",
         type=Path,
         default=Path("results/qwen3_average_source_set_optimizer/summary.json"),
+    )
+    parser.add_argument(
+        "--qwen-source-discovery-plan",
+        type=Path,
+        default=Path("results/qwen_source_discovery_plan/summary.json"),
     )
     parser.add_argument(
         "--qwen3-router-margin-fragility",

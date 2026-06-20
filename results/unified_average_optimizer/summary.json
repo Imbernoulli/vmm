@@ -180,6 +180,11 @@
     "qwen3_unified_subspace_risk_weighted_coder_retention": 0.9737607662389383,
     "qwen3_unified_subspace_weighted_predicted_relative_delta": 0.21478052015965876,
     "qwen3_unified_tensor_rules_sha256": "3127175910edd4b1bd8cc62e2ecd5301bff92a91efc0c66b5f49874952e6c3a9",
+    "qwen_source_discovery_measured_additional_frontier_avg_gain_needed": 0.06111111111111099,
+    "qwen_source_discovery_status": "source_discovery_plan_ready",
+    "qwen_source_discovery_top_action": "run_endpoint_eval_plus_connectivity_probe_then_surplus_gate",
+    "qwen_source_discovery_top_queue_item": "measured_coder_thinking_endpoint_expansion",
+    "qwen_source_discovery_top_scenario": "dense_7b_general_code_math_reasoning",
     "real_gauge_aligned_degradation": 0.0,
     "real_gauge_naive_degradation": 5.490968298724317,
     "router_action": "freeze_router"
