@@ -306,6 +306,11 @@
       "status": "complete"
     },
     {
+      "evidence": "results/qwen3_moe_eval_bundle_audit/report.md checks every Qwen3 source/candidate eval output for model-id, task, example-count, prediction, and primary-score consistency before selector use; results/qwen3_moe_eval_bundle_audit_smoke/report.md covers valid, stale-model, missing-task, and low-example bundles.",
+      "item": "Qwen3 MoE vLLM eval bundle audit",
+      "status": "complete"
+    },
+    {
       "evidence": "results/qwen3_moe_searched_no_gt065_delta_audit/report.md verifies the materialized searched 0.65 cap-law checkpoint and adds it to the Qwen3 MoE eval gate.",
       "item": "Qwen3 MoE searched cap-law materialized candidate",
       "status": "complete"
@@ -357,7 +362,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 70,
+    "complete": 71,
     "missing": 0,
     "partial": 1
   },
@@ -7841,6 +7846,284 @@
       "unified_mechanism_matches_searched_no_gt065_delta": true,
       "unified_mechanism_router_changed_tensors": 0,
       "unified_mechanism_total_relative_delta_norm": 0.2475948491291486
+    },
+    "qwen3_moe_eval_bundle_audit": {
+      "audit_rows": [
+        {
+          "eval_output_dir": "results/vllm_checkpoint_eval/source_qwen3_30b_instruct",
+          "example_coverage": false,
+          "expected_model": "candidate_source_qwen3_30b_instruct",
+          "issues": "eval_output_dir_missing;missing_files:summary.json,eval_plan.csv,metrics.csv,model_summary.csv,predictions.csv;summary_status:missing;model_mismatch;task_coverage_mismatch;insufficient_examples:gsm8k,mmlu,safety,humaneval_compile;insufficient_predictions:gsm8k,mmlu,safety,humaneval_compile;missing_primary_scores:gsm8k,mmlu,safety,humaneval_compile",
+          "method": "source_qwen3_30b_instruct",
+          "model_match": false,
+          "observed_task_count": 0,
+          "prediction_coverage": false,
+          "primary_scores_present": false,
+          "required_examples_per_task": 64,
+          "required_task_count": 4,
+          "role": "source",
+          "summary_status": "missing",
+          "task_coverage": false,
+          "usable_for_selection": false
+        },
+        {
+          "eval_output_dir": "results/vllm_checkpoint_eval/source_qwen3_30b_coder",
+          "example_coverage": false,
+          "expected_model": "candidate_source_qwen3_30b_coder",
+          "issues": "eval_output_dir_missing;missing_files:summary.json,eval_plan.csv,metrics.csv,model_summary.csv,predictions.csv;summary_status:missing;model_mismatch;task_coverage_mismatch;insufficient_examples:gsm8k,mmlu,safety,humaneval_compile;insufficient_predictions:gsm8k,mmlu,safety,humaneval_compile;missing_primary_scores:gsm8k,mmlu,safety,humaneval_compile",
+          "method": "source_qwen3_30b_coder",
+          "model_match": false,
+          "observed_task_count": 0,
+          "prediction_coverage": false,
+          "primary_scores_present": false,
+          "required_examples_per_task": 64,
+          "required_task_count": 4,
+          "role": "source",
+          "summary_status": "missing",
+          "task_coverage": false,
+          "usable_for_selection": false
+        },
+        {
+          "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_unified_route_guarded_candidate",
+          "example_coverage": false,
+          "expected_model": "candidate_qwen3_moe_unified_route_guarded_candidate",
+          "issues": "eval_output_dir_missing;missing_files:summary.json,eval_plan.csv,metrics.csv,model_summary.csv,predictions.csv;summary_status:missing;model_mismatch;task_coverage_mismatch;insufficient_examples:gsm8k,mmlu,safety,humaneval_compile;insufficient_predictions:gsm8k,mmlu,safety,humaneval_compile;missing_primary_scores:gsm8k,mmlu,safety,humaneval_compile",
+          "method": "qwen3_moe_unified_route_guarded_candidate",
+          "model_match": false,
+          "observed_task_count": 0,
+          "prediction_coverage": false,
+          "primary_scores_present": false,
+          "required_examples_per_task": 64,
+          "required_task_count": 4,
+          "role": "candidate",
+          "summary_status": "missing",
+          "task_coverage": false,
+          "usable_for_selection": false
+        },
+        {
+          "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_audit_gated_candidate",
+          "example_coverage": false,
+          "expected_model": "candidate_qwen3_moe_audit_gated_candidate",
+          "issues": "eval_output_dir_missing;missing_files:summary.json,eval_plan.csv,metrics.csv,model_summary.csv,predictions.csv;summary_status:missing;model_mismatch;task_coverage_mismatch;insufficient_examples:gsm8k,mmlu,safety,humaneval_compile;insufficient_predictions:gsm8k,mmlu,safety,humaneval_compile;missing_primary_scores:gsm8k,mmlu,safety,humaneval_compile",
+          "method": "qwen3_moe_audit_gated_candidate",
+          "model_match": false,
+          "observed_task_count": 0,
+          "prediction_coverage": false,
+          "primary_scores_present": false,
+          "required_examples_per_task": 64,
+          "required_task_count": 4,
+          "role": "candidate",
+          "summary_status": "missing",
+          "task_coverage": false,
+          "usable_for_selection": false
+        },
+        {
+          "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_trust_region_candidate",
+          "example_coverage": false,
+          "expected_model": "candidate_qwen3_moe_trust_region_candidate",
+          "issues": "eval_output_dir_missing;missing_files:summary.json,eval_plan.csv,metrics.csv,model_summary.csv,predictions.csv;summary_status:missing;model_mismatch;task_coverage_mismatch;insufficient_examples:gsm8k,mmlu,safety,humaneval_compile;insufficient_predictions:gsm8k,mmlu,safety,humaneval_compile;missing_primary_scores:gsm8k,mmlu,safety,humaneval_compile",
+          "method": "qwen3_moe_trust_region_candidate",
+          "model_match": false,
+          "observed_task_count": 0,
+          "prediction_coverage": false,
+          "primary_scores_present": false,
+          "required_examples_per_task": 64,
+          "required_task_count": 4,
+          "role": "candidate",
+          "summary_status": "missing",
+          "task_coverage": false,
+          "usable_for_selection": false
+        },
+        {
+          "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_expert_only_trust_region_candidate",
+          "example_coverage": false,
+          "expected_model": "candidate_qwen3_moe_expert_only_trust_region_candidate",
+          "issues": "eval_output_dir_missing;missing_files:summary.json,eval_plan.csv,metrics.csv,model_summary.csv,predictions.csv;summary_status:missing;model_mismatch;task_coverage_mismatch;insufficient_examples:gsm8k,mmlu,safety,humaneval_compile;insufficient_predictions:gsm8k,mmlu,safety,humaneval_compile;missing_primary_scores:gsm8k,mmlu,safety,humaneval_compile",
+          "method": "qwen3_moe_expert_only_trust_region_candidate",
+          "model_match": false,
+          "observed_task_count": 0,
+          "prediction_coverage": false,
+          "primary_scores_present": false,
+          "required_examples_per_task": 64,
+          "required_task_count": 4,
+          "role": "candidate",
+          "summary_status": "missing",
+          "task_coverage": false,
+          "usable_for_selection": false
+        },
+        {
+          "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_tail_trimmed_expert_only_candidate",
+          "example_coverage": false,
+          "expected_model": "candidate_qwen3_moe_tail_trimmed_expert_only_candidate",
+          "issues": "eval_output_dir_missing;missing_files:summary.json,eval_plan.csv,metrics.csv,model_summary.csv,predictions.csv;summary_status:missing;model_mismatch;task_coverage_mismatch;insufficient_examples:gsm8k,mmlu,safety,humaneval_compile;insufficient_predictions:gsm8k,mmlu,safety,humaneval_compile;missing_primary_scores:gsm8k,mmlu,safety,humaneval_compile",
+          "method": "qwen3_moe_tail_trimmed_expert_only_candidate",
+          "model_match": false,
+          "observed_task_count": 0,
+          "prediction_coverage": false,
+          "primary_scores_present": false,
+          "required_examples_per_task": 64,
+          "required_task_count": 4,
+          "role": "candidate",
+          "summary_status": "missing",
+          "task_coverage": false,
+          "usable_for_selection": false
+        },
+        {
+          "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_searched_no_gt065_max_retention_candidate",
+          "example_coverage": false,
+          "expected_model": "candidate_qwen3_moe_searched_no_gt065_max_retention_candidate",
+          "issues": "eval_output_dir_missing;missing_files:summary.json,eval_plan.csv,metrics.csv,model_summary.csv,predictions.csv;summary_status:missing;model_mismatch;task_coverage_mismatch;insufficient_examples:gsm8k,mmlu,safety,humaneval_compile;insufficient_predictions:gsm8k,mmlu,safety,humaneval_compile;missing_primary_scores:gsm8k,mmlu,safety,humaneval_compile",
+          "method": "qwen3_moe_searched_no_gt065_max_retention_candidate",
+          "model_match": false,
+          "observed_task_count": 0,
+          "prediction_coverage": false,
+          "primary_scores_present": false,
+          "required_examples_per_task": 64,
+          "required_task_count": 4,
+          "role": "candidate",
+          "summary_status": "missing",
+          "task_coverage": false,
+          "usable_for_selection": false
+        },
+        {
+          "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_unified_mechanism_candidate",
+          "example_coverage": false,
+          "expected_model": "candidate_qwen3_moe_unified_mechanism_candidate",
+          "issues": "eval_output_dir_missing;missing_files:summary.json,eval_plan.csv,metrics.csv,model_summary.csv,predictions.csv;summary_status:missing;model_mismatch;task_coverage_mismatch;insufficient_examples:gsm8k,mmlu,safety,humaneval_compile;insufficient_predictions:gsm8k,mmlu,safety,humaneval_compile;missing_primary_scores:gsm8k,mmlu,safety,humaneval_compile",
+          "method": "qwen3_moe_unified_mechanism_candidate",
+          "model_match": false,
+          "observed_task_count": 0,
+          "prediction_coverage": false,
+          "primary_scores_present": false,
+          "required_examples_per_task": 64,
+          "required_task_count": 4,
+          "role": "candidate",
+          "summary_status": "missing",
+          "task_coverage": false,
+          "usable_for_selection": false
+        }
+      ],
+      "audit_rows_path": "results/qwen3_moe_eval_bundle_audit/audit_rows.csv",
+      "candidate_count": 7,
+      "candidate_usable_count": 0,
+      "complete_eval_count": 0,
+      "invalid_complete_count": 0,
+      "method_count": 9,
+      "report": "results/qwen3_moe_eval_bundle_audit/report.md",
+      "source_count": 2,
+      "source_usable_count": 0,
+      "status": "awaiting_eval",
+      "summary": {
+        "candidate_count": 7,
+        "candidate_usable_count": 0,
+        "complete_eval_count": 0,
+        "invalid_complete_count": 0,
+        "method_count": 9,
+        "outputs": {
+          "audit_rows": "results/qwen3_moe_eval_bundle_audit/audit_rows.csv",
+          "report": "results/qwen3_moe_eval_bundle_audit/report.md",
+          "summary": "results/qwen3_moe_eval_bundle_audit/summary.json"
+        },
+        "schema_version": 1,
+        "smoke_case": null,
+        "source_count": 2,
+        "source_usable_count": 0,
+        "status": "awaiting_eval",
+        "unified_usable": false,
+        "usable_for_selection_count": 0
+      },
+      "summary_path": "results/qwen3_moe_eval_bundle_audit/summary.json",
+      "unified_usable": false,
+      "usable_for_selection_count": 0
+    },
+    "qwen3_moe_eval_bundle_audit_smoke": {
+      "case_count": 4,
+      "case_rows": [
+        {
+          "case": "valid_bundle",
+          "expected_status": "passed",
+          "expected_usable_for_selection_count": 3,
+          "passed": true,
+          "status": "passed",
+          "usable_for_selection_count": 3
+        },
+        {
+          "case": "stale_model",
+          "expected_status": "invalid_bundle",
+          "expected_usable_for_selection_count": 2,
+          "passed": true,
+          "status": "invalid_bundle",
+          "usable_for_selection_count": 2
+        },
+        {
+          "case": "missing_task",
+          "expected_status": "invalid_bundle",
+          "expected_usable_for_selection_count": 2,
+          "passed": true,
+          "status": "invalid_bundle",
+          "usable_for_selection_count": 2
+        },
+        {
+          "case": "low_examples",
+          "expected_status": "invalid_bundle",
+          "expected_usable_for_selection_count": 2,
+          "passed": true,
+          "status": "invalid_bundle",
+          "usable_for_selection_count": 2
+        }
+      ],
+      "failed_case_count": 0,
+      "matrix": "results/qwen3_moe_eval_bundle_audit_smoke/audit_matrix.csv",
+      "passed_case_count": 4,
+      "report": "results/qwen3_moe_eval_bundle_audit_smoke/report.md",
+      "status": "passed",
+      "summary": {
+        "case_count": 4,
+        "cases": [
+          {
+            "case": "valid_bundle",
+            "expected_status": "passed",
+            "expected_usable_for_selection_count": 3,
+            "passed": true,
+            "status": "passed",
+            "usable_for_selection_count": 3
+          },
+          {
+            "case": "stale_model",
+            "expected_status": "invalid_bundle",
+            "expected_usable_for_selection_count": 2,
+            "passed": true,
+            "status": "invalid_bundle",
+            "usable_for_selection_count": 2
+          },
+          {
+            "case": "missing_task",
+            "expected_status": "invalid_bundle",
+            "expected_usable_for_selection_count": 2,
+            "passed": true,
+            "status": "invalid_bundle",
+            "usable_for_selection_count": 2
+          },
+          {
+            "case": "low_examples",
+            "expected_status": "invalid_bundle",
+            "expected_usable_for_selection_count": 2,
+            "passed": true,
+            "status": "invalid_bundle",
+            "usable_for_selection_count": 2
+          }
+        ],
+        "failed_case_count": 0,
+        "outputs": {
+          "matrix": "results/qwen3_moe_eval_bundle_audit_smoke/audit_matrix.csv",
+          "report": "results/qwen3_moe_eval_bundle_audit_smoke/report.md",
+          "summary": "results/qwen3_moe_eval_bundle_audit_smoke/summary.json"
+        },
+        "passed_case_count": 4,
+        "schema_version": 1,
+        "status": "passed"
+      },
+      "summary_path": "results/qwen3_moe_eval_bundle_audit_smoke/summary.json"
     },
     "qwen3_moe_expert_only_delta_audit": {
       "changed_numel_fraction": 0.5333353724709579,
@@ -24715,7 +24998,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-20T00:05:05.184774+00:00",
+  "generated_at": "2026-06-20T00:13:18.096045+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -24803,6 +25086,8 @@
     "python scripts/build_qwen3_moe_unified_mechanism_candidate.py --output-dir results/qwen3_moe_unified_mechanism_candidate",
     "python scripts/select_qwen3_moe_unified_result.py --output-dir results/qwen3_moe_unified_result_selection",
     "python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke",
+    "python scripts/audit_qwen3_moe_eval_bundle.py --output-dir results/qwen3_moe_eval_bundle_audit",
+    "python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke",
     "PYTHONPATH=src python scripts/build_dashboard.py --output-dir results/dashboard",
     "PYTHONPATH=src python scripts/collect_results.py"
   ],

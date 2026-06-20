@@ -1,0 +1,5 @@
+case,status,expected_status,usable_for_selection_count,expected_usable_for_selection_count,passed
+valid_bundle,passed,passed,3,3,True
+stale_model,invalid_bundle,invalid_bundle,2,2,True
+missing_task,invalid_bundle,invalid_bundle,2,2,True
+low_examples,invalid_bundle,invalid_bundle,2,2,True

@@ -1,0 +1,46 @@
+{
+  "case_count": 4,
+  "cases": [
+    {
+      "case": "valid_bundle",
+      "expected_status": "passed",
+      "expected_usable_for_selection_count": 3,
+      "passed": true,
+      "status": "passed",
+      "usable_for_selection_count": 3
+    },
+    {
+      "case": "stale_model",
+      "expected_status": "invalid_bundle",
+      "expected_usable_for_selection_count": 2,
+      "passed": true,
+      "status": "invalid_bundle",
+      "usable_for_selection_count": 2
+    },
+    {
+      "case": "missing_task",
+      "expected_status": "invalid_bundle",
+      "expected_usable_for_selection_count": 2,
+      "passed": true,
+      "status": "invalid_bundle",
+      "usable_for_selection_count": 2
+    },
+    {
+      "case": "low_examples",
+      "expected_status": "invalid_bundle",
+      "expected_usable_for_selection_count": 2,
+      "passed": true,
+      "status": "invalid_bundle",
+      "usable_for_selection_count": 2
+    }
+  ],
+  "failed_case_count": 0,
+  "outputs": {
+    "matrix": "results/qwen3_moe_eval_bundle_audit_smoke/audit_matrix.csv",
+    "report": "results/qwen3_moe_eval_bundle_audit_smoke/report.md",
+    "summary": "results/qwen3_moe_eval_bundle_audit_smoke/summary.json"
+  },
+  "passed_case_count": 4,
+  "schema_version": 1,
+  "status": "passed"
+}

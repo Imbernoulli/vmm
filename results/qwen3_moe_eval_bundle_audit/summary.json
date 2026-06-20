@@ -1,0 +1,19 @@
+{
+  "candidate_count": 7,
+  "candidate_usable_count": 0,
+  "complete_eval_count": 0,
+  "invalid_complete_count": 0,
+  "method_count": 9,
+  "outputs": {
+    "audit_rows": "results/qwen3_moe_eval_bundle_audit/audit_rows.csv",
+    "report": "results/qwen3_moe_eval_bundle_audit/report.md",
+    "summary": "results/qwen3_moe_eval_bundle_audit/summary.json"
+  },
+  "schema_version": 1,
+  "smoke_case": null,
+  "source_count": 2,
+  "source_usable_count": 0,
+  "status": "awaiting_eval",
+  "unified_usable": false,
+  "usable_for_selection_count": 0
+}
