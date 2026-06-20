@@ -1,7 +1,7 @@
 # Qwen3 MoE Adaptive Eval Schedule Smoke
 
 - Status: `passed`
-- Assertions: `10/10`
+- Assertions: `12/12`
 
 | case | assertion | expected | actual | passed |
 | --- | --- | --- | --- | --- |
@@ -15,3 +15,5 @@
 | `full_ready` | `unified_candidate_status` | `ready_for_final_selector` | `ready_for_final_selector` | `True` |
 | `dominated_pruned` | `top_method` | `qwen3_moe_searched_no_gt065_max_retention_candidate` | `qwen3_moe_searched_no_gt065_max_retention_candidate` | `True` |
 | `dominated_pruned` | `unified_candidate_status` | `pruned_by_source_frontier_probe` | `pruned_by_source_frontier_probe` | `True` |
+| `paired_regression_pruned` | `top_method` | `qwen3_moe_searched_no_gt065_max_retention_candidate` | `qwen3_moe_searched_no_gt065_max_retention_candidate` | `True` |
+| `paired_regression_pruned` | `unified_candidate_status` | `pruned_by_paired_source_probe` | `pruned_by_paired_source_probe` | `True` |

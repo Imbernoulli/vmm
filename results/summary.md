@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-20T08:14:36.123712+00:00`
+Generated at: `2026-06-20T08:19:35.041315+00:00`
 
 ## Coverage
 
@@ -214,7 +214,8 @@ Complete: `90`; partial: `1`; missing: `0`.
 | Qwen3 MoE eval budget plan | task manifest aligned / canonical manifest | 13/13 / results/qwen3_moe_mechanism_eval_gate/task_manifest.json |
 | Qwen3 MoE adaptive eval schedule | status / top action / top method | adaptive_schedule_ready / run_or_extend_source_control_probe / source_qwen3_30b_instruct |
 | Qwen3 MoE adaptive eval schedule | source controls / round1 probes / probe->full examples | False / 5 / 64 -> 384 |
-| Qwen3 MoE adaptive eval schedule smoke | status / assertions | passed / 10/10 |
+| Qwen3 MoE adaptive eval schedule | paired gate status counts / alpha | {'awaiting_source_controls': 9, 'source_control': 2, 'checkpoint_missing': 2} / 0.050 |
+| Qwen3 MoE adaptive eval schedule smoke | status / assertions | passed / 12/12 |
 | Qwen3 MoE eval manifest preflight | status / tasks sufficient / methods aligned | task_manifest_ready / 4/4 / 13/13 |
 | Qwen3 MoE eval budget plan | router active / ready / pending / plan-pruned caps | 2 / 0 / 2 / 2 |
 | Qwen3 MoE mechanism levers | top lever / priority / next test | source_and_candidate_downstream_eval / 0.98 / results/qwen3_moe_eval_budget_plan/run_eval_budget.sh all |

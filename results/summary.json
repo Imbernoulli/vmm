@@ -8311,6 +8311,13 @@
       ],
       "mechanism_schedule": "results/qwen3_moe_adaptive_eval_schedule/mechanism_schedule.csv",
       "method_count": 13,
+      "paired_alpha": 0.05,
+      "paired_gate_status_counts": {
+        "awaiting_source_controls": 9,
+        "checkpoint_missing": 2,
+        "source_control": 2
+      },
+      "paired_loss_tolerance_rate": 0.0,
       "probe_examples": 64,
       "report": "results/qwen3_moe_adaptive_eval_schedule/report.md",
       "round1_probe_candidate_count": 5,
@@ -8333,6 +8340,12 @@
           "mechanism_priority": 1.2,
           "method": "source_qwen3_30b_instruct",
           "observed_examples_min": null,
+          "paired_candidate_only_correct": 0,
+          "paired_gate_status": "source_control",
+          "paired_min_pvalue": null,
+          "paired_net_delta": null,
+          "paired_shared_examples": 0,
+          "paired_source_only_correct": 0,
           "recommended_max_examples": 64,
           "role": "source",
           "schedule_rank": 1,
@@ -8341,6 +8354,7 @@
           "serve_status": "ready_to_host",
           "stage": "round0_source_controls",
           "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "task_paired_regression_columns": null,
           "worst_primary_score": null
         },
         {
@@ -8358,6 +8372,12 @@
           "mechanism_priority": 1.2,
           "method": "source_qwen3_30b_coder",
           "observed_examples_min": null,
+          "paired_candidate_only_correct": 0,
+          "paired_gate_status": "source_control",
+          "paired_min_pvalue": null,
+          "paired_net_delta": null,
+          "paired_shared_examples": 0,
+          "paired_source_only_correct": 0,
           "recommended_max_examples": 64,
           "role": "source",
           "schedule_rank": 2,
@@ -8366,6 +8386,7 @@
           "serve_status": "ready_to_host",
           "stage": "round0_source_controls",
           "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "task_paired_regression_columns": null,
           "worst_primary_score": null
         },
         {
@@ -8383,6 +8404,12 @@
           "mechanism_priority": 1.09,
           "method": "qwen3_moe_unified_mechanism_candidate",
           "observed_examples_min": null,
+          "paired_candidate_only_correct": 0,
+          "paired_gate_status": "awaiting_source_controls",
+          "paired_min_pvalue": null,
+          "paired_net_delta": null,
+          "paired_shared_examples": 0,
+          "paired_source_only_correct": 0,
           "recommended_max_examples": 64,
           "role": "candidate",
           "schedule_rank": 3,
@@ -8391,6 +8418,7 @@
           "serve_status": "ready_to_host",
           "stage": "blocked_by_source_controls",
           "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "task_paired_regression_columns": null,
           "worst_primary_score": null
         },
         {
@@ -8408,6 +8436,12 @@
           "mechanism_priority": 1.0,
           "method": "qwen3_moe_searched_no_gt065_max_retention_candidate",
           "observed_examples_min": null,
+          "paired_candidate_only_correct": 0,
+          "paired_gate_status": "awaiting_source_controls",
+          "paired_min_pvalue": null,
+          "paired_net_delta": null,
+          "paired_shared_examples": 0,
+          "paired_source_only_correct": 0,
           "recommended_max_examples": 64,
           "role": "candidate",
           "schedule_rank": 4,
@@ -8416,6 +8450,7 @@
           "serve_status": "ready_to_host",
           "stage": "blocked_by_source_controls",
           "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "task_paired_regression_columns": null,
           "worst_primary_score": null
         },
         {
@@ -8433,6 +8468,12 @@
           "mechanism_priority": 0.98,
           "method": "qwen3_moe_layer_chunk_candidate",
           "observed_examples_min": null,
+          "paired_candidate_only_correct": 0,
+          "paired_gate_status": "awaiting_source_controls",
+          "paired_min_pvalue": null,
+          "paired_net_delta": null,
+          "paired_shared_examples": 0,
+          "paired_source_only_correct": 0,
           "recommended_max_examples": 64,
           "role": "candidate",
           "schedule_rank": 5,
@@ -8441,6 +8482,7 @@
           "serve_status": "ready_to_host",
           "stage": "blocked_by_source_controls",
           "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "task_paired_regression_columns": null,
           "worst_primary_score": null
         },
         {
@@ -8458,6 +8500,12 @@
           "mechanism_priority": 0.93,
           "method": "qwen3_moe_subspace_scaled_candidate",
           "observed_examples_min": null,
+          "paired_candidate_only_correct": 0,
+          "paired_gate_status": "awaiting_source_controls",
+          "paired_min_pvalue": null,
+          "paired_net_delta": null,
+          "paired_shared_examples": 0,
+          "paired_source_only_correct": 0,
           "recommended_max_examples": 64,
           "role": "candidate",
           "schedule_rank": 6,
@@ -8466,6 +8514,7 @@
           "serve_status": "ready_to_host",
           "stage": "blocked_by_source_controls",
           "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "task_paired_regression_columns": null,
           "worst_primary_score": null
         },
         {
@@ -8483,6 +8532,12 @@
           "mechanism_priority": 0.92,
           "method": "qwen3_moe_tail_trimmed_expert_only_candidate",
           "observed_examples_min": null,
+          "paired_candidate_only_correct": 0,
+          "paired_gate_status": "awaiting_source_controls",
+          "paired_min_pvalue": null,
+          "paired_net_delta": null,
+          "paired_shared_examples": 0,
+          "paired_source_only_correct": 0,
           "recommended_max_examples": 64,
           "role": "candidate",
           "schedule_rank": 7,
@@ -8491,6 +8546,7 @@
           "serve_status": "ready_to_host",
           "stage": "blocked_by_source_controls",
           "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "task_paired_regression_columns": null,
           "worst_primary_score": null
         },
         {
@@ -8508,6 +8564,12 @@
           "mechanism_priority": 0.88,
           "method": "qwen3_moe_expert_only_trust_region_candidate",
           "observed_examples_min": null,
+          "paired_candidate_only_correct": 0,
+          "paired_gate_status": "awaiting_source_controls",
+          "paired_min_pvalue": null,
+          "paired_net_delta": null,
+          "paired_shared_examples": 0,
+          "paired_source_only_correct": 0,
           "recommended_max_examples": 0,
           "role": "candidate",
           "schedule_rank": 8,
@@ -8516,6 +8578,7 @@
           "serve_status": "ready_to_host",
           "stage": "blocked_by_source_controls",
           "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "task_paired_regression_columns": null,
           "worst_primary_score": null
         },
         {
@@ -8533,6 +8596,12 @@
           "mechanism_priority": 0.84,
           "method": "qwen3_moe_trust_region_candidate",
           "observed_examples_min": null,
+          "paired_candidate_only_correct": 0,
+          "paired_gate_status": "awaiting_source_controls",
+          "paired_min_pvalue": null,
+          "paired_net_delta": null,
+          "paired_shared_examples": 0,
+          "paired_source_only_correct": 0,
           "recommended_max_examples": 0,
           "role": "candidate",
           "schedule_rank": 9,
@@ -8541,6 +8610,7 @@
           "serve_status": "ready_to_host",
           "stage": "blocked_by_source_controls",
           "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "task_paired_regression_columns": null,
           "worst_primary_score": null
         },
         {
@@ -8558,6 +8628,12 @@
           "mechanism_priority": 0.76,
           "method": "qwen3_moe_audit_gated_candidate",
           "observed_examples_min": null,
+          "paired_candidate_only_correct": 0,
+          "paired_gate_status": "awaiting_source_controls",
+          "paired_min_pvalue": null,
+          "paired_net_delta": null,
+          "paired_shared_examples": 0,
+          "paired_source_only_correct": 0,
           "recommended_max_examples": 0,
           "role": "candidate",
           "schedule_rank": 10,
@@ -8566,6 +8642,7 @@
           "serve_status": "ready_to_host",
           "stage": "blocked_by_source_controls",
           "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "task_paired_regression_columns": null,
           "worst_primary_score": null
         },
         {
@@ -8583,6 +8660,12 @@
           "mechanism_priority": 0.69,
           "method": "qwen3_moe_unified_route_guarded_candidate",
           "observed_examples_min": null,
+          "paired_candidate_only_correct": 0,
+          "paired_gate_status": "awaiting_source_controls",
+          "paired_min_pvalue": null,
+          "paired_net_delta": null,
+          "paired_shared_examples": 0,
+          "paired_source_only_correct": 0,
           "recommended_max_examples": 0,
           "role": "candidate",
           "schedule_rank": 11,
@@ -8591,6 +8674,7 @@
           "serve_status": "ready_to_host",
           "stage": "blocked_by_source_controls",
           "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "task_paired_regression_columns": null,
           "worst_primary_score": null
         },
         {
@@ -8608,6 +8692,12 @@
           "mechanism_priority": 0.35,
           "method": "qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate",
           "observed_examples_min": null,
+          "paired_candidate_only_correct": 0,
+          "paired_gate_status": "checkpoint_missing",
+          "paired_min_pvalue": null,
+          "paired_net_delta": null,
+          "paired_shared_examples": 0,
+          "paired_source_only_correct": 0,
           "recommended_max_examples": 0,
           "role": "candidate",
           "schedule_rank": 12,
@@ -8616,6 +8706,7 @@
           "serve_status": "pending_materialization",
           "stage": "materialize_before_eval",
           "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "task_paired_regression_columns": null,
           "worst_primary_score": null
         },
         {
@@ -8633,6 +8724,12 @@
           "mechanism_priority": 0.35,
           "method": "qwen3_moe_router_calibrated_searched_no_gt065_margin_profile_candidate",
           "observed_examples_min": null,
+          "paired_candidate_only_correct": 0,
+          "paired_gate_status": "checkpoint_missing",
+          "paired_min_pvalue": null,
+          "paired_net_delta": null,
+          "paired_shared_examples": 0,
+          "paired_source_only_correct": 0,
           "recommended_max_examples": 0,
           "role": "candidate",
           "schedule_rank": 13,
@@ -8641,6 +8738,7 @@
           "serve_status": "pending_materialization",
           "stage": "materialize_before_eval",
           "task_manifest": "results/qwen3_moe_mechanism_eval_gate/task_manifest.json",
+          "task_paired_regression_columns": null,
           "worst_primary_score": null
         }
       ],
@@ -8668,6 +8766,8 @@
           "schedule": "results/qwen3_moe_adaptive_eval_schedule/adaptive_schedule.csv",
           "summary": "results/qwen3_moe_adaptive_eval_schedule/summary.json"
         },
+        "paired_alpha": 0.05,
+        "paired_loss_tolerance_rate": 0.0,
         "probe_examples": 64,
         "round1_probe_candidate_count": 5,
         "schema_version": 1,
@@ -8682,8 +8782,8 @@
       "top_method": "source_qwen3_30b_instruct"
     },
     "qwen3_moe_adaptive_eval_schedule_smoke": {
-      "assertion_count": 10,
-      "case_count": 5,
+      "assertion_count": 12,
+      "case_count": 6,
       "case_rows": [
         {
           "actual": "source_qwen3_30b_instruct",
@@ -8754,23 +8854,37 @@
           "case": "dominated_pruned",
           "expected": "pruned_by_source_frontier_probe",
           "passed": true
+        },
+        {
+          "actual": "qwen3_moe_searched_no_gt065_max_retention_candidate",
+          "assertion": "top_method",
+          "case": "paired_regression_pruned",
+          "expected": "qwen3_moe_searched_no_gt065_max_retention_candidate",
+          "passed": true
+        },
+        {
+          "actual": "pruned_by_paired_source_probe",
+          "assertion": "unified_candidate_status",
+          "case": "paired_regression_pruned",
+          "expected": "pruned_by_paired_source_probe",
+          "passed": true
         }
       ],
       "failed_assertion_count": 0,
       "matrix": "results/qwen3_moe_adaptive_eval_schedule_smoke/adaptive_eval_schedule_smoke_matrix.csv",
-      "passed_assertion_count": 10,
+      "passed_assertion_count": 12,
       "report": "results/qwen3_moe_adaptive_eval_schedule_smoke/report.md",
       "status": "passed",
       "summary": {
-        "assertion_count": 10,
-        "case_count": 5,
+        "assertion_count": 12,
+        "case_count": 6,
         "failed_assertion_count": 0,
         "outputs": {
           "matrix": "results/qwen3_moe_adaptive_eval_schedule_smoke/adaptive_eval_schedule_smoke_matrix.csv",
           "report": "results/qwen3_moe_adaptive_eval_schedule_smoke/report.md",
           "summary": "results/qwen3_moe_adaptive_eval_schedule_smoke/summary.json"
         },
-        "passed_assertion_count": 10,
+        "passed_assertion_count": 12,
         "schema_version": 1,
         "status": "passed"
       },
@@ -39213,7 +39327,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-20T08:14:36.123712+00:00",
+  "generated_at": "2026-06-20T08:19:35.041315+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [

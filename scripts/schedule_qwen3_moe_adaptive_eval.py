@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import shlex
 from pathlib import Path
 from typing import Any
@@ -18,6 +19,13 @@ TASK_SCORE_COLUMNS = [
     "task_safety_score",
     "task_humaneval_compile_score",
 ]
+TASK_TO_SCORE_COLUMN = {
+    "gsm8k": "task_gsm8k_score",
+    "mmlu": "task_mmlu_score",
+    "safety": "task_safety_score",
+    "humaneval_compile": "task_humaneval_compile_score",
+}
+PAIRED_TASKS = set(TASK_TO_SCORE_COLUMN)
 SCORE_COLUMNS = ["avg_primary_score", "worst_primary_score", *TASK_SCORE_COLUMNS]
 
 
@@ -75,6 +83,22 @@ def bool_value(value: Any) -> bool:
     if isinstance(value, (int, float)):
         return bool(value)
     return str(value).strip().lower() in {"1", "true", "yes", "y"}
+
+
+def maybe_bool(value: Any) -> bool | None:
+    value = clean_value(value)
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return bool(value)
+    text = str(value).strip().lower()
+    if text in {"true", "1", "yes", "y"}:
+        return True
+    if text in {"false", "0", "no", "n"}:
+        return False
+    return None
 
 
 def read_csv(path: str | Path) -> pd.DataFrame:
@@ -151,6 +175,63 @@ def primary_metric(row: pd.Series | dict[str, Any]) -> tuple[str, float] | None:
     return None
 
 
+def prediction_key(row: pd.Series | dict[str, Any]) -> str | None:
+    task = str(row.get("task", "")).strip()
+    if task not in PAIRED_TASKS:
+        return None
+    for column in ("task_id", "index"):
+        value = clean_value(row.get(column))
+        if value is not None and str(value).strip():
+            return f"{task}::{value}"
+    return None
+
+
+def prediction_correct(row: pd.Series | dict[str, Any]) -> bool | None:
+    task = str(row.get("task", "")).strip()
+    if task in {"gsm8k", "mmlu"}:
+        return maybe_bool(row.get("correct"))
+    if task == "safety":
+        expected = maybe_bool(row.get("expected_refusal"))
+        refused = maybe_bool(row.get("refused"))
+        if expected is not None and refused is not None:
+            return refused == expected
+        return maybe_bool(row.get("correct"))
+    if task == "humaneval_compile":
+        return maybe_bool(row.get("compile_ok"))
+    for column in ("correct", "compile_ok", "loose_correct"):
+        value = maybe_bool(row.get(column))
+        if value is not None:
+            return value
+    return None
+
+
+def read_prediction_scores(eval_dir: str | Path) -> dict[str, bool]:
+    predictions = read_csv(repo_path(eval_dir) / "predictions.csv")
+    if predictions.empty:
+        return {}
+    scores: dict[str, bool] = {}
+    for _, row in predictions.iterrows():
+        key = prediction_key(row)
+        correct = prediction_correct(row)
+        if key is not None and correct is not None:
+            scores[key] = correct
+    return scores
+
+
+def exact_paired_source_advantage_pvalue(candidate_only: int, source_only: int) -> float:
+    if source_only <= candidate_only:
+        return 1.0
+    discordant = candidate_only + source_only
+    if discordant <= 0:
+        return 1.0
+    if discordant > 1024:
+        mean = discordant / 2.0
+        variance = discordant / 4.0
+        z = (candidate_only + 0.5 - mean) / (variance**0.5)
+        return 0.5 * math.erfc(-z / (2.0**0.5))
+    return sum(math.comb(discordant, item) for item in range(candidate_only + 1)) / (2.0**discordant)
+
+
 def score_from_eval_dir(eval_output_dir: str | Path) -> dict[str, Any]:
     root = repo_path(eval_output_dir)
     summary = read_json(root / "summary.json")
@@ -175,6 +256,7 @@ def score_from_eval_dir(eval_output_dir: str | Path) -> dict[str, Any]:
                 observed_examples.append(examples)
     if observed_examples:
         out["observed_examples_min"] = int(min(observed_examples))
+    out["_prediction_scores"] = read_prediction_scores(root)
     return out
 
 
@@ -190,6 +272,7 @@ def row_scores(row: pd.Series) -> dict[str, Any]:
         out["observed_examples_min"] = maybe_int(
             row.get("observed_examples_min") or row.get("recommended_max_examples") or row.get("current_max_examples")
         )
+        out["_prediction_scores"] = clean_value(row.get("_prediction_scores")) or {}
         return out
     return score_from_eval_dir(str(row.get("eval_output_dir") or ""))
 
@@ -248,9 +331,88 @@ def max_task_regression(candidate: pd.Series, frontier: dict[str, float | None])
     return max(regressions) if regressions else None
 
 
+def paired_probe(
+    candidate: pd.Series,
+    sources: pd.DataFrame,
+    *,
+    tolerance_rate: float,
+    alpha: float,
+) -> dict[str, Any]:
+    candidate_scores = candidate.get("_prediction_scores")
+    if not isinstance(candidate_scores, dict) or not candidate_scores:
+        return {
+            "paired_shared_examples": 0,
+            "paired_candidate_only_correct": 0,
+            "paired_source_only_correct": 0,
+            "paired_net_delta": None,
+            "paired_min_pvalue": None,
+            "task_paired_regression_columns": "",
+            "paired_gate_status": "paired_predictions_unavailable",
+        }
+    rows = []
+    regressions: list[str] = []
+    for _, source in sources.iterrows():
+        source_scores = source.get("_prediction_scores")
+        if not isinstance(source_scores, dict) or not source_scores:
+            continue
+        by_task: dict[str, list[str]] = {}
+        for key in sorted(set(candidate_scores) & set(source_scores)):
+            task = key.split("::", 1)[0]
+            if task in PAIRED_TASKS:
+                by_task.setdefault(task, []).append(key)
+        for task, keys in sorted(by_task.items()):
+            candidate_only = sum(int(candidate_scores[key] and not source_scores[key]) for key in keys)
+            source_only = sum(int(source_scores[key] and not candidate_scores[key]) for key in keys)
+            shared = len(keys)
+            net_delta = (candidate_only - source_only) / max(shared, 1)
+            pvalue = exact_paired_source_advantage_pvalue(candidate_only, source_only)
+            regression = source_only > candidate_only and net_delta < -tolerance_rate and pvalue <= alpha
+            if regression:
+                regressions.append(TASK_TO_SCORE_COLUMN[task])
+            rows.append(
+                {
+                    "shared": shared,
+                    "candidate_only": candidate_only,
+                    "source_only": source_only,
+                    "net_delta": net_delta,
+                    "pvalue": pvalue,
+                }
+            )
+    shared_total = sum(int(row["shared"]) for row in rows)
+    candidate_only_total = sum(int(row["candidate_only"]) for row in rows)
+    source_only_total = sum(int(row["source_only"]) for row in rows)
+    net_delta_total = (
+        (candidate_only_total - source_only_total) / shared_total if shared_total else None
+    )
+    return {
+        "paired_shared_examples": shared_total,
+        "paired_candidate_only_correct": candidate_only_total,
+        "paired_source_only_correct": source_only_total,
+        "paired_net_delta": net_delta_total,
+        "paired_min_pvalue": min([float(row["pvalue"]) for row in rows], default=None),
+        "task_paired_regression_columns": ",".join(sorted(set(regressions))),
+        "paired_gate_status": "paired_regression"
+        if regressions
+        else ("paired_pass" if rows else "paired_predictions_unavailable"),
+    }
+
+
+def no_paired_probe(status: str = "not_applicable") -> dict[str, Any]:
+    return {
+        "paired_shared_examples": 0,
+        "paired_candidate_only_correct": 0,
+        "paired_source_only_correct": 0,
+        "paired_net_delta": None,
+        "paired_min_pvalue": None,
+        "task_paired_regression_columns": "",
+        "paired_gate_status": status,
+    }
+
+
 def candidate_decision(
     row: pd.Series,
     *,
+    sources: pd.DataFrame,
     sources_complete: bool,
     frontier: dict[str, float | None],
     selected_probe_methods: set[str],
@@ -258,6 +420,8 @@ def candidate_decision(
     probe_examples: int,
     close_margin: float,
     task_regression_margin: float,
+    paired_loss_tolerance_rate: float,
+    paired_alpha: float,
 ) -> dict[str, Any]:
     method = str(row["method"])
     role = str(row.get("role") or "")
@@ -275,6 +439,7 @@ def candidate_decision(
                 "recommended_max_examples": max(probe_examples, observed_examples),
                 "decision_status": "source_control_required",
                 "decision_reason": "Both source endpoints must be scored before any same-shape average can be accepted or pruned.",
+                **no_paired_probe("source_control"),
             }
         if observed_examples < full_examples:
             return {
@@ -283,6 +448,7 @@ def candidate_decision(
                 "recommended_max_examples": 0,
                 "decision_status": "source_control_probe_complete",
                 "decision_reason": "Source probe exists; defer full-budget source expansion until at least one candidate survives the probe round.",
+                **no_paired_probe("source_control"),
             }
         return {
             "stage": "complete_source_control",
@@ -290,6 +456,7 @@ def candidate_decision(
             "recommended_max_examples": observed_examples,
             "decision_status": "source_control_complete",
             "decision_reason": "Source endpoint already has full-budget scores.",
+            **no_paired_probe("source_control"),
         }
 
     if not checkpoint_ready(row):
@@ -299,6 +466,7 @@ def candidate_decision(
             "recommended_max_examples": 0,
             "decision_status": "checkpoint_missing",
             "decision_reason": "The method is in the eval plan but its checkpoint path is not present yet.",
+            **no_paired_probe("checkpoint_missing"),
         }
     if not sources_complete:
         if method in selected_probe_methods:
@@ -311,6 +479,7 @@ def candidate_decision(
             "recommended_max_examples": probe_examples if method in selected_probe_methods else 0,
             "decision_status": "awaiting_source_controls",
             "decision_reason": "Candidate pruning/acceptance requires both source endpoints on the same task manifest first.",
+            **no_paired_probe("awaiting_source_controls"),
         }
     if avg is None or worst is None or observed_examples < probe_examples:
         if method in selected_probe_methods:
@@ -320,6 +489,7 @@ def candidate_decision(
                 "recommended_max_examples": probe_examples,
                 "decision_status": "selected_for_initial_probe",
                 "decision_reason": "Selected by mechanism diversity/priority for the first candidate probe round.",
+                **no_paired_probe("awaiting_candidate_predictions"),
             }
         return {
             "stage": "hold_probe_queue",
@@ -327,12 +497,20 @@ def candidate_decision(
             "recommended_max_examples": 0,
             "decision_status": "not_in_first_probe_round",
             "decision_reason": "Lower mechanism priority; wait until higher-value probes finish or produce an ambiguity.",
+            **no_paired_probe("not_in_probe_round"),
         }
 
     task_regression = max_task_regression(row, frontier)
+    paired = paired_probe(
+        row,
+        sources,
+        tolerance_rate=paired_loss_tolerance_rate,
+        alpha=paired_alpha,
+    )
     avg_gap = None if best_avg is None else avg - best_avg
     worst_gap = None if best_worst is None else worst - best_worst
     task_ok = task_regression is None or task_regression <= task_regression_margin
+    paired_ok = not paired["task_paired_regression_columns"]
     close_or_better = (
         (avg_gap is not None and avg_gap >= -close_margin)
         or (worst_gap is not None and worst_gap >= -close_margin)
@@ -344,6 +522,15 @@ def candidate_decision(
         and worst_gap < -close_margin
         and not task_ok
     )
+    if not paired_ok:
+        return {
+            "stage": "stopped_after_probe",
+            "eval_action": "prune_paired_regressing_candidate",
+            "recommended_max_examples": observed_examples,
+            "decision_status": "pruned_by_paired_source_probe",
+            "decision_reason": "Shared prediction keys show a statistically significant source-only advantage.",
+            **paired,
+        }
     if dominated:
         return {
             "stage": "stopped_after_probe",
@@ -351,22 +538,25 @@ def candidate_decision(
             "recommended_max_examples": observed_examples,
             "decision_status": "pruned_by_source_frontier_probe",
             "decision_reason": "Probe scores are below the source frontier on avg/worst and exceed task-regression tolerance.",
+            **paired,
         }
-    if close_or_better and task_ok and observed_examples < full_examples:
+    if close_or_better and task_ok and paired_ok and observed_examples < full_examples:
         return {
             "stage": "round2_full_budget",
             "eval_action": "extend_promising_candidate_to_full_budget",
             "recommended_max_examples": full_examples,
             "decision_status": "promising_needs_powered_eval",
             "decision_reason": "Initial probe is close to or better than the source frontier without a large task regression.",
+            **paired,
         }
-    if close_or_better and task_ok:
+    if close_or_better and task_ok and paired_ok:
         return {
             "stage": "ready_for_selector",
             "eval_action": "no_eval_needed",
             "recommended_max_examples": observed_examples,
             "decision_status": "ready_for_final_selector",
             "decision_reason": "Candidate has full-budget scores and is not source-dominated under configured margins.",
+            **paired,
         }
     return {
         "stage": "hold_after_probe",
@@ -374,6 +564,7 @@ def candidate_decision(
         "recommended_max_examples": observed_examples,
         "decision_status": "ambiguous_or_task_regressing_probe",
         "decision_reason": "Probe is neither clearly dominated nor cleanly promising; inspect paired predictions/mechanism attribution before extending.",
+        **paired,
     }
 
 
@@ -396,6 +587,8 @@ def build_schedule(
     max_round1_candidates: int,
     close_margin: float,
     task_regression_margin: float,
+    paired_loss_tolerance_rate: float,
+    paired_alpha: float,
 ) -> tuple[pd.DataFrame, pd.DataFrame, dict[str, Any]]:
     budget = enrich_budget(method_budget)
     if budget.empty:
@@ -405,11 +598,13 @@ def build_schedule(
     candidate_rows = candidate_rows.sort_values(["mechanism_priority", "gate_order"], ascending=[False, True])
     selected_probe_methods = set(candidate_rows.head(max_round1_candidates)["method"].astype(str).tolist())
     sources_complete, frontier = source_frontier(budget)
+    sources = budget[budget["method"].isin(SOURCE_METHODS)].copy()
 
     rows = []
     for _, row in budget.iterrows():
         decision = candidate_decision(
             row,
+            sources=sources,
             sources_complete=sources_complete,
             frontier=frontier,
             selected_probe_methods=selected_probe_methods,
@@ -417,6 +612,8 @@ def build_schedule(
             probe_examples=probe_examples,
             close_margin=close_margin,
             task_regression_margin=task_regression_margin,
+            paired_loss_tolerance_rate=paired_loss_tolerance_rate,
+            paired_alpha=paired_alpha,
         )
         eval_command = str(row.get("eval_command_recommended") or row.get("eval_command_current") or "")
         if decision["recommended_max_examples"]:
@@ -444,6 +641,13 @@ def build_schedule(
                 "max_task_regression_vs_source_frontier": max_task_regression(row, frontier)
                 if str(row.get("role") or "") != "source"
                 else None,
+                "paired_gate_status": decision["paired_gate_status"],
+                "paired_shared_examples": decision["paired_shared_examples"],
+                "paired_candidate_only_correct": decision["paired_candidate_only_correct"],
+                "paired_source_only_correct": decision["paired_source_only_correct"],
+                "paired_net_delta": decision["paired_net_delta"],
+                "paired_min_pvalue": decision["paired_min_pvalue"],
+                "task_paired_regression_columns": decision["task_paired_regression_columns"],
                 "decision_reason": decision["decision_reason"],
                 "task_manifest": row.get("task_manifest") or cli_arg_value(eval_command, "--task-manifest"),
                 "eval_output_dir": row.get("eval_output_dir"),
@@ -463,6 +667,7 @@ def build_schedule(
         "hold_for_mechanism_review": 7,
         "hold_source_full_budget_until_candidate_survives_probe": 8,
         "materialize_checkpoint_first": 8,
+        "prune_paired_regressing_candidate": 9,
         "prune_dominated_candidate": 9,
         "no_eval_needed": 10,
     }
@@ -526,6 +731,8 @@ def build_schedule(
         "full_examples": int(full_examples),
         "close_margin": float(close_margin),
         "task_regression_margin": float(task_regression_margin),
+        "paired_loss_tolerance_rate": float(paired_loss_tolerance_rate),
+        "paired_alpha": float(paired_alpha),
     }
     return schedule, mechanism_schedule, summary
 
@@ -611,14 +818,19 @@ def build_report(summary: dict[str, Any], schedule: pd.DataFrame, mechanism_sche
         "",
         "## Method Schedule",
         "",
-        "| rank | method | action | status | examples | priority | reason |",
-        "| ---: | --- | --- | --- | ---: | ---: | --- |",
+        "| rank | method | action | status | examples | priority | paired gate | paired net | paired p | reason |",
+        "| ---: | --- | --- | --- | ---: | ---: | --- | ---: | ---: | --- |",
     ]
     for _, row in schedule.iterrows():
+        paired_net = row["paired_net_delta"]
+        paired_p = row["paired_min_pvalue"]
+        paired_net_text = "" if clean_value(paired_net) is None else f"{float(paired_net):.4f}"
+        paired_p_text = "" if clean_value(paired_p) is None else f"{float(paired_p):.4f}"
         lines.append(
             f"| {int(row['schedule_rank'])} | `{row['method']}` | `{row['eval_action']}` | "
             f"`{row['decision_status']}` | {int(row['recommended_max_examples'])} | "
-            f"{float(row['mechanism_priority']):.3f} | {row['decision_reason']} |"
+            f"{float(row['mechanism_priority']):.3f} | `{row['paired_gate_status']}` | "
+            f"{paired_net_text} | {paired_p_text} | {row['decision_reason']} |"
         )
     lines.extend(
         [
@@ -750,6 +962,10 @@ def smoke_budget(case: str) -> tuple[pd.DataFrame, pd.DataFrame, dict[str, str]]
                 "task_humaneval_compile_score": 0.48 if row["method"].endswith("instruct") else 0.72,
             }
         )
+    instruct_scores = {f"gsm8k::{idx}": idx < 48 for idx in range(64)}
+    coder_scores = {f"gsm8k::{idx}": idx < 45 for idx in range(64)}
+    base_rows[0]["_prediction_scores"] = instruct_scores
+    base_rows[1]["_prediction_scores"] = coder_scores
     expected["top_method"] = "qwen3_moe_unified_mechanism_candidate"
     if case == "probe_selected":
         expected["candidate_status"] = "selected_for_initial_probe"
@@ -766,6 +982,7 @@ def smoke_budget(case: str) -> tuple[pd.DataFrame, pd.DataFrame, dict[str, str]]
             "task_mmlu_score": 0.69,
             "task_safety_score": 0.70,
             "task_humaneval_compile_score": 0.70,
+            "_prediction_scores": {f"gsm8k::{idx}": idx < 47 for idx in range(64)},
         }
     )
     if case == "promising_escalates":
@@ -790,6 +1007,17 @@ def smoke_budget(case: str) -> tuple[pd.DataFrame, pd.DataFrame, dict[str, str]]
         expected["candidate_status"] = "pruned_by_source_frontier_probe"
         expected["top_method"] = "qwen3_moe_searched_no_gt065_max_retention_candidate"
         return pd.DataFrame(base_rows), mechanism, expected
+    if case == "paired_regression_pruned":
+        candidate.update(
+            {
+                "avg_primary_score": 0.69,
+                "worst_primary_score": 0.53,
+                "_prediction_scores": {f"gsm8k::{idx}": idx < 20 for idx in range(64)},
+            }
+        )
+        expected["candidate_status"] = "pruned_by_paired_source_probe"
+        expected["top_method"] = "qwen3_moe_searched_no_gt065_max_retention_candidate"
+        return pd.DataFrame(base_rows), mechanism, expected
     raise ValueError(f"Unknown smoke case: {case}")
 
 
@@ -801,6 +1029,7 @@ def run_smoke(args: argparse.Namespace) -> None:
         "promising_escalates",
         "full_ready",
         "dominated_pruned",
+        "paired_regression_pruned",
     ]
     for case in cases:
         method_budget, mechanism_budget, expected = smoke_budget(case)
@@ -812,6 +1041,8 @@ def run_smoke(args: argparse.Namespace) -> None:
             max_round1_candidates=args.max_round1_candidates,
             close_margin=args.close_margin,
             task_regression_margin=args.task_regression_margin,
+            paired_loss_tolerance_rate=args.paired_loss_tolerance_rate,
+            paired_alpha=args.paired_alpha,
         )
         top_method = str(schedule.iloc[0]["method"])
         candidate = schedule[schedule["method"] == "qwen3_moe_unified_mechanism_candidate"].iloc[0]
@@ -887,6 +1118,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-round1-candidates", type=int, default=5)
     parser.add_argument("--close-margin", type=float, default=0.02)
     parser.add_argument("--task-regression-margin", type=float, default=0.05)
+    parser.add_argument("--paired-loss-tolerance-rate", type=float, default=0.0)
+    parser.add_argument("--paired-alpha", type=float, default=0.05)
     parser.add_argument("--smoke-matrix", action="store_true")
     return parser.parse_args()
 
@@ -906,6 +1139,8 @@ def main() -> None:
         max_round1_candidates=args.max_round1_candidates,
         close_margin=args.close_margin,
         task_regression_margin=args.task_regression_margin,
+        paired_loss_tolerance_rate=args.paired_loss_tolerance_rate,
+        paired_alpha=args.paired_alpha,
     )
     summary = write_outputs(args.output_dir, schedule, mechanism_schedule, summary)
     print(f"Wrote Qwen3 MoE adaptive eval schedule to {repo_path(args.output_dir).resolve()}")

@@ -1485,6 +1485,13 @@ def summarize_qwen3_moe_adaptive_eval_schedule() -> dict[str, Any]:
         "full_examples": maybe_int(summary.get("full_examples")),
         "eval_action_counts": summary.get("eval_action_counts", {}),
         "decision_status_counts": summary.get("decision_status_counts", {}),
+        "paired_gate_status_counts": (
+            {str(key): int(value) for key, value in schedule["paired_gate_status"].value_counts().to_dict().items()}
+            if "paired_gate_status" in schedule
+            else {}
+        ),
+        "paired_loss_tolerance_rate": maybe_float(summary.get("paired_loss_tolerance_rate")),
+        "paired_alpha": maybe_float(summary.get("paired_alpha")),
         "round1_probe_methods": ",".join(str(row["method"]) for _, row in round1.iterrows()),
         "schedule_rows": [clean_row(row) for _, row in schedule.iterrows()],
         "mechanism_rows": [clean_row(row) for _, row in mechanisms.iterrows()],
@@ -5490,6 +5497,11 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_adaptive_eval_schedule['round1_probe_candidate_count']} / "
                 f"{qwen3_moe_adaptive_eval_schedule['probe_examples']} -> "
                 f"{qwen3_moe_adaptive_eval_schedule['full_examples']} |"
+            ),
+            (
+                "| Qwen3 MoE adaptive eval schedule | paired gate status counts / alpha | "
+                f"{qwen3_moe_adaptive_eval_schedule['paired_gate_status_counts']} / "
+                f"{qwen3_moe_adaptive_eval_schedule['paired_alpha']:.3f} |"
             ),
             (
                 "| Qwen3 MoE adaptive eval schedule smoke | status / assertions | "

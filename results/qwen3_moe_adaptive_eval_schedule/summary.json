@@ -20,6 +20,8 @@
     "schedule": "results/qwen3_moe_adaptive_eval_schedule/adaptive_schedule.csv",
     "summary": "results/qwen3_moe_adaptive_eval_schedule/summary.json"
   },
+  "paired_alpha": 0.05,
+  "paired_loss_tolerance_rate": 0.0,
   "probe_examples": 64,
   "round1_probe_candidate_count": 5,
   "schema_version": 1,
