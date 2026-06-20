@@ -74,6 +74,19 @@
 | `router_calibration_repairs_dispatch_but_is_not_acceptance` | `promising_but_unaccepted` | NLL worst reduction = 0.2214; generation avg gain = 0.0333; confident positive tasks = 0/3; source-frontier wins = 0/3 | Router-calibrated candidates must beat the frozen-router baseline under paired source controls and maintain router-only audit caps. | `results/qwen3_moe_router_calibration_job/run_router_calibration_job.sh all` |
 | `downstream_source_dominance_is_final_gate` | `awaiting_source_eval` | final selection status = awaiting_source_eval; eligible candidates = 0/9; router calibration status = awaiting_baseline_eval | All candidates and sources must be scored on the locked manifest; dominated averages are rejected even if their structural audit looks clean. | `python scripts/select_qwen3_moe_unified_result.py` |
 
+## Evidence Ledger
+
+| hypothesis | verdict | evidence tier | current action | gate still needed |
+| --- | --- | --- | --- | --- |
+| `dense_same_basin_required` | `supports_current_action` | `path_nll_plus_curvature_proxy` | reject_dense_linear_midpoint_use_low_lambda_or_endpoint_anchor | held-out generation or vLLM eval for any new interior dense point |
+| `dense_coordinate_conflict_is_diagnostic_not_default` | `supports_conditional_action` | `heldout_nll_selector` | keep_sparse_conflict_rules_as_ablation_not_default | materialized sparse candidate must beat anchor and source frontier |
+| `moe_expert_gauge_alignment_precedes_average` | `supports_current_action` | `controlled_and_real_gauge_probe` | canonicalize_or_verify_expert_identity_before_expert_average | per-layer expert matching or verified identity for each target pair |
+| `moe_direct_router_average_crosses_topk_boundaries` | `supports_current_action` | `router_margin_and_topk_proxy` | freeze_router_or_only_allow_capped_route_kd_delta | router-moving candidate must pass route overlap, load, audit, and downstream gates |
+| `moe_source_to_source_line_not_averageable` | `supports_current_action` | `source_to_source_nll_path_probe` | reject_unconditional_moe_source_to_source_midpoint | a future plane/path sweep must find a non-endpoint downstream win |
+| `moe_risk_weighted_expert_caps_preserve_useful_route_mass` | `awaiting_downstream_eval` | `structural_audit_without_downstream_acceptance` | keep_unified_mechanism_candidate_provisional | budgeted vLLM eval versus both sources and registered candidates |
+| `router_calibration_repairs_dispatch_but_is_not_acceptance` | `promising_but_unaccepted` | `nll_probe_and_generation_smoke` | train_and_eval_router_calibration_as_ablation_not_default | paired vLLM eval with frozen-router baseline and source controls |
+| `downstream_source_dominance_is_final_gate` | `awaiting_downstream_eval` | `missing_required_downstream_eval` | do_not_accept_any_average_until_locked_manifest_eval_completes | complete budgeted vLLM eval bundle audit |
+
 ## Next Experiments
 
 | rank | experiment | status | priority | command | expected update |
@@ -109,6 +122,7 @@
 - `results/unified_average_optimizer/mechanism_features.csv`
 - `results/unified_average_optimizer/operation_decisions.csv`
 - `results/unified_average_optimizer/mechanism_hypotheses.csv`
+- `results/unified_average_optimizer/hypothesis_evidence_ledger.csv`
 - `results/unified_average_optimizer/next_experiment_queue.csv`
 - `results/unified_average_optimizer/algorithm.json`
 - `results/unified_average_optimizer/summary.json`

@@ -17,6 +17,13 @@
     "linear_worst_nll": 8.947735033537212,
     "unified_worst_nll": 5.182952077765214
   },
+  "evidence_ledger_count": 8,
+  "evidence_verdict_counts": {
+    "awaiting_downstream_eval": 2,
+    "promising_but_unaccepted": 1,
+    "supports_conditional_action": 1,
+    "supports_current_action": 4
+  },
   "hypothesis_count": 8,
   "hypothesis_status_counts": {
     "alignment_required": 1,
@@ -120,6 +127,7 @@
   "outputs": {
     "algorithm": "results/unified_average_optimizer/algorithm.json",
     "decisions": "results/unified_average_optimizer/operation_decisions.csv",
+    "evidence_ledger": "results/unified_average_optimizer/hypothesis_evidence_ledger.csv",
     "features": "results/unified_average_optimizer/mechanism_features.csv",
     "hypotheses": "results/unified_average_optimizer/mechanism_hypotheses.csv",
     "next_experiment_queue": "results/unified_average_optimizer/next_experiment_queue.csv",

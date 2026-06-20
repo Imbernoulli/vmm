@@ -35856,6 +35856,104 @@
       "dense_lambda_linear_worst_nll": 6.039756754956215,
       "dense_linear_worst_nll": 8.947735033537212,
       "dense_unified_worst_nll": 5.182952077765214,
+      "evidence_ledger": "results/unified_average_optimizer/hypothesis_evidence_ledger.csv",
+      "evidence_ledger_count": 8,
+      "evidence_ledger_rows": [
+        {
+          "acceptance_gate_still_needed": "held-out generation or vLLM eval for any new interior dense point",
+          "confidence_score": 0.92,
+          "current_algorithm_action": "reject_dense_linear_midpoint_use_low_lambda_or_endpoint_anchor",
+          "current_status": "rejected_for_current_midpoint",
+          "evidence_tier": "path_nll_plus_curvature_proxy",
+          "hypothesis_id": "dense_same_basin_required",
+          "numeric_signal": 2.96701317581476,
+          "verdict": "supports_current_action",
+          "why_verdict": "Both curvature ratios are far above the local quadratic range and the midpoint path is worse than the best lambda-family point."
+        },
+        {
+          "acceptance_gate_still_needed": "materialized sparse candidate must beat anchor and source frontier",
+          "confidence_score": 0.72,
+          "current_algorithm_action": "keep_sparse_conflict_rules_as_ablation_not_default",
+          "current_status": "conditional_only",
+          "evidence_tier": "heldout_nll_selector",
+          "hypothesis_id": "dense_coordinate_conflict_is_diagnostic_not_default",
+          "numeric_signal": 0.0319898504959912,
+          "verdict": "supports_conditional_action",
+          "why_verdict": "Conflict-aware variants have to beat the anchor on held-out worst loss; the current evidence does not justify broad sparse deletion as a default."
+        },
+        {
+          "acceptance_gate_still_needed": "per-layer expert matching or verified identity for each target pair",
+          "confidence_score": 0.98,
+          "current_algorithm_action": "canonicalize_or_verify_expert_identity_before_expert_average",
+          "current_status": "alignment_required",
+          "evidence_tier": "controlled_and_real_gauge_probe",
+          "hypothesis_id": "moe_expert_gauge_alignment_precedes_average",
+          "numeric_signal": 5.490968298724317,
+          "verdict": "supports_current_action",
+          "why_verdict": "The real self-merge same-name degradation is large while aligned degradation is zero, so expert index identity cannot be assumed generally."
+        },
+        {
+          "acceptance_gate_still_needed": "router-moving candidate must pass route overlap, load, audit, and downstream gates",
+          "confidence_score": 0.93,
+          "current_algorithm_action": "freeze_router_or_only_allow_capped_route_kd_delta",
+          "current_status": "direct_router_average_rejected",
+          "evidence_tier": "router_margin_and_topk_proxy",
+          "hypothesis_id": "moe_direct_router_average_crosses_topk_boundaries",
+          "numeric_signal": 0.019725152295719,
+          "verdict": "supports_current_action",
+          "why_verdict": "Half of Qwen3 router layers are high-fragility and the minimum safe-lambda proxy is near zero, so direct router averaging is a boundary-crossing risk."
+        },
+        {
+          "acceptance_gate_still_needed": "a future plane/path sweep must find a non-endpoint downstream win",
+          "confidence_score": 0.9,
+          "current_algorithm_action": "reject_unconditional_moe_source_to_source_midpoint",
+          "current_status": "straight_line_rejected",
+          "evidence_tier": "source_to_source_nll_path_probe",
+          "hypothesis_id": "moe_source_to_source_line_not_averageable",
+          "numeric_signal": 0.1189267127342477,
+          "verdict": "supports_current_action",
+          "why_verdict": "Both Instruct/Coder and Base/Coder interior points are worse than the best endpoint, and the complementary path does not beat sources."
+        },
+        {
+          "acceptance_gate_still_needed": "budgeted vLLM eval versus both sources and registered candidates",
+          "confidence_score": 0.66,
+          "current_algorithm_action": "keep_unified_mechanism_candidate_provisional",
+          "current_status": "structurally_passed_waiting_downstream_eval",
+          "evidence_tier": "structural_audit_without_downstream_acceptance",
+          "hypothesis_id": "moe_risk_weighted_expert_caps_preserve_useful_route_mass",
+          "numeric_signal": 0.9763369804277124,
+          "verdict": "awaiting_downstream_eval",
+          "why_verdict": "The candidate is structurally clean, keeps high non-base route mass, and removes routed >0.65 tails, but structural cleanliness is not downstream evidence."
+        },
+        {
+          "acceptance_gate_still_needed": "paired vLLM eval with frozen-router baseline and source controls",
+          "confidence_score": 0.62,
+          "current_algorithm_action": "train_and_eval_router_calibration_as_ablation_not_default",
+          "current_status": "promising_but_unaccepted",
+          "evidence_tier": "nll_probe_and_generation_smoke",
+          "hypothesis_id": "router_calibration_repairs_dispatch_but_is_not_acceptance",
+          "numeric_signal": 0.2214274487464256,
+          "verdict": "promising_but_unaccepted",
+          "why_verdict": "Router calibration improves NLL and the generation matrix directionally, but confidence intervals and source-frontier checks do not prove final dominance."
+        },
+        {
+          "acceptance_gate_still_needed": "complete budgeted vLLM eval bundle audit",
+          "confidence_score": 1.0,
+          "current_algorithm_action": "do_not_accept_any_average_until_locked_manifest_eval_completes",
+          "current_status": "awaiting_source_eval",
+          "evidence_tier": "missing_required_downstream_eval",
+          "hypothesis_id": "downstream_source_dominance_is_final_gate",
+          "numeric_signal": 0.0,
+          "verdict": "awaiting_downstream_eval",
+          "why_verdict": "The final selector has zero eligible candidates because source and candidate vLLM evaluations are not complete on the locked manifest."
+        }
+      ],
+      "evidence_verdict_counts": {
+        "awaiting_downstream_eval": 2,
+        "promising_but_unaccepted": 1,
+        "supports_conditional_action": 1,
+        "supports_current_action": 4
+      },
       "feature_rows": [
         {
           "decision_signal": "high_nonlocal_barrier",
@@ -36281,6 +36379,13 @@
           "linear_worst_nll": 8.947735033537212,
           "unified_worst_nll": 5.182952077765214
         },
+        "evidence_ledger_count": 8,
+        "evidence_verdict_counts": {
+          "awaiting_downstream_eval": 2,
+          "promising_but_unaccepted": 1,
+          "supports_conditional_action": 1,
+          "supports_current_action": 4
+        },
         "hypothesis_count": 8,
         "hypothesis_status_counts": {
           "alignment_required": 1,
@@ -36384,6 +36489,7 @@
         "outputs": {
           "algorithm": "results/unified_average_optimizer/algorithm.json",
           "decisions": "results/unified_average_optimizer/operation_decisions.csv",
+          "evidence_ledger": "results/unified_average_optimizer/hypothesis_evidence_ledger.csv",
           "features": "results/unified_average_optimizer/mechanism_features.csv",
           "hypotheses": "results/unified_average_optimizer/mechanism_hypotheses.csv",
           "next_experiment_queue": "results/unified_average_optimizer/next_experiment_queue.csv",
@@ -38336,7 +38442,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-20T07:47:04.996335+00:00",
+  "generated_at": "2026-06-20T07:51:00.743609+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [

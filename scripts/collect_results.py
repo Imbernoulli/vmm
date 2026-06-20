@@ -1807,6 +1807,7 @@ def summarize_unified_average_optimizer() -> dict[str, Any]:
     features = read_csv(root / "mechanism_features.csv")
     decisions = read_csv(root / "operation_decisions.csv")
     hypotheses = read_csv(root / "mechanism_hypotheses.csv")
+    evidence_ledger = read_csv(root / "hypothesis_evidence_ledger.csv")
     next_queue = read_csv(root / "next_experiment_queue.csv")
     dense = summary.get("dense", {})
     moe = summary.get("moe", {})
@@ -1815,6 +1816,8 @@ def summarize_unified_average_optimizer() -> dict[str, Any]:
         "status": summary.get("status"),
         "hypothesis_count": maybe_int(summary.get("hypothesis_count")),
         "hypothesis_status_counts": summary.get("hypothesis_status_counts", {}),
+        "evidence_ledger_count": maybe_int(summary.get("evidence_ledger_count")),
+        "evidence_verdict_counts": summary.get("evidence_verdict_counts", {}),
         "next_experiment_count": maybe_int(summary.get("next_experiment_count")),
         "top_next_experiment": summary.get("top_next_experiment", {}),
         "dense_decision": dense.get("decision"),
@@ -1948,11 +1951,13 @@ def summarize_unified_average_optimizer() -> dict[str, Any]:
         "feature_rows": [clean_row(row) for _, row in features.iterrows()],
         "decision_rows": [clean_row(row) for _, row in decisions.iterrows()],
         "hypothesis_rows": [clean_row(row) for _, row in hypotheses.iterrows()],
+        "evidence_ledger_rows": [clean_row(row) for _, row in evidence_ledger.iterrows()],
         "next_experiment_rows": [clean_row(row) for _, row in next_queue.iterrows()],
         "report": rel(root / "report.md"),
         "features": rel(root / "mechanism_features.csv"),
         "decisions": rel(root / "operation_decisions.csv"),
         "hypotheses": rel(root / "mechanism_hypotheses.csv"),
+        "evidence_ledger": rel(root / "hypothesis_evidence_ledger.csv"),
         "next_experiment_queue": rel(root / "next_experiment_queue.csv"),
         "algorithm": rel(root / "algorithm.json"),
         "summary_path": rel(root / "summary.json"),
@@ -5550,6 +5555,11 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{unified_average_optimizer['hypothesis_count']} / "
                 f"{unified_average_optimizer['next_experiment_count']} / "
                 f"{(unified_average_optimizer.get('top_next_experiment') or {}).get('experiment')} |"
+            ),
+            (
+                "| unified average optimizer | evidence ledger / verdicts | "
+                f"{unified_average_optimizer['evidence_ledger_count']} / "
+                f"{unified_average_optimizer['evidence_verdict_counts']} |"
             ),
             (
                 "| unified average optimizer | dense linear / unified / endpoint worst NLL | "

@@ -942,7 +942,143 @@ def build_next_experiment_queue(summary: dict[str, Any]) -> pd.DataFrame:
     return pd.DataFrame(queue).sort_values(["priority_score", "rank"], ascending=[False, True])
 
 
-def build_algorithm(decisions: pd.DataFrame, hypotheses: pd.DataFrame) -> dict[str, Any]:
+def build_evidence_ledger(summary: dict[str, Any], hypotheses: pd.DataFrame) -> pd.DataFrame:
+    dense = summary["dense"]
+    moe = summary["moe"]
+    hypothesis_by_id = {str(row["hypothesis_id"]): row for _, row in hypotheses.iterrows()}
+
+    def hypothesis_status(hypothesis_id: str) -> str:
+        row = hypothesis_by_id.get(hypothesis_id)
+        return "" if row is None else str(row["current_status"])
+
+    rows = [
+        {
+            "hypothesis_id": "dense_same_basin_required",
+            "evidence_tier": "path_nll_plus_curvature_proxy",
+            "verdict": "supports_current_action",
+            "current_status": hypothesis_status("dense_same_basin_required"),
+            "current_algorithm_action": "reject_dense_linear_midpoint_use_low_lambda_or_endpoint_anchor",
+            "why_verdict": (
+                "Both curvature ratios are far above the local quadratic range and the midpoint path is worse than "
+                "the best lambda-family point."
+            ),
+            "acceptance_gate_still_needed": "held-out generation or vLLM eval for any new interior dense point",
+            "numeric_signal": fnum(dense.get("lambda_linear_worst_nll")) - fnum(dense.get("lambda_best_worst_nll"))
+            if fnum(dense.get("lambda_linear_worst_nll")) is not None
+            and fnum(dense.get("lambda_best_worst_nll")) is not None
+            else None,
+            "confidence_score": 0.92,
+        },
+        {
+            "hypothesis_id": "dense_coordinate_conflict_is_diagnostic_not_default",
+            "evidence_tier": "heldout_nll_selector",
+            "verdict": "supports_conditional_action",
+            "current_status": hypothesis_status("dense_coordinate_conflict_is_diagnostic_not_default"),
+            "current_algorithm_action": "keep_sparse_conflict_rules_as_ablation_not_default",
+            "why_verdict": (
+                "Conflict-aware variants have to beat the anchor on held-out worst loss; the current evidence does not "
+                "justify broad sparse deletion as a default."
+            ),
+            "acceptance_gate_still_needed": "materialized sparse candidate must beat anchor and source frontier",
+            "numeric_signal": fnum(dense.get("unified_worst_nll")) - fnum(dense.get("best_endpoint_worst_nll"))
+            if fnum(dense.get("unified_worst_nll")) is not None
+            and fnum(dense.get("best_endpoint_worst_nll")) is not None
+            else None,
+            "confidence_score": 0.72,
+        },
+        {
+            "hypothesis_id": "moe_expert_gauge_alignment_precedes_average",
+            "evidence_tier": "controlled_and_real_gauge_probe",
+            "verdict": "supports_current_action",
+            "current_status": hypothesis_status("moe_expert_gauge_alignment_precedes_average"),
+            "current_algorithm_action": "canonicalize_or_verify_expert_identity_before_expert_average",
+            "why_verdict": (
+                "The real self-merge same-name degradation is large while aligned degradation is zero, so expert index "
+                "identity cannot be assumed generally."
+            ),
+            "acceptance_gate_still_needed": "per-layer expert matching or verified identity for each target pair",
+            "numeric_signal": fnum(moe.get("real_gauge_naive_degradation")),
+            "confidence_score": 0.98,
+        },
+        {
+            "hypothesis_id": "moe_direct_router_average_crosses_topk_boundaries",
+            "evidence_tier": "router_margin_and_topk_proxy",
+            "verdict": "supports_current_action",
+            "current_status": hypothesis_status("moe_direct_router_average_crosses_topk_boundaries"),
+            "current_algorithm_action": "freeze_router_or_only_allow_capped_route_kd_delta",
+            "why_verdict": (
+                "Half of Qwen3 router layers are high-fragility and the minimum safe-lambda proxy is near zero, so "
+                "direct router averaging is a boundary-crossing risk."
+            ),
+            "acceptance_gate_still_needed": "router-moving candidate must pass route overlap, load, audit, and downstream gates",
+            "numeric_signal": fnum(moe.get("qwen3_router_margin_min_safe_lambda_proxy")),
+            "confidence_score": 0.93,
+        },
+        {
+            "hypothesis_id": "moe_source_to_source_line_not_averageable",
+            "evidence_tier": "source_to_source_nll_path_probe",
+            "verdict": "supports_current_action",
+            "current_status": hypothesis_status("moe_source_to_source_line_not_averageable"),
+            "current_algorithm_action": "reject_unconditional_moe_source_to_source_midpoint",
+            "why_verdict": (
+                "Both Instruct/Coder and Base/Coder interior points are worse than the best endpoint, and the "
+                "complementary path does not beat sources."
+            ),
+            "acceptance_gate_still_needed": "a future plane/path sweep must find a non-endpoint downstream win",
+            "numeric_signal": fnum(moe.get("qwen3_interpolation_interior_gap_nll")),
+            "confidence_score": 0.90,
+        },
+        {
+            "hypothesis_id": "moe_risk_weighted_expert_caps_preserve_useful_route_mass",
+            "evidence_tier": "structural_audit_without_downstream_acceptance",
+            "verdict": "awaiting_downstream_eval",
+            "current_status": hypothesis_status("moe_risk_weighted_expert_caps_preserve_useful_route_mass"),
+            "current_algorithm_action": "keep_unified_mechanism_candidate_provisional",
+            "why_verdict": (
+                "The candidate is structurally clean, keeps high non-base route mass, and removes routed >0.65 tails, "
+                "but structural cleanliness is not downstream evidence."
+            ),
+            "acceptance_gate_still_needed": "budgeted vLLM eval versus both sources and registered candidates",
+            "numeric_signal": fnum(moe.get("qwen3_unified_nonbase_mass_retention")),
+            "confidence_score": 0.66,
+        },
+        {
+            "hypothesis_id": "router_calibration_repairs_dispatch_but_is_not_acceptance",
+            "evidence_tier": "nll_probe_and_generation_smoke",
+            "verdict": "promising_but_unaccepted",
+            "current_status": hypothesis_status("router_calibration_repairs_dispatch_but_is_not_acceptance"),
+            "current_algorithm_action": "train_and_eval_router_calibration_as_ablation_not_default",
+            "why_verdict": (
+                "Router calibration improves NLL and the generation matrix directionally, but confidence intervals and "
+                "source-frontier checks do not prove final dominance."
+            ),
+            "acceptance_gate_still_needed": "paired vLLM eval with frozen-router baseline and source controls",
+            "numeric_signal": fnum(moe.get("qwen3_router_calibration_nll_worst_reduction")),
+            "confidence_score": 0.62,
+        },
+        {
+            "hypothesis_id": "downstream_source_dominance_is_final_gate",
+            "evidence_tier": "missing_required_downstream_eval",
+            "verdict": "awaiting_downstream_eval",
+            "current_status": hypothesis_status("downstream_source_dominance_is_final_gate"),
+            "current_algorithm_action": "do_not_accept_any_average_until_locked_manifest_eval_completes",
+            "why_verdict": (
+                "The final selector has zero eligible candidates because source and candidate vLLM evaluations are not "
+                "complete on the locked manifest."
+            ),
+            "acceptance_gate_still_needed": "complete budgeted vLLM eval bundle audit",
+            "numeric_signal": maybe_int(moe.get("qwen3_eligible_candidates")),
+            "confidence_score": 1.0,
+        },
+    ]
+    return pd.DataFrame(rows)
+
+
+def build_algorithm(
+    decisions: pd.DataFrame,
+    hypotheses: pd.DataFrame,
+    evidence_ledger: pd.DataFrame,
+) -> dict[str, Any]:
     return {
         "schema_version": 1,
         "name": "mechanism_gated_unified_average",
@@ -966,6 +1102,16 @@ def build_algorithm(decisions: pd.DataFrame, hypotheses: pd.DataFrame) -> dict[s
             }
             for _, row in hypotheses.iterrows()
         ],
+        "evidence_ledger": [
+            {
+                "hypothesis_id": row["hypothesis_id"],
+                "evidence_tier": row["evidence_tier"],
+                "verdict": row["verdict"],
+                "current_algorithm_action": row["current_algorithm_action"],
+                "acceptance_gate_still_needed": row["acceptance_gate_still_needed"],
+            }
+            for _, row in evidence_ledger.iterrows()
+        ],
         "literature_priors": LITERATURE_PRIORS,
         "mechanism_equations": {
             "dense_second_order_gate": "accept a straight-line average only when the measured path loss does not exceed the endpoint frontier; local Fisher/RegMean curvature is treated as a proxy, not a proof",
@@ -981,6 +1127,7 @@ def build_report(
     features: pd.DataFrame,
     decisions: pd.DataFrame,
     hypotheses: pd.DataFrame,
+    evidence_ledger: pd.DataFrame,
     experiment_queue: pd.DataFrame,
 ) -> str:
     dense = summary["dense"]
@@ -1040,6 +1187,20 @@ def build_report(
     lines.extend(
         [
             "",
+            "## Evidence Ledger",
+            "",
+            "| hypothesis | verdict | evidence tier | current action | gate still needed |",
+            "| --- | --- | --- | --- | --- |",
+        ]
+    )
+    for _, row in evidence_ledger.iterrows():
+        lines.append(
+            f"| `{row['hypothesis_id']}` | `{row['verdict']}` | `{row['evidence_tier']}` | "
+            f"{row['current_algorithm_action']} | {row['acceptance_gate_still_needed']} |"
+        )
+    lines.extend(
+        [
+            "",
             "## Next Experiments",
             "",
             "| rank | experiment | status | priority | command | expected update |",
@@ -1070,6 +1231,7 @@ def build_report(
             f"- `{summary['outputs']['features']}`",
             f"- `{summary['outputs']['decisions']}`",
             f"- `{summary['outputs']['hypotheses']}`",
+            f"- `{summary['outputs']['evidence_ledger']}`",
             f"- `{summary['outputs']['next_experiment_queue']}`",
             f"- `{summary['outputs']['algorithm']}`",
             f"- `{summary['outputs']['summary']}`",
@@ -1350,12 +1512,18 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         "outputs": {},
     }
     hypotheses = build_mechanism_hypotheses(summary)
+    evidence_ledger = build_evidence_ledger(summary, hypotheses)
     experiment_queue = build_next_experiment_queue(summary)
-    algorithm = build_algorithm(decisions, hypotheses)
+    algorithm = build_algorithm(decisions, hypotheses, evidence_ledger)
     status_counts = hypotheses["current_status"].value_counts().to_dict()
+    verdict_counts = evidence_ledger["verdict"].value_counts().to_dict()
     top_experiment = experiment_queue.iloc[0].to_dict() if not experiment_queue.empty else {}
     summary["hypothesis_count"] = int(len(hypotheses))
     summary["hypothesis_status_counts"] = {str(key): int(value) for key, value in status_counts.items()}
+    summary["evidence_ledger_count"] = int(len(evidence_ledger))
+    summary["evidence_verdict_counts"] = {
+        str(key): int(value) for key, value in verdict_counts.items()
+    }
     summary["next_experiment_count"] = int(len(experiment_queue))
     summary["top_next_experiment"] = {
         "experiment": top_experiment.get("experiment"),
@@ -1370,6 +1538,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
     features_path = output_dir / "mechanism_features.csv"
     decisions_path = output_dir / "operation_decisions.csv"
     hypotheses_path = output_dir / "mechanism_hypotheses.csv"
+    evidence_ledger_path = output_dir / "hypothesis_evidence_ledger.csv"
     queue_path = output_dir / "next_experiment_queue.csv"
     algorithm_path = output_dir / "algorithm.json"
     summary_path = output_dir / "summary.json"
@@ -1378,6 +1547,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         "features": rel(features_path),
         "decisions": rel(decisions_path),
         "hypotheses": rel(hypotheses_path),
+        "evidence_ledger": rel(evidence_ledger_path),
         "next_experiment_queue": rel(queue_path),
         "algorithm": rel(algorithm_path),
         "summary": rel(summary_path),
@@ -1387,11 +1557,12 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
     features.to_csv(features_path, index=False)
     decisions.to_csv(decisions_path, index=False)
     hypotheses.to_csv(hypotheses_path, index=False)
+    evidence_ledger.to_csv(evidence_ledger_path, index=False)
     experiment_queue.to_csv(queue_path, index=False)
     algorithm_path.write_text(json.dumps(json_safe(algorithm), indent=2, sort_keys=True) + "\n", encoding="utf-8")
     summary_path.write_text(json.dumps(json_safe(summary), indent=2, sort_keys=True) + "\n", encoding="utf-8")
     report_path.write_text(
-        build_report(summary, features, decisions, hypotheses, experiment_queue),
+        build_report(summary, features, decisions, hypotheses, evidence_ledger, experiment_queue),
         encoding="utf-8",
     )
     return summary
