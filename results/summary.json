@@ -81,6 +81,11 @@
       "status": "complete"
     },
     {
+      "evidence": "results/fp_downstream_attribution/report.md attributes the generation matrix into naive-average regression, router-calibration recovery, and remaining source-frontier gap by task.",
+      "item": "Qwen3 MoE generation-level mechanism attribution",
+      "status": "complete"
+    },
+    {
       "evidence": "Representative Qwen2.5-1.5B benchmark slices cover MMLU, GSM8K, HumanEval canonical-solution NLL, and BeaverTails safety/refusal NLL.",
       "item": "Formal LLM benchmark slices",
       "status": "complete"
@@ -437,7 +442,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 86,
+    "complete": 87,
     "missing": 0,
     "partial": 1
   },
@@ -3193,6 +3198,148 @@
         "general": 5.9108830695058785,
         "worst": 5.9108830695058785
       }
+    },
+    "fp_downstream_attribution": {
+      "avg_naive_drop_vs_pair_frontier": 0.10277777777777775,
+      "avg_routercal_gain_vs_naive": 0.03333333333333344,
+      "avg_routercal_gap_vs_pair_frontier": -0.06944444444444431,
+      "avg_routercal_recovery_fraction": 0.32432432432432545,
+      "best_avg": 0.8972222222222221,
+      "best_avg_model": "instruct",
+      "humaneval_naive_drop_vs_pair_frontier": 0.1499999999999999,
+      "humaneval_routercal_gain_vs_naive": 0.07499999999999996,
+      "humaneval_routercal_recovery_fraction": 0.5,
+      "interpretation": "Router calibration recovers a measurable share of the naive average regression, especially on HumanEval and GSM8K, but every score remains below the relevant source frontier. The mechanism is therefore useful as a MoE-specific repair lever, not sufficient as an acceptance rule.",
+      "mean_recovery_fraction_over_dropped_scores": 0.23153153153153175,
+      "report": "results/fp_downstream_attribution/report.md",
+      "role": "auxiliary_transformers_generation_eval_not_final_vllm_selector",
+      "routercal_beats_all_source_frontier_count": 0,
+      "routercal_beats_pair_frontier_count": 0,
+      "score_count": 5,
+      "status": "generation_mechanism_attribution_ready",
+      "summary": {
+        "avg_naive_drop_vs_pair_frontier": 0.10277777777777775,
+        "avg_routercal_gain_vs_naive": 0.03333333333333344,
+        "avg_routercal_gap_vs_pair_frontier": -0.06944444444444431,
+        "avg_routercal_recovery_fraction": 0.32432432432432545,
+        "best_avg": 0.8972222222222221,
+        "best_avg_model": "instruct",
+        "humaneval_naive_drop_vs_pair_frontier": 0.1499999999999999,
+        "humaneval_routercal_gain_vs_naive": 0.07499999999999996,
+        "humaneval_routercal_recovery_fraction": 0.5,
+        "interpretation": "Router calibration recovers a measurable share of the naive average regression, especially on HumanEval and GSM8K, but every score remains below the relevant source frontier. The mechanism is therefore useful as a MoE-specific repair lever, not sufficient as an acceptance rule.",
+        "mean_recovery_fraction_over_dropped_scores": 0.23153153153153175,
+        "outputs": {
+          "report": "results/fp_downstream_attribution/report.md",
+          "summary": "results/fp_downstream_attribution/summary.json",
+          "transition_effects": "results/fp_downstream_attribution/transition_effects.csv"
+        },
+        "role": "auxiliary_transformers_generation_eval_not_final_vllm_selector",
+        "routercal_beats_all_source_frontier_count": 0,
+        "routercal_beats_pair_frontier_count": 0,
+        "schema_version": 1,
+        "score_count": 5,
+        "status": "generation_mechanism_attribution_ready"
+      },
+      "summary_path": "results/fp_downstream_attribution/summary.json",
+      "transition_effects": "results/fp_downstream_attribution/transition_effects.csv",
+      "transition_rows": [
+        {
+          "accepts_routercal_over_all_source_frontier": false,
+          "accepts_routercal_over_pair_frontier": false,
+          "all_source_frontier": 0.8416666666666667,
+          "all_source_frontier_source": "instruct",
+          "best_local_action": "router_calibration",
+          "naive_drop_vs_pair_frontier": 0.0833333333333333,
+          "naive_pair_score": 0.7583333333333333,
+          "pair_source_frontier": 0.8416666666666667,
+          "pair_source_frontier_source": "instruct",
+          "routercal_gain_vs_naive": 0.0,
+          "routercal_gap_vs_all_source_frontier": -0.0833333333333333,
+          "routercal_gap_vs_pair_frontier": -0.0833333333333333,
+          "routercal_pair_score": 0.7583333333333333,
+          "routercal_recovery_fraction": 0.0,
+          "score": "mmlu",
+          "triple_gain_vs_pair": -0.0083333333333333,
+          "triple_merge_score": 0.75
+        },
+        {
+          "accepts_routercal_over_all_source_frontier": false,
+          "accepts_routercal_over_pair_frontier": false,
+          "all_source_frontier": 0.9,
+          "all_source_frontier_source": "instruct",
+          "best_local_action": "add_thinking_source",
+          "naive_drop_vs_pair_frontier": 0.075,
+          "naive_pair_score": 0.825,
+          "pair_source_frontier": 0.9,
+          "pair_source_frontier_source": "instruct",
+          "routercal_gain_vs_naive": 0.025,
+          "routercal_gap_vs_all_source_frontier": -0.05,
+          "routercal_gap_vs_pair_frontier": -0.05,
+          "routercal_pair_score": 0.85,
+          "routercal_recovery_fraction": 0.3333333333333333,
+          "score": "gsm8k",
+          "triple_gain_vs_pair": 0.075,
+          "triple_merge_score": 0.9
+        },
+        {
+          "accepts_routercal_over_all_source_frontier": false,
+          "accepts_routercal_over_pair_frontier": false,
+          "all_source_frontier": 0.95,
+          "all_source_frontier_source": "instruct",
+          "best_local_action": "router_calibration",
+          "naive_drop_vs_pair_frontier": 0.1499999999999999,
+          "naive_pair_score": 0.8,
+          "pair_source_frontier": 0.95,
+          "pair_source_frontier_source": "instruct",
+          "routercal_gain_vs_naive": 0.0749999999999999,
+          "routercal_gap_vs_all_source_frontier": -0.0749999999999999,
+          "routercal_gap_vs_pair_frontier": -0.0749999999999999,
+          "routercal_pair_score": 0.875,
+          "routercal_recovery_fraction": 0.5,
+          "score": "humaneval",
+          "triple_gain_vs_pair": 0.0499999999999999,
+          "triple_merge_score": 0.85
+        },
+        {
+          "accepts_routercal_over_all_source_frontier": false,
+          "accepts_routercal_over_pair_frontier": false,
+          "all_source_frontier": 0.8972222222222221,
+          "all_source_frontier_source": "instruct",
+          "best_local_action": "add_thinking_source",
+          "naive_drop_vs_pair_frontier": 0.1027777777777777,
+          "naive_pair_score": 0.7944444444444444,
+          "pair_source_frontier": 0.8972222222222221,
+          "pair_source_frontier_source": "instruct",
+          "routercal_gain_vs_naive": 0.0333333333333334,
+          "routercal_gap_vs_all_source_frontier": -0.0694444444444443,
+          "routercal_gap_vs_pair_frontier": -0.0694444444444443,
+          "routercal_pair_score": 0.8277777777777778,
+          "routercal_recovery_fraction": 0.3243243243243254,
+          "score": "avg",
+          "triple_gain_vs_pair": 0.0388888888888889,
+          "triple_merge_score": 0.8333333333333334
+        },
+        {
+          "accepts_routercal_over_all_source_frontier": false,
+          "accepts_routercal_over_pair_frontier": false,
+          "all_source_frontier": 0.8416666666666667,
+          "all_source_frontier_source": "instruct",
+          "best_local_action": "router_calibration",
+          "naive_drop_vs_pair_frontier": 0.0833333333333333,
+          "naive_pair_score": 0.7583333333333333,
+          "pair_source_frontier": 0.8416666666666667,
+          "pair_source_frontier_source": "instruct",
+          "routercal_gain_vs_naive": 0.0,
+          "routercal_gap_vs_all_source_frontier": -0.0833333333333333,
+          "routercal_gap_vs_pair_frontier": -0.0833333333333333,
+          "routercal_pair_score": 0.7583333333333333,
+          "routercal_recovery_fraction": 0.0,
+          "score": "worst",
+          "triple_gain_vs_pair": -0.0083333333333333,
+          "triple_merge_score": 0.75
+        }
+      ]
     },
     "fp_downstream_matrix": {
       "best_avg": 0.8972222222222221,
@@ -34403,7 +34550,7 @@
           "condition": "router-only NLL probe improves the linear MoE merge, but Qwen3 baseline/source vLLM eval is not complete",
           "operation": "treat router calibration as a separately audited ablation",
           "same_shape_invariant": "any accepted router delta must keep the same router tensors and pass router-only audit caps",
-          "selected_action": "nll_probe_worst_reduction=0.2214; generation_avg_gain=0.0333; awaiting_baseline_eval: Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps.",
+          "selected_action": "nll_probe_worst_reduction=0.2214; generation_avg_gain=0.0333; generation_recovery_fraction=0.3243; awaiting_baseline_eval: Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps.",
           "stage": "moe_router_calibration_gate",
           "why_it_should_improve": "It keeps router calibration as an active MoE-specific lever while still requiring source-dominance and task-regression gates before acceptance."
         },
@@ -34571,6 +34718,14 @@
           "value": 0.0333333333333334
         },
         {
+          "decision_signal": "router_calibration_is_repair_not_acceptance_rule",
+          "domain": "moe",
+          "evidence": "status = generation_mechanism_attribution_ready; avg naive drop = 0.1028; avg recovery fraction = 0.3243; HumanEval recovery = 0.5000; beats pair frontier = 0/5",
+          "probe": "qwen3_generation_routercal_effect_attribution",
+          "threshold": 1.0,
+          "value": 0.3243243243243254
+        },
+        {
           "decision_signal": "do_not_accept_router_delta_without_baseline_eval",
           "domain": "moe",
           "evidence": "status = awaiting_baseline_eval; eligible router-cal candidates = 0/4; reason = Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps.",
@@ -34659,14 +34814,20 @@
           "qwen3_complementary_merge_beats_sources": false,
           "qwen3_eligible_candidates": 0,
           "qwen3_final_selection_status": "awaiting_source_eval",
+          "qwen3_generation_attribution_score_count": 5,
+          "qwen3_generation_attribution_status": "generation_mechanism_attribution_ready",
+          "qwen3_generation_avg_naive_drop_vs_pair_frontier": 0.10277777777777775,
+          "qwen3_generation_avg_routercal_recovery_fraction": 0.32432432432432545,
           "qwen3_generation_best_avg": 0.8972222222222221,
           "qwen3_generation_best_avg_model": "instruct",
+          "qwen3_generation_humaneval_routercal_recovery_fraction": 0.5,
           "qwen3_generation_matrix_status": "generation_downstream_matrix_ready",
           "qwen3_generation_pair_merge_avg": 0.7944444444444444,
           "qwen3_generation_pair_routercal_avg": 0.8277777777777778,
           "qwen3_generation_pair_routercal_avg_gain": 0.03333333333333344,
           "qwen3_generation_pair_routercal_gap_to_best_parent_avg": -0.06944444444444431,
           "qwen3_generation_pair_routercal_humaneval_gain": 0.07499999999999996,
+          "qwen3_generation_routercal_beats_pair_frontier_count": 0,
           "qwen3_identity_fraction": 1.0,
           "qwen3_interpolation_best_interior_worst_nll": 2.5946544073765576,
           "qwen3_interpolation_endpoint_best_worst_nll": 2.47572769464231,
@@ -36650,7 +36811,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-20T06:16:59.446653+00:00",
+  "generated_at": "2026-06-20T06:24:31.376816+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [

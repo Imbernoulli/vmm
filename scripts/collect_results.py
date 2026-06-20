@@ -599,6 +599,62 @@ def summarize_fp_downstream_matrix() -> dict[str, Any]:
     }
 
 
+def summarize_fp_downstream_attribution() -> dict[str, Any]:
+    root = repo_path("results/fp_downstream_attribution")
+    summary = read_json(root / "summary.json")
+    transitions = read_csv(root / "transition_effects.csv")
+    if not summary:
+        return {
+            "status": "missing",
+            "score_count": 0,
+            "transition_rows": [],
+            "report": rel(root / "report.md"),
+            "summary_path": rel(root / "summary.json"),
+            "transition_effects": rel(root / "transition_effects.csv"),
+        }
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "role": summary.get("role"),
+        "score_count": maybe_int(summary.get("score_count")),
+        "best_avg_model": summary.get("best_avg_model"),
+        "best_avg": maybe_float(summary.get("best_avg")),
+        "avg_naive_drop_vs_pair_frontier": maybe_float(
+            summary.get("avg_naive_drop_vs_pair_frontier")
+        ),
+        "avg_routercal_gain_vs_naive": maybe_float(summary.get("avg_routercal_gain_vs_naive")),
+        "avg_routercal_recovery_fraction": maybe_float(
+            summary.get("avg_routercal_recovery_fraction")
+        ),
+        "avg_routercal_gap_vs_pair_frontier": maybe_float(
+            summary.get("avg_routercal_gap_vs_pair_frontier")
+        ),
+        "humaneval_naive_drop_vs_pair_frontier": maybe_float(
+            summary.get("humaneval_naive_drop_vs_pair_frontier")
+        ),
+        "humaneval_routercal_gain_vs_naive": maybe_float(
+            summary.get("humaneval_routercal_gain_vs_naive")
+        ),
+        "humaneval_routercal_recovery_fraction": maybe_float(
+            summary.get("humaneval_routercal_recovery_fraction")
+        ),
+        "mean_recovery_fraction_over_dropped_scores": maybe_float(
+            summary.get("mean_recovery_fraction_over_dropped_scores")
+        ),
+        "routercal_beats_pair_frontier_count": maybe_int(
+            summary.get("routercal_beats_pair_frontier_count")
+        ),
+        "routercal_beats_all_source_frontier_count": maybe_int(
+            summary.get("routercal_beats_all_source_frontier_count")
+        ),
+        "interpretation": summary.get("interpretation"),
+        "transition_rows": [clean_row(row) for _, row in transitions.iterrows()],
+        "report": rel(root / "report.md"),
+        "summary_path": rel(root / "summary.json"),
+        "transition_effects": rel(root / "transition_effects.csv"),
+    }
+
+
 def summarize_average_decision_report() -> dict[str, Any]:
     summary = read_json("results/average_decision_report/summary.json")
     decisions = summary.get("decisions", [])
@@ -3765,6 +3821,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/fp_downstream_matrix/report.md compares official Qwen3 MoE parents, naive averages, and router-calibrated averages on MMLU/GSM8K/HumanEval generation tasks; it is auxiliary evidence, not the final vLLM selector.",
         },
         {
+            "item": "Qwen3 MoE generation-level mechanism attribution",
+            "status": "complete",
+            "evidence": "results/fp_downstream_attribution/report.md attributes the generation matrix into naive-average regression, router-calibration recovery, and remaining source-frontier gap by task.",
+        },
+        {
             "item": "Formal LLM benchmark slices",
             "status": "complete",
             "evidence": "Representative Qwen2.5-1.5B benchmark slices cover MMLU, GSM8K, HumanEval canonical-solution NLL, and BeaverTails safety/refusal NLL.",
@@ -4140,6 +4201,7 @@ def build_summary() -> dict[str, Any]:
         "fp_merge_compare_dense": summarize_fp_merge_compare(),
         "fp_gen_eval_dense": summarize_fp_gen_eval_dense(),
         "fp_downstream_matrix": summarize_fp_downstream_matrix(),
+        "fp_downstream_attribution": summarize_fp_downstream_attribution(),
         "qwen_probe_smoke": summarize_qwen_probe_smoke(),
         "average_decision_report": summarize_average_decision_report(),
         "model_averaging_literature_review": summarize_model_averaging_literature_review(),
@@ -4421,6 +4483,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     fp_merge_compare = exp["fp_merge_compare_dense"]
     fp_gen_eval = exp["fp_gen_eval_dense"]
     fp_downstream_matrix = exp["fp_downstream_matrix"]
+    fp_downstream_attribution = exp["fp_downstream_attribution"]
     average_decision = exp["average_decision_report"]
     literature_review = exp["model_averaging_literature_review"]
     average_method_gate_matrix = exp["average_method_gate_matrix"]
@@ -4741,6 +4804,18 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(fp_downstream_matrix['pair_routercal_avg_gain'])} / "
                 f"{fmt(fp_downstream_matrix['pair_routercal_humaneval_gain'])} / "
                 f"{fmt(fp_downstream_matrix['pair_routercal_gap_to_best_parent_avg'])} |"
+            ),
+            (
+                "| Qwen3 MoE downstream attribution | avg drop / router-cal recovery fraction / gap | "
+                f"{fmt(fp_downstream_attribution['avg_naive_drop_vs_pair_frontier'])} / "
+                f"{fmt(fp_downstream_attribution['avg_routercal_recovery_fraction'])} / "
+                f"{fmt(fp_downstream_attribution['avg_routercal_gap_vs_pair_frontier'])} |"
+            ),
+            (
+                "| Qwen3 MoE downstream attribution | HumanEval recovery / scores beating pair frontier | "
+                f"{fmt(fp_downstream_attribution['humaneval_routercal_recovery_fraction'])} / "
+                f"{fp_downstream_attribution['routercal_beats_pair_frontier_count']}"
+                f"/{fp_downstream_attribution['score_count']} |"
             ),
             (
                 "| first-principles MoE mechanism | gauge-equivalent B MSE | "

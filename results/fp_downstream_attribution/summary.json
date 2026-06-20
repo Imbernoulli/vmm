@@ -1,0 +1,24 @@
+{
+  "avg_naive_drop_vs_pair_frontier": 0.10277777777777775,
+  "avg_routercal_gain_vs_naive": 0.03333333333333344,
+  "avg_routercal_gap_vs_pair_frontier": -0.06944444444444431,
+  "avg_routercal_recovery_fraction": 0.32432432432432545,
+  "best_avg": 0.8972222222222221,
+  "best_avg_model": "instruct",
+  "humaneval_naive_drop_vs_pair_frontier": 0.1499999999999999,
+  "humaneval_routercal_gain_vs_naive": 0.07499999999999996,
+  "humaneval_routercal_recovery_fraction": 0.5,
+  "interpretation": "Router calibration recovers a measurable share of the naive average regression, especially on HumanEval and GSM8K, but every score remains below the relevant source frontier. The mechanism is therefore useful as a MoE-specific repair lever, not sufficient as an acceptance rule.",
+  "mean_recovery_fraction_over_dropped_scores": 0.23153153153153175,
+  "outputs": {
+    "report": "results/fp_downstream_attribution/report.md",
+    "summary": "results/fp_downstream_attribution/summary.json",
+    "transition_effects": "results/fp_downstream_attribution/transition_effects.csv"
+  },
+  "role": "auxiliary_transformers_generation_eval_not_final_vllm_selector",
+  "routercal_beats_all_source_frontier_count": 0,
+  "routercal_beats_pair_frontier_count": 0,
+  "schema_version": 1,
+  "score_count": 5,
+  "status": "generation_mechanism_attribution_ready"
+}
