@@ -330,6 +330,16 @@ def build_steps(args: argparse.Namespace) -> list[dict[str, Any]]:
             ],
         },
         {
+            "step": "build_qwen3_moe_harc_readiness_gate",
+            "kind": "gate",
+            "command": [
+                py,
+                "scripts/build_qwen3_moe_harc_readiness_gate.py",
+                "--output-dir",
+                str(args.harc_readiness_gate_dir),
+            ],
+        },
+        {
             "step": "build_unified_average_optimizer",
             "kind": "optimizer",
             "command": [
@@ -443,6 +453,17 @@ def build_steps(args: argparse.Namespace) -> list[dict[str, Any]]:
                         "--smoke-matrix",
                         "--output-dir",
                         str(args.qwen_source_frontier_eval_feedback_smoke_dir),
+                    ],
+                },
+                {
+                    "step": "build_qwen3_moe_harc_readiness_gate_smoke",
+                    "kind": "smoke",
+                    "command": [
+                        py,
+                        "scripts/build_qwen3_moe_harc_readiness_gate.py",
+                        "--smoke-matrix",
+                        "--output-dir",
+                        str(args.harc_readiness_gate_smoke_dir),
                     ],
                 },
                 {
@@ -568,6 +589,10 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
     )
     router_calibration_frontier = read_json(
         repo_path(args.router_calibration_frontier_dir) / "summary.json"
+    )
+    harc_readiness_gate = read_json(repo_path(args.harc_readiness_gate_dir) / "summary.json")
+    harc_readiness_gate_smoke = read_json(
+        repo_path(args.harc_readiness_gate_smoke_dir) / "summary.json"
     )
     unified_optimizer = read_json(repo_path(args.unified_optimizer_dir) / "summary.json")
     unified_optimizer_smoke = read_json(repo_path(args.unified_optimizer_smoke_dir) / "summary.json")
@@ -826,6 +851,21 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
         "router_calibration_frontier_generation_signal": router_calibration_frontier.get(
             "generation_avg_gain_signal"
         ),
+        "harc_readiness_gate_status": harc_readiness_gate.get("status"),
+        "harc_readiness_gate_preconditions": harc_readiness_gate.get("precondition_count"),
+        "harc_readiness_gate_passed_preconditions": harc_readiness_gate.get(
+            "precondition_passed_count"
+        ),
+        "harc_readiness_gate_cache": harc_readiness_gate.get("hessian_covariance_cache_status"),
+        "harc_readiness_gate_top_layer": harc_readiness_gate.get("top_harc_layer"),
+        "harc_readiness_gate_top_score": harc_readiness_gate.get("top_harc_priority_score"),
+        "harc_readiness_gate_first_stage_layers": harc_readiness_gate.get(
+            "first_stage_layer_count"
+        ),
+        "harc_readiness_gate_action": harc_readiness_gate.get("recommended_action"),
+        "harc_readiness_gate_smoke_status": harc_readiness_gate_smoke.get("status"),
+        "harc_readiness_gate_smoke_passed": harc_readiness_gate_smoke.get("passed_case_count"),
+        "harc_readiness_gate_smoke_cases": harc_readiness_gate_smoke.get("case_count"),
         "unified_optimizer_status": unified_optimizer.get("status"),
         "unified_optimizer_contract_status": unified_optimizer.get("contract_status"),
         "unified_optimizer_contract_passed": unified_optimizer.get("contract_passed_requirement_count"),
@@ -903,6 +943,8 @@ def build_report(summary: dict[str, Any]) -> str:
         f"- Qwen source frontier eval feedback: `{downstream.get('qwen_source_frontier_eval_feedback_status', 'n/a')}` (scored `{downstream.get('qwen_source_frontier_eval_feedback_scored', 'n/a')}/{downstream.get('qwen_source_frontier_eval_feedback_jobs', 'n/a')}`, final candidates `{downstream.get('qwen_source_frontier_eval_feedback_final_candidates', 'n/a')}`, probe-only `{downstream.get('qwen_source_frontier_eval_feedback_probe_only', 'n/a')}`, top `{downstream.get('qwen_source_frontier_eval_feedback_top_job', 'n/a')}` / `{downstream.get('qwen_source_frontier_eval_feedback_top_gate', 'n/a')}`, surplus `{downstream.get('qwen_source_frontier_eval_feedback_top_surplus', 'n/a')}`, blocker `{downstream.get('qwen_source_frontier_eval_feedback_blocker', 'n/a')}`)",
         f"- Qwen source frontier eval feedback smoke: `{downstream.get('qwen_source_frontier_eval_feedback_smoke_status', 'n/a')}` (passed `{downstream.get('qwen_source_frontier_eval_feedback_smoke_passed', 'n/a')}`, scored `{downstream.get('qwen_source_frontier_eval_feedback_smoke_scored', 'n/a')}/{downstream.get('qwen_source_frontier_eval_feedback_smoke_jobs', 'n/a')}`, final candidates `{downstream.get('qwen_source_frontier_eval_feedback_smoke_final_candidates', 'n/a')}`)",
         f"- Router calibration frontier: `{downstream.get('router_calibration_frontier_status', 'n/a')}` (`{downstream.get('router_calibration_frontier_default_candidates', 'n/a')}/{downstream.get('router_calibration_frontier_candidate_count', 'n/a')}` default, recommended `{downstream.get('router_calibration_frontier_recommended', 'n/a')}`, blocker `{downstream.get('router_calibration_frontier_blocker', 'n/a')}`, nll `{downstream.get('router_calibration_frontier_nll_signal', 'n/a')}`, generation `{downstream.get('router_calibration_frontier_generation_signal', 'n/a')}`)",
+        f"- HARC readiness gate: `{downstream.get('harc_readiness_gate_status', 'n/a')}` (`{downstream.get('harc_readiness_gate_passed_preconditions', 'n/a')}/{downstream.get('harc_readiness_gate_preconditions', 'n/a')}` preconditions, cache `{downstream.get('harc_readiness_gate_cache', 'n/a')}`, top layer `L{downstream.get('harc_readiness_gate_top_layer', 'n/a')}` score `{downstream.get('harc_readiness_gate_top_score', 'n/a')}`, first-stage layers `{downstream.get('harc_readiness_gate_first_stage_layers', 'n/a')}`, action `{downstream.get('harc_readiness_gate_action', 'n/a')}`)",
+        f"- HARC readiness smoke: `{downstream.get('harc_readiness_gate_smoke_status', 'n/a')}` (`{downstream.get('harc_readiness_gate_smoke_passed', 'n/a')}/{downstream.get('harc_readiness_gate_smoke_cases', 'n/a')}` cases)",
         f"- Unified average optimizer: `{downstream.get('unified_optimizer_status', 'n/a')}` (top next experiment `{downstream.get('unified_optimizer_top_experiment', 'n/a')}` / `{downstream.get('unified_optimizer_top_experiment_status', 'n/a')}`)",
         f"- Unified algorithm contract: `{downstream.get('unified_optimizer_contract_status', 'n/a')}` (`{downstream.get('unified_optimizer_contract_passed', 'n/a')}/{downstream.get('unified_optimizer_contract_requirements', 'n/a')}` passed, blocking `{downstream.get('unified_optimizer_contract_blocking', [])}`)",
         f"- Unified selector rank gate in optimizer: confidence band `{downstream.get('unified_optimizer_final_confidence_tie_band', 'n/a')}`, rank mode `{downstream.get('unified_optimizer_final_rank_mode', 'n/a')}`, band size `{downstream.get('unified_optimizer_final_rank_band_size', 'n/a')}`",
@@ -1047,6 +1089,11 @@ def parse_args() -> argparse.Namespace:
         default=Path("results/qwen3_moe_router_calibration_frontier"),
     )
     parser.add_argument(
+        "--harc-readiness-gate-dir",
+        type=Path,
+        default=Path("results/qwen3_moe_harc_readiness_gate"),
+    )
+    parser.add_argument(
         "--unified-optimizer-dir",
         type=Path,
         default=Path("results/unified_average_optimizer"),
@@ -1103,6 +1150,11 @@ def parse_args() -> argparse.Namespace:
         "--average-trust-region-bounds-smoke-dir",
         type=Path,
         default=Path("results/average_trust_region_bounds_smoke"),
+    )
+    parser.add_argument(
+        "--harc-readiness-gate-smoke-dir",
+        type=Path,
+        default=Path("results/qwen3_moe_harc_readiness_gate_smoke"),
     )
     parser.add_argument("--output-dir", type=Path, default=Path("results/qwen3_moe_post_eval_refresh"))
     parser.add_argument("--include-smoke", action="store_true")

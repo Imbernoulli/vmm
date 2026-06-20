@@ -1,0 +1,5 @@
+{
+  "acceptance_decision": "mechanism_supported_but_do_not_accept_without_matched_vllm_eval",
+  "avg_nll_reduction_vs_linear": -0.01,
+  "worst_nll_reduction_vs_linear": -0.01
+}

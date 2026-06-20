@@ -4,7 +4,7 @@
 
 - Status: `planned`
 - Plan only: `True`
-- Steps passed: `0/36`
+- Steps passed: `0/38`
 - Audit: `n/a` (`n/a/n/a` usable)
 - Selection: `n/a` -> `n/a`
 - Final selection: `n/a` -> `n/a` (`n/a/n/a` eligible)
@@ -27,6 +27,8 @@
 - Qwen source frontier eval feedback: `n/a` (scored `n/a/n/a`, final candidates `n/a`, probe-only `n/a`, top `n/a` / `n/a`, surplus `n/a`, blocker `n/a`)
 - Qwen source frontier eval feedback smoke: `n/a` (passed `n/a`, scored `n/a/n/a`, final candidates `n/a`)
 - Router calibration frontier: `n/a` (`n/a/n/a` default, recommended `n/a`, blocker `n/a`, nll `n/a`, generation `n/a`)
+- HARC readiness gate: `n/a` (`n/a/n/a` preconditions, cache `n/a`, top layer `Ln/a` score `n/a`, first-stage layers `n/a`, action `n/a`)
+- HARC readiness smoke: `n/a` (`n/a/n/a` cases)
 - Unified average optimizer: `n/a` (top next experiment `n/a` / `n/a`)
 - Unified algorithm contract: `n/a` (`n/a/n/a` passed, blocking `[]`)
 - Unified selector rank gate in optimizer: confidence band `n/a`, rank mode `n/a`, band size `n/a`
@@ -59,6 +61,7 @@
 | `audit_qwen_source_discovery_served_model_preflight` | `gate` | `planned` | None | 0.00 |
 | `build_qwen_source_frontier_eval_feedback` | `gate` | `planned` | None | 0.00 |
 | `build_router_calibration_frontier` | `gate` | `planned` | None | 0.00 |
+| `build_qwen3_moe_harc_readiness_gate` | `gate` | `planned` | None | 0.00 |
 | `build_unified_average_optimizer` | `optimizer` | `planned` | None | 0.00 |
 | `build_average_method_gate_matrix` | `optimizer` | `planned` | None | 0.00 |
 | `build_average_trust_region_bounds` | `optimizer` | `planned` | None | 0.00 |
@@ -68,6 +71,7 @@
 | `select_final_candidate_smoke` | `smoke` | `planned` | None | 0.00 |
 | `eval_budget_queue_smoke` | `smoke` | `planned` | None | 0.00 |
 | `build_qwen_source_frontier_eval_feedback_smoke` | `smoke` | `planned` | None | 0.00 |
+| `build_qwen3_moe_harc_readiness_gate_smoke` | `smoke` | `planned` | None | 0.00 |
 | `attribute_mechanism_effects_smoke` | `smoke` | `planned` | None | 0.00 |
 | `build_feedback_optimizer_smoke` | `smoke` | `planned` | None | 0.00 |
 | `build_mechanistic_unified_candidate_smoke` | `smoke` | `planned` | None | 0.00 |
@@ -98,6 +102,7 @@
 - `python scripts/audit_vllm_served_model_preflight.py --eval-jobs results/qwen_source_discovery_eval_plan/vllm_eval_jobs.csv --output-dir results/qwen_source_discovery_served_model_preflight`
 - `python scripts/build_qwen_source_frontier_eval_feedback.py --eval-jobs results/qwen_source_discovery_eval_plan/vllm_eval_jobs.csv --average-source-set-optimizer results/qwen3_average_source_set_optimizer/summary.json --output-dir results/qwen_source_frontier_eval_feedback`
 - `python scripts/build_qwen3_moe_router_calibration_frontier.py --output-dir results/qwen3_moe_router_calibration_frontier`
+- `python scripts/build_qwen3_moe_harc_readiness_gate.py --output-dir results/qwen3_moe_harc_readiness_gate`
 - `python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer --qwen-source-discovery-plan results/qwen_source_discovery_plan/summary.json --qwen-source-discovery-eval-plan results/qwen_source_discovery_eval_plan/summary.json --qwen-source-frontier-eval-feedback results/qwen_source_frontier_eval_feedback/summary.json --qwen3-router-calibration-frontier results/qwen3_moe_router_calibration_frontier/summary.json`
 - `python scripts/build_average_method_gate_matrix.py --output-dir results/average_method_gate_matrix --optimizer-summary results/unified_average_optimizer/summary.json --optimizer-features results/unified_average_optimizer/mechanism_features.csv`
 - `python scripts/build_average_trust_region_bounds.py --output-dir results/average_trust_region_bounds`
@@ -107,6 +112,7 @@
 - `python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke`
 - `python scripts/smoke_qwen3_moe_eval_budget_queue.py --eval-budget-dir results/qwen3_moe_eval_budget_plan --candidate-trust-gate results/qwen3_moe_candidate_trust_region_gate/candidate_trust_region_gate.csv --output-dir results/qwen3_moe_eval_budget_queue_smoke`
 - `python scripts/build_qwen_source_frontier_eval_feedback.py --smoke-matrix --output-dir results/qwen_source_frontier_eval_feedback_smoke`
+- `python scripts/build_qwen3_moe_harc_readiness_gate.py --smoke-matrix --output-dir results/qwen3_moe_harc_readiness_gate_smoke`
 - `python scripts/attribute_qwen3_moe_mechanism_effects.py --smoke-matrix --output-dir results/qwen3_moe_mechanism_effect_attribution_smoke`
 - `python scripts/build_qwen3_moe_feedback_optimizer.py --smoke-matrix --output-dir results/qwen3_moe_feedback_optimizer_smoke`
 - `python scripts/build_qwen3_moe_mechanistic_unified_candidate.py --smoke-matrix --output-dir results/qwen3_moe_mechanistic_unified_candidate_smoke`

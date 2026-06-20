@@ -1,0 +1,7 @@
+{
+  "prompts_exists": true,
+  "source_controls_ready": true,
+  "status": "job_ready_awaiting_gpu",
+  "student_exists": true,
+  "teacher_exists": true
+}

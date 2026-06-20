@@ -3260,6 +3260,55 @@ def summarize_qwen3_moe_router_calibration_frontier() -> dict[str, Any]:
     }
 
 
+def summarize_qwen3_moe_harc_readiness_gate() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_harc_readiness_gate")
+    summary = read_json(root / "summary.json")
+    requirements = read_csv(root / "harc_readiness_requirements.csv")
+    layers = read_csv(root / "layer_harc_priority.csv")
+    top_layer = clean_row(layers.iloc[0]) if not layers.empty else {}
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "precondition_count": maybe_int(summary.get("precondition_count")),
+        "precondition_passed_count": maybe_int(summary.get("precondition_passed_count")),
+        "hessian_covariance_cache_status": summary.get("hessian_covariance_cache_status"),
+        "recommended_action": summary.get("recommended_action"),
+        "top_harc_layer": maybe_int(summary.get("top_harc_layer")),
+        "top_harc_priority_score": maybe_float(summary.get("top_harc_priority_score")),
+        "critical_layer_count": maybe_int(summary.get("critical_layer_count")),
+        "first_stage_layer_count": maybe_int(summary.get("first_stage_layer_count")),
+        "top_layer_role": top_layer.get("harc_layer_role"),
+        "top_layer_safe_lambda": maybe_float(top_layer.get("safe_lambda_proxy")),
+        "top_layer_fragility": maybe_float(top_layer.get("boundary_fragility_score")),
+        "top_layer_coupled_risk": maybe_float(top_layer.get("router_coupled_risk_sum")),
+        "solver_plan": summary.get("solver_plan") or {},
+        "requirement_rows": [clean_row(row) for _, row in requirements.iterrows()],
+        "layer_rows": [clean_row(row) for _, row in layers.iterrows()],
+        "report": rel(root / "report.md"),
+        "requirements": rel(root / "harc_readiness_requirements.csv"),
+        "layer_priority": rel(root / "layer_harc_priority.csv"),
+        "solver_plan_path": rel(root / "harc_solver_plan.json"),
+        "literature_sources": rel(root / "literature_sources.json"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
+def summarize_qwen3_moe_harc_readiness_gate_smoke() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_harc_readiness_gate_smoke")
+    summary = read_json(root / "summary.json")
+    cases = read_csv(root / "smoke_cases.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "case_count": maybe_int(summary.get("case_count")),
+        "passed_case_count": maybe_int(summary.get("passed_case_count")),
+        "case_rows": [clean_row(row) for _, row in cases.iterrows()],
+        "report": rel(root / "report.md"),
+        "cases": rel(root / "smoke_cases.csv"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
 def summarize_qwen3_moe_router_calibration_selection() -> dict[str, Any]:
     root = repo_path("results/qwen3_moe_router_calibration_selection")
     return summarize_qwen3_moe_router_calibration_selection_dir(root)
@@ -5480,6 +5529,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/qwen3_moe_router_calibration_frontier/report.md turns HARC/Router-KD evidence into a margin-safe router-calibration frontier: cap001 and margin_profile are default probes, larger caps remain stress ablations.",
         },
         {
+            "item": "Qwen3 MoE HARC readiness gate",
+            "status": "complete",
+            "evidence": "results/qwen3_moe_harc_readiness_gate/report.md checks direct-router rejection, top-k boundary fragility, router-only repair, router-expert coupling, calibration frontier, calibration job preflight, and Hessian/covariance cache readiness before HARC-style router calibration.",
+        },
+        {
             "item": "Qwen3 MoE trust-region cap-law search",
             "status": "complete",
             "evidence": "results/qwen3_moe_trust_region_cap_search/report.md searches interpretable expert cap laws over real Qwen3 route-mass, risk-flag, and safetensors-delta probes and emits writer-ready next-candidate rules.",
@@ -5640,6 +5694,8 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_router_calibration_nll_probe": summarize_qwen3_moe_router_calibration_nll_probe(),
         "qwen3_moe_router_calibration_job": summarize_qwen3_moe_router_calibration_job(),
         "qwen3_moe_router_calibration_frontier": summarize_qwen3_moe_router_calibration_frontier(),
+        "qwen3_moe_harc_readiness_gate": summarize_qwen3_moe_harc_readiness_gate(),
+        "qwen3_moe_harc_readiness_gate_smoke": summarize_qwen3_moe_harc_readiness_gate_smoke(),
         "qwen3_moe_router_calibration_selection": summarize_qwen3_moe_router_calibration_selection(),
         "qwen3_moe_router_calibration_row_validation_negative_smoke": (
             summarize_qwen3_moe_router_calibration_row_validation_negative_smoke()
@@ -5742,6 +5798,8 @@ def build_summary() -> dict[str, Any]:
             "python scripts/audit_vllm_served_model_preflight.py --eval-jobs results/qwen_source_discovery_eval_plan/vllm_eval_jobs.csv --output-dir results/qwen_source_discovery_served_model_preflight",
             "python scripts/build_qwen_source_frontier_eval_feedback.py --output-dir results/qwen_source_frontier_eval_feedback",
             "python scripts/build_qwen_source_frontier_eval_feedback.py --smoke-matrix --output-dir results/qwen_source_frontier_eval_feedback_smoke",
+            "python scripts/build_qwen3_moe_harc_readiness_gate.py --output-dir results/qwen3_moe_harc_readiness_gate",
+            "python scripts/build_qwen3_moe_harc_readiness_gate.py --smoke-matrix --output-dir results/qwen3_moe_harc_readiness_gate_smoke",
             "PYTHONPATH=src python scripts/build_vllm_checkpoint_eval_plan.py --output-dir results/vllm_checkpoint_eval_plan",
             "PYTHONPATH=src python scripts/build_vllm_source_merge_comparison.py --output-dir results/vllm_source_merge_comparison",
             "PYTHONPATH=src python scripts/build_probe_guided_dense_average_candidate.py --output-dir results/probe_guided_dense_average_candidate",
@@ -5968,6 +6026,8 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_router_calibration_nll_probe = exp["qwen3_moe_router_calibration_nll_probe"]
     qwen3_moe_router_calibration_job = exp["qwen3_moe_router_calibration_job"]
     qwen3_moe_router_calibration_frontier = exp["qwen3_moe_router_calibration_frontier"]
+    qwen3_moe_harc_readiness_gate = exp["qwen3_moe_harc_readiness_gate"]
+    qwen3_moe_harc_readiness_gate_smoke = exp["qwen3_moe_harc_readiness_gate_smoke"]
     qwen3_moe_router_calibration_selection = exp["qwen3_moe_router_calibration_selection"]
     qwen3_moe_router_calibration_row_validation_negative_smoke = exp[
         "qwen3_moe_router_calibration_row_validation_negative_smoke"
@@ -7406,6 +7466,26 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(qwen3_moe_router_calibration_frontier['safe_lambda_proxy'])} / "
                 f"{fmt(qwen3_moe_router_calibration_frontier['nll_worst_reduction_signal'])} / "
                 f"{fmt(qwen3_moe_router_calibration_frontier['generation_avg_gain_signal'])} |"
+            ),
+            (
+                "| Qwen3 MoE HARC readiness gate | status / preconditions / cache | "
+                f"{qwen3_moe_harc_readiness_gate['status']} / "
+                f"{qwen3_moe_harc_readiness_gate['precondition_passed_count']}"
+                f"/{qwen3_moe_harc_readiness_gate['precondition_count']} / "
+                f"{qwen3_moe_harc_readiness_gate['hessian_covariance_cache_status']} |"
+            ),
+            (
+                "| Qwen3 MoE HARC readiness gate | top layer / score / role / first-stage layers | "
+                f"L{qwen3_moe_harc_readiness_gate['top_harc_layer']} / "
+                f"{fmt(qwen3_moe_harc_readiness_gate['top_harc_priority_score'])} / "
+                f"{qwen3_moe_harc_readiness_gate['top_layer_role']} / "
+                f"{qwen3_moe_harc_readiness_gate['first_stage_layer_count']} |"
+            ),
+            (
+                "| Qwen3 MoE HARC readiness smoke | status / cases | "
+                f"{qwen3_moe_harc_readiness_gate_smoke['status']} / "
+                f"{qwen3_moe_harc_readiness_gate_smoke['passed_case_count']}"
+                f"/{qwen3_moe_harc_readiness_gate_smoke['case_count']} |"
             ),
             (
                 "| Qwen3 MoE router calibration selector | status / selected / eligible | "

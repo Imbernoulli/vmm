@@ -1,0 +1,7 @@
+{
+  "allowed_router_layer_count": 4,
+  "mean_topk_jaccard": 0.42,
+  "min_topk_jaccard": 0.2,
+  "recommended_unified_router_action": "allow_small_router_average",
+  "router_layer_count": 4
+}

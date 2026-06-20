@@ -19,10 +19,10 @@
       "sha256": "5b208d6225995d5279b7e03f6884b5624c0b2ebd2ec7fa0036bfcfb0a1579a71"
     },
     {
-      "bytes": 103351,
+      "bytes": 102332,
       "kind": "document",
       "path": "README.md",
-      "sha256": "26a094b2478204f4b3ca49d6f712dffb6889c5deec77c2bac239bc295378221c"
+      "sha256": "6e9895c420a779895fc36ce6f03b9bcd34f0e705a3dab40fe54a8fd170da2dae"
     },
     {
       "bytes": 33211,
@@ -2593,6 +2593,312 @@
       "sha256": "790a40f8a5385648cb6636c9c7ac123df4866c217a369b1c7f24d8747c9b077e"
     },
     {
+      "bytes": 1642,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate/harc_readiness_requirements.csv",
+      "sha256": "dc33337fe38710bd723b299e399392ea0274a6663a85b873cbcc6da5928aea57"
+    },
+    {
+      "bytes": 758,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate/harc_solver_plan.json",
+      "sha256": "12d6568acb4544b11b066fd80aca6b5a2fbd2dc9fcb55aeef288a863b6186571"
+    },
+    {
+      "bytes": 20633,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate/layer_harc_priority.csv",
+      "sha256": "91ac275ab3cfc5215428b7ece9f7060ee8fe0e9a409902c7ccfaff4f81afef92"
+    },
+    {
+      "bytes": 1279,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate/literature_sources.json",
+      "sha256": "f118b775d28718420c092ca4d8c3e8ca8eddcd23cd99176655a7831251b0d682"
+    },
+    {
+      "bytes": 4440,
+      "kind": "document",
+      "path": "results/qwen3_moe_harc_readiness_gate/report.md",
+      "sha256": "185c1516a0e0c8fcc2a0edcb11f5286d02ce6d99ab9eeaa4c1faf181e9c71ebb"
+    },
+    {
+      "bytes": 3071,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate/summary.json",
+      "sha256": "c1ee82b1dbb688fede61719d3dbc61e979cbec8b4d344152b53ce45a3b088456"
+    },
+    {
+      "bytes": 1654,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/case_outputs/harc_ready/harc_readiness_requirements.csv",
+      "sha256": "e7e077ffaea15a261884416a61c127b0f41ebbf21f71917ffa2beab0eb211efe"
+    },
+    {
+      "bytes": 808,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/case_outputs/harc_ready/harc_solver_plan.json",
+      "sha256": "5a68f1bd4a2f79f0cfffe7f0e2bdf6ee76ef0e5f062fc61939ee4c0770fea0d9"
+    },
+    {
+      "bytes": 994,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/case_outputs/harc_ready/layer_harc_priority.csv",
+      "sha256": "277987fabe648e92c27e615ad812e8e869a09d5c24ac0da701733936752d4355"
+    },
+    {
+      "bytes": 1279,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/case_outputs/harc_ready/literature_sources.json",
+      "sha256": "f118b775d28718420c092ca4d8c3e8ca8eddcd23cd99176655a7831251b0d682"
+    },
+    {
+      "bytes": 3399,
+      "kind": "document",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/case_outputs/harc_ready/report.md",
+      "sha256": "6c27169b2ada6c8f3d0c9d6c82682d7b462a198ef721017a76c8879a1d8cbb93"
+    },
+    {
+      "bytes": 3371,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/case_outputs/harc_ready/summary.json",
+      "sha256": "4fb6de208d6b663d8eb7c202833cd99b4b8c80fecca483d5dc520b46aa9ea80b"
+    },
+    {
+      "bytes": 1656,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/case_outputs/no_repair/harc_readiness_requirements.csv",
+      "sha256": "886cb09b0612e9dc8ca12c0bed0e8fdb2cb7635191c3e05864e63991dd1b195b"
+    },
+    {
+      "bytes": 801,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/case_outputs/no_repair/harc_solver_plan.json",
+      "sha256": "fac96c3f2c1d88796b91ba564ea04081252726757eaa5f13b9385f755b586a2a"
+    },
+    {
+      "bytes": 994,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/case_outputs/no_repair/layer_harc_priority.csv",
+      "sha256": "277987fabe648e92c27e615ad812e8e869a09d5c24ac0da701733936752d4355"
+    },
+    {
+      "bytes": 1279,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/case_outputs/no_repair/literature_sources.json",
+      "sha256": "f118b775d28718420c092ca4d8c3e8ca8eddcd23cd99176655a7831251b0d682"
+    },
+    {
+      "bytes": 3400,
+      "kind": "document",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/case_outputs/no_repair/report.md",
+      "sha256": "30506f27b116cc2a797581cc846370886eba636d8b5e24522823d44a4a54e42d"
+    },
+    {
+      "bytes": 3361,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/case_outputs/no_repair/summary.json",
+      "sha256": "fb07a5a768dde4863281c01c6f6782e24d08d89d583616cfd342631181e8da24"
+    },
+    {
+      "bytes": 1669,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/case_outputs/router_safe/harc_readiness_requirements.csv",
+      "sha256": "c825038e6f6c8dc7a6dd48111b5d4bcb23280f7da1b999cb86e67fda738e1135"
+    },
+    {
+      "bytes": 808,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/case_outputs/router_safe/harc_solver_plan.json",
+      "sha256": "030569dc05fea206edfadd7033e8a97db48073dfa81a662cee71c3c34cfe11d8"
+    },
+    {
+      "bytes": 994,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/case_outputs/router_safe/layer_harc_priority.csv",
+      "sha256": "277987fabe648e92c27e615ad812e8e869a09d5c24ac0da701733936752d4355"
+    },
+    {
+      "bytes": 1279,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/case_outputs/router_safe/literature_sources.json",
+      "sha256": "f118b775d28718420c092ca4d8c3e8ca8eddcd23cd99176655a7831251b0d682"
+    },
+    {
+      "bytes": 3425,
+      "kind": "document",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/case_outputs/router_safe/report.md",
+      "sha256": "a51d2ad30e3c3b63ba5570a10e31b63b49076beb8d292f28058ee8086460f01a"
+    },
+    {
+      "bytes": 3384,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/case_outputs/router_safe/summary.json",
+      "sha256": "3ecadf72b08119d04a40c922188a8393722b570acc73f40362da29462b961986"
+    },
+    {
+      "bytes": 124,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/harc_ready/coupling.json",
+      "sha256": "24fb90427dee384e9f6c83d10b408c22cf8d9c2873be04077c4bb539bba79550"
+    },
+    {
+      "bytes": 211,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/harc_ready/frontier.json",
+      "sha256": "4a4f9e3be6a3dc43eb4230933b6612fd6e5b55c7ee4a5bd9ba80945666f4a0e1"
+    },
+    {
+      "bytes": 152,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/harc_ready/job.json",
+      "sha256": "f6a385f04ce6a99e39008d1b66ce1c61858465f23526e502b5429c2c83fec99d"
+    },
+    {
+      "bytes": 212,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/harc_ready/layer_coupling.csv",
+      "sha256": "8eb47ef6fdb94960e4682d1fc9ba6cde2bef0dcfc24ab9a94212f80374da2bd2"
+    },
+    {
+      "bytes": 361,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/harc_ready/layer_fragility.csv",
+      "sha256": "7401c6e8f0c8de27ae290863ee6759e77889699bf73ab1d33d5b64b6e63ab3ad"
+    },
+    {
+      "bytes": 212,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/harc_ready/margin.json",
+      "sha256": "edf65436e848c0788427cfb443697295297028bc7da70948168954b8e2619af9"
+    },
+    {
+      "bytes": 175,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/harc_ready/nll.json",
+      "sha256": "707024268edbe5fc7e005e7637f5120e151f7061de1c1024306a468066410be6"
+    },
+    {
+      "bytes": 177,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/harc_ready/router_move.json",
+      "sha256": "b6ef62ebb3d3521f11d77915ac2798c917dc9e2144d5c42a48213529712d867f"
+    },
+    {
+      "bytes": 124,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/no_repair/coupling.json",
+      "sha256": "24fb90427dee384e9f6c83d10b408c22cf8d9c2873be04077c4bb539bba79550"
+    },
+    {
+      "bytes": 211,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/no_repair/frontier.json",
+      "sha256": "4a4f9e3be6a3dc43eb4230933b6612fd6e5b55c7ee4a5bd9ba80945666f4a0e1"
+    },
+    {
+      "bytes": 152,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/no_repair/job.json",
+      "sha256": "f6a385f04ce6a99e39008d1b66ce1c61858465f23526e502b5429c2c83fec99d"
+    },
+    {
+      "bytes": 212,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/no_repair/layer_coupling.csv",
+      "sha256": "8eb47ef6fdb94960e4682d1fc9ba6cde2bef0dcfc24ab9a94212f80374da2bd2"
+    },
+    {
+      "bytes": 361,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/no_repair/layer_fragility.csv",
+      "sha256": "7401c6e8f0c8de27ae290863ee6759e77889699bf73ab1d33d5b64b6e63ab3ad"
+    },
+    {
+      "bytes": 212,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/no_repair/margin.json",
+      "sha256": "edf65436e848c0788427cfb443697295297028bc7da70948168954b8e2619af9"
+    },
+    {
+      "bytes": 177,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/no_repair/nll.json",
+      "sha256": "5063017eb450fd1d0ca376fc5a309a7b2fc5caec41285061bdb1122d64339ba3"
+    },
+    {
+      "bytes": 177,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/no_repair/router_move.json",
+      "sha256": "b6ef62ebb3d3521f11d77915ac2798c917dc9e2144d5c42a48213529712d867f"
+    },
+    {
+      "bytes": 124,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/router_safe/coupling.json",
+      "sha256": "24fb90427dee384e9f6c83d10b408c22cf8d9c2873be04077c4bb539bba79550"
+    },
+    {
+      "bytes": 211,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/router_safe/frontier.json",
+      "sha256": "4a4f9e3be6a3dc43eb4230933b6612fd6e5b55c7ee4a5bd9ba80945666f4a0e1"
+    },
+    {
+      "bytes": 152,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/router_safe/job.json",
+      "sha256": "f6a385f04ce6a99e39008d1b66ce1c61858465f23526e502b5429c2c83fec99d"
+    },
+    {
+      "bytes": 212,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/router_safe/layer_coupling.csv",
+      "sha256": "8eb47ef6fdb94960e4682d1fc9ba6cde2bef0dcfc24ab9a94212f80374da2bd2"
+    },
+    {
+      "bytes": 361,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/router_safe/layer_fragility.csv",
+      "sha256": "7401c6e8f0c8de27ae290863ee6759e77889699bf73ab1d33d5b64b6e63ab3ad"
+    },
+    {
+      "bytes": 212,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/router_safe/margin.json",
+      "sha256": "edf65436e848c0788427cfb443697295297028bc7da70948168954b8e2619af9"
+    },
+    {
+      "bytes": 175,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/router_safe/nll.json",
+      "sha256": "707024268edbe5fc7e005e7637f5120e151f7061de1c1024306a468066410be6"
+    },
+    {
+      "bytes": 190,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/router_safe/router_move.json",
+      "sha256": "1dbb45021dda1c038e06a77cd61a224313efd260fb01ac1806484ac4949f1152"
+    },
+    {
+      "bytes": 527,
+      "kind": "document",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/report.md",
+      "sha256": "e55e4e4bf7040ebb0412477323782094cdbc3bb4532c373b0ddec66ba6058451"
+    },
+    {
+      "bytes": 423,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/smoke_cases.csv",
+      "sha256": "e1bcc9cfbed169546dc4ee9e4f8ed42ed803ab8feaf8cf812cabbec768cc201e"
+    },
+    {
+      "bytes": 420,
+      "kind": "data",
+      "path": "results/qwen3_moe_harc_readiness_gate_smoke/summary.json",
+      "sha256": "b9639f556967055a229c99802167d4730cf31ec7710f1a7b03d4e20bd557797c"
+    },
+    {
       "bytes": 722,
       "kind": "data",
       "path": "results/qwen3_moe_layer_chunk_candidate/dry_run_command.txt",
@@ -3007,40 +3313,40 @@
       "sha256": "16040e4106918bfa5bcc11154b4fde0dea87231b51ff334f4546f583c8a3b464"
     },
     {
-      "bytes": 13748,
+      "bytes": 14447,
       "kind": "document",
       "path": "results/qwen3_moe_post_eval_refresh/report.md",
-      "sha256": "c55191f200aa942ef4c7a9d13f9f6c80521ba8566be59be91e28fe70929b665e"
+      "sha256": "91cdbe8cbdc7460691bcb90d30a1631b42f1eb2f572b1811275268ef11088cd4"
     },
     {
-      "bytes": 16833,
+      "bytes": 17585,
       "kind": "data",
       "path": "results/qwen3_moe_post_eval_refresh/steps.csv",
-      "sha256": "08ded6bd944a538d8c67f93474b8f999818f15bbb230616e499f5459140365c6"
+      "sha256": "4bcd8602bed86434a463ab883eac1a6f4f7da02febcf1fc0b5cb572129ecdc00"
     },
     {
-      "bytes": 33139,
+      "bytes": 34858,
       "kind": "data",
       "path": "results/qwen3_moe_post_eval_refresh/summary.json",
-      "sha256": "80106df1a4115db1c0377d696041ef82f1674cdede9d088d874a46822ef901a7"
+      "sha256": "984e609900bb2e3a65df29d4c36e2070d96bc36906e916a1a3f567bb80ed46fb"
     },
     {
-      "bytes": 12224,
+      "bytes": 12810,
       "kind": "document",
       "path": "results/qwen3_moe_post_eval_refresh_plan/report.md",
-      "sha256": "77eace9d2892a24a83645267a4abc0a62b73086c0c0e4f46dbe1753828661d63"
+      "sha256": "2bcd12cf0eb1b8d4d8dde6c6163d7c805135fa3365aa2f26e3af31166e6b6a91"
     },
     {
-      "bytes": 8033,
+      "bytes": 8383,
       "kind": "data",
       "path": "results/qwen3_moe_post_eval_refresh_plan/steps.csv",
-      "sha256": "4c4efbf34b6a33175ec37f71c2719de687ab571514535bde28f2aa49eafb31ab"
+      "sha256": "b17fc70b2c34d5aa6b79a7ada7c185020fc583d9452edfb6c7cc278e1c7c1d22"
     },
     {
-      "bytes": 14909,
+      "bytes": 15621,
       "kind": "data",
       "path": "results/qwen3_moe_post_eval_refresh_plan/summary.json",
-      "sha256": "f59bb7faec9a77954e263f5d876dd0e9aa683c98d77c23f5118bd812d06b45e4"
+      "sha256": "7b47c4063fd1dacafd005002ad8b7e18314601d2ca0ac41ac618096586ba3d38"
     },
     {
       "bytes": 1274,
@@ -5947,16 +6253,16 @@
       "sha256": "714c12b6fb2d02fcb6e090be592ea58dfaec994db9c67240fa558fea9a1d9154"
     },
     {
-      "bytes": 3137769,
+      "bytes": 3213275,
       "kind": "data",
       "path": "results/summary.json",
-      "sha256": "3abdc9b93ab08a163cdefed07ee84ae028e78b62dc46a9f9b931c026e1e80b54"
+      "sha256": "efb63772ee8f45e4f07af3516fb49583b2d7ba010fbb2af85351526d87f25ac5"
     },
     {
-      "bytes": 72252,
+      "bytes": 72919,
       "kind": "document",
       "path": "results/summary.md",
-      "sha256": "8d870d833d3fca78c50c6124f352c6cc5ceed642487ca36860d747cf490ceefe"
+      "sha256": "de1111f3ad5fea2e8840de54c89c21dc6ed447be7c24fe759a0a4019e2a708dc"
     },
     {
       "bytes": 288,
@@ -7279,6 +7585,12 @@
       "sha256": "fbaba968666986e3a3f14ced8a95a9958186dc0ea6fbe87ee4c2c42535601ceb"
     },
     {
+      "bytes": 30797,
+      "kind": "code",
+      "path": "scripts/build_qwen3_moe_harc_readiness_gate.py",
+      "sha256": "992e83d8e42946afff1619c4468bf76b255bb104c7e2b8f40d60410a3badafd7"
+    },
+    {
       "bytes": 25478,
       "kind": "code",
       "path": "scripts/build_qwen3_moe_layer_chunk_candidate.py",
@@ -7417,10 +7729,10 @@
       "sha256": "cd588bc1804013f4043bd95c245b066dbae86bfd3e3f9c18317ef33eb506f123"
     },
     {
-      "bytes": 513596,
+      "bytes": 518463,
       "kind": "code",
       "path": "scripts/collect_results.py",
-      "sha256": "f69887b2f7bbe003ffdf0337d609a36b43ac380825f24d6cc00c2542bf796d61"
+      "sha256": "64d2875faec545a464c8ccff5f2c34786209363eb46e8e9f5b72eb0635bcedaa"
     },
     {
       "bytes": 16101,
@@ -7513,10 +7825,10 @@
       "sha256": "9f211e934ffbcd7d5a0df9eed38a4cdd7d5d601adf2d4877519bb4cef8ac9f02"
     },
     {
-      "bytes": 58844,
+      "bytes": 61999,
       "kind": "code",
       "path": "scripts/refresh_qwen3_moe_post_eval.py",
-      "sha256": "1532b406e3e24474c4542c95b6d5221ad0bde05cc708f02b492cbc5ca89af59e"
+      "sha256": "84fd283328cfa3e6c10237e10a55a9e8ca71871713f2baf22c8634fffeaffeba"
     },
     {
       "bytes": 10141,
@@ -7747,7 +8059,7 @@
       "sha256": "f976c2145b5eb7da842ff1a828690c66060057ec61443ead614dfdf7468e50aa"
     }
   ],
-  "generated_at": "2026-06-20T15:22:14.637691+00:00",
+  "generated_at": "2026-06-20T15:35:53.060070+00:00",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "schema_version": 1,
   "summary": "results/summary.json"

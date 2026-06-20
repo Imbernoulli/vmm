@@ -1,0 +1,26 @@
+[
+  {
+    "key": "harc",
+    "mechanism": "MoE router merging should match source routing distributions; a second-order KL approximation yields a Hessian/input-covariance weighted linear system.",
+    "title": "When Model Merging Breaks Routing: Training-Free Calibration for MoE",
+    "url": "https://arxiv.org/abs/2606.03391"
+  },
+  {
+    "key": "model_soups",
+    "mechanism": "Weight averaging is accepted only after validation against source or held-out controls.",
+    "title": "Model soups: averaging weights of multiple fine-tuned models improves accuracy without increasing inference time",
+    "url": "https://arxiv.org/abs/2203.05482"
+  },
+  {
+    "key": "ties",
+    "mechanism": "Dense-model merging needs explicit interference handling; MoE routers need an additional top-k boundary gate.",
+    "title": "TIES-Merging: Resolving Interference When Merging Models",
+    "url": "https://arxiv.org/abs/2306.01708"
+  },
+  {
+    "key": "regmean++",
+    "mechanism": "Activation/statistics-aware closed-form merging is useful, but layer-local statistics must be checked against propagation and validation gates.",
+    "title": "RegMean++: Enhancing Effectiveness and Generalization of Regression Mean for Model Merging",
+    "url": "https://arxiv.org/abs/2508.03121"
+  }
+]

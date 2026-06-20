@@ -1,0 +1,8 @@
+requirement,role,passed,evidence,next_action
+direct_router_average_rejected,harc_precondition,True,router action=freeze_router; allowed layers=0/4; top-k jaccard mean/min=0.4200/0.2000,freeze direct router average and use calibrated router objective
+topk_boundary_fragility_detected,harc_precondition,True,high fragility layers=2/4; min safe lambda=0.0180; top layer=L1 score=0.8200,prioritize fragile router layers for HARC statistics
+router_only_repair_signal_positive,harc_precondition,False,worst NLL reduction=-0.0100; avg NLL reduction=-0.0100; acceptance=mechanism_supported_but_do_not_accept_without_matched_vllm_eval,"keep router calibration as repair, not acceptance, until matched vLLM passes"
+router_expert_coupling_active,harc_precondition,True,gate=router_expert_coupling_active; fragility->feature corr=0.7000; shrink corr=0.5000,"calibrate router together with expert-cap law, not as an isolated tensor average"
+safe_default_router_calibration_frontier_exists,harc_precondition,True,"default candidates=2/4; recommended=['cap001', 'margin_profile']; blocker=baseline_eval,source_eval,candidate_eval,audit",compare HARC-style calibration against route-KD cap001 and margin_profile
+calibration_job_preflight_ready,harc_precondition,True,job status=job_ready_awaiting_gpu; prompts=True; source controls=True; student=True; teacher=True,"run preflight on GPU host, then collect router logits/hidden states"
+hessian_covariance_cache_available,harc_solver_requirement,False,cache dir=results/qwen3_moe_harc_readiness_gate_smoke/mock_inputs/no_repair/missing_harc_stats exists=False,collect H_i=diag(r)-rr^T and hidden covariance per router layer

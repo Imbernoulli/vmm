@@ -1,0 +1,9 @@
+{
+  "acceptance_blocker": "baseline_eval,source_eval,candidate_eval,audit",
+  "candidate_count": 4,
+  "default_candidate_count": 2,
+  "recommended_default_candidates": [
+    "cap001",
+    "margin_profile"
+  ]
+}
