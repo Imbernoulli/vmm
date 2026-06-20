@@ -1,0 +1,7 @@
+requirement,passed,evidence,next_action
+router_cache_exists,True,cache=/tmp/harc_router_solver_cb9ksqbi/router_cache.torch; exists=True,collect router calibration cache before solving HARC deltas
+base_checkpoint_exists,True,base=/tmp/harc_router_solver_cb9ksqbi/base; exists=True,point --base to the same-shape checkpoint whose routers will receive the delta
+router_tensors_loaded,True,routers=2; load_error=None,verify cache tensor names match the base checkpoint safetensors index
+cg_converged,True,max relative residual=0.000031,increase --cg-max-iters or --ridge if residual is high
+kl_improved,True,KL 0.031806 -> 0.000006,check cache/source mismatch if HARC does not improve route KL
+relative_norm_cap_respected,True,max cap utilization=0.927491,lower --max-relative-norm or use a router cap table if needed

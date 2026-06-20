@@ -1,0 +1,7 @@
+check,passed,evidence
+status_ready,True,harc_solver_ready
+two_router_deltas,True,2
+route_kl_improved,True,0.031806->0.000006
+quadratic_proxy_improved,True,0.031198->0.000006
+cap_respected,True,0.927491
+cg_converged,True,0.000031

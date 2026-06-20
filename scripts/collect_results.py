@@ -3092,6 +3092,14 @@ def summarize_qwen3_moe_post_eval_refresh() -> dict[str, Any]:
         "harc_router_stats_mean_cov_trace": maybe_float(
             downstream.get("harc_router_stats_mean_cov_trace")
         ),
+        "harc_router_solver_status": downstream.get("harc_router_solver_status"),
+        "harc_router_solver_router_count": maybe_int(downstream.get("harc_router_solver_router_count")),
+        "harc_router_solver_delta_tensor_count": maybe_int(
+            downstream.get("harc_router_solver_delta_tensor_count")
+        ),
+        "harc_router_solver_initial_kl": maybe_float(downstream.get("harc_router_solver_initial_kl")),
+        "harc_router_solver_final_kl": maybe_float(downstream.get("harc_router_solver_final_kl")),
+        "harc_router_solver_max_residual": maybe_float(downstream.get("harc_router_solver_max_residual")),
         "step_rows": [clean_row(row) for _, row in steps.iterrows()],
         "report": rel(root / "report.md"),
         "steps": rel(root / "steps.csv"),
@@ -3363,6 +3371,72 @@ def summarize_qwen3_moe_harc_router_stats_smoke() -> dict[str, Any]:
         "check_count": maybe_int((summary.get("smoke_checks") or {}).get("total")),
         "check_rows": [clean_row(row) for _, row in checks.iterrows()],
         "report": rel(root / "report.md"),
+        "checks": rel(root / "smoke_checks.csv"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
+def summarize_qwen3_moe_harc_router_solver() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_harc_router_solver")
+    summary = read_json(root / "summary.json")
+    metrics = read_csv(root / "router_delta_summary.csv")
+    requirements = read_csv(root / "harc_solver_requirements.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "cache_exists": bool(summary.get("cache_exists", False)),
+        "base_exists": bool(summary.get("base_exists", False)),
+        "router_count": maybe_int(summary.get("router_count")),
+        "delta_tensor_count": maybe_int(summary.get("delta_tensor_count")),
+        "kl_improved": maybe_bool(summary.get("kl_improved")),
+        "top1_not_worse": maybe_bool(summary.get("top1_not_worse")),
+        "all_cg_converged": maybe_bool(summary.get("all_cg_converged")),
+        "relative_norm_cap_respected": maybe_bool(summary.get("relative_norm_cap_respected")),
+        "mean_initial_route_kl": maybe_float(summary.get("mean_initial_route_kl")),
+        "mean_final_route_kl": maybe_float(summary.get("mean_final_route_kl")),
+        "mean_initial_top1_agreement": maybe_float(summary.get("mean_initial_top1_agreement")),
+        "mean_final_top1_agreement": maybe_float(summary.get("mean_final_top1_agreement")),
+        "mean_initial_quadratic_proxy": maybe_float(summary.get("mean_initial_quadratic_proxy")),
+        "mean_final_quadratic_proxy": maybe_float(summary.get("mean_final_quadratic_proxy")),
+        "max_final_relative_delta_norm": maybe_float(summary.get("max_final_relative_delta_norm")),
+        "max_cg_relative_residual": maybe_float(summary.get("max_cg_relative_residual")),
+        "max_cap_utilization": maybe_float(summary.get("max_cap_utilization")),
+        "recommended_action": summary.get("recommended_action"),
+        "writer_command": summary.get("writer_command"),
+        "metric_rows": [clean_row(row) for _, row in metrics.iterrows()],
+        "requirement_rows": [clean_row(row) for _, row in requirements.iterrows()],
+        "report": rel(root / "report.md"),
+        "router_delta_summary": rel(root / "router_delta_summary.csv"),
+        "solver_trace": rel(root / "solver_trace.csv"),
+        "requirements": rel(root / "harc_solver_requirements.csv"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
+def summarize_qwen3_moe_harc_router_solver_smoke() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_harc_router_solver_smoke")
+    summary = read_json(root / "summary.json")
+    metrics = read_csv(root / "router_delta_summary.csv")
+    checks = read_csv(root / "smoke_checks.csv")
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "smoke_status": summary.get("smoke_status"),
+        "router_count": maybe_int(summary.get("router_count")),
+        "delta_tensor_count": maybe_int(summary.get("delta_tensor_count")),
+        "mean_initial_route_kl": maybe_float(summary.get("mean_initial_route_kl")),
+        "mean_final_route_kl": maybe_float(summary.get("mean_final_route_kl")),
+        "mean_initial_quadratic_proxy": maybe_float(summary.get("mean_initial_quadratic_proxy")),
+        "mean_final_quadratic_proxy": maybe_float(summary.get("mean_final_quadratic_proxy")),
+        "max_cg_relative_residual": maybe_float(summary.get("max_cg_relative_residual")),
+        "max_cap_utilization": maybe_float(summary.get("max_cap_utilization")),
+        "passed_check_count": maybe_int((summary.get("smoke_checks") or {}).get("passed")),
+        "check_count": maybe_int((summary.get("smoke_checks") or {}).get("total")),
+        "metric_rows": [clean_row(row) for _, row in metrics.iterrows()],
+        "check_rows": [clean_row(row) for _, row in checks.iterrows()],
+        "report": rel(root / "report.md"),
+        "router_delta_safetensors": rel(root / "router_delta.safetensors"),
+        "router_delta_summary": rel(root / "router_delta_summary.csv"),
         "checks": rel(root / "smoke_checks.csv"),
         "summary_path": rel(root / "summary.json"),
     }
@@ -5614,6 +5688,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "evidence": "results/qwen3_moe_harc_router_stats/report.md converts router calibration cache rows into softmax-Hessian, hidden-covariance, boundary-margin, and solver-input summaries; results/qwen3_moe_harc_router_stats_smoke/report.md verifies the ready branch on synthetic router tensors.",
         },
         {
+            "item": "Qwen3 MoE HARC matrix-free router solver",
+            "status": "complete",
+            "evidence": "results/qwen3_moe_harc_router_solver/report.md exposes the real missing-cache state for Qwen3 and results/qwen3_moe_harc_router_solver_smoke/report.md verifies a matrix-free CG HARC solve that writes same-shape router_delta.safetensors and lowers route KL/quadratic proxy on synthetic router tensors.",
+        },
+        {
             "item": "Qwen3 MoE trust-region cap-law search",
             "status": "complete",
             "evidence": "results/qwen3_moe_trust_region_cap_search/report.md searches interpretable expert cap laws over real Qwen3 route-mass, risk-flag, and safetensors-delta probes and emits writer-ready next-candidate rules.",
@@ -5776,6 +5855,8 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_router_calibration_frontier": summarize_qwen3_moe_router_calibration_frontier(),
         "qwen3_moe_harc_router_stats": summarize_qwen3_moe_harc_router_stats(),
         "qwen3_moe_harc_router_stats_smoke": summarize_qwen3_moe_harc_router_stats_smoke(),
+        "qwen3_moe_harc_router_solver": summarize_qwen3_moe_harc_router_solver(),
+        "qwen3_moe_harc_router_solver_smoke": summarize_qwen3_moe_harc_router_solver_smoke(),
         "qwen3_moe_harc_readiness_gate": summarize_qwen3_moe_harc_readiness_gate(),
         "qwen3_moe_harc_readiness_gate_smoke": summarize_qwen3_moe_harc_readiness_gate_smoke(),
         "qwen3_moe_router_calibration_selection": summarize_qwen3_moe_router_calibration_selection(),
@@ -5944,6 +6025,8 @@ def build_summary() -> dict[str, Any]:
             "python scripts/build_qwen3_moe_router_calibration_frontier.py --output-dir results/qwen3_moe_router_calibration_frontier",
             "python scripts/collect_qwen3_moe_harc_router_stats.py --output-dir results/qwen3_moe_harc_router_stats",
             "python scripts/collect_qwen3_moe_harc_router_stats.py --smoke-matrix --output-dir results/qwen3_moe_harc_router_stats_smoke",
+            "python scripts/solve_qwen3_moe_harc_router_delta.py --output-dir results/qwen3_moe_harc_router_solver",
+            "python scripts/solve_qwen3_moe_harc_router_delta.py --smoke-matrix --output-dir results/qwen3_moe_harc_router_solver_smoke",
             "python scripts/select_qwen3_moe_router_calibration_result.py --output-dir results/qwen3_moe_router_calibration_selection",
             "python scripts/select_qwen3_moe_router_calibration_result.py --smoke --output-dir results/qwen3_moe_router_calibration_selection_smoke",
             "python scripts/select_qwen3_moe_router_calibration_result.py --row-validation-negative-smoke --output-dir results/qwen3_moe_router_calibration_selection_row_validation_negative_smoke",
@@ -6112,6 +6195,8 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_router_calibration_frontier = exp["qwen3_moe_router_calibration_frontier"]
     qwen3_moe_harc_router_stats = exp["qwen3_moe_harc_router_stats"]
     qwen3_moe_harc_router_stats_smoke = exp["qwen3_moe_harc_router_stats_smoke"]
+    qwen3_moe_harc_router_solver = exp["qwen3_moe_harc_router_solver"]
+    qwen3_moe_harc_router_solver_smoke = exp["qwen3_moe_harc_router_solver_smoke"]
     qwen3_moe_harc_readiness_gate = exp["qwen3_moe_harc_readiness_gate"]
     qwen3_moe_harc_readiness_gate_smoke = exp["qwen3_moe_harc_readiness_gate_smoke"]
     qwen3_moe_router_calibration_selection = exp["qwen3_moe_router_calibration_selection"]
@@ -7575,6 +7660,22 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"/{qwen3_moe_harc_router_stats_smoke['check_count']} / "
                 f"{qwen3_moe_harc_router_stats_smoke['valid_router_count']}"
                 f"/{qwen3_moe_harc_router_stats_smoke['router_count']} |"
+            ),
+            (
+                "| Qwen3 MoE HARC router solver | status / delta tensors / KL initial-final | "
+                f"{qwen3_moe_harc_router_solver['status']} / "
+                f"{qwen3_moe_harc_router_solver['delta_tensor_count']} / "
+                f"{fmt(qwen3_moe_harc_router_solver['mean_initial_route_kl'])}-"
+                f"{fmt(qwen3_moe_harc_router_solver['mean_final_route_kl'])} |"
+            ),
+            (
+                "| Qwen3 MoE HARC router solver smoke | status / checks / KL initial-final / CG residual | "
+                f"{qwen3_moe_harc_router_solver_smoke['status']} / "
+                f"{qwen3_moe_harc_router_solver_smoke['passed_check_count']}"
+                f"/{qwen3_moe_harc_router_solver_smoke['check_count']} / "
+                f"{fmt(qwen3_moe_harc_router_solver_smoke['mean_initial_route_kl'])}-"
+                f"{fmt(qwen3_moe_harc_router_solver_smoke['mean_final_route_kl'])} / "
+                f"{fmt(qwen3_moe_harc_router_solver_smoke['max_cg_relative_residual'])} |"
             ),
             (
                 "| Qwen3 MoE HARC readiness gate | status / preconditions / cache | "

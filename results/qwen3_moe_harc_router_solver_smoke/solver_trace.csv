@@ -1,0 +1,3 @@
+tensor,cg_iterations,cg_relative_residual,cg_converged,ridge,rhs_norm,cap_projected
+model.layers.0.mlp.gate.weight,8,3.1395205092098456e-05,True,0.001,0.061755500733852386,False
+model.layers.1.mlp.gate.weight,7,2.9155617209470298e-05,True,0.001,0.07631557434797287,False

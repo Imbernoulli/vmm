@@ -1,0 +1,25 @@
+{
+  "all_cg_converged": false,
+  "base_exists": true,
+  "base_path": "results/checkpoints/qwen3_moe_unified_mechanism_candidate",
+  "cache_exists": false,
+  "cache_path": "results/qwen3_moe_router_calibration_cache/router_calibration_cache.pt",
+  "delta_tensor_count": 0,
+  "kl_improved": false,
+  "load_error": null,
+  "mean_final_route_kl": null,
+  "mean_initial_route_kl": null,
+  "outputs": {
+    "report": "results/qwen3_moe_harc_router_solver/report.md",
+    "requirements": "results/qwen3_moe_harc_router_solver/harc_solver_requirements.csv",
+    "router_delta_safetensors": "results/qwen3_moe_harc_router_solver/router_delta.safetensors",
+    "router_delta_summary": "results/qwen3_moe_harc_router_solver/router_delta_summary.csv",
+    "solver_trace": "results/qwen3_moe_harc_router_solver/solver_trace.csv",
+    "summary": "results/qwen3_moe_harc_router_solver/summary.json"
+  },
+  "recommended_action": "collect_cache_or_fix_base_before_harc_solver",
+  "relative_norm_cap_respected": false,
+  "router_count": 0,
+  "schema_version": 1,
+  "status": "harc_solver_missing_cache"
+}

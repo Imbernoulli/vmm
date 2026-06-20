@@ -4,7 +4,7 @@
 
 - Status: `passed`
 - Plan only: `False`
-- Steps passed: `40/40`
+- Steps passed: `42/42`
 - Audit: `awaiting_eval` (`0/13` usable)
 - Selection: `awaiting_source_eval` -> `None`
 - Final selection: `awaiting_source_eval` -> `None` (`0/11` eligible)
@@ -29,6 +29,8 @@
 - Router calibration frontier: `router_calibration_frontier_ready` (`2/4` default, recommended `cap001,margin_profile`, blocker `baseline_eval,source_eval,candidate_eval,audit,group_validation,capacity_metrics`, nll `0.22142744874642561`, generation `0.03333333333333344`)
 - HARC router stats: `harc_router_stats_missing_cache` (`0/0` routers, first-stage `0/15` `missing`, Hessian `None`, cov `None`)
 - HARC router stats smoke: `harc_router_stats_ready` (`6/6` checks)
+- HARC router solver: `harc_solver_missing_cache` (`0` delta tensors, KL `None` -> `None`, residual `None`)
+- HARC router solver smoke: `harc_solver_ready` (`6/6` checks, KL `0.0318062212318182` -> `6.153513822937384e-06`)
 - HARC readiness gate: `harc_ready_for_curvature_collection_waiting_cache` (`6/6` preconditions, cache `missing`, top layer `L17` score `0.7379048037035392`, first-stage layers `15`, action `collect_hessian_covariance_router_stats_then_run_harc_solver`)
 - HARC readiness smoke: `smoke_passed` (`4/4` cases)
 - Unified average optimizer: `built_waiting_for_qwen3_vllm_eval` (top next experiment `budgeted_qwen3_moe_downstream_eval` / `blocked_on_gpu_vllm`)
@@ -43,46 +45,48 @@
 
 | step | kind | status | returncode | seconds |
 | --- | --- | --- | ---: | ---: |
-| `build_candidate_trust_region_gate` | `gate` | `passed` | 0 | 0.46 |
+| `build_candidate_trust_region_gate` | `gate` | `passed` | 0 | 0.40 |
 | `plan_eval_budget` | `planner` | `passed` | 0 | 0.43 |
-| `audit_eval_bundles` | `gate` | `passed` | 0 | 0.41 |
+| `audit_eval_bundles` | `gate` | `passed` | 0 | 0.42 |
 | `select_unified_result` | `selector` | `passed` | 0 | 0.40 |
 | `select_final_candidate` | `selector` | `passed` | 0 | 0.41 |
-| `attribute_mechanism_effects` | `attribution` | `passed` | 0 | 0.45 |
-| `build_feedback_optimizer` | `optimizer` | `passed` | 0 | 1.08 |
-| `build_mechanistic_unified_candidate` | `optimizer` | `passed` | 0 | 2.62 |
-| `audit_mechanistic_evidence` | `attribution` | `passed` | 0 | 1.44 |
-| `analyze_mechanistic_sensitivity` | `attribution` | `passed` | 0 | 17.27 |
-| `analyze_router_expert_coupling` | `attribution` | `passed` | 0 | 0.82 |
-| `build_router_coupled_candidate` | `optimizer` | `passed` | 0 | 1.36 |
-| `analyze_router_coupled_retention_frontier` | `attribution` | `passed` | 0 | 3.67 |
-| `build_source_set_complementarity_gate` | `gate` | `passed` | 0 | 0.43 |
-| `build_average_source_set_optimizer` | `optimizer` | `passed` | 0 | 0.41 |
-| `build_qwen_source_discovery_plan` | `planner` | `passed` | 0 | 0.44 |
-| `build_qwen_source_discovery_eval_plan` | `planner` | `passed` | 0 | 0.47 |
-| `audit_qwen_source_discovery_served_model_preflight` | `gate` | `passed` | 0 | 0.47 |
-| `build_qwen_source_frontier_eval_feedback` | `gate` | `passed` | 0 | 0.46 |
-| `build_router_calibration_frontier` | `gate` | `passed` | 0 | 0.40 |
-| `collect_qwen3_moe_harc_router_stats` | `probe` | `passed` | 0 | 2.26 |
-| `build_qwen3_moe_harc_readiness_gate` | `gate` | `passed` | 0 | 0.44 |
-| `build_unified_average_optimizer` | `optimizer` | `passed` | 0 | 0.46 |
-| `build_average_method_gate_matrix` | `optimizer` | `passed` | 0 | 0.45 |
-| `build_average_trust_region_bounds` | `optimizer` | `passed` | 0 | 0.43 |
-| `analyze_mechanism_levers` | `attribution` | `passed` | 0 | 0.43 |
-| `audit_eval_bundles_smoke` | `smoke` | `passed` | 0 | 0.71 |
+| `attribute_mechanism_effects` | `attribution` | `passed` | 0 | 0.44 |
+| `build_feedback_optimizer` | `optimizer` | `passed` | 0 | 1.04 |
+| `build_mechanistic_unified_candidate` | `optimizer` | `passed` | 0 | 2.66 |
+| `audit_mechanistic_evidence` | `attribution` | `passed` | 0 | 1.43 |
+| `analyze_mechanistic_sensitivity` | `attribution` | `passed` | 0 | 17.14 |
+| `analyze_router_expert_coupling` | `attribution` | `passed` | 0 | 0.80 |
+| `build_router_coupled_candidate` | `optimizer` | `passed` | 0 | 1.27 |
+| `analyze_router_coupled_retention_frontier` | `attribution` | `passed` | 0 | 3.49 |
+| `build_source_set_complementarity_gate` | `gate` | `passed` | 0 | 0.40 |
+| `build_average_source_set_optimizer` | `optimizer` | `passed` | 0 | 0.44 |
+| `build_qwen_source_discovery_plan` | `planner` | `passed` | 0 | 0.42 |
+| `build_qwen_source_discovery_eval_plan` | `planner` | `passed` | 0 | 0.41 |
+| `audit_qwen_source_discovery_served_model_preflight` | `gate` | `passed` | 0 | 0.41 |
+| `build_qwen_source_frontier_eval_feedback` | `gate` | `passed` | 0 | 0.39 |
+| `build_router_calibration_frontier` | `gate` | `passed` | 0 | 0.45 |
+| `collect_qwen3_moe_harc_router_stats` | `probe` | `passed` | 0 | 2.17 |
+| `solve_qwen3_moe_harc_router_delta` | `optimizer` | `passed` | 0 | 3.56 |
+| `build_qwen3_moe_harc_readiness_gate` | `gate` | `passed` | 0 | 0.43 |
+| `build_unified_average_optimizer` | `optimizer` | `passed` | 0 | 0.50 |
+| `build_average_method_gate_matrix` | `optimizer` | `passed` | 0 | 0.40 |
+| `build_average_trust_region_bounds` | `optimizer` | `passed` | 0 | 0.40 |
+| `analyze_mechanism_levers` | `attribution` | `passed` | 0 | 0.44 |
+| `audit_eval_bundles_smoke` | `smoke` | `passed` | 0 | 0.74 |
 | `select_unified_result_smoke` | `smoke` | `passed` | 0 | 0.42 |
 | `select_final_candidate_smoke` | `smoke` | `passed` | 0 | 0.51 |
 | `eval_budget_queue_smoke` | `smoke` | `passed` | 0 | 0.43 |
-| `build_qwen_source_frontier_eval_feedback_smoke` | `smoke` | `passed` | 0 | 0.43 |
-| `collect_qwen3_moe_harc_router_stats_smoke` | `smoke` | `passed` | 0 | 2.32 |
-| `build_qwen3_moe_harc_readiness_gate_smoke` | `smoke` | `passed` | 0 | 0.48 |
-| `attribute_mechanism_effects_smoke` | `smoke` | `passed` | 0 | 0.42 |
-| `build_feedback_optimizer_smoke` | `smoke` | `passed` | 0 | 0.47 |
-| `build_mechanistic_unified_candidate_smoke` | `smoke` | `passed` | 0 | 1.62 |
-| `unified_average_optimizer_ledger_smoke` | `smoke` | `passed` | 0 | 0.46 |
-| `average_method_gate_matrix_consistency_smoke` | `smoke` | `passed` | 0 | 0.41 |
-| `average_trust_region_bounds_smoke` | `smoke` | `passed` | 0 | 0.42 |
-| `collect_results` | `summary` | `passed` | 0 | 1.80 |
+| `build_qwen_source_frontier_eval_feedback_smoke` | `smoke` | `passed` | 0 | 0.40 |
+| `collect_qwen3_moe_harc_router_stats_smoke` | `smoke` | `passed` | 0 | 2.13 |
+| `solve_qwen3_moe_harc_router_delta_smoke` | `smoke` | `passed` | 0 | 3.69 |
+| `build_qwen3_moe_harc_readiness_gate_smoke` | `smoke` | `passed` | 0 | 0.52 |
+| `attribute_mechanism_effects_smoke` | `smoke` | `passed` | 0 | 0.43 |
+| `build_feedback_optimizer_smoke` | `smoke` | `passed` | 0 | 0.48 |
+| `build_mechanistic_unified_candidate_smoke` | `smoke` | `passed` | 0 | 1.58 |
+| `unified_average_optimizer_ledger_smoke` | `smoke` | `passed` | 0 | 0.43 |
+| `average_method_gate_matrix_consistency_smoke` | `smoke` | `passed` | 0 | 0.43 |
+| `average_trust_region_bounds_smoke` | `smoke` | `passed` | 0 | 0.44 |
+| `collect_results` | `summary` | `passed` | 0 | 1.86 |
 
 ## Commands
 
@@ -107,6 +111,7 @@
 - `python scripts/build_qwen_source_frontier_eval_feedback.py --eval-jobs results/qwen_source_discovery_eval_plan/vllm_eval_jobs.csv --average-source-set-optimizer results/qwen3_average_source_set_optimizer/summary.json --output-dir results/qwen_source_frontier_eval_feedback`
 - `python scripts/build_qwen3_moe_router_calibration_frontier.py --output-dir results/qwen3_moe_router_calibration_frontier`
 - `python scripts/collect_qwen3_moe_harc_router_stats.py --output-dir results/qwen3_moe_harc_router_stats`
+- `python scripts/solve_qwen3_moe_harc_router_delta.py --output-dir results/qwen3_moe_harc_router_solver`
 - `python scripts/build_qwen3_moe_harc_readiness_gate.py --output-dir results/qwen3_moe_harc_readiness_gate --harc-stats-dir results/qwen3_moe_harc_router_stats --harc-stats-summary results/qwen3_moe_harc_router_stats/summary.json`
 - `python scripts/build_unified_average_optimizer.py --output-dir results/unified_average_optimizer --qwen-source-discovery-plan results/qwen_source_discovery_plan/summary.json --qwen-source-discovery-eval-plan results/qwen_source_discovery_eval_plan/summary.json --qwen-source-frontier-eval-feedback results/qwen_source_frontier_eval_feedback/summary.json --qwen3-router-calibration-frontier results/qwen3_moe_router_calibration_frontier/summary.json`
 - `python scripts/build_average_method_gate_matrix.py --output-dir results/average_method_gate_matrix --optimizer-summary results/unified_average_optimizer/summary.json --optimizer-features results/unified_average_optimizer/mechanism_features.csv`
@@ -118,6 +123,7 @@
 - `python scripts/smoke_qwen3_moe_eval_budget_queue.py --eval-budget-dir results/qwen3_moe_eval_budget_plan --candidate-trust-gate results/qwen3_moe_candidate_trust_region_gate/candidate_trust_region_gate.csv --output-dir results/qwen3_moe_eval_budget_queue_smoke`
 - `python scripts/build_qwen_source_frontier_eval_feedback.py --smoke-matrix --output-dir results/qwen_source_frontier_eval_feedback_smoke`
 - `python scripts/collect_qwen3_moe_harc_router_stats.py --smoke-matrix --output-dir results/qwen3_moe_harc_router_stats_smoke`
+- `python scripts/solve_qwen3_moe_harc_router_delta.py --smoke-matrix --output-dir results/qwen3_moe_harc_router_solver_smoke`
 - `python scripts/build_qwen3_moe_harc_readiness_gate.py --smoke-matrix --output-dir results/qwen3_moe_harc_readiness_gate_smoke`
 - `python scripts/attribute_qwen3_moe_mechanism_effects.py --smoke-matrix --output-dir results/qwen3_moe_mechanism_effect_attribution_smoke`
 - `python scripts/build_qwen3_moe_feedback_optimizer.py --smoke-matrix --output-dir results/qwen3_moe_feedback_optimizer_smoke`

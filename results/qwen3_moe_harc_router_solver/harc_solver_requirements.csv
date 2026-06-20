@@ -1,0 +1,7 @@
+requirement,passed,evidence,next_action
+router_cache_exists,False,cache=results/qwen3_moe_router_calibration_cache/router_calibration_cache.pt; exists=False,collect router calibration cache before solving HARC deltas
+base_checkpoint_exists,True,base=results/checkpoints/qwen3_moe_unified_mechanism_candidate; exists=True,point --base to the same-shape checkpoint whose routers will receive the delta
+router_tensors_loaded,False,routers=0; load_error=None,verify cache tensor names match the base checkpoint safetensors index
+cg_converged,False,max relative residual=n/a,increase --cg-max-iters or --ridge if residual is high
+kl_improved,False,KL n/a -> n/a,check cache/source mismatch if HARC does not improve route KL
+relative_norm_cap_respected,False,max cap utilization=n/a,lower --max-relative-norm or use a router cap table if needed
