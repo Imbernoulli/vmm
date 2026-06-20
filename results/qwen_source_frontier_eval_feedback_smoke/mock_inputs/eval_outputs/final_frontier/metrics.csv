@@ -1,0 +1,10 @@
+model,task,examples,accuracy
+model_a,gsm8k,8,0.9
+model_a,humaneval_compile,8,0.5
+model_a,mmlu,8,0.5
+model_b,gsm8k,8,0.5
+model_b,humaneval_compile,8,0.9
+model_b,mmlu,8,0.5
+model_c,gsm8k,8,0.5
+model_c,humaneval_compile,8,0.5
+model_c,mmlu,8,0.9

@@ -409,6 +409,146 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
     return summary
 
 
+def write_mock_eval(eval_dir: Path, models: list[str], metrics_by_model: dict[str, dict[str, float]]) -> None:
+    eval_dir.mkdir(parents=True, exist_ok=True)
+    rows = []
+    tasks = sorted({task for task_scores in metrics_by_model.values() for task in task_scores})
+    for model in models:
+        for task in tasks:
+            rows.append(
+                {
+                    "model": model,
+                    "task": task,
+                    "examples": 8,
+                    "accuracy": metrics_by_model[model][task],
+                }
+            )
+    pd.DataFrame(rows).to_csv(eval_dir / "metrics.csv", index=False)
+    (eval_dir / "summary.json").write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "status": "complete",
+                "models": models,
+                "model_count": len(models),
+                "tasks": ",".join(tasks),
+            },
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+
+def build_smoke(args: argparse.Namespace) -> dict[str, Any]:
+    output_dir = repo_path(args.output_dir)
+    input_dir = output_dir / "mock_inputs"
+    input_dir.mkdir(parents=True, exist_ok=True)
+    eval_root = input_dir / "eval_outputs"
+    jobs = pd.DataFrame(
+        [
+            {
+                "job_id": "final_frontier",
+                "scenario_id": "mock_final",
+                "served_models": "model_a,model_b,model_c",
+                "tasks": "gsm8k,humaneval_compile,mmlu",
+                "output_dir": rel(eval_root / "final_frontier"),
+            },
+            {
+                "job_id": "probe_frontier",
+                "scenario_id": "mock_probe",
+                "served_models": "model_a,model_b",
+                "tasks": "gsm8k,mmlu",
+                "output_dir": rel(eval_root / "probe_frontier"),
+            },
+            {
+                "job_id": "reject_frontier",
+                "scenario_id": "mock_reject",
+                "served_models": "model_a,model_b",
+                "tasks": "gsm8k,mmlu",
+                "output_dir": rel(eval_root / "reject_frontier"),
+            },
+        ]
+    )
+    jobs_path = input_dir / "vllm_eval_jobs.csv"
+    jobs.to_csv(jobs_path, index=False)
+    optimizer_path = input_dir / "average_source_set_optimizer_summary.json"
+    optimizer_path.write_text(
+        json.dumps({"schema_version": 1, "interference_budget": 0.15}, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    write_mock_eval(
+        eval_root / "final_frontier",
+        ["model_a", "model_b", "model_c"],
+        {
+            "model_a": {"gsm8k": 0.90, "humaneval_compile": 0.50, "mmlu": 0.50},
+            "model_b": {"gsm8k": 0.50, "humaneval_compile": 0.90, "mmlu": 0.50},
+            "model_c": {"gsm8k": 0.50, "humaneval_compile": 0.50, "mmlu": 0.90},
+        },
+    )
+    write_mock_eval(
+        eval_root / "probe_frontier",
+        ["model_a", "model_b"],
+        {
+            "model_a": {"gsm8k": 0.80, "mmlu": 0.60},
+            "model_b": {"gsm8k": 0.60, "mmlu": 0.80},
+        },
+    )
+    write_mock_eval(
+        eval_root / "reject_frontier",
+        ["model_a", "model_b"],
+        {
+            "model_a": {"gsm8k": 0.80, "mmlu": 0.80},
+            "model_b": {"gsm8k": 0.70, "mmlu": 0.70},
+        },
+    )
+    smoke_args = argparse.Namespace(
+        eval_jobs=jobs_path,
+        average_source_set_optimizer=optimizer_path,
+        output_dir=output_dir,
+        default_interference_budget=args.default_interference_budget,
+    )
+    summary = build(smoke_args)
+    job_feedback = read_csv(output_dir / "job_feedback.csv")
+    gates = {str(row["job_id"]): str(row["decision_gate"]) for _, row in job_feedback.iterrows()}
+    checks = {
+        "final_frontier_promoted": gates.get("final_frontier") == "final_average_budget_candidate",
+        "probe_frontier_probe_only": gates.get("probe_frontier") == "probe_only_below_interference_budget",
+        "reject_frontier_rejected": gates.get("reject_frontier") == "source_frontier_not_better_than_endpoint",
+        "scored_all_jobs": int(summary.get("scored_job_count") or 0) == 3,
+    }
+    checks["passed"] = all(checks.values())
+    summary.update(
+        {
+            "status": "smoke_passed" if checks["passed"] else "smoke_failed",
+            "smoke_checks": checks,
+            "smoke_input_dir": rel(input_dir),
+        }
+    )
+    (output_dir / "summary.json").write_text(
+        json.dumps(json_safe(summary), indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    report = (output_dir / "report.md").read_text(encoding="utf-8")
+    smoke_lines = [
+        "",
+        "## Smoke Checks",
+        "",
+        f"- Smoke status: `{summary['status']}`",
+        "",
+        "| check | passed |",
+        "| --- | --- |",
+    ]
+    for key, value in checks.items():
+        if key != "passed":
+            smoke_lines.append(f"| `{key}` | `{value}` |")
+    (output_dir / "report.md").write_text(report + "\n".join(smoke_lines) + "\n", encoding="utf-8")
+    if not checks["passed"]:
+        raise SystemExit(1)
+    return summary
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Build source-frontier average feedback from completed vLLM eval outputs.")
     parser.add_argument("--eval-jobs", type=Path, default=Path("results/qwen_source_discovery_eval_plan/vllm_eval_jobs.csv"))
@@ -419,12 +559,13 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--output-dir", type=Path, default=Path("results/qwen_source_frontier_eval_feedback"))
     parser.add_argument("--default-interference-budget", type=float, default=0.03)
+    parser.add_argument("--smoke-matrix", action="store_true")
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
-    summary = build(args)
+    summary = build_smoke(args) if args.smoke_matrix else build(args)
     print(f"Wrote Qwen source frontier eval feedback to {repo_path(args.output_dir).resolve()}")
     print(
         "Status: "

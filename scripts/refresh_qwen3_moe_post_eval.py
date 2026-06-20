@@ -435,6 +435,17 @@ def build_steps(args: argparse.Namespace) -> list[dict[str, Any]]:
                     ],
                 },
                 {
+                    "step": "build_qwen_source_frontier_eval_feedback_smoke",
+                    "kind": "smoke",
+                    "command": [
+                        py,
+                        "scripts/build_qwen_source_frontier_eval_feedback.py",
+                        "--smoke-matrix",
+                        "--output-dir",
+                        str(args.qwen_source_frontier_eval_feedback_smoke_dir),
+                    ],
+                },
+                {
                     "step": "attribute_mechanism_effects_smoke",
                     "kind": "smoke",
                     "command": [
@@ -551,6 +562,9 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
     )
     qwen_source_frontier_eval_feedback = read_json(
         repo_path(args.qwen_source_frontier_eval_feedback_dir) / "summary.json"
+    )
+    qwen_source_frontier_eval_feedback_smoke = read_json(
+        repo_path(args.qwen_source_frontier_eval_feedback_smoke_dir) / "summary.json"
     )
     router_calibration_frontier = read_json(
         repo_path(args.router_calibration_frontier_dir) / "summary.json"
@@ -778,6 +792,21 @@ def downstream_status(args: argparse.Namespace) -> dict[str, Any]:
         "qwen_source_frontier_eval_feedback_blocker": qwen_source_frontier_eval_feedback.get(
             "blocking_reason"
         ),
+        "qwen_source_frontier_eval_feedback_smoke_status": qwen_source_frontier_eval_feedback_smoke.get(
+            "status"
+        ),
+        "qwen_source_frontier_eval_feedback_smoke_passed": (
+            qwen_source_frontier_eval_feedback_smoke.get("smoke_checks") or {}
+        ).get("passed"),
+        "qwen_source_frontier_eval_feedback_smoke_scored": qwen_source_frontier_eval_feedback_smoke.get(
+            "scored_job_count"
+        ),
+        "qwen_source_frontier_eval_feedback_smoke_jobs": qwen_source_frontier_eval_feedback_smoke.get(
+            "job_count"
+        ),
+        "qwen_source_frontier_eval_feedback_smoke_final_candidates": (
+            qwen_source_frontier_eval_feedback_smoke.get("final_average_budget_candidate_count")
+        ),
         "router_calibration_frontier_status": router_calibration_frontier.get("status"),
         "router_calibration_frontier_default_candidates": router_calibration_frontier.get(
             "default_candidate_count"
@@ -872,6 +901,7 @@ def build_report(summary: dict[str, Any]) -> str:
         f"- Qwen source discovery eval plan: `{downstream.get('qwen_source_discovery_eval_plan_status', 'n/a')}` (`{downstream.get('qwen_source_discovery_eval_plan_job_count', 'n/a')}` jobs, top `{downstream.get('qwen_source_discovery_eval_plan_top_job', 'n/a')}`, tasks `{downstream.get('qwen_source_discovery_eval_plan_tasks', 'n/a')}`, task names `{downstream.get('qwen_source_discovery_eval_plan_task_status', 'n/a')}`)",
         f"- Qwen source discovery served-model preflight: `{downstream.get('qwen_source_discovery_served_preflight_status', 'n/a')}` (endpoint `{downstream.get('qwen_source_discovery_served_preflight_endpoint', 'n/a')}`, required `{downstream.get('qwen_source_discovery_served_preflight_required', 'n/a')}`, missing `{downstream.get('qwen_source_discovery_served_preflight_missing', 'n/a')}`, manifests `{downstream.get('qwen_source_discovery_served_preflight_ready_manifests', 'n/a')}/{downstream.get('qwen_source_discovery_served_preflight_manifests', 'n/a')}`, blocker `{downstream.get('qwen_source_discovery_served_preflight_blocker', 'n/a')}`)",
         f"- Qwen source frontier eval feedback: `{downstream.get('qwen_source_frontier_eval_feedback_status', 'n/a')}` (scored `{downstream.get('qwen_source_frontier_eval_feedback_scored', 'n/a')}/{downstream.get('qwen_source_frontier_eval_feedback_jobs', 'n/a')}`, final candidates `{downstream.get('qwen_source_frontier_eval_feedback_final_candidates', 'n/a')}`, probe-only `{downstream.get('qwen_source_frontier_eval_feedback_probe_only', 'n/a')}`, top `{downstream.get('qwen_source_frontier_eval_feedback_top_job', 'n/a')}` / `{downstream.get('qwen_source_frontier_eval_feedback_top_gate', 'n/a')}`, surplus `{downstream.get('qwen_source_frontier_eval_feedback_top_surplus', 'n/a')}`, blocker `{downstream.get('qwen_source_frontier_eval_feedback_blocker', 'n/a')}`)",
+        f"- Qwen source frontier eval feedback smoke: `{downstream.get('qwen_source_frontier_eval_feedback_smoke_status', 'n/a')}` (passed `{downstream.get('qwen_source_frontier_eval_feedback_smoke_passed', 'n/a')}`, scored `{downstream.get('qwen_source_frontier_eval_feedback_smoke_scored', 'n/a')}/{downstream.get('qwen_source_frontier_eval_feedback_smoke_jobs', 'n/a')}`, final candidates `{downstream.get('qwen_source_frontier_eval_feedback_smoke_final_candidates', 'n/a')}`)",
         f"- Router calibration frontier: `{downstream.get('router_calibration_frontier_status', 'n/a')}` (`{downstream.get('router_calibration_frontier_default_candidates', 'n/a')}/{downstream.get('router_calibration_frontier_candidate_count', 'n/a')}` default, recommended `{downstream.get('router_calibration_frontier_recommended', 'n/a')}`, blocker `{downstream.get('router_calibration_frontier_blocker', 'n/a')}`, nll `{downstream.get('router_calibration_frontier_nll_signal', 'n/a')}`, generation `{downstream.get('router_calibration_frontier_generation_signal', 'n/a')}`)",
         f"- Unified average optimizer: `{downstream.get('unified_optimizer_status', 'n/a')}` (top next experiment `{downstream.get('unified_optimizer_top_experiment', 'n/a')}` / `{downstream.get('unified_optimizer_top_experiment_status', 'n/a')}`)",
         f"- Unified algorithm contract: `{downstream.get('unified_optimizer_contract_status', 'n/a')}` (`{downstream.get('unified_optimizer_contract_passed', 'n/a')}/{downstream.get('unified_optimizer_contract_requirements', 'n/a')}` passed, blocking `{downstream.get('unified_optimizer_contract_blocking', [])}`)",
@@ -1005,6 +1035,11 @@ def parse_args() -> argparse.Namespace:
         "--qwen-source-frontier-eval-feedback-dir",
         type=Path,
         default=Path("results/qwen_source_frontier_eval_feedback"),
+    )
+    parser.add_argument(
+        "--qwen-source-frontier-eval-feedback-smoke-dir",
+        type=Path,
+        default=Path("results/qwen_source_frontier_eval_feedback_smoke"),
     )
     parser.add_argument(
         "--router-calibration-frontier-dir",

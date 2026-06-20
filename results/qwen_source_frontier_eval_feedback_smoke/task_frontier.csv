@@ -1,0 +1,8 @@
+job_id,scenario_id,task,frontier_source_model,frontier_score,primary_metric,observed_model_count,expected_models
+final_frontier,mock_final,gsm8k,model_a,0.9,accuracy,3,"model_a,model_b,model_c"
+final_frontier,mock_final,humaneval_compile,model_b,0.9,accuracy,3,"model_a,model_b,model_c"
+final_frontier,mock_final,mmlu,model_c,0.9,accuracy,3,"model_a,model_b,model_c"
+probe_frontier,mock_probe,gsm8k,model_a,0.8,accuracy,2,"model_a,model_b"
+probe_frontier,mock_probe,mmlu,model_b,0.8,accuracy,2,"model_a,model_b"
+reject_frontier,mock_reject,gsm8k,model_a,0.8,accuracy,2,"model_a,model_b"
+reject_frontier,mock_reject,mmlu,model_a,0.8,accuracy,2,"model_a,model_b"

@@ -1,0 +1,5 @@
+model,task,examples,accuracy
+model_a,gsm8k,8,0.8
+model_a,mmlu,8,0.6
+model_b,gsm8k,8,0.6
+model_b,mmlu,8,0.8

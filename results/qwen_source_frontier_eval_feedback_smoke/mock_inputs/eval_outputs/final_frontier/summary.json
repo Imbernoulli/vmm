@@ -1,0 +1,11 @@
+{
+  "model_count": 3,
+  "models": [
+    "model_a",
+    "model_b",
+    "model_c"
+  ],
+  "schema_version": 1,
+  "status": "complete",
+  "tasks": "gsm8k,humaneval_compile,mmlu"
+}

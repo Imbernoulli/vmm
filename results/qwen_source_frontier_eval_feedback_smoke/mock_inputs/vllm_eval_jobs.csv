@@ -1,0 +1,4 @@
+job_id,scenario_id,served_models,tasks,output_dir
+final_frontier,mock_final,"model_a,model_b,model_c","gsm8k,humaneval_compile,mmlu",results/qwen_source_frontier_eval_feedback_smoke/mock_inputs/eval_outputs/final_frontier
+probe_frontier,mock_probe,"model_a,model_b","gsm8k,mmlu",results/qwen_source_frontier_eval_feedback_smoke/mock_inputs/eval_outputs/probe_frontier
+reject_frontier,mock_reject,"model_a,model_b","gsm8k,mmlu",results/qwen_source_frontier_eval_feedback_smoke/mock_inputs/eval_outputs/reject_frontier
