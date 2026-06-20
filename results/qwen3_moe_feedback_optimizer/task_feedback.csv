@@ -1,5 +1,5 @@
 task,family,candidate_method,candidate_score,source_frontier_score,source_frontier_method,delta_vs_source_frontier,feedback_status,feedback_pressure,regression_action,paired_shared_examples,paired_candidate_only_correct,paired_source_only_correct,paired_net_delta
-gsm8k,math,qwen3_moe_unified_mechanism_candidate,,,,,awaiting_eval,0.0,none,0,0,0,
-mmlu,general,qwen3_moe_unified_mechanism_candidate,,,,,awaiting_eval,0.0,none,0,0,0,
-safety,safety,qwen3_moe_unified_mechanism_candidate,,,,,awaiting_eval,0.0,none,0,0,0,
-humaneval_compile,code,qwen3_moe_unified_mechanism_candidate,,,,,awaiting_eval,0.0,none,0,0,0,
+gsm8k,math,qwen3_moe_mechanistic_unified_candidate,,,,,awaiting_eval,0.0,none,0,0,0,
+mmlu,general,qwen3_moe_mechanistic_unified_candidate,,,,,awaiting_eval,0.0,none,0,0,0,
+safety,safety,qwen3_moe_mechanistic_unified_candidate,,,,,awaiting_eval,0.0,none,0,0,0,
+humaneval_compile,code,qwen3_moe_mechanistic_unified_candidate,,,,,awaiting_eval,0.0,none,0,0,0,

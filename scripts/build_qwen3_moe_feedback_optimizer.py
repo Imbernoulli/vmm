@@ -14,10 +14,25 @@ import pandas as pd
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SOURCE_METHODS = ["source_qwen3_30b_instruct", "source_qwen3_30b_coder"]
-DEFAULT_CANDIDATE = "qwen3_moe_unified_mechanism_candidate"
+AUTO_CANDIDATE = "auto"
+DEFAULT_FEEDBACK_CANDIDATE = "qwen3_moe_mechanistic_unified_candidate"
 BASE_SOURCE = "instruct"
 NONBASE_SOURCE = "coder"
 EPS = 1e-12
+FEEDBACK_BASES = [
+    {
+        "method": "qwen3_moe_mechanistic_unified_candidate",
+        "group_rules": "results/qwen3_moe_mechanistic_unified_candidate/mechanistic_group_rules.csv",
+        "writer_command": "results/qwen3_moe_mechanistic_unified_candidate/writer_command.txt",
+        "base_priority": 1.0,
+    },
+    {
+        "method": "qwen3_moe_unified_mechanism_candidate",
+        "group_rules": "results/qwen3_moe_unified_mechanism_candidate/unified_group_rules.csv",
+        "writer_command": "results/qwen3_moe_unified_mechanism_candidate/writer_command.txt",
+        "base_priority": 0.6,
+    },
+]
 
 TASKS = {
     "gsm8k": {
@@ -133,6 +148,17 @@ def robust01(series: pd.Series) -> pd.Series:
     if hi <= lo + EPS:
         return pd.Series(0.0, index=values.index)
     return ((values - lo) / (hi - lo)).clip(0.0, 1.0)
+
+
+def bool_value(value: Any) -> bool:
+    value = clean_value(value)
+    if value is None:
+        return False
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return bool(value)
+    return str(value).strip().lower() in {"1", "true", "yes", "y"}
 
 
 def primary_metric(row: pd.Series | dict[str, Any]) -> tuple[str, float] | None:
@@ -316,8 +342,188 @@ def build_task_feedback(
     return pd.DataFrame(out)
 
 
-def load_group_rules(unified_group_rules: Path, expert_context: Path) -> pd.DataFrame:
-    groups = pd.read_csv(repo_path(unified_group_rules))
+def known_feedback_base(method: str) -> dict[str, Any] | None:
+    for item in FEEDBACK_BASES:
+        if item["method"] == method:
+            return item
+    return None
+
+
+def resolve_feedback_base(
+    args: argparse.Namespace,
+    rows: dict[str, dict[str, Any]],
+) -> dict[str, Any]:
+    structural = read_csv(args.structural_dominance)
+    delta_frontier = read_csv(args.delta_frontier)
+    requested = str(args.candidate_method)
+    if requested != AUTO_CANDIDATE:
+        base = known_feedback_base(requested)
+        group_rules = args.group_rules or (Path(base["group_rules"]) if base else None)
+        writer_command = args.writer_context_command or (Path(base["writer_command"]) if base else None)
+        if group_rules is None or writer_command is None:
+            raise ValueError(
+                "Explicit candidate requires --group-rules and --writer-context-command "
+                "unless it is a known feedback base."
+            )
+        return {
+            "candidate_method": requested,
+            "requested_candidate_method": requested,
+            "feedback_base_selection_status": "explicit_candidate",
+            "feedback_base_selection_reason": "candidate_method_explicit",
+            "feedback_base_structural_frontier_member": None,
+            "feedback_base_structurally_dominated": None,
+            "feedback_base_structural_safety_score": None,
+            "group_rules": repo_path(group_rules),
+            "writer_context_command": repo_path(writer_command),
+            "candidate_rows_considered": [],
+        }
+
+    candidates = []
+    for base in FEEDBACK_BASES:
+        method = str(base["method"])
+        group_path = repo_path(base["group_rules"])
+        writer_path = repo_path(base["writer_command"])
+        if method not in rows:
+            continue
+        if not group_path.exists() or not writer_path.exists():
+            continue
+        structural_row = (
+            structural[structural["method"].astype(str).eq(method)].iloc[0].to_dict()
+            if not structural.empty and "method" in structural and structural["method"].astype(str).eq(method).any()
+            else {}
+        )
+        delta_row = (
+            delta_frontier[delta_frontier["method"].astype(str).eq(method)].iloc[0].to_dict()
+            if not delta_frontier.empty
+            and "method" in delta_frontier
+            and delta_frontier["method"].astype(str).eq(method).any()
+            else {}
+        )
+        dominated = bool_value(structural_row.get("structurally_dominated"))
+        frontier_member = not dominated if structural_row else None
+        safety_score = maybe_float(structural_row.get("structural_safety_score"))
+        total_delta = maybe_float(delta_row.get("total_relative_delta_norm"))
+        score = float(base.get("base_priority", 0.0))
+        if safety_score is not None:
+            score += 0.30 * safety_score
+        if total_delta is not None:
+            score += 0.05 * max(0.0, min(1.0, (0.30 - total_delta) / 0.10))
+        if frontier_member is True:
+            score += 0.30
+        if dominated:
+            score -= 0.30
+        candidates.append(
+            {
+                "method": method,
+                "selection_score": score,
+                "group_rules": group_path,
+                "writer_context_command": writer_path,
+                "structural_frontier_member": frontier_member,
+                "structurally_dominated": dominated if structural_row else None,
+                "structural_safety_score": safety_score,
+                "total_relative_delta_norm": total_delta,
+                "base_priority": float(base.get("base_priority", 0.0)),
+            }
+        )
+    if not candidates:
+        fallback = known_feedback_base(DEFAULT_FEEDBACK_CANDIDATE)
+        if fallback is None:
+            raise ValueError("No known feedback base is configured.")
+        return {
+            "candidate_method": DEFAULT_FEEDBACK_CANDIDATE,
+            "requested_candidate_method": requested,
+            "feedback_base_selection_status": "fallback_no_candidate_rows",
+            "feedback_base_selection_reason": "no known feedback base was present in the eval gate rows",
+            "feedback_base_structural_frontier_member": None,
+            "feedback_base_structurally_dominated": None,
+            "feedback_base_structural_safety_score": None,
+            "group_rules": repo_path(fallback["group_rules"]),
+            "writer_context_command": repo_path(fallback["writer_command"]),
+            "candidate_rows_considered": [],
+        }
+    selected = max(candidates, key=lambda item: (item["selection_score"], item["base_priority"], item["method"]))
+    reason = (
+        "selected highest-scoring known group-rule candidate using structural dominance; "
+        f"frontier={selected['structural_frontier_member']}, dominated={selected['structurally_dominated']}"
+    )
+    return {
+        "candidate_method": selected["method"],
+        "requested_candidate_method": requested,
+        "feedback_base_selection_status": "auto_selected",
+        "feedback_base_selection_reason": reason,
+        "feedback_base_structural_frontier_member": selected["structural_frontier_member"],
+        "feedback_base_structurally_dominated": selected["structurally_dominated"],
+        "feedback_base_structural_safety_score": selected["structural_safety_score"],
+        "group_rules": selected["group_rules"],
+        "writer_context_command": selected["writer_context_command"],
+        "candidate_rows_considered": [
+            {
+                "method": item["method"],
+                "selection_score": item["selection_score"],
+                "structural_frontier_member": item["structural_frontier_member"],
+                "structurally_dominated": item["structurally_dominated"],
+                "structural_safety_score": item["structural_safety_score"],
+                "total_relative_delta_norm": item["total_relative_delta_norm"],
+            }
+            for item in sorted(candidates, key=lambda row: row["selection_score"], reverse=True)
+        ],
+    }
+
+
+def normalize_group_rule_columns(groups: pd.DataFrame) -> pd.DataFrame:
+    groups = groups.copy()
+    aliases = {
+        "selected_scale": ["mechanistic_selected_scale", "prior_scale"],
+        "selected_weight_coder": ["mechanistic_weight_coder", "prior_weight_coder"],
+        "selected_weight_instruct": ["mechanistic_weight_instruct", "prior_weight_instruct"],
+        "selected_expected_max_relative_delta_norm": [
+            "mechanistic_expected_max_relative_delta_norm"
+        ],
+    }
+    for target, sources in aliases.items():
+        if target in groups.columns:
+            continue
+        for source in sources:
+            if source in groups.columns:
+                groups[target] = groups[source]
+                break
+    if "mechanism_risk_score" not in groups.columns:
+        risk_columns = [
+            "interference_score",
+            "curvature_score",
+            "feature_subspace_conflict",
+            "feature_expert_route_geometry",
+            "feature_expert_internal_geometry",
+            "feature_router_instability",
+            "route_mass_pressure",
+            "load_pressure",
+            "delta_pressure",
+        ]
+        present = [column for column in risk_columns if column in groups.columns]
+        if present:
+            risk = pd.Series(0.0, index=groups.index)
+            weights = {
+                "interference_score": 0.22,
+                "curvature_score": 0.18,
+                "feature_subspace_conflict": 0.14,
+                "feature_expert_route_geometry": 0.12,
+                "feature_expert_internal_geometry": 0.12,
+                "feature_router_instability": 0.10,
+                "route_mass_pressure": 0.05,
+                "load_pressure": 0.04,
+                "delta_pressure": 0.03,
+            }
+            used_weight = 0.0
+            for column in present:
+                weight = weights[column]
+                risk += weight * pd.to_numeric(groups[column], errors="coerce").fillna(0.0).clip(0.0, 1.0)
+                used_weight += weight
+            groups["mechanism_risk_score"] = (risk / max(EPS, used_weight)).clip(0.0, 1.0)
+    return groups
+
+
+def load_group_rules(group_rules: Path, expert_context: Path) -> pd.DataFrame:
+    groups = normalize_group_rule_columns(pd.read_csv(repo_path(group_rules)))
     context = pd.read_csv(repo_path(expert_context))
     keep = [
         "layer_id",
@@ -557,6 +763,8 @@ def build_report(summary: dict[str, Any], task_feedback: pd.DataFrame, updates: 
         "",
         f"- Status: `{summary['status']}`",
         f"- Candidate method: `{summary['candidate_method']}`",
+        f"- Feedback base selection: `{summary['feedback_base_selection_status']}`",
+        f"- Feedback base frontier/dominated: `{summary['feedback_base_structural_frontier_member']}` / `{summary['feedback_base_structurally_dominated']}`",
         f"- Scored tasks: `{summary['scored_task_count']}/{summary['task_count']}`",
         f"- Regression tasks: `{summary['regression_task_count']}`",
         f"- Changed expert groups: `{summary['changed_group_count']}`",
@@ -601,14 +809,15 @@ def run_real(args: argparse.Namespace) -> None:
     output_dir = repo_path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     rows = load_method_rows(args.gate_dir, args.audit_dir)
+    feedback_base = resolve_feedback_base(args, rows)
     task_feedback = build_task_feedback(
         rows,
-        candidate_method=args.candidate_method,
+        candidate_method=feedback_base["candidate_method"],
         regression_margin=args.regression_margin,
         improvement_margin=args.improvement_margin,
         pressure_scale=args.pressure_scale,
     )
-    groups = load_group_rules(args.unified_group_rules, args.expert_context)
+    groups = load_group_rules(feedback_base["group_rules"], args.expert_context)
     feedback_groups, updates = apply_feedback_to_groups(
         groups,
         task_feedback,
@@ -633,11 +842,28 @@ def run_real(args: argparse.Namespace) -> None:
     task_feedback.to_csv(task_path, index=False)
     updates.to_csv(update_path, index=False)
     feedback_groups.to_csv(group_path, index=False)
-    artifacts = write_tensor_rules_and_commands(feedback_groups, output_dir, args.writer_context_command)
+    artifacts = write_tensor_rules_and_commands(
+        feedback_groups,
+        output_dir,
+        feedback_base["writer_context_command"],
+    )
     summary = {
         "schema_version": 1,
         "status": status,
-        "candidate_method": args.candidate_method,
+        "candidate_method": feedback_base["candidate_method"],
+        "requested_candidate_method": feedback_base["requested_candidate_method"],
+        "feedback_base_selection_status": feedback_base["feedback_base_selection_status"],
+        "feedback_base_selection_reason": feedback_base["feedback_base_selection_reason"],
+        "feedback_base_structural_frontier_member": feedback_base[
+            "feedback_base_structural_frontier_member"
+        ],
+        "feedback_base_structurally_dominated": feedback_base["feedback_base_structurally_dominated"],
+        "feedback_base_structural_safety_score": feedback_base[
+            "feedback_base_structural_safety_score"
+        ],
+        "feedback_base_candidate_rows_considered": feedback_base["candidate_rows_considered"],
+        "group_rules_source": rel(feedback_base["group_rules"]),
+        "writer_context_command_source": rel(feedback_base["writer_context_command"]),
         "materialization_gate": "materialize_feedback_candidate"
         if status == "feedback_rules_ready"
         else "do_not_materialize_feedback_candidate_yet",
@@ -726,7 +952,7 @@ def integration_smoke_rows(args: argparse.Namespace) -> list[dict[str, Any]]:
                     {"task": "humaneval_compile", "task_id": "h1", "compile_ok": True},
                 ],
             },
-            DEFAULT_CANDIDATE: {
+            DEFAULT_FEEDBACK_CANDIDATE: {
                 "scores": {
                     "gsm8k": 0.82,
                     "mmlu": 0.79,
@@ -760,7 +986,7 @@ def integration_smoke_rows(args: argparse.Namespace) -> list[dict[str, Any]]:
         loaded = load_method_rows(gate_dir, audit_dir)
         task_feedback = build_task_feedback(
             loaded,
-            candidate_method=DEFAULT_CANDIDATE,
+            candidate_method=DEFAULT_FEEDBACK_CANDIDATE,
             regression_margin=args.regression_margin,
             improvement_margin=args.improvement_margin,
             pressure_scale=args.pressure_scale,
@@ -967,6 +1193,37 @@ def run_smoke(args: argparse.Namespace) -> None:
         max_restore_step=args.max_restore_step,
         max_shrink_step=args.max_shrink_step,
     )
+    mechanistic_rules = normalize_group_rule_columns(
+        pd.DataFrame(
+            [
+                {
+                    "layer_id": 1,
+                    "expert_id": 7,
+                    "dominant_source": "coder",
+                    "dominant_category": "code",
+                    "original_weight_instruct": 0.20,
+                    "original_weight_coder": 0.70,
+                    "mechanistic_selected_scale": 0.64,
+                    "mechanistic_weight_instruct": 0.20,
+                    "mechanistic_weight_coder": 0.448,
+                    "mechanistic_expected_max_relative_delta_norm": 0.61,
+                    "audit_max_relative_delta_norm": 0.95,
+                    "interference_score": 0.70,
+                    "curvature_score": 0.60,
+                    "feature_subspace_conflict": 0.80,
+                    "feature_expert_internal_geometry": 0.40,
+                    "tensor_pattern": ".*layers\\.1\\..*experts\\.7\\..*",
+                }
+            ]
+        )
+    )
+    auto_base = resolve_feedback_base(
+        args,
+        {
+            "qwen3_moe_unified_mechanism_candidate": {},
+            "qwen3_moe_mechanistic_unified_candidate": {},
+        },
+    )
     matrix = pd.DataFrame(
         [
             {
@@ -996,6 +1253,27 @@ def run_smoke(args: argparse.Namespace) -> None:
                 "expected": "0 changed groups",
                 "actual": str(int((empty_adjusted["feedback_scale_delta"].abs() > 1e-9).sum())),
                 "passed": int((empty_adjusted["feedback_scale_delta"].abs() > 1e-9).sum()) == 0,
+            },
+            {
+                "case": "mechanistic_group_rules",
+                "assertion": "mechanistic_scale_normalized",
+                "expected": "0.640000",
+                "actual": f"{float(mechanistic_rules['selected_scale'].iloc[0]):.6f}",
+                "passed": abs(float(mechanistic_rules["selected_scale"].iloc[0]) - 0.64) <= 1e-12,
+            },
+            {
+                "case": "mechanistic_group_rules",
+                "assertion": "mechanistic_weight_normalized",
+                "expected": "0.448000",
+                "actual": f"{float(mechanistic_rules['selected_weight_coder'].iloc[0]):.6f}",
+                "passed": abs(float(mechanistic_rules["selected_weight_coder"].iloc[0]) - 0.448) <= 1e-12,
+            },
+            {
+                "case": "auto_feedback_base",
+                "assertion": "mechanistic_selected",
+                "expected": "qwen3_moe_mechanistic_unified_candidate",
+                "actual": str(auto_base["candidate_method"]),
+                "passed": str(auto_base["candidate_method"]) == "qwen3_moe_mechanistic_unified_candidate",
             },
         ]
     )
@@ -1040,9 +1318,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--gate-dir", type=Path, default=Path("results/qwen3_moe_mechanism_eval_gate"))
     parser.add_argument("--audit-dir", type=Path, default=Path("results/qwen3_moe_eval_bundle_audit"))
     parser.add_argument(
+        "--group-rules",
         "--unified-group-rules",
+        dest="group_rules",
         type=Path,
-        default=Path("results/qwen3_moe_unified_mechanism_candidate/unified_group_rules.csv"),
+        default=None,
     )
     parser.add_argument(
         "--expert-context",
@@ -1052,9 +1332,19 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--writer-context-command",
         type=Path,
-        default=Path("results/qwen3_moe_unified_mechanism_candidate/writer_command.txt"),
+        default=None,
     )
-    parser.add_argument("--candidate-method", default=DEFAULT_CANDIDATE)
+    parser.add_argument("--candidate-method", default=AUTO_CANDIDATE)
+    parser.add_argument(
+        "--delta-frontier",
+        type=Path,
+        default=Path("results/qwen3_moe_delta_frontier/candidate_delta_frontier.csv"),
+    )
+    parser.add_argument(
+        "--structural-dominance",
+        type=Path,
+        default=Path("results/qwen3_moe_delta_frontier/structural_dominance.csv"),
+    )
     parser.add_argument("--output-dir", type=Path, default=Path("results/qwen3_moe_feedback_optimizer"))
     parser.add_argument("--hard-cap", type=float, default=0.65)
     parser.add_argument("--regression-margin", type=float, default=0.02)

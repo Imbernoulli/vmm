@@ -2212,6 +2212,17 @@ def summarize_qwen3_moe_feedback_optimizer() -> dict[str, Any]:
         "summary": summary,
         "status": summary.get("status"),
         "candidate_method": summary.get("candidate_method"),
+        "requested_candidate_method": summary.get("requested_candidate_method"),
+        "feedback_base_selection_status": summary.get("feedback_base_selection_status"),
+        "feedback_base_structural_frontier_member": summary.get(
+            "feedback_base_structural_frontier_member"
+        ),
+        "feedback_base_structurally_dominated": summary.get("feedback_base_structurally_dominated"),
+        "feedback_base_structural_safety_score": maybe_float(
+            summary.get("feedback_base_structural_safety_score")
+        ),
+        "group_rules_source": summary.get("group_rules_source"),
+        "writer_context_command_source": summary.get("writer_context_command_source"),
         "materialization_gate": summary.get("materialization_gate"),
         "task_count": int(summary.get("task_count", len(task_feedback))),
         "scored_task_count": int(summary.get("scored_task_count", 0)),
@@ -6094,6 +6105,13 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"/{qwen3_moe_feedback_optimizer['task_count']} / "
                 f"{qwen3_moe_feedback_optimizer['regression_task_count']} / "
                 f"{qwen3_moe_feedback_optimizer['changed_group_count']} |"
+            ),
+            (
+                "| Qwen3 MoE feedback optimizer | candidate / base selection / frontier-dominated | "
+                f"{qwen3_moe_feedback_optimizer['candidate_method']} / "
+                f"{qwen3_moe_feedback_optimizer['feedback_base_selection_status']} / "
+                f"{qwen3_moe_feedback_optimizer['feedback_base_structural_frontier_member']}"
+                f"-{qwen3_moe_feedback_optimizer['feedback_base_structurally_dominated']} |"
             ),
             (
                 "| Qwen3 MoE feedback optimizer | materialization gate | "

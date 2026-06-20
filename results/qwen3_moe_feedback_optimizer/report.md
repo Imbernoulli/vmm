@@ -3,13 +3,15 @@
 This stage is the downstream-feedback half of the MoE averaging rule. It does not pick an algorithm name; it converts scored vLLM source-frontier regressions into bounded expert-rule updates.
 
 - Status: `awaiting_eval`
-- Candidate method: `qwen3_moe_unified_mechanism_candidate`
+- Candidate method: `qwen3_moe_mechanistic_unified_candidate`
+- Feedback base selection: `auto_selected`
+- Feedback base frontier/dominated: `True` / `False`
 - Scored tasks: `0/4`
 - Regression tasks: `0`
 - Changed expert groups: `0`
 - Materialization gate: `do_not_materialize_feedback_candidate_yet`
 - Route-mass nonbase ratio after feedback: `1.0000`
-- Max expected relative delta after feedback: `0.6438`
+- Max expected relative delta after feedback: `0.6490`
 - Groups over hard cap after feedback: `0`
 
 ## Task Feedback

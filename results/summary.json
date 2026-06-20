@@ -17155,25 +17155,55 @@
       "total_coder_weight_reduction": 0.25307829145142763
     },
     "qwen3_moe_feedback_optimizer": {
-      "candidate_method": "qwen3_moe_unified_mechanism_candidate",
+      "candidate_method": "qwen3_moe_mechanistic_unified_candidate",
       "changed_group_count": 0,
       "feature_update_summary": "results/qwen3_moe_feedback_optimizer/feature_update_summary.csv",
+      "feedback_base_selection_status": "auto_selected",
+      "feedback_base_structural_frontier_member": true,
+      "feedback_base_structural_safety_score": 0.988643592739873,
+      "feedback_base_structurally_dominated": false,
       "feedback_group_rules": "results/qwen3_moe_feedback_optimizer/feedback_group_rules.csv",
+      "group_rules_source": "results/qwen3_moe_mechanistic_unified_candidate/mechanistic_group_rules.csv",
       "groups_over_hard_cap_after_feedback": 0,
       "materialization_gate": "do_not_materialize_feedback_candidate_yet",
-      "max_feedback_expected_relative_delta": 0.6438448490662684,
+      "max_feedback_expected_relative_delta": 0.6490000000000001,
       "regression_task_count": 0,
       "report": "results/qwen3_moe_feedback_optimizer/report.md",
-      "route_mass_weighted_nonbase_ratio": 1.0,
+      "requested_candidate_method": "auto",
+      "route_mass_weighted_nonbase_ratio": 1.0000000000000002,
       "scored_task_count": 0,
       "status": "awaiting_eval",
       "summary": {
-        "candidate_method": "qwen3_moe_unified_mechanism_candidate",
+        "candidate_method": "qwen3_moe_mechanistic_unified_candidate",
         "changed_group_count": 0,
+        "feedback_base_candidate_rows_considered": [
+          {
+            "method": "qwen3_moe_mechanistic_unified_candidate",
+            "selection_score": 1.6274803095454906,
+            "structural_frontier_member": true,
+            "structural_safety_score": 0.988643592739873,
+            "structurally_dominated": false,
+            "total_relative_delta_norm": 0.2382255365529426
+          },
+          {
+            "method": "qwen3_moe_unified_mechanism_candidate",
+            "selection_score": 0.6220610438210432,
+            "structural_frontier_member": false,
+            "structural_safety_score": 0.974167520902644,
+            "structurally_dominated": true,
+            "total_relative_delta_norm": 0.2403784248994999
+          }
+        ],
+        "feedback_base_selection_reason": "selected highest-scoring known group-rule candidate using structural dominance; frontier=True, dominated=False",
+        "feedback_base_selection_status": "auto_selected",
+        "feedback_base_structural_frontier_member": true,
+        "feedback_base_structural_safety_score": 0.988643592739873,
+        "feedback_base_structurally_dominated": false,
+        "group_rules_source": "results/qwen3_moe_mechanistic_unified_candidate/mechanistic_group_rules.csv",
         "groups_over_hard_cap_after_feedback": 0,
         "hard_cap": 0.65,
         "materialization_gate": "do_not_materialize_feedback_candidate_yet",
-        "max_feedback_expected_relative_delta": 0.6438448490662684,
+        "max_feedback_expected_relative_delta": 0.6490000000000001,
         "max_feedback_scale_delta": 0.0,
         "mean_feedback_scale_delta": 0.0,
         "min_feedback_scale_delta": 0.0,
@@ -17189,20 +17219,22 @@
           "writer_command": "results/qwen3_moe_feedback_optimizer/writer_command.txt"
         },
         "regression_task_count": 0,
-        "route_mass_weighted_nonbase_after": 118.74270651265624,
-        "route_mass_weighted_nonbase_before": 118.74270651265624,
-        "route_mass_weighted_nonbase_ratio": 1.0,
+        "requested_candidate_method": "auto",
+        "route_mass_weighted_nonbase_after": 117.36809244494826,
+        "route_mass_weighted_nonbase_before": 117.36809244494825,
+        "route_mass_weighted_nonbase_ratio": 1.0000000000000002,
         "schema_version": 1,
         "scored_task_count": 0,
         "status": "awaiting_eval",
-        "task_count": 4
+        "task_count": 4,
+        "writer_context_command_source": "results/qwen3_moe_mechanistic_unified_candidate/writer_command.txt"
       },
       "summary_path": "results/qwen3_moe_feedback_optimizer/summary.json",
       "task_count": 4,
       "task_feedback": "results/qwen3_moe_feedback_optimizer/task_feedback.csv",
       "task_rows": [
         {
-          "candidate_method": "qwen3_moe_unified_mechanism_candidate",
+          "candidate_method": "qwen3_moe_mechanistic_unified_candidate",
           "candidate_score": null,
           "delta_vs_source_frontier": null,
           "family": "math",
@@ -17218,7 +17250,7 @@
           "task": "gsm8k"
         },
         {
-          "candidate_method": "qwen3_moe_unified_mechanism_candidate",
+          "candidate_method": "qwen3_moe_mechanistic_unified_candidate",
           "candidate_score": null,
           "delta_vs_source_frontier": null,
           "family": "general",
@@ -17234,7 +17266,7 @@
           "task": "mmlu"
         },
         {
-          "candidate_method": "qwen3_moe_unified_mechanism_candidate",
+          "candidate_method": "qwen3_moe_mechanistic_unified_candidate",
           "candidate_score": null,
           "delta_vs_source_frontier": null,
           "family": "safety",
@@ -17250,7 +17282,7 @@
           "task": "safety"
         },
         {
-          "candidate_method": "qwen3_moe_unified_mechanism_candidate",
+          "candidate_method": "qwen3_moe_mechanistic_unified_candidate",
           "candidate_score": null,
           "delta_vs_source_frontier": null,
           "family": "code",
@@ -17301,10 +17333,11 @@
           "task": "humaneval_compile"
         }
       ],
-      "writer_command": "results/qwen3_moe_feedback_optimizer/writer_command.txt"
+      "writer_command": "results/qwen3_moe_feedback_optimizer/writer_command.txt",
+      "writer_context_command_source": "results/qwen3_moe_mechanistic_unified_candidate/writer_command.txt"
     },
     "qwen3_moe_feedback_optimizer_smoke": {
-      "case_count": 10,
+      "case_count": 13,
       "case_rows": [
         {
           "actual": "0.589298",
@@ -17332,6 +17365,27 @@
           "assertion": "no_feedback_without_scores",
           "case": "awaiting_eval",
           "expected": "0 changed groups",
+          "passed": true
+        },
+        {
+          "actual": "0.640000",
+          "assertion": "mechanistic_scale_normalized",
+          "case": "mechanistic_group_rules",
+          "expected": "0.640000",
+          "passed": true
+        },
+        {
+          "actual": "0.448000",
+          "assertion": "mechanistic_weight_normalized",
+          "case": "mechanistic_group_rules",
+          "expected": "0.448000",
+          "passed": true
+        },
+        {
+          "actual": "qwen3_moe_mechanistic_unified_candidate",
+          "assertion": "mechanistic_selected",
+          "case": "auto_feedback_base",
+          "expected": "qwen3_moe_mechanistic_unified_candidate",
           "passed": true
         },
         {
@@ -17379,18 +17433,18 @@
       ],
       "failed_case_count": 0,
       "matrix": "results/qwen3_moe_feedback_optimizer_smoke/feedback_optimizer_smoke_matrix.csv",
-      "passed_case_count": 10,
+      "passed_case_count": 13,
       "report": "results/qwen3_moe_feedback_optimizer_smoke/report.md",
       "status": "passed",
       "summary": {
-        "case_count": 10,
+        "case_count": 13,
         "failed_case_count": 0,
         "outputs": {
           "matrix": "results/qwen3_moe_feedback_optimizer_smoke/feedback_optimizer_smoke_matrix.csv",
           "report": "results/qwen3_moe_feedback_optimizer_smoke/report.md",
           "summary": "results/qwen3_moe_feedback_optimizer_smoke/summary.json"
         },
-        "passed_case_count": 10,
+        "passed_case_count": 13,
         "schema_version": 1,
         "status": "passed"
       },
@@ -46700,7 +46754,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-20T10:18:41.999318+00:00",
+  "generated_at": "2026-06-20T10:26:18.677391+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
