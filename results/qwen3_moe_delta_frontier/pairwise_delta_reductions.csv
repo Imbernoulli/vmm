@@ -6,5 +6,5 @@ expert_only,tail_trimmed,trust_region_experts_freeze_attention -> expert_only_se
 tail_trimmed,searched_no_gt065,expert_only_second_stage_tail_cap_0_65 -> searched_source_route_expert_weights_uniform_cap_0_65,-0.004449533671788214,-0.004602985950140304,0.0,1.4099900409458854e-06,0,0,-165,0
 searched_no_gt065,layer_chunk,searched_source_route_expert_weights_uniform_cap_0_65 -> importance_guided_layer_chunk_coefficients,0.004140548806901512,0.0042833450401507656,0.0,4.890788827416337e-05,0,0,156,0
 layer_chunk,unified_mechanism,importance_guided_layer_chunk_coefficients -> unified_router_evidence_geometry_risk_cap,0.0030758754227471763,0.003181953975324614,0.0,0.006190975623648565,0,0,89,0
-unified_mechanism,mechanistic_unified,unified_router_evidence_geometry_risk_cap -> benefit_curvature_interference_scale_law,0.0021401065039931277,0.002213912939268814,0.0,-0.006188494295630287,0,0,-20,0
-mechanistic_unified,subspace_scaled,benefit_curvature_interference_scale_law -> unified_plus_uncovered_subspace_conflict_shrink,-0.0012911014454023428,-0.001335628012228196,0.0,0.02660235140231315,0,0,20,0
+unified_mechanism,mechanistic_unified,unified_router_evidence_geometry_risk_cap -> benefit_curvature_interference_scale_law,0.0021528883465572746,0.002227135592715118,0.0,-0.005221557609000782,0,0,0,0
+mechanistic_unified,subspace_scaled,benefit_curvature_interference_scale_law -> unified_plus_uncovered_subspace_conflict_shrink,-0.0013038832879664897,-0.0013488506656745003,0.0,0.025635414715683646,0,0,0,0

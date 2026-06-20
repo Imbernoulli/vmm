@@ -1,6 +1,9 @@
 {
   "case_count": 4,
+  "effective_hard_cap": 0.649,
   "failed_case_count": 0,
+  "materialization_safety_margin": 0.001,
+  "nominal_hard_cap": 0.65,
   "outputs": {
     "matrix": "results/qwen3_moe_mechanistic_unified_candidate_smoke/mechanistic_unified_smoke_matrix.csv",
     "report": "results/qwen3_moe_mechanistic_unified_candidate_smoke/report.md",

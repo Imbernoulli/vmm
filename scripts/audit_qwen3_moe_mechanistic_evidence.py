@@ -326,7 +326,17 @@ def build_summary(
         "selected_candidate_id": selected.get("candidate_id"),
         "group_count": int(len(df)),
         "route_mass_sum": float(route_mass.sum()),
-        "hard_cap": float(candidate_summary.get("hard_cap", selected.get("max_predicted_relative_delta", 0.65))),
+        "hard_cap": float(
+            candidate_summary.get(
+                "effective_hard_cap",
+                candidate_summary.get("hard_cap", selected.get("max_predicted_relative_delta", 0.65)),
+            )
+        ),
+        "nominal_hard_cap": clean_value(candidate_summary.get("nominal_hard_cap")),
+        "materialization_safety_margin": clean_value(candidate_summary.get("materialization_safety_margin")),
+        "effective_hard_cap": clean_value(
+            candidate_summary.get("effective_hard_cap", candidate_summary.get("hard_cap"))
+        ),
         "hard_cap_bound_group_count": int(df["hard_cap_bound"].sum()),
         "hard_cap_bound_route_mass": float(route_mass[df["hard_cap_bound"]].sum()),
         "gradient_sign_agreement_rate": float(df["gradient_sign_agrees_with_scale"].mean()),
@@ -376,6 +386,8 @@ def build_report(
         f"- Status: `{summary['status']}`",
         f"- Selected candidate: `{summary['selected_candidate_id']}`",
         f"- Expert groups: `{summary['group_count']}`",
+        f"- Nominal/effective hard cap: `{fmt(summary['nominal_hard_cap'])}` / `{fmt(summary['effective_hard_cap'])}`",
+        f"- Materialization safety margin: `{fmt(summary['materialization_safety_margin'])}`",
         f"- Hard-cap bound groups: `{summary['hard_cap_bound_group_count']}`",
         f"- Gradient/sign agreement: `{fmt(summary['gradient_sign_agreement_rate'])}`",
         f"- Objective proxy improved groups: `{fmt(summary['objective_proxy_improved_group_fraction'])}`",
@@ -451,7 +463,11 @@ def run(args: argparse.Namespace) -> None:
     groups = pd.read_csv(repo_path(args.group_rules))
     selected = read_json(args.selected_candidate)
     candidate_summary = read_json(args.candidate_summary)
-    hard_cap = float(args.hard_cap if args.hard_cap is not None else candidate_summary.get("hard_cap", 0.65))
+    hard_cap = float(
+        args.hard_cap
+        if args.hard_cap is not None
+        else candidate_summary.get("effective_hard_cap", candidate_summary.get("hard_cap", 0.65))
+    )
     evidence = add_mechanistic_terms(groups, selected, hard_cap)
     features = [
         "benefit_score",

@@ -98,12 +98,12 @@
   "layer_chunk_to_unified_relative_norm_reduction": 0.0030758754227471763,
   "layer_chunk_to_unified_routed_gt_065_reduction": 89,
   "layer_chunk_total_relative_delta_norm": 0.24345430032224707,
-  "mechanistic_to_subspace_relative_norm_delta": 0.0012911014454023428,
-  "mechanistic_to_subspace_routed_gt_065_reduction": 20,
-  "mechanistic_unified_routed_gt_0_65": 20,
+  "mechanistic_to_subspace_relative_norm_delta": 0.0013038832879664897,
+  "mechanistic_to_subspace_routed_gt_065_reduction": 0,
+  "mechanistic_unified_routed_gt_0_65": 0,
   "mechanistic_unified_routed_gt_0_6505": 0,
   "mechanistic_unified_router_changed_tensors": 0,
-  "mechanistic_unified_total_relative_delta_norm": 0.23823831839550677,
+  "mechanistic_unified_total_relative_delta_norm": 0.23822553655294262,
   "next_required_gate": "vllm_downstream_eval_trust_region_vs_expert_only_tail_trimmed_vs_searched_cap_law_vs_layer_chunk_vs_unified_vs_mechanistic_vs_subspace_scaled",
   "outputs": {
     "candidate_frontier": "results/qwen3_moe_delta_frontier/candidate_delta_frontier.csv",
@@ -143,6 +143,6 @@
   "unified_mechanism_routed_gt_0_6505": 0,
   "unified_mechanism_router_changed_tensors": 0,
   "unified_mechanism_total_relative_delta_norm": 0.2403784248994999,
-  "unified_to_mechanistic_relative_norm_reduction": 0.0021401065039931277,
-  "unified_to_mechanistic_routed_gt_065_reduction": -20
+  "unified_to_mechanistic_relative_norm_reduction": 0.0021528883465572746,
+  "unified_to_mechanistic_routed_gt_065_reduction": 0
 }

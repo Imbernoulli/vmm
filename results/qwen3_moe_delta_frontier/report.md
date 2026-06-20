@@ -44,7 +44,7 @@
 | `searched_no_gt065` | 0.248 | 0.256 | 0.000 | 0/48 | 0.650 | 0 | 0 | 245 | 0 | 10353 |
 | `layer_chunk` | 0.243 | 0.252 | 0.000 | 0/48 | 0.650 | 0 | 0 | 89 | 0 | 10353 |
 | `unified_mechanism` | 0.240 | 0.249 | 0.000 | 0/48 | 0.644 | 0 | 0 | 0 | 0 | 10353 |
-| `mechanistic_unified` | 0.238 | 0.246 | 0.000 | 0/48 | 0.650 | 0 | 0 | 20 | 0 | 10353 |
+| `mechanistic_unified` | 0.238 | 0.246 | 0.000 | 0/48 | 0.649 | 0 | 0 | 0 | 0 | 10353 |
 | `subspace_scaled` | 0.240 | 0.248 | 0.000 | 0/48 | 0.623 | 0 | 0 | 0 | 0 | 10353 |
 
 ## Pairwise Reductions
@@ -58,8 +58,8 @@
 | `tail_trimmed` | `searched_no_gt065` | -0.004 | -0.005 | 0.000 | 0 | 0 | -165 |
 | `searched_no_gt065` | `layer_chunk` | 0.004 | 0.004 | 0.000 | 0 | 0 | 156 |
 | `layer_chunk` | `unified_mechanism` | 0.003 | 0.003 | 0.000 | 0 | 0 | 89 |
-| `unified_mechanism` | `mechanistic_unified` | 0.002 | 0.002 | 0.000 | 0 | 0 | -20 |
-| `mechanistic_unified` | `subspace_scaled` | -0.001 | -0.001 | 0.000 | 0 | 0 | 20 |
+| `unified_mechanism` | `mechanistic_unified` | 0.002 | 0.002 | 0.000 | 0 | 0 | 0 |
+| `mechanistic_unified` | `subspace_scaled` | -0.001 | -0.001 | 0.000 | 0 | 0 | 0 |
 
 ## Highest Trust-Region Layers
 

@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-20T09:39:03.729733+00:00`
+Generated at: `2026-06-20T09:57:47.408883+00:00`
 
 ## Coverage
 
@@ -203,8 +203,8 @@ Complete: `92`; partial: `1`; missing: `0`.
 | Qwen3 MoE delta frontier | searched->layer/chunk rel-norm reduction / >0.65 reduction / >0.6505 | 0.004 / 156 / 0 |
 | Qwen3 MoE delta frontier | unified matches searched / unified rel-norm / router changed | False / 0.240 / 0 |
 | Qwen3 MoE delta frontier | layer/chunk->unified rel-norm reduction / >0.65 reduction / unified >0.6505 | 0.003 / 89 / 0 |
-| Qwen3 MoE delta frontier | unified->mechanistic rel-norm reduction / >0.65 delta / mechanistic >0.6505 | 0.002 / -20 / 0 |
-| Qwen3 MoE delta frontier | mechanistic->subspace rel-norm delta / >0.65 reduction / subspace >0.6505 | 0.001 / 20 / 0 |
+| Qwen3 MoE delta frontier | unified->mechanistic rel-norm reduction / >0.65 delta / mechanistic >0.6505 | 0.002 / 0 / 0 |
+| Qwen3 MoE delta frontier | mechanistic->subspace rel-norm delta / >0.65 reduction / subspace >0.6505 | 0.001 / 0 / 0 |
 | Qwen3 MoE mechanism eval gate | status / selection / selected | awaiting_remote_vllm_eval / awaiting_source_eval / None |
 | Qwen3 MoE mechanism eval gate | ready / completed / awaiting tests | 12 / 0 / 11 |
 | Qwen3 MoE mechanism eval gate | local GPU / best delta-safety candidate | nvidia_smi_failed / mechanistic_unified |
@@ -271,7 +271,8 @@ Complete: `92`; partial: `1`; missing: `0`.
 | Qwen3 MoE feedback optimizer | nonbase ratio / max expected delta / hard-cap violations | 1.000 / 0.644 / 0 |
 | Qwen3 MoE feedback optimizer smoke | status / passed cases | passed / 10/10 |
 | Qwen3 MoE mechanistic unified candidate | selected / candidates / feedback | s0.08_b1.65_h0.75_i0.75 / 144 / awaiting_eval |
-| Qwen3 MoE mechanistic unified candidate | retention / max rel-delta / hard-cap violations | 0.965 / 0.650 / 0 |
+| Qwen3 MoE mechanistic unified candidate | nominal cap / effective cap / write margin | 0.650 / 0.649 / 0.001 |
+| Qwen3 MoE mechanistic unified candidate | retention / max rel-delta / hard-cap violations | 0.965 / 0.649 / 0 |
 | Qwen3 MoE mechanistic unified candidate | risk-delta / benefit-scale / loss proxy | 0.230 / 0.976 / 0.029 |
 | Qwen3 MoE mechanistic unified candidate | writer manifest / dry-run / tensor-rule hits / freeze-router hits | True / False / 15729 / 48 |
 | Qwen3 MoE mechanistic evidence audit | gradient agree / objective improved / hard-cap bound | 1.000 / 0.945 / 319 |

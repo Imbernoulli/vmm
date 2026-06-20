@@ -2240,6 +2240,9 @@ def summarize_qwen3_moe_mechanistic_unified_candidate() -> dict[str, Any]:
         "expert_group_count": int(summary.get("expert_group_count", len(group_rules))),
         "candidate_count": int(summary.get("candidate_count", len(search))),
         "selected_candidate_id": summary.get("selected_candidate_id"),
+        "nominal_hard_cap": maybe_float(summary.get("nominal_hard_cap", summary.get("hard_cap"))),
+        "materialization_safety_margin": maybe_float(summary.get("materialization_safety_margin")),
+        "effective_hard_cap": maybe_float(summary.get("effective_hard_cap", summary.get("hard_cap"))),
         "selected_nonbase_mass_retention": maybe_float(summary.get("selected_nonbase_mass_retention")),
         "selected_max_predicted_relative_delta": maybe_float(summary.get("selected_max_predicted_relative_delta")),
         "selected_hard_cap_violation_count": int(summary.get("selected_hard_cap_violation_count", 0)),
@@ -2308,6 +2311,9 @@ def summarize_qwen3_moe_mechanistic_evidence_audit() -> dict[str, Any]:
         "status": summary.get("status"),
         "selected_candidate_id": summary.get("selected_candidate_id"),
         "group_count": int(summary.get("group_count", 0)),
+        "nominal_hard_cap": maybe_float(summary.get("nominal_hard_cap", summary.get("hard_cap"))),
+        "materialization_safety_margin": maybe_float(summary.get("materialization_safety_margin")),
+        "effective_hard_cap": maybe_float(summary.get("effective_hard_cap", summary.get("hard_cap"))),
         "hard_cap_bound_group_count": int(summary.get("hard_cap_bound_group_count", 0)),
         "hard_cap_bound_route_mass": maybe_float(summary.get("hard_cap_bound_route_mass")),
         "gradient_sign_agreement_rate": maybe_float(summary.get("gradient_sign_agreement_rate")),
@@ -6066,6 +6072,12 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_mechanistic_unified_candidate['selected_candidate_id']} / "
                 f"{qwen3_moe_mechanistic_unified_candidate['candidate_count']} / "
                 f"{qwen3_moe_mechanistic_unified_candidate['feedback_status']} |"
+            ),
+            (
+                "| Qwen3 MoE mechanistic unified candidate | nominal cap / effective cap / write margin | "
+                f"{fmt(qwen3_moe_mechanistic_unified_candidate['nominal_hard_cap'])} / "
+                f"{fmt(qwen3_moe_mechanistic_unified_candidate['effective_hard_cap'])} / "
+                f"{fmt(qwen3_moe_mechanistic_unified_candidate['materialization_safety_margin'])} |"
             ),
             (
                 "| Qwen3 MoE mechanistic unified candidate | retention / max rel-delta / hard-cap violations | "

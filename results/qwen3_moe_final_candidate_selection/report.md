@@ -24,7 +24,7 @@
 | `qwen3_moe_searched_no_gt065_max_retention_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.247595 | `` | `` | `` | `` | n/a | n/a | `` | `False` |
 | `qwen3_moe_layer_chunk_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.243454 | `` | `` | `` | `` | n/a | n/a | `` | `False` |
 | `qwen3_moe_unified_mechanism_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.240378 | `` | `` | `` | `` | n/a | n/a | `` | `False` |
-| `qwen3_moe_mechanistic_unified_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.238238 | `` | `` | `` | `` | n/a | n/a | `` | `False` |
+| `qwen3_moe_mechanistic_unified_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.238226 | `` | `` | `` | `` | n/a | n/a | `` | `False` |
 | `qwen3_moe_subspace_scaled_candidate` | `candidate` | `False` | `True` | n/a | [n/a, n/a] | n/a | [n/a, n/a] | 0.239529 | `` | `` | `` | `` | n/a | n/a | `` | `False` |
 
 ## Outputs

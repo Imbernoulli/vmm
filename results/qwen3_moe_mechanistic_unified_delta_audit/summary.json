@@ -1,4 +1,6 @@
 {
+  "attention_changed_tensors": 0,
+  "attention_tensors": 288,
   "base": "/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe",
   "candidate": "results/checkpoints/qwen3_moe_mechanistic_unified_candidate",
   "changed_numel": 16283860992,
@@ -11,11 +13,11 @@
       "changed_numel": 16283860992,
       "changed_numel_fraction": 0.5616861979166666,
       "changed_tensors": 10353,
-      "delta_norm": 984.9646253964507,
+      "delta_norm": 984.9117805692296,
       "group": "routed_expert_ffn",
       "max_abs_delta": 0.59765625,
       "numel": 28991029248,
-      "relative_delta_norm": 0.24645450810103872,
+      "relative_delta_norm": 0.24644128544759242,
       "tensor_count": 18432
     },
     {
@@ -69,6 +71,7 @@
   ],
   "manifest": "results/checkpoints/qwen3_moe_mechanistic_unified_candidate/merge_manifest.json",
   "max_abs_delta": 0.59765625,
+  "max_routed_expert_ffn_relative_delta_norm": 0.6490630862881142,
   "missing_from_candidate": 0,
   "outputs": {
     "group_delta_summary": "results/qwen3_moe_mechanistic_unified_delta_audit/group_delta_summary.csv",
@@ -77,7 +80,14 @@
     "summary": "results/qwen3_moe_mechanistic_unified_delta_audit/summary.json",
     "tensor_delta_audit": "results/qwen3_moe_mechanistic_unified_delta_audit/tensor_delta_audit.csv"
   },
-  "relative_delta_norm": 0.23823831839550677,
+  "relative_delta_norm": 0.23822553655294262,
+  "routed_expert_ffn_changed_tensors": 10353,
+  "routed_expert_ffn_relative_delta_norm": 0.24644128544759242,
+  "routed_expert_ffn_tensors": 18432,
+  "routed_expert_ffn_tensors_gt_0_65": 0,
+  "routed_expert_ffn_tensors_gt_0_6505": 0,
+  "routed_tensors_gt_0_65": 0,
+  "routed_tensors_gt_0_6505": 0,
   "router_changed_tensors": 0,
   "router_tensors": 48,
   "schema_version": 1,
@@ -86,21 +96,21 @@
   "tensor_count": 18867,
   "top_changed_tensors": [
     {
-      "delta_norm": 22.116828745765773,
+      "delta_norm": 22.082435829590192,
       "group": "routed_expert_ffn",
       "layer": 46,
       "max_abs_delta": 0.1669921875,
       "numel": 1572864,
-      "relative_delta_norm": 0.650007877467748,
+      "relative_delta_norm": 0.6489970785552912,
       "tensor": "model.layers.46.mlp.experts.56.up_proj.weight"
     },
     {
-      "delta_norm": 21.89591982383112,
+      "delta_norm": 21.86192061549138,
       "group": "routed_expert_ffn",
       "layer": 44,
-      "max_abs_delta": 0.14306640625,
+      "max_abs_delta": 0.142822265625,
       "numel": 1572864,
-      "relative_delta_norm": 0.642801319475188,
+      "relative_delta_norm": 0.6418032003663433,
       "tensor": "model.layers.44.mlp.experts.106.up_proj.weight"
     },
     {
@@ -113,49 +123,40 @@
       "tensor": "model.layers.43.mlp.experts.25.up_proj.weight"
     },
     {
-      "delta_norm": 21.735649899703944,
+      "delta_norm": 21.70161334953363,
       "group": "routed_expert_ffn",
       "layer": 44,
-      "max_abs_delta": 0.151123046875,
+      "max_abs_delta": 0.15087890625,
       "numel": 1572864,
-      "relative_delta_norm": 0.6500155957018281,
+      "relative_delta_norm": 0.6489977154665151,
       "tensor": "model.layers.44.mlp.experts.4.up_proj.weight"
     },
     {
-      "delta_norm": 21.601950296021812,
+      "delta_norm": 21.568688253769196,
       "group": "routed_expert_ffn",
       "layer": 43,
-      "max_abs_delta": 0.08782958984375,
+      "max_abs_delta": 0.08770751953125,
       "numel": 1572864,
-      "relative_delta_norm": 0.6499993678970288,
+      "relative_delta_norm": 0.6489985181523117,
       "tensor": "model.layers.43.mlp.experts.105.up_proj.weight"
     },
     {
-      "delta_norm": 21.50711509607598,
+      "delta_norm": 21.47418295179739,
       "group": "routed_expert_ffn",
       "layer": 45,
       "max_abs_delta": 0.1181640625,
       "numel": 1572864,
-      "relative_delta_norm": 0.6499970562219533,
+      "relative_delta_norm": 0.6490017671401523,
       "tensor": "model.layers.45.mlp.experts.6.up_proj.weight"
     },
     {
-      "delta_norm": 21.49861317974589,
+      "delta_norm": 21.46524432349158,
       "group": "routed_expert_ffn",
       "layer": 46,
-      "max_abs_delta": 0.3115234375,
+      "max_abs_delta": 0.3095703125,
       "numel": 1572864,
-      "relative_delta_norm": 0.6154966689264619,
+      "relative_delta_norm": 0.6145413319612959,
       "tensor": "model.layers.46.mlp.experts.56.down_proj.weight"
-    },
-    {
-      "delta_norm": 21.211547528060187,
-      "group": "routed_expert_ffn",
-      "layer": 41,
-      "max_abs_delta": 0.08941650390625,
-      "numel": 1572864,
-      "relative_delta_norm": 0.6500021596530631,
-      "tensor": "model.layers.41.mlp.experts.23.up_proj.weight"
     },
     {
       "delta_norm": 21.17974153326748,
@@ -167,31 +168,31 @@
       "tensor": "model.layers.46.mlp.experts.47.up_proj.weight"
     },
     {
-      "delta_norm": 21.144128930566563,
+      "delta_norm": 21.178657239327933,
+      "group": "routed_expert_ffn",
+      "layer": 41,
+      "max_abs_delta": 0.0892333984375,
+      "numel": 1572864,
+      "relative_delta_norm": 0.6489942766271171,
+      "tensor": "model.layers.41.mlp.experts.23.up_proj.weight"
+    },
+    {
+      "delta_norm": 21.11328811574819,
       "group": "routed_expert_ffn",
       "layer": 42,
-      "max_abs_delta": 0.093994140625,
+      "max_abs_delta": 0.09375,
       "numel": 1572864,
-      "relative_delta_norm": 0.6500111922553095,
+      "relative_delta_norm": 0.6490630862881142,
       "tensor": "model.layers.42.mlp.experts.54.up_proj.weight"
     },
     {
-      "delta_norm": 21.110890027054165,
+      "delta_norm": 21.078010620983214,
       "group": "routed_expert_ffn",
       "layer": 44,
-      "max_abs_delta": 0.447265625,
+      "max_abs_delta": 0.4462890625,
       "numel": 1572864,
-      "relative_delta_norm": 0.6132738045114287,
+      "relative_delta_norm": 0.6123186539504922,
       "tensor": "model.layers.44.mlp.experts.106.down_proj.weight"
-    },
-    {
-      "delta_norm": 21.027075615395187,
-      "group": "routed_expert_ffn",
-      "layer": 45,
-      "max_abs_delta": 0.0908203125,
-      "numel": 1572864,
-      "relative_delta_norm": 0.6410949943693162,
-      "tensor": "model.layers.45.mlp.experts.105.up_proj.weight"
     },
     {
       "delta_norm": 21.001575229238757,
@@ -203,6 +204,15 @@
       "tensor": "model.layers.44.mlp.experts.18.up_proj.weight"
     },
     {
+      "delta_norm": 20.99483026721623,
+      "group": "routed_expert_ffn",
+      "layer": 45,
+      "max_abs_delta": 0.0908203125,
+      "numel": 1572864,
+      "relative_delta_norm": 0.6401118652035044,
+      "tensor": "model.layers.45.mlp.experts.105.up_proj.weight"
+    },
+    {
       "delta_norm": 20.91090311633204,
       "group": "routed_expert_ffn",
       "layer": 46,
@@ -210,15 +220,6 @@
       "numel": 1572864,
       "relative_delta_norm": 0.6112068185255769,
       "tensor": "model.layers.46.mlp.experts.101.up_proj.weight"
-    },
-    {
-      "delta_norm": 20.82233954719666,
-      "group": "routed_expert_ffn",
-      "layer": 46,
-      "max_abs_delta": 0.144287109375,
-      "numel": 1572864,
-      "relative_delta_norm": 0.6282213960605263,
-      "tensor": "model.layers.46.mlp.experts.120.up_proj.weight"
     },
     {
       "delta_norm": 20.812501466310007,
@@ -237,6 +238,15 @@
       "numel": 1572864,
       "relative_delta_norm": 0.639628367151474,
       "tensor": "model.layers.47.mlp.experts.119.gate_proj.weight"
+    },
+    {
+      "delta_norm": 20.790495916619793,
+      "group": "routed_expert_ffn",
+      "layer": 46,
+      "max_abs_delta": 0.14404296875,
+      "numel": 1572864,
+      "relative_delta_norm": 0.6272606562737559,
+      "tensor": "model.layers.46.mlp.experts.120.up_proj.weight"
     },
     {
       "delta_norm": 20.7904658254278,
@@ -267,6 +277,7 @@
     }
   ],
   "total_base_norm": 4134.366931524763,
-  "total_delta_norm": 984.9646253964507,
-  "total_numel": 30532122624
+  "total_delta_norm": 984.9117805692296,
+  "total_numel": 30532122624,
+  "total_relative_delta_norm": 0.23822553655294262
 }

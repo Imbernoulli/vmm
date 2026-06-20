@@ -509,6 +509,19 @@ def candidate_grid(
     return search, scales
 
 
+def resolve_effective_hard_cap(args: argparse.Namespace) -> float:
+    hard_cap = float(args.hard_cap)
+    margin = max(0.0, float(args.materialization_safety_margin))
+    if hard_cap <= 0.0:
+        raise ValueError(f"--hard-cap must be positive, got {hard_cap}")
+    if margin >= hard_cap:
+        raise ValueError(
+            "--materialization-safety-margin must be smaller than --hard-cap "
+            f"(got margin={margin}, hard_cap={hard_cap})"
+        )
+    return hard_cap - margin
+
+
 def select_candidate(search: pd.DataFrame, *, min_retention: float) -> pd.Series:
     feasible = search[search["passes_hard_cap"]].copy()
     if feasible.empty:
@@ -705,6 +718,9 @@ def build_report(summary: dict[str, Any], search: pd.DataFrame, group_rules: pd.
         f"- Expert groups: `{summary['expert_group_count']}`",
         f"- Selected candidate: `{summary['selected_candidate_id']}`",
         f"- Search points: `{summary['candidate_count']}`",
+        f"- Nominal hard cap: `{fmt(summary['nominal_hard_cap'])}`",
+        f"- Materialization safety margin: `{fmt(summary['materialization_safety_margin'])}`",
+        f"- Effective solver hard cap: `{fmt(summary['effective_hard_cap'])}`",
         f"- Nonbase route-mass retention: `{fmt(summary['selected_nonbase_mass_retention'])}`",
         f"- Max predicted routed relative delta: `{fmt(summary['selected_max_predicted_relative_delta'])}`",
         f"- Hard-cap violations: `{summary['selected_hard_cap_violation_count']}`",
@@ -877,8 +893,9 @@ def smoke_frame() -> pd.DataFrame:
 def run_smoke(args: argparse.Namespace) -> None:
     output_dir = repo_path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
+    effective_hard_cap = resolve_effective_hard_cap(args)
     df = add_mechanistic_terms(smoke_frame())
-    search, scales = candidate_grid(df, hard_cap=args.hard_cap, min_scale=args.min_scale)
+    search, scales = candidate_grid(df, hard_cap=effective_hard_cap, min_scale=args.min_scale)
     selected = select_candidate(search, min_retention=0.50)
     scale = scales[str(selected["candidate_id"])]
     row_by_expert = {
@@ -899,9 +916,9 @@ def run_smoke(args: argparse.Namespace) -> None:
             {
                 "case": "hard_cap",
                 "assertion": "delta_cap_enforced",
-                "expected": f"scale <= {args.hard_cap / 1.20:.6f}",
+                "expected": f"scale <= {effective_hard_cap / 1.20:.6f}",
                 "actual": f"{hard_cap_scale:.6f}",
-                "passed": hard_cap_scale <= args.hard_cap / 1.20 + 1e-9,
+                "passed": hard_cap_scale <= effective_hard_cap / 1.20 + 1e-9,
             },
             {
                 "case": "feedback_prior",
@@ -925,6 +942,9 @@ def run_smoke(args: argparse.Namespace) -> None:
         "passed_case_count": int(matrix["passed"].sum()),
         "failed_case_count": int((~matrix["passed"]).sum()),
         "selected_candidate_id": str(selected["candidate_id"]),
+        "nominal_hard_cap": float(args.hard_cap),
+        "materialization_safety_margin": max(0.0, float(args.materialization_safety_margin)),
+        "effective_hard_cap": float(effective_hard_cap),
         "outputs": {
             "matrix": rel(output_dir / "mechanistic_unified_smoke_matrix.csv"),
             "summary": rel(output_dir / "summary.json"),
@@ -955,9 +975,10 @@ def run_smoke(args: argparse.Namespace) -> None:
 def run_real(args: argparse.Namespace) -> None:
     output_dir = repo_path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
+    effective_hard_cap = resolve_effective_hard_cap(args)
     df = read_group_rules(args.group_rules, args.fallback_group_rules)
     df = add_mechanistic_terms(df)
-    search, scales = candidate_grid(df, hard_cap=args.hard_cap, min_scale=args.min_scale)
+    search, scales = candidate_grid(df, hard_cap=effective_hard_cap, min_scale=args.min_scale)
     selected = select_candidate(search, min_retention=args.min_retention)
     scale = scales[str(selected["candidate_id"])]
     group_rules = build_group_rules(df, scale, selected)
@@ -997,7 +1018,10 @@ def run_real(args: argparse.Namespace) -> None:
             selected["high_interference_low_benefit_mean_scale"]
         ),
         "selected_high_subspace_mean_scale": float(selected["high_subspace_mean_scale"]),
-        "hard_cap": args.hard_cap,
+        "hard_cap": float(effective_hard_cap),
+        "nominal_hard_cap": float(args.hard_cap),
+        "materialization_safety_margin": max(0.0, float(args.materialization_safety_margin)),
+        "effective_hard_cap": float(effective_hard_cap),
         "min_retention": args.min_retention,
         "feedback_status": feedback_status,
         "feedback_materialization_gate": feedback_summary.get("materialization_gate", "not_available"),
@@ -1049,6 +1073,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--output-dir", type=Path, default=Path("results/qwen3_moe_mechanistic_unified_candidate"))
     parser.add_argument("--hard-cap", type=float, default=0.65)
+    parser.add_argument("--materialization-safety-margin", type=float, default=0.001)
     parser.add_argument("--min-retention", type=float, default=0.965)
     parser.add_argument("--min-scale", type=float, default=0.0)
     parser.add_argument("--smoke-matrix", action="store_true")

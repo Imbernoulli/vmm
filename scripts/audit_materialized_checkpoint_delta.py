@@ -199,6 +199,9 @@ def audit_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
     layer_summary.to_csv(layer_csv, index=False)
 
     router = tensor_frame[tensor_frame["group"] == "router"]
+    attention = tensor_frame[tensor_frame["group"] == "attention"]
+    routed = tensor_frame[tensor_frame["group"] == "routed_expert_ffn"]
+    routed_relative_delta = pd.to_numeric(routed["relative_delta_norm"], errors="coerce").fillna(0.0)
     changed = tensor_frame[tensor_frame["changed"]]
     total_delta_norm2 = float((tensor_frame["delta_norm"].fillna(0.0) ** 2).sum())
     total_base_norm2 = float((tensor_frame["base_norm"].fillna(0.0) ** 2).sum())
@@ -221,9 +224,29 @@ def audit_checkpoint(args: argparse.Namespace) -> dict[str, Any]:
         "total_delta_norm": math.sqrt(total_delta_norm2),
         "total_base_norm": math.sqrt(total_base_norm2),
         "relative_delta_norm": math.sqrt(total_delta_norm2) / max(1e-12, math.sqrt(total_base_norm2)),
+        "total_relative_delta_norm": math.sqrt(total_delta_norm2) / max(1e-12, math.sqrt(total_base_norm2)),
         "max_abs_delta": float(tensor_frame["max_abs_delta"].fillna(0.0).max()) if not tensor_frame.empty else 0.0,
+        "attention_tensors": int(len(attention)),
+        "attention_changed_tensors": int(attention["changed"].sum()) if not attention.empty else 0,
         "router_tensors": int(len(router)),
         "router_changed_tensors": int(router["changed"].sum()) if not router.empty else 0,
+        "routed_expert_ffn_tensors": int(len(routed)),
+        "routed_expert_ffn_changed_tensors": int(routed["changed"].sum()) if not routed.empty else 0,
+        "routed_expert_ffn_relative_delta_norm": float(
+            group_summary.loc[
+                group_summary["group"].eq("routed_expert_ffn"),
+                "relative_delta_norm",
+            ].iloc[0]
+        )
+        if bool(group_summary["group"].eq("routed_expert_ffn").any())
+        else 0.0,
+        "max_routed_expert_ffn_relative_delta_norm": float(routed_relative_delta.max())
+        if not routed_relative_delta.empty
+        else 0.0,
+        "routed_expert_ffn_tensors_gt_0_65": int((routed_relative_delta > 0.65).sum()),
+        "routed_expert_ffn_tensors_gt_0_6505": int((routed_relative_delta > 0.6505).sum()),
+        "routed_tensors_gt_0_65": int((routed_relative_delta > 0.65).sum()),
+        "routed_tensors_gt_0_6505": int((routed_relative_delta > 0.6505).sum()),
         "top_changed_tensors": [
             {
                 "tensor": str(row["tensor"]),
@@ -278,6 +301,10 @@ def build_report(
         f"- Changed numel fraction: `{fmt(summary['changed_numel'] / max(1, summary['total_numel']))}`",
         f"- Total relative delta norm: `{fmt(summary['relative_delta_norm'])}`",
         f"- Max abs delta: `{fmt(summary['max_abs_delta'])}`",
+        f"- Routed expert FFN relative delta norm: `{fmt(summary['routed_expert_ffn_relative_delta_norm'])}`",
+        f"- Max routed expert FFN tensor relative delta: `{fmt(summary['max_routed_expert_ffn_relative_delta_norm'])}`",
+        f"- Routed expert FFN tensors >0.65 / >0.6505: `{summary['routed_expert_ffn_tensors_gt_0_65']}` / `{summary['routed_expert_ffn_tensors_gt_0_6505']}`",
+        f"- Attention changed tensors: `{summary['attention_changed_tensors']}/{summary['attention_tensors']}`",
         f"- Router changed tensors: `{summary['router_changed_tensors']}/{summary['router_tensors']}`",
         "",
         "## Group Summary",
