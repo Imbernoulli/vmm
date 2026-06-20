@@ -117,7 +117,12 @@ def fmt(value: Any, digits: int = 4) -> str:
     return "n/a" if value is None else f"{value:.{digits}f}"
 
 
-def dense_feature_rows(curvature: dict[str, Any], dense_selector: dict[str, Any], gen_eval: dict[str, Any]) -> list[dict[str, Any]]:
+def dense_feature_rows(
+    curvature: dict[str, Any],
+    dense_selector: dict[str, Any],
+    dense_lambda: dict[str, Any],
+    gen_eval: dict[str, Any],
+) -> list[dict[str, Any]]:
     curve = curvature.get("curvature_law", {})
     merges = curvature.get("merges", {})
     uniform = merges.get("uniform", {})
@@ -161,6 +166,19 @@ def dense_feature_rows(curvature: dict[str, Any], dense_selector: dict[str, Any]
         },
         {
             "domain": "dense",
+            "probe": "dense_lambda_connectivity",
+            "value": dense_lambda.get("linear_worst"),
+            "threshold": dense_lambda.get("unified_best_worst"),
+            "decision_signal": "straight_line_midpoint_rejected",
+            "evidence": (
+                f"linear midpoint worst NLL = {fmt(dense_lambda.get('linear_worst'))}; "
+                f"best lambda-family worst NLL = {fmt(dense_lambda.get('unified_best_worst'))}; "
+                f"best config = {json.dumps(dense_lambda.get('unified_best_config') or {}, sort_keys=True)}; "
+                f"best source endpoint worst NLL = {fmt(dense_lambda.get('best_endpoint_worst'))}"
+            ),
+        },
+        {
+            "domain": "dense",
             "probe": "generation_smoke",
             "value": (gen_results.get("linear") or {}).get("avg_accuracy"),
             "threshold": (gen_results.get("unified") or {}).get("avg_accuracy"),
@@ -185,9 +203,36 @@ def moe_feature_rows(
     delta_frontier: dict[str, Any],
     router_calibration_nll_probe: dict[str, Any],
     router_calibration: dict[str, Any],
+    qwen3_moe_interpolation: dict[str, Any],
+    qwen3_moe_complementary: dict[str, Any],
+    qwen3_moe_base_coder: dict[str, Any],
 ) -> list[dict[str, Any]]:
     selection = final_selection.get("current_selection") or {}
     router_selection = router_calibration.get("current_selection") or {}
+    interpolation_gap = None
+    if qwen3_moe_interpolation.get("best_interior_worst") is not None and qwen3_moe_interpolation.get(
+        "endpoint_best_worst"
+    ) is not None:
+        interpolation_gap = (
+            float(qwen3_moe_interpolation["best_interior_worst"])
+            - float(qwen3_moe_interpolation["endpoint_best_worst"])
+        )
+    complementary_gap = None
+    if qwen3_moe_complementary.get("best_merge_avg_nll") is not None and qwen3_moe_complementary.get(
+        "best_source_avg_nll"
+    ) is not None:
+        complementary_gap = (
+            float(qwen3_moe_complementary["best_merge_avg_nll"])
+            - float(qwen3_moe_complementary["best_source_avg_nll"])
+        )
+    base_coder_gap = None
+    if qwen3_moe_base_coder.get("best_interior_worst") is not None and qwen3_moe_base_coder.get(
+        "endpoint_best_worst"
+    ) is not None:
+        base_coder_gap = (
+            float(qwen3_moe_base_coder["best_interior_worst"])
+            - float(qwen3_moe_base_coder["endpoint_best_worst"])
+        )
     return [
         {
             "domain": "moe",
@@ -238,6 +283,49 @@ def moe_feature_rows(
                 f"{fmt(router_gate.get('min_topk_jaccard'))}; "
                 f"top1 agreement mean/min = {fmt(router_gate.get('mean_top1_agreement'))}/"
                 f"{fmt(router_gate.get('min_top1_agreement'))}"
+            ),
+        },
+        {
+            "domain": "moe",
+            "probe": "qwen3_straight_line_connectivity",
+            "value": interpolation_gap,
+            "threshold": 0.0,
+            "decision_signal": "reject_source_to_source_linear_interpolation",
+            "evidence": (
+                f"best interior worst NLL = {fmt(qwen3_moe_interpolation.get('best_interior_worst'))}; "
+                f"best endpoint worst NLL = {fmt(qwen3_moe_interpolation.get('endpoint_best_worst'))}; "
+                f"interior gap = {fmt(interpolation_gap)}; "
+                f"general barrier = {fmt(qwen3_moe_interpolation.get('barrier_general'))}; "
+                f"task-vector cosine vs base = "
+                f"{fmt((qwen3_moe_interpolation.get('geometry') or {}).get('cos(tauI,tauC)'))}"
+            ),
+        },
+        {
+            "domain": "moe",
+            "probe": "qwen3_complementary_pair_connectivity",
+            "value": complementary_gap,
+            "threshold": 0.0,
+            "decision_signal": "do_not_assume_specialist_complementarity_is_averageable",
+            "evidence": (
+                f"best merge avg NLL = {fmt(qwen3_moe_complementary.get('best_merge_avg_nll'))}; "
+                f"best source avg NLL = {fmt(qwen3_moe_complementary.get('best_source_avg_nll'))}; "
+                f"merge-source gap = {fmt(complementary_gap)}; "
+                f"best merge t = {fmt(qwen3_moe_complementary.get('best_merge_t'))}; "
+                f"merge beats both sources = {qwen3_moe_complementary.get('merge_beats_both_sources_on_avg')}"
+            ),
+        },
+        {
+            "domain": "moe",
+            "probe": "qwen3_base_to_coder_connectivity",
+            "value": base_coder_gap,
+            "threshold": 0.0,
+            "decision_signal": "source_delta_from_base_is_not_safe_without_gate",
+            "evidence": (
+                f"best interior worst NLL = {fmt(qwen3_moe_base_coder.get('best_interior_worst'))}; "
+                f"best endpoint worst NLL = {fmt(qwen3_moe_base_coder.get('endpoint_best_worst'))}; "
+                f"interior gap = {fmt(base_coder_gap)}; "
+                f"general barrier = {fmt(qwen3_moe_base_coder.get('barrier_general'))}; "
+                f"task-vector norm = {fmt((qwen3_moe_base_coder.get('geometry') or {}).get('norm_tauC'))}"
             ),
         },
         {
@@ -324,9 +412,36 @@ def build_decisions(
     delta_frontier: dict[str, Any],
     router_calibration_nll_probe: dict[str, Any],
     router_calibration: dict[str, Any],
+    qwen3_moe_interpolation: dict[str, Any],
+    qwen3_moe_complementary: dict[str, Any],
+    qwen3_moe_base_coder: dict[str, Any],
 ) -> pd.DataFrame:
     dense_config = ((dense_selector.get("results") or {}).get("unified") or {}).get("config") or {}
     router_selection = router_calibration.get("current_selection") or {}
+    interpolation_gap = None
+    if qwen3_moe_interpolation.get("best_interior_worst") is not None and qwen3_moe_interpolation.get(
+        "endpoint_best_worst"
+    ) is not None:
+        interpolation_gap = (
+            float(qwen3_moe_interpolation["best_interior_worst"])
+            - float(qwen3_moe_interpolation["endpoint_best_worst"])
+        )
+    complementary_gap = None
+    if qwen3_moe_complementary.get("best_merge_avg_nll") is not None and qwen3_moe_complementary.get(
+        "best_source_avg_nll"
+    ) is not None:
+        complementary_gap = (
+            float(qwen3_moe_complementary["best_merge_avg_nll"])
+            - float(qwen3_moe_complementary["best_source_avg_nll"])
+        )
+    base_coder_gap = None
+    if qwen3_moe_base_coder.get("best_interior_worst") is not None and qwen3_moe_base_coder.get(
+        "endpoint_best_worst"
+    ) is not None:
+        base_coder_gap = (
+            float(qwen3_moe_base_coder["best_interior_worst"])
+            - float(qwen3_moe_base_coder["endpoint_best_worst"])
+        )
     rows = [
         {
             "stage": "dense_connectivity_gate",
@@ -359,6 +474,19 @@ def build_decisions(
             "selected_action": router_gate.get("recommended_unified_router_action", "freeze_router"),
             "why_it_should_improve": "It avoids averaging a discrete top-k dispatch boundary that has high measured source disagreement.",
             "same_shape_invariant": "router tensor shape is unchanged; optional route-KD writes a capped same-shape delta",
+        },
+        {
+            "stage": "moe_straight_line_connectivity_gate",
+            "operation": "reject_unconditional_source_to_source_linear_interpolation",
+            "condition": (
+                f"Qwen3 Instruct/Coder best interior worst-NLL is above the best endpoint by "
+                f"{fmt(interpolation_gap)}, and the complementary Thinking/Coder path does not beat its best source "
+                f"(avg gap {fmt(complementary_gap)}); the Base/Coder line also keeps the best interior above "
+                f"the best endpoint by {fmt(base_coder_gap)}"
+            ),
+            "selected_action": "use route/evidence/geometry-constrained same-shape candidates instead of a source-to-source midpoint",
+            "why_it_should_improve": "It treats model connectivity as measured evidence: a smooth-looking line is not accepted unless an interior point beats the source frontier.",
+            "same_shape_invariant": "candidate generation still writes the same tensor names and shapes; the gate only decides whether straight-line interpolation is allowed",
         },
         {
             "stage": "moe_expert_delta_optimizer",
@@ -426,7 +554,11 @@ def build_report(summary: dict[str, Any], features: pd.DataFrame, decisions: pd.
         "## Current Decision",
         "",
         f"- Dense: `{dense['decision']}`；linear worst NLL `{fmt(dense['linear_worst_nll'])}`，unified worst NLL `{fmt(dense['unified_worst_nll'])}`。",
+        f"- Dense lambda connectivity: midpoint worst NLL `{fmt(dense['lambda_linear_worst_nll'])}`，best lambda-family worst NLL `{fmt(dense['lambda_best_worst_nll'])}`。",
         f"- MoE: `{moe['decision']}`；真实 OLMoE same-name average degradation `{fmt(moe['real_gauge_naive_degradation'])}`，Qwen3 router action `{moe['router_action']}`。",
+        f"- Qwen3 MoE straight-line connectivity: best interior worst NLL `{fmt(moe['qwen3_interpolation_best_interior_worst_nll'])}` vs best endpoint `{fmt(moe['qwen3_interpolation_endpoint_best_worst_nll'])}`；interior gap `{fmt(moe['qwen3_interpolation_interior_gap_nll'])}`，general barrier `{fmt(moe['qwen3_interpolation_general_barrier_nll'])}`。",
+        f"- Qwen3 complementary path: best merge avg NLL `{fmt(moe['qwen3_complementary_best_merge_avg_nll'])}` vs best source avg `{fmt(moe['qwen3_complementary_best_source_avg_nll'])}`；merge beats sources `{moe['qwen3_complementary_merge_beats_sources']}`。",
+        f"- Qwen3 Base->Coder path: best interior worst NLL `{fmt(moe['qwen3_base_coder_best_interior_worst_nll'])}` vs best endpoint `{fmt(moe['qwen3_base_coder_endpoint_best_worst_nll'])}`；interior gap `{fmt(moe['qwen3_base_coder_interior_gap_nll'])}`，general barrier `{fmt(moe['qwen3_base_coder_general_barrier_nll'])}`。",
         f"- Qwen3 unified mechanism: `{moe['qwen3_unified_candidate_id']}`；audit relative norm `{fmt(moe['qwen3_unified_relative_delta_norm'])}`，routed >0.65 `{moe['qwen3_unified_routed_gt_065']}`。",
         f"- Qwen3 router NLL probe: worst-NLL reduction `{fmt(moe['qwen3_router_calibration_nll_worst_reduction'])}`，code gap to best source `{fmt(moe['qwen3_router_calibration_nll_code_gap_to_best_source'])}`。",
         f"- Qwen3 router calibration: `{moe['qwen3_router_calibration_status']}`。",
@@ -476,6 +608,7 @@ def build_report(summary: dict[str, Any], features: pd.DataFrame, decisions: pd.
 def build(args: argparse.Namespace) -> dict[str, Any]:
     curvature = read_json(args.dense_curvature)
     dense_selector = read_json(args.dense_selector)
+    dense_lambda = read_json(args.dense_lambda)
     gen_eval = read_json(args.dense_generation)
     mechanism = read_json(args.moe_mechanism)
     real_gauge = read_json(args.real_moe_gauge)
@@ -487,8 +620,11 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
     delta_frontier = read_json(args.qwen3_delta_frontier)
     router_calibration_nll_probe = read_json(args.qwen3_router_calibration_nll_probe)
     router_calibration = read_json(args.qwen3_router_calibration)
+    qwen3_moe_interpolation = read_json(args.qwen3_moe_interpolation)
+    qwen3_moe_complementary = read_json(args.qwen3_moe_complementary)
+    qwen3_moe_base_coder = read_json(args.qwen3_moe_base_coder)
 
-    feature_rows = dense_feature_rows(curvature, dense_selector, gen_eval)
+    feature_rows = dense_feature_rows(curvature, dense_selector, dense_lambda, gen_eval)
     feature_rows.extend(
         moe_feature_rows(
             mechanism,
@@ -501,6 +637,9 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
             delta_frontier,
             router_calibration_nll_probe,
             router_calibration,
+            qwen3_moe_interpolation,
+            qwen3_moe_complementary,
+            qwen3_moe_base_coder,
         )
     )
     features = pd.DataFrame(feature_rows)
@@ -512,6 +651,9 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         delta_frontier,
         router_calibration_nll_probe,
         router_calibration,
+        qwen3_moe_interpolation,
+        qwen3_moe_complementary,
+        qwen3_moe_base_coder,
     )
     algorithm = build_algorithm(decisions)
 
@@ -530,6 +672,9 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
             "linear_worst_nll": fnum((dense_results.get("linear") or {}).get("worst")),
             "unified_worst_nll": fnum((dense_results.get("unified") or {}).get("worst")),
             "best_endpoint_worst_nll": fnum(dense_selector.get("best_endpoint_worst")),
+            "lambda_linear_worst_nll": fnum(dense_lambda.get("linear_worst")),
+            "lambda_best_worst_nll": fnum(dense_lambda.get("unified_best_worst")),
+            "lambda_best_config": dense_lambda.get("unified_best_config"),
             "generation_best_method": gen_eval.get("best_method"),
         },
         "moe": {
@@ -580,6 +725,35 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
                 "eligible_candidate_count"
             ),
             "qwen3_router_calibration_candidate_count": router_current.get("candidate_count"),
+            "qwen3_interpolation_best_interior_worst_nll": fnum(
+                qwen3_moe_interpolation.get("best_interior_worst")
+            ),
+            "qwen3_interpolation_endpoint_best_worst_nll": fnum(
+                qwen3_moe_interpolation.get("endpoint_best_worst")
+            ),
+            "qwen3_interpolation_interior_gap_nll": fnum(
+                None
+                if qwen3_moe_interpolation.get("best_interior_worst") is None
+                or qwen3_moe_interpolation.get("endpoint_best_worst") is None
+                else float(qwen3_moe_interpolation["best_interior_worst"])
+                - float(qwen3_moe_interpolation["endpoint_best_worst"])
+            ),
+            "qwen3_interpolation_general_barrier_nll": fnum(qwen3_moe_interpolation.get("barrier_general")),
+            "qwen3_complementary_best_merge_avg_nll": fnum(qwen3_moe_complementary.get("best_merge_avg_nll")),
+            "qwen3_complementary_best_source_avg_nll": fnum(qwen3_moe_complementary.get("best_source_avg_nll")),
+            "qwen3_complementary_merge_beats_sources": qwen3_moe_complementary.get(
+                "merge_beats_both_sources_on_avg"
+            ),
+            "qwen3_base_coder_best_interior_worst_nll": fnum(qwen3_moe_base_coder.get("best_interior_worst")),
+            "qwen3_base_coder_endpoint_best_worst_nll": fnum(qwen3_moe_base_coder.get("endpoint_best_worst")),
+            "qwen3_base_coder_interior_gap_nll": fnum(
+                None
+                if qwen3_moe_base_coder.get("best_interior_worst") is None
+                or qwen3_moe_base_coder.get("endpoint_best_worst") is None
+                else float(qwen3_moe_base_coder["best_interior_worst"])
+                - float(qwen3_moe_base_coder["endpoint_best_worst"])
+            ),
+            "qwen3_base_coder_general_barrier_nll": fnum(qwen3_moe_base_coder.get("barrier_general")),
             "qwen3_final_selection_status": final_current.get("status"),
             "qwen3_eligible_candidates": final_current.get("eligible_candidate_count"),
             "qwen3_candidate_count": final_current.get("candidate_count"),
@@ -615,6 +789,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", type=Path, default=Path("results/unified_average_optimizer"))
     parser.add_argument("--dense-curvature", type=Path, default=Path("results/fp_curvature_law/summary.json"))
     parser.add_argument("--dense-selector", type=Path, default=Path("results/fp_merge_compare_dense/summary.json"))
+    parser.add_argument("--dense-lambda", type=Path, default=Path("results/fp_dense_lambda/summary.json"))
     parser.add_argument("--dense-generation", type=Path, default=Path("results/fp_gen_eval_dense/summary.json"))
     parser.add_argument("--moe-mechanism", type=Path, default=Path("results/fp_moe_mechanism/summary.json"))
     parser.add_argument("--real-moe-gauge", type=Path, default=Path("results/fp_moe_real_probe/summary.json"))
@@ -649,6 +824,21 @@ def parse_args() -> argparse.Namespace:
         "--qwen3-router-calibration",
         type=Path,
         default=Path("results/qwen3_moe_router_calibration_selection/summary.json"),
+    )
+    parser.add_argument(
+        "--qwen3-moe-interpolation",
+        type=Path,
+        default=Path("results/fp_moe_barrier/summary.json"),
+    )
+    parser.add_argument(
+        "--qwen3-moe-complementary",
+        type=Path,
+        default=Path("results/fp_moe_complementary/summary.json"),
+    )
+    parser.add_argument(
+        "--qwen3-moe-base-coder",
+        type=Path,
+        default=Path("results/fp_moe_forgetting_base_coder/summary.json"),
     )
     return parser.parse_args()
 

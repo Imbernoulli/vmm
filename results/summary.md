@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-20T03:41:25.302866+00:00`
+Generated at: `2026-06-20T03:50:22.829677+00:00`
 
 ## Coverage
 
@@ -74,7 +74,7 @@ Complete: `80`; partial: `1`; missing: `0`.
 | Qwen3 MoE layer/chunk coefficient candidate | complete | results/qwen3_moe_layer_chunk_candidate/report.md converts the mechanism leverage layer scores into writer-ready same-shape tensor rules; results/qwen3_moe_layer_chunk_delta_audit/report.md verifies the materialized same-shape checkpoint. |
 | Qwen3 MoE unified downstream result selector | complete | results/qwen3_moe_unified_result_selection/report.md gates the unified same-shape average against both Qwen3 source endpoints after matched vLLM eval; results/qwen3_moe_unified_result_selection_smoke/report.md covers candidate-win, source-dominance, task-regression, and no-gain branches. |
 | Qwen3 MoE final candidate selector | complete | results/qwen3_moe_final_candidate_selection/report.md ranks all eight same-shape Qwen3 MoE candidates against both source endpoints after eval-bundle audit, with source-dominance, task-regression, score-confidence, paired-prediction, checkpoint-audit, and provisional-selection gates. |
-| Unified Dense/MoE average optimizer | complete | results/unified_average_optimizer/report.md converts Dense barrier probes, MoE gauge probes, Qwen3 expert identity, router movement, router-only NLL calibration evidence, unified mechanism caps, router-calibration gating, and final candidate-selection gates into one same-shape operation policy. |
+| Unified Dense/MoE average optimizer | complete | results/unified_average_optimizer/report.md converts Dense barrier probes, Dense/Qwen3 MoE straight-line connectivity, MoE gauge probes, Qwen3 expert identity, router movement, router-only NLL calibration evidence, unified mechanism caps, router-calibration gating, and final candidate-selection gates into one same-shape operation policy. |
 | Qwen3 MoE vLLM eval bundle audit | complete | results/qwen3_moe_eval_bundle_audit/report.md checks every Qwen3 source/candidate eval output for model-id, task-manifest sha, task, example-count, prediction, primary-score, and paired prediction-key consistency before selector use; results/qwen3_moe_eval_bundle_audit_smoke/report.md covers valid, stale-model, missing-task, low-example, key-mismatch, and manifest-mismatch bundles. |
 | Qwen3 MoE mechanism effect attribution | complete | results/qwen3_moe_mechanism_effect_attribution/report.md decomposes the Qwen3 MoE source-frontier -> route-guarded -> audit-gated -> trust-region -> expert-only -> tail-trimmed -> searched-cap -> layer/chunk -> unified-mechanism chain into structural and downstream score deltas, gated by the eval-bundle audit. |
 | Qwen3 MoE post-vLLM eval refresh pipeline | complete | results/qwen3_moe_post_eval_refresh/report.md runs eval-bundle audit, unified result selection, mechanism attribution, smoke checks, and collect_results in a fixed post-eval order after remote vLLM outputs land. |
@@ -210,8 +210,11 @@ Complete: `80`; partial: `1`; missing: `0`.
 | Qwen3 MoE final candidate selector smoke | status / passed cases | passed / 7/7 |
 | unified average optimizer | status / dense / MoE | built_waiting_for_qwen3_vllm_eval / avoid_linear_midpoint_use_probe_selected_anchor_or_low_lambda / align_experts_freeze_router_then_gate_candidate_by_vllm |
 | unified average optimizer | dense linear / unified / endpoint worst NLL | 8.948 / 5.183 / 5.151 |
+| unified average optimizer | dense lambda midpoint / best-family worst NLL | 6.040 / 3.073 |
 | unified average optimizer | real MoE gauge / router / Qwen3 final | 5.491 -> 0.000 / freeze_router / awaiting_source_eval (0/8) |
 | unified average optimizer | Qwen3 unified candidate / audit norm / >0.65 | router_evidence_risk_s0.75 / 0.240 / 0 |
+| unified average optimizer | Qwen3 MoE straight-line interior gap / general barrier | 0.119 / 0.110 |
+| unified average optimizer | Qwen3 Base->Coder interior gap / complementary win | 0.106 / False |
 | unified average optimizer | layer/chunk->unified norm / >0.65 reduction | 0.004 / 89 |
 | unified average optimizer | router calibration status / eligible | awaiting_baseline_eval / 0/3 |
 | unified average optimizer | router NLL probe worst reduction / code gap | 0.221 / -0.014 |

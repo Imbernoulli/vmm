@@ -109,16 +109,15 @@ def collect_artifacts() -> list[dict[str, Any]]:
     suffixes = {".py", ".md", ".csv", ".json", ".jsonl", ".txt", ".png", ".html"}
     excluded_files = {
         "scripts/fp_make_figures.py",  # stale draft figures with old first-principles numbers
-        "scripts/fp_dense_lambda.py",  # local scratch; not part of committed artifact set
-        "scripts/fp_moe_complementary.py",  # local scratch; not part of committed artifact set
-        "scripts/fp_moe_barrier.py",  # incomplete: current run only produced a log
+        "results/fp_dense_lambda/run.log",
+        "results/fp_moe_barrier/run.log",
+        "results/fp_moe_complementary/run.log",
+        "results/fp_moe_forgetting_base_coder/moe_barrier.png",  # title reflects the generic script, not the base->coder run
+        "results/fp_moe_forgetting_base_coder/run.log",
     }
     excluded_prefixes = {
-        "results/fp_dense_lambda/",
         "results/fp_figures/",
         "results/fp_gen_eval_moe/",
-        "results/fp_moe_barrier/",
-        "results/fp_moe_complementary/",
         "results/fp_moe_real_probe/olmoe/",
     }
     files: list[Path] = []
@@ -1512,6 +1511,8 @@ def summarize_unified_average_optimizer() -> dict[str, Any]:
         "dense_linear_worst_nll": maybe_float(dense.get("linear_worst_nll")),
         "dense_unified_worst_nll": maybe_float(dense.get("unified_worst_nll")),
         "dense_best_endpoint_worst_nll": maybe_float(dense.get("best_endpoint_worst_nll")),
+        "dense_lambda_linear_worst_nll": maybe_float(dense.get("lambda_linear_worst_nll")),
+        "dense_lambda_best_worst_nll": maybe_float(dense.get("lambda_best_worst_nll")),
         "dense_curvature_ratio_general": maybe_float(dense.get("curvature_ratio_general")),
         "dense_curvature_ratio_code": maybe_float(dense.get("curvature_ratio_code")),
         "moe_decision": moe.get("decision"),
@@ -1554,6 +1555,19 @@ def summarize_unified_average_optimizer() -> dict[str, Any]:
         ),
         "qwen3_router_calibration_candidate_count": maybe_int(
             moe.get("qwen3_router_calibration_candidate_count")
+        ),
+        "qwen3_interpolation_interior_gap_nll": maybe_float(
+            moe.get("qwen3_interpolation_interior_gap_nll")
+        ),
+        "qwen3_interpolation_general_barrier_nll": maybe_float(
+            moe.get("qwen3_interpolation_general_barrier_nll")
+        ),
+        "qwen3_complementary_merge_beats_sources": bool(
+            moe.get("qwen3_complementary_merge_beats_sources", False)
+        ),
+        "qwen3_base_coder_interior_gap_nll": maybe_float(moe.get("qwen3_base_coder_interior_gap_nll")),
+        "qwen3_base_coder_general_barrier_nll": maybe_float(
+            moe.get("qwen3_base_coder_general_barrier_nll")
         ),
         "qwen3_final_selection_status": moe.get("qwen3_final_selection_status"),
         "qwen3_eligible_candidates": maybe_int(moe.get("qwen3_eligible_candidates")),
@@ -3654,7 +3668,7 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "Unified Dense/MoE average optimizer",
             "status": "complete",
-            "evidence": "results/unified_average_optimizer/report.md converts Dense barrier probes, MoE gauge probes, Qwen3 expert identity, router movement, router-only NLL calibration evidence, unified mechanism caps, router-calibration gating, and final candidate-selection gates into one same-shape operation policy.",
+            "evidence": "results/unified_average_optimizer/report.md converts Dense barrier probes, Dense/Qwen3 MoE straight-line connectivity, MoE gauge probes, Qwen3 expert identity, router movement, router-only NLL calibration evidence, unified mechanism caps, router-calibration gating, and final candidate-selection gates into one same-shape operation policy.",
         },
         {
             "item": "Qwen3 MoE vLLM eval bundle audit",
@@ -4788,6 +4802,11 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{unified_average_optimizer['dense_best_endpoint_worst_nll']:.3f} |"
             ),
             (
+                "| unified average optimizer | dense lambda midpoint / best-family worst NLL | "
+                f"{unified_average_optimizer['dense_lambda_linear_worst_nll']:.3f} / "
+                f"{unified_average_optimizer['dense_lambda_best_worst_nll']:.3f} |"
+            ),
+            (
                 "| unified average optimizer | real MoE gauge / router / Qwen3 final | "
                 f"{unified_average_optimizer['real_gauge_naive_degradation']:.3f} -> "
                 f"{unified_average_optimizer['real_gauge_aligned_degradation']:.3f} / "
@@ -4801,6 +4820,16 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{unified_average_optimizer['qwen3_unified_candidate_id']} / "
                 f"{unified_average_optimizer['qwen3_unified_relative_delta_norm']:.3f} / "
                 f"{unified_average_optimizer['qwen3_unified_routed_gt_065']} |"
+            ),
+            (
+                "| unified average optimizer | Qwen3 MoE straight-line interior gap / general barrier | "
+                f"{unified_average_optimizer['qwen3_interpolation_interior_gap_nll']:.3f} / "
+                f"{unified_average_optimizer['qwen3_interpolation_general_barrier_nll']:.3f} |"
+            ),
+            (
+                "| unified average optimizer | Qwen3 Base->Coder interior gap / complementary win | "
+                f"{unified_average_optimizer['qwen3_base_coder_interior_gap_nll']:.3f} / "
+                f"{unified_average_optimizer['qwen3_complementary_merge_beats_sources']} |"
             ),
             (
                 "| unified average optimizer | layer/chunk->unified norm / >0.65 reduction | "

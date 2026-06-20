@@ -5,7 +5,11 @@
 ## Current Decision
 
 - Dense: `avoid_linear_midpoint_use_probe_selected_anchor_or_low_lambda`；linear worst NLL `8.9477`，unified worst NLL `5.1830`。
+- Dense lambda connectivity: midpoint worst NLL `6.0398`，best lambda-family worst NLL `3.0727`。
 - MoE: `align_experts_freeze_router_then_gate_candidate_by_vllm`；真实 OLMoE same-name average degradation `5.4910`，Qwen3 router action `freeze_router`。
+- Qwen3 MoE straight-line connectivity: best interior worst NLL `2.5947` vs best endpoint `2.4757`；interior gap `0.1189`，general barrier `0.1097`。
+- Qwen3 complementary path: best merge avg NLL `0.5659` vs best source avg `0.5659`；merge beats sources `False`。
+- Qwen3 Base->Coder path: best interior worst NLL `2.4661` vs best endpoint `2.3603`；interior gap `0.1058`，general barrier `0.0728`。
 - Qwen3 unified mechanism: `router_evidence_risk_s0.75`；audit relative norm `0.2396`，routed >0.65 `0`。
 - Qwen3 router NLL probe: worst-NLL reduction `0.2214`，code gap to best source `-0.0139`。
 - Qwen3 router calibration: `awaiting_baseline_eval`。
@@ -18,11 +22,15 @@
 | `dense` | `curvature_law_general` | `high_nonlocal_barrier` | 42.8604 | 5.0000 | actual/predicted general degradation = 42.8604; uniform worst NLL = 5.9109; fisher worst NLL = 5.2492 |
 | `dense` | `curvature_law_code` | `high_nonlocal_barrier` | 26.6575 | 5.0000 | actual/predicted code degradation = 26.6575 |
 | `dense` | `heldout_unified_selector` | `allow_endpoint_or_anchor_fallback` | 5.1830 | 8.9477 | unified test worst NLL = 5.1830; linear = 8.9477; TIES = 9.1097; best endpoint = 5.1510 |
+| `dense` | `dense_lambda_connectivity` | `straight_line_midpoint_rejected` | 6.0398 | 3.0727 | linear midpoint worst NLL = 6.0398; best lambda-family worst NLL = 3.0727; best config = {"code": 0.5414439073133305, "general": 3.072743579141455, "lambda": 0.0, "mode": "uniform", "worst": 3.072743579141455}; best source endpoint worst NLL = 3.1737 |
 | `dense` | `generation_smoke` | `linear_generation_regression` | 0.0000 | 0.5000 | linear avg accuracy = 0.0000; unified avg accuracy = 0.5000; best smoke method = coder |
 | `moe` | `controlled_expert_gauge` | `expert_permutation_is_function_preserving` | 0.0000 | 0.0000 | gauge-equivalent B MSE = 0.00000000; same-name worst = 0.5105; aligned worst = 0.1252 |
 | `moe` | `real_olmoe_gauge_selfmerge` | `reject_same_name_average_without_alignment` | 5.4910 | 1.0000 | baseline NLL = 4.1678; same-name average NLL = 9.6588; aligned average NLL = 4.1678; layers recovered = 16/16 |
 | `moe` | `qwen3_expert_identity` | `identity_alignment_is_allowed_for_this_pair` | 1.0000 | 1.0000 | identity-optimal layer fraction = 1.0000; argmax identity fraction = 1.0000 |
 | `moe` | `qwen3_router_move_gate` | `freeze_router_or_train_route_kd_delta` | 0.0000 | 48.0000 | allowed router layers = 0/48; top-k Jaccard mean/min = 0.4539/0.2422; top1 agreement mean/min = 0.4125/0.0690 |
+| `moe` | `qwen3_straight_line_connectivity` | `reject_source_to_source_linear_interpolation` | 0.1189 | 0.0000 | best interior worst NLL = 2.5947; best endpoint worst NLL = 2.4757; interior gap = 0.1189; general barrier = 0.1097; task-vector cosine vs base = 0.1799 |
+| `moe` | `qwen3_complementary_pair_connectivity` | `do_not_assume_specialist_complementarity_is_averageable` | 0.0000 | 0.0000 | best merge avg NLL = 0.5659; best source avg NLL = 0.5659; merge-source gap = 0.0000; best merge t = 0.0000; merge beats both sources = False |
+| `moe` | `qwen3_base_to_coder_connectivity` | `source_delta_from_base_is_not_safe_without_gate` | 0.1058 | 0.0000 | best interior worst NLL = 2.4661; best endpoint worst NLL = 2.3603; interior gap = 0.1058; general barrier = 0.0728; task-vector norm = 4379.0027 |
 | `moe` | `qwen3_unified_mechanism_optimizer` | `use_router_evidence_geometry_risk_caps` | 0.2273 | 0.6500 | selected = router_evidence_risk_s0.75; family = router_and_evidence_weighted_risk; retention = 0.9758; risk-weighted predicted rel delta = 0.2273; geometry-weighted predicted rel delta = 0.2184 |
 | `moe` | `qwen3_unified_materialized_audit` | `materialized_same_shape_tail_reduction` | 0.2396 | 0.2435 | audit status = passed; total relative norm = 0.2396; router changed = 0/48; layer/chunk->unified norm reduction = 0.0038; routed >0.65 reduction = 89 |
 | `moe` | `qwen3_router_calibration_nll_probe` | `router_dispatch_is_real_optimization_lever` | 0.2214 | 0.0000 | status = router_calibration_improves_linear_merge_but_needs_downstream_gate; linear worst NLL = 2.6355; router-cal worst NLL = 2.4140; worst reduction = 0.2214; code gap to best source = -0.0139 |
@@ -37,6 +45,7 @@
 | `dense_sparse_coordinate_gate` | `make TIES/DARE-style sparsity conditional` | only materialize sparse conflict rules when held-out and vLLM gates pass | It keeps sign-conflict probes as diagnostics without letting them delete useful dense capacity. |
 | `moe_expert_identity_gate` | `canonicalize expert gauge before averaging` | run layer-wise expert alignment; for Qwen3 Instruct/Coder the mapping is currently identity | It removes a discrete symmetry error before any continuous weight interpolation is attempted. |
 | `moe_router_gate` | `freeze direct router movement` | freeze_router | It avoids averaging a discrete top-k dispatch boundary that has high measured source disagreement. |
+| `moe_straight_line_connectivity_gate` | `reject_unconditional_source_to_source_linear_interpolation` | use route/evidence/geometry-constrained same-shape candidates instead of a source-to-source midpoint | It treats model connectivity as measured evidence: a smooth-looking line is not accepted unless an interior point beats the source frontier. |
 | `moe_expert_delta_optimizer` | `apply retention-constrained router/evidence/geometry caps` | router_evidence_risk_s0.75 with hard cap 0.6500; layer/chunk->unified routed >0.65 reduction = 89 | It keeps useful Coder-route mass while shrinking high-risk routed expert deltas instead of using one global coefficient. |
 | `moe_router_calibration_gate` | `treat router calibration as a separately audited ablation` | nll_probe_worst_reduction=0.2214; awaiting_baseline_eval: Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps. | It keeps router calibration as an active MoE-specific lever while still requiring source-dominance and task-regression gates before acceptance. |
 | `moe_candidate_gate` | `select only after audited downstream eval` | keep all eight Qwen3 candidates provisional until eval-bundle audit passes | It prevents structural cleanliness from being mistaken for actual downstream dominance. |
