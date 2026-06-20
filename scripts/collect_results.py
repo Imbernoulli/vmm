@@ -1089,11 +1089,17 @@ def summarize_qwen3_moe_delta_frontier() -> dict[str, Any]:
         "unified_mechanism_total_relative_delta_norm": maybe_float(
             summary.get("unified_mechanism_total_relative_delta_norm")
         ),
+        "subspace_scaled_total_relative_delta_norm": maybe_float(
+            summary.get("subspace_scaled_total_relative_delta_norm")
+        ),
         "unified_mechanism_matches_searched_no_gt065_delta": bool(
             summary.get("unified_mechanism_matches_searched_no_gt065_delta", False)
         ),
         "unified_mechanism_router_changed_tensors": int(
             summary.get("unified_mechanism_router_changed_tensors", 0)
+        ),
+        "subspace_scaled_router_changed_tensors": int(
+            summary.get("subspace_scaled_router_changed_tensors", 0)
         ),
         "trust_to_expert_only_relative_norm_reduction": maybe_float(
             summary.get("trust_to_expert_only_relative_norm_reduction")
@@ -1138,11 +1144,21 @@ def summarize_qwen3_moe_delta_frontier() -> dict[str, Any]:
             summary.get("unified_mechanism_routed_gt_0_6505", 0)
         ),
         "unified_mechanism_routed_gt_0_65": int(summary.get("unified_mechanism_routed_gt_0_65", 0)),
+        "subspace_scaled_routed_gt_0_6505": int(
+            summary.get("subspace_scaled_routed_gt_0_6505", 0)
+        ),
+        "subspace_scaled_routed_gt_0_65": int(summary.get("subspace_scaled_routed_gt_0_65", 0)),
         "layer_chunk_to_unified_relative_norm_reduction": maybe_float(
             summary.get("layer_chunk_to_unified_relative_norm_reduction")
         ),
         "layer_chunk_to_unified_routed_gt_065_reduction": int(
             summary.get("layer_chunk_to_unified_routed_gt_065_reduction", 0)
+        ),
+        "unified_to_subspace_relative_norm_reduction": maybe_float(
+            summary.get("unified_to_subspace_relative_norm_reduction")
+        ),
+        "unified_to_subspace_routed_gt_065_reduction": int(
+            summary.get("unified_to_subspace_routed_gt_065_reduction", 0)
         ),
         "expert_only_attention_changed_tensors": int(
             summary.get("expert_only_attention_changed_tensors", 0)
@@ -4971,6 +4987,12 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(qwen3_moe_delta_frontier['layer_chunk_to_unified_relative_norm_reduction'])} / "
                 f"{qwen3_moe_delta_frontier['layer_chunk_to_unified_routed_gt_065_reduction']} / "
                 f"{qwen3_moe_delta_frontier['unified_mechanism_routed_gt_0_6505']} |"
+            ),
+            (
+                "| Qwen3 MoE delta frontier | unified->subspace rel-norm reduction / >0.65 reduction / subspace >0.6505 | "
+                f"{fmt(qwen3_moe_delta_frontier['unified_to_subspace_relative_norm_reduction'])} / "
+                f"{qwen3_moe_delta_frontier['unified_to_subspace_routed_gt_065_reduction']} / "
+                f"{qwen3_moe_delta_frontier['subspace_scaled_routed_gt_0_6505']} |"
             ),
             (
                 "| Qwen3 MoE mechanism eval gate | status / selection / selected | "

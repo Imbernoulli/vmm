@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-20T05:45:57.460675+00:00`
+Generated at: `2026-06-20T06:06:34.813999+00:00`
 
 ## Coverage
 
@@ -181,7 +181,7 @@ Complete: `85`; partial: `1`; missing: `0`.
 | Qwen3 MoE searched cap-law delta audit | max routed rel-delta / >0.75 / >0.65 / >0.6505 | 0.650 / 0 / 245 / 0 |
 | Qwen3 MoE layer/chunk delta audit | status / total relative norm / router changed | passed / 0.243 / 0/48 |
 | Qwen3 MoE layer/chunk delta audit | max routed rel-delta / >0.75 / >0.65 / >0.6505 | 0.650 / 0 / 89 / 0 |
-| Qwen3 MoE delta frontier | best safety candidate / next required gate | unified_mechanism / vllm_downstream_eval_trust_region_vs_expert_only_tail_trimmed_vs_searched_cap_law_vs_layer_chunk_vs_unified |
+| Qwen3 MoE delta frontier | best safety candidate / next required gate | subspace_scaled / vllm_downstream_eval_trust_region_vs_expert_only_tail_trimmed_vs_searched_cap_law_vs_layer_chunk_vs_unified_vs_subspace_scaled |
 | Qwen3 MoE delta frontier | audit->trust routed >0.75 reduction / trust->expert-only routed >0.75 reduction | 150 / 0 |
 | Qwen3 MoE delta frontier | trust vs expert-only total rel-norm / attention norm reduction | 0.249->0.246 / 0.189 |
 | Qwen3 MoE delta frontier | expert-only->tail-trimmed rel-norm reduction / routed >0.65 reduction | 0.003 / 286 |
@@ -189,14 +189,15 @@ Complete: `85`; partial: `1`; missing: `0`.
 | Qwen3 MoE delta frontier | searched->layer/chunk rel-norm reduction / >0.65 reduction / >0.6505 | 0.004 / 156 / 0 |
 | Qwen3 MoE delta frontier | unified matches searched / unified rel-norm / router changed | False / 0.240 / 0 |
 | Qwen3 MoE delta frontier | layer/chunk->unified rel-norm reduction / >0.65 reduction / unified >0.6505 | 0.004 / 89 / 0 |
+| Qwen3 MoE delta frontier | unified->subspace rel-norm reduction / >0.65 reduction / subspace >0.6505 | 0.000 / 0 / 0 |
 | Qwen3 MoE mechanism eval gate | status / selection / selected | awaiting_remote_vllm_eval / awaiting_source_eval / None |
-| Qwen3 MoE mechanism eval gate | ready / completed / awaiting tests | 10 / 0 / 10 |
-| Qwen3 MoE mechanism eval gate | local GPU / best delta-safety candidate | nvidia_smi_failed / unified_mechanism |
+| Qwen3 MoE mechanism eval gate | ready / completed / awaiting tests | 11 / 0 / 10 |
+| Qwen3 MoE mechanism eval gate | local GPU / best delta-safety candidate | nvidia_smi_failed / subspace_scaled |
 | Qwen3 MoE mechanism eval gate | unified serve / audit / optimizer test | ready_to_host / True / awaiting_eval |
 | Qwen3 MoE eval budget plan | status / current -> recommended examples | ready_for_budgeted_remote_vllm_eval / 64 -> 384 |
-| Qwen3 MoE eval budget plan | planned / ready / pending methods | 13 / 10 / 2 |
+| Qwen3 MoE eval budget plan | planned / ready / pending methods | 13 / 11 / 2 |
 | Qwen3 MoE eval budget plan | current / recommended / extra prompt budget | 3328 / 19968 / 16640 |
-| Qwen3 MoE eval budget plan | ready current / recommended / extra prompt budget | 2560 / 15360 / 12800 |
+| Qwen3 MoE eval budget plan | ready current / recommended / extra prompt budget | 2816 / 16896 / 14080 |
 | Qwen3 MoE eval budget plan | Wilson n / paired n / capped tasks | 381 / 248 / humaneval_compile |
 | Qwen3 MoE eval budget plan | router active / ready / pending / plan-pruned caps | 2 / 0 / 2 / 2 |
 | Qwen3 MoE mechanism levers | top lever / priority / next test | source_and_candidate_downstream_eval / 0.98 / results/qwen3_moe_eval_budget_plan/run_eval_budget.sh all |
@@ -390,7 +391,7 @@ Complete: `85`; partial: `1`; missing: `0`.
 | vLLM downstream eval smoke | status | passed |
 | vLLM downstream eval smoke | good / bad avg primary | 1.000 / 0.000 |
 | vLLM checkpoint eval plan | status | hosted_eval_complete |
-| vLLM checkpoint eval plan | ready / missing / not-loadable | 11 / 3 / 1 |
+| vLLM checkpoint eval plan | ready / missing / not-loadable | 12 / 2 / 1 |
 | vLLM checkpoint eval plan | unified serve / eval output | ready_to_host / results/vllm_checkpoint_eval/qwen3_moe_unified_mechanism_candidate |
 | vLLM hosted eval results | completed eval dirs | 10 |
 | vLLM hosted eval results | best eval avg / worst primary | source_qwen_0_5b_base / 0.375 / 0.094 |
@@ -406,7 +407,7 @@ Complete: `85`; partial: `1`; missing: `0`.
 | Qwen dense broad sparse-method candidate | selected tensors / applied sparse rules / vLLM avg / delta vs global | 99 / 99 / 0.156 / -0.047 |
 | Qwen dense attention sparse-method candidate | selected tensors / applied sparse rules / vLLM avg / delta vs global | 49 / 49 / 0.203 / 0.000 |
 | checkpoint materialization readiness | status | hosted_eval_complete |
-| checkpoint materialization readiness | materialized / blocked / ready / completed | 9 / 4 / 8 / 1 |
+| checkpoint materialization readiness | materialized / blocked / ready / completed | 10 / 4 / 9 / 1 |
 | checkpoint materialization readiness | unified writer / vLLM / end-to-end | materialized_checkpoint_exists / ready_to_host / ready_for_vllm_eval |
 | MoE materialization pipeline | status | waiting_for_real_moe_probe_or_paths |
 | MoE materialization pipeline | current blocking stage | exact_moe_topology |

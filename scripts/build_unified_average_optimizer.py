@@ -384,6 +384,21 @@ def moe_feature_rows(
         },
         {
             "domain": "moe",
+            "probe": "qwen3_subspace_scaled_materialized_audit",
+            "value": delta_frontier.get("subspace_scaled_total_relative_delta_norm"),
+            "threshold": delta_frontier.get("unified_mechanism_total_relative_delta_norm"),
+            "decision_signal": "test_uncovered_subspace_conflict_shrink",
+            "evidence": (
+                f"subspace total relative norm = "
+                f"{fmt(delta_frontier.get('subspace_scaled_total_relative_delta_norm'))}; "
+                f"unified->subspace norm reduction = "
+                f"{fmt(delta_frontier.get('unified_to_subspace_relative_norm_reduction'), 6)}; "
+                f"subspace routed >0.65 = {delta_frontier.get('subspace_scaled_routed_gt_0_65')}; "
+                f"router changed = {delta_frontier.get('subspace_scaled_router_changed_tensors')}"
+            ),
+        },
+        {
+            "domain": "moe",
             "probe": "qwen3_router_calibration_nll_probe",
             "value": router_calibration_nll_probe.get("worst_nll_reduction_vs_linear"),
             "threshold": 0.0,
@@ -536,7 +551,9 @@ def build_decisions(
                 f"{unified_candidate.get('selected_candidate_id')} with hard cap "
                 f"{fmt(unified_candidate.get('hard_cap'))}; "
                 f"layer/chunk->unified routed >0.65 reduction = "
-                f"{delta_frontier.get('layer_chunk_to_unified_routed_gt_065_reduction')}"
+                f"{delta_frontier.get('layer_chunk_to_unified_routed_gt_065_reduction')}; "
+                f"unified->subspace extra norm reduction = "
+                f"{fmt(delta_frontier.get('unified_to_subspace_relative_norm_reduction'), 6)}"
             ),
             "why_it_should_improve": "It keeps useful Coder-route mass while shrinking high-risk routed expert deltas instead of using one global coefficient.",
             "same_shape_invariant": "only routed expert tensor values change; router, attention, embeddings, norms, names, and shapes stay fixed",
@@ -605,6 +622,7 @@ def build_report(summary: dict[str, Any], features: pd.DataFrame, decisions: pd.
         f"- Qwen3 complementary path: best merge avg NLL `{fmt(moe['qwen3_complementary_best_merge_avg_nll'])}` vs best source avg `{fmt(moe['qwen3_complementary_best_source_avg_nll'])}`；merge beats sources `{moe['qwen3_complementary_merge_beats_sources']}`。",
         f"- Qwen3 Base->Coder path: best interior worst NLL `{fmt(moe['qwen3_base_coder_best_interior_worst_nll'])}` vs best endpoint `{fmt(moe['qwen3_base_coder_endpoint_best_worst_nll'])}`；interior gap `{fmt(moe['qwen3_base_coder_interior_gap_nll'])}`，general barrier `{fmt(moe['qwen3_base_coder_general_barrier_nll'])}`。",
         f"- Qwen3 unified mechanism: `{moe['qwen3_unified_candidate_id']}`；audit relative norm `{fmt(moe['qwen3_unified_relative_delta_norm'])}`，routed >0.65 `{moe['qwen3_unified_routed_gt_065']}`。",
+        f"- Qwen3 subspace-scaled ablation: audit relative norm `{fmt(moe['qwen3_subspace_total_relative_delta_norm'])}`，unified->subspace norm reduction `{fmt(moe['qwen3_unified_to_subspace_relative_norm_reduction'], 6)}`，routed >0.65 `{moe['qwen3_subspace_routed_gt_065']}`。",
         f"- Qwen3 router margin fragility: high layers `{moe['qwen3_router_margin_high_fragility_layers']}/{moe['qwen3_router_margin_layer_count']}`，top `L{moe['qwen3_router_margin_top_layer']}` score `{fmt(moe['qwen3_router_margin_top_score'])}`，min safe-lambda proxy `{fmt(moe['qwen3_router_margin_min_safe_lambda_proxy'])}`。",
         f"- Qwen3 router NLL probe: worst-NLL reduction `{fmt(moe['qwen3_router_calibration_nll_worst_reduction'])}`，code gap to best source `{fmt(moe['qwen3_router_calibration_nll_code_gap_to_best_source'])}`。",
         f"- Qwen3 router calibration: `{moe['qwen3_router_calibration_status']}`。",
@@ -782,6 +800,20 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
             ),
             "qwen3_layer_chunk_to_unified_routed_gt_065_reduction": delta_frontier.get(
                 "layer_chunk_to_unified_routed_gt_065_reduction"
+            ),
+            "qwen3_subspace_total_relative_delta_norm": fnum(
+                delta_frontier.get("subspace_scaled_total_relative_delta_norm")
+            ),
+            "qwen3_subspace_router_changed_tensors": delta_frontier.get(
+                "subspace_scaled_router_changed_tensors"
+            ),
+            "qwen3_subspace_routed_gt_065": delta_frontier.get("subspace_scaled_routed_gt_0_65"),
+            "qwen3_subspace_routed_gt_06505": delta_frontier.get("subspace_scaled_routed_gt_0_6505"),
+            "qwen3_unified_to_subspace_relative_norm_reduction": fnum(
+                delta_frontier.get("unified_to_subspace_relative_norm_reduction")
+            ),
+            "qwen3_unified_to_subspace_routed_gt_065_reduction": delta_frontier.get(
+                "unified_to_subspace_routed_gt_065_reduction"
             ),
             "qwen3_router_calibration_status": router_current.get("status"),
             "qwen3_router_calibration_eligible_candidates": router_current.get(

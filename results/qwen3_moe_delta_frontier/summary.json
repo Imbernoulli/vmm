@@ -1,7 +1,7 @@
 {
   "audit_to_trust_routed_gt_075_reduction": 150,
-  "best_delta_safety_candidate": "unified_mechanism",
-  "candidate_count": 8,
+  "best_delta_safety_candidate": "subspace_scaled",
+  "candidate_count": 9,
   "expert_only_attention_changed_tensors": 0,
   "expert_only_router_changed_tensors": 0,
   "expert_only_to_tail_trimmed_relative_norm_reduction": 0.0028877384914612614,
@@ -90,7 +90,7 @@
       "trust_to_expert_only_reduction": 0.0036081965364015978
     }
   ],
-  "interpretation": "Trust-region rules control the routed-expert delta tail; expert-only freezes attention without changing routed tail risk. Tail-trimmed then reduces the remaining routed tail while preserving the frozen attention/router contract. The searched no-gt-0.65 candidate tests whether the hand-built route/load/category risk penalties can be replaced by a simpler global expert cap. The layer/chunk candidate then tests whether layer sensitivity coefficients can reduce structural delta further without removing useful Coder specialization. The unified mechanism candidate now uses router/evidence/geometry risk to lower the routed tail below the uniform 0.65 cap while staying same-shape. Attention, cap-law complexity, layer sensitivity, and geometry-aware shrink should therefore be decided by downstream eval, not by delta safety alone.",
+  "interpretation": "Trust-region rules control the routed-expert delta tail; expert-only freezes attention without changing routed tail risk. Tail-trimmed then reduces the remaining routed tail while preserving the frozen attention/router contract. The searched no-gt-0.65 candidate tests whether the hand-built route/load/category risk penalties can be replaced by a simpler global expert cap. The layer/chunk candidate then tests whether layer sensitivity coefficients can reduce structural delta further without removing useful Coder specialization. The unified mechanism candidate now uses router/evidence/geometry risk to lower the routed tail below the uniform 0.65 cap while staying same-shape. The subspace-scaled ablation then applies only a small extra shrink to uncovered channel/chunk conflict experts. Attention, cap-law complexity, layer sensitivity, geometry-aware shrink, and subspace-conflict shrink should therefore be decided by downstream eval, not by delta safety alone.",
   "layer_chunk_attention_changed_tensors": 0,
   "layer_chunk_routed_gt_0_65": 89,
   "layer_chunk_routed_gt_0_6505": 0,
@@ -98,7 +98,7 @@
   "layer_chunk_to_unified_relative_norm_reduction": 0.003825064843706788,
   "layer_chunk_to_unified_routed_gt_065_reduction": 89,
   "layer_chunk_total_relative_delta_norm": 0.24345430032224707,
-  "next_required_gate": "vllm_downstream_eval_trust_region_vs_expert_only_tail_trimmed_vs_searched_cap_law_vs_layer_chunk_vs_unified",
+  "next_required_gate": "vllm_downstream_eval_trust_region_vs_expert_only_tail_trimmed_vs_searched_cap_law_vs_layer_chunk_vs_unified_vs_subspace_scaled",
   "outputs": {
     "candidate_frontier": "results/qwen3_moe_delta_frontier/candidate_delta_frontier.csv",
     "group_frontier": "results/qwen3_moe_delta_frontier/group_delta_frontier.csv",
@@ -117,6 +117,10 @@
   "searched_no_gt065_to_layer_chunk_routed_gt_065_reduction": 156,
   "searched_no_gt065_total_relative_delta_norm": 0.2475948491291486,
   "status": "delta_frontier_ready",
+  "subspace_scaled_routed_gt_0_65": 0,
+  "subspace_scaled_routed_gt_0_6505": 0,
+  "subspace_scaled_router_changed_tensors": 0,
+  "subspace_scaled_total_relative_delta_norm": 0.2395294198409091,
   "tail_trimmed_attention_changed_tensors": 0,
   "tail_trimmed_routed_gt_0_6505": 0,
   "tail_trimmed_router_changed_tensors": 0,
@@ -131,5 +135,7 @@
   "unified_mechanism_routed_gt_0_65": 0,
   "unified_mechanism_routed_gt_0_6505": 0,
   "unified_mechanism_router_changed_tensors": 0,
-  "unified_mechanism_total_relative_delta_norm": 0.2396292354785403
+  "unified_mechanism_total_relative_delta_norm": 0.2396292354785403,
+  "unified_to_subspace_relative_norm_reduction": 9.981563763117318e-05,
+  "unified_to_subspace_routed_gt_065_reduction": 0
 }

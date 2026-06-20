@@ -4,7 +4,7 @@
 
 - Status: `ready_for_budgeted_remote_vllm_eval`
 - Methods to evaluate: `13`
-- Ready-to-host methods now: `10`
+- Ready-to-host methods now: `11`
 - Current gate max examples: `64`
 - Recommended command max examples: `384`
 - Total current prompt budget: `3328`
@@ -45,7 +45,7 @@ Router calibration: budget planning now reads the route-margin-gated calibration
 | 7 | `qwen3_moe_searched_no_gt065_max_retention_candidate` | `candidate` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
 | 8 | `qwen3_moe_layer_chunk_candidate` | `candidate` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
 | 9 | `qwen3_moe_unified_mechanism_candidate` | `candidate` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
-| 10 | `qwen3_moe_subspace_scaled_candidate` | `candidate` | `checkpoint_missing_until_materialized` | 64 | 384 | 1280 | `not_run` |
+| 10 | `qwen3_moe_subspace_scaled_candidate` | `candidate` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
 | 11 | `qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate` | `candidate` | `pending_materialization` | 64 | 384 | 1280 | `not_run` |
 | 12 | `qwen3_moe_router_calibrated_searched_no_gt065_margin_profile_candidate` | `candidate` | `pending_materialization` | 64 | 384 | 1280 | `not_run` |
 

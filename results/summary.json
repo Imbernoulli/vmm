@@ -1586,9 +1586,9 @@
       "blocked_by_placeholder_count": 4,
       "candidate_count": 16,
       "completed_vllm_eval_count": 1,
-      "materialized_count": 9,
+      "materialized_count": 10,
       "readiness_csv": "results/checkpoint_materialization_readiness/candidate_readiness.csv",
-      "ready_for_vllm_eval_count": 8,
+      "ready_for_vllm_eval_count": 9,
       "report": "results/checkpoint_materialization_readiness/report.md",
       "rows": [
         {
@@ -1770,9 +1770,9 @@
         {
           "candidate": "qwen3_moe_subspace_scaled_candidate",
           "dry_run_only": false,
-          "end_to_end_status": "needs_checkpoint_materialization",
+          "end_to_end_status": "ready_for_vllm_eval",
           "loadability": "qwen_moe_if_materialized",
-          "next_writer_action": "run writer command and verify safetensors output",
+          "next_writer_action": "host the vLLM plan checkpoint and run downstream eval",
           "placeholder_count": 0,
           "placeholders": null,
           "source_kind": "writer_command",
@@ -1783,11 +1783,11 @@
           "vllm_eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_subspace_scaled_candidate",
           "vllm_eval_status": "not_run",
           "vllm_eval_worst_primary_score": null,
-          "vllm_plan_status": "checkpoint_missing_until_materialized",
+          "vllm_plan_status": "ready_to_host",
           "writer_command": "python scripts/write_same_shape_average_checkpoint.py --base /srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe --source instruct=/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B-Instruct-2507/snapshots/0d7cf23991f47feeb3a57ecb4c9cee8ea4a17bfe --source coder=/srv/home/bohanlyu/.cache/huggingface/hub/models--Qwen--Qwen3-Coder-30B-A3B-Instruct/snapshots/b2cff646eb4bb1d68355c01b18ae02e7cf42d120 --source-weight instruct=0.0 --source-weight coder=0.0 --freeze-router --tensor-rule-file results/qwen3_moe_expert_subspace_conflict_probe/subspace_adjusted_tensor_rules.txt --output-dir results/checkpoints/qwen3_moe_subspace_scaled_candidate",
           "writer_output_dir": "results/checkpoints/qwen3_moe_subspace_scaled_candidate",
-          "writer_output_exists": false,
-          "writer_status": "materialization_command_ready"
+          "writer_output_exists": true,
+          "writer_status": "materialized_checkpoint_exists"
         },
         {
           "candidate": "moe_route_aware_candidate",
@@ -1949,13 +1949,13 @@
         "blocked_by_placeholder_count": 4,
         "candidate_count": 16,
         "completed_vllm_eval_count": 1,
-        "materialized_count": 9,
+        "materialized_count": 10,
         "outputs": {
           "readiness_csv": "results/checkpoint_materialization_readiness/candidate_readiness.csv",
           "report": "results/checkpoint_materialization_readiness/report.md",
           "summary": "results/checkpoint_materialization_readiness/summary.json"
         },
-        "ready_for_vllm_eval_count": 8,
+        "ready_for_vllm_eval_count": 9,
         "schema_version": 1,
         "status": "hosted_eval_complete",
         "toy_validation_only_count": 3
@@ -8026,8 +8026,8 @@
     },
     "qwen3_moe_delta_frontier": {
       "audit_to_trust_routed_gt_075_reduction": 150,
-      "best_delta_safety_candidate": "unified_mechanism",
-      "candidate_count": 8,
+      "best_delta_safety_candidate": "subspace_scaled",
+      "candidate_count": 9,
       "candidate_frontier": "results/qwen3_moe_delta_frontier/candidate_delta_frontier.csv",
       "candidate_rows": [
         {
@@ -8269,6 +8269,36 @@
           "tensor_count": 18867,
           "total_delta_norm": 990.7151869890374,
           "total_relative_delta_norm": 0.2396292354785403
+        },
+        {
+          "attention_changed_numel_fraction": 0.0,
+          "attention_changed_tensors": 0,
+          "attention_max_tensor_relative_delta": 0.0,
+          "attention_relative_delta_norm": 0.0,
+          "audit_dir": "results/qwen3_moe_subspace_scaled_delta_audit",
+          "candidate": "subspace_scaled",
+          "changed_numel_fraction": 0.5333353724709579,
+          "changed_tensors": 10353,
+          "max_abs_delta": 0.57421875,
+          "method": "qwen3_moe_subspace_scaled_candidate",
+          "routed_changed_numel_fraction": 0.5616861979166666,
+          "routed_changed_tensors": 10353,
+          "routed_max_tensor_relative_delta": 0.6234276715724305,
+          "routed_p95_tensor_relative_delta": 0.5803040143897936,
+          "routed_p99_tensor_relative_delta": 0.6015058729794723,
+          "routed_relative_delta_norm": 0.2477901361132669,
+          "routed_tensors_gt_0_5": 1761,
+          "routed_tensors_gt_0_65": 0,
+          "routed_tensors_gt_0_6505": 0,
+          "routed_tensors_gt_0_75": 0,
+          "routed_tensors_gt_1_0": 0,
+          "router_changed_tensors": 0,
+          "router_tensors": 48,
+          "rule": "unified_plus_uncovered_subspace_conflict_shrink",
+          "status": "passed",
+          "tensor_count": 18867,
+          "total_delta_norm": 990.302512517566,
+          "total_relative_delta_norm": 0.2395294198409091
         }
       ],
       "expert_only_attention_changed_tensors": 0,
@@ -8286,7 +8316,7 @@
       "layer_chunk_to_unified_routed_gt_065_reduction": 89,
       "layer_chunk_total_relative_delta_norm": 0.24345430032224707,
       "layer_frontier": "results/qwen3_moe_delta_frontier/layer_delta_frontier.csv",
-      "next_required_gate": "vllm_downstream_eval_trust_region_vs_expert_only_tail_trimmed_vs_searched_cap_law_vs_layer_chunk_vs_unified",
+      "next_required_gate": "vllm_downstream_eval_trust_region_vs_expert_only_tail_trimmed_vs_searched_cap_law_vs_layer_chunk_vs_unified_vs_subspace_scaled",
       "pairwise_reductions": "results/qwen3_moe_delta_frontier/pairwise_delta_reductions.csv",
       "pairwise_rows": [
         {
@@ -8379,6 +8409,19 @@
           "routed_relative_delta_norm_reduction": 0.0039569808956816,
           "to_candidate": "unified_mechanism",
           "total_relative_delta_norm_reduction": 0.0038250648437067
+        },
+        {
+          "attention_relative_delta_norm_reduction": 0.0,
+          "changed_tensors_reduction": 0,
+          "delta_rule_change": "unified_router_evidence_geometry_risk_cap -> unified_plus_uncovered_subspace_conflict_shrink",
+          "from_candidate": "unified_mechanism",
+          "routed_gt_065_reduction": 0,
+          "routed_gt_075_reduction": 0,
+          "routed_gt_1_reduction": 0,
+          "routed_max_tensor_relative_delta_reduction": 0.0,
+          "routed_relative_delta_norm_reduction": 0.0001032580066836,
+          "to_candidate": "subspace_scaled",
+          "total_relative_delta_norm_reduction": 9.981563763117318e-05
         }
       ],
       "report": "results/qwen3_moe_delta_frontier/report.md",
@@ -8389,10 +8432,14 @@
       "searched_no_gt065_to_layer_chunk_routed_gt_065_reduction": 156,
       "searched_no_gt065_total_relative_delta_norm": 0.2475948491291486,
       "status": "delta_frontier_ready",
+      "subspace_scaled_routed_gt_0_65": 0,
+      "subspace_scaled_routed_gt_0_6505": 0,
+      "subspace_scaled_router_changed_tensors": 0,
+      "subspace_scaled_total_relative_delta_norm": 0.2395294198409091,
       "summary": {
         "audit_to_trust_routed_gt_075_reduction": 150,
-        "best_delta_safety_candidate": "unified_mechanism",
-        "candidate_count": 8,
+        "best_delta_safety_candidate": "subspace_scaled",
+        "candidate_count": 9,
         "expert_only_attention_changed_tensors": 0,
         "expert_only_router_changed_tensors": 0,
         "expert_only_to_tail_trimmed_relative_norm_reduction": 0.0028877384914612614,
@@ -8481,7 +8528,7 @@
             "trust_to_expert_only_reduction": 0.0036081965364015978
           }
         ],
-        "interpretation": "Trust-region rules control the routed-expert delta tail; expert-only freezes attention without changing routed tail risk. Tail-trimmed then reduces the remaining routed tail while preserving the frozen attention/router contract. The searched no-gt-0.65 candidate tests whether the hand-built route/load/category risk penalties can be replaced by a simpler global expert cap. The layer/chunk candidate then tests whether layer sensitivity coefficients can reduce structural delta further without removing useful Coder specialization. The unified mechanism candidate now uses router/evidence/geometry risk to lower the routed tail below the uniform 0.65 cap while staying same-shape. Attention, cap-law complexity, layer sensitivity, and geometry-aware shrink should therefore be decided by downstream eval, not by delta safety alone.",
+        "interpretation": "Trust-region rules control the routed-expert delta tail; expert-only freezes attention without changing routed tail risk. Tail-trimmed then reduces the remaining routed tail while preserving the frozen attention/router contract. The searched no-gt-0.65 candidate tests whether the hand-built route/load/category risk penalties can be replaced by a simpler global expert cap. The layer/chunk candidate then tests whether layer sensitivity coefficients can reduce structural delta further without removing useful Coder specialization. The unified mechanism candidate now uses router/evidence/geometry risk to lower the routed tail below the uniform 0.65 cap while staying same-shape. The subspace-scaled ablation then applies only a small extra shrink to uncovered channel/chunk conflict experts. Attention, cap-law complexity, layer sensitivity, geometry-aware shrink, and subspace-conflict shrink should therefore be decided by downstream eval, not by delta safety alone.",
         "layer_chunk_attention_changed_tensors": 0,
         "layer_chunk_routed_gt_0_65": 89,
         "layer_chunk_routed_gt_0_6505": 0,
@@ -8489,7 +8536,7 @@
         "layer_chunk_to_unified_relative_norm_reduction": 0.003825064843706788,
         "layer_chunk_to_unified_routed_gt_065_reduction": 89,
         "layer_chunk_total_relative_delta_norm": 0.24345430032224707,
-        "next_required_gate": "vllm_downstream_eval_trust_region_vs_expert_only_tail_trimmed_vs_searched_cap_law_vs_layer_chunk_vs_unified",
+        "next_required_gate": "vllm_downstream_eval_trust_region_vs_expert_only_tail_trimmed_vs_searched_cap_law_vs_layer_chunk_vs_unified_vs_subspace_scaled",
         "outputs": {
           "candidate_frontier": "results/qwen3_moe_delta_frontier/candidate_delta_frontier.csv",
           "group_frontier": "results/qwen3_moe_delta_frontier/group_delta_frontier.csv",
@@ -8508,6 +8555,10 @@
         "searched_no_gt065_to_layer_chunk_routed_gt_065_reduction": 156,
         "searched_no_gt065_total_relative_delta_norm": 0.2475948491291486,
         "status": "delta_frontier_ready",
+        "subspace_scaled_routed_gt_0_65": 0,
+        "subspace_scaled_routed_gt_0_6505": 0,
+        "subspace_scaled_router_changed_tensors": 0,
+        "subspace_scaled_total_relative_delta_norm": 0.2395294198409091,
         "tail_trimmed_attention_changed_tensors": 0,
         "tail_trimmed_routed_gt_0_6505": 0,
         "tail_trimmed_router_changed_tensors": 0,
@@ -8522,7 +8573,9 @@
         "unified_mechanism_routed_gt_0_65": 0,
         "unified_mechanism_routed_gt_0_6505": 0,
         "unified_mechanism_router_changed_tensors": 0,
-        "unified_mechanism_total_relative_delta_norm": 0.2396292354785403
+        "unified_mechanism_total_relative_delta_norm": 0.2396292354785403,
+        "unified_to_subspace_relative_norm_reduction": 9.981563763117318e-05,
+        "unified_to_subspace_routed_gt_065_reduction": 0
       },
       "summary_path": "results/qwen3_moe_delta_frontier/summary.json",
       "tail_thresholds": "results/qwen3_moe_delta_frontier/tail_thresholds.csv",
@@ -8732,6 +8785,31 @@
           "candidate": "unified_mechanism",
           "routed_tensor_count": 1763,
           "threshold": 0.5
+        },
+        {
+          "candidate": "subspace_scaled",
+          "routed_tensor_count": 0,
+          "threshold": 1.0
+        },
+        {
+          "candidate": "subspace_scaled",
+          "routed_tensor_count": 0,
+          "threshold": 0.75
+        },
+        {
+          "candidate": "subspace_scaled",
+          "routed_tensor_count": 0,
+          "threshold": 0.6505
+        },
+        {
+          "candidate": "subspace_scaled",
+          "routed_tensor_count": 0,
+          "threshold": 0.65
+        },
+        {
+          "candidate": "subspace_scaled",
+          "routed_tensor_count": 1761,
+          "threshold": 0.5
         }
       ],
       "trust_region_total_relative_delta_norm": 0.2486605810368496,
@@ -8742,7 +8820,9 @@
       "unified_mechanism_routed_gt_0_65": 0,
       "unified_mechanism_routed_gt_0_6505": 0,
       "unified_mechanism_router_changed_tensors": 0,
-      "unified_mechanism_total_relative_delta_norm": 0.2396292354785403
+      "unified_mechanism_total_relative_delta_norm": 0.2396292354785403,
+      "unified_to_subspace_relative_norm_reduction": 9.981563763117318e-05,
+      "unified_to_subspace_routed_gt_065_reduction": 0
     },
     "qwen3_moe_eval_budget_plan": {
       "assumed_paired_discordance_rate": 0.25,
@@ -9179,7 +9259,7 @@
           "router_margin_planned_cap_passed": null,
           "router_max_relative_norm": null,
           "serve_command": "CUDA_VISIBLE_DEVICES=0,1,2,3 vllm serve results/checkpoints/qwen3_moe_subspace_scaled_candidate --served-model-name candidate_qwen3_moe_subspace_scaled_candidate --host 127.0.0.1 --port 8110 --dtype bfloat16 --tensor-parallel-size 4",
-          "serve_status": "checkpoint_missing_until_materialized",
+          "serve_status": "ready_to_host",
           "served_model_id": "candidate_qwen3_moe_subspace_scaled_candidate",
           "task_count": 4,
           "tasks": "gsm8k,mmlu,safety,humaneval_compile"
@@ -9247,10 +9327,10 @@
       "paired_required_discordant": 62,
       "paired_required_examples": 248,
       "pending_materialization_method_count": 2,
-      "ready_to_host_additional_prompt_budget": 12800,
-      "ready_to_host_current_prompt_budget": 2560,
-      "ready_to_host_method_count": 10,
-      "ready_to_host_recommended_prompt_budget": 15360,
+      "ready_to_host_additional_prompt_budget": 14080,
+      "ready_to_host_current_prompt_budget": 2816,
+      "ready_to_host_method_count": 11,
+      "ready_to_host_recommended_prompt_budget": 16896,
       "recommended_max_examples": 384,
       "report": "results/qwen3_moe_eval_budget_plan/report.md",
       "router_calibration_active_candidate_count": 2,
@@ -9281,10 +9361,10 @@
         "paired_required_examples": 248,
         "paired_rounded_examples": 256,
         "pending_materialization_method_count": 2,
-        "ready_to_host_additional_prompt_budget": 12800,
-        "ready_to_host_current_prompt_budget": 2560,
-        "ready_to_host_method_count": 10,
-        "ready_to_host_recommended_prompt_budget": 15360,
+        "ready_to_host_additional_prompt_budget": 14080,
+        "ready_to_host_current_prompt_budget": 2816,
+        "ready_to_host_method_count": 11,
+        "ready_to_host_recommended_prompt_budget": 16896,
         "recommended_max_examples": 384,
         "router_calibration": {
           "active_candidate_count": 2,
@@ -13196,7 +13276,7 @@
           "worst_primary_upper": null
         },
         {
-          "audit_passed": false,
+          "audit_passed": true,
           "avg_primary_lower": null,
           "avg_primary_score": null,
           "avg_primary_upper": null,
@@ -13208,9 +13288,9 @@
           "paired_min_pvalue": null,
           "paired_shared_examples": null,
           "paired_source_only_correct": null,
-          "rejection_reasons": "awaiting_candidate_eval,checkpoint_audit_failed",
+          "rejection_reasons": "awaiting_candidate_eval",
           "role": "candidate",
-          "routed_tensors_gt_0_75": null,
+          "routed_tensors_gt_0_75": 0.0,
           "selection_eligible": false,
           "task_confidence_regression_columns": null,
           "task_gsm8k_score": null,
@@ -13219,7 +13299,7 @@
           "task_paired_regression_columns": null,
           "task_regression_columns": null,
           "task_safety_score": null,
-          "total_relative_delta_norm": null,
+          "total_relative_delta_norm": 0.2395294198409091,
           "worst_primary_lower": null,
           "worst_primary_score": null,
           "worst_primary_upper": null
@@ -16321,20 +16401,20 @@
           "transition": "layer_chunk_to_unified_mechanism"
         },
         {
-          "delta_attention_changed_tensors": null,
-          "delta_attention_relative_delta_norm": null,
+          "delta_attention_changed_tensors": 0.0,
+          "delta_attention_relative_delta_norm": 0.0,
           "delta_avg_primary_score": null,
-          "delta_routed_max_tensor_relative_delta": null,
-          "delta_routed_relative_delta_norm": null,
-          "delta_routed_tensors_gt_0_65": null,
-          "delta_routed_tensors_gt_0_75": null,
-          "delta_routed_tensors_gt_1_0": null,
-          "delta_router_changed_tensors": null,
+          "delta_routed_max_tensor_relative_delta": 0.0,
+          "delta_routed_relative_delta_norm": -0.0001032580066836,
+          "delta_routed_tensors_gt_0_65": 0.0,
+          "delta_routed_tensors_gt_0_75": 0.0,
+          "delta_routed_tensors_gt_1_0": 0.0,
+          "delta_router_changed_tensors": 0.0,
           "delta_task_gsm8k_score": null,
           "delta_task_humaneval_compile_score": null,
           "delta_task_mmlu_score": null,
           "delta_task_safety_score": null,
-          "delta_total_relative_delta_norm": null,
+          "delta_total_relative_delta_norm": -9.981563763117318e-05,
           "delta_worst_primary_score": null,
           "effect": "awaiting_downstream_eval",
           "from_attention_changed_tensors": 0.0,
@@ -16356,22 +16436,22 @@
           "from_worst_primary_score": null,
           "mechanism": "shrink only uncovered channel/chunk subspace-conflict experts beyond the unified cap",
           "status": "awaiting_eval",
-          "to_attention_changed_tensors": null,
-          "to_attention_relative_delta_norm": null,
+          "to_attention_changed_tensors": 0.0,
+          "to_attention_relative_delta_norm": 0.0,
           "to_avg_primary_score": null,
           "to_eval_usable": false,
           "to_method": "qwen3_moe_subspace_scaled_candidate",
-          "to_routed_max_tensor_relative_delta": null,
-          "to_routed_relative_delta_norm": null,
-          "to_routed_tensors_gt_0_65": null,
-          "to_routed_tensors_gt_0_75": null,
-          "to_routed_tensors_gt_1_0": null,
-          "to_router_changed_tensors": null,
+          "to_routed_max_tensor_relative_delta": 0.6234276715724305,
+          "to_routed_relative_delta_norm": 0.2477901361132669,
+          "to_routed_tensors_gt_0_65": 0.0,
+          "to_routed_tensors_gt_0_75": 0.0,
+          "to_routed_tensors_gt_1_0": 0.0,
+          "to_router_changed_tensors": 0.0,
           "to_task_gsm8k_score": null,
           "to_task_humaneval_compile_score": null,
           "to_task_mmlu_score": null,
           "to_task_safety_score": null,
-          "to_total_relative_delta_norm": null,
+          "to_total_relative_delta_norm": 0.2395294198409091,
           "to_worst_primary_score": null,
           "transition": "unified_mechanism_to_subspace_scaled"
         }
@@ -16458,7 +16538,7 @@
     },
     "qwen3_moe_mechanism_eval_gate": {
       "awaiting_tests": 10,
-      "best_delta_safety_candidate": "unified_mechanism",
+      "best_delta_safety_candidate": "subspace_scaled",
       "candidate_count": 9,
       "completed_eval_count": 0,
       "eval_gate_plan": "results/qwen3_moe_mechanism_eval_gate/eval_gate_plan.csv",
@@ -16884,15 +16964,15 @@
           "worst_primary_score": null
         },
         {
-          "attention_changed_tensors": null,
-          "attention_relative_delta_norm": null,
-          "audit_passed": false,
-          "audit_status": null,
+          "attention_changed_tensors": 0.0,
+          "attention_relative_delta_norm": 0.0,
+          "audit_passed": true,
+          "audit_status": "passed",
           "avg_primary_score": null,
           "base_url": "http://127.0.0.1:8110/v1",
-          "checkpoint_exists": false,
+          "checkpoint_exists": true,
           "checkpoint_path": "results/checkpoints/qwen3_moe_subspace_scaled_candidate",
-          "end_to_end_status": "needs_checkpoint_materialization",
+          "end_to_end_status": "ready_for_vllm_eval",
           "eval_command": "python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8110/v1 --models candidate_qwen3_moe_subspace_scaled_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_subspace_scaled_candidate --task-manifest results/qwen3_moe_mechanism_eval_gate/task_manifest.json --create-task-manifest-if-missing",
           "eval_completed": false,
           "eval_output_dir": "results/vllm_checkpoint_eval/qwen3_moe_subspace_scaled_candidate",
@@ -16907,14 +16987,14 @@
           "port": 8110,
           "required_controls": "both sources; unified_mechanism; layer_chunk; expert subspace conflict probe",
           "role": "candidate",
-          "routed_max_tensor_relative_delta": null,
-          "routed_relative_delta_norm": null,
-          "routed_tensors_gt_0_65": null,
-          "routed_tensors_gt_0_75": null,
-          "routed_tensors_gt_1_0": null,
-          "router_changed_tensors": null,
+          "routed_max_tensor_relative_delta": 0.6234276715724305,
+          "routed_relative_delta_norm": 0.2477901361132669,
+          "routed_tensors_gt_0_65": 0.0,
+          "routed_tensors_gt_0_75": 0.0,
+          "routed_tensors_gt_1_0": 0.0,
+          "router_changed_tensors": 0.0,
           "serve_command": "CUDA_VISIBLE_DEVICES=0,1,2,3 vllm serve results/checkpoints/qwen3_moe_subspace_scaled_candidate --served-model-name candidate_qwen3_moe_subspace_scaled_candidate --host 127.0.0.1 --port 8110 --dtype bfloat16 --tensor-parallel-size 4",
-          "serve_status": "checkpoint_missing_until_materialized",
+          "serve_status": "ready_to_host",
           "served_model_id": "candidate_qwen3_moe_subspace_scaled_candidate",
           "short_name": "subspace_scaled",
           "task_gsm8k_score": null,
@@ -16922,7 +17002,7 @@
           "task_mmlu_score": null,
           "task_safety_score": null,
           "tasks": "gsm8k,mmlu,safety,humaneval_compile",
-          "total_relative_delta_norm": null,
+          "total_relative_delta_norm": 0.2395294198409091,
           "worst_primary_score": null
         }
       ],
@@ -17057,14 +17137,14 @@
           "worst_primary_delta_to_minus_from": null
         },
         {
-          "attention_norm_reduction": null,
+          "attention_norm_reduction": 0.0,
           "avg_primary_delta_to_minus_from": null,
           "current_status": "awaiting_eval",
-          "delta_norm_reduction": null,
+          "delta_norm_reduction": 9.981563763117318e-05,
           "from_method": "qwen3_moe_unified_mechanism_candidate",
           "interpretation": "Needs matched vLLM downstream scores.",
           "mechanism_question": "Do uncovered high subspace-conflict experts need additional non-base shrink after the unified mechanism cap?",
-          "routed_gt_075_reduction": null,
+          "routed_gt_075_reduction": 0.0,
           "test": "expert_subspace_conflict_ablation",
           "to_method": "qwen3_moe_subspace_scaled_candidate",
           "why_it_matters": "The subspace probe found only a small set of uncovered channel/chunk conflicts; this isolates whether those localized conflicts matter behaviorally.",
@@ -17073,7 +17153,7 @@
       ],
       "mechanism_tests": "results/qwen3_moe_mechanism_eval_gate/mechanism_tests.csv",
       "method_selection": "results/qwen3_moe_mechanism_eval_gate/method_selection.csv",
-      "ready_to_host_count": 10,
+      "ready_to_host_count": 11,
       "report": "results/qwen3_moe_mechanism_eval_gate/report.md",
       "run_script": "results/qwen3_moe_mechanism_eval_gate/run_eval_gate.sh",
       "selected_method": null,
@@ -17239,19 +17319,19 @@
           "worst_primary_score": null
         },
         {
-          "audit_passed": false,
+          "audit_passed": true,
           "avg_primary_score": null,
           "dominated_by_source": null,
           "eval_completed": false,
           "method": "qwen3_moe_subspace_scaled_candidate",
           "role": "candidate",
-          "routed_tensors_gt_0_75": null,
+          "routed_tensors_gt_0_75": 0.0,
           "selection_eligible": false,
           "task_gsm8k_score": null,
           "task_humaneval_compile_score": null,
           "task_mmlu_score": null,
           "task_safety_score": null,
-          "total_relative_delta_norm": null,
+          "total_relative_delta_norm": 0.2395294198409091,
           "worst_primary_score": null
         }
       ],
@@ -17260,7 +17340,7 @@
       "source_count": 2,
       "status": "awaiting_remote_vllm_eval",
       "summary": {
-        "best_delta_safety_candidate": "unified_mechanism",
+        "best_delta_safety_candidate": "subspace_scaled",
         "candidate_count": 9,
         "completed_eval_count": 0,
         "current_selection": {
@@ -17297,7 +17377,7 @@
           "selection_rules": "results/qwen3_moe_mechanism_eval_gate/selection_rules.json",
           "summary": "results/qwen3_moe_mechanism_eval_gate/summary.json"
         },
-        "ready_to_host_count": 10,
+        "ready_to_host_count": 11,
         "schema_version": 1,
         "source_count": 2,
         "status": "awaiting_remote_vllm_eval"
@@ -18450,7 +18530,7 @@
       "step_rows": [
         {
           "command": "python scripts/audit_qwen3_moe_eval_bundle.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_eval_bundle_audit",
-          "duration_sec": 0.4253213405609131,
+          "duration_sec": 0.4229412078857422,
           "kind": "gate",
           "returncode": 0,
           "status": "passed",
@@ -18460,7 +18540,7 @@
         },
         {
           "command": "python scripts/select_qwen3_moe_unified_result.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_unified_result_selection",
-          "duration_sec": 0.402592658996582,
+          "duration_sec": 0.4699954986572265,
           "kind": "selector",
           "returncode": 0,
           "status": "passed",
@@ -18470,7 +18550,7 @@
         },
         {
           "command": "python scripts/select_qwen3_moe_final_candidate.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_final_candidate_selection",
-          "duration_sec": 0.4243531227111816,
+          "duration_sec": 0.40814208984375,
           "kind": "selector",
           "returncode": 0,
           "status": "passed",
@@ -18480,7 +18560,7 @@
         },
         {
           "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_mechanism_effect_attribution",
-          "duration_sec": 0.4155757427215576,
+          "duration_sec": 0.5741004943847656,
           "kind": "attribution",
           "returncode": 0,
           "status": "passed",
@@ -18490,7 +18570,7 @@
         },
         {
           "command": "python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke",
-          "duration_sec": 0.6658778190612793,
+          "duration_sec": 0.7685458660125732,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -18500,7 +18580,7 @@
         },
         {
           "command": "python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke",
-          "duration_sec": 0.4513566493988037,
+          "duration_sec": 0.4634084701538086,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -18510,7 +18590,7 @@
         },
         {
           "command": "python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke",
-          "duration_sec": 0.4262855052947998,
+          "duration_sec": 0.5052893161773682,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -18520,7 +18600,7 @@
         },
         {
           "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --smoke-matrix --output-dir results/qwen3_moe_mechanism_effect_attribution_smoke",
-          "duration_sec": 0.4089498519897461,
+          "duration_sec": 0.4658896923065185,
           "kind": "smoke",
           "returncode": 0,
           "status": "passed",
@@ -18530,12 +18610,12 @@
         },
         {
           "command": "python scripts/collect_results.py",
-          "duration_sec": 1.5302133560180664,
+          "duration_sec": 1.763847589492798,
           "kind": "summary",
           "returncode": 0,
           "status": "passed",
           "stderr_tail": null,
-          "stdout_tail": "Wrote results/summary.json\nWrote results/summary.md\nWrote ARTIFACT_MANIFEST.json\nArtifacts indexed: 1082\n",
+          "stdout_tail": "Wrote results/summary.json\nWrote results/summary.md\nWrote ARTIFACT_MANIFEST.json\nArtifacts indexed: 1087\n",
           "step": "collect_results"
         }
       ],
@@ -18572,7 +18652,7 @@
         "steps": [
           {
             "command": "python scripts/audit_qwen3_moe_eval_bundle.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_eval_bundle_audit",
-            "duration_sec": 0.4253213405609131,
+            "duration_sec": 0.4229412078857422,
             "kind": "gate",
             "returncode": 0,
             "status": "passed",
@@ -18582,7 +18662,7 @@
           },
           {
             "command": "python scripts/select_qwen3_moe_unified_result.py --gate-dir results/qwen3_moe_mechanism_eval_gate --output-dir results/qwen3_moe_unified_result_selection",
-            "duration_sec": 0.40259265899658203,
+            "duration_sec": 0.46999549865722656,
             "kind": "selector",
             "returncode": 0,
             "status": "passed",
@@ -18592,7 +18672,7 @@
           },
           {
             "command": "python scripts/select_qwen3_moe_final_candidate.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_final_candidate_selection",
-            "duration_sec": 0.42435312271118164,
+            "duration_sec": 0.40814208984375,
             "kind": "selector",
             "returncode": 0,
             "status": "passed",
@@ -18602,7 +18682,7 @@
           },
           {
             "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --gate-dir results/qwen3_moe_mechanism_eval_gate --audit-dir results/qwen3_moe_eval_bundle_audit --output-dir results/qwen3_moe_mechanism_effect_attribution",
-            "duration_sec": 0.4155757427215576,
+            "duration_sec": 0.5741004943847656,
             "kind": "attribution",
             "returncode": 0,
             "status": "passed",
@@ -18612,7 +18692,7 @@
           },
           {
             "command": "python scripts/audit_qwen3_moe_eval_bundle.py --smoke-matrix --output-dir results/qwen3_moe_eval_bundle_audit_smoke",
-            "duration_sec": 0.6658778190612793,
+            "duration_sec": 0.7685458660125732,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -18622,7 +18702,7 @@
           },
           {
             "command": "python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke",
-            "duration_sec": 0.4513566493988037,
+            "duration_sec": 0.4634084701538086,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -18632,7 +18712,7 @@
           },
           {
             "command": "python scripts/select_qwen3_moe_final_candidate.py --smoke-matrix --output-dir results/qwen3_moe_final_candidate_selection_smoke",
-            "duration_sec": 0.4262855052947998,
+            "duration_sec": 0.5052893161773682,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -18642,7 +18722,7 @@
           },
           {
             "command": "python scripts/attribute_qwen3_moe_mechanism_effects.py --smoke-matrix --output-dir results/qwen3_moe_mechanism_effect_attribution_smoke",
-            "duration_sec": 0.4089498519897461,
+            "duration_sec": 0.46588969230651855,
             "kind": "smoke",
             "returncode": 0,
             "status": "passed",
@@ -18652,12 +18732,12 @@
           },
           {
             "command": "python scripts/collect_results.py",
-            "duration_sec": 1.5302133560180664,
+            "duration_sec": 1.7638475894927979,
             "kind": "summary",
             "returncode": 0,
             "status": "passed",
             "stderr_tail": "",
-            "stdout_tail": "Wrote results/summary.json\nWrote results/summary.md\nWrote ARTIFACT_MANIFEST.json\nArtifacts indexed: 1082\n",
+            "stdout_tail": "Wrote results/summary.json\nWrote results/summary.md\nWrote ARTIFACT_MANIFEST.json\nArtifacts indexed: 1087\n",
             "step": "collect_results"
           }
         ]
@@ -34198,7 +34278,7 @@
           "condition": "expert identity is aligned, direct router movement is rejected, and real expert geometry exposes nonuniform risk",
           "operation": "apply retention-constrained router/evidence/geometry caps",
           "same_shape_invariant": "only routed expert tensor values change; router, attention, embeddings, norms, names, and shapes stay fixed",
-          "selected_action": "router_evidence_risk_s0.75 with hard cap 0.6500; layer/chunk->unified routed >0.65 reduction = 89",
+          "selected_action": "router_evidence_risk_s0.75 with hard cap 0.6500; layer/chunk->unified routed >0.65 reduction = 89; unified->subspace extra norm reduction = 0.000100",
           "stage": "moe_expert_delta_optimizer",
           "why_it_should_improve": "It keeps useful Coder-route mass while shrinking high-risk routed expert deltas instead of using one global coefficient."
         },
@@ -34350,6 +34430,14 @@
           "value": 0.2396292354785403
         },
         {
+          "decision_signal": "test_uncovered_subspace_conflict_shrink",
+          "domain": "moe",
+          "evidence": "subspace total relative norm = 0.2395; unified->subspace norm reduction = 0.000100; subspace routed >0.65 = 0; router changed = 0",
+          "probe": "qwen3_subspace_scaled_materialized_audit",
+          "threshold": 0.2396292354785403,
+          "value": 0.2395294198409091
+        },
+        {
           "decision_signal": "router_dispatch_is_real_optimization_lever",
           "domain": "moe",
           "evidence": "status = router_calibration_improves_linear_merge_but_needs_downstream_gate; linear worst NLL = 2.6355; router-cal worst NLL = 2.4140; worst reduction = 0.2214; code gap to best source = -0.0139",
@@ -34469,6 +34557,10 @@
           "qwen3_router_margin_top_category_score": 0.7328642528963769,
           "qwen3_router_margin_top_layer": 17,
           "qwen3_router_margin_top_score": 0.7522782693160674,
+          "qwen3_subspace_routed_gt_065": 0,
+          "qwen3_subspace_routed_gt_06505": 0,
+          "qwen3_subspace_router_changed_tensors": 0,
+          "qwen3_subspace_total_relative_delta_norm": 0.2395294198409091,
           "qwen3_unified_audit_status": "passed",
           "qwen3_unified_candidate_count": 19,
           "qwen3_unified_candidate_family": "router_and_evidence_weighted_risk",
@@ -34480,6 +34572,8 @@
           "qwen3_unified_routed_gt_065": 0,
           "qwen3_unified_router_changed_tensors": 0,
           "qwen3_unified_router_tensors": 48,
+          "qwen3_unified_to_subspace_relative_norm_reduction": 9.981563763117318e-05,
+          "qwen3_unified_to_subspace_routed_gt_065_reduction": 0,
           "real_gauge_aligned_degradation": 0.0,
           "real_gauge_naive_degradation": 5.490968298724317,
           "router_action": "freeze_router"
@@ -34499,7 +34593,7 @@
     "vllm_checkpoint_eval_plan": {
       "candidate_count": 15,
       "completed_eval_count": 1,
-      "missing_checkpoint_count": 3,
+      "missing_checkpoint_count": 2,
       "not_vllm_loadable_count": 1,
       "plan_csv": "results/vllm_checkpoint_eval_plan/checkpoint_eval_plan.csv",
       "plan_rows": [
@@ -34766,7 +34860,7 @@
         {
           "base_url": "http://127.0.0.1:8110/v1",
           "candidate_source": "results/qwen3_moe_expert_subspace_conflict_probe/writer_command.txt",
-          "checkpoint_exists": false,
+          "checkpoint_exists": true,
           "checkpoint_path": "results/checkpoints/qwen3_moe_subspace_scaled_candidate",
           "dtype": "bfloat16",
           "eval_avg_primary_score": null,
@@ -34784,7 +34878,7 @@
           "notes": "Subspace-conflict ablation: start from the unified mechanism rules, then apply extra shrink only to uncovered high channel/chunk subspace-conflict experts. This candidate must be materialized and audited before vLLM selection can use it.",
           "port": 8110,
           "serve_command": "CUDA_VISIBLE_DEVICES=0,1,2,3 vllm serve results/checkpoints/qwen3_moe_subspace_scaled_candidate --served-model-name candidate_qwen3_moe_subspace_scaled_candidate --host 127.0.0.1 --port 8110 --dtype bfloat16 --tensor-parallel-size 4",
-          "serve_status": "checkpoint_missing_until_materialized",
+          "serve_status": "ready_to_host",
           "served_model_id": "candidate_qwen3_moe_subspace_scaled_candidate",
           "tasks": "gsm8k,mmlu,safety,humaneval_compile",
           "tensor_parallel_size": 4
@@ -34894,7 +34988,7 @@
           "tensor_parallel_size": 1
         }
       ],
-      "ready_to_host_count": 11,
+      "ready_to_host_count": 12,
       "report": "results/vllm_checkpoint_eval_plan/report.md",
       "shell_script": "results/vllm_checkpoint_eval_plan/serve_and_eval_commands.sh",
       "status": "hosted_eval_complete",
@@ -34902,7 +34996,7 @@
         "candidate_count": 15,
         "completed_eval_count": 1,
         "example_source": "datasets",
-        "missing_checkpoint_count": 3,
+        "missing_checkpoint_count": 2,
         "not_vllm_loadable_count": 1,
         "outputs": {
           "plan_csv": "results/vllm_checkpoint_eval_plan/checkpoint_eval_plan.csv",
@@ -34910,7 +35004,7 @@
           "shell_script": "results/vllm_checkpoint_eval_plan/serve_and_eval_commands.sh",
           "summary": "results/vllm_checkpoint_eval_plan/summary.json"
         },
-        "ready_to_host_count": 11,
+        "ready_to_host_count": 12,
         "same_shape_constraint": "The plan evaluates one materialized checkpoint at a time through vLLM; it does not use ensembles or change model structure.",
         "schema_version": 1,
         "status": "hosted_eval_complete",
@@ -36423,7 +36517,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-20T05:45:57.460675+00:00",
+  "generated_at": "2026-06-20T06:06:34.813999+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [

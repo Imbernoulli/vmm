@@ -6,7 +6,7 @@
 - Local GPU available: `False` (`nvidia_smi_failed`)
 - Source endpoints: `2`
 - Same-shape candidates: `9`
-- Ready-to-host rows: `10`
+- Ready-to-host rows: `11`
 - Completed Qwen3 eval rows: `0`
 - Current selection status: `awaiting_source_eval`
 - Selected method: `None`
@@ -48,7 +48,7 @@ cap_g = f(route_load, category_specialization, router_fragility, delta_audit_tai
 | `layer_chunk_sensitivity` | `qwen3_moe_searched_no_gt065_max_retention_candidate` -> `qwen3_moe_layer_chunk_candidate` | `awaiting_eval` |  |  | 0.004 | 0.000 | Do importance-guided layer/chunk coefficients improve the unified MoE rule beyond a uniform expert cap? |
 | `candidate_vs_sources` | `source_qwen3_30b_instruct` -> `qwen3_moe_unified_mechanism_candidate` | `awaiting_eval` |  |  |  |  | Does any same-shape candidate avoid Pareto domination by the two source endpoints? |
 | `unified_mechanism_optimizer` | `qwen3_moe_layer_chunk_candidate` -> `qwen3_moe_unified_mechanism_candidate` | `awaiting_eval` |  |  | 0.004 | 0.000 | Does the router/evidence/geometry-risk optimizer improve downstream behavior beyond the layer/chunk candidate? |
-| `expert_subspace_conflict_ablation` | `qwen3_moe_unified_mechanism_candidate` -> `qwen3_moe_subspace_scaled_candidate` | `awaiting_eval` |  |  |  |  | Do uncovered high subspace-conflict experts need additional non-base shrink after the unified mechanism cap? |
+| `expert_subspace_conflict_ablation` | `qwen3_moe_unified_mechanism_candidate` -> `qwen3_moe_subspace_scaled_candidate` | `awaiting_eval` |  |  | 0.000 | 0.000 | Do uncovered high subspace-conflict experts need additional non-base shrink after the unified mechanism cap? |
 
 ## Eval Gate Plan
 
@@ -64,7 +64,7 @@ cap_g = f(route_load, category_specialization, router_fragility, delta_audit_tai
 | 7 | `qwen3_moe_searched_no_gt065_max_retention_candidate` | `candidate` | `ready_to_host` | `not_run` |  |  | 0.000 | 0.000 | freeze router/attention + source-route expert weights + searched uniform 0.65 cap |
 | 8 | `qwen3_moe_layer_chunk_candidate` | `candidate` | `ready_to_host` | `not_run` |  |  | 0.000 | 0.000 | freeze router/attention + source-route expert weights + importance-guided layer/chunk coefficients |
 | 9 | `qwen3_moe_unified_mechanism_candidate` | `candidate` | `ready_to_host` | `not_run` |  |  | 0.000 | 0.000 | mechanism-optimized same-shape MoE average with frozen router/attention and router/evidence/geometry-risk expert caps |
-| 10 | `qwen3_moe_subspace_scaled_candidate` | `candidate` | `checkpoint_missing_until_materialized` | `not_run` |  |  |  |  | unified mechanism candidate plus extra shrink for uncovered expert channel/chunk subspace conflicts |
+| 10 | `qwen3_moe_subspace_scaled_candidate` | `candidate` | `ready_to_host` | `not_run` |  |  | 0.000 | 0.000 | unified mechanism candidate plus extra shrink for uncovered expert channel/chunk subspace conflicts |
 
 ## Selection State
 
@@ -80,7 +80,7 @@ cap_g = f(route_load, category_specialization, router_fragility, delta_audit_tai
 | `qwen3_moe_searched_no_gt065_max_retention_candidate` | `False` | `` |  |  |  |  |  |  | 0.248 |
 | `qwen3_moe_layer_chunk_candidate` | `False` | `` |  |  |  |  |  |  | 0.243 |
 | `qwen3_moe_unified_mechanism_candidate` | `False` | `` |  |  |  |  |  |  | 0.240 |
-| `qwen3_moe_subspace_scaled_candidate` | `False` | `` |  |  |  |  |  |  |  |
+| `qwen3_moe_subspace_scaled_candidate` | `False` | `` |  |  |  |  |  |  | 0.240 |
 
 ## How To Run On GPU
 
