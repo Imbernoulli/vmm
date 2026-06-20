@@ -1,7 +1,7 @@
 # Qwen3 MoE Feedback Optimizer Smoke
 
 - Status: `passed`
-- Cases passed: `13/13`
+- Cases passed: `14/14`
 
 | case | assertion | expected | actual | passed |
 | --- | --- | --- | --- | --- |
@@ -12,6 +12,7 @@
 | `mechanistic_group_rules` | `mechanistic_scale_normalized` | `0.640000` | `0.640000` | `True` |
 | `mechanistic_group_rules` | `mechanistic_weight_normalized` | `0.448000` | `0.448000` | `True` |
 | `auto_feedback_base` | `mechanistic_selected` | `qwen3_moe_mechanistic_unified_candidate` | `qwen3_moe_mechanistic_unified_candidate` | `True` |
+| `auto_feedback_base` | `subspace_candidate_considered` | `True` | `True` | `True` |
 | `integration_eval_bundle` | `humaneval_regression_detected` | `source_frontier_regression` | `source_frontier_regression` | `True` |
 | `integration_eval_bundle` | `safety_regression_detected` | `source_frontier_regression` | `source_frontier_regression` | `True` |
 | `integration_eval_bundle` | `paired_predictions_loaded` | `negative humaneval paired delta` | `-0.5000` | `True` |

@@ -6,6 +6,7 @@ This stage is the downstream-feedback half of the MoE averaging rule. It does no
 - Candidate method: `qwen3_moe_mechanistic_unified_candidate`
 - Feedback base selection: `auto_selected`
 - Feedback base frontier/dominated: `True` / `False`
+- Feedback base candidates considered: `3`
 - Scored tasks: `0/4`
 - Regression tasks: `0`
 - Changed expert groups: `0`
@@ -22,6 +23,14 @@ This stage is the downstream-feedback half of the MoE averaging rule. It does no
 | `mmlu` | `general` | `awaiting_eval` | n/a | n/a | n/a | 0.0000 | `none` | n/a |
 | `safety` | `safety` | `awaiting_eval` | n/a | n/a | n/a | 0.0000 | `none` | n/a |
 | `humaneval_compile` | `code` | `awaiting_eval` | n/a | n/a | n/a | 0.0000 | `none` | n/a |
+
+## Feedback Base Candidates
+
+| method | selection score | frontier | dominated | structural safety | total relative delta |
+| --- | ---: | --- | --- | ---: | ---: |
+| `qwen3_moe_mechanistic_unified_candidate` | 1.6275 | `True` | `False` | 0.9886 | 0.2382 |
+| `qwen3_moe_subspace_scaled_candidate` | 1.6270 | `True` | `False` | 0.9893 | 0.2395 |
+| `qwen3_moe_unified_mechanism_candidate` | 0.6221 | `False` | `True` | 0.9742 | 0.2404 |
 
 ## Feature Updates
 

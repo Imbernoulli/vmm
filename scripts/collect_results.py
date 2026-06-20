@@ -2221,6 +2221,12 @@ def summarize_qwen3_moe_feedback_optimizer() -> dict[str, Any]:
         "feedback_base_structural_safety_score": maybe_float(
             summary.get("feedback_base_structural_safety_score")
         ),
+        "feedback_base_candidate_count": len(
+            summary.get("feedback_base_candidate_rows_considered") or []
+        ),
+        "feedback_base_candidate_rows_considered": summary.get(
+            "feedback_base_candidate_rows_considered", []
+        ),
         "group_rules_source": summary.get("group_rules_source"),
         "writer_context_command_source": summary.get("writer_context_command_source"),
         "materialization_gate": summary.get("materialization_gate"),
@@ -6112,6 +6118,10 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_feedback_optimizer['feedback_base_selection_status']} / "
                 f"{qwen3_moe_feedback_optimizer['feedback_base_structural_frontier_member']}"
                 f"-{qwen3_moe_feedback_optimizer['feedback_base_structurally_dominated']} |"
+            ),
+            (
+                "| Qwen3 MoE feedback optimizer | feedback base candidates considered | "
+                f"{qwen3_moe_feedback_optimizer['feedback_base_candidate_count']} |"
             ),
             (
                 "| Qwen3 MoE feedback optimizer | materialization gate | "

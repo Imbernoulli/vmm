@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-20T10:26:18.677391+00:00`
+Generated at: `2026-06-20T10:31:23.354393+00:00`
 
 ## Coverage
 
@@ -271,9 +271,10 @@ Complete: `92`; partial: `1`; missing: `0`.
 | Qwen3 MoE mechanism attribution smoke | status / passed cases | passed / 3/3 |
 | Qwen3 MoE feedback optimizer | status / scored tasks / regressions / changed groups | awaiting_eval / 0/4 / 0 / 0 |
 | Qwen3 MoE feedback optimizer | candidate / base selection / frontier-dominated | qwen3_moe_mechanistic_unified_candidate / auto_selected / True-False |
+| Qwen3 MoE feedback optimizer | feedback base candidates considered | 3 |
 | Qwen3 MoE feedback optimizer | materialization gate | do_not_materialize_feedback_candidate_yet |
 | Qwen3 MoE feedback optimizer | nonbase ratio / max expected delta / hard-cap violations | 1.000 / 0.649 / 0 |
-| Qwen3 MoE feedback optimizer smoke | status / passed cases | passed / 13/13 |
+| Qwen3 MoE feedback optimizer smoke | status / passed cases | passed / 14/14 |
 | Qwen3 MoE mechanistic unified candidate | selected / candidates / feedback | s0.08_b1.65_h0.75_i0.75 / 144 / awaiting_eval |
 | Qwen3 MoE mechanistic unified candidate | nominal cap / effective cap / write margin | 0.650 / 0.649 / 0.001 |
 | Qwen3 MoE mechanistic unified candidate | retention / max rel-delta / hard-cap violations | 0.965 / 0.649 / 0 |

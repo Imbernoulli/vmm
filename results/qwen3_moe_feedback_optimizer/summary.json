@@ -11,6 +11,14 @@
       "total_relative_delta_norm": 0.2382255365529426
     },
     {
+      "method": "qwen3_moe_subspace_scaled_candidate",
+      "selection_score": 1.6270249826489753,
+      "structural_frontier_member": true,
+      "structural_safety_score": 0.9892989752314326,
+      "structurally_dominated": false,
+      "total_relative_delta_norm": 0.2395294198409091
+    },
+    {
       "method": "qwen3_moe_unified_mechanism_candidate",
       "selection_score": 0.6220610438210432,
       "structural_frontier_member": false,

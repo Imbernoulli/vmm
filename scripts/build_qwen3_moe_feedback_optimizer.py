@@ -27,6 +27,12 @@ FEEDBACK_BASES = [
         "base_priority": 1.0,
     },
     {
+        "method": "qwen3_moe_subspace_scaled_candidate",
+        "group_rules": "results/qwen3_moe_expert_subspace_conflict_probe/subspace_adjusted_group_rules.csv",
+        "writer_command": "results/qwen3_moe_expert_subspace_conflict_probe/writer_command.txt",
+        "base_priority": 1.0,
+    },
+    {
         "method": "qwen3_moe_unified_mechanism_candidate",
         "group_rules": "results/qwen3_moe_unified_mechanism_candidate/unified_group_rules.csv",
         "writer_command": "results/qwen3_moe_unified_mechanism_candidate/writer_command.txt",
@@ -473,11 +479,23 @@ def resolve_feedback_base(
 def normalize_group_rule_columns(groups: pd.DataFrame) -> pd.DataFrame:
     groups = groups.copy()
     aliases = {
-        "selected_scale": ["mechanistic_selected_scale", "prior_scale"],
-        "selected_weight_coder": ["mechanistic_weight_coder", "prior_weight_coder"],
-        "selected_weight_instruct": ["mechanistic_weight_instruct", "prior_weight_instruct"],
+        "selected_scale": ["mechanistic_selected_scale", "subspace_extra_scale", "prior_scale"],
+        "selected_weight_coder": [
+            "mechanistic_weight_coder",
+            "subspace_adjusted_weight_coder",
+            "prior_weight_coder",
+            "unified_weight_coder",
+        ],
+        "selected_weight_instruct": [
+            "mechanistic_weight_instruct",
+            "prior_weight_instruct",
+            "unified_weight_instruct",
+        ],
+        "original_weight_coder": ["unified_weight_coder", "prior_weight_coder"],
+        "original_weight_instruct": ["unified_weight_instruct", "prior_weight_instruct"],
         "selected_expected_max_relative_delta_norm": [
-            "mechanistic_expected_max_relative_delta_norm"
+            "mechanistic_expected_max_relative_delta_norm",
+            "unified_expected_max_relative_delta_norm",
         ],
     }
     for target, sources in aliases.items():
@@ -487,6 +505,15 @@ def normalize_group_rule_columns(groups: pd.DataFrame) -> pd.DataFrame:
             if source in groups.columns:
                 groups[target] = groups[source]
                 break
+    if "audit_max_relative_delta_norm" not in groups.columns and {
+        "selected_expected_max_relative_delta_norm",
+        "selected_scale",
+    }.issubset(groups.columns):
+        expected = pd.to_numeric(
+            groups["selected_expected_max_relative_delta_norm"], errors="coerce"
+        ).fillna(0.0)
+        scale = pd.to_numeric(groups["selected_scale"], errors="coerce").fillna(1.0).clip(lower=EPS)
+        groups["audit_max_relative_delta_norm"] = expected / scale
     if "mechanism_risk_score" not in groups.columns:
         risk_columns = [
             "interference_score",
@@ -524,6 +551,9 @@ def normalize_group_rule_columns(groups: pd.DataFrame) -> pd.DataFrame:
 
 def load_group_rules(group_rules: Path, expert_context: Path) -> pd.DataFrame:
     groups = normalize_group_rule_columns(pd.read_csv(repo_path(group_rules)))
+    if "tensor_pattern" in groups.columns:
+        groups["tensor_pattern"] = groups["tensor_pattern"].fillna("").astype(str)
+        groups = groups[groups["tensor_pattern"].str.len() > 0].copy()
     context = pd.read_csv(repo_path(expert_context))
     keep = [
         "layer_id",
@@ -765,6 +795,7 @@ def build_report(summary: dict[str, Any], task_feedback: pd.DataFrame, updates: 
         f"- Candidate method: `{summary['candidate_method']}`",
         f"- Feedback base selection: `{summary['feedback_base_selection_status']}`",
         f"- Feedback base frontier/dominated: `{summary['feedback_base_structural_frontier_member']}` / `{summary['feedback_base_structurally_dominated']}`",
+        f"- Feedback base candidates considered: `{len(summary.get('feedback_base_candidate_rows_considered', []))}`",
         f"- Scored tasks: `{summary['scored_task_count']}/{summary['task_count']}`",
         f"- Regression tasks: `{summary['regression_task_count']}`",
         f"- Changed expert groups: `{summary['changed_group_count']}`",
@@ -785,6 +816,23 @@ def build_report(summary: dict[str, Any], task_feedback: pd.DataFrame, updates: 
             f"{fmt(row['delta_vs_source_frontier'])} | {fmt(row['feedback_pressure'])} | "
             f"`{row['regression_action']}` | {fmt(row['paired_net_delta'])} |"
         )
+    base_candidates = summary.get("feedback_base_candidate_rows_considered") or []
+    if base_candidates:
+        lines.extend(
+            [
+                "",
+                "## Feedback Base Candidates",
+                "",
+                "| method | selection score | frontier | dominated | structural safety | total relative delta |",
+                "| --- | ---: | --- | --- | ---: | ---: |",
+            ]
+        )
+        for row in base_candidates:
+            lines.append(
+                f"| `{row['method']}` | {fmt(row['selection_score'])} | "
+                f"`{row['structural_frontier_member']}` | `{row['structurally_dominated']}` | "
+                f"{fmt(row['structural_safety_score'])} | {fmt(row['total_relative_delta_norm'])} |"
+            )
     lines.extend(
         [
             "",
@@ -1222,8 +1270,10 @@ def run_smoke(args: argparse.Namespace) -> None:
         {
             "qwen3_moe_unified_mechanism_candidate": {},
             "qwen3_moe_mechanistic_unified_candidate": {},
+            "qwen3_moe_subspace_scaled_candidate": {},
         },
     )
+    auto_methods = {str(row["method"]) for row in auto_base["candidate_rows_considered"]}
     matrix = pd.DataFrame(
         [
             {
@@ -1274,6 +1324,13 @@ def run_smoke(args: argparse.Namespace) -> None:
                 "expected": "qwen3_moe_mechanistic_unified_candidate",
                 "actual": str(auto_base["candidate_method"]),
                 "passed": str(auto_base["candidate_method"]) == "qwen3_moe_mechanistic_unified_candidate",
+            },
+            {
+                "case": "auto_feedback_base",
+                "assertion": "subspace_candidate_considered",
+                "expected": "True",
+                "actual": str("qwen3_moe_subspace_scaled_candidate" in auto_methods),
+                "passed": "qwen3_moe_subspace_scaled_candidate" in auto_methods,
             },
         ]
     )
