@@ -21,9 +21,9 @@ This audit turns model-averaging literature and current Dense/MoE probes into ex
 | `expert_identity_alignment` | `moe` | `True` | `pass` | identity_layers=48/48; identity_fraction=1.0000 | Use identity slices for Qwen3; require remap/alignment for other MoEs. |
 | `router_stability` | `moe` | `True` | `reject_router_movement` | allowed_router_layers=0/48; min_top1=0.0690; min_topk_jaccard=0.2422 | Freeze router by default; test router-KD/HARC-style calibration as a separate intervention. |
 | `expert_internal_geometry` | `moe` | `False` | `conditional_geometry_shrink` | high_internal=931; high_route_geometry=204; mean_cos=0.3862 | Use route/geometry-weighted caps and layer/chunk coefficients. |
-| `routed_delta_trust_region` | `moe` | `True` | `pass` | selected_max_predicted_delta=0.6234; groups_gt_hard_cap=0; delta_audit_status=passed | Only materialize candidates that pass cap and same-shape delta audit. |
+| `routed_delta_trust_region` | `moe` | `True` | `pass` | selected_max_predicted_delta=0.6438; groups_gt_hard_cap=0; delta_audit_status=passed | Only materialize candidates that pass cap and same-shape delta audit. |
 | `router_calibration_not_acceptance` | `moe` | `False` | `mechanism_supported_not_sufficient` | worst_nll_reduction=0.2214; worst_gap_to_best_source=0.1265 | Queue router-calibrated candidates for matched vLLM evaluation and source-dominance selection. |
-| `matched_downstream_dominance` | `dense+moe` | `True` | `awaiting_eval` | usable_candidates=0/8; usable_eval_bundles=0/10 | Do not claim a unified average wins until source and candidate eval bundles pass audit. |
+| `matched_downstream_dominance` | `dense+moe` | `True` | `awaiting_eval` | usable_candidates=0/9; usable_eval_bundles=0/11 | Do not claim a unified average wins until source and candidate eval bundles pass audit. |
 
 ## Method Matrix
 

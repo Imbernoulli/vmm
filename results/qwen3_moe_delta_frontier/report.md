@@ -18,8 +18,8 @@
 - Expert-only -> tail-trimmed relative norm reduction: `0.003`
 - Tail-trimmed -> searched no-gt-0.65 relative norm delta: `0.004`
 - Searched no-gt-0.65 -> layer/chunk relative norm reduction: `0.004`
-- Layer/chunk -> unified relative norm reduction: `0.004`
-- Unified -> subspace-scaled relative norm reduction: `0.000`
+- Layer/chunk -> unified relative norm reduction: `0.003`
+- Unified -> subspace-scaled relative norm reduction: `0.001`
 - Tail-trimmed / searched / layer-chunk / unified / subspace routed tensors >0.6505: `0` / `0` / `0` / `0` / `0`
 - Expert-only attention changed tensors: `0`
 - Tail-trimmed attention changed tensors: `0`
@@ -40,7 +40,7 @@
 | `tail_trimmed` | 0.243 | 0.252 | 0.000 | 0/48 | 0.650 | 0 | 0 | 80 | 0 | 10353 |
 | `searched_no_gt065` | 0.248 | 0.256 | 0.000 | 0/48 | 0.650 | 0 | 0 | 245 | 0 | 10353 |
 | `layer_chunk` | 0.243 | 0.252 | 0.000 | 0/48 | 0.650 | 0 | 0 | 89 | 0 | 10353 |
-| `unified_mechanism` | 0.240 | 0.248 | 0.000 | 0/48 | 0.623 | 0 | 0 | 0 | 0 | 10353 |
+| `unified_mechanism` | 0.240 | 0.249 | 0.000 | 0/48 | 0.644 | 0 | 0 | 0 | 0 | 10353 |
 | `subspace_scaled` | 0.240 | 0.248 | 0.000 | 0/48 | 0.623 | 0 | 0 | 0 | 0 | 10353 |
 
 ## Pairwise Reductions
@@ -53,8 +53,8 @@
 | `expert_only` | `tail_trimmed` | 0.003 | 0.003 | 0.000 | 0 | 14 | 286 |
 | `tail_trimmed` | `searched_no_gt065` | -0.004 | -0.005 | 0.000 | 0 | 0 | -165 |
 | `searched_no_gt065` | `layer_chunk` | 0.004 | 0.004 | 0.000 | 0 | 0 | 156 |
-| `layer_chunk` | `unified_mechanism` | 0.004 | 0.004 | 0.000 | 0 | 0 | 89 |
-| `unified_mechanism` | `subspace_scaled` | 0.000 | 0.000 | 0.000 | 0 | 0 | 0 |
+| `layer_chunk` | `unified_mechanism` | 0.003 | 0.003 | 0.000 | 0 | 0 | 89 |
+| `unified_mechanism` | `subspace_scaled` | 0.001 | 0.001 | 0.000 | 0 | 0 | 0 |
 
 ## Highest Trust-Region Layers
 

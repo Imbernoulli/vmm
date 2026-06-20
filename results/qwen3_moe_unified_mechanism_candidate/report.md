@@ -18,7 +18,7 @@
 - Expert geometry used: `True`
 - Subspace conflict probe used: `True`
 - High-subspace-conflict mean scale: `0.9614`
-- Materialized checkpoint rule status: `stale_or_different_rules`
+- Materialized checkpoint rule status: `fresh`
 
 ## Why This Is The Current Unified Rule
 

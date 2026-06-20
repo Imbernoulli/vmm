@@ -18,10 +18,10 @@
     "matched_downstream_dominance"
   ],
   "moe_parameter_objective": {
-    "current_max_predicted_relative_delta": 0.6234276715724305,
-    "current_retention": 0.9757834655609336,
-    "current_selected_candidate": "router_evidence_risk_s0.75",
-    "current_selected_family": "router_and_evidence_weighted_risk",
+    "current_max_predicted_relative_delta": 0.6438448490662683,
+    "current_retention": 0.9763369804277124,
+    "current_selected_candidate": "subspace_cap_s1.00",
+    "current_selected_family": "subspace_weighted_cap",
     "decision_variable": "per routed expert group nonbase coefficient c_g in [0, 1]",
     "hard_constraints": [
       "router tensors are frozen unless router-stability or calibration gate passes",

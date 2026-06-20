@@ -1189,7 +1189,7 @@
         },
         {
           "algorithm_action": "Only materialize candidates that pass cap and same-shape delta audit.",
-          "current_value": "selected_max_predicted_delta=0.6234; groups_gt_hard_cap=0; delta_audit_status=passed",
+          "current_value": "selected_max_predicted_delta=0.6438; groups_gt_hard_cap=0; delta_audit_status=passed",
           "domain": "moe",
           "failure_mode": "Large routed expert movement can look useful structurally while causing task regressions.",
           "hard_gate": true,
@@ -1215,7 +1215,7 @@
         },
         {
           "algorithm_action": "Do not claim a unified average wins until source and candidate eval bundles pass audit.",
-          "current_value": "usable_candidates=0/8; usable_eval_bundles=0/10",
+          "current_value": "usable_candidates=0/9; usable_eval_bundles=0/11",
           "domain": "dense+moe",
           "failure_mode": "Structural probes are not downstream task performance.",
           "hard_gate": true,
@@ -1337,9 +1337,9 @@
       "router_allowed_layers": 0,
       "router_layer_count": 48,
       "same_shape_contract_pass": true,
-      "selected_candidate_id": "router_evidence_risk_s0.75",
-      "selected_max_predicted_relative_delta": 0.6234276715724305,
-      "selected_nonbase_mass_retention": 0.9757834655609336,
+      "selected_candidate_id": "subspace_cap_s1.00",
+      "selected_max_predicted_relative_delta": 0.6438448490662683,
+      "selected_nonbase_mass_retention": 0.9763369804277124,
       "status": "average_requires_guarded_selector_and_eval",
       "status_counts": {
         "awaiting_eval": 1,
@@ -1372,9 +1372,9 @@
         "router_layer_count": 48,
         "same_shape_contract_pass": true,
         "schema_version": 1,
-        "selected_candidate_id": "router_evidence_risk_s0.75",
-        "selected_max_predicted_relative_delta": 0.6234276715724305,
-        "selected_nonbase_mass_retention": 0.9757834655609336,
+        "selected_candidate_id": "subspace_cap_s1.00",
+        "selected_max_predicted_relative_delta": 0.6438448490662683,
+        "selected_nonbase_mass_retention": 0.9763369804277124,
         "status": "average_requires_guarded_selector_and_eval",
         "status_counts": {
           "awaiting_eval": 1,
@@ -9135,15 +9135,15 @@
           "candidate": "unified_mechanism",
           "changed_numel_fraction": 0.5333353724709579,
           "changed_tensors": 10353,
-          "max_abs_delta": 0.57421875,
+          "max_abs_delta": 0.59375,
           "method": "qwen3_moe_unified_mechanism_candidate",
           "routed_changed_numel_fraction": 0.5616861979166666,
           "routed_changed_tensors": 10353,
-          "routed_max_tensor_relative_delta": 0.6234276715724305,
-          "routed_p95_tensor_relative_delta": 0.5807375090885877,
-          "routed_p99_tensor_relative_delta": 0.6019526656116988,
-          "routed_relative_delta_norm": 0.2478933941199505,
-          "routed_tensors_gt_0_5": 1763,
+          "routed_max_tensor_relative_delta": 0.6438415286791134,
+          "routed_p95_tensor_relative_delta": 0.5781314771057103,
+          "routed_p99_tensor_relative_delta": 0.6131508783976106,
+          "routed_relative_delta_norm": 0.2486684210403075,
+          "routed_tensors_gt_0_5": 1767,
           "routed_tensors_gt_0_65": 0,
           "routed_tensors_gt_0_6505": 0,
           "routed_tensors_gt_0_75": 0,
@@ -9153,8 +9153,8 @@
           "rule": "unified_router_evidence_geometry_risk_cap",
           "status": "passed",
           "tensor_count": 18867,
-          "total_delta_norm": 990.7151869890374,
-          "total_relative_delta_norm": 0.2396292354785403
+          "total_delta_norm": 993.812610956501,
+          "total_relative_delta_norm": 0.2403784248994999
         },
         {
           "attention_changed_numel_fraction": 0.0,
@@ -9198,7 +9198,7 @@
       "layer_chunk_routed_gt_0_65": 89,
       "layer_chunk_routed_gt_0_6505": 0,
       "layer_chunk_router_changed_tensors": 0,
-      "layer_chunk_to_unified_relative_norm_reduction": 0.003825064843706788,
+      "layer_chunk_to_unified_relative_norm_reduction": 0.0030758754227471763,
       "layer_chunk_to_unified_routed_gt_065_reduction": 89,
       "layer_chunk_total_relative_delta_norm": 0.24345430032224707,
       "layer_frontier": "results/qwen3_moe_delta_frontier/layer_delta_frontier.csv",
@@ -9291,10 +9291,10 @@
           "routed_gt_065_reduction": 89,
           "routed_gt_075_reduction": 0,
           "routed_gt_1_reduction": 0,
-          "routed_max_tensor_relative_delta_reduction": 0.0266048327303314,
-          "routed_relative_delta_norm_reduction": 0.0039569808956816,
+          "routed_max_tensor_relative_delta_reduction": 0.0061909756236485,
+          "routed_relative_delta_norm_reduction": 0.0031819539753246,
           "to_candidate": "unified_mechanism",
-          "total_relative_delta_norm_reduction": 0.0038250648437067
+          "total_relative_delta_norm_reduction": 0.0030758754227471
         },
         {
           "attention_relative_delta_norm_reduction": 0.0,
@@ -9304,10 +9304,10 @@
           "routed_gt_065_reduction": 0,
           "routed_gt_075_reduction": 0,
           "routed_gt_1_reduction": 0,
-          "routed_max_tensor_relative_delta_reduction": 0.0,
-          "routed_relative_delta_norm_reduction": 0.0001032580066836,
+          "routed_max_tensor_relative_delta_reduction": 0.0204138571066828,
+          "routed_relative_delta_norm_reduction": 0.0008782849270406,
           "to_candidate": "subspace_scaled",
-          "total_relative_delta_norm_reduction": 9.981563763117318e-05
+          "total_relative_delta_norm_reduction": 0.0008490050585907
         }
       ],
       "report": "results/qwen3_moe_delta_frontier/report.md",
@@ -9419,7 +9419,7 @@
         "layer_chunk_routed_gt_0_65": 89,
         "layer_chunk_routed_gt_0_6505": 0,
         "layer_chunk_router_changed_tensors": 0,
-        "layer_chunk_to_unified_relative_norm_reduction": 0.003825064843706788,
+        "layer_chunk_to_unified_relative_norm_reduction": 0.0030758754227471763,
         "layer_chunk_to_unified_routed_gt_065_reduction": 89,
         "layer_chunk_total_relative_delta_norm": 0.24345430032224707,
         "next_required_gate": "vllm_downstream_eval_trust_region_vs_expert_only_tail_trimmed_vs_searched_cap_law_vs_layer_chunk_vs_unified_vs_subspace_scaled",
@@ -9459,8 +9459,8 @@
         "unified_mechanism_routed_gt_0_65": 0,
         "unified_mechanism_routed_gt_0_6505": 0,
         "unified_mechanism_router_changed_tensors": 0,
-        "unified_mechanism_total_relative_delta_norm": 0.2396292354785403,
-        "unified_to_subspace_relative_norm_reduction": 9.981563763117318e-05,
+        "unified_mechanism_total_relative_delta_norm": 0.2403784248994999,
+        "unified_to_subspace_relative_norm_reduction": 0.0008490050585907849,
         "unified_to_subspace_routed_gt_065_reduction": 0
       },
       "summary_path": "results/qwen3_moe_delta_frontier/summary.json",
@@ -9669,7 +9669,7 @@
         },
         {
           "candidate": "unified_mechanism",
-          "routed_tensor_count": 1763,
+          "routed_tensor_count": 1767,
           "threshold": 0.5
         },
         {
@@ -9706,8 +9706,8 @@
       "unified_mechanism_routed_gt_0_65": 0,
       "unified_mechanism_routed_gt_0_6505": 0,
       "unified_mechanism_router_changed_tensors": 0,
-      "unified_mechanism_total_relative_delta_norm": 0.2396292354785403,
-      "unified_to_subspace_relative_norm_reduction": 9.981563763117318e-05,
+      "unified_mechanism_total_relative_delta_norm": 0.2403784248994999,
+      "unified_to_subspace_relative_norm_reduction": 0.0008490050585907849,
       "unified_to_subspace_routed_gt_065_reduction": 0
     },
     "qwen3_moe_eval_budget_plan": {
@@ -18075,8 +18075,8 @@
           "port": 8109,
           "required_controls": "both sources; searched_no_gt065; layer_chunk; router calibration selector",
           "role": "candidate",
-          "routed_max_tensor_relative_delta": 0.6234276715724305,
-          "routed_relative_delta_norm": 0.2478933941199505,
+          "routed_max_tensor_relative_delta": 0.6438415286791134,
+          "routed_relative_delta_norm": 0.2486684210403075,
           "routed_tensors_gt_0_65": 0.0,
           "routed_tensors_gt_0_75": 0.0,
           "routed_tensors_gt_1_0": 0.0,
@@ -18090,7 +18090,7 @@
           "task_mmlu_score": null,
           "task_safety_score": null,
           "tasks": "gsm8k,mmlu,safety,humaneval_compile",
-          "total_relative_delta_norm": 0.2396292354785403,
+          "total_relative_delta_norm": 0.2403784248994999,
           "worst_primary_score": null
         },
         {
@@ -18256,7 +18256,7 @@
           "attention_norm_reduction": 0.0,
           "avg_primary_delta_to_minus_from": null,
           "current_status": "awaiting_eval",
-          "delta_norm_reduction": 0.0038250648437067,
+          "delta_norm_reduction": 0.0030758754227471,
           "from_method": "qwen3_moe_layer_chunk_candidate",
           "interpretation": "Needs matched vLLM downstream scores.",
           "mechanism_question": "Does the router/evidence/geometry-risk optimizer improve downstream behavior beyond the layer/chunk candidate?",
@@ -18270,7 +18270,7 @@
           "attention_norm_reduction": 0.0,
           "avg_primary_delta_to_minus_from": null,
           "current_status": "awaiting_eval",
-          "delta_norm_reduction": 9.981563763117318e-05,
+          "delta_norm_reduction": 0.0008490050585907,
           "from_method": "qwen3_moe_unified_mechanism_candidate",
           "interpretation": "Needs matched vLLM downstream scores.",
           "mechanism_question": "Do uncovered high subspace-conflict experts need additional non-base shrink after the unified mechanism cap?",
@@ -18445,7 +18445,7 @@
           "task_humaneval_compile_score": null,
           "task_mmlu_score": null,
           "task_safety_score": null,
-          "total_relative_delta_norm": 0.2396292354785403,
+          "total_relative_delta_norm": 0.2403784248994999,
           "worst_primary_score": null
         },
         {
@@ -30599,10 +30599,10 @@
       "expert_geometry_probe_used": true,
       "expert_group_count": 5243,
       "layer_coefficients_used": true,
-      "matches_materialized_checkpoint_manifest": false,
+      "matches_materialized_checkpoint_manifest": true,
       "matches_validated_reference_rules": false,
-      "materialized_checkpoint_rule_status": "stale_or_different_rules",
-      "max_materialized_checkpoint_weight_abs_diff": 0.05158399999999996,
+      "materialized_checkpoint_rule_status": "fresh",
+      "max_materialized_checkpoint_weight_abs_diff": 0.0,
       "max_reference_weight_abs_diff": 0.06236400000000003,
       "mechanism_features": {
         "expert_geometry_probe_used": true,
@@ -30689,15 +30689,15 @@
             "source": "https://arxiv.org/abs/2606.03391"
           }
         ],
-        "matches_materialized_checkpoint_manifest": false,
+        "matches_materialized_checkpoint_manifest": true,
         "matches_validated_reference_rules": false,
         "materialized_checkpoint_extra_patterns": 0,
         "materialized_checkpoint_manifest": "results/checkpoints/qwen3_moe_unified_mechanism_candidate/merge_manifest.json",
         "materialized_checkpoint_manifest_exists": true,
         "materialized_checkpoint_missing_patterns": 0,
         "materialized_checkpoint_rule_count": 5243,
-        "materialized_checkpoint_rule_status": "stale_or_different_rules",
-        "max_materialized_checkpoint_weight_abs_diff": 0.05158399999999996,
+        "materialized_checkpoint_rule_status": "fresh",
+        "max_materialized_checkpoint_weight_abs_diff": 0.0,
         "max_reference_weight_abs_diff": 0.06236400000000003,
         "mechanism_features": {
           "expert_geometry_probe_used": true,
@@ -35805,7 +35805,7 @@
           "condition": "expert identity is aligned, direct router movement is rejected, and real expert geometry/subspace probes expose nonuniform risk",
           "operation": "apply retention-constrained router/evidence/geometry/subspace caps",
           "same_shape_invariant": "only routed expert tensor values change; router, attention, embeddings, norms, names, and shapes stay fixed",
-          "selected_action": "subspace_cap_s1.00 with hard cap 0.6500; subspace-weighted rel-delta = 0.2148; materialized rule status = stale_or_different_rules; layer/chunk->unified routed >0.65 reduction = 89; unified->subspace extra norm reduction = 0.000100",
+          "selected_action": "subspace_cap_s1.00 with hard cap 0.6500; subspace-weighted rel-delta = 0.2148; materialized rule status = fresh; layer/chunk->unified routed >0.65 reduction = 89; unified->subspace extra norm reduction = 0.000849",
           "stage": "moe_expert_delta_optimizer",
           "why_it_should_improve": "It keeps useful Coder-route mass while shrinking high-risk routed expert deltas and local subspace conflicts instead of using one global coefficient."
         },
@@ -35951,17 +35951,17 @@
         {
           "decision_signal": "materialized_same_shape_tail_reduction",
           "domain": "moe",
-          "evidence": "rule status = stale_or_different_rules; audit status = passed; total relative norm = 0.2396; router changed = 0/48; layer/chunk->unified norm reduction = 0.0038; routed >0.65 reduction = 89",
+          "evidence": "rule status = fresh; audit status = passed; total relative norm = 0.2404; router changed = 0/48; layer/chunk->unified norm reduction = 0.0031; routed >0.65 reduction = 89",
           "probe": "qwen3_unified_materialized_audit",
           "threshold": 0.243454300322247,
-          "value": 0.2396292354785403
+          "value": 0.2403784248994999
         },
         {
           "decision_signal": "test_uncovered_subspace_conflict_shrink",
           "domain": "moe",
-          "evidence": "subspace total relative norm = 0.2395; unified->subspace norm reduction = 0.000100; subspace routed >0.65 = 0; router changed = 0",
+          "evidence": "subspace total relative norm = 0.2395; unified->subspace norm reduction = 0.000849; subspace routed >0.65 = 0; router changed = 0",
           "probe": "qwen3_subspace_scaled_materialized_audit",
-          "threshold": 0.2396292354785403,
+          "threshold": 0.2403784248994999,
           "value": 0.2395294198409091
         },
         {
@@ -36037,7 +36037,7 @@
       "qwen3_identity_fraction": 1.0,
       "qwen3_interpolation_general_barrier_nll": 0.10966240377987102,
       "qwen3_interpolation_interior_gap_nll": 0.11892671273424771,
-      "qwen3_layer_chunk_to_unified_relative_norm_reduction": 0.003825064843706788,
+      "qwen3_layer_chunk_to_unified_relative_norm_reduction": 0.0030758754227471763,
       "qwen3_layer_chunk_to_unified_routed_gt_065_reduction": 89,
       "qwen3_router_calibration_candidate_count": 4,
       "qwen3_router_calibration_eligible_candidates": 0,
@@ -36059,11 +36059,11 @@
       "qwen3_unified_candidate_family": "subspace_weighted_cap",
       "qwen3_unified_candidate_id": "subspace_cap_s1.00",
       "qwen3_unified_high_subspace_mean_scale": 0.9613941409005723,
-      "qwen3_unified_matches_materialized_checkpoint_manifest": false,
-      "qwen3_unified_materialized_rule_status": "stale_or_different_rules",
-      "qwen3_unified_max_manifest_weight_abs_diff": 0.05158399999999996,
+      "qwen3_unified_matches_materialized_checkpoint_manifest": true,
+      "qwen3_unified_materialized_rule_status": "fresh",
+      "qwen3_unified_max_manifest_weight_abs_diff": 0.0,
       "qwen3_unified_nonbase_mass_retention": 0.9763369804277124,
-      "qwen3_unified_relative_delta_norm": 0.2396292354785403,
+      "qwen3_unified_relative_delta_norm": 0.2403784248994999,
       "qwen3_unified_routed_gt_065": 0,
       "qwen3_unified_subspace_risk_weighted_coder_retention": 0.9737607662389383,
       "qwen3_unified_subspace_weighted_predicted_relative_delta": 0.21478052015965876,
@@ -36071,7 +36071,7 @@
       "real_gauge_naive_degradation": 5.490968298724317,
       "report": "results/unified_average_optimizer/report.md",
       "router_action": "freeze_router",
-      "status": "built_waiting_for_qwen3_materialization_and_vllm_eval",
+      "status": "built_waiting_for_qwen3_vllm_eval",
       "summary": {
         "dense": {
           "best_endpoint_worst_nll": 5.150962227269223,
@@ -36132,7 +36132,7 @@
           "qwen3_interpolation_endpoint_best_worst_nll": 2.47572769464231,
           "qwen3_interpolation_general_barrier_nll": 0.10966240377987102,
           "qwen3_interpolation_interior_gap_nll": 0.11892671273424771,
-          "qwen3_layer_chunk_to_unified_relative_norm_reduction": 0.003825064843706788,
+          "qwen3_layer_chunk_to_unified_relative_norm_reduction": 0.0030758754227471763,
           "qwen3_layer_chunk_to_unified_routed_gt_065_reduction": 89,
           "qwen3_router_calibration_candidate_count": 4,
           "qwen3_router_calibration_eligible_candidates": 0,
@@ -36160,11 +36160,11 @@
           "qwen3_unified_candidate_id": "subspace_cap_s1.00",
           "qwen3_unified_geometry_weighted_predicted_relative_delta": 0.21844317628687349,
           "qwen3_unified_high_subspace_mean_scale": 0.9613941409005723,
-          "qwen3_unified_matches_materialized_checkpoint_manifest": false,
-          "qwen3_unified_materialized_rule_status": "stale_or_different_rules",
-          "qwen3_unified_max_manifest_weight_abs_diff": 0.05158399999999996,
+          "qwen3_unified_matches_materialized_checkpoint_manifest": true,
+          "qwen3_unified_materialized_rule_status": "fresh",
+          "qwen3_unified_max_manifest_weight_abs_diff": 0.0,
           "qwen3_unified_nonbase_mass_retention": 0.9763369804277124,
-          "qwen3_unified_relative_delta_norm": 0.2396292354785403,
+          "qwen3_unified_relative_delta_norm": 0.2403784248994999,
           "qwen3_unified_risk_weighted_predicted_relative_delta": 0.22470816127139095,
           "qwen3_unified_routed_gt_065": 0,
           "qwen3_unified_router_changed_tensors": 0,
@@ -36173,7 +36173,7 @@
           "qwen3_unified_subspace_risk_weighted_coder_retention": 0.9737607662389383,
           "qwen3_unified_subspace_weighted_predicted_relative_delta": 0.21478052015965876,
           "qwen3_unified_tensor_rules_sha256": "3127175910edd4b1bd8cc62e2ecd5301bff92a91efc0c66b5f49874952e6c3a9",
-          "qwen3_unified_to_subspace_relative_norm_reduction": 9.981563763117318e-05,
+          "qwen3_unified_to_subspace_relative_norm_reduction": 0.0008490050585907849,
           "qwen3_unified_to_subspace_routed_gt_065_reduction": 0,
           "real_gauge_aligned_degradation": 0.0,
           "real_gauge_naive_degradation": 5.490968298724317,
@@ -36187,7 +36187,7 @@
           "summary": "results/unified_average_optimizer/summary.json"
         },
         "schema_version": 1,
-        "status": "built_waiting_for_qwen3_materialization_and_vllm_eval"
+        "status": "built_waiting_for_qwen3_vllm_eval"
       },
       "summary_path": "results/unified_average_optimizer/summary.json"
     },
@@ -38118,7 +38118,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-20T06:59:15.397996+00:00",
+  "generated_at": "2026-06-20T07:14:40.629919+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [

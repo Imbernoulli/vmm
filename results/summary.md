@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-20T06:59:15.397996+00:00`
+Generated at: `2026-06-20T07:14:40.629919+00:00`
 
 ## Coverage
 
@@ -199,8 +199,8 @@ Complete: `89`; partial: `1`; missing: `0`.
 | Qwen3 MoE delta frontier | tail-trimmed vs searched rel-norm delta / >0.6505 counts | 0.004 / 0->0 |
 | Qwen3 MoE delta frontier | searched->layer/chunk rel-norm reduction / >0.65 reduction / >0.6505 | 0.004 / 156 / 0 |
 | Qwen3 MoE delta frontier | unified matches searched / unified rel-norm / router changed | False / 0.240 / 0 |
-| Qwen3 MoE delta frontier | layer/chunk->unified rel-norm reduction / >0.65 reduction / unified >0.6505 | 0.004 / 89 / 0 |
-| Qwen3 MoE delta frontier | unified->subspace rel-norm reduction / >0.65 reduction / subspace >0.6505 | 0.000 / 0 / 0 |
+| Qwen3 MoE delta frontier | layer/chunk->unified rel-norm reduction / >0.65 reduction / unified >0.6505 | 0.003 / 89 / 0 |
+| Qwen3 MoE delta frontier | unified->subspace rel-norm reduction / >0.65 reduction / subspace >0.6505 | 0.001 / 0 / 0 |
 | Qwen3 MoE mechanism eval gate | status / selection / selected | awaiting_remote_vllm_eval / awaiting_source_eval / None |
 | Qwen3 MoE mechanism eval gate | ready / completed / awaiting tests | 11 / 0 / 10 |
 | Qwen3 MoE mechanism eval gate | local GPU / best delta-safety candidate | nvidia_smi_failed / subspace_scaled |
@@ -234,16 +234,16 @@ Complete: `89`; partial: `1`; missing: `0`.
 | Qwen3 MoE final candidate selector | usable / complete / best source | 0/9 / False / None |
 | Qwen3 MoE final candidate selector | uncertainty / paired gates / paired alpha | True / True / 0.050 |
 | Qwen3 MoE final candidate selector smoke | status / passed cases | passed / 7/7 |
-| unified average optimizer | status / dense / MoE | built_waiting_for_qwen3_materialization_and_vllm_eval / avoid_linear_midpoint_use_probe_selected_anchor_or_low_lambda / align_experts_freeze_router_then_gate_candidate_by_vllm |
+| unified average optimizer | status / dense / MoE | built_waiting_for_qwen3_vllm_eval / avoid_linear_midpoint_use_probe_selected_anchor_or_low_lambda / align_experts_freeze_router_then_gate_candidate_by_vllm |
 | unified average optimizer | dense linear / unified / endpoint worst NLL | 8.948 / 5.183 / 5.151 |
 | unified average optimizer | dense lambda midpoint / best-family worst NLL | 6.040 / 3.073 |
 | unified average optimizer | real MoE gauge / router / Qwen3 final | 5.491 -> 0.000 / freeze_router / awaiting_source_eval (0/9) |
-| unified average optimizer | Qwen3 unified candidate / subspace-delta / rule status | subspace_cap_s1.00 / 0.215 / stale_or_different_rules |
-| unified average optimizer | Qwen3 unified audit norm / >0.65 / manifest max diff | 0.240 / 0 / 0.052 |
+| unified average optimizer | Qwen3 unified candidate / subspace-delta / rule status | subspace_cap_s1.00 / 0.215 / fresh |
+| unified average optimizer | Qwen3 unified audit norm / >0.65 / manifest max diff | 0.240 / 0 / 0.000 |
 | unified average optimizer | router margin high layers / top / min safe-lambda | 24/48 / L17 0.752 / 0.020 |
 | unified average optimizer | Qwen3 MoE straight-line interior gap / general barrier | 0.119 / 0.110 |
 | unified average optimizer | Qwen3 Base->Coder interior gap / complementary win | 0.106 / False |
-| unified average optimizer | layer/chunk->unified norm / >0.65 reduction | 0.004 / 89 |
+| unified average optimizer | layer/chunk->unified norm / >0.65 reduction | 0.003 / 89 |
 | unified average optimizer | router calibration status / eligible | awaiting_baseline_eval / 0/4 |
 | unified average optimizer | router NLL probe worst reduction / code gap | 0.221 / -0.014 |
 | Qwen3 MoE eval bundle audit | status / usable / invalid complete | awaiting_eval / 0/11 / 0 |
@@ -293,7 +293,7 @@ Complete: `89`; partial: `1`; missing: `0`.
 | Qwen3 MoE unified mechanism candidate | risk-delta / geometry-delta / subspace-delta | 0.225 / 0.218 / 0.215 |
 | Qwen3 MoE unified mechanism candidate | geometry used / subspace used / high-subspace scale | True / True / 0.961 |
 | Qwen3 MoE unified mechanism candidate | router / attention policy | freeze_router / freeze_shared_attention_pending_downstream_eval |
-| Qwen3 MoE unified mechanism candidate | materialized rules / manifest match / max diff | stale_or_different_rules / False / 0.052 |
+| Qwen3 MoE unified mechanism candidate | materialized rules / manifest match / max diff | fresh / True / 0.000 |
 | Qwen3 MoE unified mechanism candidate | matches validated no-gt-0.65 rules / max diff | False / 0.062 |
 | real MoE gauge self-merge | baseline / same-name / aligned NLL | 4.168 / 9.659 / 4.168 |
 | real MoE gauge self-merge | same-name degradation vs baseline | 5.491 |
@@ -442,7 +442,7 @@ Complete: `89`; partial: `1`; missing: `0`.
 | average connectivity diagnostic | Dense midpoint gap / Dense anchor gap / Qwen3 MoE gap | 2.917 / -0.101 / 0.119 |
 | average invariant audit | invariants / hard blockers / default accepted methods | 10 / 4 / 0 |
 | average invariant audit | same-shape / router allowed layers / final selector | True / 0/48 / awaiting_source_eval |
-| average invariant audit | selected candidate / retention / predicted max delta | router_evidence_risk_s0.75 / 0.976 / 0.623 |
+| average invariant audit | selected candidate / retention / predicted max delta | subspace_cap_s1.00 / 0.976 / 0.644 |
 | Qwen target model registry | candidate dense / MoE models | 12 / 5 |
 | Qwen target model registry | downstream or third-party candidates | 9 |
 | Qwen target model registry | recommended first scenario | dense_7b_general_code_math_reasoning |

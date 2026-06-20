@@ -20,9 +20,9 @@
   "router_layer_count": 48,
   "same_shape_contract_pass": true,
   "schema_version": 1,
-  "selected_candidate_id": "router_evidence_risk_s0.75",
-  "selected_max_predicted_relative_delta": 0.6234276715724305,
-  "selected_nonbase_mass_retention": 0.9757834655609336,
+  "selected_candidate_id": "subspace_cap_s1.00",
+  "selected_max_predicted_relative_delta": 0.6438448490662683,
+  "selected_nonbase_mass_retention": 0.9763369804277124,
   "status": "average_requires_guarded_selector_and_eval",
   "status_counts": {
     "awaiting_eval": 1,

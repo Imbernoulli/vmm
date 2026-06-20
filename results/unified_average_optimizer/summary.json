@@ -58,7 +58,7 @@
     "qwen3_interpolation_endpoint_best_worst_nll": 2.47572769464231,
     "qwen3_interpolation_general_barrier_nll": 0.10966240377987102,
     "qwen3_interpolation_interior_gap_nll": 0.11892671273424771,
-    "qwen3_layer_chunk_to_unified_relative_norm_reduction": 0.003825064843706788,
+    "qwen3_layer_chunk_to_unified_relative_norm_reduction": 0.0030758754227471763,
     "qwen3_layer_chunk_to_unified_routed_gt_065_reduction": 89,
     "qwen3_router_calibration_candidate_count": 4,
     "qwen3_router_calibration_eligible_candidates": 0,
@@ -86,11 +86,11 @@
     "qwen3_unified_candidate_id": "subspace_cap_s1.00",
     "qwen3_unified_geometry_weighted_predicted_relative_delta": 0.21844317628687349,
     "qwen3_unified_high_subspace_mean_scale": 0.9613941409005723,
-    "qwen3_unified_matches_materialized_checkpoint_manifest": false,
-    "qwen3_unified_materialized_rule_status": "stale_or_different_rules",
-    "qwen3_unified_max_manifest_weight_abs_diff": 0.05158399999999996,
+    "qwen3_unified_matches_materialized_checkpoint_manifest": true,
+    "qwen3_unified_materialized_rule_status": "fresh",
+    "qwen3_unified_max_manifest_weight_abs_diff": 0.0,
     "qwen3_unified_nonbase_mass_retention": 0.9763369804277124,
-    "qwen3_unified_relative_delta_norm": 0.2396292354785403,
+    "qwen3_unified_relative_delta_norm": 0.2403784248994999,
     "qwen3_unified_risk_weighted_predicted_relative_delta": 0.22470816127139095,
     "qwen3_unified_routed_gt_065": 0,
     "qwen3_unified_router_changed_tensors": 0,
@@ -99,7 +99,7 @@
     "qwen3_unified_subspace_risk_weighted_coder_retention": 0.9737607662389383,
     "qwen3_unified_subspace_weighted_predicted_relative_delta": 0.21478052015965876,
     "qwen3_unified_tensor_rules_sha256": "3127175910edd4b1bd8cc62e2ecd5301bff92a91efc0c66b5f49874952e6c3a9",
-    "qwen3_unified_to_subspace_relative_norm_reduction": 9.981563763117318e-05,
+    "qwen3_unified_to_subspace_relative_norm_reduction": 0.0008490050585907849,
     "qwen3_unified_to_subspace_routed_gt_065_reduction": 0,
     "real_gauge_aligned_degradation": 0.0,
     "real_gauge_naive_degradation": 5.490968298724317,
@@ -113,5 +113,5 @@
     "summary": "results/unified_average_optimizer/summary.json"
   },
   "schema_version": 1,
-  "status": "built_waiting_for_qwen3_materialization_and_vllm_eval"
+  "status": "built_waiting_for_qwen3_vllm_eval"
 }

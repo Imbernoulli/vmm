@@ -111,7 +111,7 @@
     {
       "condition": "expert identity is aligned, direct router movement is rejected, and real expert geometry/subspace probes expose nonuniform risk",
       "operation": "apply retention-constrained router/evidence/geometry/subspace caps",
-      "selected_action": "subspace_cap_s1.00 with hard cap 0.6500; subspace-weighted rel-delta = 0.2148; materialized rule status = stale_or_different_rules; layer/chunk->unified routed >0.65 reduction = 89; unified->subspace extra norm reduction = 0.000100",
+      "selected_action": "subspace_cap_s1.00 with hard cap 0.6500; subspace-weighted rel-delta = 0.2148; materialized rule status = fresh; layer/chunk->unified routed >0.65 reduction = 89; unified->subspace extra norm reduction = 0.000849",
       "stage": "moe_expert_delta_optimizer",
       "step": 7
     },

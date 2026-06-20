@@ -39,15 +39,15 @@
       "source": "https://arxiv.org/abs/2606.03391"
     }
   ],
-  "matches_materialized_checkpoint_manifest": false,
+  "matches_materialized_checkpoint_manifest": true,
   "matches_validated_reference_rules": false,
   "materialized_checkpoint_extra_patterns": 0,
   "materialized_checkpoint_manifest": "results/checkpoints/qwen3_moe_unified_mechanism_candidate/merge_manifest.json",
   "materialized_checkpoint_manifest_exists": true,
   "materialized_checkpoint_missing_patterns": 0,
   "materialized_checkpoint_rule_count": 5243,
-  "materialized_checkpoint_rule_status": "stale_or_different_rules",
-  "max_materialized_checkpoint_weight_abs_diff": 0.05158399999999996,
+  "materialized_checkpoint_rule_status": "fresh",
+  "max_materialized_checkpoint_weight_abs_diff": 0.0,
   "max_reference_weight_abs_diff": 0.06236400000000003,
   "mechanism_features": {
     "expert_geometry_probe_used": true,
