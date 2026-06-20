@@ -47,7 +47,7 @@ cap_g = f(route_load, category_specialization, router_fragility, delta_audit_tai
 | `risk_penalty_simplification` | `qwen3_moe_tail_trimmed_expert_only_candidate` -> `qwen3_moe_searched_no_gt065_max_retention_candidate` | `awaiting_eval` |  |  | -0.004 | 0.000 | Are hand-built risk penalties necessary after a uniform 0.65 expert cap is enforced? |
 | `layer_chunk_sensitivity` | `qwen3_moe_searched_no_gt065_max_retention_candidate` -> `qwen3_moe_layer_chunk_candidate` | `awaiting_eval` |  |  | 0.004 | 0.000 | Do importance-guided layer/chunk coefficients improve the unified MoE rule beyond a uniform expert cap? |
 | `candidate_vs_sources` | `source_qwen3_30b_instruct` -> `qwen3_moe_unified_mechanism_candidate` | `awaiting_eval` |  |  |  |  | Does any same-shape candidate avoid Pareto domination by the two source endpoints? |
-| `unified_rule_alias_validation` | `qwen3_moe_searched_no_gt065_max_retention_candidate` -> `qwen3_moe_unified_mechanism_candidate` | `awaiting_eval` |  |  |  |  | Did the unified risk/retention optimizer recover the same materialized rule as the validated searched no-gt-0.65 checkpoint? |
+| `unified_mechanism_optimizer` | `qwen3_moe_layer_chunk_candidate` -> `qwen3_moe_unified_mechanism_candidate` | `awaiting_eval` |  |  | 0.004 | 0.000 | Does the router/evidence/geometry-risk optimizer improve downstream behavior beyond the layer/chunk candidate? |
 
 ## Eval Gate Plan
 
@@ -62,7 +62,7 @@ cap_g = f(route_load, category_specialization, router_fragility, delta_audit_tai
 | 6 | `qwen3_moe_tail_trimmed_expert_only_candidate` | `candidate` | `ready_to_host` | `not_run` |  |  | 0.000 | 0.000 | expert-only + second-stage routed-expert tail cap at 0.65 |
 | 7 | `qwen3_moe_searched_no_gt065_max_retention_candidate` | `candidate` | `ready_to_host` | `not_run` |  |  | 0.000 | 0.000 | freeze router/attention + source-route expert weights + searched uniform 0.65 cap |
 | 8 | `qwen3_moe_layer_chunk_candidate` | `candidate` | `ready_to_host` | `not_run` |  |  | 0.000 | 0.000 | freeze router/attention + source-route expert weights + importance-guided layer/chunk coefficients |
-| 9 | `qwen3_moe_unified_mechanism_candidate` | `candidate` | `ready_to_host` | `not_run` |  |  | 0.000 | 0.000 | mechanism-optimized same-shape MoE average with frozen router/attention and threshold-efficient 0.65 expert cap |
+| 9 | `qwen3_moe_unified_mechanism_candidate` | `candidate` | `ready_to_host` | `not_run` |  |  | 0.000 | 0.000 | mechanism-optimized same-shape MoE average with frozen router/attention and router/evidence/geometry-risk expert caps |
 
 ## Selection State
 
@@ -77,7 +77,7 @@ cap_g = f(route_load, category_specialization, router_fragility, delta_audit_tai
 | `qwen3_moe_tail_trimmed_expert_only_candidate` | `False` | `` |  |  |  |  |  |  | 0.243 |
 | `qwen3_moe_searched_no_gt065_max_retention_candidate` | `False` | `` |  |  |  |  |  |  | 0.248 |
 | `qwen3_moe_layer_chunk_candidate` | `False` | `` |  |  |  |  |  |  | 0.243 |
-| `qwen3_moe_unified_mechanism_candidate` | `False` | `` |  |  |  |  |  |  | 0.248 |
+| `qwen3_moe_unified_mechanism_candidate` | `False` | `` |  |  |  |  |  |  | 0.240 |
 
 ## How To Run On GPU
 

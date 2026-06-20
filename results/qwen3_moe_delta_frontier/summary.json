@@ -1,6 +1,6 @@
 {
   "audit_to_trust_routed_gt_075_reduction": 150,
-  "best_delta_safety_candidate": "tail_trimmed",
+  "best_delta_safety_candidate": "unified_mechanism",
   "candidate_count": 8,
   "expert_only_attention_changed_tensors": 0,
   "expert_only_router_changed_tensors": 0,
@@ -90,13 +90,15 @@
       "trust_to_expert_only_reduction": 0.0036081965364015978
     }
   ],
-  "interpretation": "Trust-region rules control the routed-expert delta tail; expert-only freezes attention without changing routed tail risk. Tail-trimmed then reduces the remaining routed tail while preserving the frozen attention/router contract. The searched no-gt-0.65 candidate tests whether the hand-built route/load/category risk penalties can be replaced by a simpler global expert cap. The layer/chunk candidate then tests whether layer sensitivity coefficients can reduce structural delta further without removing useful Coder specialization. Attention, cap-law complexity, and layer sensitivity should therefore be decided by downstream eval, not by delta safety alone.",
+  "interpretation": "Trust-region rules control the routed-expert delta tail; expert-only freezes attention without changing routed tail risk. Tail-trimmed then reduces the remaining routed tail while preserving the frozen attention/router contract. The searched no-gt-0.65 candidate tests whether the hand-built route/load/category risk penalties can be replaced by a simpler global expert cap. The layer/chunk candidate then tests whether layer sensitivity coefficients can reduce structural delta further without removing useful Coder specialization. The unified mechanism candidate now uses router/evidence/geometry risk to lower the routed tail below the uniform 0.65 cap while staying same-shape. Attention, cap-law complexity, layer sensitivity, and geometry-aware shrink should therefore be decided by downstream eval, not by delta safety alone.",
   "layer_chunk_attention_changed_tensors": 0,
   "layer_chunk_routed_gt_0_65": 89,
   "layer_chunk_routed_gt_0_6505": 0,
   "layer_chunk_router_changed_tensors": 0,
+  "layer_chunk_to_unified_relative_norm_reduction": 0.003825064843706788,
+  "layer_chunk_to_unified_routed_gt_065_reduction": 89,
   "layer_chunk_total_relative_delta_norm": 0.24345430032224707,
-  "next_required_gate": "vllm_downstream_eval_trust_region_vs_expert_only_tail_trimmed_vs_searched_cap_law_vs_layer_chunk",
+  "next_required_gate": "vllm_downstream_eval_trust_region_vs_expert_only_tail_trimmed_vs_searched_cap_law_vs_layer_chunk_vs_unified",
   "outputs": {
     "candidate_frontier": "results/qwen3_moe_delta_frontier/candidate_delta_frontier.csv",
     "group_frontier": "results/qwen3_moe_delta_frontier/group_delta_frontier.csv",
@@ -125,7 +127,9 @@
   "trust_to_expert_only_attention_norm_reduction": 0.188546444938151,
   "trust_to_expert_only_relative_norm_reduction": 0.0026275270880279644,
   "trust_to_expert_only_routed_gt_075_reduction": 0,
-  "unified_mechanism_matches_searched_no_gt065_delta": true,
+  "unified_mechanism_matches_searched_no_gt065_delta": false,
+  "unified_mechanism_routed_gt_0_65": 0,
+  "unified_mechanism_routed_gt_0_6505": 0,
   "unified_mechanism_router_changed_tensors": 0,
-  "unified_mechanism_total_relative_delta_norm": 0.2475948491291486
+  "unified_mechanism_total_relative_delta_norm": 0.2396292354785403
 }

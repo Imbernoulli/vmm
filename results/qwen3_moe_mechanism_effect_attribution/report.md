@@ -17,8 +17,8 @@
 | `trust_region_to_expert_only` | `awaiting_eval` | n/a | n/a | 0 | -288 | `structural_change_only:attention_changed_tensors:-288` |
 | `expert_only_to_tail_trimmed` | `awaiting_eval` | n/a | n/a | -14 | 0 | `structural_change_only:routed_tensors_gt_0_75:-14,routed_tensors_gt_0_65:-286` |
 | `tail_trimmed_to_searched_cap_law` | `awaiting_eval` | n/a | n/a | 0 | 0 | `structural_change_only:routed_tensors_gt_0_65:+165` |
-| `searched_cap_law_to_layer_chunk` | `awaiting_eval` | n/a | n/a | 0 | 0 | `structural_change_only:routed_tensors_gt_0_65:-158` |
-| `searched_cap_law_to_unified_alias` | `awaiting_eval` | n/a | n/a | 0 | 0 | `awaiting_downstream_eval` |
+| `searched_cap_law_to_layer_chunk` | `awaiting_eval` | n/a | n/a | 0 | 0 | `structural_change_only:routed_tensors_gt_0_65:-156` |
+| `layer_chunk_to_unified_mechanism` | `awaiting_eval` | n/a | n/a | 0 | 0 | `structural_change_only:routed_tensors_gt_0_65:-89` |
 
 ## Outputs
 

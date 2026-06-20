@@ -28,7 +28,7 @@
 | 1 | `source_and_candidate_downstream_eval` | `results/qwen3_moe_eval_budget_plan/run_eval_budget.sh all` |
 | 2 | `router_direct_movement` | `route-KD/HARC-style router calibration after frozen-router baseline and sources finish vLLM eval` |
 | 3 | `routed_expert_tail_cap_0_75` | `compare route_guarded vs audit_gated under budgeted vLLM eval` |
-| 4 | `risk_penalty_complexity` | `budgeted paired vLLM comparison of tail_trimmed vs searched_no_gt065/unified alias` |
+| 4 | `risk_penalty_complexity` | `budgeted paired vLLM comparison of tail_trimmed vs searched_no_gt065 vs layer_chunk vs unified mechanism` |
 | 5 | `tail_cap_0_65` | `budgeted paired vLLM comparison of expert_only vs tail_trimmed` |
 | 6 | `route_load_trust_region` | `compare audit_gated vs trust_region and inspect paired task regressions` |
 

@@ -105,9 +105,9 @@ set -euo pipefail
 # python scripts/run_vllm_downstream_eval.py --base-url http://127.0.0.1:8108/v1 --models candidate_qwen3_moe_layer_chunk_candidate --tasks gsm8k,mmlu,safety,humaneval_compile --example-source datasets --max-examples 64 --output-dir results/vllm_checkpoint_eval/qwen3_moe_layer_chunk_candidate
 
 # [9] qwen3_moe_unified_mechanism_candidate - ready_to_host
-# Checkpoint: results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate
+# Checkpoint: results/checkpoints/qwen3_moe_unified_mechanism_candidate
 # Serve:
-# CUDA_VISIBLE_DEVICES=0,1,2,3 vllm serve results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate --served-model-name candidate_qwen3_moe_unified_mechanism_candidate --host 127.0.0.1 --port 8109 --dtype bfloat16 --tensor-parallel-size 4
+# CUDA_VISIBLE_DEVICES=0,1,2,3 vllm serve results/checkpoints/qwen3_moe_unified_mechanism_candidate --served-model-name candidate_qwen3_moe_unified_mechanism_candidate --host 127.0.0.1 --port 8109 --dtype bfloat16 --tensor-parallel-size 4
 
 # Wait:
 # curl -sf http://127.0.0.1:8109/v1/models >/dev/null

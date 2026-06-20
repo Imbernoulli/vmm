@@ -54,7 +54,7 @@ Paired gate: final selection compares source and candidate predictions on the sa
 | `risk_penalty_simplification` | `qwen3_moe_tail_trimmed_expert_only_candidate` -> `qwen3_moe_searched_no_gt065_max_retention_candidate` | 3072 | Are hand-built risk penalties necessary after a uniform 0.65 expert cap is enforced? |
 | `layer_chunk_sensitivity` | `qwen3_moe_searched_no_gt065_max_retention_candidate` -> `qwen3_moe_layer_chunk_candidate` | 3072 | Do importance-guided layer/chunk coefficients improve the unified MoE rule beyond a uniform expert cap? |
 | `candidate_vs_sources` | `source_qwen3_30b_instruct` -> `qwen3_moe_unified_mechanism_candidate` | 3072 | Does any same-shape candidate avoid Pareto domination by the two source endpoints? |
-| `unified_rule_alias_validation` | `qwen3_moe_searched_no_gt065_max_retention_candidate` -> `qwen3_moe_unified_mechanism_candidate` | 3072 | Did the unified risk/retention optimizer recover the same materialized rule as the validated searched no-gt-0.65 checkpoint? |
+| `unified_mechanism_optimizer` | `qwen3_moe_layer_chunk_candidate` -> `qwen3_moe_unified_mechanism_candidate` | 3072 | Does the router/evidence/geometry-risk optimizer improve downstream behavior beyond the layer/chunk candidate? |
 
 ## How To Run
 

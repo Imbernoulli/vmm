@@ -111,6 +111,89 @@ def robust01(series: pd.Series) -> pd.Series:
     return ((values - lo) / (hi - lo)).clip(0.0, 1.0)
 
 
+def merge_geometry_context(
+    df: pd.DataFrame,
+    expert_geometry_path: Path,
+    layer_coefficients_path: Path,
+) -> pd.DataFrame:
+    out = df.copy()
+    expert_geometry_path = repo_path(expert_geometry_path)
+    if expert_geometry_path.exists():
+        geometry = pd.read_csv(expert_geometry_path)
+        keep = [
+            "layer_id",
+            "expert_id",
+            "combined_relative_delta",
+            "combined_cosine",
+            "internal_geometry_risk_score",
+            "route_geometry_risk_score",
+            "max_chunk_relative_delta",
+            "max_top_10pct_channel_delta_energy_fraction",
+            "geometry_action",
+        ]
+        present = [column for column in keep if column in geometry.columns]
+        geometry = geometry[present].rename(
+            columns={
+                "combined_relative_delta": "geometry_combined_relative_delta",
+                "combined_cosine": "geometry_combined_cosine",
+                "max_chunk_relative_delta": "geometry_max_chunk_relative_delta",
+                "max_top_10pct_channel_delta_energy_fraction": "geometry_top10_delta_energy_fraction",
+            }
+        )
+        out = out.merge(geometry, on=["layer_id", "expert_id"], how="left")
+
+    layer_coefficients_path = repo_path(layer_coefficients_path)
+    if layer_coefficients_path.exists():
+        layers = pd.read_csv(layer_coefficients_path)
+        keep = [
+            "layer_id",
+            "layer_importance_score",
+            "selected_layer_coder_coefficient",
+            "route_mass_weighted_route_geometry_risk_score",
+            "high_route_geometry_risk_experts",
+            "p95_combined_relative_delta",
+            "min_combined_cosine",
+            "chunk_policy",
+        ]
+        present = [column for column in keep if column in layers.columns]
+        layers = layers[present].rename(
+            columns={
+                "selected_layer_coder_coefficient": "layer_prior_coder_coefficient",
+                "route_mass_weighted_route_geometry_risk_score": "layer_route_geometry_risk_score",
+                "p95_combined_relative_delta": "layer_p95_combined_relative_delta",
+                "min_combined_cosine": "layer_min_combined_cosine",
+                "chunk_policy": "layer_chunk_policy",
+            }
+        )
+        out = out.merge(layers, on="layer_id", how="left")
+
+    defaults = {
+        "geometry_combined_relative_delta": 0.0,
+        "geometry_combined_cosine": 1.0,
+        "internal_geometry_risk_score": 0.0,
+        "route_geometry_risk_score": 0.0,
+        "geometry_max_chunk_relative_delta": 0.0,
+        "geometry_top10_delta_energy_fraction": 0.0,
+        "layer_importance_score": 0.0,
+        "layer_prior_coder_coefficient": 1.0,
+        "layer_route_geometry_risk_score": 0.0,
+        "high_route_geometry_risk_experts": 0,
+        "layer_p95_combined_relative_delta": 0.0,
+        "layer_min_combined_cosine": 1.0,
+    }
+    for column, default in defaults.items():
+        if column not in out.columns:
+            out[column] = default
+        out[column] = pd.to_numeric(out[column], errors="coerce").fillna(default)
+    if "geometry_action" not in out.columns:
+        out["geometry_action"] = ""
+    if "layer_chunk_policy" not in out.columns:
+        out["layer_chunk_policy"] = ""
+    out["geometry_action"] = out["geometry_action"].fillna("")
+    out["layer_chunk_policy"] = out["layer_chunk_policy"].fillna("")
+    return out
+
+
 def add_mechanism_features(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy()
     flags = out["trust_risk_flags"].apply(parse_flags)
@@ -134,12 +217,27 @@ def add_mechanism_features(df: pd.DataFrame) -> pd.DataFrame:
     out["feature_source_conflict"] = (1.0 - (out["weight_instruct"] - out["weight_coder"]).abs() / source_sum).clip(
         0.0, 1.0
     )
+    out["feature_expert_route_geometry"] = pd.to_numeric(
+        out.get("route_geometry_risk_score", 0.0), errors="coerce"
+    ).fillna(0.0).clip(0.0, 1.0)
+    out["feature_expert_internal_geometry"] = pd.to_numeric(
+        out.get("internal_geometry_risk_score", 0.0), errors="coerce"
+    ).fillna(0.0).clip(0.0, 1.0)
+    out["feature_layer_geometry"] = pd.to_numeric(
+        out.get("layer_route_geometry_risk_score", 0.0), errors="coerce"
+    ).fillna(0.0).clip(0.0, 1.0)
+    out["feature_layer_shrink_pressure"] = (
+        1.0 - pd.to_numeric(out.get("layer_prior_coder_coefficient", 1.0), errors="coerce").fillna(1.0)
+    ).clip(0.0, 1.0)
     out["mechanism_risk_score"] = (
-        0.30 * out["feature_delta_pressure"]
-        + 0.20 * out["feature_router_instability"]
-        + 0.15 * out["feature_load_pressure"]
-        + 0.10 * out["feature_source_conflict"]
-        + 0.10 * out["feature_low_route_mass"]
+        0.24 * out["feature_delta_pressure"]
+        + 0.16 * out["feature_router_instability"]
+        + 0.10 * out["feature_load_pressure"]
+        + 0.09 * out["feature_source_conflict"]
+        + 0.07 * out["feature_low_route_mass"]
+        + 0.14 * out["feature_expert_route_geometry"]
+        + 0.08 * out["feature_expert_internal_geometry"]
+        + 0.05 * out["feature_layer_geometry"]
         + 0.05 * out["feature_high_load_flag"]
         + 0.05 * out["feature_low_route_evidence_flag"]
         + 0.03 * out["feature_category_mismatch_flag"]
@@ -148,11 +246,17 @@ def add_mechanism_features(df: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-def scale_from_target_cap(df: pd.DataFrame, target_cap: pd.Series) -> pd.Series:
+def scale_from_target_cap(
+    df: pd.DataFrame,
+    target_cap: pd.Series,
+    prior_scale: pd.Series | None = None,
+) -> pd.Series:
     audit_max = df["audit_max_relative_delta_norm"].clip(lower=0.0)
-    scale = pd.Series(1.0, index=df.index)
+    scale = pd.Series(1.0, index=df.index) if prior_scale is None else prior_scale.reindex(df.index).fillna(1.0)
+    cap_scale = pd.Series(1.0, index=df.index)
     needs_scale = audit_max > target_cap
-    scale.loc[needs_scale] = target_cap.loc[needs_scale] / audit_max.loc[needs_scale].clip(lower=EPS)
+    cap_scale.loc[needs_scale] = target_cap.loc[needs_scale] / audit_max.loc[needs_scale].clip(lower=EPS)
+    scale = pd.concat([scale.clip(0.0, 1.0), cap_scale.clip(0.0, 1.0)], axis=1).min(axis=1)
     return scale.clip(lower=0.0, upper=1.0)
 
 
@@ -161,29 +265,47 @@ def candidate_target_caps(
     *,
     hard_cap: float,
     min_cap: float,
-) -> list[tuple[str, str, pd.Series]]:
+) -> list[tuple[str, str, pd.Series, pd.Series]]:
     risk = df["mechanism_risk_score"].clip(0.0, 1.0)
     low_evidence = df["feature_low_route_mass"].clip(0.0, 1.0)
     router_instability = df["feature_router_instability"].clip(0.0, 1.0)
     load_pressure = df["feature_load_pressure"].clip(0.0, 1.0)
-    rows: list[tuple[str, str, pd.Series]] = [
+    route_geometry = df["feature_expert_route_geometry"].clip(0.0, 1.0)
+    internal_geometry = df["feature_expert_internal_geometry"].clip(0.0, 1.0)
+    layer_geometry = df["feature_layer_geometry"].clip(0.0, 1.0)
+    layer_prior = pd.to_numeric(df["layer_prior_coder_coefficient"], errors="coerce").fillna(1.0).clip(0.0, 1.0)
+    unit_prior = pd.Series(1.0, index=df.index)
+    rows: list[tuple[str, str, pd.Series, pd.Series]] = [
         (
             f"uniform_{hard_cap:.2f}",
             "threshold_efficient_cap",
             pd.Series(hard_cap, index=df.index),
+            unit_prior,
         )
     ]
     for strength in (0.25, 0.50, 0.75, 1.00):
         cap = hard_cap - strength * (hard_cap - min_cap) * risk
-        rows.append((f"smooth_risk_s{strength:.2f}", "continuous_mechanism_risk", cap.clip(lower=min_cap)))
+        rows.append((f"smooth_risk_s{strength:.2f}", "continuous_mechanism_risk", cap.clip(lower=min_cap), unit_prior))
     for strength in (0.25, 0.50, 0.75):
         mixed = (0.55 * risk + 0.25 * router_instability + 0.20 * low_evidence).clip(0.0, 1.0)
         cap = hard_cap - strength * (hard_cap - min_cap) * mixed
-        rows.append((f"router_evidence_risk_s{strength:.2f}", "router_and_evidence_weighted_risk", cap.clip(lower=min_cap)))
+        rows.append((f"router_evidence_risk_s{strength:.2f}", "router_and_evidence_weighted_risk", cap.clip(lower=min_cap), unit_prior))
     for strength in (0.25, 0.50):
         mixed = (0.60 * risk + 0.40 * load_pressure).clip(0.0, 1.0)
         cap = hard_cap - strength * (hard_cap - min_cap) * mixed
-        rows.append((f"load_aware_risk_s{strength:.2f}", "load_weighted_risk", cap.clip(lower=min_cap)))
+        rows.append((f"load_aware_risk_s{strength:.2f}", "load_weighted_risk", cap.clip(lower=min_cap), unit_prior))
+    rows.append(("layer_prior", "importance_geometry_layer_prior", pd.Series(hard_cap, index=df.index), layer_prior))
+    for strength in (0.04, 0.08, 0.12):
+        prior = (1.0 - strength * route_geometry).clip(0.82, 1.0)
+        rows.append((f"expert_geometry_prior_s{strength:.2f}", "expert_geometry_prior", pd.Series(hard_cap, index=df.index), prior))
+    for strength in (0.25, 0.50, 0.75):
+        mixed = (0.55 * route_geometry + 0.25 * internal_geometry + 0.20 * layer_geometry).clip(0.0, 1.0)
+        cap = hard_cap - strength * (hard_cap - min_cap) * mixed
+        rows.append((f"geometry_cap_s{strength:.2f}", "geometry_weighted_cap", cap.clip(lower=min_cap), unit_prior))
+    for strength in (0.04, 0.08):
+        mixed = (0.65 * route_geometry + 0.20 * internal_geometry + 0.15 * layer_geometry).clip(0.0, 1.0)
+        prior = (layer_prior * (1.0 - strength * mixed)).clip(0.80, 1.0)
+        rows.append((f"layer_geometry_prior_s{strength:.2f}", "layer_and_expert_geometry_prior", pd.Series(hard_cap, index=df.index), prior))
     return rows
 
 
@@ -206,18 +328,32 @@ def metrics_from_scale(
     original_norm = float(math.sqrt(float((audit_delta_norm**2).sum())))
     predicted_norm = float(math.sqrt(float(((audit_delta_norm * scale) ** 2).sum())))
     risk = df["mechanism_risk_score"].clip(0.0, 1.0)
-    risk_weight = (route_mass * risk).clip(lower=0.0)
+    route_geometry = df["feature_expert_route_geometry"].clip(0.0, 1.0)
+    internal_geometry = df["feature_expert_internal_geometry"].clip(0.0, 1.0)
+    layer_geometry = df["feature_layer_geometry"].clip(0.0, 1.0)
+    combined_risk = (
+        0.50 * risk
+        + 0.25 * route_geometry
+        + 0.15 * internal_geometry
+        + 0.10 * layer_geometry
+    ).clip(0.0, 1.0)
+    risk_weight = (route_mass * combined_risk).clip(lower=0.0)
+    geometry_weight = (route_mass * route_geometry).clip(lower=0.0)
     risk_weight_sum = float(risk_weight.sum())
+    geometry_weight_sum = float(geometry_weight.sum())
     risk_weighted_delta = float((risk_weight * predicted_max).sum() / max(EPS, risk_weight_sum))
+    geometry_weighted_delta = float((geometry_weight * predicted_max).sum() / max(EPS, geometry_weight_sum))
+    high_geometry_mask = route_geometry >= 0.75
     hard_violation = (predicted_max > hard_cap + 1e-9)
     retention = preserved_mass / max(EPS, original_mass)
     norm_ratio = predicted_norm / max(EPS, original_norm)
     objective = (
         1500.0 * int(hard_violation.sum())
         + 40.0 * max(0.0, float(predicted_max.max()) - hard_cap)
-        + 12.0 * (1.0 - retention)
+        + 8.0 * (1.0 - retention)
         + 1.0 * norm_ratio
-        + 0.25 * risk_weighted_delta
+        + 1.20 * risk_weighted_delta
+        + 0.80 * geometry_weighted_delta
     )
     return {
         "candidate_id": candidate_id,
@@ -238,6 +374,13 @@ def metrics_from_scale(
         "delta_norm_proxy": predicted_norm,
         "delta_norm_proxy_ratio_vs_uncapped": norm_ratio,
         "risk_weighted_predicted_relative_delta": risk_weighted_delta,
+        "geometry_weighted_predicted_relative_delta": geometry_weighted_delta,
+        "high_geometry_group_count": int(high_geometry_mask.sum()),
+        "high_geometry_mean_scale": float(scale.loc[high_geometry_mask].mean()) if bool(high_geometry_mask.any()) else 1.0,
+        "route_geometry_risk_weighted_coder_retention": float(
+            (geometry_weight * original_nonbase * scale).sum()
+            / max(EPS, float((geometry_weight * original_nonbase).sum()))
+        ),
         "mean_delta_scale": float(scale.mean()),
         "min_delta_scale": float(scale.min()),
         "unified_objective": objective,
@@ -248,8 +391,8 @@ def metrics_from_scale(
 def search_candidates(df: pd.DataFrame, *, hard_cap: float, min_cap: float) -> tuple[pd.DataFrame, dict[str, pd.Series]]:
     rows = []
     scales: dict[str, pd.Series] = {}
-    for candidate_id, family, target_cap in candidate_target_caps(df, hard_cap=hard_cap, min_cap=min_cap):
-        scale = scale_from_target_cap(df, target_cap)
+    for candidate_id, family, target_cap, prior_scale in candidate_target_caps(df, hard_cap=hard_cap, min_cap=min_cap):
+        scale = scale_from_target_cap(df, target_cap, prior_scale=prior_scale)
         rows.append(
             metrics_from_scale(
                 df,
@@ -264,22 +407,36 @@ def search_candidates(df: pd.DataFrame, *, hard_cap: float, min_cap: float) -> t
     search = pd.DataFrame(rows).sort_values(
         [
             "passes_hard_cap",
-            "nonbase_mass_retention",
             "unified_objective",
+            "risk_weighted_predicted_relative_delta",
+            "nonbase_mass_retention",
             "delta_norm_proxy_ratio_vs_uncapped",
         ],
-        ascending=[False, False, True, True],
+        ascending=[False, True, True, False, True],
     )
     return search, scales
 
 
-def select_candidate(search: pd.DataFrame) -> pd.Series:
+def select_candidate(search: pd.DataFrame, *, min_retention: float) -> pd.Series:
     feasible = search[search["passes_hard_cap"]].copy()
     if feasible.empty:
         return search.sort_values(["routed_gt_hard_cap_groups", "unified_objective"]).iloc[0]
-    best_retention = float(feasible["nonbase_mass_retention"].max())
-    threshold_efficient = feasible[feasible["nonbase_mass_retention"] >= best_retention - 1e-12]
-    return threshold_efficient.sort_values(["unified_objective", "delta_norm_proxy_ratio_vs_uncapped"]).iloc[0]
+    retention_feasible = feasible[feasible["nonbase_mass_retention"] >= min_retention].copy()
+    if retention_feasible.empty:
+        return feasible.sort_values(
+            ["nonbase_mass_retention", "unified_objective"],
+            ascending=[False, True],
+        ).iloc[0]
+    return retention_feasible.sort_values(
+        [
+            "risk_weighted_predicted_relative_delta",
+            "geometry_weighted_predicted_relative_delta",
+            "delta_norm_proxy_ratio_vs_uncapped",
+            "unified_objective",
+            "nonbase_mass_retention",
+        ],
+        ascending=[True, True, True, True, False],
+    ).iloc[0]
 
 
 def extract_writer_context(command_path: Path) -> tuple[str, dict[str, str]]:
@@ -396,6 +553,12 @@ def mechanism_feature_summary(df: pd.DataFrame) -> dict[str, Any]:
         "mean_mechanism_risk_score": float(df["mechanism_risk_score"].mean()),
         "p95_mechanism_risk_score": float(df["mechanism_risk_score"].quantile(0.95)),
         "high_risk_group_count": int((df["mechanism_risk_score"] >= 0.75).sum()),
+        "expert_geometry_probe_used": bool("route_geometry_risk_score" in df.columns and df["route_geometry_risk_score"].max() > 0.0),
+        "mean_route_geometry_risk_score": float(df["feature_expert_route_geometry"].mean()),
+        "p95_route_geometry_risk_score": float(df["feature_expert_route_geometry"].quantile(0.95)),
+        "high_route_geometry_group_count": int((df["feature_expert_route_geometry"] >= 0.75).sum()),
+        "layer_coefficients_used": bool("layer_prior_coder_coefficient" in df.columns and df["layer_prior_coder_coefficient"].min() < 1.0),
+        "min_layer_prior_coder_coefficient": float(df["layer_prior_coder_coefficient"].min()),
         "flag_high_load_group_count": int(df["feature_high_load_flag"].sum()),
         "flag_low_route_evidence_group_count": int(df["feature_low_route_evidence_flag"].sum()),
         "flag_fragile_router_group_count": int(df["feature_fragile_router_flag"].sum()),
@@ -429,11 +592,22 @@ def build_group_rules(df: pd.DataFrame, scale: pd.Series, selected: pd.Series) -
         "feature_load_pressure",
         "feature_source_conflict",
         "feature_low_route_mass",
+        "feature_expert_route_geometry",
+        "feature_expert_internal_geometry",
+        "feature_layer_geometry",
+        "layer_prior_coder_coefficient",
+        "geometry_combined_relative_delta",
+        "geometry_combined_cosine",
+        "route_geometry_risk_score",
+        "internal_geometry_risk_score",
+        "layer_route_geometry_risk_score",
+        "geometry_action",
         "trust_risk_flags",
         "tensor_pattern",
         "tensor_rule",
     ]
-    return out[columns].sort_values(["layer_id", "expert_id"])
+    present = [column for column in columns if column in out.columns]
+    return out[present].sort_values(["layer_id", "expert_id"])
 
 
 def build_report(summary: dict[str, Any], search: pd.DataFrame, selected: pd.Series) -> str:
@@ -452,18 +626,20 @@ def build_report(summary: dict[str, Any], search: pd.DataFrame, selected: pd.Ser
         f"- Nonbase route-mass retention: `{fmt(summary['selected_nonbase_mass_retention'])}`",
         f"- Max predicted routed relative delta: `{fmt(summary['selected_max_predicted_relative_delta'])}`",
         f"- Groups over hard cap `{summary['hard_cap']}`: `{summary['selected_routed_gt_hard_cap_groups']}`",
-        f"- Matches validated no-gt-0.65 rules: `{summary['matches_validated_reference_rules']}`",
+        f"- Risk-weighted predicted relative delta: `{fmt(summary['selected_risk_weighted_predicted_relative_delta'])}`",
+        f"- Geometry-weighted predicted relative delta: `{fmt(summary['selected_geometry_weighted_predicted_relative_delta'])}`",
+        f"- Expert geometry used: `{summary['expert_geometry_probe_used']}`",
         "",
         "## Why This Is The Current Unified Rule",
         "",
-        "理论上，uniform average、task-vector merge、TIES、Fisher/RegMean 都可以看成在同一个参数空间里求一个同结构解；真正的区别是约束和局部几何假设。对当前 Qwen3 MoE，最强的内部证据不是“某个算法名更好”，而是 router/top-k dispatch 对扰动敏感、expert identity 必须先固定、routed expert 的 high-delta tail 必须被限制。",
+        "理论上，uniform average、task-vector merge、TIES、Fisher/RegMean 都可以看成在同一个参数空间里求一个同结构解；真正的区别是约束和局部几何假设。对当前 Qwen3 MoE，最强的内部证据不是“某个算法名更好”，而是 router/top-k dispatch 对扰动敏感、expert identity 必须先固定、routed expert 的 high-delta tail 和 expert 内部几何风险必须被同时限制。",
         "",
-        "因此本脚本求的是：在不改结构、不改 router、不增加 expert 的条件下，最大化 route-mass-weighted Coder contribution，同时让 routed expert 的预测 relative-delta tail 不超过 hard cap。更复杂的 risk-dependent cap 也参与搜索；如果它只降低 retention 而不进一步降低 hard-tail violation，就被自动拒绝。",
+        "因此本脚本求的是：在不改结构、不改 router、不增加 expert 的条件下，保留足够的 route-mass-weighted Coder contribution，同时最小化 route/risk/geometry weighted predicted delta。旧的 uniform `0.65` cap 仍作为 baseline 参与搜索；如果 layer/geometry-aware prior 在 retention 约束内降低高风险 expert 的移动，它会被选中。",
         "",
         "## Candidate Search",
         "",
-        "| candidate | family | pass cap | retention | norm ratio | max rel-delta | risk-weighted rel-delta | objective |",
-        "| --- | --- | --- | ---: | ---: | ---: | ---: | ---: |",
+        "| candidate | family | pass cap | retention | norm ratio | max rel-delta | risk rel-delta | geom rel-delta | objective |",
+        "| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for _, row in search.head(12).iterrows():
         lines.append(
@@ -472,6 +648,7 @@ def build_report(summary: dict[str, Any], search: pd.DataFrame, selected: pd.Ser
             f"{fmt(float(row['delta_norm_proxy_ratio_vs_uncapped']))} | "
             f"{fmt(float(row['max_predicted_relative_delta']))} | "
             f"{fmt(float(row['risk_weighted_predicted_relative_delta']))} | "
+            f"{fmt(float(row['geometry_weighted_predicted_relative_delta']))} | "
             f"{fmt(float(row['unified_objective']))} |"
         )
     lines.extend(
@@ -517,6 +694,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", type=Path, default=Path("results/qwen3_moe_unified_mechanism_candidate"))
     parser.add_argument("--hard-cap", type=float, default=0.65)
     parser.add_argument("--min-cap", type=float, default=0.55)
+    parser.add_argument("--min-retention", type=float, default=0.975)
+    parser.add_argument(
+        "--expert-geometry",
+        type=Path,
+        default=Path("results/qwen3_moe_expert_geometry_probe/expert_geometry.csv"),
+    )
+    parser.add_argument(
+        "--layer-coefficients",
+        type=Path,
+        default=Path("results/qwen3_moe_layer_chunk_candidate/layer_coefficients.csv"),
+    )
     parser.add_argument(
         "--validated-reference-rules",
         type=Path,
@@ -530,9 +718,10 @@ def main() -> None:
     output_dir = repo_path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     df = pd.read_csv(repo_path(args.expert_rules))
+    df = merge_geometry_context(df, args.expert_geometry, args.layer_coefficients)
     df = add_mechanism_features(df)
     search, scales = search_candidates(df, hard_cap=args.hard_cap, min_cap=args.min_cap)
-    selected = select_candidate(search)
+    selected = select_candidate(search, min_retention=args.min_retention)
     selected_id = str(selected["candidate_id"])
     selected_scale = scales[selected_id]
 
@@ -557,11 +746,22 @@ def main() -> None:
         "candidate_count": int(len(search)),
         "hard_cap": float(args.hard_cap),
         "min_cap": float(args.min_cap),
+        "min_retention": float(args.min_retention),
         "selected_candidate_id": selected_id,
         "selected_candidate_family": str(selected["candidate_family"]),
         "selected_nonbase_mass_retention": float(selected["nonbase_mass_retention"]),
         "selected_delta_norm_proxy_ratio_vs_uncapped": float(selected["delta_norm_proxy_ratio_vs_uncapped"]),
         "selected_max_predicted_relative_delta": float(selected["max_predicted_relative_delta"]),
+        "selected_risk_weighted_predicted_relative_delta": float(
+            selected["risk_weighted_predicted_relative_delta"]
+        ),
+        "selected_geometry_weighted_predicted_relative_delta": float(
+            selected["geometry_weighted_predicted_relative_delta"]
+        ),
+        "selected_route_geometry_risk_weighted_coder_retention": float(
+            selected["route_geometry_risk_weighted_coder_retention"]
+        ),
+        "selected_high_geometry_mean_scale": float(selected["high_geometry_mean_scale"]),
         "selected_routed_gt_hard_cap_groups": int(selected["routed_gt_hard_cap_groups"]),
         "selected_routed_gt_065_groups": int(selected["routed_gt_065_groups"]),
         "selected_routed_gt_075_groups": int(selected["routed_gt_075_groups"]),
@@ -571,10 +771,16 @@ def main() -> None:
         "router_policy": "freeze_router",
         "shared_attention_policy": "freeze_shared_attention_pending_downstream_eval",
         "selection_rule": (
-            "Select the feasible candidate that satisfies the hard routed-expert cap and maximizes "
-            "route-mass-weighted nonbase retention; use the unified objective only as a tie-breaker."
+            "Select candidates that satisfy the hard routed-expert cap and minimum route-mass nonbase "
+            "retention; within that feasible set minimize the unified risk/geometry weighted objective."
         ),
         "mechanism_features": mechanism_feature_summary(df),
+        "expert_geometry_probe_used": bool(
+            "route_geometry_risk_score" in df.columns and float(df["route_geometry_risk_score"].max()) > 0.0
+        ),
+        "layer_coefficients_used": bool(
+            "layer_prior_coder_coefficient" in df.columns and float(df["layer_prior_coder_coefficient"].min()) < 1.0
+        ),
         "literature_priors": LITERATURE_PRIORS,
         "outputs": {
             "report": rel(report_path),

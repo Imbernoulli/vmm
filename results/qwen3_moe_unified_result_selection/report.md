@@ -8,7 +8,7 @@
 - Source eval complete: `False`
 - Unified eval complete: `False`
 - Unified audit passed: `True`
-- Alias status: `awaiting_eval`
+- Alias status: `None`
 
 ## Selection Table
 

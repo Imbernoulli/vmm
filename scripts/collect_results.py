@@ -1115,6 +1115,16 @@ def summarize_qwen3_moe_delta_frontier() -> dict[str, Any]:
         ),
         "layer_chunk_routed_gt_0_6505": int(summary.get("layer_chunk_routed_gt_0_6505", 0)),
         "layer_chunk_routed_gt_0_65": int(summary.get("layer_chunk_routed_gt_0_65", 0)),
+        "unified_mechanism_routed_gt_0_6505": int(
+            summary.get("unified_mechanism_routed_gt_0_6505", 0)
+        ),
+        "unified_mechanism_routed_gt_0_65": int(summary.get("unified_mechanism_routed_gt_0_65", 0)),
+        "layer_chunk_to_unified_relative_norm_reduction": maybe_float(
+            summary.get("layer_chunk_to_unified_relative_norm_reduction")
+        ),
+        "layer_chunk_to_unified_routed_gt_065_reduction": int(
+            summary.get("layer_chunk_to_unified_routed_gt_065_reduction", 0)
+        ),
         "expert_only_attention_changed_tensors": int(
             summary.get("expert_only_attention_changed_tensors", 0)
         ),
@@ -1159,10 +1169,10 @@ def summarize_qwen3_moe_mechanism_eval_gate() -> dict[str, Any]:
     local_gpu = summary.get("local_gpu", {})
     unified_gate = gate[gate["method"] == "qwen3_moe_unified_mechanism_candidate"]
     unified_selection = selection[selection["method"] == "qwen3_moe_unified_mechanism_candidate"]
-    alias_test = tests[tests["test"] == "unified_rule_alias_validation"]
+    unified_test = tests[tests["test"] == "unified_mechanism_optimizer"]
     unified_gate_row = {} if unified_gate.empty else unified_gate.iloc[0].to_dict()
     unified_selection_row = {} if unified_selection.empty else unified_selection.iloc[0].to_dict()
-    alias_test_row = {} if alias_test.empty else alias_test.iloc[0].to_dict()
+    unified_test_row = {} if unified_test.empty else unified_test.iloc[0].to_dict()
     return {
         "summary": summary,
         "status": summary.get("status"),
@@ -1184,7 +1194,7 @@ def summarize_qwen3_moe_mechanism_eval_gate() -> dict[str, Any]:
         "unified_candidate_selection_eligible": bool(
             unified_selection_row.get("selection_eligible", False)
         ),
-        "unified_rule_alias_validation_status": alias_test_row.get("current_status"),
+        "unified_mechanism_optimizer_status": unified_test_row.get("current_status"),
         "mechanism_test_rows": [clean_row(row) for _, row in tests.iterrows()],
         "eval_gate_rows": [clean_row(row) for _, row in gate.iterrows()],
         "selection_rows": [clean_row(row) for _, row in selection.iterrows()],
@@ -1844,10 +1854,22 @@ def summarize_qwen3_moe_unified_mechanism_candidate() -> dict[str, Any]:
             summary.get("selected_delta_norm_proxy_ratio_vs_uncapped")
         ),
         "selected_max_predicted_relative_delta": maybe_float(summary.get("selected_max_predicted_relative_delta")),
+        "selected_risk_weighted_predicted_relative_delta": maybe_float(
+            summary.get("selected_risk_weighted_predicted_relative_delta")
+        ),
+        "selected_geometry_weighted_predicted_relative_delta": maybe_float(
+            summary.get("selected_geometry_weighted_predicted_relative_delta")
+        ),
+        "selected_route_geometry_risk_weighted_coder_retention": maybe_float(
+            summary.get("selected_route_geometry_risk_weighted_coder_retention")
+        ),
+        "selected_high_geometry_mean_scale": maybe_float(summary.get("selected_high_geometry_mean_scale")),
         "selected_routed_gt_hard_cap_groups": int(summary.get("selected_routed_gt_hard_cap_groups", 0)),
         "selected_routed_gt_065_groups": int(summary.get("selected_routed_gt_065_groups", 0)),
         "selected_routed_gt_075_groups": int(summary.get("selected_routed_gt_075_groups", 0)),
         "selected_scaled_group_count": int(summary.get("selected_scaled_group_count", 0)),
+        "expert_geometry_probe_used": bool(summary.get("expert_geometry_probe_used", False)),
+        "layer_coefficients_used": bool(summary.get("layer_coefficients_used", False)),
         "matches_validated_reference_rules": bool(summary.get("matches_validated_reference_rules", False)),
         "candidate_rule_count": int(summary.get("candidate_rule_count", 0)),
         "reference_rule_count": int(summary.get("reference_rule_count", 0)),
@@ -3568,7 +3590,7 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "Qwen3 MoE mechanism effect attribution",
             "status": "complete",
-            "evidence": "results/qwen3_moe_mechanism_effect_attribution/report.md decomposes the Qwen3 MoE source-frontier -> route-guarded -> audit-gated -> trust-region -> expert-only -> tail-trimmed -> searched-cap -> layer/chunk -> unified-alias chain into structural and downstream score deltas, gated by the eval-bundle audit.",
+            "evidence": "results/qwen3_moe_mechanism_effect_attribution/report.md decomposes the Qwen3 MoE source-frontier -> route-guarded -> audit-gated -> trust-region -> expert-only -> tail-trimmed -> searched-cap -> layer/chunk -> unified-mechanism chain into structural and downstream score deltas, gated by the eval-bundle audit.",
         },
         {
             "item": "Qwen3 MoE post-vLLM eval refresh pipeline",
@@ -3870,6 +3892,8 @@ def build_summary() -> dict[str, Any]:
             "python scripts/select_qwen3_moe_router_calibration_result.py --task-regression-negative-smoke --output-dir results/qwen3_moe_router_calibration_selection_task_regression_negative_smoke",
             "python scripts/smoke_qwen3_moe_router_calibration_selector_matrix.py --output-dir results/qwen3_moe_router_calibration_selector_matrix_smoke",
             "python scripts/build_qwen3_moe_unified_mechanism_candidate.py --output-dir results/qwen3_moe_unified_mechanism_candidate",
+            "bash results/qwen3_moe_unified_mechanism_candidate/writer_command.txt",
+            "python scripts/audit_materialized_checkpoint_delta.py --base BASE --candidate results/checkpoints/qwen3_moe_unified_mechanism_candidate --output-dir results/qwen3_moe_unified_mechanism_delta_audit",
             "python scripts/select_qwen3_moe_unified_result.py --output-dir results/qwen3_moe_unified_result_selection",
             "python scripts/select_qwen3_moe_unified_result.py --smoke-matrix --output-dir results/qwen3_moe_unified_result_selection_smoke",
             "python scripts/select_qwen3_moe_final_candidate.py --output-dir results/qwen3_moe_final_candidate_selection",
@@ -4515,6 +4539,12 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_delta_frontier['unified_mechanism_router_changed_tensors']} |"
             ),
             (
+                "| Qwen3 MoE delta frontier | layer/chunk->unified rel-norm reduction / >0.65 reduction / unified >0.6505 | "
+                f"{fmt(qwen3_moe_delta_frontier['layer_chunk_to_unified_relative_norm_reduction'])} / "
+                f"{qwen3_moe_delta_frontier['layer_chunk_to_unified_routed_gt_065_reduction']} / "
+                f"{qwen3_moe_delta_frontier['unified_mechanism_routed_gt_0_6505']} |"
+            ),
+            (
                 "| Qwen3 MoE mechanism eval gate | status / selection / selected | "
                 f"{qwen3_moe_mechanism_eval_gate['status']} / "
                 f"{qwen3_moe_mechanism_eval_gate['selection_status']} / "
@@ -4532,10 +4562,10 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{qwen3_moe_mechanism_eval_gate['best_delta_safety_candidate']} |"
             ),
             (
-                "| Qwen3 MoE mechanism eval gate | unified serve / audit / alias test | "
+                "| Qwen3 MoE mechanism eval gate | unified serve / audit / optimizer test | "
                 f"{qwen3_moe_mechanism_eval_gate['unified_candidate_serve_status']} / "
                 f"{qwen3_moe_mechanism_eval_gate['unified_candidate_audit_passed']} / "
-                f"{qwen3_moe_mechanism_eval_gate['unified_rule_alias_validation_status']} |"
+                f"{qwen3_moe_mechanism_eval_gate['unified_mechanism_optimizer_status']} |"
             ),
             (
                 "| Qwen3 MoE eval budget plan | status / current -> recommended examples | "
@@ -4886,6 +4916,12 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(qwen3_moe_unified_mechanism_candidate['selected_nonbase_mass_retention'])} / "
                 f"{fmt(qwen3_moe_unified_mechanism_candidate['selected_max_predicted_relative_delta'])} / "
                 f"{qwen3_moe_unified_mechanism_candidate['selected_routed_gt_hard_cap_groups']} |"
+            ),
+            (
+                "| Qwen3 MoE unified mechanism candidate | risk-delta / geometry-delta / geometry used | "
+                f"{fmt(qwen3_moe_unified_mechanism_candidate['selected_risk_weighted_predicted_relative_delta'])} / "
+                f"{fmt(qwen3_moe_unified_mechanism_candidate['selected_geometry_weighted_predicted_relative_delta'])} / "
+                f"{qwen3_moe_unified_mechanism_candidate['expert_geometry_probe_used']} |"
             ),
             (
                 "| Qwen3 MoE unified mechanism candidate | router / attention policy | "

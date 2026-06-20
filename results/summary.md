@@ -1,6 +1,6 @@
 # Result Summary
 
-Generated at: `2026-06-20T02:29:37.137692+00:00`
+Generated at: `2026-06-20T02:58:57.942205+00:00`
 
 ## Coverage
 
@@ -76,7 +76,7 @@ Complete: `79`; partial: `1`; missing: `0`.
 | Qwen3 MoE final candidate selector | complete | results/qwen3_moe_final_candidate_selection/report.md ranks all eight same-shape Qwen3 MoE candidates against both source endpoints after eval-bundle audit, with source-dominance, task-regression, score-confidence, paired-prediction, checkpoint-audit, and provisional-selection gates. |
 | Unified Dense/MoE average optimizer | complete | results/unified_average_optimizer/report.md converts Dense barrier probes, MoE gauge probes, Qwen3 expert identity, router movement, and final candidate-selection gates into one same-shape operation policy. |
 | Qwen3 MoE vLLM eval bundle audit | complete | results/qwen3_moe_eval_bundle_audit/report.md checks every Qwen3 source/candidate eval output for model-id, task, example-count, prediction, and primary-score consistency before selector use; results/qwen3_moe_eval_bundle_audit_smoke/report.md covers valid, stale-model, missing-task, and low-example bundles. |
-| Qwen3 MoE mechanism effect attribution | complete | results/qwen3_moe_mechanism_effect_attribution/report.md decomposes the Qwen3 MoE source-frontier -> route-guarded -> audit-gated -> trust-region -> expert-only -> tail-trimmed -> searched-cap -> layer/chunk -> unified-alias chain into structural and downstream score deltas, gated by the eval-bundle audit. |
+| Qwen3 MoE mechanism effect attribution | complete | results/qwen3_moe_mechanism_effect_attribution/report.md decomposes the Qwen3 MoE source-frontier -> route-guarded -> audit-gated -> trust-region -> expert-only -> tail-trimmed -> searched-cap -> layer/chunk -> unified-mechanism chain into structural and downstream score deltas, gated by the eval-bundle audit. |
 | Qwen3 MoE post-vLLM eval refresh pipeline | complete | results/qwen3_moe_post_eval_refresh/report.md runs eval-bundle audit, unified result selection, mechanism attribution, smoke checks, and collect_results in a fixed post-eval order after remote vLLM outputs land. |
 | Qwen3 MoE searched cap-law materialized candidate | complete | results/qwen3_moe_searched_no_gt065_delta_audit/report.md verifies the materialized searched 0.65 cap-law checkpoint and adds it to the Qwen3 MoE eval gate. |
 | Qwen3 MoE router move gate | complete | results/qwen3_moe_router_move_gate/report.md combines router tensor deltas with real routing readiness and rejects direct router-weight movement for all 48 layers. |
@@ -175,17 +175,18 @@ Complete: `79`; partial: `1`; missing: `0`.
 | Qwen3 MoE searched cap-law delta audit | max routed rel-delta / >0.75 / >0.65 / >0.6505 | 0.650 / 0 / 245 / 0 |
 | Qwen3 MoE layer/chunk delta audit | status / total relative norm / router changed | passed / 0.243 / 0/48 |
 | Qwen3 MoE layer/chunk delta audit | max routed rel-delta / >0.75 / >0.65 / >0.6505 | 0.650 / 0 / 89 / 0 |
-| Qwen3 MoE delta frontier | best safety candidate / next required gate | tail_trimmed / vllm_downstream_eval_trust_region_vs_expert_only_tail_trimmed_vs_searched_cap_law_vs_layer_chunk |
+| Qwen3 MoE delta frontier | best safety candidate / next required gate | unified_mechanism / vllm_downstream_eval_trust_region_vs_expert_only_tail_trimmed_vs_searched_cap_law_vs_layer_chunk_vs_unified |
 | Qwen3 MoE delta frontier | audit->trust routed >0.75 reduction / trust->expert-only routed >0.75 reduction | 150 / 0 |
 | Qwen3 MoE delta frontier | trust vs expert-only total rel-norm / attention norm reduction | 0.249->0.246 / 0.189 |
 | Qwen3 MoE delta frontier | expert-only->tail-trimmed rel-norm reduction / routed >0.65 reduction | 0.003 / 286 |
 | Qwen3 MoE delta frontier | tail-trimmed vs searched rel-norm delta / >0.6505 counts | 0.004 / 0->0 |
 | Qwen3 MoE delta frontier | searched->layer/chunk rel-norm reduction / >0.65 reduction / >0.6505 | 0.004 / 156 / 0 |
-| Qwen3 MoE delta frontier | unified matches searched / unified rel-norm / router changed | True / 0.248 / 0 |
+| Qwen3 MoE delta frontier | unified matches searched / unified rel-norm / router changed | False / 0.240 / 0 |
+| Qwen3 MoE delta frontier | layer/chunk->unified rel-norm reduction / >0.65 reduction / unified >0.6505 | 0.004 / 89 / 0 |
 | Qwen3 MoE mechanism eval gate | status / selection / selected | awaiting_remote_vllm_eval / awaiting_source_eval / None |
 | Qwen3 MoE mechanism eval gate | ready / completed / awaiting tests | 10 / 0 / 9 |
-| Qwen3 MoE mechanism eval gate | local GPU / best delta-safety candidate | nvidia_smi_failed / tail_trimmed |
-| Qwen3 MoE mechanism eval gate | unified serve / audit / alias test | ready_to_host / True / awaiting_eval |
+| Qwen3 MoE mechanism eval gate | local GPU / best delta-safety candidate | nvidia_smi_failed / unified_mechanism |
+| Qwen3 MoE mechanism eval gate | unified serve / audit / optimizer test | ready_to_host / True / awaiting_eval |
 | Qwen3 MoE eval budget plan | status / current -> recommended examples | ready_for_budgeted_remote_vllm_eval / 64 -> 384 |
 | Qwen3 MoE eval budget plan | current / recommended / extra prompt budget | 2560 / 15360 / 12800 |
 | Qwen3 MoE eval budget plan | Wilson n / paired n / capped tasks | 381 / 248 / humaneval_compile |
@@ -240,10 +241,11 @@ Complete: `79`; partial: `1`; missing: `0`.
 | Qwen3 MoE cap-law search | current trust vs uniform 0.65 >0.65 groups | 129 / 0 |
 | Qwen3 MoE cap-law search | extra risk penalties threshold-efficient | False |
 | Qwen3 MoE cap-law search | validated dry-run rules / expert hits / router hits | 1 / 15729 / 48 |
-| Qwen3 MoE unified mechanism candidate | selected / family / candidates | uniform_0.65 / threshold_efficient_cap / 10 |
-| Qwen3 MoE unified mechanism candidate | retention / max rel-delta / hard-cap violations | 0.982 / 0.650 / 0 |
+| Qwen3 MoE unified mechanism candidate | selected / family / candidates | router_evidence_risk_s0.75 / router_and_evidence_weighted_risk / 19 |
+| Qwen3 MoE unified mechanism candidate | retention / max rel-delta / hard-cap violations | 0.976 / 0.623 / 0 |
+| Qwen3 MoE unified mechanism candidate | risk-delta / geometry-delta / geometry used | 0.227 / 0.218 / True |
 | Qwen3 MoE unified mechanism candidate | router / attention policy | freeze_router / freeze_shared_attention_pending_downstream_eval |
-| Qwen3 MoE unified mechanism candidate | matches validated no-gt-0.65 rules / max diff | True / 0.000 |
+| Qwen3 MoE unified mechanism candidate | matches validated no-gt-0.65 rules / max diff | False / 0.062 |
 | real MoE gauge self-merge | baseline / same-name / aligned NLL | 4.168 / 9.659 / 4.168 |
 | real MoE gauge self-merge | same-name degradation vs baseline | 5.491 |
 | real MoE gauge self-merge | recovered expert permutations | 16 / 16 |

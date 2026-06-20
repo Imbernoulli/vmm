@@ -199,11 +199,11 @@ def default_candidates() -> list[dict[str, Any]]:
         {
             "candidate_source": "results/qwen3_moe_unified_mechanism_candidate/summary.json",
             "method": "qwen3_moe_unified_mechanism_candidate",
-            "checkpoint_path": "results/checkpoints/qwen3_moe_searched_no_gt065_max_retention_candidate",
+            "checkpoint_path": "results/checkpoints/qwen3_moe_unified_mechanism_candidate",
             "tensor_parallel_size": 4,
             "gpu": "0,1,2,3",
-            "materialization_status": "alias_to_validated_searched_no_gt065_checkpoint",
-            "notes": "Unified mechanism optimizer selected the threshold-efficient uniform 0.65 cap. Its 5243 tensor rules match searched_no_gt065 exactly, so the existing materialized checkpoint is reused for vLLM evaluation under the unified-method name.",
+            "materialization_status": "local_checkpoint_materialized_if_safetensors_present",
+            "notes": "Unified mechanism optimizer: freeze router and shared attention, keep source-route expert weights, then apply router/evidence/geometry-risk caps selected under a retention constraint. This is now a distinct materialized checkpoint, not an alias of searched_no_gt065.",
         },
         {
             "candidate_source": "local_materialized_dense_baseline",

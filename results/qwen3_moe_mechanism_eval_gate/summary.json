@@ -1,5 +1,5 @@
 {
-  "best_delta_safety_candidate": "tail_trimmed",
+  "best_delta_safety_candidate": "unified_mechanism",
   "candidate_count": 8,
   "completed_eval_count": 0,
   "current_selection": {

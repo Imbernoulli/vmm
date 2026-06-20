@@ -6,34 +6,38 @@
 
 - Status: `unified_mechanism_candidate_ready`
 - Expert groups: `5243`
-- Searched candidates: `10`
-- Selected candidate: `uniform_0.65`
-- Selection family: `threshold_efficient_cap`
-- Nonbase route-mass retention: `0.9823`
-- Max predicted routed relative delta: `0.6500`
+- Searched candidates: `19`
+- Selected candidate: `router_evidence_risk_s0.75`
+- Selection family: `router_and_evidence_weighted_risk`
+- Nonbase route-mass retention: `0.9758`
+- Max predicted routed relative delta: `0.6234`
 - Groups over hard cap `0.65`: `0`
-- Matches validated no-gt-0.65 rules: `True`
+- Risk-weighted predicted relative delta: `0.2273`
+- Geometry-weighted predicted relative delta: `0.2184`
+- Expert geometry used: `True`
 
 ## Why This Is The Current Unified Rule
 
-理论上，uniform average、task-vector merge、TIES、Fisher/RegMean 都可以看成在同一个参数空间里求一个同结构解；真正的区别是约束和局部几何假设。对当前 Qwen3 MoE，最强的内部证据不是“某个算法名更好”，而是 router/top-k dispatch 对扰动敏感、expert identity 必须先固定、routed expert 的 high-delta tail 必须被限制。
+理论上，uniform average、task-vector merge、TIES、Fisher/RegMean 都可以看成在同一个参数空间里求一个同结构解；真正的区别是约束和局部几何假设。对当前 Qwen3 MoE，最强的内部证据不是“某个算法名更好”，而是 router/top-k dispatch 对扰动敏感、expert identity 必须先固定、routed expert 的 high-delta tail 和 expert 内部几何风险必须被同时限制。
 
-因此本脚本求的是：在不改结构、不改 router、不增加 expert 的条件下，最大化 route-mass-weighted Coder contribution，同时让 routed expert 的预测 relative-delta tail 不超过 hard cap。更复杂的 risk-dependent cap 也参与搜索；如果它只降低 retention 而不进一步降低 hard-tail violation，就被自动拒绝。
+因此本脚本求的是：在不改结构、不改 router、不增加 expert 的条件下，保留足够的 route-mass-weighted Coder contribution，同时最小化 route/risk/geometry weighted predicted delta。旧的 uniform `0.65` cap 仍作为 baseline 参与搜索；如果 layer/geometry-aware prior 在 retention 约束内降低高风险 expert 的移动，它会被选中。
 
 ## Candidate Search
 
-| candidate | family | pass cap | retention | norm ratio | max rel-delta | risk-weighted rel-delta | objective |
-| --- | --- | --- | ---: | ---: | ---: | ---: | ---: |
-| `uniform_0.65` | `threshold_efficient_cap` | `True` | 0.9823 | 0.8738 | 0.6500 | 0.2492 | 1.1487 |
-| `load_aware_risk_s0.25` | `load_weighted_risk` | `True` | 0.9807 | 0.8681 | 0.6446 | 0.2486 | 1.1621 |
-| `smooth_risk_s0.25` | `continuous_mechanism_risk` | `True` | 0.9804 | 0.8658 | 0.6410 | 0.2486 | 1.1629 |
-| `router_evidence_risk_s0.25` | `router_and_evidence_weighted_risk` | `True` | 0.9803 | 0.8648 | 0.6409 | 0.2485 | 1.1635 |
-| `load_aware_risk_s0.50` | `load_weighted_risk` | `True` | 0.9789 | 0.8624 | 0.6392 | 0.2480 | 1.1770 |
-| `smooth_risk_s0.50` | `continuous_mechanism_risk` | `True` | 0.9785 | 0.8577 | 0.6320 | 0.2479 | 1.1782 |
-| `router_evidence_risk_s0.50` | `router_and_evidence_weighted_risk` | `True` | 0.9782 | 0.8556 | 0.6318 | 0.2478 | 1.1794 |
-| `smooth_risk_s0.75` | `continuous_mechanism_risk` | `True` | 0.9763 | 0.8493 | 0.6250 | 0.2471 | 1.1959 |
-| `router_evidence_risk_s0.75` | `router_and_evidence_weighted_risk` | `True` | 0.9758 | 0.8460 | 0.6234 | 0.2470 | 1.1976 |
-| `smooth_risk_s1.00` | `continuous_mechanism_risk` | `True` | 0.9740 | 0.8407 | 0.6177 | 0.2464 | 1.2148 |
+| candidate | family | pass cap | retention | norm ratio | max rel-delta | risk rel-delta | geom rel-delta | objective |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `uniform_0.65` | `threshold_efficient_cap` | `True` | 0.9823 | 0.8738 | 0.6500 | 0.2290 | 0.2198 | 1.4661 |
+| `geometry_cap_s0.25` | `geometry_weighted_cap` | `True` | 0.9807 | 0.8671 | 0.6450 | 0.2286 | 0.2194 | 1.4712 |
+| `router_evidence_risk_s0.25` | `router_and_evidence_weighted_risk` | `True` | 0.9803 | 0.8647 | 0.6410 | 0.2285 | 0.2193 | 1.4722 |
+| `smooth_risk_s0.25` | `continuous_mechanism_risk` | `True` | 0.9804 | 0.8657 | 0.6417 | 0.2285 | 0.2194 | 1.4722 |
+| `load_aware_risk_s0.25` | `load_weighted_risk` | `True` | 0.9807 | 0.8680 | 0.6450 | 0.2286 | 0.2194 | 1.4726 |
+| `geometry_cap_s0.50` | `geometry_weighted_cap` | `True` | 0.9791 | 0.8603 | 0.6400 | 0.2281 | 0.2191 | 1.4768 |
+| `router_evidence_risk_s0.50` | `router_and_evidence_weighted_risk` | `True` | 0.9781 | 0.8553 | 0.6321 | 0.2279 | 0.2189 | 1.4789 |
+| `smooth_risk_s0.50` | `continuous_mechanism_risk` | `True` | 0.9784 | 0.8573 | 0.6335 | 0.2280 | 0.2190 | 1.4790 |
+| `load_aware_risk_s0.50` | `load_weighted_risk` | `True` | 0.9789 | 0.8621 | 0.6401 | 0.2281 | 0.2191 | 1.4799 |
+| `geometry_cap_s0.75` | `geometry_weighted_cap` | `True` | 0.9773 | 0.8533 | 0.6351 | 0.2276 | 0.2187 | 1.4832 |
+| `router_evidence_risk_s0.75` | `router_and_evidence_weighted_risk` | `True` | 0.9758 | 0.8457 | 0.6234 | 0.2273 | 0.2184 | 1.4869 |
+| `smooth_risk_s0.75` | `continuous_mechanism_risk` | `True` | 0.9761 | 0.8487 | 0.6262 | 0.2274 | 0.2185 | 1.4872 |
 
 ## Mechanism Constraints
 

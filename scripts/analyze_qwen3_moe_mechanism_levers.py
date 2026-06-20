@@ -377,7 +377,7 @@ def build_levers(
             ),
             "inferred_failure_mode": "hand-built risk penalties can reduce retention without reducing the relevant tail threshold.",
             "current_action": "prefer the simpler uniform 0.65 cap unless downstream eval proves risk penalties preserve task behavior",
-            "next_test": "budgeted paired vLLM comparison of tail_trimmed vs searched_no_gt065/unified alias",
+            "next_test": "budgeted paired vLLM comparison of tail_trimmed vs searched_no_gt065 vs layer_chunk vs unified mechanism",
             "priority_score": 0.83,
             "confidence": "medium_high",
             "source_artifacts": "results/qwen3_moe_trust_region_cap_search/report.md",

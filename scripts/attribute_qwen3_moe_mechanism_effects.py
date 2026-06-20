@@ -73,10 +73,10 @@ TRANSITIONS = [
         "mechanism": "apply importance-guided layer/chunk coefficients to high-sensitivity routed experts",
     },
     {
-        "transition": "searched_cap_law_to_unified_alias",
-        "from_method": "qwen3_moe_searched_no_gt065_max_retention_candidate",
+        "transition": "layer_chunk_to_unified_mechanism",
+        "from_method": "qwen3_moe_layer_chunk_candidate",
         "to_method": "qwen3_moe_unified_mechanism_candidate",
-        "mechanism": "validate unified mechanism optimizer aliases the searched 0.65 cap-law checkpoint",
+        "mechanism": "apply router/evidence/geometry-risk optimizer under a retention constraint",
     },
 ]
 
@@ -371,7 +371,7 @@ def synthetic_rows(case: str) -> dict[str, dict[str, Any]]:
         "qwen3_moe_tail_trimmed_expert_only_candidate": (0.67, 0.49, [0.60, 0.63, 0.70, 0.59]),
         "qwen3_moe_searched_no_gt065_max_retention_candidate": (0.68, 0.50, [0.61, 0.64, 0.70, 0.60]),
         "qwen3_moe_layer_chunk_candidate": (0.69, 0.51, [0.62, 0.65, 0.70, 0.61]),
-        "qwen3_moe_unified_mechanism_candidate": (0.68, 0.50, [0.61, 0.64, 0.70, 0.60]),
+        "qwen3_moe_unified_mechanism_candidate": (0.70, 0.52, [0.63, 0.66, 0.70, 0.62]),
     }
     if case == "regression":
         base_scores["qwen3_moe_expert_only_trust_region_candidate"] = (0.60, 0.38, [0.52, 0.54, 0.62, 0.50])
@@ -387,7 +387,7 @@ def synthetic_rows(case: str) -> dict[str, dict[str, Any]]:
         "qwen3_moe_tail_trimmed_expert_only_candidate": (0.243, 0, 0, 0),
         "qwen3_moe_searched_no_gt065_max_retention_candidate": (0.248, 0, 0, 0),
         "qwen3_moe_layer_chunk_candidate": (0.243, 0, 0, 0),
-        "qwen3_moe_unified_mechanism_candidate": (0.248, 0, 0, 0),
+        "qwen3_moe_unified_mechanism_candidate": (0.240, 0, 0, 0),
     }
     rows: dict[str, dict[str, Any]] = {}
     for method in methods:
