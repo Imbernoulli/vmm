@@ -331,7 +331,7 @@
       "status": "complete"
     },
     {
-      "evidence": "results/unified_average_optimizer/report.md converts Dense barrier probes, MoE gauge probes, Qwen3 expert identity, router movement, unified mechanism caps, router-calibration gating, and final candidate-selection gates into one same-shape operation policy.",
+      "evidence": "results/unified_average_optimizer/report.md converts Dense barrier probes, MoE gauge probes, Qwen3 expert identity, router movement, router-only NLL calibration evidence, unified mechanism caps, router-calibration gating, and final candidate-selection gates into one same-shape operation policy.",
       "item": "Unified Dense/MoE average optimizer",
       "status": "complete"
     },
@@ -358,6 +358,11 @@
     {
       "evidence": "results/qwen3_moe_router_move_gate/report.md combines router tensor deltas with real routing readiness and rejects direct router-weight movement for all 48 layers.",
       "item": "Qwen3 MoE router move gate",
+      "status": "complete"
+    },
+    {
+      "evidence": "results/qwen3_moe_router_calibration_nll_probe/report.md formalizes the real Qwen3 router-only training probe, showing the averaged MoE improves when only router dispatch is recalibrated while keeping experts frozen.",
+      "item": "Qwen3 MoE router calibration NLL probe",
       "status": "complete"
     },
     {
@@ -402,7 +407,7 @@
     }
   ],
   "coverage_counts": {
-    "complete": 79,
+    "complete": 80,
     "missing": 0,
     "partial": 1
   },
@@ -17255,6 +17260,169 @@
       "teacher_exists": true,
       "tokenizer_exists": true
     },
+    "qwen3_moe_router_calibration_nll_probe": {
+      "acceptance_decision": "mechanism_supported_but_do_not_accept_without_matched_vllm_eval",
+      "avg_nll_reduction_vs_linear": 0.16095849526094863,
+      "code_nll_reduction_vs_linear": 0.10048954177547154,
+      "delta_by_name": {
+        "avg_nll_reduction_vs_linear": {
+          "interpretation": "positive means the calibration improved the two-task average NLL",
+          "metric": "avg_nll_reduction_vs_linear",
+          "value": 0.1609584952609486
+        },
+        "code_nll_reduction_vs_linear": {
+          "interpretation": "positive means code held-out NLL improved after router calibration",
+          "metric": "code_nll_reduction_vs_linear",
+          "value": 0.1004895417754715
+        },
+        "general_nll_reduction_vs_linear": {
+          "interpretation": "positive means general held-out NLL improved after router calibration",
+          "metric": "general_nll_reduction_vs_linear",
+          "value": 0.2214274487464256
+        },
+        "routercal_avg_gap_to_best_source": {
+          "interpretation": "negative would justify accepting the router-calibrated average by average NLL alone",
+          "metric": "routercal_avg_gap_to_best_source",
+          "value": 0.0562875289888351
+        },
+        "routercal_code_gap_to_best_source": {
+          "interpretation": "negative means router calibration beats both sources on code NLL",
+          "metric": "routercal_code_gap_to_best_source",
+          "value": -0.0139273393476331
+        },
+        "routercal_general_gap_to_best_source": {
+          "interpretation": "negative would mean router calibration beats both sources on general NLL",
+          "metric": "routercal_general_gap_to_best_source",
+          "value": 0.1265023973253036
+        },
+        "routercal_worst_gap_to_best_source": {
+          "interpretation": "negative would justify accepting the router-calibrated average by worst-task NLL alone",
+          "metric": "routercal_worst_gap_to_best_source",
+          "value": 0.1265023973253036
+        },
+        "worst_nll_reduction_vs_linear": {
+          "interpretation": "positive means router-only calibration improved the averaged MoE",
+          "metric": "worst_nll_reduction_vs_linear",
+          "value": 0.2214274487464256
+        }
+      },
+      "delta_rows": [
+        {
+          "interpretation": "positive means router-only calibration improved the averaged MoE",
+          "metric": "worst_nll_reduction_vs_linear",
+          "value": 0.2214274487464256
+        },
+        {
+          "interpretation": "positive means the calibration improved the two-task average NLL",
+          "metric": "avg_nll_reduction_vs_linear",
+          "value": 0.1609584952609486
+        },
+        {
+          "interpretation": "positive means general held-out NLL improved after router calibration",
+          "metric": "general_nll_reduction_vs_linear",
+          "value": 0.2214274487464256
+        },
+        {
+          "interpretation": "positive means code held-out NLL improved after router calibration",
+          "metric": "code_nll_reduction_vs_linear",
+          "value": 0.1004895417754715
+        },
+        {
+          "interpretation": "negative would mean router calibration beats both sources on general NLL",
+          "metric": "routercal_general_gap_to_best_source",
+          "value": 0.1265023973253036
+        },
+        {
+          "interpretation": "negative means router calibration beats both sources on code NLL",
+          "metric": "routercal_code_gap_to_best_source",
+          "value": -0.0139273393476331
+        },
+        {
+          "interpretation": "negative would justify accepting the router-calibrated average by worst-task NLL alone",
+          "metric": "routercal_worst_gap_to_best_source",
+          "value": 0.1265023973253036
+        },
+        {
+          "interpretation": "negative would justify accepting the router-calibrated average by average NLL alone",
+          "metric": "routercal_avg_gap_to_best_source",
+          "value": 0.0562875289888351
+        }
+      ],
+      "general_nll_reduction_vs_linear": 0.22142744874642561,
+      "linear_merge": {
+        "avg_nll": 1.575409146676824,
+        "code_nll": 0.5153670700176343,
+        "general_nll": 2.635451223336014,
+        "method": "linear_merge",
+        "role": "average_baseline",
+        "trainable_policy": "none_after_weight_average",
+        "worst_nll": 2.635451223336014
+      },
+      "lr": 0.0002,
+      "mechanism_deltas": "results/qwen3_moe_router_calibration_nll_probe/mechanism_deltas.csv",
+      "method_metrics": "results/qwen3_moe_router_calibration_nll_probe/method_metrics.csv",
+      "report": "results/qwen3_moe_router_calibration_nll_probe/report.md",
+      "router_calibrated": {
+        "avg_nll": 1.4144506514158754,
+        "code_nll": 0.4148775282421627,
+        "general_nll": 2.4140237745895883,
+        "method": "linear_merge_routercal",
+        "role": "router_calibrated_average",
+        "trainable_policy": "router_only_gate_weight_update",
+        "worst_nll": 2.4140237745895883
+      },
+      "routercal_code_gap_to_best_source": -0.013927339347633183,
+      "routercal_worst_gap_to_best_source": 0.12650239732530366,
+      "status": "router_calibration_improves_linear_merge_but_needs_downstream_gate",
+      "steps": 80,
+      "summary": {
+        "acceptance_decision": "mechanism_supported_but_do_not_accept_without_matched_vllm_eval",
+        "avg_nll_reduction_vs_linear": 0.16095849526094863,
+        "code_nll_reduction_vs_linear": 0.10048954177547154,
+        "general_nll_reduction_vs_linear": 0.22142744874642561,
+        "input_summary": "results/fp_moe_router_calibrate/summary.json",
+        "linear_merge": {
+          "avg_nll": 1.575409146676824,
+          "code_nll": 0.5153670700176343,
+          "general_nll": 2.635451223336014,
+          "method": "linear_merge",
+          "role": "average_baseline",
+          "trainable_policy": "none_after_weight_average",
+          "worst_nll": 2.635451223336014
+        },
+        "lr": 0.0002,
+        "models": {
+          "coder": "Qwen/Qwen3-Coder-30B-A3B-Instruct",
+          "instruct": "Qwen/Qwen3-30B-A3B-Instruct-2507"
+        },
+        "outputs": {
+          "literature_sources": "results/qwen3_moe_router_calibration_nll_probe/literature_sources.json",
+          "mechanism_deltas": "results/qwen3_moe_router_calibration_nll_probe/mechanism_deltas.csv",
+          "method_metrics": "results/qwen3_moe_router_calibration_nll_probe/method_metrics.csv",
+          "report": "results/qwen3_moe_router_calibration_nll_probe/report.md",
+          "summary": "results/qwen3_moe_router_calibration_nll_probe/summary.json"
+        },
+        "router_calibrated": {
+          "avg_nll": 1.4144506514158754,
+          "code_nll": 0.41487752824216273,
+          "general_nll": 2.4140237745895883,
+          "method": "linear_merge_routercal",
+          "role": "router_calibrated_average",
+          "trainable_policy": "router_only_gate_weight_update",
+          "worst_nll": 2.4140237745895883
+        },
+        "routercal_avg_gap_to_best_source": 0.056287528988835156,
+        "routercal_code_gap_to_best_source": -0.013927339347633183,
+        "routercal_general_gap_to_best_source": 0.12650239732530366,
+        "routercal_worst_gap_to_best_source": 0.12650239732530366,
+        "schema_version": 1,
+        "status": "router_calibration_improves_linear_merge_but_needs_downstream_gate",
+        "steps": 80,
+        "worst_nll_reduction_vs_linear": 0.22142744874642561
+      },
+      "summary_path": "results/qwen3_moe_router_calibration_nll_probe/summary.json",
+      "worst_nll_reduction_vs_linear": 0.22142744874642561
+    },
     "qwen3_moe_router_calibration_no_gain_negative_smoke": {
       "audit_completed": true,
       "baseline_eval_completed": true,
@@ -30058,12 +30226,12 @@
           "why_it_should_improve": "It keeps useful Coder-route mass while shrinking high-risk routed expert deltas instead of using one global coefficient."
         },
         {
-          "condition": "route-KD can help in smoke tests, but Qwen3 baseline/source eval is not complete",
+          "condition": "router-only NLL probe improves the linear MoE merge, but Qwen3 baseline/source vLLM eval is not complete",
           "operation": "treat router calibration as a separately audited ablation",
           "same_shape_invariant": "any accepted router delta must keep the same router tensors and pass router-only audit caps",
-          "selected_action": "awaiting_baseline_eval: Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps.",
+          "selected_action": "nll_probe_worst_reduction=0.2214; awaiting_baseline_eval: Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps.",
           "stage": "moe_router_calibration_gate",
-          "why_it_should_improve": "It prevents a router delta from being accepted just because it reduces route KL on a calibration cache."
+          "why_it_should_improve": "It keeps router calibration as an active MoE-specific lever while still requiring source-dominance and task-regression gates before acceptance."
         },
         {
           "condition": "structural probes can rank risk, but source dominance and task regression need vLLM scores",
@@ -30163,6 +30331,14 @@
           "value": 0.2396292354785403
         },
         {
+          "decision_signal": "router_dispatch_is_real_optimization_lever",
+          "domain": "moe",
+          "evidence": "status = router_calibration_improves_linear_merge_but_needs_downstream_gate; linear worst NLL = 2.6355; router-cal worst NLL = 2.4140; worst reduction = 0.2214; code gap to best source = -0.0139",
+          "probe": "qwen3_router_calibration_nll_probe",
+          "threshold": 0.0,
+          "value": 0.2214274487464256
+        },
+        {
           "decision_signal": "do_not_accept_router_delta_without_baseline_eval",
           "domain": "moe",
           "evidence": "status = awaiting_baseline_eval; eligible router-cal candidates = 0/3; reason = Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps.",
@@ -30189,6 +30365,11 @@
       "qwen3_layer_chunk_to_unified_routed_gt_065_reduction": 89,
       "qwen3_router_calibration_candidate_count": 3,
       "qwen3_router_calibration_eligible_candidates": 0,
+      "qwen3_router_calibration_nll_avg_reduction": 0.16095849526094863,
+      "qwen3_router_calibration_nll_code_gap_to_best_source": -0.013927339347633183,
+      "qwen3_router_calibration_nll_status": "router_calibration_improves_linear_merge_but_needs_downstream_gate",
+      "qwen3_router_calibration_nll_worst_gap_to_best_source": 0.12650239732530366,
+      "qwen3_router_calibration_nll_worst_reduction": 0.22142744874642561,
       "qwen3_router_calibration_status": "awaiting_baseline_eval",
       "qwen3_unified_candidate_count": 19,
       "qwen3_unified_candidate_family": "router_and_evidence_weighted_risk",
@@ -30222,6 +30403,11 @@
           "qwen3_layer_chunk_to_unified_routed_gt_065_reduction": 89,
           "qwen3_router_calibration_candidate_count": 3,
           "qwen3_router_calibration_eligible_candidates": 0,
+          "qwen3_router_calibration_nll_avg_reduction": 0.16095849526094863,
+          "qwen3_router_calibration_nll_code_gap_to_best_source": -0.013927339347633183,
+          "qwen3_router_calibration_nll_status": "router_calibration_improves_linear_merge_but_needs_downstream_gate",
+          "qwen3_router_calibration_nll_worst_gap_to_best_source": 0.12650239732530366,
+          "qwen3_router_calibration_nll_worst_reduction": 0.22142744874642561,
           "qwen3_router_calibration_status": "awaiting_baseline_eval",
           "qwen3_unified_audit_status": "passed",
           "qwen3_unified_candidate_count": 19,
@@ -32151,7 +32337,7 @@
       "task_metrics_path": "results/vllm_source_merge_comparison/task_metrics.csv"
     }
   },
-  "generated_at": "2026-06-20T03:19:31.509428+00:00",
+  "generated_at": "2026-06-20T03:29:57.797977+00:00",
   "overall_status": "partial_complete",
   "repo_root": "/srv/home/bohanlyu/visualizing-model-merging",
   "reproduction_commands": [
@@ -32234,6 +32420,7 @@
     "bash results/qwen3_moe_layer_chunk_candidate/writer_command.txt",
     "python scripts/audit_materialized_checkpoint_delta.py --base BASE --candidate results/checkpoints/qwen3_moe_layer_chunk_candidate --output-dir results/qwen3_moe_layer_chunk_delta_audit",
     "python scripts/build_qwen3_moe_router_move_gate.py --output-dir results/qwen3_moe_router_move_gate",
+    "python scripts/build_qwen3_moe_router_calibration_nll_probe.py --output-dir results/qwen3_moe_router_calibration_nll_probe",
     "python scripts/build_qwen3_moe_router_calibration_job.py --output-dir results/qwen3_moe_router_calibration_job",
     "python scripts/select_qwen3_moe_router_calibration_result.py --output-dir results/qwen3_moe_router_calibration_selection",
     "python scripts/select_qwen3_moe_router_calibration_result.py --smoke --output-dir results/qwen3_moe_router_calibration_selection_smoke",

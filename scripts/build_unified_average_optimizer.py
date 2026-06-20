@@ -43,6 +43,11 @@ LITERATURE_PRIORS = [
         "mechanism": "MoE merging must handle parameter interference and routing, not just average experts.",
     },
     {
+        "key": "expert_merging",
+        "source": "https://arxiv.org/abs/2509.25712",
+        "mechanism": "Layer and chunk coefficients should be guided by unlabeled hidden/logit alignment rather than a fixed global merge weight.",
+    },
+    {
         "key": "sub_moe",
         "source": "https://arxiv.org/abs/2506.23266",
         "mechanism": "Expert output similarity/subspace structure is a better merge signal than tensor names alone.",
@@ -178,6 +183,7 @@ def moe_feature_rows(
     unified_candidate: dict[str, Any],
     unified_audit: dict[str, Any],
     delta_frontier: dict[str, Any],
+    router_calibration_nll_probe: dict[str, Any],
     router_calibration: dict[str, Any],
 ) -> list[dict[str, Any]]:
     selection = final_selection.get("current_selection") or {}
@@ -268,6 +274,22 @@ def moe_feature_rows(
         },
         {
             "domain": "moe",
+            "probe": "qwen3_router_calibration_nll_probe",
+            "value": router_calibration_nll_probe.get("worst_nll_reduction_vs_linear"),
+            "threshold": 0.0,
+            "decision_signal": "router_dispatch_is_real_optimization_lever",
+            "evidence": (
+                f"status = {router_calibration_nll_probe.get('status')}; "
+                f"linear worst NLL = "
+                f"{fmt((router_calibration_nll_probe.get('linear_merge') or {}).get('worst_nll'))}; "
+                f"router-cal worst NLL = "
+                f"{fmt((router_calibration_nll_probe.get('router_calibrated') or {}).get('worst_nll'))}; "
+                f"worst reduction = {fmt(router_calibration_nll_probe.get('worst_nll_reduction_vs_linear'))}; "
+                f"code gap to best source = {fmt(router_calibration_nll_probe.get('routercal_code_gap_to_best_source'))}"
+            ),
+        },
+        {
+            "domain": "moe",
             "probe": "qwen3_router_calibration_gate",
             "value": router_selection.get("eligible_candidate_count"),
             "threshold": router_selection.get("candidate_count"),
@@ -300,6 +322,7 @@ def build_decisions(
     router_gate: dict[str, Any],
     unified_candidate: dict[str, Any],
     delta_frontier: dict[str, Any],
+    router_calibration_nll_probe: dict[str, Any],
     router_calibration: dict[str, Any],
 ) -> pd.DataFrame:
     dense_config = ((dense_selector.get("results") or {}).get("unified") or {}).get("config") or {}
@@ -353,11 +376,12 @@ def build_decisions(
         {
             "stage": "moe_router_calibration_gate",
             "operation": "treat router calibration as a separately audited ablation",
-            "condition": "route-KD can help in smoke tests, but Qwen3 baseline/source eval is not complete",
+            "condition": "router-only NLL probe improves the linear MoE merge, but Qwen3 baseline/source vLLM eval is not complete",
             "selected_action": (
+                f"nll_probe_worst_reduction={fmt(router_calibration_nll_probe.get('worst_nll_reduction_vs_linear'))}; "
                 f"{router_selection.get('status')}: {router_selection.get('reason')}"
             ),
-            "why_it_should_improve": "It prevents a router delta from being accepted just because it reduces route KL on a calibration cache.",
+            "why_it_should_improve": "It keeps router calibration as an active MoE-specific lever while still requiring source-dominance and task-regression gates before acceptance.",
             "same_shape_invariant": "any accepted router delta must keep the same router tensors and pass router-only audit caps",
         },
         {
@@ -404,6 +428,7 @@ def build_report(summary: dict[str, Any], features: pd.DataFrame, decisions: pd.
         f"- Dense: `{dense['decision']}`；linear worst NLL `{fmt(dense['linear_worst_nll'])}`，unified worst NLL `{fmt(dense['unified_worst_nll'])}`。",
         f"- MoE: `{moe['decision']}`；真实 OLMoE same-name average degradation `{fmt(moe['real_gauge_naive_degradation'])}`，Qwen3 router action `{moe['router_action']}`。",
         f"- Qwen3 unified mechanism: `{moe['qwen3_unified_candidate_id']}`；audit relative norm `{fmt(moe['qwen3_unified_relative_delta_norm'])}`，routed >0.65 `{moe['qwen3_unified_routed_gt_065']}`。",
+        f"- Qwen3 router NLL probe: worst-NLL reduction `{fmt(moe['qwen3_router_calibration_nll_worst_reduction'])}`，code gap to best source `{fmt(moe['qwen3_router_calibration_nll_code_gap_to_best_source'])}`。",
         f"- Qwen3 router calibration: `{moe['qwen3_router_calibration_status']}`。",
         f"- Qwen3 final selection: `{moe['qwen3_final_selection_status']}`，eligible `{moe['qwen3_eligible_candidates']}/{moe['qwen3_candidate_count']}`。",
         "",
@@ -460,6 +485,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
     unified_candidate = read_json(args.qwen3_unified_candidate)
     unified_audit = read_json(args.qwen3_unified_audit)
     delta_frontier = read_json(args.qwen3_delta_frontier)
+    router_calibration_nll_probe = read_json(args.qwen3_router_calibration_nll_probe)
     router_calibration = read_json(args.qwen3_router_calibration)
 
     feature_rows = dense_feature_rows(curvature, dense_selector, gen_eval)
@@ -473,6 +499,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
             unified_candidate,
             unified_audit,
             delta_frontier,
+            router_calibration_nll_probe,
             router_calibration,
         )
     )
@@ -483,6 +510,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
         router_gate,
         unified_candidate,
         delta_frontier,
+        router_calibration_nll_probe,
         router_calibration,
     )
     algorithm = build_algorithm(decisions)
@@ -528,6 +556,19 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
             "qwen3_unified_router_changed_tensors": unified_audit.get("router_changed_tensors"),
             "qwen3_unified_router_tensors": unified_audit.get("router_tensors"),
             "qwen3_unified_routed_gt_065": delta_frontier.get("unified_mechanism_routed_gt_0_65"),
+            "qwen3_router_calibration_nll_status": router_calibration_nll_probe.get("status"),
+            "qwen3_router_calibration_nll_worst_reduction": fnum(
+                router_calibration_nll_probe.get("worst_nll_reduction_vs_linear")
+            ),
+            "qwen3_router_calibration_nll_avg_reduction": fnum(
+                router_calibration_nll_probe.get("avg_nll_reduction_vs_linear")
+            ),
+            "qwen3_router_calibration_nll_code_gap_to_best_source": fnum(
+                router_calibration_nll_probe.get("routercal_code_gap_to_best_source")
+            ),
+            "qwen3_router_calibration_nll_worst_gap_to_best_source": fnum(
+                router_calibration_nll_probe.get("routercal_worst_gap_to_best_source")
+            ),
             "qwen3_layer_chunk_to_unified_relative_norm_reduction": fnum(
                 delta_frontier.get("layer_chunk_to_unified_relative_norm_reduction")
             ),
@@ -598,6 +639,11 @@ def parse_args() -> argparse.Namespace:
         "--qwen3-delta-frontier",
         type=Path,
         default=Path("results/qwen3_moe_delta_frontier/summary.json"),
+    )
+    parser.add_argument(
+        "--qwen3-router-calibration-nll-probe",
+        type=Path,
+        default=Path("results/qwen3_moe_router_calibration_nll_probe/summary.json"),
     )
     parser.add_argument(
         "--qwen3-router-calibration",

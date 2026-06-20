@@ -1,10 +1,10 @@
 # Result Summary
 
-Generated at: `2026-06-20T03:19:31.509428+00:00`
+Generated at: `2026-06-20T03:29:57.797977+00:00`
 
 ## Coverage
 
-Complete: `79`; partial: `1`; missing: `0`.
+Complete: `80`; partial: `1`; missing: `0`.
 
 | item | status | evidence |
 | --- | --- | --- |
@@ -74,12 +74,13 @@ Complete: `79`; partial: `1`; missing: `0`.
 | Qwen3 MoE layer/chunk coefficient candidate | complete | results/qwen3_moe_layer_chunk_candidate/report.md converts the mechanism leverage layer scores into writer-ready same-shape tensor rules; results/qwen3_moe_layer_chunk_delta_audit/report.md verifies the materialized same-shape checkpoint. |
 | Qwen3 MoE unified downstream result selector | complete | results/qwen3_moe_unified_result_selection/report.md gates the unified same-shape average against both Qwen3 source endpoints after matched vLLM eval; results/qwen3_moe_unified_result_selection_smoke/report.md covers candidate-win, source-dominance, task-regression, and no-gain branches. |
 | Qwen3 MoE final candidate selector | complete | results/qwen3_moe_final_candidate_selection/report.md ranks all eight same-shape Qwen3 MoE candidates against both source endpoints after eval-bundle audit, with source-dominance, task-regression, score-confidence, paired-prediction, checkpoint-audit, and provisional-selection gates. |
-| Unified Dense/MoE average optimizer | complete | results/unified_average_optimizer/report.md converts Dense barrier probes, MoE gauge probes, Qwen3 expert identity, router movement, unified mechanism caps, router-calibration gating, and final candidate-selection gates into one same-shape operation policy. |
+| Unified Dense/MoE average optimizer | complete | results/unified_average_optimizer/report.md converts Dense barrier probes, MoE gauge probes, Qwen3 expert identity, router movement, router-only NLL calibration evidence, unified mechanism caps, router-calibration gating, and final candidate-selection gates into one same-shape operation policy. |
 | Qwen3 MoE vLLM eval bundle audit | complete | results/qwen3_moe_eval_bundle_audit/report.md checks every Qwen3 source/candidate eval output for model-id, task-manifest sha, task, example-count, prediction, primary-score, and paired prediction-key consistency before selector use; results/qwen3_moe_eval_bundle_audit_smoke/report.md covers valid, stale-model, missing-task, low-example, key-mismatch, and manifest-mismatch bundles. |
 | Qwen3 MoE mechanism effect attribution | complete | results/qwen3_moe_mechanism_effect_attribution/report.md decomposes the Qwen3 MoE source-frontier -> route-guarded -> audit-gated -> trust-region -> expert-only -> tail-trimmed -> searched-cap -> layer/chunk -> unified-mechanism chain into structural and downstream score deltas, gated by the eval-bundle audit. |
 | Qwen3 MoE post-vLLM eval refresh pipeline | complete | results/qwen3_moe_post_eval_refresh/report.md runs eval-bundle audit, unified result selection, mechanism attribution, smoke checks, and collect_results in a fixed post-eval order after remote vLLM outputs land. |
 | Qwen3 MoE searched cap-law materialized candidate | complete | results/qwen3_moe_searched_no_gt065_delta_audit/report.md verifies the materialized searched 0.65 cap-law checkpoint and adds it to the Qwen3 MoE eval gate. |
 | Qwen3 MoE router move gate | complete | results/qwen3_moe_router_move_gate/report.md combines router tensor deltas with real routing readiness and rejects direct router-weight movement for all 48 layers. |
+| Qwen3 MoE router calibration NLL probe | complete | results/qwen3_moe_router_calibration_nll_probe/report.md formalizes the real Qwen3 router-only training probe, showing the averaged MoE improves when only router dispatch is recalibrated while keeping experts frozen. |
 | Qwen3 MoE router calibration job | complete | results/qwen3_moe_router_calibration_job/report.md turns the rejected direct-router-move result into a capped route-KD router-calibration sweep job over the searched no-gt-0.65 candidate. |
 | Qwen3 MoE router calibration result selector | complete | results/qwen3_moe_router_calibration_selection/report.md accepts a router-calibrated cap only when matched vLLM eval, router-only tensor audit, cap compliance, and source/baseline dominance gates pass. |
 | Qwen3 MoE trust-region cap-law search | complete | results/qwen3_moe_trust_region_cap_search/report.md searches interpretable expert cap laws over real Qwen3 route-mass, risk-flag, and safetensors-delta probes and emits writer-ready next-candidate rules. |
@@ -213,6 +214,7 @@ Complete: `79`; partial: `1`; missing: `0`.
 | unified average optimizer | Qwen3 unified candidate / audit norm / >0.65 | router_evidence_risk_s0.75 / 0.240 / 0 |
 | unified average optimizer | layer/chunk->unified norm / >0.65 reduction | 0.004 / 89 |
 | unified average optimizer | router calibration status / eligible | awaiting_baseline_eval / 0/3 |
+| unified average optimizer | router NLL probe worst reduction / code gap | 0.221 / -0.014 |
 | Qwen3 MoE eval bundle audit | status / usable / invalid complete | awaiting_eval / 0/10 / 0 |
 | Qwen3 MoE eval bundle audit | source usable / candidate usable / unified usable | 0/2 / 0/8 / False |
 | Qwen3 MoE eval bundle audit | pairable sources / failed methods | 0 / 0 |
@@ -225,6 +227,8 @@ Complete: `79`; partial: `1`; missing: `0`.
 | Qwen3 MoE router move gate | status / action / allowed layers | router_move_rejected_freeze_router / freeze_router / 0/48 |
 | Qwen3 MoE router move gate | unsafe / calibrate / freeze rows | 499 / 493 / 6 |
 | Qwen3 MoE router move gate | router rel-norm / mean-min top-k Jaccard / min top1 | 0.739 / 0.454-0.242 / 0.069 |
+| Qwen3 MoE router calibration NLL probe | status / worst / avg reduction | router_calibration_improves_linear_merge_but_needs_downstream_gate / 0.221 / 0.161 |
+| Qwen3 MoE router calibration NLL probe | code gap / worst gap to best source | -0.014 / 0.127 |
 | Qwen3 MoE router calibration job | status / local GPU / candidates / stages | job_ready_awaiting_gpu / unavailable / 3 / 17 |
 | Qwen3 MoE router calibration job | source controls / ready | 2 / True |
 | Qwen3 MoE router calibration job | inputs student / teacher / prompts | True / True / True |

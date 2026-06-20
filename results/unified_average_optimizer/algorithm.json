@@ -32,6 +32,11 @@
       "source": "https://arxiv.org/abs/2502.00997"
     },
     {
+      "key": "expert_merging",
+      "mechanism": "Layer and chunk coefficients should be guided by unlabeled hidden/logit alignment rather than a fixed global merge weight.",
+      "source": "https://arxiv.org/abs/2509.25712"
+    },
+    {
       "key": "sub_moe",
       "mechanism": "Expert output similarity/subspace structure is a better merge signal than tensor names alone.",
       "source": "https://arxiv.org/abs/2506.23266"
@@ -86,9 +91,9 @@
       "step": 5
     },
     {
-      "condition": "route-KD can help in smoke tests, but Qwen3 baseline/source eval is not complete",
+      "condition": "router-only NLL probe improves the linear MoE merge, but Qwen3 baseline/source vLLM eval is not complete",
       "operation": "treat router calibration as a separately audited ablation",
-      "selected_action": "awaiting_baseline_eval: Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps.",
+      "selected_action": "nll_probe_worst_reduction=0.2214; awaiting_baseline_eval: Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps.",
       "stage": "moe_router_calibration_gate",
       "step": 6
     },

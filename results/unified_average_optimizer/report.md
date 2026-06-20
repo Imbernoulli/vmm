@@ -7,6 +7,7 @@
 - Dense: `avoid_linear_midpoint_use_probe_selected_anchor_or_low_lambda`；linear worst NLL `8.9477`，unified worst NLL `5.1830`。
 - MoE: `align_experts_freeze_router_then_gate_candidate_by_vllm`；真实 OLMoE same-name average degradation `5.4910`，Qwen3 router action `freeze_router`。
 - Qwen3 unified mechanism: `router_evidence_risk_s0.75`；audit relative norm `0.2396`，routed >0.65 `0`。
+- Qwen3 router NLL probe: worst-NLL reduction `0.2214`，code gap to best source `-0.0139`。
 - Qwen3 router calibration: `awaiting_baseline_eval`。
 - Qwen3 final selection: `awaiting_source_eval`，eligible `0/8`。
 
@@ -24,6 +25,7 @@
 | `moe` | `qwen3_router_move_gate` | `freeze_router_or_train_route_kd_delta` | 0.0000 | 48.0000 | allowed router layers = 0/48; top-k Jaccard mean/min = 0.4539/0.2422; top1 agreement mean/min = 0.4125/0.0690 |
 | `moe` | `qwen3_unified_mechanism_optimizer` | `use_router_evidence_geometry_risk_caps` | 0.2273 | 0.6500 | selected = router_evidence_risk_s0.75; family = router_and_evidence_weighted_risk; retention = 0.9758; risk-weighted predicted rel delta = 0.2273; geometry-weighted predicted rel delta = 0.2184 |
 | `moe` | `qwen3_unified_materialized_audit` | `materialized_same_shape_tail_reduction` | 0.2396 | 0.2435 | audit status = passed; total relative norm = 0.2396; router changed = 0/48; layer/chunk->unified norm reduction = 0.0038; routed >0.65 reduction = 89 |
+| `moe` | `qwen3_router_calibration_nll_probe` | `router_dispatch_is_real_optimization_lever` | 0.2214 | 0.0000 | status = router_calibration_improves_linear_merge_but_needs_downstream_gate; linear worst NLL = 2.6355; router-cal worst NLL = 2.4140; worst reduction = 0.2214; code gap to best source = -0.0139 |
 | `moe` | `qwen3_router_calibration_gate` | `do_not_accept_router_delta_without_baseline_eval` | 0.0000 | 3.0000 | status = awaiting_baseline_eval; eligible router-cal candidates = 0/3; reason = Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps. |
 | `moe` | `qwen3_final_candidate_selection` | `await_matched_vllm_before_accepting_average` | 0.0000 | 8.0000 | status = awaiting_source_eval; eligible candidates = 0/8; reason = Both Qwen3 source endpoints must complete audited vLLM eval before final candidate selection. |
 
@@ -36,7 +38,7 @@
 | `moe_expert_identity_gate` | `canonicalize expert gauge before averaging` | run layer-wise expert alignment; for Qwen3 Instruct/Coder the mapping is currently identity | It removes a discrete symmetry error before any continuous weight interpolation is attempted. |
 | `moe_router_gate` | `freeze direct router movement` | freeze_router | It avoids averaging a discrete top-k dispatch boundary that has high measured source disagreement. |
 | `moe_expert_delta_optimizer` | `apply retention-constrained router/evidence/geometry caps` | router_evidence_risk_s0.75 with hard cap 0.6500; layer/chunk->unified routed >0.65 reduction = 89 | It keeps useful Coder-route mass while shrinking high-risk routed expert deltas instead of using one global coefficient. |
-| `moe_router_calibration_gate` | `treat router calibration as a separately audited ablation` | awaiting_baseline_eval: Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps. | It prevents a router delta from being accepted just because it reduces route KL on a calibration cache. |
+| `moe_router_calibration_gate` | `treat router calibration as a separately audited ablation` | nll_probe_worst_reduction=0.2214; awaiting_baseline_eval: Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps. | It keeps router calibration as an active MoE-specific lever while still requiring source-dominance and task-regression gates before acceptance. |
 | `moe_candidate_gate` | `select only after audited downstream eval` | keep all eight Qwen3 candidates provisional until eval-bundle audit passes | It prevents structural cleanliness from being mistaken for actual downstream dominance. |
 
 ## Literature Priors
@@ -49,6 +51,7 @@
 | `ties` | https://arxiv.org/abs/2306.01708 | Coordinate sign conflict is a real dense failure signal, but it still needs held-out gating. |
 | `dare` | https://arxiv.org/abs/2311.03099 | Delta pruning/rescaling is useful only when the retained delta is not too large or noisy. |
 | `mergeme` | https://arxiv.org/abs/2502.00997 | MoE merging must handle parameter interference and routing, not just average experts. |
+| `expert_merging` | https://arxiv.org/abs/2509.25712 | Layer and chunk coefficients should be guided by unlabeled hidden/logit alignment rather than a fixed global merge weight. |
 | `sub_moe` | https://arxiv.org/abs/2506.23266 | Expert output similarity/subspace structure is a better merge signal than tensor names alone. |
 | `mergemoe` | https://arxiv.org/abs/2510.14436 | MoE expert merging can be formulated through output-space matching and optimization. |
 | `namex` | https://arxiv.org/abs/2510.16138 | Expert weights should reflect cooperation/competition rather than a fixed uniform prior. |

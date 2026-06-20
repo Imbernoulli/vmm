@@ -1,0 +1,22 @@
+[
+  {
+    "key": "expert_merging",
+    "mechanism": "Learns layer/chunk coefficients from unlabeled hidden/logit alignment, supporting calibration-data-driven merging rather than fixed coefficients.",
+    "source": "https://arxiv.org/abs/2509.25712"
+  },
+  {
+    "key": "mergeme",
+    "mechanism": "Identifies MoE parameter interference and routing as separate problems during expert model merging.",
+    "source": "https://arxiv.org/abs/2502.00997"
+  },
+  {
+    "key": "mergemoe",
+    "mechanism": "Frames MoE expert merging through expert-output behavior instead of tensor-name averaging alone.",
+    "source": "https://arxiv.org/abs/2510.14436"
+  },
+  {
+    "key": "git_rebasin",
+    "mechanism": "Permutation/gauge alignment must be handled before weight-space interpolation is meaningful.",
+    "source": "https://arxiv.org/abs/2209.04836"
+  }
+]

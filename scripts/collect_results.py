@@ -109,12 +109,16 @@ def collect_artifacts() -> list[dict[str, Any]]:
     suffixes = {".py", ".md", ".csv", ".json", ".jsonl", ".txt", ".png", ".html"}
     excluded_files = {
         "scripts/fp_make_figures.py",  # stale draft figures with old first-principles numbers
+        "scripts/fp_dense_lambda.py",  # local scratch; not part of committed artifact set
+        "scripts/fp_moe_complementary.py",  # local scratch; not part of committed artifact set
         "scripts/fp_moe_barrier.py",  # incomplete: current run only produced a log
     }
     excluded_prefixes = {
+        "results/fp_dense_lambda/",
         "results/fp_figures/",
         "results/fp_gen_eval_moe/",
         "results/fp_moe_barrier/",
+        "results/fp_moe_complementary/",
         "results/fp_moe_real_probe/olmoe/",
     }
     files: list[Path] = []
@@ -1531,6 +1535,19 @@ def summarize_unified_average_optimizer() -> dict[str, Any]:
         "qwen3_layer_chunk_to_unified_routed_gt_065_reduction": maybe_int(
             moe.get("qwen3_layer_chunk_to_unified_routed_gt_065_reduction")
         ),
+        "qwen3_router_calibration_nll_status": moe.get("qwen3_router_calibration_nll_status"),
+        "qwen3_router_calibration_nll_worst_reduction": maybe_float(
+            moe.get("qwen3_router_calibration_nll_worst_reduction")
+        ),
+        "qwen3_router_calibration_nll_avg_reduction": maybe_float(
+            moe.get("qwen3_router_calibration_nll_avg_reduction")
+        ),
+        "qwen3_router_calibration_nll_code_gap_to_best_source": maybe_float(
+            moe.get("qwen3_router_calibration_nll_code_gap_to_best_source")
+        ),
+        "qwen3_router_calibration_nll_worst_gap_to_best_source": maybe_float(
+            moe.get("qwen3_router_calibration_nll_worst_gap_to_best_source")
+        ),
         "qwen3_router_calibration_status": moe.get("qwen3_router_calibration_status"),
         "qwen3_router_calibration_eligible_candidates": maybe_int(
             moe.get("qwen3_router_calibration_eligible_candidates")
@@ -1547,6 +1564,35 @@ def summarize_unified_average_optimizer() -> dict[str, Any]:
         "features": rel(root / "mechanism_features.csv"),
         "decisions": rel(root / "operation_decisions.csv"),
         "algorithm": rel(root / "algorithm.json"),
+        "summary_path": rel(root / "summary.json"),
+    }
+
+
+def summarize_qwen3_moe_router_calibration_nll_probe() -> dict[str, Any]:
+    root = repo_path("results/qwen3_moe_router_calibration_nll_probe")
+    summary = read_json(root / "summary.json")
+    methods = read_csv(root / "method_metrics.csv")
+    deltas = read_csv(root / "mechanism_deltas.csv")
+    delta_by_name = {str(row["metric"]): clean_row(row) for _, row in deltas.iterrows()}
+    return {
+        "summary": summary,
+        "status": summary.get("status"),
+        "acceptance_decision": summary.get("acceptance_decision"),
+        "steps": maybe_int(summary.get("steps")),
+        "lr": maybe_float(summary.get("lr")),
+        "linear_merge": find_method(methods, "linear_merge"),
+        "router_calibrated": find_method(methods, "linear_merge_routercal"),
+        "worst_nll_reduction_vs_linear": maybe_float(summary.get("worst_nll_reduction_vs_linear")),
+        "avg_nll_reduction_vs_linear": maybe_float(summary.get("avg_nll_reduction_vs_linear")),
+        "general_nll_reduction_vs_linear": maybe_float(summary.get("general_nll_reduction_vs_linear")),
+        "code_nll_reduction_vs_linear": maybe_float(summary.get("code_nll_reduction_vs_linear")),
+        "routercal_code_gap_to_best_source": maybe_float(summary.get("routercal_code_gap_to_best_source")),
+        "routercal_worst_gap_to_best_source": maybe_float(summary.get("routercal_worst_gap_to_best_source")),
+        "delta_rows": [clean_row(row) for _, row in deltas.iterrows()],
+        "delta_by_name": delta_by_name,
+        "report": rel(root / "report.md"),
+        "method_metrics": rel(root / "method_metrics.csv"),
+        "mechanism_deltas": rel(root / "mechanism_deltas.csv"),
         "summary_path": rel(root / "summary.json"),
     }
 
@@ -3606,7 +3652,7 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "Unified Dense/MoE average optimizer",
             "status": "complete",
-            "evidence": "results/unified_average_optimizer/report.md converts Dense barrier probes, MoE gauge probes, Qwen3 expert identity, router movement, unified mechanism caps, router-calibration gating, and final candidate-selection gates into one same-shape operation policy.",
+            "evidence": "results/unified_average_optimizer/report.md converts Dense barrier probes, MoE gauge probes, Qwen3 expert identity, router movement, router-only NLL calibration evidence, unified mechanism caps, router-calibration gating, and final candidate-selection gates into one same-shape operation policy.",
         },
         {
             "item": "Qwen3 MoE vLLM eval bundle audit",
@@ -3632,6 +3678,11 @@ def coverage_checklist() -> list[dict[str, str]]:
             "item": "Qwen3 MoE router move gate",
             "status": "complete",
             "evidence": "results/qwen3_moe_router_move_gate/report.md combines router tensor deltas with real routing readiness and rejects direct router-weight movement for all 48 layers.",
+        },
+        {
+            "item": "Qwen3 MoE router calibration NLL probe",
+            "status": "complete",
+            "evidence": "results/qwen3_moe_router_calibration_nll_probe/report.md formalizes the real Qwen3 router-only training probe, showing the averaged MoE improves when only router dispatch is recalibrated while keeping experts frozen.",
         },
         {
             "item": "Qwen3 MoE router calibration job",
@@ -3761,6 +3812,7 @@ def build_summary() -> dict[str, Any]:
         "qwen3_moe_post_eval_refresh": summarize_qwen3_moe_post_eval_refresh(),
         "qwen3_moe_post_eval_refresh_plan": summarize_qwen3_moe_post_eval_refresh_plan(),
         "qwen3_moe_router_move_gate": summarize_qwen3_moe_router_move_gate(),
+        "qwen3_moe_router_calibration_nll_probe": summarize_qwen3_moe_router_calibration_nll_probe(),
         "qwen3_moe_router_calibration_job": summarize_qwen3_moe_router_calibration_job(),
         "qwen3_moe_router_calibration_selection": summarize_qwen3_moe_router_calibration_selection(),
         "qwen3_moe_router_calibration_row_validation_negative_smoke": (
@@ -3909,6 +3961,7 @@ def build_summary() -> dict[str, Any]:
             "bash results/qwen3_moe_layer_chunk_candidate/writer_command.txt",
             "python scripts/audit_materialized_checkpoint_delta.py --base BASE --candidate results/checkpoints/qwen3_moe_layer_chunk_candidate --output-dir results/qwen3_moe_layer_chunk_delta_audit",
             "python scripts/build_qwen3_moe_router_move_gate.py --output-dir results/qwen3_moe_router_move_gate",
+            "python scripts/build_qwen3_moe_router_calibration_nll_probe.py --output-dir results/qwen3_moe_router_calibration_nll_probe",
             "python scripts/build_qwen3_moe_router_calibration_job.py --output-dir results/qwen3_moe_router_calibration_job",
             "python scripts/select_qwen3_moe_router_calibration_result.py --output-dir results/qwen3_moe_router_calibration_selection",
             "python scripts/select_qwen3_moe_router_calibration_result.py --smoke --output-dir results/qwen3_moe_router_calibration_selection_smoke",
@@ -4025,6 +4078,7 @@ def build_markdown(summary: dict[str, Any]) -> str:
     qwen3_moe_post_eval_refresh = exp["qwen3_moe_post_eval_refresh"]
     qwen3_moe_post_eval_refresh_plan = exp["qwen3_moe_post_eval_refresh_plan"]
     qwen3_moe_router_move_gate = exp["qwen3_moe_router_move_gate"]
+    qwen3_moe_router_calibration_nll_probe = exp["qwen3_moe_router_calibration_nll_probe"]
     qwen3_moe_router_calibration_job = exp["qwen3_moe_router_calibration_job"]
     qwen3_moe_router_calibration_selection = exp["qwen3_moe_router_calibration_selection"]
     qwen3_moe_router_calibration_row_validation_negative_smoke = exp[
@@ -4758,6 +4812,11 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"/{unified_average_optimizer['qwen3_router_calibration_candidate_count']} |"
             ),
             (
+                "| unified average optimizer | router NLL probe worst reduction / code gap | "
+                f"{unified_average_optimizer['qwen3_router_calibration_nll_worst_reduction']:.3f} / "
+                f"{unified_average_optimizer['qwen3_router_calibration_nll_code_gap_to_best_source']:.3f} |"
+            ),
+            (
                 "| Qwen3 MoE eval bundle audit | status / usable / invalid complete | "
                 f"{qwen3_moe_eval_bundle_audit['status']} / "
                 f"{qwen3_moe_eval_bundle_audit['usable_for_selection_count']}"
@@ -4837,6 +4896,17 @@ def build_markdown(summary: dict[str, Any]) -> str:
                 f"{fmt(qwen3_moe_router_move_gate['mean_topk_jaccard'])}"
                 f"-{fmt(qwen3_moe_router_move_gate['min_topk_jaccard'])} / "
                 f"{fmt(qwen3_moe_router_move_gate['min_top1_agreement'])} |"
+            ),
+            (
+                "| Qwen3 MoE router calibration NLL probe | status / worst / avg reduction | "
+                f"{qwen3_moe_router_calibration_nll_probe['status']} / "
+                f"{fmt(qwen3_moe_router_calibration_nll_probe['worst_nll_reduction_vs_linear'])} / "
+                f"{fmt(qwen3_moe_router_calibration_nll_probe['avg_nll_reduction_vs_linear'])} |"
+            ),
+            (
+                "| Qwen3 MoE router calibration NLL probe | code gap / worst gap to best source | "
+                f"{fmt(qwen3_moe_router_calibration_nll_probe['routercal_code_gap_to_best_source'])} / "
+                f"{fmt(qwen3_moe_router_calibration_nll_probe['routercal_worst_gap_to_best_source'])} |"
             ),
             (
                 "| Qwen3 MoE router calibration job | status / local GPU / candidates / stages | "

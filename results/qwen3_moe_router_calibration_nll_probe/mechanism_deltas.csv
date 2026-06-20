@@ -1,0 +1,9 @@
+metric,value,interpretation
+worst_nll_reduction_vs_linear,0.22142744874642561,positive means router-only calibration improved the averaged MoE
+avg_nll_reduction_vs_linear,0.16095849526094863,positive means the calibration improved the two-task average NLL
+general_nll_reduction_vs_linear,0.22142744874642561,positive means general held-out NLL improved after router calibration
+code_nll_reduction_vs_linear,0.10048954177547154,positive means code held-out NLL improved after router calibration
+routercal_general_gap_to_best_source,0.12650239732530366,negative would mean router calibration beats both sources on general NLL
+routercal_code_gap_to_best_source,-0.013927339347633183,negative means router calibration beats both sources on code NLL
+routercal_worst_gap_to_best_source,0.12650239732530366,negative would justify accepting the router-calibrated average by worst-task NLL alone
+routercal_avg_gap_to_best_source,0.056287528988835156,negative would justify accepting the router-calibrated average by average NLL alone

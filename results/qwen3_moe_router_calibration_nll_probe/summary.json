@@ -1,0 +1,45 @@
+{
+  "acceptance_decision": "mechanism_supported_but_do_not_accept_without_matched_vllm_eval",
+  "avg_nll_reduction_vs_linear": 0.16095849526094863,
+  "code_nll_reduction_vs_linear": 0.10048954177547154,
+  "general_nll_reduction_vs_linear": 0.22142744874642561,
+  "input_summary": "results/fp_moe_router_calibrate/summary.json",
+  "linear_merge": {
+    "avg_nll": 1.575409146676824,
+    "code_nll": 0.5153670700176343,
+    "general_nll": 2.635451223336014,
+    "method": "linear_merge",
+    "role": "average_baseline",
+    "trainable_policy": "none_after_weight_average",
+    "worst_nll": 2.635451223336014
+  },
+  "lr": 0.0002,
+  "models": {
+    "coder": "Qwen/Qwen3-Coder-30B-A3B-Instruct",
+    "instruct": "Qwen/Qwen3-30B-A3B-Instruct-2507"
+  },
+  "outputs": {
+    "literature_sources": "results/qwen3_moe_router_calibration_nll_probe/literature_sources.json",
+    "mechanism_deltas": "results/qwen3_moe_router_calibration_nll_probe/mechanism_deltas.csv",
+    "method_metrics": "results/qwen3_moe_router_calibration_nll_probe/method_metrics.csv",
+    "report": "results/qwen3_moe_router_calibration_nll_probe/report.md",
+    "summary": "results/qwen3_moe_router_calibration_nll_probe/summary.json"
+  },
+  "router_calibrated": {
+    "avg_nll": 1.4144506514158754,
+    "code_nll": 0.41487752824216273,
+    "general_nll": 2.4140237745895883,
+    "method": "linear_merge_routercal",
+    "role": "router_calibrated_average",
+    "trainable_policy": "router_only_gate_weight_update",
+    "worst_nll": 2.4140237745895883
+  },
+  "routercal_avg_gap_to_best_source": 0.056287528988835156,
+  "routercal_code_gap_to_best_source": -0.013927339347633183,
+  "routercal_general_gap_to_best_source": 0.12650239732530366,
+  "routercal_worst_gap_to_best_source": 0.12650239732530366,
+  "schema_version": 1,
+  "status": "router_calibration_improves_linear_merge_but_needs_downstream_gate",
+  "steps": 80,
+  "worst_nll_reduction_vs_linear": 0.22142744874642561
+}
