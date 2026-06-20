@@ -5,22 +5,22 @@
 - Status: `passed`
 - Plan only: `False`
 - Steps passed: `9/9`
-- Audit: `awaiting_eval` (`0/10` usable)
+- Audit: `awaiting_eval` (`0/11` usable)
 - Selection: `awaiting_source_eval` -> `None`
-- Final selection: `awaiting_source_eval` -> `None` (`0/8` eligible)
-- Attribution: `awaiting_eval` (`0/8` scored)
+- Final selection: `awaiting_source_eval` -> `None` (`0/9` eligible)
+- Attribution: `awaiting_eval` (`0/9` scored)
 
 | step | kind | status | returncode | seconds |
 | --- | --- | --- | ---: | ---: |
-| `audit_eval_bundles` | `gate` | `passed` | 0 | 0.41 |
-| `select_unified_result` | `selector` | `passed` | 0 | 0.39 |
+| `audit_eval_bundles` | `gate` | `passed` | 0 | 0.43 |
+| `select_unified_result` | `selector` | `passed` | 0 | 0.40 |
 | `select_final_candidate` | `selector` | `passed` | 0 | 0.42 |
-| `attribute_mechanism_effects` | `attribution` | `passed` | 0 | 0.40 |
-| `audit_eval_bundles_smoke` | `smoke` | `passed` | 0 | 0.63 |
-| `select_unified_result_smoke` | `smoke` | `passed` | 0 | 0.39 |
+| `attribute_mechanism_effects` | `attribution` | `passed` | 0 | 0.42 |
+| `audit_eval_bundles_smoke` | `smoke` | `passed` | 0 | 0.67 |
+| `select_unified_result_smoke` | `smoke` | `passed` | 0 | 0.45 |
 | `select_final_candidate_smoke` | `smoke` | `passed` | 0 | 0.43 |
-| `attribute_mechanism_effects_smoke` | `smoke` | `passed` | 0 | 0.40 |
-| `collect_results` | `summary` | `passed` | 0 | 1.41 |
+| `attribute_mechanism_effects_smoke` | `smoke` | `passed` | 0 | 0.41 |
+| `collect_results` | `summary` | `passed` | 0 | 1.53 |
 
 ## Commands
 

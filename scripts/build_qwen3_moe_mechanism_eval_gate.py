@@ -28,6 +28,7 @@ CANDIDATE_METHODS = [
     "qwen3_moe_searched_no_gt065_max_retention_candidate",
     "qwen3_moe_layer_chunk_candidate",
     "qwen3_moe_unified_mechanism_candidate",
+    "qwen3_moe_subspace_scaled_candidate",
 ]
 
 METHOD_ORDER = SOURCE_METHODS + CANDIDATE_METHODS
@@ -102,6 +103,13 @@ METHOD_META: dict[str, dict[str, str]] = {
         "mechanism": "mechanism-optimized same-shape MoE average with frozen router/attention and router/evidence/geometry-risk expert caps",
         "question": "Does the unified mechanism optimizer produce a candidate that survives source dominance and downstream task gates?",
         "required_controls": "both sources; searched_no_gt065; layer_chunk; router calibration selector",
+    },
+    "qwen3_moe_subspace_scaled_candidate": {
+        "role": "candidate",
+        "short_name": "subspace_scaled",
+        "mechanism": "unified mechanism candidate plus extra shrink for uncovered expert channel/chunk subspace conflicts",
+        "question": "Do the remaining uncovered subspace-conflict experts explain downstream regressions beyond the unified mechanism candidate?",
+        "required_controls": "both sources; unified_mechanism; layer_chunk; expert subspace conflict probe",
     },
 }
 
@@ -186,6 +194,15 @@ MECHANISM_TESTS = [
         "why_it_matters": "The unified method is now a distinct materialized checkpoint; norm safety alone cannot prove the extra risk-weighted shrink is useful.",
         "pass_signal": "Unified matches or beats layer/chunk without source dominance or task regression.",
         "fail_signal": "Layer/chunk or an endpoint dominates, so the extra unified risk shrink should be rejected.",
+    },
+    {
+        "test": "expert_subspace_conflict_ablation",
+        "from_method": "qwen3_moe_unified_mechanism_candidate",
+        "to_method": "qwen3_moe_subspace_scaled_candidate",
+        "mechanism_question": "Do uncovered high subspace-conflict experts need additional non-base shrink after the unified mechanism cap?",
+        "why_it_matters": "The subspace probe found only a small set of uncovered channel/chunk conflicts; this isolates whether those localized conflicts matter behaviorally.",
+        "pass_signal": "Subspace-scaled matches or beats unified_mechanism on avg/worst/task scores without source dominance.",
+        "fail_signal": "Unified_mechanism beats subspace-scaled; the remaining subspace conflicts were not behaviorally harmful or the shrink removed useful specialization.",
     },
 ]
 
@@ -692,6 +709,11 @@ def build_selection_rules(selection: dict[str, Any]) -> dict[str, Any]:
                 "gate": "cap_law_simplification",
                 "rule": "Replace hand-built route/load/category risk penalties with the searched global 0.65 cap only if the searched candidate matches or beats tail-trimmed on downstream tasks.",
                 "mechanism": "Internal delta proxies favor the simpler cap, but only downstream eval can tell whether risk penalties preserve useful specialization.",
+            },
+            {
+                "gate": "subspace_conflict_ablation",
+                "rule": "Apply the extra channel/chunk subspace shrink only if the subspace-scaled ablation matches or beats the unified mechanism candidate on the same downstream tasks.",
+                "mechanism": "The subspace probe isolates a small set of uncovered local expert conflicts; it should not become a global shrink rule unless behavior supports it.",
             },
             {
                 "gate": "endpoint_fallback",

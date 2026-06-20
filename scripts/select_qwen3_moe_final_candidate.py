@@ -569,7 +569,7 @@ def build_report(summary: dict[str, Any], table: pd.DataFrame) -> str:
     lines = [
         "# Qwen3 MoE Final Candidate Selection",
         "",
-        "这个 selector 在远端 vLLM eval 结果通过 bundle audit 后，对两个 source endpoint 和八个 same-shape Qwen3 MoE candidates 做最终选择。它不会只看内部 delta，也不会只看单个 unified 候选；candidate 必须同时通过 source dominance、task regression 和 checkpoint audit gate。",
+        "这个 selector 在远端 vLLM eval 结果通过 bundle audit 后，对两个 source endpoint 和全部 same-shape Qwen3 MoE candidates 做最终选择。它不会只看内部 delta，也不会只看单个 unified 候选；candidate 必须同时通过 source dominance、task regression 和 checkpoint audit gate。",
         "",
         f"- Status: `{summary['status']}`",
         f"- Selected: `{selection.get('selected_method')}`",

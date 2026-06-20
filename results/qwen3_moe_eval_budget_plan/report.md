@@ -3,13 +3,13 @@
 这份计划解决的是评测强度问题：现在 Qwen3 MoE gate 的 `64` examples 只适合 smoke，不足以支撑 final selector 的 Wilson confidence gate 和 paired prediction gate。
 
 - Status: `ready_for_budgeted_remote_vllm_eval`
-- Methods to evaluate: `12`
+- Methods to evaluate: `13`
 - Ready-to-host methods now: `10`
 - Current gate max examples: `64`
 - Recommended command max examples: `384`
-- Total current prompt budget: `3072`
-- Total recommended prompt budget: `18432`
-- Additional prompt budget: `15360`
+- Total current prompt budget: `3328`
+- Total recommended prompt budget: `19968`
+- Additional prompt budget: `16640`
 - Router calibration active / ready / plan-pruned caps: `2` / `0` / `2`
 
 ## Why This Budget
@@ -45,8 +45,9 @@ Router calibration: budget planning now reads the route-margin-gated calibration
 | 7 | `qwen3_moe_searched_no_gt065_max_retention_candidate` | `candidate` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
 | 8 | `qwen3_moe_layer_chunk_candidate` | `candidate` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
 | 9 | `qwen3_moe_unified_mechanism_candidate` | `candidate` | `ready_to_host` | 64 | 384 | 1280 | `not_run` |
-| 10 | `qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate` | `candidate` | `pending_materialization` | 64 | 384 | 1280 | `not_run` |
-| 11 | `qwen3_moe_router_calibrated_searched_no_gt065_margin_profile_candidate` | `candidate` | `pending_materialization` | 64 | 384 | 1280 | `not_run` |
+| 10 | `qwen3_moe_subspace_scaled_candidate` | `candidate` | `checkpoint_missing_until_materialized` | 64 | 384 | 1280 | `not_run` |
+| 11 | `qwen3_moe_router_calibrated_searched_no_gt065_cap001_candidate` | `candidate` | `pending_materialization` | 64 | 384 | 1280 | `not_run` |
+| 12 | `qwen3_moe_router_calibrated_searched_no_gt065_margin_profile_candidate` | `candidate` | `pending_materialization` | 64 | 384 | 1280 | `not_run` |
 
 ## Router Calibration Budget
 
@@ -70,6 +71,7 @@ Router calibration: budget planning now reads the route-margin-gated calibration
 | `layer_chunk_sensitivity` | `qwen3_moe_searched_no_gt065_max_retention_candidate` -> `qwen3_moe_layer_chunk_candidate` | 3072 | Do importance-guided layer/chunk coefficients improve the unified MoE rule beyond a uniform expert cap? |
 | `candidate_vs_sources` | `source_qwen3_30b_instruct` -> `qwen3_moe_unified_mechanism_candidate` | 3072 | Does any same-shape candidate avoid Pareto domination by the two source endpoints? |
 | `unified_mechanism_optimizer` | `qwen3_moe_layer_chunk_candidate` -> `qwen3_moe_unified_mechanism_candidate` | 3072 | Does the router/evidence/geometry-risk optimizer improve downstream behavior beyond the layer/chunk candidate? |
+| `expert_subspace_conflict_ablation` | `qwen3_moe_unified_mechanism_candidate` -> `qwen3_moe_subspace_scaled_candidate` | 3072 | Do uncovered high subspace-conflict experts need additional non-base shrink after the unified mechanism cap? |
 
 ## How To Run
 

@@ -1,8 +1,8 @@
 {
   "blocked_by_placeholder_count": 4,
-  "candidate_count": 15,
+  "candidate_count": 16,
   "completed_vllm_eval_count": 1,
-  "materialized_count": 8,
+  "materialized_count": 9,
   "outputs": {
     "readiness_csv": "results/checkpoint_materialization_readiness/candidate_readiness.csv",
     "report": "results/checkpoint_materialization_readiness/report.md",

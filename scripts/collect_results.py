@@ -3940,7 +3940,7 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "Qwen3 MoE mechanism-gated vLLM eval gate",
             "status": "complete",
-            "evidence": "results/qwen3_moe_mechanism_eval_gate/report.md turns two source endpoints and eight same-shape Qwen3 MoE candidates into mechanism tests, a one-model-at-a-time vLLM run script, and endpoint-fallback selection rules.",
+            "evidence": "results/qwen3_moe_mechanism_eval_gate/report.md turns two source endpoints and all registered same-shape Qwen3 MoE candidates into mechanism tests, a one-model-at-a-time vLLM run script, and endpoint-fallback selection rules.",
         },
         {
             "item": "Qwen3 MoE statistically powered vLLM eval budget",
@@ -3975,7 +3975,7 @@ def coverage_checklist() -> list[dict[str, str]]:
         {
             "item": "Qwen3 MoE final candidate selector",
             "status": "complete",
-            "evidence": "results/qwen3_moe_final_candidate_selection/report.md ranks all eight same-shape Qwen3 MoE candidates against both source endpoints after eval-bundle audit, with source-dominance, task-regression, score-confidence, paired-prediction, checkpoint-audit, and provisional-selection gates.",
+            "evidence": "results/qwen3_moe_final_candidate_selection/report.md ranks all registered same-shape Qwen3 MoE candidates against both source endpoints after eval-bundle audit, with source-dominance, task-regression, score-confidence, paired-prediction, checkpoint-audit, and provisional-selection gates.",
         },
         {
             "item": "Unified Dense/MoE average optimizer",

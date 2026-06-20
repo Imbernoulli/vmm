@@ -3,11 +3,11 @@
   "cases": [
     {
       "case": "complete",
-      "expected_scored_transition_count": 8,
+      "expected_scored_transition_count": 9,
       "expected_status": "complete",
       "passed": true,
       "regression_count": 0,
-      "scored_transition_count": 8,
+      "scored_transition_count": 9,
       "status": "complete"
     },
     {
@@ -21,11 +21,11 @@
     },
     {
       "case": "regression",
-      "expected_scored_transition_count": 8,
+      "expected_scored_transition_count": 9,
       "expected_status": "complete",
       "passed": true,
       "regression_count": 1,
-      "scored_transition_count": 8,
+      "scored_transition_count": 9,
       "status": "complete"
     }
   ],

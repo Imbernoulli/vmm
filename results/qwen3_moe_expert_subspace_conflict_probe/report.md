@@ -103,6 +103,7 @@ python scripts/write_same_shape_average_checkpoint.py --base /srv/home/bohanlyu/
 - `results/qwen3_moe_expert_subspace_conflict_probe/subspace_action_summary.csv`
 - `results/qwen3_moe_expert_subspace_conflict_probe/subspace_adjusted_group_rules.csv`
 - `results/qwen3_moe_expert_subspace_conflict_probe/subspace_adjusted_tensor_rules.txt`
+- `results/qwen3_moe_expert_subspace_conflict_probe/writer_command.txt`
 - `results/qwen3_moe_expert_subspace_conflict_probe/dry_run_command.txt`
 - `results/qwen3_moe_expert_subspace_conflict_probe/dry_run/merge_manifest.json`
 - `results/qwen3_moe_expert_subspace_conflict_probe/summary.json`

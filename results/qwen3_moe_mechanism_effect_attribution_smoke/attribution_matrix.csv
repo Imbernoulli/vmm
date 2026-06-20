@@ -1,4 +1,4 @@
 case,status,expected_status,scored_transition_count,expected_scored_transition_count,regression_count,passed
-complete,complete,complete,8,8,0,True
+complete,complete,complete,9,9,0,True
 partial,partial,partial,4,4,0,True
-regression,complete,complete,8,8,1,True
+regression,complete,complete,9,9,1,True

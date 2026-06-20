@@ -206,6 +206,15 @@ def default_candidates() -> list[dict[str, Any]]:
             "notes": "Unified mechanism optimizer: freeze router and shared attention, keep source-route expert weights, then apply router/evidence/geometry-risk caps selected under a retention constraint. This is now a distinct materialized checkpoint, not an alias of searched_no_gt065.",
         },
         {
+            "candidate_source": "results/qwen3_moe_expert_subspace_conflict_probe/writer_command.txt",
+            "method": "qwen3_moe_subspace_scaled_candidate",
+            "checkpoint_path": "results/checkpoints/qwen3_moe_subspace_scaled_candidate",
+            "tensor_parallel_size": 4,
+            "gpu": "0,1,2,3",
+            "materialization_status": "checkpoint_missing_until_subspace_scaled_ablation_materialized",
+            "notes": "Subspace-conflict ablation: start from the unified mechanism rules, then apply extra shrink only to uncovered high channel/chunk subspace-conflict experts. This candidate must be materialized and audited before vLLM selection can use it.",
+        },
+        {
             "candidate_source": "local_materialized_dense_baseline",
             "method": "qwen_0_5b_instruct_coder_uniform_average",
             "checkpoint_path": "results/checkpoints/qwen_0_5b_instruct_coder_uniform_average",

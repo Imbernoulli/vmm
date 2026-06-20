@@ -14,7 +14,7 @@
 - Qwen3 router margin fragility: high layers `24/48`，top `L17` score `0.7523`，min safe-lambda proxy `0.0197`。
 - Qwen3 router NLL probe: worst-NLL reduction `0.2214`，code gap to best source `-0.0139`。
 - Qwen3 router calibration: `awaiting_baseline_eval`。
-- Qwen3 final selection: `awaiting_source_eval`，eligible `0/8`。
+- Qwen3 final selection: `awaiting_source_eval`，eligible `0/9`。
 
 ## Mechanism Features
 
@@ -36,8 +36,8 @@
 | `moe` | `qwen3_unified_mechanism_optimizer` | `use_router_evidence_geometry_risk_caps` | 0.2273 | 0.6500 | selected = router_evidence_risk_s0.75; family = router_and_evidence_weighted_risk; retention = 0.9758; risk-weighted predicted rel delta = 0.2273; geometry-weighted predicted rel delta = 0.2184 |
 | `moe` | `qwen3_unified_materialized_audit` | `materialized_same_shape_tail_reduction` | 0.2396 | 0.2435 | audit status = passed; total relative norm = 0.2396; router changed = 0/48; layer/chunk->unified norm reduction = 0.0038; routed >0.65 reduction = 89 |
 | `moe` | `qwen3_router_calibration_nll_probe` | `router_dispatch_is_real_optimization_lever` | 0.2214 | 0.0000 | status = router_calibration_improves_linear_merge_but_needs_downstream_gate; linear worst NLL = 2.6355; router-cal worst NLL = 2.4140; worst reduction = 0.2214; code gap to best source = -0.0139 |
-| `moe` | `qwen3_router_calibration_gate` | `do_not_accept_router_delta_without_baseline_eval` | 0.0000 | 3.0000 | status = awaiting_baseline_eval; eligible router-cal candidates = 0/3; reason = Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps. |
-| `moe` | `qwen3_final_candidate_selection` | `await_matched_vllm_before_accepting_average` | 0.0000 | 8.0000 | status = awaiting_source_eval; eligible candidates = 0/8; reason = Both Qwen3 source endpoints must complete audited vLLM eval before final candidate selection. |
+| `moe` | `qwen3_router_calibration_gate` | `do_not_accept_router_delta_without_baseline_eval` | 0.0000 | 4.0000 | status = awaiting_baseline_eval; eligible router-cal candidates = 0/4; reason = Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps. |
+| `moe` | `qwen3_final_candidate_selection` | `await_matched_vllm_before_accepting_average` | 0.0000 | 9.0000 | status = awaiting_source_eval; eligible candidates = 0/9; reason = Both Qwen3 source endpoints must complete audited vLLM eval before final candidate selection. |
 
 ## Operations
 
@@ -51,7 +51,7 @@
 | `moe_straight_line_connectivity_gate` | `reject_unconditional_source_to_source_linear_interpolation` | use route/evidence/geometry-constrained same-shape candidates instead of a source-to-source midpoint | It treats model connectivity as measured evidence: a smooth-looking line is not accepted unless an interior point beats the source frontier. |
 | `moe_expert_delta_optimizer` | `apply retention-constrained router/evidence/geometry caps` | router_evidence_risk_s0.75 with hard cap 0.6500; layer/chunk->unified routed >0.65 reduction = 89 | It keeps useful Coder-route mass while shrinking high-risk routed expert deltas instead of using one global coefficient. |
 | `moe_router_calibration_gate` | `treat router calibration as a separately audited ablation` | nll_probe_worst_reduction=0.2214; awaiting_baseline_eval: Run the frozen-router searched_no_gt065 baseline eval before deciding whether router calibration helps. | It keeps router calibration as an active MoE-specific lever while still requiring source-dominance and task-regression gates before acceptance. |
-| `moe_candidate_gate` | `select only after audited downstream eval` | keep all eight Qwen3 candidates provisional until eval-bundle audit passes | It prevents structural cleanliness from being mistaken for actual downstream dominance. |
+| `moe_candidate_gate` | `select only after audited downstream eval` | keep all registered Qwen3 candidates provisional until eval-bundle audit passes | It prevents structural cleanliness from being mistaken for actual downstream dominance. |
 
 ## Literature Priors
 

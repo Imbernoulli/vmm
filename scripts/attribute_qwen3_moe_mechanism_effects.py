@@ -78,6 +78,12 @@ TRANSITIONS = [
         "to_method": "qwen3_moe_unified_mechanism_candidate",
         "mechanism": "apply router/evidence/geometry-risk optimizer under a retention constraint",
     },
+    {
+        "transition": "unified_mechanism_to_subspace_scaled",
+        "from_method": "qwen3_moe_unified_mechanism_candidate",
+        "to_method": "qwen3_moe_subspace_scaled_candidate",
+        "mechanism": "shrink only uncovered channel/chunk subspace-conflict experts beyond the unified cap",
+    },
 ]
 
 
@@ -313,7 +319,7 @@ def build_report(summary: dict[str, Any], transitions: pd.DataFrame) -> str:
     lines = [
         "# Qwen3 MoE Mechanism Effect Attribution",
         "",
-        "这个 attribution 把 Qwen3 MoE average 的机制链条拆成相邻对比：source frontier、route-guarded、audit-gated、trust-region、expert-only、tail-trimmed、searched cap-law 和 unified alias。只有通过 eval bundle audit 的 vLLM 结果才会进入 downstream score delta。",
+        "这个 attribution 把 Qwen3 MoE average 的机制链条拆成相邻对比：source frontier、route-guarded、audit-gated、trust-region、expert-only、tail-trimmed、searched cap-law、layer/chunk、unified mechanism 和 subspace-scaled ablation。只有通过 eval bundle audit 的 vLLM 结果才会进入 downstream score delta。",
         "",
         f"- Status: `{summary['status']}`",
         f"- Scored transitions: `{summary['scored_transition_count']}/{summary['transition_count']}`",
@@ -372,6 +378,7 @@ def synthetic_rows(case: str) -> dict[str, dict[str, Any]]:
         "qwen3_moe_searched_no_gt065_max_retention_candidate": (0.68, 0.50, [0.61, 0.64, 0.70, 0.60]),
         "qwen3_moe_layer_chunk_candidate": (0.69, 0.51, [0.62, 0.65, 0.70, 0.61]),
         "qwen3_moe_unified_mechanism_candidate": (0.70, 0.52, [0.63, 0.66, 0.70, 0.62]),
+        "qwen3_moe_subspace_scaled_candidate": (0.705, 0.525, [0.635, 0.665, 0.705, 0.625]),
     }
     if case == "regression":
         base_scores["qwen3_moe_expert_only_trust_region_candidate"] = (0.60, 0.38, [0.52, 0.54, 0.62, 0.50])
@@ -388,6 +395,7 @@ def synthetic_rows(case: str) -> dict[str, dict[str, Any]]:
         "qwen3_moe_searched_no_gt065_max_retention_candidate": (0.248, 0, 0, 0),
         "qwen3_moe_layer_chunk_candidate": (0.243, 0, 0, 0),
         "qwen3_moe_unified_mechanism_candidate": (0.240, 0, 0, 0),
+        "qwen3_moe_subspace_scaled_candidate": (0.239, 0, 0, 0),
     }
     rows: dict[str, dict[str, Any]] = {}
     for method in methods:
@@ -397,6 +405,7 @@ def synthetic_rows(case: str) -> dict[str, dict[str, Any]]:
             "qwen3_moe_searched_no_gt065_max_retention_candidate",
             "qwen3_moe_layer_chunk_candidate",
             "qwen3_moe_unified_mechanism_candidate",
+            "qwen3_moe_subspace_scaled_candidate",
         }:
             eval_usable = False
             avg = worst = None
@@ -433,9 +442,9 @@ def synthetic_rows(case: str) -> dict[str, dict[str, Any]]:
 
 def run_smoke_matrix(args: argparse.Namespace) -> dict[str, Any]:
     expected = {
-        "complete": ("complete", 8),
+        "complete": ("complete", 9),
         "partial": ("partial", 4),
-        "regression": ("complete", 8),
+        "regression": ("complete", 9),
     }
     rows = []
     for case, (expected_status, expected_scored) in expected.items():

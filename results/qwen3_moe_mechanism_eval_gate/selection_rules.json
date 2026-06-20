@@ -66,6 +66,11 @@
       "rule": "Replace hand-built route/load/category risk penalties with the searched global 0.65 cap only if the searched candidate matches or beats tail-trimmed on downstream tasks."
     },
     {
+      "gate": "subspace_conflict_ablation",
+      "mechanism": "The subspace probe isolates a small set of uncovered local expert conflicts; it should not become a global shrink rule unless behavior supports it.",
+      "rule": "Apply the extra channel/chunk subspace shrink only if the subspace-scaled ablation matches or beats the unified mechanism candidate on the same downstream tasks."
+    },
+    {
       "gate": "endpoint_fallback",
       "mechanism": "A unified algorithm should reject bad averages; same-shape endpoint fallback is still a valid target model.",
       "rule": "If every candidate is Pareto-dominated by a source endpoint, output the best same-shape endpoint/no-average."

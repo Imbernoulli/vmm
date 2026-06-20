@@ -2,7 +2,7 @@
   "current_selection": {
     "best_source_by_avg": null,
     "best_source_by_worst": null,
-    "candidate_count": 8,
+    "candidate_count": 9,
     "candidates_complete": false,
     "eligible_candidate_count": 0,
     "paired_alpha": 0.05,

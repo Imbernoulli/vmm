@@ -27,7 +27,8 @@
     "report": "results/qwen3_moe_expert_subspace_conflict_probe/report.md",
     "subspace_adjusted_group_rules": "results/qwen3_moe_expert_subspace_conflict_probe/subspace_adjusted_group_rules.csv",
     "subspace_adjusted_tensor_rules": "results/qwen3_moe_expert_subspace_conflict_probe/subspace_adjusted_tensor_rules.txt",
-    "summary": "results/qwen3_moe_expert_subspace_conflict_probe/summary.json"
+    "summary": "results/qwen3_moe_expert_subspace_conflict_probe/summary.json",
+    "writer_command": "results/qwen3_moe_expert_subspace_conflict_probe/writer_command.txt"
   },
   "projection_tensor_count": 18432,
   "route_important_high_subspace_conflict_expert_count": 242,

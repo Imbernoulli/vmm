@@ -556,7 +556,7 @@ def build_decisions(
             "stage": "moe_candidate_gate",
             "operation": "select only after audited downstream eval",
             "condition": "structural probes can rank risk, but source dominance and task regression need vLLM scores",
-            "selected_action": "keep all eight Qwen3 candidates provisional until eval-bundle audit passes",
+            "selected_action": "keep all registered Qwen3 candidates provisional until eval-bundle audit passes",
             "why_it_should_improve": "It prevents structural cleanliness from being mistaken for actual downstream dominance.",
             "same_shape_invariant": "all candidates remain same-shape Qwen3 MoE checkpoints",
         },

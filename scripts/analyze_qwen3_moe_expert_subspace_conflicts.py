@@ -628,6 +628,7 @@ def build_report(
             f"- `{summary['outputs']['action_summary']}`",
             f"- `{summary['outputs']['subspace_adjusted_group_rules']}`",
             f"- `{summary['outputs']['subspace_adjusted_tensor_rules']}`",
+            f"- `{summary['outputs']['writer_command']}`",
             f"- `{summary['outputs']['dry_run_command']}`",
             f"- `{summary['outputs']['dry_run_manifest']}`",
             f"- `{summary['outputs']['summary']}`",
@@ -652,6 +653,7 @@ def write_outputs(
     adjusted_group_path = output_dir / "subspace_adjusted_group_rules.csv"
     adjusted_rules_path = output_dir / "subspace_adjusted_tensor_rules.txt"
     dry_run_command_path = output_dir / "dry_run_command.txt"
+    writer_command_path = output_dir / "writer_command.txt"
     dry_run_output_dir = output_dir / "dry_run"
     summary_path = output_dir / "summary.json"
     report_path = output_dir / "report.md"
@@ -679,6 +681,7 @@ def write_outputs(
     writer_command = format_command(
         build_writer_args(args, adjusted_rules_path, args.checkpoint_output_dir, dry_run=False)
     )
+    writer_command_path.write_text(writer_command + "\n", encoding="utf-8")
     dry_run_command_parts = build_writer_args(args, adjusted_rules_path, dry_run_output_dir, dry_run=True)
     dry_run_command = format_command(dry_run_command_parts)
     dry_run_command_path.write_text(dry_run_command + "\n", encoding="utf-8")
@@ -733,6 +736,7 @@ def write_outputs(
             "action_summary": rel(action_path),
             "subspace_adjusted_group_rules": rel(adjusted_group_path),
             "subspace_adjusted_tensor_rules": rel(adjusted_rules_path),
+            "writer_command": rel(writer_command_path),
             "dry_run_command": rel(dry_run_command_path),
             "dry_run_manifest": dry_run_summary["dry_run_manifest"],
             "summary": rel(summary_path),
